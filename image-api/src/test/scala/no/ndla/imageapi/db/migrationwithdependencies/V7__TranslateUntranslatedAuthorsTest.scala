@@ -10,11 +10,12 @@ package no.ndla.imageapi.db.migrationwithdependencies
 import no.ndla.imageapi.db.migration.V5_Author
 import no.ndla.imageapi.db.migrationwithdependencies.V7__TranslateUntranslatedAuthors
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.json4s.DefaultFormats
 
 class V7__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
 
-  val migration        = new V7__TranslateUntranslatedAuthors(props)
-  implicit val formats = org.json4s.DefaultFormats
+  val migration                             = new V7__TranslateUntranslatedAuthors(props)
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {
     val metaString =

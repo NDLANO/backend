@@ -20,7 +20,7 @@ object OEmbedConverterService {
 
     queryParamsToTransfer match {
       case Vector() => oembed
-      case params =>
+      case _ =>
         val newHtml = oembed.html
           .map(Jsoup.parseBodyFragment)
           .map(document => {
@@ -42,9 +42,9 @@ object OEmbedConverterService {
     val filtered = filterQueryNames(url.replaceAll("&amp;", "&"), Set("v"))
 
     filtered.path.parts.toList match {
-      case "embed" :: videoId :: tail => idToYoutubeUrl(videoId)
-      case "v" :: videoId :: tail     => idToYoutubeUrl(videoId)
-      case _                          => filtered
+      case "embed" :: videoId :: _ => idToYoutubeUrl(videoId)
+      case "v" :: videoId :: _     => idToYoutubeUrl(videoId)
+      case _                       => filtered
     }
   }
 

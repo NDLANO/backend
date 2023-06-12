@@ -14,7 +14,7 @@ import org.scalatra._
 class BaseHealthController extends ScalatraServlet with Warmup {
 
   before() {
-    RequestInfo.fromRequest(request).setRequestInfo()
+    RequestInfo.fromRequest(request).setThreadContextRequestInfo()
   }
 
   protected def doIfWarmedUp(func: => Any): Any = {
@@ -34,5 +34,5 @@ class BaseHealthController extends ScalatraServlet with Warmup {
 
   get("/") {
     Ok()
-  }
+  }: Unit
 }

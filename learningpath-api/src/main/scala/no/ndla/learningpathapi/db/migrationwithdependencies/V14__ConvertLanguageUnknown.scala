@@ -23,11 +23,9 @@ class V14__ConvertLanguageUnknown(properties: LearningpathApiProperties)
   override val props            = properties
   implicit val formats: Formats = DBLearningStep.jsonEncoder
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allLearningPaths
         .map { case (id, document) => (id, convertLearningPathDocument(document)) }
         .foreach { case (id, document) => updateLearningPath(id, document) }
@@ -36,7 +34,6 @@ class V14__ConvertLanguageUnknown(properties: LearningpathApiProperties)
         .map { case (id, document) => (id, convertLearningStepDocument(document)) }
         .foreach { case (id, document) => updateLearningStep(id, document) }
     }
-  }
 
   def allLearningPaths(implicit session: DBSession): Seq[(Long, String)] = {
     sql"select id, document from learningpaths"

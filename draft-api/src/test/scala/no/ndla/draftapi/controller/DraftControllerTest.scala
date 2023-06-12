@@ -35,7 +35,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   val invalidArticle    = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""    // typo in "titlee"
   val invalidNewArticle = """{ "language": "nb", "content": "<section><h2>Hi</h2></section>" }""" // missing title
   val lang              = "nb"
-  val articleId         = 1
+  val articleId         = 1L
 
   override def beforeEach(): Unit = {
     when(user.getUser).thenReturn(TestData.userWithWriteAccess)

@@ -1446,7 +1446,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That updating config returns success if all is good") {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
-    val Success(config) = service.updateConfig(
+    val Success(_) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
       UserInfo("Kari", Set(LearningPathRole.ADMIN))

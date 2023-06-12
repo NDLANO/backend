@@ -17,16 +17,13 @@ import scalikejdbc.{DB, DBSession, _}
 class V8__UpdateLicenses extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      imagesToUpdate.map { case (id, document) =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      imagesToUpdate.foreach { case (id, document) =>
         update(convertDocument(document), id)
       }
     }
-  }
 
   def imagesToUpdate(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, metadata from imagemetadata"

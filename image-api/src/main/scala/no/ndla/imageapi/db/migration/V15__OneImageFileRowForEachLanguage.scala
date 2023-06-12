@@ -17,15 +17,12 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 
 class V15__OneImageFileRowForEachLanguage extends BaseJavaMigration {
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      imagesToUpdate.map(image => convertImageUpdate(image))
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      imagesToUpdate.foreach(image => convertImageUpdate(image))
     }
 
-  }
   case class V13__FileRow(
       id: Long,
       fileName: String,

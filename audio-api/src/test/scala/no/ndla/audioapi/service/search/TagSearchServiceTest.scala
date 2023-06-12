@@ -76,7 +76,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     super.beforeAll()
-    tagIndexService.createIndexWithName(props.AudioTagSearchIndex).get
+    tagIndexService.createIndexAndAlias().get
 
     audiosToIndex.foreach(a => tagIndexService.indexDocument(a).get)
 

@@ -58,7 +58,7 @@ trait TestData {
       )
     private val today = LocalDateTime.now().withNano(0)
 
-    val (articleId, externalId) = (1, "751234")
+    val (articleId, externalId) = (1L, "751234")
 
     val sampleArticleV2 = api.ArticleV2(
       id = 1,

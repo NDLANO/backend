@@ -162,9 +162,9 @@ trait UpdateService {
       val sRes = searchIndexService.indexDocument(learningPath)
 
       if (learningPath.isPublished) {
-        searchApiClient.indexLearningPathDocument(learningPath)
+        searchApiClient.indexLearningPathDocument(learningPath): Unit
       } else {
-        deleteIsBasedOnReference(learningPath)
+        deleteIsBasedOnReference(learningPath): Unit
       }
 
       sRes.flatMap(lp => taxononyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false))
@@ -287,7 +287,7 @@ trait UpdateService {
               validated match {
                 case Failure(ex) => Failure(ex)
                 case Success(toUpdate) =>
-                  learningStepValidator.validate(toUpdate, allowUnknownLanguage = true)
+                  learningStepValidator.validate(toUpdate, allowUnknownLanguage = true).??
 
                   val (updatedStep, updatedPath) = inTransaction { implicit session =>
                     val updatedStep =
@@ -409,7 +409,7 @@ trait UpdateService {
                   def addOrSubtract(seqNo: Int): Int = if (from > to) seqNo + 1 else seqNo - 1
 
                   inTransaction { implicit session =>
-                    learningPathRepository.updateLearningStep(learningStep.copy(seqNo = seqNo))
+                    learningPathRepository.updateLearningStep(learningStep.copy(seqNo = seqNo)): Unit
                     toUpdate.foreach(step => {
                       learningPathRepository.updateLearningStep(step.copy(seqNo = addOrSubtract(step.seqNo)))
                     })
@@ -875,7 +875,7 @@ trait UpdateService {
       val session = folderRepository.getSession(true)
       folderRepository
         .foldersWithFeideAndParentID(None, feideId)(session)
-        .map(rootFolders => performSort(rootFolders, sortRequest, feideId))
+        .flatMap(rootFolders => performSort(rootFolders, sortRequest, feideId))
     }
 
     private def sortNonRootFolderResources(
@@ -884,7 +884,7 @@ trait UpdateService {
         feideId: FeideID
     )(implicit
         session: DBSession
-    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
+    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).flatMap {
       case FolderAndDirectChildren(_, _, resources) => performSort(resources, sortRequest, feideId)
     }
 
@@ -894,7 +894,7 @@ trait UpdateService {
         feideId: FeideID
     )(implicit
         session: DBSession
-    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
+    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).flatMap {
       case FolderAndDirectChildren(_, subfolders, _) => performSort(subfolders, sortRequest, feideId)
     }
 
@@ -905,7 +905,7 @@ trait UpdateService {
     ): Try[Unit] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       val feideId                     = feideApiClient.getFeideID(feideAccessToken).?
-      canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).?
+      canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).??
       folderSortObject match {
         case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
         case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)

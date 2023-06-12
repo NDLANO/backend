@@ -9,6 +9,7 @@ package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.mockito.Strictness
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import java.io.ByteArrayInputStream
@@ -17,17 +18,17 @@ import scala.util.{Failure, Success}
 
 class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
   import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
-  implicit val swagger = new ImageSwagger
-  val imageName        = "ndla_logo.jpg"
-  val imageGifName     = "ndla_logo.gif"
-  val imageSvgName     = "logo.svg"
+  implicit val swagger: ImageSwagger = new ImageSwagger
+  val imageName                      = "ndla_logo.jpg"
+  val imageGifName                   = "ndla_logo.gif"
+  val imageSvgName                   = "logo.svg"
 
   override val imageConverter = new ImageConverter
   lazy val controller         = new RawController
   addServlet(controller, "/*")
 
-  val id    = 1
-  val idGif = 1
+  val id    = 1L
+  val idGif = 1L
 
   override def beforeEach() = {
     when(imageRepository.withId(id)).thenReturn(Some(TestData.bjorn))
@@ -46,7 +47,8 @@ class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironmen
   }
 
   test("That GET /image.jpg returns 404 if image was not found") {
-    when(imageStorage.get(any[String])).thenReturn(Failure(mock[ImageNotFoundException](withSettings.lenient())))
+    when(imageStorage.get(any[String]))
+      .thenReturn(Failure(mock[ImageNotFoundException](withSettings.strictness(Strictness.Lenient))))
     get(s"/$imageName") {
       status should equal(404)
     }
@@ -107,7 +109,8 @@ class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironmen
   }
 
   test("That GET /id/1 returns 404 if image was not found") {
-    when(imageStorage.get(any[String])).thenReturn(Failure(mock[ImageNotFoundException](withSettings.lenient())))
+    when(imageStorage.get(any[String]))
+      .thenReturn(Failure(mock[ImageNotFoundException](withSettings.strictness(Strictness.Lenient))))
 
     get(s"/id/$id") {
       status should equal(404)

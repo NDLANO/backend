@@ -28,7 +28,7 @@ class TagIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer 
   override val searchConverterService = new SearchConverterService
 
   test("That indexing does not fail if no tags are present") {
-    tagIndexService.createIndexWithName(props.AudioTagSearchIndex)
+    tagIndexService.createIndexAndAlias()
 
     val audio = TestData.sampleAudio.copy(tags = Seq.empty)
     tagIndexService.indexDocument(audio).isSuccess should be(true)

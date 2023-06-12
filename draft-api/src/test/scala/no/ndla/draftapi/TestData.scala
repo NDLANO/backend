@@ -62,7 +62,7 @@ object TestData {
   )
   val today: LocalDateTime = LocalDateTime.now()
 
-  val (articleId, externalId) = (1, "751234")
+  val (articleId, externalId) = (1L, "751234")
 
   val sampleArticleV2: api.Article = api.Article(
     id = 1,

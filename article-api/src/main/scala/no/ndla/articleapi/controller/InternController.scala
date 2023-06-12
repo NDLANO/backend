@@ -50,16 +50,16 @@ trait InternController {
       val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
 
       Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
-        case (Success(articleResult)) =>
+        case Success(articleResult) =>
           val result =
             s"Completed indexing of ${articleResult.totalIndexed} articles ${articleResult.millisUsed} ms."
           logger.info(result)
           Ok(result)
-        case (Failure(articleFail)) =>
+        case Failure(articleFail) =>
           logger.warn(articleFail.getMessage, articleFail)
           InternalServerError(articleFail.getMessage)
       }
-    }
+    }: Unit
 
     delete("/index") {
       implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
@@ -87,11 +87,11 @@ trait InternController {
         Ok(body = s"Deleted ${pluralIndex(successes.length)}")
       }
 
-    }
+    }: Unit
 
     get("/ids") {
       articleRepository.getAllIds
-    }
+    }: Unit
 
     get("/id/:external_id") {
       val externalId = params("external_id")
@@ -99,7 +99,7 @@ trait InternController {
         case Some(id) => id
         case None     => NotFound()
       }
-    }
+    }: Unit
 
     get("/articles") {
       // Dumps Api articles
@@ -109,7 +109,7 @@ trait InternController {
       val fallback = booleanOrDefault("fallback", default = false)
 
       readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
-    }
+    }: Unit
 
     get("/dump/article/?") {
       // Dumps Domain articles
@@ -117,7 +117,7 @@ trait InternController {
       val pageSize = intOrDefault("page-size", 250)
 
       readService.getArticleDomainDump(pageNo, pageSize)
-    }
+    }: Unit
 
     get("/dump/article/:article_id") {
       val articleId = long("article_id")
@@ -125,7 +125,7 @@ trait InternController {
         case Some(value) => Ok(value)
         case None        => NotFound()
       }
-    }
+    }: Unit
 
     post("/validate/article") {
       val importValidate = booleanOrDefault("import_validate", default = false)
@@ -134,7 +134,7 @@ trait InternController {
         case Success(_)  => article
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     post("/article/:id") {
       authRole.assertHasWritePermission()
@@ -153,7 +153,7 @@ trait InternController {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     delete("/article/:id/") {
       authRole.assertHasWritePermission()
@@ -162,7 +162,7 @@ trait InternController {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     post("/article/:id/unpublish/") {
       authRole.assertHasWritePermission()
@@ -171,7 +171,7 @@ trait InternController {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     patch("/partial-publish/:article_id") {
       authRole.assertHasWritePermission()
@@ -184,6 +184,6 @@ trait InternController {
         case Failure(ex)         => errorHandler(ex)
         case Success(apiArticle) => Ok(apiArticle)
       }
-    }
+    }: Unit
   }
 }

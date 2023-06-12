@@ -16,6 +16,7 @@ import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.network.tapir.TapirServer
 import org.mockito.ArgumentMatchers._
+import org.mockito.Strictness
 import sttp.client3.quick._
 
 import scala.concurrent.duration.Duration
@@ -26,8 +27,10 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
   val controller      = new AudioController
 
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer("AudioControllerTest", serverPort, app, enableMelody = false)()
+    val app = Routes.build(List(controller))
+    val server = TapirServer("AudioControllerTest", serverPort, app, enableMelody = false) {
+      Thread.sleep(1000)
+    }
     server.runInBackground()
     blockUntil(() => server.isReady)
 
@@ -79,6 +82,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
         .body(Map("metadata" -> sampleNewAudioMeta))
+        .readTimeout(Duration.Inf)
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
     )
     response.code.code should be(422)
@@ -117,7 +121,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
-    val runtimeMock = mock[RuntimeException](withSettings.lenient())
+    val runtimeMock = mock[RuntimeException](withSettings.strictness(Strictness.Lenient))
     doNothing.when(runtimeMock).printStackTrace()
     when(runtimeMock.getMessage).thenReturn("Something (not really) wrong (this is a test hehe)")
 

@@ -164,14 +164,14 @@ trait StateTransitionRules {
     ): IO[Try[domain.Concept]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user)
       val requestInfo                     = RequestInfo.fromThreadContext()
-      IO {
-        requestInfo.setRequestInfo()
-        convertedArticle.flatMap(conceptBeforeSideEffect => {
-          sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {
-            accumulatedConcept.flatMap(c => sideEffect(c, user))
+      requestInfo.setRequestInfo() >>
+        IO {
+          convertedArticle.flatMap(conceptBeforeSideEffect => {
+            sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {
+              accumulatedConcept.flatMap(c => sideEffect(c, user))
+            })
           })
-        })
-      }
+        }
     }
   }
 }

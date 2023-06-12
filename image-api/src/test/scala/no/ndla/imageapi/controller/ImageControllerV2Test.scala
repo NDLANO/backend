@@ -23,6 +23,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonParser
 import org.mockito.ArgumentMatchers._
+import org.mockito.Strictness
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -49,7 +50,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   addServlet(controller, "/*")
 
   case class PretendFile(content: Array[Byte], contentType: String, fileName: String) extends Uploadable {
-    override def contentLength: Long = content.length
+    override def contentLength: Long = content.length.toLong
   }
 
   val sampleUploadFile = PretendFile(Array[Byte](-1, -40, -1), "image/jpeg", "image.jpg")
@@ -281,7 +282,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
 
   test("That POST / returns 500 if an unexpected error occurs") {
     reset(writeService)
-    val exceptionMock = mock[RuntimeException](withSettings.lenient())
+    val exceptionMock = mock[RuntimeException](withSettings.strictness(Strictness.Lenient))
     when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem]))
       .thenReturn(Failure(exceptionMock))
 

@@ -75,7 +75,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         .body(body)
         .header("Content-Type", "application/json", replaceExisting = true)
         .header("Authorization", s"Bearer ${prop(s"SLACK_TOKEN")}")
-    )
+    ): Unit
   }
 
   def doStandaloneIndexing(): Nothing = {

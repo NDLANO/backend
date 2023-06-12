@@ -52,7 +52,7 @@ trait SeriesSearchService {
 
       val fullSearch = settings.query match {
         case Some(query) =>
-          val languageSearch = (field: String, boost: Float) => {
+          val languageSearch = (field: String, boost: Double) => {
             languageSpecificSearch(
               field,
               settings.language,

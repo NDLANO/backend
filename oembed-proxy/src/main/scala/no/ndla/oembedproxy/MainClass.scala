@@ -27,5 +27,5 @@ class MainClass(override val props: OEmbedProxyProperties) extends NdlaTapirMain
   }
 
   override def beforeStart(): Unit =
-    componentRegistry.providerService.loadProviders()
+    componentRegistry.providerService.loadProviders(): Unit
 }

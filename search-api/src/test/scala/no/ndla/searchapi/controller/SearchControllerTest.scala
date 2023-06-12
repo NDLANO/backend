@@ -15,6 +15,7 @@ import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
+import org.mockito.Strictness
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import java.time.{LocalDateTime, Month}
@@ -94,13 +95,13 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, Some(newValidScrollId))
 
-    when(multiSearchService.scroll(eqTo(validScrollId), eqTo("nn"), eqTo(true))).thenReturn(Success(multiResult))
+    when(multiSearchService.scroll(eqTo(validScrollId), eqTo("nn"))).thenReturn(Success(multiResult))
     get(s"/test/?search-context=$validScrollId&language=nn&fallback=true") {
       status should equal(200)
       response.headers("search-context").head should be(newValidScrollId)
     }
 
-    verify(multiSearchService, times(1)).scroll(eqTo(validScrollId), eqTo("nn"), eqTo(true))
+    verify(multiSearchService, times(1)).scroll(eqTo(validScrollId), eqTo("nn"))
   }
 
   test("That /editorial/ scrolls if scrollId is specified") {
@@ -112,14 +113,14 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, Some(newValidScrollId))
 
-    when(multiDraftSearchService.scroll(eqTo(validScrollId), eqTo("nn"), eqTo(true))).thenReturn(Success(multiResult))
+    when(multiDraftSearchService.scroll(eqTo(validScrollId), eqTo("nn"))).thenReturn(Success(multiResult))
     when(user.getUser).thenReturn(UserInfo("SomeId", Set(Role.DRAFTWRITE)))
     get(s"/test/editorial/?search-context=$validScrollId&language=nn&fallback=true") {
       status should equal(200)
       response.headers("search-context").head should be(newValidScrollId)
     }
 
-    verify(multiDraftSearchService, times(1)).scroll(eqTo(validScrollId), eqTo("nn"), eqTo(true))
+    verify(multiDraftSearchService, times(1)).scroll(eqTo(validScrollId), eqTo("nn"))
   }
 
   test("That /editorial/ returns access denied if user does not have drafts:write role") {
@@ -152,9 +153,9 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
         sort = Sort.ByRelevanceDesc
       )
 
-    verify(multiDraftSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
+    verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
     verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
-    verify(multiSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
+    verify(multiSearchService, times(0)).scroll(any[String], any[String])
     verify(multiSearchService, times(0)).matchingQuery(any[SearchSettings])
 
   }
@@ -182,9 +183,9 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
         sort = Sort.ByRelevanceDesc
       )
 
-    verify(multiDraftSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
+    verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
     verify(multiDraftSearchService, times(0)).matchingQuery(any[MultiDraftSearchSettings])
-    verify(multiSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
+    verify(multiSearchService, times(0)).scroll(any[String], any[String])
     verify(multiSearchService, times(1)).matchingQuery(expectedSettings)
 
   }
@@ -234,7 +235,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("That retrieving datetime strings from request works") {
-    val requestMock = mock[HttpServletRequest](withSettings.lenient())
+    val requestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
 
     val expectedDate = LocalDateTime.of(2025, Month.JANUARY, 2, 13, 39, 5)
 

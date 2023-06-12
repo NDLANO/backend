@@ -87,10 +87,10 @@ trait WriteService {
       article.id match {
         case None => Failure(new IllegalStateException("No id found for article when indexing. This is a bug."))
         case Some(articleId) =>
-          searchApiClient.indexDraft(article)(ec)
-          articleIndexService.indexAsync(articleId, article)(ec)
-          tagIndexService.indexAsync(articleId, article)(ec)
-          grepCodesIndexService.indexAsync(articleId, article)(ec)
+          searchApiClient.indexDraft(article)(ec): Unit
+          articleIndexService.indexAsync(articleId, article)(ec): Unit
+          tagIndexService.indexAsync(articleId, article)(ec): Unit
+          grepCodesIndexService.indexAsync(articleId, article)(ec): Unit
           Success(())
       }
 
@@ -206,7 +206,7 @@ trait WriteService {
       contentValidator.validateAgreement(domainAgreement, preExistingErrors = apiErrors) match {
         case Success(_) =>
           val agreement = agreementRepository.insert(domainAgreement)
-          agreementIndexService.indexDocument(agreement)
+          agreementIndexService.indexDocument(agreement): Unit
           Success(converterService.toApiAgreement(agreement))
         case Failure(exception) => Failure(exception)
       }
@@ -844,7 +844,7 @@ trait WriteService {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => id -> Failure(api.NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
         case Some(article) =>
-          partialPublish(article, articleFieldsToUpdate, language)
+          partialPublish(article, articleFieldsToUpdate, language): Unit
           id -> Success(article)
       }
 
@@ -875,7 +875,7 @@ trait WriteService {
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
           val requestInfo    = RequestInfo.fromThreadContext()
           val fut = Future {
-            requestInfo.setRequestInfo()
+            requestInfo.setThreadContextRequestInfo()
             articleApiClient.partialPublishArticle(id, partialArticle)
           }
 
@@ -901,7 +901,7 @@ trait WriteService {
 
       val futures = partialBulk.articleIds.map(id =>
         Future {
-          requestInfo.setRequestInfo()
+          requestInfo.setThreadContextRequestInfo()
           partialPublish(id, partialBulk.fields, language)
         }
       )

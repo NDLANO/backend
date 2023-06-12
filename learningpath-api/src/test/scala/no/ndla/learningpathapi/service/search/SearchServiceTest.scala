@@ -33,8 +33,7 @@ class SearchServiceTest
     super.withFixture(test)
   }
 
-  override val searchConverterService: SearchConverterService =
-    new SearchConverterService
+  override val searchConverterService: SearchConverterService = new SearchConverterService
   override val searchIndexService: SearchIndexService = new SearchIndexService {
     override val indexShards: Int = 1 // 1 shard for accurate scoring in tests
   }
@@ -75,17 +74,17 @@ class SearchServiceTest
     status = StepStatus.ACTIVE
   )
 
-  val PenguinId   = 1
-  val BatmanId    = 2
-  val DonaldId    = 3
-  val UnrelatedId = 4
-  val EnglandoId  = 5
-  val BrumleId    = 6
+  val PenguinId   = 1L
+  val BatmanId    = 2L
+  val DonaldId    = 3L
+  val UnrelatedId = 4L
+  val EnglandoId  = 5L
+  val BrumleId    = 6L
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      searchIndexService.createIndexWithName(props.SearchIndex)
+      searchIndexService.createIndexAndAlias().get
 
       doReturn(api.Author("Forfatter", "En eier"), Nil: _*).when(converterService).asAuthor(any[NdlaUserName])
 

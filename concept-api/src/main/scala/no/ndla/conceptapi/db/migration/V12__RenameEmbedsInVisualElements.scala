@@ -21,15 +21,12 @@ import scalikejdbc.{DB, DBSession, _}
 class V12__RenameEmbedsInVisualElements extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateConcepts()
       migratePublishedConcepts()
     }
-  }
 
   def migratePublishedConcepts()(implicit session: DBSession): Unit = {
     val count        = countAllPublishedConcepts.get
@@ -37,8 +34,8 @@ class V12__RenameEmbedsInVisualElements extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allPublishedConcepts(offset * 1000).map { case (id, document) =>
-        updatePublishedConcept(convertToNewConcept(document, id), id)
+      allPublishedConcepts(offset * 1000).foreach { case (id, document) =>
+        updatePublishedConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -51,8 +48,8 @@ class V12__RenameEmbedsInVisualElements extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allConcepts(offset * 1000).map { case (id, document) =>
-        updateConcept(convertToNewConcept(document, id), id)
+      allConcepts(offset * 1000).foreach { case (id, document) =>
+        updateConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -120,7 +117,7 @@ class V12__RenameEmbedsInVisualElements extends BaseJavaMigration {
     doc
       .select("embed")
       .forEach(embed => {
-        embed.tagName("ndlaembed")
+        embed.tagName("ndlaembed"): Unit
 
       })
     jsoupDocumentToString(doc)
@@ -135,7 +132,7 @@ class V12__RenameEmbedsInVisualElements extends BaseJavaMigration {
     )
   }
 
-  def convertToNewConcept(document: String, id: Long): String = {
+  def convertToNewConcept(document: String): String = {
     val concept = parse(document)
     val newConcept = concept
       .mapField {

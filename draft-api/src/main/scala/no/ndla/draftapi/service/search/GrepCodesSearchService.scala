@@ -43,12 +43,6 @@ trait GrepCodesSearchService {
       response.hits.hits.toList.map(hit => read[SearchableGrepCode](hit.sourceAsString).grepCode)
     }
 
-    def all(
-        language: String,
-        page: Int,
-        pageSize: Int
-    ): Try[LanguagelessSearchResult[String]] = executeSearch(page, pageSize, boolQuery())
-
     def matchingQuery(query: String, page: Int, pageSize: Int): Try[LanguagelessSearchResult[String]] = {
 
       val fullQuery = boolQuery()

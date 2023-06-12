@@ -10,11 +10,10 @@ package no.ndla.network.scalatra
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.RequestLogger.afterRequestLogString
-import no.ndla.common.configuration.BaseProps
 import no.ndla.network.model.RequestInfo
 import org.eclipse.jetty.server.{Request, RequestLog, Response}
 
-class NdlaRequestLogger[PROPS <: BaseProps](props: PROPS) extends RequestLog with StrictLogging {
+class NdlaRequestLogger() extends RequestLog with StrictLogging {
 
   override def log(request: Request, response: Response): Unit = {
     if (request.getRequestURI == "/health") return // Logging health-endpoints are very noisy

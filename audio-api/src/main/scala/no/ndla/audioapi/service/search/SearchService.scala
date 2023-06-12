@@ -53,7 +53,7 @@ trait SearchService {
         searchField: String,
         language: Option[String],
         query: String,
-        boost: Float,
+        boost: Double,
         fallback: Boolean
     ): Query = {
       val searchLanguage = language match {

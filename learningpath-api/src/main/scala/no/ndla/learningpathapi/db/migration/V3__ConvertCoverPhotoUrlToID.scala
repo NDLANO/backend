@@ -19,14 +19,11 @@ class V3__ConvertCoverPhotoUrlToID extends BaseJavaMigration {
 
   implicit val formats = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allLearningPaths.flatMap(convertCoverPhotoUrl).foreach(update)
     }
-  }
 
   def allLearningPaths(implicit session: DBSession): List[V3_DBLearningPath] = {
     sql"select id, document from learningpaths"

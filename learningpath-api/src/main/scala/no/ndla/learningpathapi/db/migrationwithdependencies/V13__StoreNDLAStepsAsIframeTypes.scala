@@ -30,14 +30,9 @@ class V13__StoreNDLAStepsAsIframeTypes(props: LearningpathApiProperties) extends
   import props.{ApiGatewayHost, NdlaFrontendHost, NdlaFrontendProtocol}
   implicit val formats: Formats = org.json4s.DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      migrateLearningSteps
-    }
-  }
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session => migrateLearningSteps }
 
   def migrateLearningSteps(implicit session: DBSession): Unit = {
 
@@ -50,12 +45,10 @@ class V13__StoreNDLAStepsAsIframeTypes(props: LearningpathApiProperties) extends
     val futs = mutable.ListBuffer[Future[Unit]]()
 
     while (numPagesLeft > 0) {
-      allLearningSteps(offset * 1000).map {
-        // TODO: kanskje future på noe måte
-        case (id, document) =>
-          futs += Future {
-            updateLearningStep(migrateLearningStepDocument(document), id)(session)
-          }
+      allLearningSteps(offset * 1000).foreach { case (id, document) =>
+        futs += Future {
+          updateLearningStep(migrateLearningStepDocument(document), id)(session): Unit
+        }
       }
       numPagesLeft -= 1
       offset += 1

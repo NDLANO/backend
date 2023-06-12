@@ -76,7 +76,7 @@ trait ConfigController {
       )
     ) {
       withConfigKey(readService.getConfig)
-    }
+    }: Unit
 
     post(
       "/:config_key",
@@ -101,7 +101,7 @@ trait ConfigController {
           case Failure(ex) => errorHandler(ex)
         }
       })
-    }
+    }: Unit
 
   }
 }

@@ -62,7 +62,7 @@ trait InternController {
         case Some(id) => id.toString
         case None     => NotFound()
       }
-    }
+    }: Unit
 
     post("/index") {
       val numShards = intOrNone("numShards")
@@ -76,7 +76,7 @@ trait InternController {
           logger.warn(f.getMessage, f)
           InternalServerError(f.getMessage)
       }
-    }
+    }: Unit
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
@@ -100,7 +100,7 @@ trait InternController {
             Ok(body = s"Deleted ${pluralIndex(successes.length)}")
           }
       }
-    }
+    }: Unit
 
     get("/dump/learningpath/?") {
       val pageNo               = intOrDefault("page", 1)
@@ -108,7 +108,7 @@ trait InternController {
       val onlyIncludePublished = booleanOrDefault("only-published", true)
 
       readService.getLearningPathDomainDump(pageNo, pageSize, onlyIncludePublished)
-    }
+    }: Unit
 
     get("/dump/learningpath/:learningpath_id") {
       val learningpathId = long("learningpath_id")
@@ -116,12 +116,12 @@ trait InternController {
         case Some(value) => Ok(value)
         case None        => NotFound()
       }
-    }
+    }: Unit
 
     post("/dump/learningpath/?") {
       val dumpToInsert = extract[domain.LearningPath](request.body)
       updateService.insertDump(dumpToInsert)
-    }
+    }: Unit
 
     get("/containsArticle") {
       val paths = paramAsListOfString("paths")
@@ -130,7 +130,7 @@ trait InternController {
         case Success(result) => result.results
         case Failure(ex)     => errorHandler(ex)
       }
-    }
+    }: Unit
 
   }
 }

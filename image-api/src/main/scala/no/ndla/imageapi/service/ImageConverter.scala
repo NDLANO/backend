@@ -42,7 +42,7 @@ trait ImageConverter {
     val MinValue: Int = 0
     val MaxValue: Int = 100
 
-    private def inRange(n: Double): Boolean   = n >= MinValue && n <= MaxValue
+    private def inRange(n: Int): Boolean      = n >= MinValue && n <= MaxValue
     private def normalise(coord: Int): Double = coord.toDouble / MaxValue.toDouble
   }
 
@@ -177,9 +177,9 @@ trait ImageConverter {
     }
 
     def minimalCropSizesToPreserveRatio(imageWidth: Int, imageHeight: Int, ratio: Double): (Int, Int) = {
-      val newHeight = Math.min(imageWidth / ratio, imageHeight).toInt
-      val newWidth  = Math.min(newHeight * ratio, imageWidth).toInt
-      (newWidth, newHeight.toInt)
+      val newHeight = Math.min(imageWidth / ratio, imageHeight.toDouble).toInt
+      val newWidth  = Math.min(newHeight * ratio, imageWidth.toDouble).toInt
+      (newWidth, newHeight)
     }
 
     // Given two sets of coordinates; reorganize them so that the first coordinate is the top-left,

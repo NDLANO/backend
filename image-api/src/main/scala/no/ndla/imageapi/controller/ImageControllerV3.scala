@@ -184,7 +184,7 @@ trait ImageControllerV3 {
           modelReleasedStatus
         )
       }
-    }
+    }: Unit
 
     post(
       "/search/",
@@ -230,7 +230,7 @@ trait ImageControllerV3 {
           modelReleasedStatus
         )
       }
-    }
+    }: Unit
 
     get(
       "/:image_id",
@@ -255,7 +255,7 @@ trait ImageControllerV3 {
           NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId and language $language not found"))
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/ids/",
@@ -277,7 +277,7 @@ trait ImageControllerV3 {
         case Success(images) => Ok(images)
         case Failure(ex)     => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/external_id/:external_id",
@@ -300,7 +300,7 @@ trait ImageControllerV3 {
         case Some(image) => Ok(converterService.asApiImageMetaInformationV3(image, language))
         case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
       }
-    }
+    }: Unit
 
     post(
       "/",
@@ -340,7 +340,7 @@ trait ImageControllerV3 {
               }
           }
       }
-    }
+    }: Unit
 
     delete(
       "/:image_id",
@@ -365,7 +365,7 @@ trait ImageControllerV3 {
         case Success(_)  => Ok()
       }
 
-    }
+    }: Unit
 
     delete(
       "/:image_id/language/:language",
@@ -393,7 +393,7 @@ trait ImageControllerV3 {
         case Success(Some(image)) => Ok(image)
         case Success(None)        => NoContent()
       }
-    }
+    }: Unit
 
     patch(
       "/:image_id",
@@ -438,7 +438,7 @@ trait ImageControllerV3 {
             case Failure(e)         => errorHandler(e)
           }
       }
-    }
+    }: Unit
 
     get(
       "/tag-search/",
@@ -476,6 +476,6 @@ trait ImageControllerV3 {
         case Success(result) => Ok(result)
       }
 
-    }
+    }: Unit
   }
 }

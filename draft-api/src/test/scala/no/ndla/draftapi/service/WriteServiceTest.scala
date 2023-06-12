@@ -40,8 +40,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
   val service                  = new WriteService()
 
-  val articleId   = 13
-  val agreementId = 14
+  val articleId   = 13L
+  val agreementId = 14L
 
   val article: Draft =
     TestData.sampleArticleWithPublicDomain.copy(
@@ -449,7 +449,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val fileToUpload           = mock[FileItem]
     val fileBytes: Array[Byte] = "these are not the bytes you're looking for".getBytes
     when(fileToUpload.get()).thenReturn(fileBytes)
-    when(fileToUpload.size).thenReturn(fileBytes.length)
+    when(fileToUpload.size).thenReturn(fileBytes.length.toLong)
     when(fileToUpload.getContentType).thenReturn(Some("application/pdf"))
     when(fileToUpload.name).thenReturn("myfile.pdf")
     when(fileStorage.resourceExists(anyString())).thenReturn(false)
@@ -1104,7 +1104,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That updateArticle updates relatedContent") {
     val apiRelatedContent1    = commonApi.RelatedContentLink("url1", "title1")
     val domainRelatedContent1 = RelatedContentLink("url1", "title1")
-    val relatedContent2       = 2
+    val relatedContent2       = 2L
 
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
@@ -1263,7 +1263,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(draftRepository.newEmptyArticleId()(any[DBSession])).thenReturn(Success(10L))
 
-    val Success(created) = service.newArticle(
+    val Success(_) = service.newArticle(
       newArt,
       List.empty,
       Seq.empty,

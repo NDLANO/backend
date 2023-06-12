@@ -21,14 +21,12 @@ import scalikejdbc.{DB, DBSession, _}
 class V24__RemoveDomainFromH5PUrl extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      migrateArticles
-    }
-  }
+  override def migrate(context: Context) =
+    DB(context.getConnection)
+      .autoClose(false)
+      .withinTx { implicit session =>
+        migrateArticles
+      }: Unit
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -38,7 +36,7 @@ class V24__RemoveDomainFromH5PUrl extends BaseJavaMigration {
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
-      }
+      }: Unit
       numPagesLeft -= 1
       offset += 1
     }
@@ -101,9 +99,9 @@ class V24__RemoveDomainFromH5PUrl extends BaseJavaMigration {
         if (dataResource == "external") {
           val url = embed.attr("data-url")
           if (containsH5PLink(url)) {
-            embed.attr("data-path", relativeUrl(url))
-            embed.attr("data-resource", "h5p")
-            embed.removeAttr("data-url")
+            embed.attr("data-path", relativeUrl(url)): Unit
+            embed.attr("data-resource", "h5p"): Unit
+            embed.removeAttr("data-url"): Unit
           }
         }
       })

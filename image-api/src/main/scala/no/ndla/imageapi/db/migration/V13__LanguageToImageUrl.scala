@@ -16,16 +16,13 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 
 class V13__LanguageToImageUrl extends BaseJavaMigration {
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      imagesToUpdate.map { case (id, document) =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      imagesToUpdate.foreach { case (id, document) =>
         convertImageUpdate(document, id)
       }
     }
-  }
 
   def imagesToUpdate(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, metadata from imagemetadata"
@@ -108,7 +105,7 @@ class V13__LanguageToImageUrl extends BaseJavaMigration {
       case _                      => false
     }
 
-    updateImageMetaData(compact(render(withoutOldFields)), id)
+    updateImageMetaData(compact(render(withoutOldFields)), id): Unit
     insertImageFileData(newImages, id)
   }
 

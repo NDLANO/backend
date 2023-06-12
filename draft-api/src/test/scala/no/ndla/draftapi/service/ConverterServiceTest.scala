@@ -209,7 +209,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
 
-    val articleId = 1
+    val articleId = 1L
     val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(
         id = Some(articleId),
@@ -792,7 +792,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Success(element.attr("data-path", "/files/resources/new.pdf"))
     })
 
-    val Success(res1) = service.toDomainArticle(
+    val Success(_) = service.toDomainArticle(
       existingArticle,
       apiArticle,
       false,
@@ -1045,7 +1045,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toArticleApiArticle transforms Draft to Article correctly") {
-    val articleId = 42
+    val articleId = 42L
     val draft = Draft(
       id = Some(articleId),
       revision = Some(3),

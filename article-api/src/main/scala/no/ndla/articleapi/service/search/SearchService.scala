@@ -29,13 +29,13 @@ trait SearchService {
   trait SearchService[T] {
     val searchIndex: String
 
-    def scroll(scrollId: String, language: String, fallback: Boolean): Try[SearchResult[T]] =
+    def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
       e4sClient
         .execute {
           searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
         }
         .map(response => {
-          val hits = getHits(response.result, language, fallback)
+          val hits = getHits(response.result, language)
           SearchResult[T](
             totalCount = response.result.totalHits,
             page = None,
@@ -57,7 +57,7 @@ trait SearchService {
       */
     def hitToApiModel(hit: String, language: String): T
 
-    def getHits(response: SearchResponse, language: String, fallback: Boolean): Seq[T] = {
+    def getHits(response: SearchResponse, language: String): Seq[T] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList

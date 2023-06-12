@@ -21,7 +21,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
   lazy val controller                       = new PublishedConceptController
   addServlet(controller, "/test")
 
-  val conceptId = 1
+  val conceptId = 1L
   val lang      = "nb"
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""

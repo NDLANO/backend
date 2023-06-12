@@ -20,14 +20,11 @@ class V2__AddUpdatedColoums extends BaseJavaMigration {
   implicit val formats = org.json4s.DefaultFormats
   val timeService      = new TimeService()
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allAudios.map(convertAudioUpdate).foreach(update)
     }
-  }
 
   def allAudios(implicit session: DBSession): List[V2_DBAudioMetaInformation] = {
     sql"select id, document from audiodata"

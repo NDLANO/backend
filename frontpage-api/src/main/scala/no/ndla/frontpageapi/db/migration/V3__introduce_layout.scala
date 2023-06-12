@@ -24,13 +24,11 @@ class V3__introduce_layout extends BaseJavaMigration {
   implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
   implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-    db.withinTx { implicit session =>
-      subjectPageData.flatMap(convertSubjectpage).map(update)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      subjectPageData.flatMap(convertSubjectpage).foreach(update)
     }
-  }
 
   private def subjectPageData(implicit session: DBSession): List[DBSubjectPage] = {
     sql"select id, document from subjectpage"

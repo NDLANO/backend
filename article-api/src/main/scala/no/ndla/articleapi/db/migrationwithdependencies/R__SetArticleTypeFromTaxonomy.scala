@@ -49,14 +49,11 @@ class R__SetArticleTypeFromTaxonomy(props: ArticleApiProperties) extends BaseJav
       )
   }
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -69,7 +66,7 @@ class R__SetArticleTypeFromTaxonomy(props: ArticleApiProperties) extends BaseJav
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map { case (id, document) =>
         updateArticle(convertArticleUpdate(document, id, topicIds, resourceIds), id)
-      }
+      }: Unit
       numPagesLeft -= 1
       offset += 1
     }

@@ -236,7 +236,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("unpublishArticle should fail if article is used in a learningstep") {
-    val articleId: Long = 7
+    val articleId: Long = 7L
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
     when(learningpathApiClient.getLearningpathsWithId(any[Long])).thenReturn(Success(Seq(learningPath)))
@@ -246,7 +246,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("unpublishArticle should fail if article is used in another article") {
-    val articleId: Long = 7
+    val articleId: Long = 7L
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
@@ -265,7 +265,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("unpublishArticle should fail if article is used in a learningstep with a taxonomy-url") {
-    val articleId: Long = 7
+    val articleId: Long = 7L
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
     when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq(learningPath)))
@@ -277,7 +277,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("unpublishArticle should succeed if article is not used in a learningstep") {
     reset(articleApiClient, taxonomyApiClient, learningpathApiClient)
-    val articleId = 7
+    val articleId = 7L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq.empty))
     when(articleApiClient.unpublishArticle(article)).thenReturn(Success(article))
@@ -292,7 +292,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("checkIfArticleIsUsedInLearningStep should fail if article is used in a learningstep") {
-    val articleId: Long = 7
+    val articleId: Long = 7L
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
     when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq(learningPath)))
@@ -305,7 +305,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("checkIfArticleIsUsedInLearningStep should fail if article is used in a learningstep with a taxonomy-url") {
-    val articleId: Long = 7
+    val articleId: Long = 7L
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
     when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq(learningPath)))
@@ -318,7 +318,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("checkIfArticleIsUsedInLearningStep should succeed if article is not used in a learningstep") {
     reset(articleApiClient, taxonomyApiClient, learningpathApiClient)
-    val articleId = 7
+    val articleId = 7L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq.empty))
     when(articleApiClient.unpublishArticle(article)).thenReturn(Success(article))
@@ -330,7 +330,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle should be called when transitioning to END_CONTROL") {
-    val articleId = 7
+    val articleId = 7L
     val draft = Draft(
       id = Some(articleId),
       revision = None,

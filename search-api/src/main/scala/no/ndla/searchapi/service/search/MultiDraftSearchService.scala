@@ -47,7 +47,7 @@ trait MultiDraftSearchService {
 
       val contentSearch = settings.query.map(queryString => {
 
-        val langQueryFunc = (fieldName: String, boost: Int) =>
+        val langQueryFunc = (fieldName: String, boost: Double) =>
           buildSimpleStringQueryForField(
             queryString,
             fieldName,
@@ -154,9 +154,9 @@ trait MultiDraftSearchService {
       */
     private def getSearchFilters(settings: MultiDraftSearchSettings): List[Query] = {
       val languageFilter = settings.language match {
-        case "" | AllLanguages         => None
-        case lang if settings.fallback => None
-        case lang                      => Some(existsQuery(s"title.$lang"))
+        case "" | AllLanguages      => None
+        case _ if settings.fallback => None
+        case lang                   => Some(existsQuery(s"title.$lang"))
       }
 
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
@@ -264,11 +264,11 @@ trait MultiDraftSearchService {
       val requestInfo = RequestInfo.fromThreadContext()
 
       val draftFuture = Future {
-        requestInfo.setRequestInfo()
+        requestInfo.setThreadContextRequestInfo()
         draftIndexService.indexDocuments(shouldUsePublishedTax = false)
       }
       val learningPathFuture = Future {
-        requestInfo.setRequestInfo()
+        requestInfo.setThreadContextRequestInfo()
         learningPathIndexService.indexDocuments(shouldUsePublishedTax = true)
       }
 

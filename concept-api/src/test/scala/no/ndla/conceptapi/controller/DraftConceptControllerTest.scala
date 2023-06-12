@@ -25,7 +25,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   lazy val controller                       = new DraftConceptController
   addServlet(controller, "/test")
 
-  val conceptId = 1
+  val conceptId = 1L
   val lang      = "nb"
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""

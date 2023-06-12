@@ -9,7 +9,6 @@ package no.ndla.network.model
 
 import cats.effect.{IO, IOLocal}
 import no.ndla.common.CorrelationID
-import no.ndla.common.logging.{LoggerContext, LoggerInfo}
 import no.ndla.network.{ApplicationUrl, AuthUser, TaxonomyData}
 import org.http4s.Request
 
@@ -22,11 +21,14 @@ case class RequestInfo(
     taxonomyVersion: String,
     applicationUrl: String
 ) {
-  def setRequestInfo(): IO[Unit] = {
+  def setThreadContextRequestInfo(): Unit = {
     TaxonomyData.set(taxonomyVersion)
     authUser.setThreadContext()
     CorrelationID.set(correlationId)
     ApplicationUrl.set(applicationUrl)
+  }
+  def setRequestInfo(): IO[Unit] = {
+    setThreadContextRequestInfo()
     RequestInfo.set(this)
   }
 
@@ -48,12 +50,6 @@ object RequestInfo {
 
   def set(v: RequestInfo): IO[Unit] = requestLocalState.set(Some(v))
   def reset: IO[Unit]               = requestLocalState.reset
-
-  /** Implicit context used to derive required [[LoggerInfo]] */
-  implicit val ioLoggerContext: LoggerContext[IO] = new LoggerContext[IO] {
-    override def get: IO[LoggerInfo] = RequestInfo.get.map(info => LoggerInfo(correlationId = info.correlationId))
-    override def map[T](f: LoggerInfo => T): IO[T] = get.map(f)
-  }
 
   def fromRequest(request: HttpServletRequest): RequestInfo = {
     val ndlaRequest = NdlaHttpRequest(request)
@@ -85,7 +81,6 @@ object RequestInfo {
   }
 
   def clear(): Unit = {
-    reset
     TaxonomyData.clear()
     CorrelationID.clear()
     AuthUser.clear()

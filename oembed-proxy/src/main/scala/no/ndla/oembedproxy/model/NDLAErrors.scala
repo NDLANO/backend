@@ -10,11 +10,10 @@ package no.ndla.oembedproxy.model
 
 import cats.effect.IO
 import no.ndla.common.Clock
-import no.ndla.common.logging.FLogging
+import no.ndla.network.logging.FLogging
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir._
 import no.ndla.oembedproxy.Props
-import no.ndla.network.model.RequestInfo.ioLoggerContext
 
 trait ErrorHelpers extends TapirErrorHelpers with FLogging {
   this: Props with Clock =>

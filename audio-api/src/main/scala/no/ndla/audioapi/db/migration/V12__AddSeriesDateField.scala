@@ -23,14 +23,13 @@ class V12__AddSeriesDateField extends BaseJavaMigration {
   private val jsonDate                  = Extraction.decompose(dateToUse)(formats)
 
   override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      allAudios.map { case (id: Long, document: String) =>
-        update(convertDocument(document), id)
-      }
-    }
+    DB(context.getConnection)
+      .autoClose(false)
+      .withinTx { implicit session =>
+        allAudios.map { case (id: Long, document: String) =>
+          update(convertDocument(document), id)
+        }
+      }: Unit
   }
 
   def allAudios(implicit session: DBSession): List[(Long, String)] = {

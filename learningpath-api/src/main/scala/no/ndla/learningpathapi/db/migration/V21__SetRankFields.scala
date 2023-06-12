@@ -13,20 +13,15 @@ import scalikejdbc.{DB, DBSession, _}
 import java.util.UUID
 
 class V21__SetRankFields extends BaseJavaMigration {
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      migrateFoldersAndResources
-    }
-  }
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session => migrateFoldersAndResources }
 
   def migrateFoldersAndResources(implicit session: DBSession): Unit = {
     allFeideIds().foreach(feideId => {
       allRootFolders(feideId).zipWithIndex.foreach { case (id, idx) =>
         val rank = idx + 1
-        updateFolderRank(id, rank)
+        updateFolderRank(id, rank): Unit
         handleFolderAndChildren(id)
       }
     })
@@ -80,7 +75,7 @@ class V21__SetRankFields extends BaseJavaMigration {
 
     subfolders.zipWithIndex.foreach { case (res, idx) =>
       val rank = idx + 1
-      updateFolderRank(res.id, rank)
+      updateFolderRank(res.id, rank): Unit
       handleFolderAndChildren(res.id)
     }
   }

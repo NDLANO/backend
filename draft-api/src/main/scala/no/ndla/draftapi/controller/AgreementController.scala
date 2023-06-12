@@ -145,7 +145,7 @@ trait AgreementController {
           search(query, sort, license, page, pageSize, idList, shouldScroll)
         }
       }
-    }
+    }: Unit
 
     get(
       "/:agreement_id",
@@ -170,7 +170,7 @@ trait AgreementController {
           case None => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No agreement with id $agreementId found"))
         }
       }
-    }
+    }: Unit
 
     post(
       "/",
@@ -192,12 +192,12 @@ trait AgreementController {
 
         newAgreement.flatMap(writeService.newAgreement(_, userInfo)) match {
           case Success(agreement) =>
-            reindexClient.reindexAll()
+            reindexClient.reindexAll(): Unit
             Created(body = agreement)
           case Failure(exception) => errorHandler(exception)
         }
       }
-    }
+    }: Unit
 
     patch(
       "/:agreement_id",
@@ -221,12 +221,12 @@ trait AgreementController {
         val updatedAgreement = tryExtract[UpdatedAgreement](request.body)
         updatedAgreement.flatMap(writeService.updateAgreement(agreementId, _, userInfo)) match {
           case Success(agreement) =>
-            reindexClient.reindexAll()
+            reindexClient.reindexAll(): Unit
             Ok(body = agreement)
           case Failure(exception) => errorHandler(exception)
         }
       }
-    }
+    }: Unit
 
   }
 }

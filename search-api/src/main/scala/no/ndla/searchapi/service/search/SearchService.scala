@@ -67,7 +67,7 @@ trait SearchService {
     def buildSimpleStringQueryForField(
         query: String,
         field: String,
-        boost: Int,
+        boost: Double,
         language: String,
         fallback: Boolean,
         searchDecompounded: Boolean
@@ -260,7 +260,7 @@ trait SearchService {
         .flatMap(bucket => {
           Try {
             val key      = bucket("key").asInstanceOf[String]
-            val docCount = bucket("doc_count").asInstanceOf[Int]
+            val docCount = bucket("doc_count").asInstanceOf[Long]
             Bucket(key, docCount)
           }.toOption
         })
@@ -324,7 +324,7 @@ trait SearchService {
       )
     }
 
-    def scroll(scrollId: String, language: String, fallback: Boolean): Try[SearchResult] = {
+    def scroll(scrollId: String, language: String): Try[SearchResult] = {
       e4sClient
         .execute {
           searchScroll(scrollId, ElasticSearchScrollKeepAlive)

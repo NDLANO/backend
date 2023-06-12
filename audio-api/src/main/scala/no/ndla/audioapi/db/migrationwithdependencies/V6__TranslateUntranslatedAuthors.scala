@@ -21,14 +21,11 @@ class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJa
   // Translates authors that wasn't translated in V5
   implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allAudios.map(t => updateAuthorFormat(t._1, t._2, t._3)).foreach(update)
     }
-  }
 
   def allAudios(implicit session: DBSession): List[(Long, Int, String)] = {
     sql"select id, revision, document from audiodata"

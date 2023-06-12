@@ -18,11 +18,9 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
 
   implicit val formats = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       val count        = countAllArticles.get
       var numPagesLeft = (count / 1000) + 1
       var offset       = 0L
@@ -33,7 +31,6 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
         offset += 1
       }
     }
-  }
 
   def countAllArticles(implicit session: DBSession) = {
     sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()

@@ -20,12 +20,12 @@ class V22__UpdateH5PDomainForFFVisualElement(props: ArticleApiProperties) extend
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
-    db.autoClose(false)
+    db.autoClose(false): Unit
 
     if (props.Environment == "ff") {
       db.withinTx { implicit session =>
         migrateArticles
-      }
+      }: Unit
     }
   }
 
@@ -39,7 +39,7 @@ class V22__UpdateH5PDomainForFFVisualElement(props: ArticleApiProperties) extend
     while (numPagesLeft > 0) {
       allArticles(offset * pageSize).map { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
-      }
+      }: Unit
       numPagesLeft -= 1
       offset += 1
       println(s"'${this.getClass.getSimpleName}' processsed ${math.min(offset * pageSize, count)} rows, ${math

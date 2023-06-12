@@ -25,12 +25,12 @@ class DraftApiClientTest
   implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
   override val ndlaClient       = new NdlaClient
 
-  val draftApiPort: Int                 = findFreePort
-  val pgc: PostgreSQLContainer[Nothing] = postgresContainer.get
-  val esHost: String                    = elasticSearchHost.get
+  val draftApiPort: Int           = findFreePort
+  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val esHost: String              = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
     override def ApplicationPort: Int = draftApiPort
-    override def MetaServer: String   = pgc.getContainerIpAddress
+    override def MetaServer: String   = pgc.getHost
     override def MetaResource: String = pgc.getDatabaseName
     override def MetaUserName: String = pgc.getUsername
     override def MetaPassword: String = pgc.getPassword
@@ -49,7 +49,7 @@ class DraftApiClientTest
   }
 
   private def setupAgreements() =
-    (1 to 10)
+    (1L to 10)
       .map(id => {
         draftApi.componentRegistry.agreementRepository.insert(
           draftapi.TestData.sampleBySaDomainAgreement.copy(id = Some(id))

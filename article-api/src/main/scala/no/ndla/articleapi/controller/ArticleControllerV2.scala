@@ -109,12 +109,12 @@ trait ArticleControllerV2 {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr(scrollId: Option[String], language: String, fallback: Boolean)(
+    private def scrollSearchOr(scrollId: Option[String], language: String)(
         orFunction: => Any
     ): Any = {
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          articleSearchService.scroll(scroll, language, fallback) match {
+          articleSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
               Ok(searchConverterService.asApiSearchResultV2(scrollResult), headers = responseHeader)
@@ -156,7 +156,7 @@ trait ArticleControllerV2 {
       val language = paramOrDefault(this.language.paramName, AllLanguages)
 
       readService.getAllTags(query, pageSize, pageNo, language)
-    }
+    }: Unit
 
     private def search(
         query: Option[String],
@@ -221,7 +221,7 @@ trait ArticleControllerV2 {
       val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      scrollSearchOr(scrollId, language, fallback) {
+      scrollSearchOr(scrollId, language) {
         val query              = paramOrNone(this.query.paramName)
         val sort               = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
         val license            = paramOrNone(this.license.paramName)
@@ -246,7 +246,7 @@ trait ArticleControllerV2 {
           shouldScroll
         )
       }
-    }
+    }: Unit
 
     get(
       "/ids/",
@@ -281,7 +281,7 @@ trait ArticleControllerV2 {
         case Success(articles) => Ok(articles)
       }
 
-    }
+    }: Unit
 
     post(
       "/search/",
@@ -302,7 +302,7 @@ trait ArticleControllerV2 {
       val language     = searchParams.language.getOrElse(AllLanguages)
       val fallback     = searchParams.fallback.getOrElse(false)
 
-      scrollSearchOr(searchParams.scrollId, language, fallback) {
+      scrollSearchOr(searchParams.scrollId, language) {
         val query              = searchParams.query
         val sort               = Sort.valueOf(searchParams.sort.getOrElse(""))
         val license            = searchParams.license
@@ -327,7 +327,7 @@ trait ArticleControllerV2 {
           shouldScroll
         )
       }
-    }
+    }: Unit
 
     get(
       "/:article_id",
@@ -359,7 +359,7 @@ trait ArticleControllerV2 {
         case Success(cachableArticle) => cachableArticle.Ok()
         case Failure(ex)              => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/:article_id/revisions",
@@ -379,7 +379,7 @@ trait ArticleControllerV2 {
         case Failure(ex)   => errorHandler(ex)
         case Success(revs) => Ok(revs)
       }
-    }
+    }: Unit
 
     get(
       "/external_id/:deprecated_node_id",
@@ -399,7 +399,7 @@ trait ArticleControllerV2 {
         case Some(id) => id
         case None     => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No article with id $externalId"))
       }
-    }
+    }: Unit
 
     get(
       "/external_ids/:deprecated_node_id",
@@ -421,6 +421,6 @@ trait ArticleControllerV2 {
         case Some(idObject) => idObject
         case None           => NotFound()
       }
-    }
+    }: Unit
   }
 }

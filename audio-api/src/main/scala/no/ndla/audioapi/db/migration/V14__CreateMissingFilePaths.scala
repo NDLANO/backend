@@ -20,14 +20,13 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
   case class FilePathObject(filePath: String, fileSize: Long, language: String, mimeType: String)
 
   override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      allAudios.map { case (id: Long, document: String) =>
-        update(convertDocument(document), id)
-      }
-    }
+    DB(context.getConnection)
+      .autoClose(false)
+      .withinTx { implicit session =>
+        allAudios.map { case (id: Long, document: String) =>
+          update(convertDocument(document), id)
+        }
+      }: Unit
   }
 
   def allAudios(implicit session: DBSession): List[(Long, String)] = {

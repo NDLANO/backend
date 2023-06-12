@@ -10,6 +10,7 @@ package no.ndla.network
 
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
+import org.mockito.Strictness
 
 import javax.servlet.http.HttpServletRequest
 import org.scalatest.TryValues._
@@ -130,7 +131,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That Authorization header is added to request if set on Thread") {
-    val servletRequestMock = mock[HttpServletRequest](withSettings.lenient())
+    val servletRequestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
     val httpRequestMock    = mock[NdlaRequest]
     val httpResponseMock   = mock[Response[String]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
@@ -154,7 +155,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {
-    val servletRequestMock = mock[HttpServletRequest](withSettings.lenient())
+    val servletRequestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
     val httpRequestMock    = mock[NdlaRequest]
     val httpResponseMock   = mock[Response[String]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)

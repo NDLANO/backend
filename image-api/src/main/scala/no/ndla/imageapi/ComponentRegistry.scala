@@ -81,7 +81,7 @@ class ComponentRegistry(properties: ImageApiProperties)
   override val dataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  implicit val swagger = new ImageSwagger
+  implicit val swagger: ImageSwagger = new ImageSwagger
 
   val currentRegion: Option[Regions] =
     Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))

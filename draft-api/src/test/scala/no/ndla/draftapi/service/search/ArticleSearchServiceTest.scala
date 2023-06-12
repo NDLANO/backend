@@ -216,7 +216,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    articleIndexService.createIndexWithName(props.DraftSearchIndex).get
+    articleIndexService.createIndexAndAlias().get
 
     articleIndexService.indexDocument(article1).get
     articleIndexService.indexDocument(article2).get

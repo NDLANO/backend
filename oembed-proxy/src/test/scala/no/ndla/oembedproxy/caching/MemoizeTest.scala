@@ -31,15 +31,15 @@ class MemoizeTest extends UnitSuite {
     val memoizedTarget = new Memoize[String](Long.MaxValue, Long.MaxValue, targetMock.targetMethod _, false)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
-    Seq(1 to 10).foreach(i => {
+    Seq(1 to 10).foreach(_ => {
       memoizedTarget() should equal("Hello from mock")
     })
     verify(targetMock, times(1)).targetMethod()
   }
 
   test("That the cache is invalidated after cacheMaxAge") {
-    val cacheMaxAgeInMs = 20
-    val cacheRetryInMs  = 20
+    val cacheMaxAgeInMs = 20L
+    val cacheRetryInMs  = 20L
     val targetMock      = mock[Target]
     val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod _, false)
 
@@ -55,8 +55,8 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That the cache is stored on failure") {
-    val cacheMaxAgeInMs = 20
-    val cacheRetryInMs  = 20
+    val cacheMaxAgeInMs = 20L
+    val cacheRetryInMs  = 20L
     val targetMock      = mock[Target]
     val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod _, false)
 

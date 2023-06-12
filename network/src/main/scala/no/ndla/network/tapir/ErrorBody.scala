@@ -24,7 +24,7 @@ case class ErrorBody(
 )
 
 object ErrorBody {
-  implicit val msgEncoder                  = deriveEncoder[ValidationMessage]
+  implicit val msgEncoder: Encoder.AsObject[ValidationMessage] = deriveEncoder[ValidationMessage]
   implicit val encoder: Encoder[ErrorBody] = deriveEncoder[ErrorBody].mapJsonObject(_.remove("statusCode"))
 
   def apply(

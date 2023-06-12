@@ -24,14 +24,11 @@ class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
   implicit val formats: Formats =
     org.json4s.DefaultFormats + Json4s.serializer(DraftStatus) ++ JavaTimeSerializers.all
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticleNotes
     }
-  }
 
   def migrateArticleNotes(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -39,7 +36,7 @@ class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map { case (id, document) =>
+      allArticles(offset * 1000).foreach { case (id, document) =>
         updateArticle(convertNotes(document), id)
       }
       numPagesLeft -= 1

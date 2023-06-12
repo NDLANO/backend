@@ -48,7 +48,7 @@ class LearningpathApiClientTest
   val esHost: String              = elasticSearchHost.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int = learningpathApiPort
-    override def MetaServer: String   = pgc.getContainerIpAddress
+    override def MetaServer: String   = pgc.getHost
     override def MetaResource: String = pgc.getDatabaseName
     override def MetaUserName: String = pgc.getUsername
     override def MetaPassword: String = pgc.getPassword
@@ -67,7 +67,7 @@ class LearningpathApiClientTest
   }
 
   private def setupLearningPaths() = {
-    (1 to 10)
+    (1L to 10)
       .map(id => {
         learningpathApi.componentRegistry.learningPathRepository.insert(
           learningpathapi.TestData.sampleDomainLearningPath

@@ -36,7 +36,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That path to id conversion works as expected for id paths") {
-    val id                = 1234
+    val id                = 1234L
     val imageUrl          = "apekatt.jpg"
     val expectedImageFile = TestData.bjorn.images.head.copy(fileName = "/" + imageUrl)
     val expectedImage     = TestData.bjorn.copy(id = Some(id), images = Seq(expectedImageFile))
@@ -165,7 +165,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("That path to raw conversion works with non-ascii characters in paths") {
     reset(imageRepository)
-    val id            = 1234
+    val id            = 1234L
     val imageUrl      = "Jordbær.jpg"
     val encodedPath   = "Jordb%C3%A6r.jpg"
     val expectedFile  = TestData.bjorn.images.head.copy(fileName = imageUrl)

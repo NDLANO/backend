@@ -274,7 +274,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val imageId    = i.getArgument[Long](0)
       val fileName   = i.getArgument[String](1)
       val document   = i.getArgument[ImageFileDataDocument](2)
-      val insertedId = 100
+      val insertedId = 100L
       Success(document.toFull(insertedId, fileName, imageId))
     })
 
@@ -387,11 +387,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val imageId    = i.getArgument[Long](0)
       val fileName   = i.getArgument[String](1)
       val document   = i.getArgument[ImageFileDataDocument](2)
-      val insertedId = 100
+      val insertedId = 100L
       Success(document.toFull(insertedId, fileName, imageId))
     })
     val date    = LocalDateTime.now()
-    val imageId = 1
+    val imageId = 1L
     val user    = "ndla124"
     val image = domain.ImageFileData(
       id = 1,
@@ -537,7 +537,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updating image file with multiple same filepaths does not override filepath") {
     reset(validationService, imageRepository, imageStorage)
-    val imageId  = 100
+    val imageId  = 100L
     val coolDate = LocalDateTime.now()
     val upd = UpdateImageMetaInformation(
       language = "nb",
@@ -626,7 +626,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That uploading image for a new language just adds a new one") {
     reset(validationService, imageRepository, imageStorage)
-    val imageId  = 100
+    val imageId  = 100L
     val coolDate = LocalDateTime.now()
     val upd = UpdateImageMetaInformation(
       language = "nb",
@@ -722,7 +722,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("Deleting language version should delete file if only used by that language") {
     reset(validationService, imageRepository, imageStorage)
-    val imageId  = 100
+    val imageId  = 100L
     val coolDate = LocalDateTime.now()
 
     val image = domain.ImageFileData(
@@ -793,7 +793,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("Deleting language version should not delete file if it used by more languages") {
     reset(validationService, imageRepository, imageStorage)
-    val imageId  = 100
+    val imageId  = 100L
     val coolDate = LocalDateTime.now()
 
     val image = domain.ImageFileData(

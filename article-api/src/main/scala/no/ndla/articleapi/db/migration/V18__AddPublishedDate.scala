@@ -21,14 +21,11 @@ import scala.util.{Success, Try}
 class V18__AddPublishedDate extends BaseJavaMigration {
   implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
-    }
-  }
+    }: Unit
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -38,7 +35,7 @@ class V18__AddPublishedDate extends BaseJavaMigration {
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
-      }
+      }: Unit
       numPagesLeft -= 1
       offset += 1
     }

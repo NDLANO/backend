@@ -10,8 +10,6 @@ package no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
 
-import scala.language.implicitConversions
-
 case class StateTransition(
     from: ConceptStatus.Value,
     to: ConceptStatus.Value,

@@ -64,7 +64,7 @@ class SeriesSearchServiceTest
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
-      seriesIndexService.createIndexWithName(props.SeriesSearchIndex)
+      seriesIndexService.createIndexAndAlias()
     }
   }
 

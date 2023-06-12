@@ -21,7 +21,7 @@ class MainClass(props: ImageApiProperties) extends StrictLogging {
       componentRegistry, {
         logger.info("Starting DB Migration")
         val DbStartMillis = System.currentTimeMillis()
-        componentRegistry.migrator.migrate()
+        componentRegistry.migrator.migrate(): Unit
         logger.info(s"Done DB Migration took ${System.currentTimeMillis() - DbStartMillis} ms")
 
         componentRegistry.imageSearchService.createEmptyIndexIfNoIndexesExist()

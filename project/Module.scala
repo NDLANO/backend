@@ -1,18 +1,20 @@
-import Dependencies.versions._
-import sbt.Keys._
-import sbt.{Def, _}
+import Dependencies.versions.*
+import sbt.Keys.*
+import sbt.*
 import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
-import sbtassembly._
+import sbtassembly.*
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
   typescriptGenerationImports,
   typescriptOutputFile
 }
-import com.typesafe.sbt.SbtGit.git
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
-import sbtassembly.AssemblyKeys._
-import sbtdocker.DockerKeys._
-import sbtdocker._
+import _root_.io.github.davidgregory084.TpolecatPlugin.autoImport.*
+import _root_.io.github.davidgregory084.ScalaVersion.*
+import _root_.io.github.davidgregory084.ScalacOption
+import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
+import sbtassembly.AssemblyKeys.*
+import sbtdocker.DockerKeys.*
+import sbtdocker.*
 
 import scala.language.postfixOps
 
@@ -41,12 +43,6 @@ trait Module {
 
   protected val MainClass: Option[String] = None
 
-  // NOTE: Intellij has no good way of separating run and test scala configurations from sbt.
-  //       This is a workaround to stop having to customize this locally,
-  //       while still keeping fatal warnings active on CI.
-  val isCI: Boolean          = sys.env.getOrElse("CI", "false").toBoolean
-  val CIOptions: Seq[String] = if (isCI) Seq("-Xfatal-warnings") else Seq.empty
-
   lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
     name                := this.moduleName,
     run / mainClass     := this.MainClass,
@@ -55,19 +51,10 @@ trait Module {
     version             := "0.0.1",
     scalaVersion        := ScalaV,
     javacOptions ++= Seq("-source", "17", "-target", "17"),
-    scalacOptions := Seq(
-      "-release:17",
-      "-unchecked",
-      "-deprecation",
-      "-feature",
-      "-Xlint",
-      "-Wconf:src=src_managed/.*:silent",
-      "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
-    ),
     javaOptions ++= reflectiveAccessOptions,
-    scalacOptions ++= CIOptions,
-    // Disable warns about non-exhaustive match in tests as they are very useful there.
-    Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),
+    tpolecatScalacOptions ++= scalacOptions,
+    tpolecatExcludeOptions ++= excludeOptions,
+    Test / tpolecatExcludeOptions ++= testExcludeOptions,
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
       .envOrNone("NDLA_RELEASES")
@@ -84,6 +71,35 @@ trait Module {
           parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
         }
       )
+  }
+
+  val excludeOptions: Set[ScalacOption] = {
+    // NOTE: Intellij has no good way of separating run and test scala configurations from sbt.
+    //       This is a workaround to make sure that fatal warnings does not break intellij
+    //       while keeping fatal warnings on CI.
+    val isCI: Boolean                        = sys.env.getOrElse("CI", "false").toBoolean
+    val CICompilerOptions: Set[ScalacOption] = if (isCI) Set.empty else Set(ScalacOptions.fatalWarnings)
+
+    CICompilerOptions ++ Set(
+      ScalacOption("-Wmacros:after", _ => true),
+      ScalacOption("-Wmacros:none", _ => true),
+      ScalacOption("-Wmacros:before", _ => true)
+    )
+  }
+
+  val testExcludeOptions: Set[ScalacOption] = {
+    Set(
+      ScalacOptions.warnNonUnitStatement,
+      ScalacOptions.warnValueDiscard,
+      ScalacOptions.warnDeadCode
+    )
+  }
+
+  val scalacOptions: Set[ScalacOption] = {
+    // scala-tsi leaves some unused imports and such in src_managed, lets not care about linting scala-tsi code.
+    val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _ => true)
+
+    Set(silentSrcManaged)
   }
 
   def withLogging(libs: Seq[ModuleID], extraLibs: Seq[ModuleID]*): Seq[ModuleID] = {

@@ -57,7 +57,7 @@ trait ConfigRepository {
             DBConfigMeta.column.c("configkey") -> config.key.entryName,
             DBConfigMeta.column.c("value")     -> config
           )
-        }.update()
+        }.update(): Unit
         Success(config)
       } else {
         logger.info(s"Value for ${config.key} updated.")

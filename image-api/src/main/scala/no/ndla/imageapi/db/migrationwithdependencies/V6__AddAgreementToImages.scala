@@ -19,6 +19,7 @@ import no.ndla.imageapi.db.migration.{
   V5_License
 }
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
@@ -36,16 +37,13 @@ class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigrat
     rightsholderTypes
   }
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
-  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       imagesToUpdate.map(t => updateAuthorFormat(t._1, t._2)).foreach(update)
     }
-  }
 
   def imagesToUpdate(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, metadata from imagemetadata".map(rs => { (rs.long("id"), rs.string("metadata")) }).list()

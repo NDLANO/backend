@@ -23,17 +23,14 @@ class V3__AddUpdatedColoums extends BaseJavaMigration with StrictLogging {
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   val timeService               = new TimeService()
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-    logger.info("Starting V3__AddUpdatedColoums DB Migration")
-    val dBstartMillis = System.currentTimeMillis()
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      logger.info("Starting V3__AddUpdatedColoums DB Migration")
+      val dBstartMillis = System.currentTimeMillis()
       allImages.map(convertImageUpdate).foreach(update)
+      logger.info(s"Done V3__AddUpdatedColoums DB Migration tok ${System.currentTimeMillis() - dBstartMillis} ms")
     }
-    logger.info(s"Done V3__AddUpdatedColoums DB Migration tok ${System.currentTimeMillis() - dBstartMillis} ms")
-  }
 
   def allImages(implicit session: DBSession): List[V3__DBImageMetaInformation] = {
     sql"select id, metadata from imagemetadata"

@@ -17,11 +17,9 @@ class V7__MovePublishedExternToUnlisted extends BaseJavaMigration {
 
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allLearningPaths
         .map { case (id, document) =>
           (id, updateStatus(document))
@@ -30,7 +28,6 @@ class V7__MovePublishedExternToUnlisted extends BaseJavaMigration {
           update(id, document)
         }
     }
-  }
 
   def allLearningPaths(implicit session: DBSession): Seq[(Long, String)] = {
     sql"select id, document from learningpaths"

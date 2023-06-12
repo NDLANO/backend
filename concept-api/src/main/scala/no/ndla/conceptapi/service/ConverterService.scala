@@ -173,7 +173,7 @@ trait ConverterService {
       document
         .select(EmbedTagName)
         .asScala
-        .map(el => {
+        .foreach(el => {
           ResourceType
             .valueOf(el.attr(TagAttributes.DataResource.toString))
             .map(EmbedTagRules.attributesForResourceType)
@@ -362,7 +362,7 @@ trait ConverterService {
           embedTag.attr(
             s"${TagAttributes.DataUrl}",
             baseUrl.addPathParts(pathParts).toString
-          )
+          ): Unit
         case _ =>
       }
     }

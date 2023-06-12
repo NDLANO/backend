@@ -50,7 +50,7 @@ trait UserDataRepository {
           update ${DBUserData.table}
           set document=$dataObject
           where user_id=${userData.userId}
-      """.update()
+      """.update(): Unit
 
       logger.info(s"Updated user data ${userData.userId}")
       Success(userData)

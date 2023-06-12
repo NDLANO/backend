@@ -29,21 +29,18 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
 
   override def getChecksum: Integer = 0 // Change this to something else if you want to repeat migration
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
     var offset       = 0L
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map(updateArticle)
+      allArticles(offset * 1000).foreach(updateArticle)
       numPagesLeft -= 1
       offset += 1
     }
@@ -75,7 +72,7 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
     } else status
   }
 
-  def saveArticle(article: Draft)(implicit session: DBSession): Long = {
+  def saveArticle(article: Draft)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(article))

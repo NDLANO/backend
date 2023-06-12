@@ -53,7 +53,7 @@ class ArticleApiClientTest
   val esHost: String              = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int = articleApiPort
-    override def MetaServer: String   = pgc.getContainerIpAddress
+    override def MetaServer: String   = pgc.getHost
     override def MetaResource: String = pgc.getDatabaseName
     override def MetaUserName: String = pgc.getUsername
     override def MetaPassword: String = pgc.getPassword
@@ -80,7 +80,7 @@ class ArticleApiClientTest
     val td                                   = new TestData
 
     def setupArticles(): Try[Boolean] =
-      (1 to 10)
+      (1L to 10)
         .map(id => {
           articleApi.componentRegistry.articleRepository
             .updateArticleFromDraftApi(

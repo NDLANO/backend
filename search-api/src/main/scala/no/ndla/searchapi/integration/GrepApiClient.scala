@@ -54,7 +54,10 @@ trait GrepApiClient {
       val requestInfo = RequestInfo.fromThreadContext()
 
       /** Calls function in separate thread and converts Try to Future */
-      def tryToFuture[T](x: () => Try[T]) = Future { requestInfo.setRequestInfo(); x() }.flatMap(Future.fromTry)
+      def tryToFuture[T](x: () => Try[T]) = Future {
+        requestInfo.setThreadContextRequestInfo()
+        x()
+      }.flatMap(Future.fromTry)
 
       val kjerneelementer    = tryToFuture(() => getAllKjerneelementer)
       val kompetansemaal     = tryToFuture(() => getAllKompetansemaal)

@@ -105,6 +105,6 @@ trait BaseImageController {
       "Return only images that have one of the provided ids. To provide multiple ids, separate by comma (,)."
     )
 
-    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxImageFileSizeBytes)))
+    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxImageFileSizeBytes.toLong)))
   }
 }

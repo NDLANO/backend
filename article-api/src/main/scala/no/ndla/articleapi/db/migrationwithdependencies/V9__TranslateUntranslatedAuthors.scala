@@ -22,14 +22,11 @@ class V9__TranslateUntranslatedAuthors(props: ArticleApiProperties) extends Base
     ignore("id") orElse ignore("revision")
   ) ++ JavaTimeSerializers.all
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
-    }
-  }
+    }: Unit
 
   //
   // Articles

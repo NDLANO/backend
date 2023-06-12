@@ -54,7 +54,7 @@ trait DraftNdlaController {
       val language = paramOrDefault(this.language.paramName, AllLanguages)
 
       readService.getAllTags(query, pageSize, pageNo, language)
-    }
+    }: Unit
 
     post(
       "/",
@@ -78,7 +78,7 @@ trait DraftNdlaController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     patch(
       "/:concept_id",
@@ -104,6 +104,6 @@ trait DraftNdlaController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
   }
 }

@@ -53,7 +53,7 @@ trait IndexService {
 
         operations match {
           case Failure(f) =>
-            deleteIndexWithName(Some(indexName))
+            deleteIndexWithName(Some(indexName)): Unit
             Failure(f)
           case Success(totalIndexed) =>
             Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))

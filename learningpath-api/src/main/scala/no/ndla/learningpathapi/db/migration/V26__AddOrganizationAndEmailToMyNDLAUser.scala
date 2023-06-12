@@ -36,14 +36,11 @@ class V26__AddOrganizationAndEmailToMyNDLAUser extends BaseJavaMigration {
         ignore("feideId")
     )
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateOrganization
     }
-  }
 
   def migrateOrganization(implicit session: DBSession): Unit = {
     allFeideIds.foreach(feideId => {
@@ -59,7 +56,7 @@ class V26__AddOrganizationAndEmailToMyNDLAUser extends BaseJavaMigration {
             organization = "temp",
             email = "example@email.com"
           )
-          updateMyNDLAUser(feideId, updatedUser)
+          updateMyNDLAUser(feideId, updatedUser): Unit
         case None =>
           val newUser = NewMyNDLAUser(
             favoriteSubjects = Seq.empty,
@@ -69,7 +66,7 @@ class V26__AddOrganizationAndEmailToMyNDLAUser extends BaseJavaMigration {
             organization = "temp",
             email = "example@email.com"
           )
-          createMyNDLAUser(feideId, newUser)
+          createMyNDLAUser(feideId, newUser): Unit
       }
     })
   }

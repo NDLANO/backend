@@ -11,6 +11,7 @@ package no.ndla.oembedproxy.controller
 import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
+import no.ndla.network.logging.FLogging
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.oembedproxy.model._
@@ -26,7 +27,7 @@ trait OEmbedProxyController {
   this: OEmbedServiceComponent with ErrorHelpers with Service =>
   val oEmbedProxyController: OEmbedProxyController
 
-  class OEmbedProxyController extends SwaggerService {
+  class OEmbedProxyController extends SwaggerService with FLogging {
     override val prefix: EndpointInput[Unit] = "oembed-proxy" / "v1" / "oembed"
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get

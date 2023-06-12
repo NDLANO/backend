@@ -41,11 +41,9 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   val sampleArticle: Draft = TestData.sampleArticleWithByNcSa
 
-  def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
-      sql"delete from articledata;".execute()(session)
-    })
-  }
+  def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
+    sql"delete from articledata;".execute()(session)
+  })
 
   private def resetIdSequence(): Boolean = {
     DB autoCommit (implicit session => {
@@ -67,7 +65,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   override def beforeEach(): Unit = {
     repository = new ArticleRepository()
     if (serverIsListening) {
-      emptyTestDatabase
+      emptyTestDatabase()
     }
   }
 
@@ -83,8 +81,8 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   test("Fetching external ids works as expected") {
     val externalIds        = List("1", "2", "3")
-    val idWithExternals    = 1
-    val idWithoutExternals = 2
+    val idWithExternals    = 1L
+    val idWithoutExternals = 2L
     repository.insertWithExternalIds(sampleArticle.copy(id = Some(idWithExternals)), externalIds, List.empty, None)(
       AutoSession
     )
@@ -111,8 +109,8 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("that importIdOfArticle works correctly") {
     val externalIds = List("1", "2", "3")
     val uuid        = "d4e84cd3-ab94-46d5-9839-47ec682d27c2"
-    val id1         = 1
-    val id2         = 2
+    val id1         = 1L
+    val id2         = 2L
     repository.insertWithExternalIds(sampleArticle.copy(id = Some(id1)), externalIds, List.empty, Some(uuid))(
       AutoSession
     )
@@ -130,7 +128,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("ExternalIds should not contains NULLs") {
-    val art1 = sampleArticle.copy(id = Some(10))
+    val art1 = sampleArticle.copy(id = Some(10L))
     repository.insertWithExternalIds(art1, null, List.empty, None)(AutoSession)
     val result1 = repository.getExternalIdsFromId(10)(AutoSession)
 

@@ -74,9 +74,9 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
   val articlesToIndex = Seq(article1, article2, article3, article4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    tagIndexService.createIndexWithName(props.DraftTagSearchIndex)
+    tagIndexService.createIndexAndAlias().get
 
-    articlesToIndex.foreach(a => tagIndexService.indexDocument(a))
+    articlesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
 
     val allTagsToIndex         = articlesToIndex.flatMap(_.tags)
     val groupedByLanguage      = allTagsToIndex.groupBy(_.language)

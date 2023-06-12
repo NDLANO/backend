@@ -141,7 +141,7 @@ trait DraftController {
           case Success(result) => Ok(result)
         }
       }
-    }
+    }: Unit
 
     private def search(
         query: Option[String],
@@ -226,7 +226,7 @@ trait DraftController {
 
         readService.getAllGrepCodes(query, pageSize, pageNo)
       }
-    }
+    }: Unit
 
     get(
       "/",
@@ -284,7 +284,7 @@ trait DraftController {
           )
         }
       }
-    }
+    }: Unit
 
     post(
       "/search/",
@@ -336,7 +336,7 @@ trait DraftController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     get(
       "/:article_id",
@@ -368,7 +368,7 @@ trait DraftController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     get(
       "/ids/",
@@ -399,9 +399,9 @@ trait DraftController {
         case x                        => x
       }
       doOrAccessDenied(userInfo.canWrite) {
-        readService.getArticlesByIds(idList, language, fallback, page, pageSize)
+        readService.getArticlesByIds(idList, language, fallback, page.toLong, pageSize.toLong)
       }
-    }
+    }: Unit
 
     get(
       "/:article_id/history",
@@ -429,7 +429,7 @@ trait DraftController {
       doOrAccessDenied(userInfo.canWrite) {
         readService.getArticles(articleId, language, fallback)
       }
-    }
+    }: Unit
 
     get(
       "/external_id/:deprecated_node_id",
@@ -453,7 +453,7 @@ trait DraftController {
           case None     => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No article with id $externalId"))
         }
       }
-    }
+    }: Unit
 
     get(
       "/licenses/",
@@ -484,7 +484,7 @@ trait DraftController {
         }
 
       licenses.map(x => License(x.license.toString, Option(x.description), x.url))
-    }
+    }: Unit
 
     post(
       "/",
@@ -515,7 +515,7 @@ trait DraftController {
           case Failure(exception) => errorHandler(exception)
         }
       }
-    }
+    }: Unit
 
     patch(
       "/:article_id",
@@ -558,7 +558,7 @@ trait DraftController {
           case Failure(exception) => errorHandler(exception)
         }
       }
-    }
+    }: Unit
 
     put(
       "/:article_id/status/:STATUS",
@@ -586,7 +586,7 @@ trait DraftController {
         }
 
       }
-    }
+    }: Unit
 
     put(
       "/:article_id/validate/",
@@ -626,7 +626,7 @@ trait DraftController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     delete(
       "/:article_id/language/:language",
@@ -649,7 +649,7 @@ trait DraftController {
         val language = params(this.language.paramName)
         writeService.deleteLanguage(id, language, userInfo)
       }
-    }
+    }: Unit
 
     get(
       "/status-state-machine/",
@@ -672,7 +672,7 @@ trait DraftController {
           case Failure(ex)          => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     post(
       "/clone/:article_id",
@@ -703,7 +703,7 @@ trait DraftController {
           case Failure(ex)      => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     post(
       "/partial-publish/:article_id",
@@ -743,7 +743,7 @@ trait DraftController {
         }
 
       }
-    }
+    }: Unit
 
     post(
       "/partial-publish/",
@@ -772,7 +772,7 @@ trait DraftController {
             }
         }
       }
-    }
+    }: Unit
 
     post(
       "/copyRevisionDates/:node_id",
@@ -801,7 +801,7 @@ trait DraftController {
             }
         }
       }
-    }
+    }: Unit
 
     get(
       "/slug/:slug",
@@ -833,7 +833,7 @@ trait DraftController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
   }
 }

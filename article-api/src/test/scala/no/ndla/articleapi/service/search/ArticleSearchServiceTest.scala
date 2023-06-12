@@ -249,7 +249,7 @@ class ArticleSearchServiceTest
   )
 
   override def beforeAll() = if (elasticSearchContainer.isSuccess) {
-    articleIndexService.createIndexWithName(ArticleSearchIndex)
+    articleIndexService.createIndexAndAlias().get
 
     articleIndexService.indexDocument(article1).get
     articleIndexService.indexDocument(article2).get
@@ -603,11 +603,11 @@ class ArticleSearchServiceTest
         )
       )
 
-    val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "*", true)
-    val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "*", true)
-    val Success(scroll3) = articleSearchService.scroll(scroll2.scrollId.get, "*", true)
-    val Success(scroll4) = articleSearchService.scroll(scroll3.scrollId.get, "*", true)
-    val Success(scroll5) = articleSearchService.scroll(scroll4.scrollId.get, "*", true)
+    val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
+    val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "*")
+    val Success(scroll3) = articleSearchService.scroll(scroll2.scrollId.get, "*")
+    val Success(scroll4) = articleSearchService.scroll(scroll3.scrollId.get, "*")
+    val Success(scroll5) = articleSearchService.scroll(scroll4.scrollId.get, "*")
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -627,7 +627,7 @@ class ArticleSearchServiceTest
           shouldScroll = true
         )
       )
-    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*", true)
+    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
 
     initialSearch.results.size should be(1)
     initialSearch.results.head.id should be(10)

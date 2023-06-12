@@ -48,7 +48,7 @@ trait NdlaController {
       case n: NotFoundException             => NotFound(body = Error(NOT_FOUND, n.getMessage))
       case o: OptimisticLockException       => Conflict(body = Error(RESOURCE_OUTDATED, o.getMessage))
       case st: IllegalStatusStateTransition => BadRequest(body = Error(VALIDATION, st.getMessage))
-      case e: IndexNotFoundException        => InternalServerError(body = IndexMissingError)
+      case _: IndexNotFoundException        => InternalServerError(body = IndexMissingError)
       case NdlaSearchException(_, Some(rf), _)
           if rf.error.rootCause
             .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>

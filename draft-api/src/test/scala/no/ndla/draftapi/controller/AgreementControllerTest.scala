@@ -23,7 +23,7 @@ class AgreementControllerTest extends UnitSuite with TestEnvironment with Scalat
   lazy val controller = new AgreementController
   addServlet(controller, "/test")
 
-  val agreementId = 1
+  val agreementId = 1L
 
   override def beforeEach(): Unit = {
     when(user.getUser).thenReturn(TestData.userWithWriteAccess)
