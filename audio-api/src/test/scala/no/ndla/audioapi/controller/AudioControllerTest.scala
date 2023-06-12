@@ -15,6 +15,7 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.network.tapir.TapirServer
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Strictness
 import sttp.client3.quick._
@@ -339,5 +340,28 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     parsedBody should be(expectedResult)
 
     verify(readService, times(1)).getAudiosByIds(eqTo(List(1, 2, 3)), any)
+  }
+
+  test("That GET /?query= doesnt pass empty-string search parameter") {
+    reset(audioSearchService, searchConverterService)
+    val searchResponse = domain.SearchResult[api.AudioSummary](
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty,
+      None
+    )
+
+    when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+    when(searchConverterService.asApiAudioSummarySearchResult(any)).thenCallRealMethod()
+
+    val request  = quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio/?query=")
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(200)
+
+    val argumentCaptor: ArgumentCaptor[SearchSettings] = ArgumentCaptor.forClass(classOf[SearchSettings])
+    verify(audioSearchService, times(1)).matchingQuery(argumentCaptor.capture())
+    argumentCaptor.getValue.query should be(None)
   }
 }
