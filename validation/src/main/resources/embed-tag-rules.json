@@ -301,6 +301,22 @@
         ["data-border"],
         ["data-background"]
       ]
+    },
+    "campaign-block" : {
+      "required": [
+        "data-resource",
+        "data-title",
+        "data-title-language",
+        "data-description",
+        "data-description-language",
+        "data-heading-level",
+        "data-url",
+        "data-url-text"
+      ],
+      "optional": [
+        ["data-image-before-id"],
+        ["data-image-after-id"]
+      ]
     }
   }
 }
