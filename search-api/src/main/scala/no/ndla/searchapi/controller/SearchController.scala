@@ -478,7 +478,7 @@ trait SearchController {
       val excludeRevisionHistory   = booleanOrDefault(this.excludeRevisionLog.paramName, default = false)
       val responsibleIds           = paramAsListOfString(this.responsibleIdFilter.paramName)
       val filterInactive           = booleanOrDefault(this.filterInactive.paramName, default = false)
-      val prioritized              = booleanOrDefault(this.prioritizedFilter.paramName, default = false)
+      val prioritized              = booleanOrNone(this.prioritizedFilter.paramName)
 
       MultiDraftSearchSettings(
         query = query,

@@ -43,5 +43,5 @@ case class MultiDraftSearchSettings(
     responsibleIdFilter: List[String],
     articleTypes: List[String],
     filterInactive: Boolean,
-    prioritized: Boolean
+    prioritized: Option[Boolean]
 )

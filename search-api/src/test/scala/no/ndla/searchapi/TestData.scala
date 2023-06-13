@@ -543,7 +543,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    false
+    prioritized = false
   )
 
   val draftStatus         = Status(DraftStatus.PLANNED, Set.empty)
@@ -603,7 +603,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    false
+    prioritized = false
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -1607,7 +1607,8 @@ object TestData {
     excludeRevisionHistory = false,
     responsibleIdFilter = List.empty,
     articleTypes = List.empty,
-    filterInactive = false
+    filterInactive = false,
+    prioritized = None
   )
 
   val searchableResourceTypes = List(
