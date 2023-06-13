@@ -23,6 +23,7 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration._
+import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
@@ -380,6 +381,42 @@ trait WriteService {
       updatedArticle.copy(notes = updatedArticle.notes ++ notes ++ deleted)
     }
 
+    private def updateStartedField(
+        article: Draft,
+        oldArticle: Option[Draft],
+        statusWasUpdated: Boolean,
+        updatedApiArticle: api.UpdatedArticle
+    ): Draft = {
+      val isAutomaticReponsibleChange = updatedApiArticle.responsibleId.map(_.isEmpty).getOrElse(true)
+      val isAutomaticStatusChange     = updatedApiArticle.status.isEmpty
+      val isAutomaticOnEditTransition = isAutomaticReponsibleChange && isAutomaticStatusChange
+
+      if (isAutomaticOnEditTransition) {
+        article.copy(started = true)
+      } else {
+
+        val responsibleIdWasUpdated = article.responsible match {
+          case None => false
+          case Some(responsible) =>
+            val oldResponsibleId  = oldArticle.flatMap(_.responsible).map(_.responsibleId)
+            val hasNewResponsible = !oldResponsibleId.contains(responsible.responsibleId)
+            hasNewResponsible
+        }
+
+        val shouldReset = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
+        article.copy(started = !shouldReset)
+      }
+    }
+
+    private def addPartialPublishNote(
+        newArticle: Draft,
+        user: UserInfo,
+        partialPublishFields: Set[PartialArticleFields]
+    ): Draft =
+      if (partialPublishFields.nonEmpty)
+        converterService.addNote(newArticle, "Artikkelen har blitt delpublisert", user)
+      else newArticle
+
     private def updateArticle(
         toUpdate: Draft,
         importId: Option[String],
@@ -390,25 +427,18 @@ trait WriteService {
         createNewVersion: Boolean,
         oldArticle: Option[Draft],
         user: UserInfo,
-        statusWasUpdated: Boolean
+        statusWasUpdated: Boolean,
+        updatedApiArticle: api.UpdatedArticle
     ): Try[Draft] = {
-      val articleToValidate = language match {
-        case Some(language) => getArticleOnLanguage(toUpdate, language)
-        case None           => toUpdate
-      }
-
       val fieldsToPartialPublish = shouldPartialPublish(oldArticle, toUpdate)
-      val withPartialPublishNote =
-        if (fieldsToPartialPublish.nonEmpty)
-          converterService.addNote(toUpdate, "Artikkelen har blitt delpublisert", user)
-        else toUpdate
-
-      val withRevisionDateNotes = addRevisionDateNotes(user, withPartialPublishNote, oldArticle)
+      val withPartialPublishNote = addPartialPublishNote(toUpdate, user, fieldsToPartialPublish)
+      val withRevisionDateNotes  = addRevisionDateNotes(user, withPartialPublishNote, oldArticle)
+      val withStarted = updateStartedField(withRevisionDateNotes, oldArticle, statusWasUpdated, updatedApiArticle)
 
       for {
-        _ <- contentValidator.validateArticle(articleToValidate)
+        _ <- contentValidator.validateArticleOnLanguage(toUpdate, language)
         domainArticle <- performArticleUpdate(
-          withRevisionDateNotes,
+          withStarted,
           externalIds,
           externalSubjectIds,
           isImported,
@@ -437,18 +467,6 @@ trait WriteService {
       }
     }
 
-    private def getArticleOnLanguage(article: Draft, language: String): Draft = {
-      article.copy(
-        content = article.content.filter(_.language == language),
-        introduction = article.introduction.filter(_.language == language),
-        metaDescription = article.metaDescription.filter(_.language == language),
-        title = article.title.filter(_.language == language),
-        tags = article.tags.filter(_.language == language),
-        visualElement = article.visualElement.filter(_.language == language),
-        metaImage = article.metaImage.filter(_.language == language)
-      )
-    }
-
     def shouldUpdateStatus(changedArticle: Draft, existingArticle: Draft): Boolean = {
       // Function that sets values we don't want to include when comparing articles to check if we should update status
       val withComparableValues =
@@ -469,6 +487,7 @@ trait WriteService {
             revisionMeta = Seq.empty,
             comments = List.empty,
             prioritized = false,
+            started = false,
             // LanguageField ordering shouldn't matter:
             visualElement = article.visualElement.sorted,
             content = article.content.sorted,
@@ -574,17 +593,6 @@ trait WriteService {
             oldNdlaUpdatedDate,
             importId
           )
-        case None if draftRepository.exists(articleId)(ReadOnlyAutoSession) =>
-          updateNullDocumentArticle(
-            articleId,
-            updatedApiArticle,
-            externalIds,
-            externalSubjectIds,
-            user,
-            oldNdlaCreatedDate,
-            oldNdlaUpdatedDate,
-            importId
-          )
         case None =>
           Failure(api.NotFoundException(s"Article with id $articleId does not exist"))
       }
@@ -599,84 +607,36 @@ trait WriteService {
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
-    ): Try[api.Article] = {
-
-      for {
-        convertedArticle <- converterService.toDomainArticle(
-          existing,
-          updatedApiArticle,
-          externalIds.nonEmpty,
-          user,
-          oldNdlaCreatedDate,
-          oldNdlaUpdatedDate
-        )
-        articleWithStatus <- updateStatusIfNeeded(convertedArticle, existing, updatedApiArticle, user)
-        didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
-        updatedArticle <- updateArticle(
-          articleWithStatus,
-          importId,
-          externalIds,
-          externalSubjectIds,
-          language = updatedApiArticle.language,
-          isImported = externalIds.nonEmpty,
-          createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
-          oldArticle = Some(existing),
-          user = user,
-          statusWasUpdated = didUpdateStatus
-        )
-        apiArticle <- converterService.toApiArticle(
-          readService.addUrlsOnEmbedResources(updatedArticle),
-          updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
-          updatedApiArticle.language.isEmpty
-        )
-      } yield apiArticle
-    }
-
-    private def updateNullDocumentArticle(
-        articleId: Long,
-        updatedApiArticle: api.UpdatedArticle,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        user: UserInfo,
-        oldNdlaCreatedDate: Option[LocalDateTime],
-        oldNdlaUpdatedDate: Option[LocalDateTime],
-        importId: Option[String]
-    ): Try[api.Article] = {
-      logger.warn(s"Updating null-document article with id '$articleId'")
-      for {
-        convertedArticle <- converterService.toDomainArticle(
-          articleId,
-          updatedApiArticle,
-          externalIds.nonEmpty,
-          user,
-          oldNdlaCreatedDate,
-          oldNdlaUpdatedDate
-        )
-        articleWithStatus <- converterService
-          .updateStatus(PLANNED, convertedArticle, user, isImported = false)
-          .attempt
-          .unsafeRunSync()
-          .toTry
-          .flatten
-        updatedArticle <- updateArticle(
-          toUpdate = articleWithStatus,
-          importId = importId,
-          externalIds = externalIds,
-          externalSubjectIds = externalSubjectIds,
-          language = updatedApiArticle.language,
-          isImported = false,
-          createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
-          oldArticle = None,
-          user = user,
-          statusWasUpdated = false
-        )
-        apiArticle <- converterService.toApiArticle(
-          readService.addUrlsOnEmbedResources(updatedArticle),
-          updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
-          updatedApiArticle.language.isEmpty
-        )
-      } yield apiArticle
-    }
+    ): Try[api.Article] = for {
+      convertedArticle <- converterService.toDomainArticle(
+        existing,
+        updatedApiArticle,
+        externalIds.nonEmpty,
+        user,
+        oldNdlaCreatedDate,
+        oldNdlaUpdatedDate
+      )
+      articleWithStatus <- updateStatusIfNeeded(convertedArticle, existing, updatedApiArticle, user)
+      didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
+      updatedArticle <- updateArticle(
+        articleWithStatus,
+        importId,
+        externalIds,
+        externalSubjectIds,
+        language = updatedApiArticle.language,
+        isImported = externalIds.nonEmpty,
+        createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
+        oldArticle = Some(existing),
+        user = user,
+        statusWasUpdated = didUpdateStatus,
+        updatedApiArticle = updatedApiArticle
+      )
+      apiArticle <- converterService.toApiArticle(
+        readService.addUrlsOnEmbedResources(updatedArticle),
+        updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
+        updatedApiArticle.language.isEmpty
+      )
+    } yield apiArticle
 
     def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Article] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {

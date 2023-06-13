@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, PUBLISHED}
+import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft._
 import no.ndla.common.model.domain._
 import no.ndla.common.model.{RelatedContentLink, domain, api => commonApi}
@@ -48,7 +48,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       id = Some(articleId),
       created = yesterday,
       updated = yesterday,
-      responsible = Some(Responsible("hei", clock.now()))
+      responsible = Some(Responsible("hei", clock.now())),
+      started = true
     )
 
   val topicArticle: Draft =
@@ -89,6 +90,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       invocation.getArgument[Draft](0)
     )
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
+    when(contentValidator.validateArticleOnLanguage(any[Draft], any)).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[Draft](0))
+    )
     when(contentValidator.validateAgreement(any[Agreement], any[Seq[ValidationMessage]])).thenReturn(Success(agreement))
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(clock.now()).thenReturn(today)
@@ -168,7 +172,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       article.copy(
         revision = Some(article.revision.get + 1),
         content = Seq(ArticleContent(newContent, "en")),
-        updated = today
+        updated = today,
+        started = true
       )
 
     when(writeService.partialPublish(any, any, any)).thenReturn((expectedArticle.id.get, Success(expectedArticle)))
@@ -539,18 +544,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           Seq(ArticleContent("<section> Valid Content </section>", "nb"), ArticleContent("<div> content <div", "nn")),
         responsible = Some(Responsible("hei", TestData.today))
       )
-    val nbArticle =
-      article.copy(
-        content = Seq(ArticleContent("<section> Valid Content </section>", "nb"))
-      )
 
     when(draftRepository.withId(anyLong)(any)).thenReturn(Some(article))
     service.updateArticle(1, updatedArticle, List(), List(), TestData.userWithPublishAccess, None, None, None)
 
-    val argCap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
-    verify(contentValidator, times(1)).validateArticle(argCap.capture())
-    val captured = argCap.getValue
-    captured.content should equal(nbArticle.content)
+    verify(contentValidator, times(1)).validateArticleOnLanguage(any, eqTo(Some("nb")))
   }
 
   test("That articles are cloned with reasonable values") {
@@ -1442,5 +1440,123 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(eqTo(2))(any)).thenReturn(Some(article2))
     service.copyRevisionDates(nodeId) should be(Success(()))
     verify(draftRepository, times(2)).updateArticle(any[Draft], any[Boolean])(any[DBSession])
+  }
+
+  test("That started is updated when article is changed") {
+    val existing = TestData.sampleDomainArticle.copy(
+      started = false,
+      status = TestData.statusWithPlanned,
+      responsible = Some(Responsible("123", LocalDateTime.now()))
+    )
+
+    val updatedArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      title = Some("updated title"),
+      language = Some("nb")
+    )
+
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    val result = service
+      .updateArticle(
+        existing.id.get,
+        updatedArticle,
+        List.empty,
+        Seq.empty,
+        TestData.userWithWriteAccess,
+        None,
+        None,
+        None
+      )
+      .get
+
+    result.started should be(true)
+  }
+
+  test("That started is reset when status is changed") {
+    val existing = TestData.sampleDomainArticle.copy(
+      started = true,
+      status = TestData.statusWithPlanned,
+      responsible = Some(Responsible("responsible", LocalDateTime.now()))
+    )
+    val updatedArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      title = Some("updated title"),
+      language = Some("nb"),
+      status = Some("IN_PROGRESS")
+    )
+
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    val result = service
+      .updateArticle(
+        existing.id.get,
+        updatedArticle,
+        List.empty,
+        Seq.empty,
+        TestData.userWithWriteAccess,
+        None,
+        None,
+        None
+      )
+      .get
+
+    result.started should be(false)
+  }
+
+  test("That started is reset when responsible is changed") {
+    val existing = TestData.sampleDomainArticle.copy(
+      started = true,
+      status = TestData.statusWithPlanned,
+      responsible = Some(Responsible("responsible", LocalDateTime.now()))
+    )
+    val updatedArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      title = Some("updated title"),
+      language = Some("nb"),
+      responsibleId = Right(Some("heiho"))
+    )
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    val result = service
+      .updateArticle(
+        existing.id.get,
+        updatedArticle,
+        List.empty,
+        Seq.empty,
+        TestData.userWithWriteAccess,
+        None,
+        None,
+        None
+      )
+      .get
+
+    result.started should be(false)
+  }
+
+  test("That started is true'd when articles is changed when published") {
+    val existing = TestData.sampleDomainArticle.copy(
+      started = false,
+      status = TestData.statusWithPublished,
+      responsible = Some(Responsible("responsible", LocalDateTime.now()))
+    )
+    val updatedArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      title = Some("updated title"),
+      language = Some("nb")
+    )
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    val result = service
+      .updateArticle(
+        existing.id.get,
+        updatedArticle,
+        List.empty,
+        Seq.empty,
+        TestData.userWithWriteAccess,
+        None,
+        None,
+        None
+      )
+      .get
+
+    result.status.current should be(IN_PROGRESS.toString)
+    result.started should be(true)
   }
 }

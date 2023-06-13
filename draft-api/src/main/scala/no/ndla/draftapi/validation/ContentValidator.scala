@@ -87,6 +87,23 @@ trait ContentValidator {
       }
     }
 
+    def validateArticleOnLanguage(article: Draft, language: Option[String]): Try[Draft] = {
+      val toValidate = language.map(getArticleOnLanguage(article, _)).getOrElse(article)
+      validateArticle(toValidate)
+    }
+
+    private def getArticleOnLanguage(article: Draft, language: String): Draft = {
+      article.copy(
+        content = article.content.filter(_.language == language),
+        introduction = article.introduction.filter(_.language == language),
+        metaDescription = article.metaDescription.filter(_.language == language),
+        title = article.title.filter(_.language == language),
+        tags = article.tags.filter(_.language == language),
+        visualElement = article.visualElement.filter(_.language == language),
+        metaImage = article.metaImage.filter(_.language == language)
+      )
+    }
+
     def validateArticle(article: Draft): Try[Draft] = {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c)) ++
         article.introduction.flatMap(i => validateIntroduction(i)) ++
