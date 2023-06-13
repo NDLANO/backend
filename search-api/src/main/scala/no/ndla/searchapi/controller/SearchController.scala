@@ -206,6 +206,9 @@ trait SearchController {
       "responsible-ids",
       "List of responsible ids to filter by (OR filter)."
     )
+    private val prioritizedFilter =
+      Param[Option[Boolean]]("prioritized", "Set to true to only return prioritized articles")
+
     private val filterInactive = Param[Option[Boolean]]("filter-inactive", "Filter out inactive taxonomy contexts.")
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
@@ -475,6 +478,7 @@ trait SearchController {
       val excludeRevisionHistory   = booleanOrDefault(this.excludeRevisionLog.paramName, default = false)
       val responsibleIds           = paramAsListOfString(this.responsibleIdFilter.paramName)
       val filterInactive           = booleanOrDefault(this.filterInactive.paramName, default = false)
+      val prioritized              = booleanOrNone(this.prioritizedFilter.paramName)
 
       MultiDraftSearchSettings(
         query = query,
@@ -506,7 +510,8 @@ trait SearchController {
         excludeRevisionHistory = excludeRevisionHistory,
         responsibleIdFilter = responsibleIds,
         articleTypes = articleTypes,
-        filterInactive = filterInactive
+        filterInactive = filterInactive,
+        prioritized = prioritized
       )
     }
 
@@ -623,7 +628,8 @@ trait SearchController {
             asQueryParam(revisionDateFilterTo),
             asQueryParam(excludeRevisionLog),
             asQueryParam(responsibleIdFilter),
-            asQueryParam(filterInactive)
+            asQueryParam(filterInactive),
+            asQueryParam(prioritizedFilter)
           )
           .authorizations("oauth2")
           .responseMessages(response403)

@@ -823,4 +823,57 @@ class MultiDraftSearchServiceAtomicTest
       .results
       .map(_.id) should be(Seq(2, 3, 1, 4))
   }
+  test("Test that filtering prioritized works as expected") {
+
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      prioritized = false
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      prioritized = true
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      prioritized = true
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4)
+    )
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          prioritized = Some(true)
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(2, 3))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          prioritized = Some(false)
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 4))
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          prioritized = None
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 2, 3, 4))
+  }
 }
