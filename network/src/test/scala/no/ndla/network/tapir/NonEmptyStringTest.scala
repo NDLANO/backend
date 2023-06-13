@@ -1,9 +1,8 @@
 /*
- * Part of NDLA network.
- * Copyright (C) 2016 NDLA
+ * Part of NDLA network
+ * Copyright (C) 2023 NDLA
  *
  * See LICENSE
- *
  */
 
 package no.ndla.network.tapir
