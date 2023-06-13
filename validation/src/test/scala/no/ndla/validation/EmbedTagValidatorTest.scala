@@ -383,19 +383,19 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should succeed if all optional attributes are specified") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Image.toString,
-        TagAttributes.DataAlt         -> "123",
-        TagAttributes.DataCaption     -> "123",
-        TagAttributes.DataResource_Id -> "123",
-        TagAttributes.DataSize        -> "full",
-        TagAttributes.DataAlign       -> "left",
-        TagAttributes.DataUpperLeftX  -> "0",
-        TagAttributes.DataUpperLeftY  -> "0",
-        TagAttributes.DataLowerRightX -> "1",
-        TagAttributes.DataLowerRightY -> "1",
-        TagAttributes.DataFocalX      -> "0",
-        TagAttributes.DataFocalY      -> "1",
-        TagAttributes.DataIsDecor     -> "false"
+        TagAttributes.DataResource     -> ResourceType.Image.toString,
+        TagAttributes.DataAlt          -> "123",
+        TagAttributes.DataCaption      -> "123",
+        TagAttributes.DataResource_Id  -> "123",
+        TagAttributes.DataSize         -> "full",
+        TagAttributes.DataAlign        -> "left",
+        TagAttributes.DataUpperLeftX   -> "0",
+        TagAttributes.DataUpperLeftY   -> "0",
+        TagAttributes.DataLowerRightX  -> "1",
+        TagAttributes.DataLowerRightY  -> "1",
+        TagAttributes.DataFocalX       -> "0",
+        TagAttributes.DataFocalY       -> "1",
+        TagAttributes.DataIsDecorative -> "false"
       )
     )
 
@@ -420,17 +420,17 @@ class EmbedTagValidatorTest extends UnitSuite {
 
     val tagWithCrop = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Image.toString,
-        TagAttributes.DataAlt         -> "123",
-        TagAttributes.DataCaption     -> "123",
-        TagAttributes.DataResource_Id -> "123",
-        TagAttributes.DataSize        -> "full",
-        TagAttributes.DataAlign       -> "left",
-        TagAttributes.DataUpperLeftX  -> "0",
-        TagAttributes.DataUpperLeftY  -> "0",
-        TagAttributes.DataLowerRightX -> "1",
-        TagAttributes.DataLowerRightY -> "1",
-        TagAttributes.DataIsDecor     -> "false"
+        TagAttributes.DataResource     -> ResourceType.Image.toString,
+        TagAttributes.DataAlt          -> "123",
+        TagAttributes.DataCaption      -> "123",
+        TagAttributes.DataResource_Id  -> "123",
+        TagAttributes.DataSize         -> "full",
+        TagAttributes.DataAlign        -> "left",
+        TagAttributes.DataUpperLeftX   -> "0",
+        TagAttributes.DataUpperLeftY   -> "0",
+        TagAttributes.DataLowerRightX  -> "1",
+        TagAttributes.DataLowerRightY  -> "1",
+        TagAttributes.DataIsDecorative -> "false"
       )
     )
 
@@ -438,13 +438,13 @@ class EmbedTagValidatorTest extends UnitSuite {
 
     val tagWithDecor = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Image.toString,
-        TagAttributes.DataAlt         -> "123",
-        TagAttributes.DataCaption     -> "123",
-        TagAttributes.DataResource_Id -> "123",
-        TagAttributes.DataSize        -> "full",
-        TagAttributes.DataAlign       -> "left",
-        TagAttributes.DataIsDecor     -> "false"
+        TagAttributes.DataResource     -> ResourceType.Image.toString,
+        TagAttributes.DataAlt          -> "123",
+        TagAttributes.DataCaption      -> "123",
+        TagAttributes.DataResource_Id  -> "123",
+        TagAttributes.DataSize         -> "full",
+        TagAttributes.DataAlign        -> "left",
+        TagAttributes.DataIsDecorative -> "false"
       )
     )
 
