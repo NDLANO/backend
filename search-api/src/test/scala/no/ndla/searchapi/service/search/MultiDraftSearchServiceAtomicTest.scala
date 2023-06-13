@@ -866,5 +866,14 @@ class MultiDraftSearchServiceAtomicTest
       .get
       .results
       .map(_.id) should be(Seq(1, 4))
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          prioritized = None
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 2, 3, 4))
   }
 }
