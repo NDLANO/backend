@@ -87,4 +87,8 @@ package object implicits {
     }
   }
 
+  implicit class StringOption(private val self: Option[String]) {
+    def emptySomeToNone: Option[String] = StringUtil.emptySomeToNone(self)
+  }
+
 }

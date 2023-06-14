@@ -19,8 +19,9 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
+import no.ndla.common.implicits._
 import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.Service
+import no.ndla.network.tapir.{NonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -51,7 +52,7 @@ trait AudioController {
     import props._
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / "audio"
 
-    private val queryString = query[Option[String]]("query")
+    private val queryString = query[Option[NonEmptyString]]("query")
       .description("Return only results with titles or tags matching the specified query.")
     private val language =
       query[Option[String]]("language").description("The ISO 639-1 language code describing language.")
@@ -113,7 +114,7 @@ trait AudioController {
           scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
             val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
             search(
-              query,
+              query.underlying,
               language,
               license,
               sort,
@@ -268,7 +269,7 @@ trait AudioController {
 
         val language = lang.getOrElse(Language.AllLanguages)
 
-        readService.getAllTags(query.getOrElse(""), pageSize, pageNo, language) match {
+        readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language) match {
           case Failure(ex)     => returnError(ex).map(_.asLeft)
           case Success(result) => IO(result.asRight)
         }
@@ -336,7 +337,7 @@ trait AudioController {
         seriesFilter: Option[Boolean],
         fallback: Boolean
     ): Try[SummaryWithHeader] = {
-      val searchSettings = query match {
+      val searchSettings = query.emptySomeToNone match {
         case Some(q) =>
           SearchSettings(
             query = Some(q),

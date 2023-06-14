@@ -17,9 +17,10 @@ import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.service.ConverterService
+import no.ndla.common.implicits._
 import no.ndla.language.Language.AllLanguages
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.Elastic4sClient
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s._
 import org.json4s.native.Serialization
 
@@ -50,7 +51,7 @@ trait SeriesSearchService {
 
     def matchingQuery(settings: SeriesSearchSettings): Try[domain.SearchResult[api.SeriesSummary]] = {
 
-      val fullSearch = settings.query match {
+      val fullSearch = settings.query.emptySomeToNone match {
         case Some(query) =>
           val languageSearch = (field: String, boost: Double) => {
             languageSpecificSearch(

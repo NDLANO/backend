@@ -16,6 +16,7 @@ import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.model.{api, domain}
+import no.ndla.common.implicits._
 import no.ndla.language.Language.AllLanguages
 import no.ndla.search.Elastic4sClient
 import no.ndla.search.model.SearchableLanguageFormats
@@ -48,7 +49,7 @@ trait AudioSearchService {
 
     def matchingQuery(settings: SearchSettings): Try[domain.SearchResult[api.AudioSummary]] = {
 
-      val fullSearch = settings.query match {
+      val fullSearch = settings.query.emptySomeToNone match {
         case Some(query) =>
           val languageSearch = (field: String, boost: Double) =>
             languageSpecificSearch(

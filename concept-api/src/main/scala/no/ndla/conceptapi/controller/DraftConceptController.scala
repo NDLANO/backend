@@ -15,6 +15,7 @@ import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.common.implicits._
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.scalatra.NdlaSwaggerSupport
@@ -107,7 +108,7 @@ trait DraftConceptController {
         responsibleIdFilter = responsibleId
       )
 
-      val result = query match {
+      val result = query.emptySomeToNone match {
         case Some(q) =>
           draftConceptSearchService.matchingQuery(q, settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc)))
         case None => draftConceptSearchService.all(settings.copy(sort = sort.getOrElse(Sort.ByTitleDesc)))
