@@ -1,7 +1,6 @@
 import Dependencies.versions.*
 import sbt.Keys.*
 import sbt.*
-import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
 import sbtassembly.*
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
@@ -60,18 +59,7 @@ trait Module {
       .envOrNone("NDLA_RELEASES")
       .map(repo => "Release Sonatype Nexus Repository Manager" at repo)
       .toSeq
-  ) ++ loadEnvFile() ++ fmtSettings
-
-  private def loadEnvFile(): Seq[Def.Setting[_]] = {
-    if (sys.env.get("DISABLE_SUB_DOTENV").contains("true")) Seq.empty
-    else
-      Seq(
-        fork := true,
-        envVars ++= {
-          parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
-        }
-      )
-  }
+  ) ++ fmtSettings
 
   val excludeOptions: Set[ScalacOption] = {
     // NOTE: Intellij has no good way of separating run and test scala configurations from sbt.
