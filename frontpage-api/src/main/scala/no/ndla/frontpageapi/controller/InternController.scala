@@ -64,16 +64,6 @@ trait InternController {
           writeService
             .updateSubjectPage(id, subjectPage, props.DefaultLanguage)
             .handleErrorsOrOk
-        },
-      endpoint.post
-        .summary("Update front page")
-        .in(jsonBody[FrontPageData])
-        .errorOut(errorOutputsFor(400, 404))
-        .out(jsonBody[FrontPageData])
-        .serverLogic { frontPage =>
-          writeService
-            .updateFrontPage(frontPage)
-            .handleErrorsOrOk
         }
     )
   }

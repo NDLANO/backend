@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi.service
 
 import cats.implicits._
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.{errors => common}
 import no.ndla.common.implicits._
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
@@ -24,7 +24,7 @@ trait ReadService {
   class ReadService {
 
     private def validateSubjectPageIdsOrError(subjectIds: List[Long]): Try[List[Long]] = {
-      if (subjectIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
+      if (subjectIds.isEmpty) Failure(common.ValidationException("ids", "Query parameter 'ids' is missing"))
       else Success(subjectIds)
     }
 
@@ -72,8 +72,11 @@ trait ReadService {
       } yield api
     }
 
-    def frontPage: Option[api.FrontPageData] = {
-      frontPageRepository.get.map(ConverterService.toApiFrontPage)
+    def getFrontPage: Try[api.FrontPageData] = {
+      frontPageRepository.getFrontPage.flatMap {
+        case None        => Failure(common.NotFoundException("Front page was not found"))
+        case Some(value) => Success(ConverterService.toApiFrontPage(value))
+      }
     }
 
     def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageData] = {

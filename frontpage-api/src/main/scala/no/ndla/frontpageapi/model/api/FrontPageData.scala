@@ -7,19 +7,16 @@
 
 package no.ndla.frontpageapi.model.api
 
-import io.circe._
-import io.circe.generic.semiauto._
-import sttp.tapir.Schema
-import sttp.tapir.generic._
-import sttp.tapir.generic.auto._
+import sttp.tapir.Schema.annotations.description
 
-case class FrontPageData(topical: List[String], categories: List[SubjectCollection])
+@description("The Menu object")
+case class Menu(
+    @description("Id of the article") articleId: Long,
+    @description("List of submenu objects") menu: List[Menu]
+)
 
-object FrontPageData {
-  implicit val encoder: Encoder[FrontPageData] = deriveEncoder[no.ndla.frontpageapi.model.api.FrontPageData]
-  implicit val decoder: Decoder[FrontPageData] = deriveDecoder[no.ndla.frontpageapi.model.api.FrontPageData]
-
-  implicit val documentation: Schema[FrontPageData] =
-    implicitly[Derived[Schema[FrontPageData]]].value
-      .description("Object containing frontpage data")
-}
+@description("Object containing frontpage data")
+case class FrontPageData(
+    @description("Id of the frontpage") articleId: Long,
+    @description("List of Menu objects") menu: List[Menu]
+)
