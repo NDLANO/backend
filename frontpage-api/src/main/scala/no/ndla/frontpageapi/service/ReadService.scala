@@ -72,7 +72,7 @@ trait ReadService {
       } yield api
     }
 
-    def getFrontPage: Try[api.FrontPageData] = {
+    def getFrontPage: Try[api.FrontPage] = {
       frontPageRepository.getFrontPage.flatMap {
         case None        => Failure(common.NotFoundException("Front page was not found"))
         case Some(value) => Success(ConverterService.toApiFrontPage(value))
