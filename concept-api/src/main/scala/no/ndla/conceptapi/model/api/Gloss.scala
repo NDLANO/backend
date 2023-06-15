@@ -15,7 +15,7 @@ import scala.annotation.meta.field
 case class GlossExample(
     @(ApiModelProperty @field)(description = "Example use of the gloss") example: String,
     @(ApiModelProperty @field)(description = "Language of the example") language: String,
-    @(ApiModelProperty @field)(description = "Alternative writing of the gloss") transcriptions: Map[String, String],
+    @(ApiModelProperty @field)(description = "Alternative writing of the example") transcriptions: Map[String, String],
 )
 
 @ApiModel(description = "Information about the gloss data")
