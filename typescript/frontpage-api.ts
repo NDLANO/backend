@@ -35,11 +35,6 @@ export interface IFilmFrontPageData {
   slideShow: string[]
 }
 
-export interface IFrontPageData {
-  topical: string[]
-  categories: ISubjectCollection[]
-}
-
 export interface IMovieTheme {
   name: IMovieThemeName[]
   movies: string[]
@@ -105,16 +100,6 @@ export interface INewSubjectFrontPageData {
   editorsChoices?: string[]
   latestContent?: string[]
   goTo?: string[]
-}
-
-export interface ISubjectCollection {
-  name: string
-  subjects: ISubjectFilters[]
-}
-
-export interface ISubjectFilters {
-  id: string
-  filters: string[]
 }
 
 export interface ISubjectPageData {
