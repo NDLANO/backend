@@ -35,10 +35,17 @@ export interface IFilmFrontPageData {
   slideShow: string[]
 }
 
-export interface IFrontPageData {
-  topical: string[]
-  categories: ISubjectCollection[]
+export interface IFrontPage {
+  articleId: number
+  menu: IMenu[]
 }
+
+export interface IMenu {
+  articleId: number
+  menu: IMenuData[]
+}
+
+export type IMenuData = IMenu
 
 export interface IMovieTheme {
   name: IMovieThemeName[]
@@ -105,16 +112,6 @@ export interface INewSubjectFrontPageData {
   editorsChoices?: string[]
   latestContent?: string[]
   goTo?: string[]
-}
-
-export interface ISubjectCollection {
-  name: string
-  subjects: ISubjectFilters[]
-}
-
-export interface ISubjectFilters {
-  id: string
-  filters: string[]
 }
 
 export interface ISubjectPageData {

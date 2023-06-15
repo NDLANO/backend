@@ -208,8 +208,10 @@ trait ConverterService {
         .fromString(visual.`type`)
         .map(domain.VisualElement(_, visual.id, visual.alt))
 
-    private def toDomainMenu(menu: api.Menu): domain.Menu =
-      domain.Menu(articleId = menu.articleId, menu = menu.menu.map(toDomainMenu))
+    private def toDomainMenu(menu: api.Menu): domain.Menu = {
+      val apiMenu = menu.menu.map { case x: api.Menu => toDomainMenu(x) }
+      domain.Menu(articleId = menu.articleId, menu = apiMenu)
+    }
 
     def toDomainFrontPage(page: api.FrontPage): domain.FrontPage = {
       domain.FrontPage(articleId = page.articleId, menu = page.menu.map(toDomainMenu))

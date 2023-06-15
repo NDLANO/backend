@@ -7,16 +7,34 @@
 
 package no.ndla.frontpageapi.model.api
 
+import com.scalatsi.{TSIType, TSNamedType, TSType}
 import sttp.tapir.Schema.annotations.description
+
+import scala.annotation.unused
 
 @description("The Menu object")
 case class Menu(
     @description("Id of the article") articleId: Long,
-    @description("List of submenu objects") menu: List[Menu]
-)
+    @description("List of submenu objects") menu: List[MenuData]
+) extends MenuData
 
 @description("Object containing frontpage data")
 case class FrontPage(
     @description("Id of the frontpage") articleId: Long,
     @description("List of Menu objects") menu: List[Menu]
 )
+
+object Menu {
+  implicit val menuTSI: TSIType[Menu] = {
+    @unused
+    implicit val menuData: TSNamedType[MenuData] = TSType.external[MenuData]("IMenuData")
+    TSType.fromCaseClass[Menu]
+  }
+}
+
+sealed trait MenuData {}
+object MenuData {
+  def apply(articleId: Long, menu: List[MenuData]): MenuData = new Menu(articleId, menu)
+
+  implicit val menuDataAlias: TSNamedType[MenuData] = TSType.alias[MenuData]("IMenuData", Menu.menuTSI.get)
+}
