@@ -23,8 +23,8 @@ trait ConverterService {
 
     private def toApiMenu(menu: domain.Menu): api.Menu = api.Menu(menu.articleId, menu.menu.map(toApiMenu))
 
-    def toApiFrontPage(frontPage: domain.FrontPageData): api.FrontPageData =
-      api.FrontPageData(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
+    def toApiFrontPage(frontPage: domain.FrontPage): api.FrontPage =
+      api.FrontPage(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
 
     private def toApiBannerImage(banner: domain.BannerImage): api.BannerImage =
       api.BannerImage(
@@ -211,8 +211,8 @@ trait ConverterService {
     private def toDomainMenu(menu: api.Menu): domain.Menu =
       domain.Menu(articleId = menu.articleId, menu = menu.menu.map(toDomainMenu))
 
-    def toDomainFrontPage(page: api.FrontPageData): domain.FrontPageData = {
-      domain.FrontPageData(articleId = page.articleId, menu = page.menu.map(toDomainMenu))
+    def toDomainFrontPage(page: api.FrontPage): domain.FrontPage = {
+      domain.FrontPage(articleId = page.articleId, menu = page.menu.map(toDomainMenu))
     }
 
     def toDomainFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageData): Try[domain.FilmFrontPageData] = {

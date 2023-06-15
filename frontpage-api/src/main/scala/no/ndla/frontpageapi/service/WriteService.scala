@@ -95,7 +95,7 @@ trait WriteService {
       )
     }
 
-    def createFrontPage(page: api.FrontPageData): Try[api.FrontPageData] = {
+    def createFrontPage(page: api.FrontPage): Try[api.FrontPage] = {
       for {
         domainFrontpage <- Try(ConverterService.toDomainFrontPage(page))
         inserted        <- frontPageRepository.newFrontPage(domainFrontpage)

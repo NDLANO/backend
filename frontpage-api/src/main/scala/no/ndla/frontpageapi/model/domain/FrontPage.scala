@@ -20,32 +20,32 @@ import scala.util.Try
 
 case class Menu(articleId: Long, menu: List[Menu])
 
-case class FrontPageData(
+case class FrontPage(
     articleId: Long,
     menu: List[Menu]
 )
 
-object FrontPageData {
-  implicit val encoder: Encoder[FrontPageData] = deriveEncoder[FrontPageData]
+object FrontPage {
+  implicit val encoder: Encoder[FrontPage] = deriveEncoder[FrontPage]
 
-  private[domain] def decodeJson(document: String): Try[FrontPageData] = {
-    parse(document).flatMap(_.as[FrontPageData]).toTry
+  private[domain] def decodeJson(document: String): Try[FrontPage] = {
+    parse(document).flatMap(_.as[FrontPage]).toTry
   }
 }
 
 trait DBFrontPageData {
   this: Props =>
 
-  object DBFrontPageData extends SQLSyntaxSupport[FrontPageData] {
+  object DBFrontPageData extends SQLSyntaxSupport[FrontPage] {
     override val tableName                  = "mainfrontpage"
     override val schemaName: Option[String] = props.MetaSchema.some
 
-    def fromResultSet(lp: SyntaxProvider[FrontPageData])(rs: WrappedResultSet): Try[FrontPageData] =
+    def fromResultSet(lp: SyntaxProvider[FrontPage])(rs: WrappedResultSet): Try[FrontPage] =
       fromResultSet(lp.resultName)(rs)
 
-    private def fromResultSet(lp: ResultName[FrontPageData])(rs: WrappedResultSet): Try[FrontPageData] = {
+    private def fromResultSet(lp: ResultName[FrontPage])(rs: WrappedResultSet): Try[FrontPage] = {
       val document = rs.string(lp.c("document"))
-      FrontPageData.decodeJson(document)
+      FrontPage.decodeJson(document)
     }
 
   }

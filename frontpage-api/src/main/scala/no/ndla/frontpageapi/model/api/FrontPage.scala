@@ -16,7 +16,7 @@ case class Menu(
 )
 
 @description("Object containing frontpage data")
-case class FrontPageData(
+case class FrontPage(
     @description("Id of the frontpage") articleId: Long,
     @description("List of Menu objects") menu: List[Menu]
 )

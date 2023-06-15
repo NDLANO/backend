@@ -27,7 +27,7 @@ trait FrontPageController {
 
     val getFrontPage: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Get data to display on the front page")
-      .out(jsonBody[FrontPageData])
+      .out(jsonBody[FrontPage])
       .errorOut(errorOutputsFor(404))
       .serverLogic { _ =>
         readService.getFrontPage.handleErrorsOrOk
@@ -35,9 +35,9 @@ trait FrontPageController {
 
     val newFrontPage: ServerEndpoint[Any, IO] = endpoint.post
       .summary("Create front page")
-      .in(jsonBody[FrontPageData])
+      .in(jsonBody[FrontPage])
       .errorOut(errorOutputsFor(400, 404))
-      .out(jsonBody[FrontPageData])
+      .out(jsonBody[FrontPage])
       .serverLogic { frontPage =>
         writeService
           .createFrontPage(frontPage)
