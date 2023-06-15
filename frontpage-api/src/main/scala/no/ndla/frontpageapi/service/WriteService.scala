@@ -95,11 +95,12 @@ trait WriteService {
       )
     }
 
-    def updateFrontPage(page: api.FrontPageData): Try[api.FrontPageData] = {
-      val domainFrontpage = ConverterService.toDomainFrontPage(page)
-      frontPageRepository
-        .newFrontPage(domainFrontpage)
-        .map(ConverterService.toApiFrontPage)
+    def createFrontPage(page: api.FrontPageData): Try[api.FrontPageData] = {
+      for {
+        domainFrontpage <- Try(ConverterService.toDomainFrontPage(page))
+        inserted        <- frontPageRepository.newFrontPage(domainFrontpage)
+        api             <- Try(ConverterService.toApiFrontPage(inserted))
+      } yield api
     }
 
     def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageData): Try[api.FilmFrontPageData] = {
