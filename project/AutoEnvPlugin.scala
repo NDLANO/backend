@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA backend.
+ * Copyright (C) 2023 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 import sbt.*
 import sbt.Keys.*
 
