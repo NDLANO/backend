@@ -23,6 +23,8 @@ export interface IConcept {
   status: IStatus
   visualElement?: IVisualElement
   responsible?: IConceptResponsible
+  conceptType: string
+  glossData?: IGlossData
 }
 
 export interface IConceptContent {
@@ -124,6 +126,20 @@ export interface IDraftConceptSearchParams {
   responsibleIds: string[]
 }
 
+export interface IGlossData {
+  gloss: string
+  wordClass: string
+  originalLanguage: string
+  transcriptions: { [ key: string ]: string }
+  examples: IGlossExample[][]
+}
+
+export interface IGlossExample {
+  example: string
+  language: string
+  transcriptions: { [ key: string ]: string }
+}
+
 export interface ILicense {
   license: string
   description?: string
@@ -142,6 +158,8 @@ export interface INewConcept {
   articleIds?: number[]
   visualElement?: string
   responsibleId?: string
+  conceptType: string
+  glossData?: IGlossData
 }
 
 export interface INewConceptMetaImage {
@@ -181,6 +199,8 @@ export interface IUpdatedConcept {
   status?: string
   visualElement?: string
   responsibleId?: (null | string)
+  conceptType?: string
+  glossData?: IGlossData
 }
 
 export interface IValidationError {
