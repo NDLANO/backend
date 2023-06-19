@@ -9,8 +9,13 @@ package no.ndla.frontpageapi.model.api
 
 import cats.effect.IO
 import no.ndla.common.Clock
+import no.ndla.common.errors.NotFoundException
 import no.ndla.frontpageapi.Props
-import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, NotFoundException, ValidationException}
+import no.ndla.frontpageapi.model.domain.Errors.{
+  LanguageNotFoundException,
+  SubjectPageNotFoundException,
+  ValidationException
+}
 import no.ndla.network.logging.FLogging
 import no.ndla.network.tapir.{ErrorBody, TapirErrorHelpers}
 
@@ -20,10 +25,11 @@ trait ErrorHelpers extends TapirErrorHelpers with FLogging {
   import ErrorHelpers._
 
   override def returnError(throwable: Throwable): IO[ErrorBody] = throwable match {
-    case ex: ValidationException       => IO(badRequest(ex.getMessage))
-    case ex: NotFoundException         => IO(notFoundWithMsg(ex.getMessage))
-    case ex: LanguageNotFoundException => IO(notFoundWithMsg(ex.getMessage))
-    case ex                            => logger.error(ex)(s"Internal error: ${ex.getMessage}").as(generic)
+    case ex: ValidationException          => IO(badRequest(ex.getMessage))
+    case ex: SubjectPageNotFoundException => IO(notFoundWithMsg(ex.getMessage))
+    case ex: NotFoundException            => IO(notFoundWithMsg(ex.getMessage))
+    case ex: LanguageNotFoundException    => IO(notFoundWithMsg(ex.getMessage))
+    case ex                               => logger.error(ex)(s"Internal error: ${ex.getMessage}").as(generic)
   }
 
 }

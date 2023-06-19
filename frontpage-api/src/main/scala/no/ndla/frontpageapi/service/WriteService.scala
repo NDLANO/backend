@@ -9,7 +9,7 @@ package no.ndla.frontpageapi.service
 
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
-import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
+import no.ndla.frontpageapi.model.domain.Errors.{SubjectPageNotFoundException, ValidationException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 
 import scala.util.{Failure, Success, Try}
@@ -41,7 +41,7 @@ trait WriteService {
             converted     <- ConverterService.toApiSubjectPage(subjectPage, language, fallback = true)
           } yield converted
         case Success(_) =>
-          Failure(NotFoundException(id))
+          Failure(SubjectPageNotFoundException(id))
         case Failure(ex) => Failure(ex)
       }
     }

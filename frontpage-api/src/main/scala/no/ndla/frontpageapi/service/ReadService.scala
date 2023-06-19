@@ -12,7 +12,7 @@ import no.ndla.common.{errors => common}
 import no.ndla.common.implicits._
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
-import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, NotFoundException}
+import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, SubjectPageNotFoundException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 
 import scala.util.{Failure, Success, Try}
@@ -38,7 +38,7 @@ trait ReadService {
     def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageData] = {
       val maybeSubject = subjectPageRepository.withId(id).?
       val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
-      converted.toTry(NotFoundException(id))
+      converted.toTry(SubjectPageNotFoundException(id))
     }
 
     def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[api.SubjectPageData]] = {
@@ -51,9 +51,9 @@ trait ReadService {
 
     private def filterOutNotFoundExceptions[T](exceptions: List[Try[T]]): List[Try[T]] = {
       exceptions.filter {
-        case Failure(_: NotFoundException)         => false
-        case Failure(_: LanguageNotFoundException) => false
-        case _                                     => true
+        case Failure(_: SubjectPageNotFoundException) => false
+        case Failure(_: LanguageNotFoundException)    => false
+        case _                                        => true
       }
     }
 
