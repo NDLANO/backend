@@ -28,8 +28,9 @@ object frontpageapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.frontpageapi.model.api._", "no.ndla.network.tapir._"),
     exports = Seq(
-//      "FrontPage",
-//      "FrontPageData",
+      "FrontPage",
+      "MenuData",
+      "Menu",
       "FilmFrontPageData",
       "NewOrUpdatedFilmFrontPageData",
       "SubjectPageData",

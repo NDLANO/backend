@@ -15,35 +15,26 @@ import scala.annotation.unused
 @description("The Menu object")
 case class Menu(
     @description("Id of the article") articleId: Long,
-    @description("List of submenu objects") menu: List[Menu]
-)
+    @description("List of submenu objects") menu: List[MenuData]
+) extends MenuData
+
+object Menu {
+  implicit val menuTSI: TSIType[Menu] = {
+    @unused
+    implicit val menuData: TSNamedType[MenuData] = TSType.external[MenuData]("IMenuData")
+    TSType.fromCaseClass[Menu]
+  }
+}
+
+sealed trait MenuData {}
+object MenuData {
+  def apply(articleId: Long, menu: List[MenuData]): MenuData = new Menu(articleId, menu)
+
+  implicit val menuDataAlias: TSNamedType[MenuData] = TSType.alias[MenuData]("IMenuData", Menu.menuTSI.get)
+}
 
 @description("Object containing frontpage data")
 case class FrontPage(
     @description("Id of the frontpage") articleId: Long,
     @description("List of Menu objects") menu: List[Menu]
 )
-//  extends FrontPageData
-//
-//object FrontPage {
-//  implicit val frontPageSI: TSIType[FrontPage] = {
-//    @unused
-//    implicit val frontPageData: TSNamedType[FrontPageData] = TSType.external[FrontPageData]("IFrontPageData")
-//    TSType.fromCaseClass[FrontPage]
-//  }
-//}
-//
-//sealed trait FrontPageData {}
-//object FrontPageData {
-//  def apply(
-//      articleId: Long,
-//      menu: List[Menu]
-//  ): FrontPageData = {
-//    FrontPage(
-//      articleId,
-//      menu
-//    )
-//  }
-//  implicit val frontPageDataAlias: TSNamedType[FrontPageData] =
-//    TSType.alias[FrontPageData]("IFrontPageData", FrontPage.frontPageSI.get)
-//}

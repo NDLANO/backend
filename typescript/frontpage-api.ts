@@ -35,6 +35,18 @@ export interface IFilmFrontPageData {
   slideShow: string[]
 }
 
+export interface IFrontPage {
+  articleId: number
+  menu: IMenu[]
+}
+
+export interface IMenu {
+  articleId: number
+  menu: IMenuData[]
+}
+
+export type IMenuData = IMenu
+
 export interface IMovieTheme {
   name: IMovieThemeName[]
   movies: string[]
