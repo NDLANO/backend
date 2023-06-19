@@ -130,12 +130,11 @@ trait WriteService {
     def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, userInfo: UserInfo): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
-          val domainConcept = converterService.toDomainConcept(existingConcept, updatedConcept, userInfo)
-
           for {
-            withStatus <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, userInfo)
-            updated    <- updateConcept(withStatus)
-            converted  <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
+            domainConcept <- converterService.toDomainConcept(existingConcept, updatedConcept, userInfo)
+            withStatus    <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, userInfo)
+            updated       <- updateConcept(withStatus)
+            converted     <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
           } yield converted
 
         case None if draftConceptRepository.exists(id) =>

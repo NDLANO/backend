@@ -27,5 +27,7 @@ case class UpdatedConcept(
     @(ApiModelProperty @field)(description = "The new status of the concept") status: Option[String],
     @(ApiModelProperty @field)(description = "A visual element for the concept. May be anything from an image to a video or H5P") visualElement: Option[String],
     @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Deletable[String],
+    @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'gloss'") conceptType: Option[String],
+    @(ApiModelProperty @field)(description = "Information about the gloss") glossData: Option[GlossData],
     // format: on
 )
