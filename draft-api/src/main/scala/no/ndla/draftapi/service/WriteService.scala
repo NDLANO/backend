@@ -382,8 +382,8 @@ trait WriteService {
     }
 
     private def updateStartedField(
-        article: Draft,
-        oldArticle: Option[Draft],
+        draft: Draft,
+        oldDraft: Option[Draft],
         statusWasUpdated: Boolean,
         updatedApiArticle: api.UpdatedArticle
     ): Draft = {
@@ -392,30 +392,30 @@ trait WriteService {
       val isAutomaticOnEditTransition = isAutomaticReponsibleChange && isAutomaticStatusChange
 
       if (isAutomaticOnEditTransition) {
-        article.copy(started = true)
+        draft.copy(started = true)
       } else {
 
-        val responsibleIdWasUpdated = article.responsible match {
+        val responsibleIdWasUpdated = draft.responsible match {
           case None => false
           case Some(responsible) =>
-            val oldResponsibleId  = oldArticle.flatMap(_.responsible).map(_.responsibleId)
+            val oldResponsibleId  = oldDraft.flatMap(_.responsible).map(_.responsibleId)
             val hasNewResponsible = !oldResponsibleId.contains(responsible.responsibleId)
             hasNewResponsible
         }
 
         val shouldReset = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
-        article.copy(started = !shouldReset)
+        draft.copy(started = !shouldReset)
       }
     }
 
     private def addPartialPublishNote(
-        newArticle: Draft,
+        draft: Draft,
         user: UserInfo,
         partialPublishFields: Set[PartialArticleFields]
     ): Draft =
       if (partialPublishFields.nonEmpty)
-        converterService.addNote(newArticle, "Artikkelen har blitt delpublisert", user)
-      else newArticle
+        converterService.addNote(draft, "Artikkelen har blitt delpublisert", user)
+      else draft
 
     private def updateArticle(
         toUpdate: Draft,
