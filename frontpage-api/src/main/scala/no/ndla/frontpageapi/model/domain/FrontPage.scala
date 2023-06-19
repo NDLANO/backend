@@ -27,7 +27,6 @@ case class FrontPage(
 
 object FrontPage {
   implicit val encoder: Encoder[FrontPage] = deriveEncoder[FrontPage]
-  implicit val encoderMenu: Encoder[Menu]  = deriveEncoder[Menu]
 
   private[domain] def decodeJson(document: String): Try[FrontPage] = {
     parse(document).flatMap(_.as[FrontPage]).toTry

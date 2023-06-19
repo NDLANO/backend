@@ -7,7 +7,11 @@
 
 package no.ndla.frontpageapi.model.api
 
+import cats.implicits.toFunctorOps
 import com.scalatsi.{TSIType, TSNamedType, TSType}
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.auto._
+import io.circe.syntax.EncoderOps
 import sttp.tapir.Schema.annotations.description
 
 import scala.annotation.unused
@@ -25,6 +29,9 @@ case class FrontPage(
 )
 
 object Menu {
+  implicit val encodeMenuData: Encoder[MenuData] = Encoder.instance { case menu: Menu => menu.asJson }
+  implicit val decodeMenuData: Decoder[MenuData] = Decoder[Menu].widen
+
   implicit val menuTSI: TSIType[Menu] = {
     @unused
     implicit val menuData: TSNamedType[MenuData] = TSType.external[MenuData]("IMenuData")
