@@ -118,7 +118,11 @@ trait IndexService {
             if (numErrors > 0) {
               logger.error(s"Indexing completed, but with $numErrors errors.")
               deleteIndexWithName(Some(indexName)): Unit
-              Failure(ElasticIndexingException(s"Indexing completed with $numErrors errors, will not replace index."))
+              Failure(
+                ElasticIndexingException(
+                  s"Indexing $documentType completed with $numErrors errors, will not replace index."
+                )
+              )
             } else {
               val operations = getAliasTarget.flatMap(updateAliasTarget(_, indexName))
               operations.map(_ =>

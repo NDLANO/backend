@@ -47,5 +47,6 @@ case class Article(
     @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this article") responsible: Option[DraftResponsible],
     @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
     @(ApiModelProperty @field)(description = "Information about comments attached to the article") comments: Seq[Comment],
-    @(ApiModelProperty @field)(description = "If the article should be prioritized") prioritized: Boolean
+    @(ApiModelProperty @field)(description = "If the article should be prioritized") prioritized: Boolean,
+    @(ApiModelProperty @field)(description = "If the article has been edited after last status or responsible change") started: Boolean
 )

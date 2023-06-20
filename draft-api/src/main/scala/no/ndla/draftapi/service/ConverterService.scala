@@ -117,7 +117,8 @@ trait ConverterService {
           responsible = responsible,
           slug = newArticle.slug,
           comments = newCommentToDomain(newArticle.comments),
-          prioritized = newArticle.prioritized.getOrElse(false)
+          prioritized = newArticle.prioritized.getOrElse(false),
+          started = false
         )
       )
     }
@@ -246,28 +247,14 @@ trait ConverterService {
       common.ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.language)
     }
 
-    def toDomainTag(tag: api.ArticleTag): common.Tag = common.Tag(tag.tags, tag.language)
-
     def toDomainTag(tag: Seq[String], language: String): Option[common.Tag] =
       if (tag.nonEmpty) Some(common.Tag(tag, language)) else None
-
-    def toDomainVisualElement(visual: api.VisualElement): common.VisualElement = {
-      common.VisualElement(removeUnknownEmbedTagAttributes(visual.visualElement), visual.language)
-    }
 
     def toDomainVisualElement(visual: String, language: String): common.VisualElement =
       common.VisualElement(removeUnknownEmbedTagAttributes(visual), language)
 
-    def toDomainIntroduction(intro: api.ArticleIntroduction): common.Introduction = {
-      common.Introduction(intro.introduction, intro.language)
-    }
-
     def toDomainIntroduction(intro: String, language: String): common.Introduction =
       common.Introduction(intro, language)
-
-    def toDomainMetaDescription(meta: api.ArticleMetaDescription): common.Description = {
-      common.Description(meta.metaDescription, meta.language)
-    }
 
     def toDomainMetaDescription(meta: String, language: String): common.Description =
       common.Description(meta, language)
@@ -433,7 +420,8 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug,
             comments = article.comments.map(toApiComment),
-            prioritized = article.prioritized
+            prioritized = article.prioritized,
+            started = article.started
           )
         )
       } else {
@@ -764,7 +752,8 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug.orElse(toMergeInto.slug),
             comments = updatedComments,
-            prioritized = article.prioritized.getOrElse(toMergeInto.prioritized)
+            prioritized = article.prioritized.getOrElse(toMergeInto.prioritized),
+            started = true
           )
 
           val articleWithNewContent = article.copy(content = newContent)
@@ -816,75 +805,76 @@ trait ConverterService {
         user: UserInfo,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
-    ): Try[Draft] = {
-      val createdDate = oldNdlaCreatedDate.getOrElse(clock.now())
-      val updatedDate = oldNdlaUpdatedDate.getOrElse(clock.now())
+    ): Try[Draft] = article.language match {
+      case None =>
+        val error = ValidationMessage("language", "This field must be specified when updating language fields")
+        Failure(new ValidationException(errors = Seq(error)))
+      case Some(lang) =>
+        val status =
+          if (isImported) common.Status(PLANNED, Set(IMPORTED))
+          else common.Status(PLANNED, Set.empty)
 
-      article.language match {
-        case None =>
-          val error = ValidationMessage("language", "This field must be specified when updating language fields")
-          Failure(new ValidationException(errors = Seq(error)))
-        case Some(lang) =>
-          val status =
-            if (isImported) common.Status(PLANNED, Set(IMPORTED))
-            else common.Status(PLANNED, Set.empty)
+        val createdDate = oldNdlaCreatedDate.getOrElse(clock.now())
+        val updatedDate = oldNdlaUpdatedDate.getOrElse(clock.now())
 
-          val mergedNotes = article.notes.map(n => newNotes(n, user, status)) match {
-            case Some(Failure(ex))    => Failure(ex)
-            case Some(Success(notes)) => Success(notes)
-            case None                 => Success(Seq.empty)
-          }
+        val mergedNotes = article.notes.map(n => newNotes(n, user, status)) match {
+          case Some(Failure(ex))    => Failure(ex)
+          case Some(Success(notes)) => Success(notes)
+          case None                 => Success(Seq.empty)
+        }
 
-          val newMetaImage = article.metaImage match {
-            case Right(meta) => meta.map(m => common.ArticleMetaImage(m.id, m.alt, lang)).toSeq
-            case Left(_)     => Seq.empty
-          }
+        val newMetaImage = article.metaImage match {
+          case Right(meta) => meta.map(m => common.ArticleMetaImage(m.id, m.alt, lang)).toSeq
+          case Left(_)     => Seq.empty
+        }
 
-          val updatedAvailability =
-            common.Availability.valueOf(article.availability).getOrElse(common.Availability.everyone)
-          val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
+        val updatedAvailability =
+          common.Availability.valueOf(article.availability).getOrElse(common.Availability.everyone)
+        val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
 
-          val responsible = article.responsibleId
-            .getOrElse(None)
-            .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
+        val responsible = article.responsibleId
+          .getOrElse(None)
+          .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
 
-          for {
-            comments <- updatedCommentToDomainNullDocument(article.comments.getOrElse(List.empty))
-            notes    <- mergedNotes
-          } yield Draft(
-            id = Some(id),
-            revision = Some(1),
-            status = status,
-            title = article.title.map(t => common.Title(t, lang)).toSeq,
-            content = article.content.map(c => common.ArticleContent(c, lang)).toSeq,
-            copyright = article.copyright.map(toDomainCopyright),
-            tags = article.tags.toSeq.map(tags => common.Tag(tags, lang)),
-            requiredLibraries = article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).toSeq.flatten,
-            visualElement = article.visualElement.map(v => toDomainVisualElement(v, lang)).toSeq,
-            introduction = article.introduction.map(i => toDomainIntroduction(i, lang)).toSeq,
-            metaDescription = article.metaDescription.map(m => toDomainMetaDescription(m, lang)).toSeq,
-            metaImage = newMetaImage,
-            created = createdDate,
-            updated = updatedDate,
-            published = article.published.getOrElse(clock.now()),
-            updatedBy = user.id,
-            articleType = article.articleType
-              .map(common.ArticleType.valueOfOrError)
-              .getOrElse(common.ArticleType.Standard),
-            notes = notes,
-            previousVersionsNotes = Seq.empty,
-            editorLabels = article.editorLabels.getOrElse(Seq.empty),
-            grepCodes = article.grepCodes.getOrElse(Seq.empty),
-            conceptIds = article.conceptIds.getOrElse(Seq.empty),
-            availability = updatedAvailability,
-            relatedContent = article.relatedContent.map(toDomainRelatedContent).getOrElse(Seq.empty),
-            revisionMeta = updatedRevisionMeta,
-            responsible = responsible,
-            slug = article.slug,
-            comments = comments,
-            prioritized = article.prioritized.getOrElse(false)
-          )
-      }
+        val articleType = article.articleType
+          .map(common.ArticleType.valueOfOrError)
+          .getOrElse(common.ArticleType.Standard)
+
+        for {
+          comments <- updatedCommentToDomainNullDocument(article.comments.getOrElse(List.empty))
+          notes    <- mergedNotes
+        } yield Draft(
+          id = Some(id),
+          revision = Some(1),
+          status = status,
+          title = article.title.map(t => common.Title(t, lang)).toSeq,
+          content = article.content.map(c => common.ArticleContent(c, lang)).toSeq,
+          copyright = article.copyright.map(toDomainCopyright),
+          tags = article.tags.toSeq.map(tags => common.Tag(tags, lang)),
+          requiredLibraries = article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).toSeq.flatten,
+          visualElement = article.visualElement.map(v => toDomainVisualElement(v, lang)).toSeq,
+          introduction = article.introduction.map(i => toDomainIntroduction(i, lang)).toSeq,
+          metaDescription = article.metaDescription.map(m => toDomainMetaDescription(m, lang)).toSeq,
+          metaImage = newMetaImage,
+          created = createdDate,
+          updated = updatedDate,
+          published = article.published.getOrElse(clock.now()),
+          updatedBy = user.id,
+          articleType = articleType,
+          notes = notes,
+          previousVersionsNotes = Seq.empty,
+          editorLabels = article.editorLabels.getOrElse(Seq.empty),
+          grepCodes = article.grepCodes.getOrElse(Seq.empty),
+          conceptIds = article.conceptIds.getOrElse(Seq.empty),
+          availability = updatedAvailability,
+          relatedContent = article.relatedContent.map(toDomainRelatedContent).getOrElse(Seq.empty),
+          revisionMeta = updatedRevisionMeta,
+          responsible = responsible,
+          slug = article.slug,
+          comments = comments,
+          prioritized = article.prioritized.getOrElse(false),
+          started = false
+        )
     }
 
     private[service] def _stateTransitionsToApi(

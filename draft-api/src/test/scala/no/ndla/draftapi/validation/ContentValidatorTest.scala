@@ -9,7 +9,7 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain._
-import no.ndla.common.model.domain.draft.{Copyright, Draft}
+import no.ndla.common.model.domain.draft.{Copyright, Draft, RevisionMeta}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY_SA
 
@@ -340,4 +340,20 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.head.message should be("The string contains invalid characters")
   }
 
+  test("That we only validate the given language with validateArticleOnLanguage") {
+    val article =
+      TestData.sampleDomainArticle.copy(
+        id = Some(5),
+        content =
+          Seq(ArticleContent("<section> Valid Content </section>", "nb"), ArticleContent("<div> content <div", "nn")),
+        responsible = Some(Responsible("hei", TestData.today)),
+        revisionMeta = RevisionMeta.default
+      )
+
+    contentValidator.validateArticleOnLanguage(article, Some("nb")).failIfFailure
+    val Failure(error: ValidationException) = contentValidator.validateArticle(article)
+    val Seq(err1, err2)                     = error.errors
+    err1.message.contains("The content contains illegal tags and/or attributes.") should be(true)
+    err2.message should be("An article must consist of one or more <section> blocks. Illegal tag(s) are div ")
+  }
 }
