@@ -57,6 +57,7 @@ export interface IArticle {
   slug?: string
   comments: IComment[]
   prioritized: boolean
+  started: boolean
 }
 
 export interface IArticleContent {
