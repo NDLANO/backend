@@ -9,7 +9,7 @@ package no.ndla.frontpageapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.frontpageapi.controller.{FilmPageController, SubjectPageController}
+import no.ndla.frontpageapi.controller.{FilmPageController, FrontPageController, SubjectPageController}
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
@@ -26,6 +26,7 @@ trait TestEnvironment
     with FilmFrontPageRepository
     with FilmPageController
     with SubjectPageController
+    with FrontPageController
     with Service
     with NdlaMiddleware
     with ReadService
@@ -47,6 +48,7 @@ trait TestEnvironment
 
   override val filmPageController      = mock[FilmPageController]
   override val subjectPageController   = mock[SubjectPageController]
+  override val frontPageController     = mock[FrontPageController]
   override val subjectPageRepository   = mock[SubjectPageRepository]
   override val frontPageRepository     = mock[FrontPageRepository]
   override val filmFrontPageRepository = mock[FilmFrontPageRepository]

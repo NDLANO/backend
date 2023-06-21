@@ -13,6 +13,8 @@ import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.auth.Scope.FRONTPAGE_API_ADMIN
+import no.ndla.network.tapir.auth.TokenUser
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
@@ -25,6 +27,8 @@ trait FrontPageController {
   class FrontPageController() extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "frontpage"
 
+    import ErrorHelpers._
+
     val getFrontPage: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Get data to display on the front page")
       .out(jsonBody[FrontPage])
@@ -36,9 +40,11 @@ trait FrontPageController {
     val newFrontPage: ServerEndpoint[Any, IO] = endpoint.post
       .summary("Create front page")
       .in(jsonBody[FrontPage])
-      .errorOut(errorOutputsFor(400, 404))
+      .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[FrontPage])
-      .serverLogic { frontPage =>
+      .securityIn(auth.bearer[Option[TokenUser]]())
+      .serverSecurityLogicPure(requireScope(FRONTPAGE_API_ADMIN))
+      .serverLogic { _ => frontPage =>
         writeService
           .createFrontPage(frontPage)
           .handleErrorsOrOk
