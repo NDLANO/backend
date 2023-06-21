@@ -41,27 +41,24 @@ trait ErrorHelpers extends TapirErrorHelpers with FLogging {
 
   import Helpers._
 
-  override def returnError(ex: Throwable): IO[ErrorBody] =
-    ex match {
-      case a: AccessDeniedException => IO(ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403))
-      case v: ValidationException =>
-        IO(ErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400))
-      case hre: HttpRequestException          => IO(ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502))
-      case rw: ResultWindowTooLargeException  => IO(ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422))
-      case i: ImportException                 => IO(ErrorBody(IMPORT_FAILED, i.getMessage, clock.now(), 422))
-      case nfe: NotFoundException             => IO(notFoundWithMsg(nfe.getMessage))
-      case o: OptimisticLockException         => IO(ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409))
-      case _: SizeConstraintExceededException => IO(ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413))
-      case _: PSQLException =>
-        DataSource.connectToDatabase()
-        IO(ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500))
-      case NdlaSearchException(_, Some(rf), _)
-          if rf.error.rootCause
-            .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
-        IO(invalidSearchContext)
-      case t: Throwable =>
-        logger.error(t)(t.getMessage).as(generic)
-    }
+  override def handleErrors: PartialFunction[Throwable, IO[ErrorBody]] = {
+    case a: AccessDeniedException => IO(ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403))
+    case v: ValidationException =>
+      IO(ErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400))
+    case hre: HttpRequestException          => IO(ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502))
+    case rw: ResultWindowTooLargeException  => IO(ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422))
+    case i: ImportException                 => IO(ErrorBody(IMPORT_FAILED, i.getMessage, clock.now(), 422))
+    case nfe: NotFoundException             => IO(notFoundWithMsg(nfe.getMessage))
+    case o: OptimisticLockException         => IO(ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409))
+    case _: SizeConstraintExceededException => IO(ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413))
+    case _: PSQLException =>
+      DataSource.connectToDatabase()
+      IO(ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500))
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      IO(invalidSearchContext)
+  }
 
 }
 

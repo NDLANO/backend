@@ -40,7 +40,7 @@ trait InternController {
           readService.getIdFromExternalId(nid) match {
             case Success(Some(id)) => IO(id.asRight)
             case Success(None)     => IO(ErrorHelpers.notFound.asLeft)
-            case Failure(ex)       => returnError(ex).map(_.asLeft)
+            case Failure(ex)       => returnLeftError(ex)
           }
         },
       endpoint.post

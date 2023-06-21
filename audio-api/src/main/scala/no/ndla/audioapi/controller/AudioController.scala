@@ -223,10 +223,7 @@ trait AudioController {
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
       .serverLogic { user => formData =>
         val fileBytes = getBytesAndDeleteFile(formData.file)
-        writeService.storeNewAudio(formData.metadata.body, fileBytes, user) match {
-          case Success(audioMeta) => IO(Right(audioMeta))
-          case Failure(e)         => returnError(e).map(_.asLeft)
-        }
+        writeService.storeNewAudio(formData.metadata.body, fileBytes, user).handleErrorsOrOk
       }
 
     val putUpdateAudio: ServerEndpoint[Any, IO] = endpoint.put
@@ -241,10 +238,7 @@ trait AudioController {
       .serverLogic { user => input =>
         val (id, formData) = input
         val fileBytes      = formData.file.map(getBytesAndDeleteFile)
-        writeService.updateAudio(id, formData.metadata.body, fileBytes, user) match {
-          case Success(audioMeta) => IO(audioMeta.asRight)
-          case Failure(e)         => returnError(e).map(_.asLeft)
-        }
+        writeService.updateAudio(id, formData.metadata.body, fileBytes, user).handleErrorsOrOk
       }
 
     val tagSearch: ServerEndpoint[Any, IO] = endpoint.get
@@ -269,10 +263,7 @@ trait AudioController {
 
         val language = lang.getOrElse(Language.AllLanguages)
 
-        readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language) match {
-          case Failure(ex)     => returnError(ex).map(_.asLeft)
-          case Success(result) => IO(result.asRight)
-        }
+        readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language).handleErrorsOrOk
       }
 
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
