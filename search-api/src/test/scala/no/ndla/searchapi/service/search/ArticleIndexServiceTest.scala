@@ -8,15 +8,20 @@
 package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField}
+import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.model.SearchableLanguageFormats
+import no.ndla.search.TestUtility.{getFields, getMappingFields}
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.model.search.SearchableArticle
+import no.ndla.searchapi.model.search.{EmbedValues, SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.json4s.Formats
+import org.json4s.JsonAST.{JArray, JObject}
 import org.json4s.native.Serialization.read
+import org.json4s.{Extraction, Formats, JBool, JDecimal, JDouble, JInt, JLong, JNothing, JNull, JSet, JString, JValue}
 import org.scalatest.Outcome
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class ArticleIndexServiceTest
@@ -93,5 +98,53 @@ class ArticleIndexServiceTest
     actualArticle5 should be(expectedArticle5)
     actualArticle6 should be(expectedArticle6)
     actualArticle7 should be(expectedArticle7)
+  }
+
+  test("That mapping contains every field after serialization") {
+    val languageValues = SearchableLanguageValues(Seq(LanguageValue("nb", "hei"), LanguageValue("en", "hå")))
+    val languageList   = SearchableLanguageList(Seq(LanguageValue("nb", Seq("")), LanguageValue("en", Seq(""))))
+    val now            = LocalDateTime.now()
+
+    val searchableToTestWith = SearchableArticle(
+      id = 10L,
+      title = languageValues,
+      content = languageValues,
+      visualElement = languageValues,
+      introduction = languageValues,
+      metaDescription = languageValues,
+      tags = languageList,
+      lastUpdated = now,
+      license = "CC-BY-SA-4.0",
+      authors = List("hei", "hå"),
+      articleType = "standard",
+      metaImage = List(ArticleMetaImage("hei", "hå", "nb"), ArticleMetaImage("hei", "hå", "en")),
+      defaultTitle = Some("hei"),
+      supportedLanguages = List("nb", "en"),
+      traits = List("hei"),
+      embedAttributes = languageList,
+      embedResourcesAndIds = List(EmbedValues(List("hei"), Some("hei"), "nb")),
+      availability = Availability.everyone.toString,
+      contexts = TestData.searchableTaxonomyContexts,
+      grepContexts = List(
+        SearchableGrepContext("KE12", None),
+        SearchableGrepContext("KM123", None),
+        SearchableGrepContext("TT2", None)
+      )
+    )
+
+    val searchableFields     = Extraction.decompose(searchableToTestWith)
+    val fields               = getFields(searchableFields, None)
+    val mapping              = articleIndexService.getMapping
+
+    val staticMappingFields  = getMappingFields(mapping.properties, None)
+    val dynamicMappingFields = mapping.templates.map(_.name)
+    for (field <- fields) {
+      val hasStatic  = staticMappingFields.contains(field)
+      val hasDynamic = dynamicMappingFields.contains(field)
+
+      if (!(hasStatic || hasDynamic)) {
+        fail(s"'$field' was not found in mapping, i think you would want to add it to the index mapping?")
+      }
+    }
   }
 }
