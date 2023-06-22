@@ -86,10 +86,14 @@ trait DraftIndexService {
           keywordField("language")
         ),
         nestedField("revisionMeta").fields(
+          keywordField("id"),
           dateField("revisionDate"),
           keywordField("note"),
           keywordField("status")
         ),
+        keywordField("nextRevision.id"),
+        keywordField("nextRevision.status"),
+        textField("nextRevision.note"),
         dateField("nextRevision.revisionDate"),
         booleanField("prioritized")
       )
@@ -102,7 +106,10 @@ trait DraftIndexService {
         generateLanguageSupportedDynamicTemplates("embedAttributes") ++
         generateLanguageSupportedDynamicTemplates("relevance") ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
-        generateLanguageSupportedDynamicTemplates("name", keepRaw = true)
+        generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("contexts.root") ++
+        generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
+        generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
 
       properties(fields).dynamicTemplates(dynamics)
 

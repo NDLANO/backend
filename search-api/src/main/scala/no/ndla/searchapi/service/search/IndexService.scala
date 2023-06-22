@@ -322,6 +322,7 @@ trait IndexService {
         keywordField("parentIds"),
         keywordField("relevanceId"),
         booleanField("isActive"),
+        booleanField("isPrimary"),
         nestedField("resourceTypes").fields(
           keywordField("id")
         )
