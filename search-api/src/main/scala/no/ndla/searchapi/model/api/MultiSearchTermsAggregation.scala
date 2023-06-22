@@ -15,7 +15,7 @@ import scala.annotation.meta.field
 @ApiModel(description = "Value that appears in the search aggregation")
 case class TermValue(
     @(ApiModelProperty @field)(description = "Value that appeared in result") value: String,
-    @(ApiModelProperty @field)(description = "Number of times the value appeared in result") count: Long
+    @(ApiModelProperty @field)(description = "Number of times the value appeared in result") count: Int
 )
 
 @ApiModel(description = "Information about search aggregation on `field`")
