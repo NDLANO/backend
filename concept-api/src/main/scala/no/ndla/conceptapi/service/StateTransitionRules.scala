@@ -166,6 +166,9 @@ trait StateTransitionRules {
       val requestInfo                     = RequestInfo.fromThreadContext()
       requestInfo.setRequestInfo() >>
         IO {
+          // TODO: This can be removed once the `IO` is returned all the way to the runtime so IOLocal context works
+          requestInfo.setThreadContextRequestInfo()
+
           convertedArticle.flatMap(conceptBeforeSideEffect => {
             sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {
               accumulatedConcept.flatMap(c => sideEffect(c, user))
