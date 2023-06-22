@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.model.domain
 
-case class Bucket(value: String, count: Long)
+case class Bucket(value: String, count: Int)
 case class TermAggregation(
     field: Seq[String],
     sumOtherDocCount: Int,

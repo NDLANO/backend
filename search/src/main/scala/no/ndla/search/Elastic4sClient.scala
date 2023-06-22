@@ -28,6 +28,8 @@ trait Elastic4sClient {
     private def recreateClient(): Unit = client = Elastic4sClientFactory.getNonSigningClient(searchServer)
     private val elasticTimeout         = 10.minutes
 
+    def showQuery[T](t: T)(implicit handler: Handler[T, _]): String = client.show(t)
+
     private val clientExecutionContext: ExecutionContextExecutor =
       ExecutionContext.fromExecutor(Executors.newWorkStealingPool(props.MAX_SEARCH_THREADS))
 

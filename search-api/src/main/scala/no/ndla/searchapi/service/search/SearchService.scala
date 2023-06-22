@@ -260,7 +260,7 @@ trait SearchService {
         .flatMap(bucket => {
           Try {
             val key      = bucket("key").asInstanceOf[String]
-            val docCount = bucket("doc_count").asInstanceOf[Long]
+            val docCount = bucket("doc_count").asInstanceOf[Int]
             Bucket(key, docCount)
           }.toOption
         })
@@ -282,26 +282,22 @@ trait SearchService {
     }
 
     private def getTermsAggregationResults(
-        m: Map[String, Any],
+        aggregationMap: Map[String, Any],
         fields: Seq[String] = Seq.empty,
         foundBuckets: Seq[TermAggregation] = Seq.empty
-    ): Seq[TermAggregation] = {
-      m.flatMap {
-        case (key, map) =>
-          val newMap = Try(map.asInstanceOf[Map[String, Any]]).getOrElse(Map.empty[String, Any])
+    ): Seq[TermAggregation] = aggregationMap.toSeq.flatMap { case (key, map) =>
+      val newMap = Try(map.asInstanceOf[Map[String, Any]]).getOrElse(Map.empty[String, Any])
 
-          if (
-            newMap.contains("buckets") &&
-            newMap.contains("sum_other_doc_count") &&
-            newMap.contains("doc_count_error_upper_bound")
-          ) {
-            handleBucketResult(newMap, fields :+ key)
-          } else {
-            getTermsAggregationResults(newMap, fields :+ key, foundBuckets)
-          }
+      val hasBucketAggregationKeys =
+        newMap.contains("buckets") &&
+          newMap.contains("sum_other_doc_count") &&
+          newMap.contains("doc_count_error_upper_bound")
 
-        case _ => Seq.empty[TermAggregation]
-      }.toSeq
+      if (hasBucketAggregationKeys) {
+        handleBucketResult(newMap, fields :+ key)
+      } else {
+        getTermsAggregationResults(newMap, fields :+ key, foundBuckets)
+      }
     }
 
     def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestion] = {
