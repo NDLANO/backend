@@ -22,6 +22,7 @@ object Scope extends Enum[Scope] {
   case object DRAFT_API_HTML           extends Scope("drafts:html")
   case object DRAFT_API_PUBLISH        extends Scope("drafts:publish")
   case object DRAFT_API_WRITE          extends Scope("drafts:write")
+  case object FRONTPAGE_API_ADMIN      extends Scope("frontpage:admin")
   case object FRONTPAGE_API_WRITE      extends Scope("frontpage:write")
   case object IMAGE_API_WRITE          extends Scope("images:write")
   case object LEARNINGPATH_API_ADMIN   extends Scope("learningpath:admin")

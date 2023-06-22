@@ -21,11 +21,10 @@ trait ConverterService {
   object ConverterService {
     import props.{BrightcoveAccountId, BrightcovePlayer, RawImageApiUrl}
 
-    def toApiFrontPage(page: domain.FrontPageData): api.FrontPageData =
-      api.FrontPageData(page.topical, page.categories.map(toApiSubjectCollection))
+    private def toApiMenu(menu: domain.Menu): api.Menu = api.Menu(menu.articleId, menu.menu.map(toApiMenu))
 
-    private def toApiSubjectCollection(coll: domain.SubjectCollection): api.SubjectCollection =
-      api.SubjectCollection(coll.name, coll.subjects.map(sf => api.SubjectFilters(sf.id, sf.filters)))
+    def toApiFrontPage(frontPage: domain.FrontPage): api.FrontPage =
+      api.FrontPage(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
 
     private def toApiBannerImage(banner: domain.BannerImage): api.BannerImage =
       api.BannerImage(
@@ -209,11 +208,14 @@ trait ConverterService {
         .fromString(visual.`type`)
         .map(domain.VisualElement(_, visual.id, visual.alt))
 
-    def toDomainFrontPage(page: api.FrontPageData): domain.FrontPageData =
-      domain.FrontPageData(page.topical, page.categories.map(toDomainSubjectCollection))
+    private def toDomainMenu(menu: api.Menu): domain.Menu = {
+      val apiMenu = menu.menu.map { case x: api.Menu => toDomainMenu(x) }
+      domain.Menu(articleId = menu.articleId, menu = apiMenu)
+    }
 
-    private def toDomainSubjectCollection(coll: api.SubjectCollection): domain.SubjectCollection =
-      domain.SubjectCollection(coll.name, coll.subjects.map(sf => domain.SubjectFilters(sf.id, sf.filters)))
+    def toDomainFrontPage(page: api.FrontPage): domain.FrontPage = {
+      domain.FrontPage(articleId = page.articleId, menu = page.menu.map(toDomainMenu))
+    }
 
     def toDomainFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageData): Try[domain.FilmFrontPageData] = {
       val withoutAboutSubject =

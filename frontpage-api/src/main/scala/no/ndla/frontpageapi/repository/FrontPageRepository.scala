@@ -7,57 +7,48 @@
 
 package no.ndla.frontpageapi.repository
 
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax._
 import no.ndla.frontpageapi.integration.DataSource
-import no.ndla.frontpageapi.model.domain.{DBFrontPageData, FrontPageData}
+import no.ndla.frontpageapi.model.domain.{DBFrontPageData, FrontPage}
 import org.postgresql.util.PGobject
 import scalikejdbc._
+import cats.implicits._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait FrontPageRepository {
   this: DataSource with DBFrontPageData =>
   val frontPageRepository: FrontPageRepository
 
-  class FrontPageRepository {
-    import FrontPageData._
+  class FrontPageRepository extends StrictLogging {
+    import FrontPage._
 
-    def newFrontPage(page: FrontPageData)(implicit session: DBSession = AutoSession): Try[FrontPageData] = {
+    def newFrontPage(page: FrontPage)(implicit session: DBSession = AutoSession): Try[FrontPage] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(page.asJson.noSpacesDropNull)
 
       Try(
-        sql"insert into ${DBFrontPageData.table} (document) values (${dataObject})"
+        sql"insert into ${DBFrontPageData.table} (document) values ($dataObject)"
           .updateAndReturnGeneratedKey()
       ).map(deleteAllBut).map(_ => page)
     }
 
-    private def deleteAllBut(id: Long)(implicit session: DBSession) = {
+    private def deleteAllBut(id: Long)(implicit session: DBSession): Try[Long] = {
       Try(
         sql"delete from ${DBFrontPageData.table} where id<>${id} "
           .update()
       ).map(_ => id)
     }
 
-    def get(implicit session: DBSession = ReadOnlyAutoSession): Option[FrontPageData] = {
+    def getFrontPage(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[FrontPage]] = Try {
       val fr = DBFrontPageData.syntax("fr")
-
-      Try(
-        sql"select ${fr.result.*} from ${DBFrontPageData.as(fr)} order by fr.id desc limit 1"
-          .map(DBFrontPageData.fromDb(fr))
-          .single()
-      ) match {
-        case Success(Some(Success(s))) => Some(s)
-        case Success(Some(Failure(ex))) =>
-          ex.printStackTrace()
-          None
-        case Success(None) => None
-        case Failure(ex) =>
-          ex.printStackTrace()
-          None
-      }
-    }
+      sql"select ${fr.result.*} from ${DBFrontPageData.as(fr)} order by fr.id desc limit 1"
+        .map(DBFrontPageData.fromResultSet(fr))
+        .single()
+        .sequence
+    }.flatten
 
   }
 }

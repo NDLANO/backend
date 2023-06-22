@@ -9,7 +9,7 @@ package no.ndla.frontpageapi.service
 
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
-import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
+import no.ndla.frontpageapi.model.domain.Errors.{SubjectPageNotFoundException, ValidationException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 
 import scala.util.{Failure, Success, Try}
@@ -41,7 +41,7 @@ trait WriteService {
             converted     <- ConverterService.toApiSubjectPage(subjectPage, language, fallback = true)
           } yield converted
         case Success(_) =>
-          Failure(NotFoundException(id))
+          Failure(SubjectPageNotFoundException(id))
         case Failure(ex) => Failure(ex)
       }
     }
@@ -95,11 +95,12 @@ trait WriteService {
       )
     }
 
-    def updateFrontPage(page: api.FrontPageData): Try[api.FrontPageData] = {
-      val domainFrontpage = ConverterService.toDomainFrontPage(page)
-      frontPageRepository
-        .newFrontPage(domainFrontpage)
-        .map(ConverterService.toApiFrontPage)
+    def createFrontPage(page: api.FrontPage): Try[api.FrontPage] = {
+      for {
+        domainFrontpage <- Try(ConverterService.toDomainFrontPage(page))
+        inserted        <- frontPageRepository.newFrontPage(domainFrontpage)
+        api             <- Try(ConverterService.toApiFrontPage(inserted))
+      } yield api
     }
 
     def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageData): Try[api.FilmFrontPageData] = {
