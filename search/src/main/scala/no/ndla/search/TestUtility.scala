@@ -28,7 +28,7 @@ object TestUtility {
     }
   }
 
-  def getFields(json: JValue, prefix: Option[String]): Seq[String] = {
+  def getFields(json: JValue, prefix: Option[String], skipFields: Seq[String] = Seq.empty): Seq[String] = {
     val pre = prefix.map(x => s"$x.").getOrElse("")
     json match {
       case arr: JArray =>
@@ -36,16 +36,28 @@ object TestUtility {
       case JObject(obj) =>
         obj.foldLeft(List.empty[String]) {
           case (acc, (name, value: JObject)) =>
-            val fix       = s"$pre$name"
-            val subfields = getFields(value, Some(fix))
-            acc ++ subfields
+            if (skipFields.contains(name)) {
+              acc
+            } else {
+              val fix       = s"$pre$name"
+              val subfields = getFields(value, Some(fix), skipFields)
+              acc ++ subfields
+            }
           case (acc, (name, value: JArray)) =>
-            val fix       = s"$pre$name"
-            val subfields = getArrayFields(value, fix)
-            acc ++ subfields
+            if (skipFields.contains(name)) {
+              acc
+            } else {
+              val fix       = s"$pre$name"
+              val subfields = getArrayFields(value, fix)
+              acc ++ subfields
+            }
           case (acc, (name, _)) =>
-            val fix = s"$pre$name"
-            acc :+ fix
+            if (skipFields.contains(name)) {
+              acc
+            } else {
+              val fix = s"$pre$name"
+              acc :+ fix
+            }
         }
       case _ => List.empty
     }

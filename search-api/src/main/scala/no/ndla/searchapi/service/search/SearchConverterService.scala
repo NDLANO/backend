@@ -366,12 +366,12 @@ trait SearchConverterService {
         List(draft.updatedBy) ++ draft.notes.map(_.user) ++ draft.previousVersionsNotes.map(_.user)
       val nextRevision =
         draft.revisionMeta.filter(_.status == RevisionStatus.NeedsRevision).sortBy(_.revisionDate).headOption
+      val draftStatus = search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq)
 
       Success(
         SearchableDraft(
           id = draft.id.get,
-          draftStatus =
-            search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq),
+          draftStatus = draftStatus,
           title = model.SearchableLanguageValues(draft.title.map(title => LanguageValue(title.language, title.title))),
           content = model.SearchableLanguageValues(
             draft.content.map(article =>
