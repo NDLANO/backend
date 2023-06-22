@@ -8,7 +8,6 @@
 package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField}
 import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
@@ -16,9 +15,8 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, Searchabl
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.search.{EmbedValues, SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.json4s.JsonAST.{JArray, JObject}
 import org.json4s.native.Serialization.read
-import org.json4s.{Extraction, Formats, JBool, JDecimal, JDouble, JInt, JLong, JNothing, JNull, JSet, JString, JValue}
+import org.json4s.{Extraction, Formats}
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime
@@ -132,9 +130,9 @@ class ArticleIndexServiceTest
       )
     )
 
-    val searchableFields     = Extraction.decompose(searchableToTestWith)
-    val fields               = getFields(searchableFields, None)
-    val mapping              = articleIndexService.getMapping
+    val searchableFields = Extraction.decompose(searchableToTestWith)
+    val fields           = getFields(searchableFields, None)
+    val mapping          = articleIndexService.getMapping
 
     val staticMappingFields  = getMappingFields(mapping.properties, None)
     val dynamicMappingFields = mapping.templates.map(_.name)
