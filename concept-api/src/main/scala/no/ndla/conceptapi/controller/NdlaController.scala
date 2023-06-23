@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.controller
 
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{
@@ -26,8 +26,6 @@ import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.swagger.ResponseMessage
-
-import java.nio.file.AccessDeniedException
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource with NdlaControllerBase with NdlaSwaggerSupport =>
@@ -132,12 +130,5 @@ trait NdlaController {
       Param[Option[Boolean]]("exact-match", "If provided, only return concept where query matches title exactly.")
     protected val responsibleIdFilter =
       Param[Option[Seq[String]]]("responsible-ids", "List of responsible ids to filter by (OR filter)")
-    def doOrAccessDenied(hasAccess: Boolean)(w: => Any): Any = {
-      if (hasAccess) {
-        w
-      } else {
-        errorHandler(new AccessDeniedException("Missing user/client-id or role"))
-      }
-    }
   }
 }

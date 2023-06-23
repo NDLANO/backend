@@ -10,7 +10,6 @@ package no.ndla.conceptapi.controller
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.implicits._
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
@@ -28,7 +27,6 @@ import scala.util.{Failure, Success}
 trait PublishedConceptController {
   this: WriteService
     with ReadService
-    with User
     with PublishedConceptSearchService
     with SearchConverterService
     with Props

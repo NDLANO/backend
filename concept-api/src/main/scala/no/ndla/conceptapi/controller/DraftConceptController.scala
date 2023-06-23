@@ -8,17 +8,17 @@
 package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.implicits._
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.common.implicits._
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.scalatra.NdlaSwaggerSupport
+import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{Created, Ok}
@@ -29,7 +29,6 @@ import scala.util.{Failure, Success}
 trait DraftConceptController {
   this: WriteService
     with ReadService
-    with User
     with DraftConceptSearchService
     with SearchConverterService
     with ConverterService
@@ -347,9 +346,8 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
       val language = paramOrNone(this.language.paramName)
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val id = long(this.conceptId.paramName)
         language match {
           case Some(language) => writeService.deleteLanguage(id, language, userInfo)
@@ -372,8 +370,7 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val id = long(this.conceptId.paramName)
 
         ConceptStatus
@@ -396,9 +393,8 @@ trait DraftConceptController {
           .responseMessages(response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-        converterService.stateTransitionsToApi(user.getUser)
+      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { user =>
+        converterService.stateTransitionsToApi(user)
       }
     }: Unit
 
@@ -448,8 +444,7 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val body = tryExtract[NewConcept](request.body)
         body.flatMap(concept => writeService.newConcept(concept, userInfo)) match {
           case Success(c)  => Created(c)
@@ -473,8 +468,7 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val body      = tryExtract[UpdatedConcept](request.body)
         val conceptId = long(this.conceptId.paramName)
         body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {

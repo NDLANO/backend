@@ -6,12 +6,12 @@
  */
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers._
@@ -30,9 +30,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
-  override def beforeEach(): Unit = {
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
-  }
+  override def beforeEach(): Unit = {}
 
   test("/<concept_id> should return 200 if the concept was found") {
     when(readService.conceptWithId(conceptId, lang, fallback = false))
@@ -59,7 +57,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   }
 
   test("POST / should return 400 if body does not contain all required fields") {
-    post("/test/", invalidConcept) {
+    post("/test/", invalidConcept, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(400)
     }
   }
@@ -67,7 +65,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   test("POST / should return 201 on created") {
     when(
       writeService
-        .newConcept(any[NewConcept], any[UserInfo])
+        .newConcept(any[NewConcept], any[TokenUser])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
     post(
@@ -80,16 +78,15 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   }
 
   test("POST / should return 403 if no write role") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(
       writeService
-        .newConcept(any[NewConcept], any[UserInfo])
+        .newConcept(any[NewConcept], any)
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
     post(
       "/test/",
       write(TestData.sampleNewConcept),
-      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
+      headers = Map("Authorization" -> TestData.authHeaderWithWrongRole)
     ) {
       status should equal(403)
     }
@@ -98,7 +95,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   test("PATCH / should return 200 on updated") {
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any)
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -112,17 +109,16 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   }
 
   test("PATCH / should return 403 if no write role") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any)
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     patch(
       "/test/1",
       write(TestData.updatedConcept),
-      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
+      headers = Map("Authorization" -> TestData.authHeaderWithoutAnyRoles)
     ) {
       status should equal(403)
     }
@@ -132,7 +128,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[TokenUser])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -148,17 +144,17 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[TokenUser])
     }
 
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[TokenUser])
     }
 
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[TokenUser])
     }
   }
 
@@ -177,7 +173,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[TokenUser])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -194,17 +190,17 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[TokenUser])
     }
 
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[TokenUser])
     }
 
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[TokenUser])
     }
   }
 

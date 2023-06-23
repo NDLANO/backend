@@ -26,9 +26,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
-  override def beforeEach(): Unit = {
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
-  }
+  override def beforeEach(): Unit = {}
 
   test("/<concept_id> should return 200 if the concept was found") {
     when(readService.publishedConceptWithId(conceptId, lang, fallback = false))

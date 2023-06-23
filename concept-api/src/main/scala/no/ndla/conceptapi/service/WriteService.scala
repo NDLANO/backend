@@ -10,7 +10,6 @@ package no.ndla.conceptapi.service
 import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.DateParser
-import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
@@ -20,6 +19,7 @@ import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation._
 import no.ndla.language.Language
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
@@ -75,7 +75,7 @@ trait WriteService {
       })
     }
 
-    def newConcept(newConcept: api.NewConcept, userInfo: UserInfo): Try[api.Concept] = {
+    def newConcept(newConcept: api.NewConcept, userInfo: TokenUser): Try[api.Concept] = {
       for {
         concept          <- converterService.toDomainConcept(newConcept, userInfo)
         _                <- contentValidator.validateConcept(concept)
@@ -101,7 +101,7 @@ trait WriteService {
         existing: domain.Concept,
         changed: domain.Concept,
         updateStatus: Option[String],
-        user: UserInfo
+        user: TokenUser
     ): Try[Concept] = {
       if (!shouldUpdateStatus(existing, changed) && updateStatus.isEmpty) {
         Success(changed)
@@ -127,7 +127,7 @@ trait WriteService {
       } yield domainConcept
     }
 
-    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, userInfo: UserInfo): Try[api.Concept] = {
+    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, userInfo: TokenUser): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           for {
@@ -148,7 +148,7 @@ trait WriteService {
       }
     }
 
-    def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Concept] = {
+    def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           existingConcept.title.size match {
@@ -178,7 +178,7 @@ trait WriteService {
 
     }
 
-    def updateConceptStatus(status: domain.ConceptStatus.Value, id: Long, user: UserInfo): Try[api.Concept] = {
+    def updateConceptStatus(status: domain.ConceptStatus.Value, id: Long, user: TokenUser): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case None => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
