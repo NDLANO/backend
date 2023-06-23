@@ -8,14 +8,14 @@
 package no.ndla.frontpageapi.controller
 
 import no.ndla.frontpageapi.Props
-import no.ndla.network.tapir.auth.Scope
+import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{Service, SwaggerControllerConfig, SwaggerInfo}
 
 trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
   this: Service with Props =>
 
   object SwaggerDocControllerConfig {
-    private val scopes = Scope.toSwaggerMap(Scope.thatStartsWith("frontpage"))
+    private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("frontpage"))
 
     val swaggerInfo: SwaggerInfo = SwaggerInfo(
       mountPoint = "/frontpage-api/api-docs",
