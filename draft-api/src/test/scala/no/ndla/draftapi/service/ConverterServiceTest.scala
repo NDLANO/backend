@@ -15,11 +15,11 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.domain.draft.{Comment, Copyright, Draft, DraftStatus}
 import no.ndla.common.model.domain._
-import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{NewComment, UpdatedComment}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
 import org.mockito.invocation.InvocationOnMock
@@ -277,7 +277,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("newNotes should fail if empty strings are recieved") {
     service
-      .newNotes(Seq("", "jonas"), UserInfo.apply("Kari"), Status(DraftStatus.IN_PROGRESS, Set.empty))
+      .newNotes(Seq("", "jonas"), TokenUser.apply("Kari", Set.empty), Status(DraftStatus.IN_PROGRESS, Set.empty))
       .isFailure should be(true)
   }
 

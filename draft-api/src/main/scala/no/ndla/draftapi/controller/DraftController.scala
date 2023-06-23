@@ -12,7 +12,6 @@ import no.ndla.common.DateParser
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
@@ -21,6 +20,7 @@ import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
@@ -35,7 +35,6 @@ trait DraftController {
     with SearchConverterService
     with ConverterService
     with ContentValidator
-    with User
     with NdlaController
     with Props
     with ErrorHelpers =>
@@ -123,8 +122,7 @@ trait DraftController {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         val query = paramOrDefault(this.query.paramName, "")
         val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => DefaultPageSize
@@ -211,9 +209,7 @@ trait DraftController {
           .authorizations("oauth2")
       )
     ) {
-
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         val query = paramOrDefault(this.query.paramName, "")
         val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => DefaultPageSize
@@ -251,9 +247,7 @@ trait DraftController {
           .responseMessages(response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-
+      doOrAccessDenied(DRAFT_API_WRITE) {
         val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
         val scrollId = paramOrNone(this.scrollId.paramName)
 
@@ -302,8 +296,7 @@ trait DraftController {
           .responseMessages(response400, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         tryExtract[ArticleSearchParams](request.body) match {
           case Success(searchParams) =>
             val language = searchParams.language.getOrElse(Language.AllLanguages)
@@ -354,7 +347,6 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo  = user.getUser
       val articleId = long(this.articleId.paramName)
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
@@ -362,7 +354,7 @@ trait DraftController {
       val article        = readService.withId(articleId, language, fallback)
       val currentOption  = article.map(_.status.current).toOption
       val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
-      doOrAccessDenied(userInfo.canWrite || isPublicStatus) {
+      doOrAccessDenied(DRAFT_API_WRITE, isPublicStatus) {
         article match {
           case Success(a)  => a
           case Failure(ex) => errorHandler(ex)
@@ -386,7 +378,6 @@ trait DraftController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      val userInfo = user.getUser
       val idList   = paramAsListOfLong(this.articleIds.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
@@ -398,7 +389,7 @@ trait DraftController {
         case tooSmall if tooSmall < 1 => 1
         case x                        => x
       }
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         readService.getArticlesByIds(idList, language, fallback, page.toLong, pageSize.toLong)
       }
     }: Unit
@@ -421,12 +412,11 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo  = user.getUser
       val articleId = long(this.articleId.paramName)
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         readService.getArticles(articleId, language, fallback)
       }
     }: Unit
@@ -445,8 +435,7 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         val externalId = long(this.deprecatedNodeId.paramName)
         readService.getInternalArticleIdByExternalId(externalId) match {
           case Some(id) => id
@@ -500,8 +489,7 @@ trait DraftController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val externalId         = paramAsListOfString("externalId")
         val oldNdlaCreatedDate = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
         val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
@@ -532,8 +520,7 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val externalId                         = paramAsListOfString("externalId")
         val externalSubjectIds                 = paramAsListOfString("externalSubjectIds")
         val oldNdlaCreateddDate                = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
@@ -574,8 +561,7 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val id         = long(this.articleId.paramName)
         val isImported = booleanOrDefault("import_publish", default = false)
         DraftStatus
@@ -603,19 +589,13 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
         val importValidate = booleanOrDefault("import_validate", default = false)
         val updateArticle  = tryExtract[UpdatedArticle](request.body)
 
         val validationMessage = updateArticle match {
           case Success(art) =>
-            contentValidator.validateArticleApiArticle(
-              long(this.articleId.paramName),
-              art,
-              importValidate,
-              user.getUser
-            )
+            contentValidator.validateArticleApiArticle(long(this.articleId.paramName), art, importValidate, user)
           case Failure(_) if request.body.isEmpty =>
             contentValidator.validateArticleApiArticle(long(this.articleId.paramName), importValidate)
           case Failure(ex) => Failure(ex)
@@ -643,8 +623,7 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val id       = long(this.articleId.paramName)
         val language = params(this.language.paramName)
         writeService.deleteLanguage(id, language, userInfo)
@@ -664,10 +643,9 @@ trait DraftController {
           .responseMessages(response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
         val id = longOrNone(this.optionalArticleId.paramName)
-        converterService.stateTransitionsToApi(user.getUser, id) match {
+        converterService.stateTransitionsToApi(user, id) match {
           case Success(transitions) => Ok(transitions)
           case Failure(ex)          => errorHandler(ex)
         }
@@ -691,13 +669,12 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo           = user.getUser
       val articleId          = long(this.articleId.paramName)
       val language           = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback           = booleanOrDefault(this.fallback.paramName, default = false)
       val copiedTitlePostfix = booleanOrDefault(this.copiedTitleFlag.paramName, default = true)
 
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         writeService.copyArticleFromId(articleId, userInfo, language, fallback, copiedTitlePostfix) match {
           case Success(article) => article
           case Failure(ex)      => errorHandler(ex)
@@ -722,12 +699,11 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo  = user.getUser
       val articleId = long(this.articleId.paramName)
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         tryExtract[Seq[PartialArticleFields]](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(articleFieldsToUpdate) =>
@@ -760,8 +736,7 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
         tryExtract[PartialBulkArticles](request.body) match {
           case Failure(ex) => errorHandler(ex)
@@ -788,10 +763,9 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      val nodeId   = paramOrNone(this.nodeId.paramName)
+      val nodeId = paramOrNone(this.nodeId.paramName)
 
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         nodeId match {
           case None => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No nodeid supplied"))
           case Some(publicId) =>
@@ -819,7 +793,6 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo = user.getUser
       val slug     = params(this.articleSlug.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
@@ -827,7 +800,7 @@ trait DraftController {
       val article        = readService.getArticleBySlug(slug, language, fallback)
       val currentOption  = article.map(_.status.current).toOption
       val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
-      doOrAccessDenied(userInfo.canWrite || isPublicStatus) {
+      doOrAccessDenied(DRAFT_API_WRITE, isPublicStatus) {
         article match {
           case Success(a)  => a
           case Failure(ex) => errorHandler(ex)

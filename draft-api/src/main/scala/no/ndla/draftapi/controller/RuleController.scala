@@ -6,14 +6,14 @@
  */
 
 package no.ndla.draftapi.controller
-import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api.Error
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.validation._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 trait RuleController {
-  this: User with NdlaController =>
+  this: NdlaController =>
   val ruleController: RuleController
 
   class RuleController(implicit val swagger: Swagger) extends NdlaController {
@@ -36,8 +36,7 @@ trait RuleController {
           .responseMessages(response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         ValidationRules.htmlRulesJson
       }
     }: Unit
@@ -53,8 +52,7 @@ trait RuleController {
           .responseMessages(response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         ValidationRules.embedTagRulesJson
       }
     }: Unit
@@ -70,8 +68,7 @@ trait RuleController {
           .responseMessages(response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         ValidationRules.mathMLRulesJson
       }
     }: Unit

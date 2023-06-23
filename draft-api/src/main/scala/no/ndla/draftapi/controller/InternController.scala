@@ -9,7 +9,6 @@ package no.ndla.draftapi.controller
 
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException}
 import no.ndla.draftapi.model.domain.{DBArticle, ReindexResult}
@@ -21,6 +20,7 @@ import org.json4s.Formats
 import org.scalatra.swagger.Swagger
 import org.scalatra.{InternalServerError, NotFound, Ok}
 import cats.implicits._
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import scalikejdbc.ReadOnlyAutoSession
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -39,7 +39,6 @@ trait InternController {
     with TagIndexService
     with GrepCodesIndexService
     with AgreementIndexService
-    with User
     with ArticleApiClient
     with NdlaController
     with DBArticle
@@ -189,7 +188,7 @@ trait InternController {
     }
 
     delete("/article/:id/") {
-      doOrAccessDenied(user.getUser.canWrite) {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         val id = long("id")
         deleteArticleWithRetries(id).flatMap(id => writeService.deleteArticle(id.id)) match {
           case Success(a)  => a

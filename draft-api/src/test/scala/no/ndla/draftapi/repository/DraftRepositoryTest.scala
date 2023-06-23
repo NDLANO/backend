@@ -11,8 +11,8 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi._
-import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.model.domain._
+import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 import scalikejdbc._
@@ -400,7 +400,11 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     repository.insert(draftArticle1)(AutoSession)
 
     val copiedArticle1 =
-      repository.storeArticleAsNewVersion(draftArticle1, Some(UserInfo("user-id", Set(Role.WRITE))))(AutoSession).get
+      repository
+        .storeArticleAsNewVersion(draftArticle1, Some(TokenUser("user-id", Set(Permission.DRAFT_API_WRITE))))(
+          AutoSession
+        )
+        .get
     copiedArticle1.notes.length should be(1)
     copiedArticle1.notes.head.user should be("user-id")
     copiedArticle1.previousVersionsNotes should be(Seq.empty)

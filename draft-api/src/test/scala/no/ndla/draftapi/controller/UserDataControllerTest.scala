@@ -7,9 +7,9 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.UpdatedUserData
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.DefaultFormats
 import org.postgresql.util.{PSQLException, PSQLState}
 import org.scalatra.test.scalatest.ScalatraFunSuite
@@ -25,44 +25,36 @@ class UserDataControllerTest extends UnitSuite with TestEnvironment with Scalatr
 
   test("GET / should return 200 if user has access roles and the user exists in database") {
     when(readService.getUserData(any[String])).thenReturn(Success(TestData.emptyApiUserData))
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
 
-    get(s"/test/") {
+    get(s"/test/", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
 
   test("GET / should return 403 if user has no access roles") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
-
-    get(s"/test/") {
+    get(s"/test/", headers = Map("Authorization" -> TestData.authHeaderWithoutAnyRoles)) {
       status should equal(403)
     }
   }
 
   test("GET / should return 500 if there was error returning the data") {
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
     when(readService.getUserData(any[String])).thenReturn(Failure(new PSQLException("error", PSQLState.UNKNOWN_STATE)))
 
-    get(s"/test/") {
+    get(s"/test/", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(500)
     }
   }
 
   test("PATCH / should return 200 if user has access roles and data has been updated correctly") {
-    when(writeService.updateUserData(any[UpdatedUserData], any[UserInfo]))
+    when(writeService.updateUserData(any[UpdatedUserData], any[TokenUser]))
       .thenReturn(Success(TestData.emptyApiUserData))
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
-
-    patch(s"/test/") {
+    patch(s"/test/", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
 
   test("PATCH / should return 403 if user has no access roles") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
-
-    patch(s"/test/") {
+    patch(s"/test/", headers = Map("Authorization" -> TestData.authHeaderWithoutAnyRoles)) {
       status should equal(403)
     }
   }

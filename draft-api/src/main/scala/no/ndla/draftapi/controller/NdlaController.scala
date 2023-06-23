@@ -94,13 +94,5 @@ trait NdlaController {
        |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
        |""".stripMargin
     )
-
-    def doOrAccessDenied(hasAccess: Boolean)(w: => Any): Any = {
-      if (hasAccess) {
-        w
-      } else {
-        errorHandler(new AccessDeniedException("Missing user/client-id or role"))
-      }
-    }
   }
 }
