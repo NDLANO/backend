@@ -12,7 +12,7 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, Copyright
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.api
 import no.ndla.common.model.{domain => common}
-import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
+import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
 import java.time.LocalDateTime

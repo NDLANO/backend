@@ -11,13 +11,15 @@ package no.ndla.network.scalatra
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.RequestLogger.beforeRequestLogString
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.errors.{AccessDeniedException, ValidationException, ValidationMessage}
 import no.ndla.network.model.RequestInfo
+import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra._
+import cats.implicits._
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -29,6 +31,30 @@ trait NdlaControllerBase {
 
   trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with StrictLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+
+    def doOrAccessDenied(requiredScope: Permission, isAllowedWithoutScope: Boolean = false)(f: => Any): Any =
+      doOrAccessDeniedWithUser(requiredScope.some, isAllowedWithoutScope) { _ => f }
+
+    def doOrAccessDeniedWithUser(requiredScope: Permission)(f: TokenUser => Any): Any =
+      doOrAccessDeniedWithUser(Some(requiredScope), isAllowedWithoutScope = false)(f)
+
+    def requireUserId(f: TokenUser => Any): Any = doIfAccessTrue(_.jwt.ndla_id.isDefined)(f)
+
+    def doIfAccessTrue(checkAccess: TokenUser => Boolean)(f: TokenUser => Any): Any =
+      TokenUser.fromScalatraRequest(request) match {
+        case Success(user) if checkAccess(user) => f(user)
+        case Success(_)                         => errorHandler(AccessDeniedException.forbidden)
+        case Failure(_)                         => errorHandler(AccessDeniedException.unauthorized)
+      }
+
+    private def doOrAccessDeniedWithUser(requiredScope: Option[Permission], isAllowedWithoutScope: Boolean)(
+        f: TokenUser => Any
+    ): Any = doIfAccessTrue { user =>
+      requiredScope match {
+        case Some(reqScope) => user.hasPermission(reqScope) || isAllowedWithoutScope
+        case None           => true
+      }
+    }(f)
 
     type NdlaErrorHandler = PartialFunction[Throwable, ActionResult]
     def ndlaErrorHandler: NdlaErrorHandler
