@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageValues}
+import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.model.domain.learningpath.StepType
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 import org.json4s.Formats
@@ -19,19 +19,13 @@ class SearchableLearningStepTest extends UnitSuite with TestEnvironment {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     val original1 = SearchableLearningStep(
-      stepType = StepType.INTRODUCTION.toString,
-      title = SearchableLanguageValues(Seq(LanguageValue("nb", "Intro Steget"))),
-      description = SearchableLanguageValues(Seq(LanguageValue("nb", "Description for introsteget")))
+      stepType = StepType.INTRODUCTION.toString
     )
     val original2 = SearchableLearningStep(
-      stepType = StepType.QUIZ.toString,
-      title = SearchableLanguageValues(Seq(LanguageValue("en", "Quiz is fun"))),
-      description = SearchableLanguageValues(Seq(LanguageValue("nb", "Kviss"), LanguageValue("en", "Quizzaroo")))
+      stepType = StepType.QUIZ.toString
     )
     val original3 = SearchableLearningStep(
-      stepType = StepType.TEXT.toString,
-      title = SearchableLanguageValues(Seq(LanguageValue("en", "TEXTITexTy"))),
-      description = SearchableLanguageValues(Seq(LanguageValue("en", "TextarUøø")))
+      stepType = StepType.TEXT.toString
     )
 
     val json1         = write(original1)

@@ -61,9 +61,7 @@ trait LearningPathIndexService {
         textField("authors"),
         keywordField("license"),
         nestedField("learningsteps").fields(
-          List(
-            textField("stepType")
-          )
+          textField("stepType")
         ),
         ObjectField(
           "copyright",
@@ -98,7 +96,10 @@ trait LearningPathIndexService {
         generateLanguageSupportedDynamicTemplates("tags", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("relevance") ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
-        generateLanguageSupportedDynamicTemplates("name", keepRaw = true)
+        generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("contexts.root") ++
+        generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
+        generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
 
       properties(fields).dynamicTemplates(dynamics)
     }

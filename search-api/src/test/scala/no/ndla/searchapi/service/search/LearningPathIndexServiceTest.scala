@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.service.search
 
-import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.SearchableLanguageFormats
@@ -17,7 +17,6 @@ import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.{Extraction, Formats}
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.Failure
 
 class LearningPathIndexServiceTest
@@ -55,7 +54,6 @@ class LearningPathIndexServiceTest
   implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That mapping contains every field after serialization") {
-    val now = LocalDateTime.now()
     val domainLearningPath = TestData.learningPath1.copy(
       learningsteps = List(
         LearningStep(
