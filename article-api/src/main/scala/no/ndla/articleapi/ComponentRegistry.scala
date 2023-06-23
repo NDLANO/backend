@@ -10,7 +10,6 @@ package no.ndla.articleapi
 
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController, NdlaController}
 import no.ndla.articleapi.integration._
@@ -58,8 +57,6 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with WriteService
     with ContentValidator
     with Clock
-    with Role
-    with User
     with ArticleApiInfo
     with ErrorHelpers
     with DBArticle
@@ -95,7 +92,5 @@ class ComponentRegistry(properties: ArticleApiProperties)
   lazy val feideApiClient      = new FeideApiClient
   lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
 
-  lazy val clock    = new SystemClock
-  lazy val authRole = new AuthRole
-  lazy val authUser = new AuthUser
+  lazy val clock = new SystemClock
 }

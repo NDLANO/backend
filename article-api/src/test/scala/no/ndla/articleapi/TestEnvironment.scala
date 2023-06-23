@@ -10,7 +10,6 @@ package no.ndla.articleapi
 
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller._
 import no.ndla.articleapi.integration._
@@ -56,8 +55,6 @@ trait TestEnvironment
     with WriteService
     with ContentValidator
     with Clock
-    with User
-    with Role
     with ErrorHelpers
     with ArticleApiInfo
     with MemoizeHelpers
@@ -93,7 +90,5 @@ trait TestEnvironment
   val feideApiClient         = mock[FeideApiClient]
   val redisClient            = mock[RedisClient]
 
-  val clock    = mock[SystemClock]
-  val authUser = mock[AuthUser]
-  val authRole = new AuthRole
+  val clock = mock[SystemClock]
 }

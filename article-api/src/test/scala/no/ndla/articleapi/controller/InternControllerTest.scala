@@ -30,8 +30,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   lazy val controller = new InternController
   addServlet(controller, "/*")
 
-  override val authRole = new AuthRole
-
   test("POST /validate/article should return 400 if the article is invalid") {
     val invalidArticle = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
     post("/validate/article", body = invalidArticle) {

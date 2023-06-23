@@ -9,7 +9,6 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.PartialPublishArticle
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.articleapi.repository.ArticleRepository
@@ -18,6 +17,7 @@ import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language
+import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
 import org.json4s.Formats
 import org.scalatra.{InternalServerError, NotFound, Ok}
 
@@ -33,8 +33,6 @@ trait InternController {
     with ArticleRepository
     with IndexService
     with ArticleIndexService
-    with User
-    with Role
     with ContentValidator
     with Props
     with DBArticle
@@ -137,52 +135,56 @@ trait InternController {
     }: Unit
 
     post("/article/:id") {
-      authRole.assertHasWritePermission()
-      val externalIds         = paramAsListOfString("external-id")
-      val useImportValidation = booleanOrDefault("use-import-validation", default = false)
-      val useSoftValidation   = booleanOrDefault("use-soft-validation", default = false)
-      val article             = extract[Article](request.body)
-      val id                  = long("id")
+      doOrAccessDenied(ARTICLE_API_WRITE) {
+        val externalIds         = paramAsListOfString("external-id")
+        val useImportValidation = booleanOrDefault("use-import-validation", default = false)
+        val useSoftValidation   = booleanOrDefault("use-soft-validation", default = false)
+        val article             = extract[Article](request.body)
+        val id                  = long("id")
 
-      writeService.updateArticle(
-        article.copy(id = Some(id)),
-        externalIds,
-        useImportValidation,
-        useSoftValidation
-      ) match {
-        case Success(a)  => a
-        case Failure(ex) => errorHandler(ex)
+        writeService.updateArticle(
+          article.copy(id = Some(id)),
+          externalIds,
+          useImportValidation,
+          useSoftValidation
+        ) match {
+          case Success(a)  => a
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }: Unit
 
     delete("/article/:id/") {
-      authRole.assertHasWritePermission()
-      val revision = intOrNone("revision")
-      writeService.deleteArticle(long("id"), revision) match {
-        case Success(a)  => a
-        case Failure(ex) => errorHandler(ex)
+      doOrAccessDenied(ARTICLE_API_WRITE) {
+        val revision = intOrNone("revision")
+        writeService.deleteArticle(long("id"), revision) match {
+          case Success(a)  => a
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }: Unit
 
     post("/article/:id/unpublish/") {
-      authRole.assertHasWritePermission()
-      val revision = intOrNone("revision")
-      writeService.unpublishArticle(long("id"), revision) match {
-        case Success(a)  => a
-        case Failure(ex) => errorHandler(ex)
+      doOrAccessDenied(ARTICLE_API_WRITE) {
+        val revision = intOrNone("revision")
+        writeService.unpublishArticle(long("id"), revision) match {
+          case Success(a)  => a
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }: Unit
 
     patch("/partial-publish/:article_id") {
-      authRole.assertHasWritePermission()
-      val articleId         = long("article_id")
-      val partialUpdateBody = extract[PartialPublishArticle](request.body)
-      val language          = paramOrDefault("language", Language.AllLanguages)
-      val fallback          = booleanOrDefault("fallback", default = false)
+      doOrAccessDenied(ARTICLE_API_WRITE) {
+        val articleId         = long("article_id")
+        val partialUpdateBody = extract[PartialPublishArticle](request.body)
+        val language          = paramOrDefault("language", Language.AllLanguages)
+        val fallback          = booleanOrDefault("fallback", default = false)
 
-      writeService.partialUpdate(articleId, partialUpdateBody, language, fallback) match {
-        case Failure(ex)         => errorHandler(ex)
-        case Success(apiArticle) => Ok(apiArticle)
+        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback) match {
+          case Failure(ex)         => errorHandler(ex)
+          case Success(apiArticle) => Ok(apiArticle)
+        }
       }
     }: Unit
   }
