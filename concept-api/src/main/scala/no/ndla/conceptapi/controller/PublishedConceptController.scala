@@ -8,23 +8,20 @@
 package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.implicits._
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
-import no.ndla.conceptapi.service.search.{
-  DraftConceptSearchService,
-  PublishedConceptSearchService,
-  SearchConverterService
-}
+import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ReadService, WriteService}
-import no.ndla.common.implicits._
 import no.ndla.language.Language
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
-import org.scalatra.swagger.{Swagger, SwaggerSupport}
+import org.scalatra.swagger.Swagger
 
 import scala.util.{Failure, Success}
 
@@ -33,20 +30,19 @@ trait PublishedConceptController {
     with ReadService
     with User
     with PublishedConceptSearchService
-    with DraftConceptSearchService
     with SearchConverterService
-    with DraftNdlaController
-    with Props =>
+    with Props
+    with NdlaController
+    with NdlaSwaggerSupport =>
   val publishedConceptController: PublishedConceptController
 
   class PublishedConceptController(implicit val swagger: Swagger)
-      extends DraftNdlaControllerClass
-      with SwaggerSupport
+      extends NdlaController
+      with NdlaSwaggerSupport
       with StrictLogging {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
-
-    val applicationDescription = "This is the Api for concepts"
+    val applicationDescription                           = "This is the Api for concepts"
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -75,7 +71,8 @@ trait PublishedConceptController {
         exactTitleMatch: Boolean,
         shouldScroll: Boolean,
         embedResource: Option[String],
-        embedId: Option[String]
+        embedId: Option[String],
+        conceptType: Option[String]
     ) = {
       val settings = SearchSettings(
         withIdIn = idList,
@@ -89,7 +86,8 @@ trait PublishedConceptController {
         exactTitleMatch = exactTitleMatch,
         shouldScroll = shouldScroll,
         embedResource = embedResource,
-        embedId = embedId
+        embedId = embedId,
+        conceptType = conceptType
       )
 
       val result = query.emptySomeToNone match {
@@ -153,7 +151,8 @@ trait PublishedConceptController {
             asQueryParam(tagsToFilterBy),
             asQueryParam(exactTitleMatch),
             asQueryParam(embedResource),
-            asQueryParam(embedId)
+            asQueryParam(embedId),
+            asQueryParam(conceptType)
           )
           authorizations "oauth2"
           responseMessages response500
@@ -175,6 +174,7 @@ trait PublishedConceptController {
         val shouldScroll    = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
         val embedResource   = paramOrNone(this.embedResource.paramName)
         val embedId         = paramOrNone(this.embedId.paramName)
+        val conceptType     = paramOrNone(this.conceptType.paramName)
 
         search(
           query,
@@ -189,7 +189,8 @@ trait PublishedConceptController {
           exactTitleMatch,
           shouldScroll,
           embedResource,
-          embedId
+          embedId,
+          conceptType
         )
 
       }
@@ -229,6 +230,7 @@ trait PublishedConceptController {
             val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
             val embedResource   = searchParams.embedResource
             val embedId         = searchParams.embedId
+            val conceptType     = searchParams.conceptType
 
             search(
               query,
@@ -243,7 +245,8 @@ trait PublishedConceptController {
               exactTitleMatch,
               shouldScroll,
               embedResource,
-              embedId
+              embedId,
+              conceptType
             )
           case Failure(ex) => errorHandler(ex)
         }

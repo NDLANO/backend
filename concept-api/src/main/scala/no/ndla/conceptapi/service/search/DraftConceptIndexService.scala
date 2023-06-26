@@ -48,6 +48,7 @@ trait DraftConceptIndexService {
     def getMapping: MappingDefinition = {
       val fields: Seq[ElasticField] = List(
         intField("id"),
+        keywordField("conceptType"),
         keywordField("defaultTitle").normalizer("lower"),
         keywordField("subjectIds"),
         nestedField("metaImage").fields(

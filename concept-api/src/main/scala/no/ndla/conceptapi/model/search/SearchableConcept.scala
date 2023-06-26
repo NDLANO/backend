@@ -15,6 +15,7 @@ import java.time.LocalDateTime
 
 case class SearchableConcept(
     id: Long,
+    conceptType: String,
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
     metaImage: Seq[domain.ConceptMetaImage],

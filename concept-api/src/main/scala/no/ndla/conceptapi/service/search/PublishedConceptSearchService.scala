@@ -132,7 +132,10 @@ trait PublishedConceptSearchService {
     }
 
     def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
-      val idFilter      = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val typeFilter = Option.when(settings.conceptType.nonEmpty) {
+        termsQuery("conceptType", settings.conceptType.get)
+      }
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
       val tagFilter     = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
 
@@ -151,6 +154,7 @@ trait PublishedConceptSearchService {
 
       val filters = List(
         idFilter,
+        typeFilter,
         languageFilter,
         subjectFilter,
         tagFilter,

@@ -26,5 +26,6 @@ case class ConceptSearchParams(
   @(ApiModelProperty @field)(description = "A comma-separated list of tags to filter the search by.") tags: Set[String],
   @(ApiModelProperty @field)(description = "If provided, only return concept where query matches title exactly.") exactTitleMatch: Option[Boolean],
   @(ApiModelProperty @field)(description = "Embed resource type that should exist in the concepts.") embedResource: Option[String],
-  @(ApiModelProperty @field)(description = "Embed id attribute that should exist in the concepts.") embedId: Option[String]
+  @(ApiModelProperty @field)(description = "Embed id attribute that should exist in the concepts.") embedId: Option[String],
+  @(ApiModelProperty @field)(description = "The type of concepts to return.") conceptType: Option[String],
 )

@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.search
-import no.ndla.conceptapi.{TestEnvironment, _}
+import no.ndla.conceptapi._
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -184,7 +184,8 @@ class PublishedConceptSearchServiceTest
     exactTitleMatch = false,
     shouldScroll = false,
     embedResource = None,
-    embedId = None
+    embedId = None,
+    conceptType = None
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {

@@ -145,6 +145,7 @@ trait SearchConverterService {
 
       SearchableConcept(
         id = c.id.get,
+        conceptType = c.conceptType.toString,
         title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
         content = SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content))),
         defaultTitle = defaultTitle.map(_.title),
