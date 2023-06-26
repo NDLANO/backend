@@ -20,9 +20,6 @@ trait UnitSuite extends UnitTestSuite {
   setProp("SEARCH_REGION", "some-region")
   setProp("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
 
-  setProp("MIGRATION_HOST", "migration-api")
-  setProp("MIGRATION_USER", "username")
-  setProp("MIGRATION_PASSWORD", "password")
   setProp("SEARCH_INDEX_NAME", "learning-integration-test-index")
 
   setProp(PropertyKeys.MetaUserNameKey, "postgres")
