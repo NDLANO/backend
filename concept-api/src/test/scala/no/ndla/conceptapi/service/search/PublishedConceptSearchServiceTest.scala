@@ -172,6 +172,23 @@ class PublishedConceptSearchServiceTest
     content = List(ConceptContent("englandocontent", "en"))
   )
 
+  val concept12: Concept = TestData.sampleConcept.copy(
+    id = Option(12),
+    copyright = Some(byNcSa),
+    title = List(Title("glose", "nb")),
+    content = List(ConceptContent("glose", "nb")),
+    conceptType = ConceptType.GLOSS,
+    glossData = Some(
+      GlossData(
+        gloss = "gloss",
+        wordClass = WordClass.NOUN,
+        originalLanguage = "de",
+        transcriptions = Map.empty,
+        examples = List.empty
+      )
+    )
+  )
+
   val searchSettings: search.SearchSettings = search.SearchSettings(
     withIdIn = List.empty,
     searchLanguage = DefaultLanguage,
@@ -202,9 +219,10 @@ class PublishedConceptSearchServiceTest
     publishedConceptIndexService.indexDocument(concept9)
     publishedConceptIndexService.indexDocument(concept10)
     publishedConceptIndexService.indexDocument(concept11)
+    publishedConceptIndexService.indexDocument(concept12)
 
     blockUntil(() => {
-      publishedConceptSearchService.countDocuments == 11
+      publishedConceptSearchService.countDocuments == 12
     })
   }
 
@@ -232,9 +250,9 @@ class PublishedConceptSearchServiceTest
 
   test("That all returns all documents ordered by id ascending") {
     val Success(results) =
-      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByIdAsc))
+      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByIdAsc, pageSize = 20))
     val hits = results.results
-    results.totalCount should be(10)
+    results.totalCount should be(11)
     hits.head.id should be(1)
     hits(1).id should be(2)
     hits(2).id should be(3)
@@ -244,59 +262,62 @@ class PublishedConceptSearchServiceTest
     hits(6).id should be(7)
     hits(7).id should be(8)
     hits(8).id should be(9)
-    hits.last.id should be(10)
+    hits(9).id should be(10)
+    hits.last.id should be(12)
   }
 
   test("That all returns all documents ordered by id descending") {
     val Success(results) =
-      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByIdDesc))
+      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByIdDesc, pageSize = 20))
     val hits = results.results
-    results.totalCount should be(10)
-    hits.head.id should be(10)
+    results.totalCount should be(11)
+    hits.head.id should be(12)
     hits.last.id should be(1)
   }
 
   test("That all returns all documents ordered by title ascending") {
     val Success(results) =
-      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleAsc))
+      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleAsc, pageSize = 20))
     val hits = results.results
 
-    results.totalCount should be(10)
+    results.totalCount should be(11)
     hits.head.id should be(8)
     hits(1).id should be(9)
     hits(2).id should be(1)
     hits(3).id should be(3)
-    hits(4).id should be(5)
-    hits(5).id should be(6)
-    hits(6).id should be(2)
-    hits(7).id should be(4)
+    hits(4).id should be(12)
+    hits(5).id should be(5)
+    hits(6).id should be(6)
+    hits(7).id should be(2)
+    hits(8).id should be(4)
     hits.last.id should be(7)
   }
 
   test("That all returns all documents ordered by title descending") {
     val Success(results) =
-      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleDesc))
+      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleDesc, pageSize = 20))
     val hits = results.results
-    results.totalCount should be(10)
+    results.totalCount should be(11)
     hits.head.id should be(7)
     hits(1).id should be(10)
     hits(2).id should be(4)
     hits(3).id should be(2)
     hits(4).id should be(6)
     hits(5).id should be(5)
-    hits(6).id should be(3)
-    hits(7).id should be(1)
-    hits(8).id should be(9)
+    hits(6).id should be(12)
+    hits(7).id should be(3)
+    hits(8).id should be(1)
+    hits(9).id should be(9)
     hits.last.id should be(8)
 
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
     val Success(results) =
-      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
+      publishedConceptSearchService.all(searchSettings.copy(sort = Sort.ByLastUpdatedDesc, pageSize = 20))
     val hits = results.results
-    results.totalCount should be(10)
-    hits.map(_.id) should be(Seq(10, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+    results.totalCount should be(11)
+    hits.map(_.id) should be(Seq(10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12))
   }
 
   test("That all filtered by id only returns documents with the given ids") {
@@ -315,14 +336,14 @@ class PublishedConceptSearchServiceTest
       publishedConceptSearchService.all(searchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByTitleAsc))
 
     val hits1 = page1.results
-    page1.totalCount should be(10)
+    page1.totalCount should be(11)
     page1.page.get should be(1)
     hits1.size should be(2)
     hits1.head.id should be(8)
     hits1.last.id should be(9)
 
     val hits2 = page2.results
-    page2.totalCount should be(10)
+    page2.totalCount should be(11)
     page2.page.get should be(2)
     hits2.size should be(2)
     hits2.head.id should be(1)
@@ -438,7 +459,7 @@ class PublishedConceptSearchServiceTest
       publishedConceptSearchService.all(searchSettings.copy(searchLanguage = Language.AllLanguages, pageSize = 100))
     val hits = search.results
 
-    search.totalCount should equal(11)
+    search.totalCount should equal(12)
     hits.head.id should be(1)
     hits.head.title.language should be("nb")
     hits(1).id should be(2)
@@ -472,7 +493,7 @@ class PublishedConceptSearchServiceTest
 
   test("That scrolling works as expected") {
     val pageSize    = 2
-    val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
+    val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
       publishedConceptSearchService.all(
@@ -748,6 +769,17 @@ class PublishedConceptSearchServiceTest
     hits.map(_.id) should equal(Seq(5))
     hits.head.copyright.head.origin should be(Some("Gotham City"))
     hits.head.copyright.head.creators.length should be(1)
+  }
+
+  test("filtering on conceptType should work as expected") {
+    {
+      val Success(search) = publishedConceptSearchService.all(searchSettings.copy(conceptType = Some("concept")))
+      search.totalCount should be(10)
+    }
+    {
+      val Success(search) = publishedConceptSearchService.all(searchSettings.copy(conceptType = Some("gloss")))
+      search.totalCount should be(1)
+    }
   }
 
 }
