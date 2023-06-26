@@ -11,7 +11,6 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Uri, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2, ImageMetaInformationV3}
 import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
@@ -20,6 +19,7 @@ import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterServic
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import cats.implicits._
 import no.ndla.common.errors.ValidationException
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
@@ -31,7 +31,6 @@ trait ReadService {
     with ImageStorageService
     with TagSearchService
     with SearchConverterService
-    with User
     with DBImageFile
     with DBImageMetaInformation
     with ImageMetaDomainDump =>
@@ -39,10 +38,14 @@ trait ReadService {
 
   class ReadService extends StrictLogging {
 
-    def withIdV3(imageId: Long, language: Option[String]): Try[Option[ImageMetaInformationV3]] = {
+    def withIdV3(
+        imageId: Long,
+        language: Option[String],
+        user: Option[TokenUser]
+    ): Try[Option[ImageMetaInformationV3]] = {
       imageRepository
         .withId(imageId)
-        .traverse(image => converterService.asApiImageMetaInformationV3(image, language))
+        .traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
     }
 
     def getAllTags(input: String, pageSize: Int, page: Int, language: String, sort: Sort): Try[api.TagsSearchResult] = {
@@ -57,17 +60,21 @@ trait ReadService {
       result.map(searchConverterService.tagSearchResultAsApiResult)
     }
 
-    def withId(imageId: Long, language: Option[String]): Try[Option[ImageMetaInformationV2]] =
+    def withId(imageId: Long, language: Option[String], user: Option[TokenUser]): Try[Option[ImageMetaInformationV2]] =
       imageRepository
         .withId(imageId)
-        .traverse(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language))
+        .traverse(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language, user))
 
-    def getImagesByIdsV3(ids: List[Long], language: Option[String]): Try[List[ImageMetaInformationV3]] = {
+    def getImagesByIdsV3(
+        ids: List[Long],
+        language: Option[String],
+        user: Option[TokenUser]
+    ): Try[List[ImageMetaInformationV3]] = {
       if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else
         imageRepository
           .withIds(ids)
-          .traverse(image => converterService.asApiImageMetaInformationV3(image, language))
+          .traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
     }
 
     private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] =

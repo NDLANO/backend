@@ -11,7 +11,6 @@ package no.ndla.imageapi
 import com.amazonaws.services.s3.AmazonS3
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller.{
   BaseImageController,
   HealthController,
@@ -72,8 +71,6 @@ trait TestEnvironment
     with TagsService
     with ImageConverter
     with MockitoSugar
-    with User
-    with Role
     with Clock
     with Props
     with DBImageMetaInformation
@@ -116,8 +113,6 @@ trait TestEnvironment
   val imageConverter         = mock[ImageConverter]
   val healthController       = mock[HealthController]
 
-  val clock    = mock[SystemClock]
-  val authUser = mock[AuthUser]
-  val authRole = mock[AuthRole]
-  val random   = mock[Random]
+  val clock  = mock[SystemClock]
+  val random = mock[Random]
 }

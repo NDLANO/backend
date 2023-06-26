@@ -112,7 +112,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
-    val result = readService.withId(1, None)
+    val result = readService.withId(1, None, None)
     result should be(Success(Some(expectedObject)))
   }
 
@@ -160,7 +160,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
-    readService.withId(1, None) should be(Success(Some(expectedObject)))
+    readService.withId(1, None, None) should be(Success(Some(expectedObject)))
   }
 
   test("That path to raw conversion works with non-ascii characters in paths") {
