@@ -128,10 +128,8 @@ trait DraftConceptSearchService {
     }
 
     def executeSearch(queryBuilder: BoolQuery, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
-      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val typeFilter = Option.when(settings.conceptType.nonEmpty) {
-        termsQuery("conceptType", settings.conceptType.get)
-      }
+      val idFilter      = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val typeFilter    = settings.conceptType.map(ct => termsQuery("conceptType", ct))
       val statusFilter  = boolStatusFilter(settings.statusFilter)
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
       val tagFilter     = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
