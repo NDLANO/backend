@@ -8,14 +8,13 @@
 
 package no.ndla.searchapi.controller
 
-import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.scalatra.NdlaSwaggerSupport
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{Error, GroupSearchResult, MultiSearchResult, SearchResults, ValidationError}
 import no.ndla.searchapi.model.domain.{LearningResourceType, SearchParams, Sort}
@@ -48,7 +47,6 @@ trait SearchController {
     with SearchConverterService
     with SearchService
     with MultiDraftSearchService
-    with User
     with FeideApiClient
     with NdlaController
     with Props
@@ -636,15 +634,12 @@ trait SearchController {
           .responseMessages(response500)
       )
     ) {
-      if (!user.getUser.roles.contains(Role.DRAFTWRITE)) {
-        errorHandler(AccessDeniedException("You do not have access to the requested resource."))
-      } else {
+      doOrAccessDenied(DRAFT_API_WRITE) {
         scrollWithOr(multiDraftSearchService) {
           multiDraftSearchService.matchingQuery(getDraftSearchSettingsFromRequest) match {
             case Success(searchResult) =>
               Ok(searchConverterService.toApiMultiSearchResult(searchResult), scrollIdToHeader(searchResult.scrollId))
-            case Failure(ex) =>
-              errorHandler(ex)
+            case Failure(ex) => errorHandler(ex)
           }
         }
       }

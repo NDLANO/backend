@@ -13,7 +13,6 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import no.ndla.searchapi.auth.User
 import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ErrorHelpers
@@ -48,7 +47,6 @@ trait TestEnvironment
     with ApiSearchService
     with SearchController
     with NdlaSwaggerSupport
-    with User
     with LearningPathIndexService
     with InternController
     with SearchApiClient
@@ -94,6 +92,4 @@ trait TestEnvironment
   val learningPathIndexService = mock[LearningPathIndexService]
   val draftIndexService        = mock[DraftIndexService]
   val multiDraftSearchService  = mock[MultiDraftSearchService]
-
-  val user = mock[User]
 }
