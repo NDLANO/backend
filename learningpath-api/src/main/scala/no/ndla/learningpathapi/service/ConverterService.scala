@@ -25,6 +25,7 @@ import no.ndla.language.Language.{
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.{LearningPathStatus => _, _}
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.ConfigMeta
 import no.ndla.learningpathapi.model.{api, domain}
@@ -32,6 +33,7 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
+import no.ndla.network.tapir.auth.TokenUser
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -121,7 +123,7 @@ trait ConverterService {
         lp: domain.LearningPath,
         language: String,
         fallback: Boolean,
-        userInfo: UserInfo
+        userInfo: TokenUser
     ): Try[api.LearningPathV2] = {
       val supportedLanguages = lp.supportedLanguages
       if (languageIsSupported(supportedLanguages, language) || fallback) {
@@ -200,7 +202,7 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def mergeStatus(existing: LearningPath, user: UserInfo): LearningPathStatus.Value = {
+    private def mergeStatus(existing: LearningPath, user: TokenUser): LearningPathStatus.Value = {
       existing.status match {
         case LearningPathStatus.PUBLISHED if existing.canSetStatus(LearningPathStatus.PUBLISHED, user).isFailure =>
           LearningPathStatus.UNLISTED
@@ -208,7 +210,11 @@ trait ConverterService {
       }
     }
 
-    def mergeLearningPaths(existing: LearningPath, updated: UpdatedLearningPathV2, userInfo: UserInfo): LearningPath = {
+    def mergeLearningPaths(
+        existing: LearningPath,
+        updated: UpdatedLearningPathV2,
+        userInfo: TokenUser
+    ): LearningPath = {
       val status = mergeStatus(existing, userInfo)
 
       val titles = updated.title match {
@@ -286,13 +292,13 @@ trait ConverterService {
       )
     }
 
-    def insertLearningSteps(learningPath: LearningPath, steps: Seq[LearningStep], user: UserInfo): LearningPath = {
+    def insertLearningSteps(learningPath: LearningPath, steps: Seq[LearningStep], user: TokenUser): LearningPath = {
       steps.foldLeft(learningPath) { (lp, ls) =>
         insertLearningStep(lp, ls, user)
       }
     }
 
-    def insertLearningStep(learningPath: LearningPath, updatedStep: LearningStep, user: UserInfo): LearningPath = {
+    def insertLearningStep(learningPath: LearningPath, updatedStep: LearningStep, user: TokenUser): LearningPath = {
       val status                = mergeStatus(learningPath, user)
       val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
       val steps =
@@ -337,7 +343,7 @@ trait ConverterService {
       )
     }
 
-    private def getVerificationStatus(user: UserInfo): LearningPathVerificationStatus.Value =
+    private def getVerificationStatus(user: TokenUser): LearningPathVerificationStatus.Value =
       if (user.isNdla)
         LearningPathVerificationStatus.CREATED_BY_NDLA
       else LearningPathVerificationStatus.EXTERNAL
@@ -345,7 +351,7 @@ trait ConverterService {
     def newFromExistingLearningPath(
         existing: LearningPath,
         newLearningPath: NewCopyLearningPathV2,
-        user: UserInfo
+        user: TokenUser
     ): LearningPath = {
       val oldTitle = Seq(common.Title(newLearningPath.title, newLearningPath.language))
 
@@ -384,7 +390,7 @@ trait ConverterService {
         status = LearningPathStatus.PRIVATE,
         verificationStatus = getVerificationStatus(user),
         lastUpdated = clock.now(),
-        owner = user.userId,
+        owner = user.id,
         copyright = copyright,
         learningsteps = existing.learningsteps.map(ls =>
           ls.map(_.copy(id = None, revision = None, externalId = None, learningPathId = None))
@@ -395,7 +401,7 @@ trait ConverterService {
       )
     }
 
-    def newLearningPath(newLearningPath: NewLearningPathV2, user: UserInfo): LearningPath = {
+    def newLearningPath(newLearningPath: NewLearningPathV2, user: TokenUser): LearningPath = {
       val domainTags =
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
@@ -414,7 +420,7 @@ trait ConverterService {
         getVerificationStatus(user),
         clock.now(),
         domainTags,
-        user.userId,
+        user.id,
         converterService.asCopyright(newLearningPath.copyright),
         Some(Seq.empty)
       )
@@ -434,7 +440,7 @@ trait ConverterService {
 
     def asApiLearningpathSummaryV2(
         learningpath: domain.LearningPath,
-        user: UserInfo = UserInfo.getUserOrPublic
+        user: TokenUser
     ): Try[api.LearningPathSummaryV2] = {
       val supportedLanguages = learningpath.supportedLanguages
 
@@ -485,7 +491,7 @@ trait ConverterService {
         lp: domain.LearningPath,
         language: String,
         fallback: Boolean,
-        user: UserInfo
+        user: TokenUser
     ): Try[api.LearningStepV2] = {
       val supportedLanguages = ls.supportedLanguages
 

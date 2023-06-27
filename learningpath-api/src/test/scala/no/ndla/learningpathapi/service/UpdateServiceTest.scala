@@ -30,6 +30,8 @@ import no.ndla.learningpathapi.model.api.{
 import no.ndla.learningpathapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
+import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH}
+import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -43,8 +45,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_ID: Long = 1
   val PRIVATE_ID: Long   = 2
 
-  val PUBLISHED_OWNER = UserInfo("eier1", Set.empty)
-  val PRIVATE_OWNER   = UserInfo("eier2", Set.empty)
+  val PUBLISHED_OWNER = TokenUser("eier1", Set.empty)
+  val PRIVATE_OWNER   = TokenUser("eier2", Set.empty)
 
   val STEP1 = domain.LearningStep(
     Some(1),
@@ -162,7 +164,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathVerificationStatus.EXTERNAL,
     LocalDateTime.now(),
     List(),
-    PUBLISHED_OWNER.userId,
+    PUBLISHED_OWNER.id,
     copyright,
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
@@ -180,7 +182,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathVerificationStatus.EXTERNAL,
     LocalDateTime.now(),
     List(),
-    PUBLISHED_OWNER.userId,
+    PUBLISHED_OWNER.id,
     copyright,
     None
   )
@@ -198,7 +200,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathVerificationStatus.EXTERNAL,
     LocalDateTime.now(),
     List(),
-    PRIVATE_OWNER.userId,
+    PRIVATE_OWNER.id,
     copyright,
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
@@ -216,7 +218,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathVerificationStatus.EXTERNAL,
     LocalDateTime.now(),
     List(),
-    PRIVATE_OWNER.userId,
+    PRIVATE_OWNER.id,
     copyright,
     None
   )
@@ -234,7 +236,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathVerificationStatus.EXTERNAL,
     LocalDateTime.now(),
     List(),
-    PRIVATE_OWNER.userId,
+    PRIVATE_OWNER.id,
     copyright,
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
@@ -251,7 +253,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     service = new UpdateService
     resetMocks()
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
-    when(readService.canWriteNow(any[UserInfo])).thenReturn(true)
+    when(readService.canWriteNow(any[TokenUser])).thenReturn(true)
     when(searchIndexService.deleteDocument(any[domain.LearningPath])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.LearningPath](0))
     )
@@ -335,7 +337,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
 
     val Failure(ex) =
-      service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, UserInfo("not_the_owner", Set.empty))
+      service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, TokenUser("not_the_owner", Set.empty))
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -378,7 +380,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PUBLISHED_ID,
           LearningPathStatus.PRIVATE,
-          PRIVATE_OWNER.copy(roles = Set(LearningPathRole.ADMIN)),
+          PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
           "nb"
         )
         .get
@@ -403,7 +405,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PUBLISHED_ID,
           LearningPathStatus.PRIVATE,
-          UserInfo("not_the_owner", Set(LearningPathRole.ADMIN)),
+          TokenUser("not_the_owner", Set(LEARNINGPATH_API_ADMIN)),
           "nb"
         )
         .get
@@ -462,7 +464,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PRIVATE_ID,
           LearningPathStatus.PUBLISHED,
-          PRIVATE_OWNER.copy(roles = Set(LearningPathRole.ADMIN)),
+          PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
           "nb"
         )
         .get
@@ -490,7 +492,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PUBLISHED_ID,
           LearningPathStatus.DELETED,
-          PUBLISHED_OWNER.copy(roles = Set(LearningPathRole.ADMIN)),
+          PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
           "nb"
         )
         .get
@@ -590,13 +592,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     service.updateLearningPathStatusV2(
       PUBLISHED_ID,
       LearningPathStatus.PRIVATE,
-      PRIVATE_OWNER.copy(roles = Set(LearningPathRole.ADMIN)),
+      PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
       "nb",
       Some("new message")
     )
     verify(learningPathRepository, times(1)).update(
       PUBLISHED_LEARNINGPATH.copy(
-        message = Some(Message("new message", PRIVATE_OWNER.userId, clock.now())),
+        message = Some(Message("new message", PRIVATE_OWNER.id, clock.now())),
         status = LearningPathStatus.PRIVATE,
         lastUpdated = clock.now()
       )
@@ -697,7 +699,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
           PUBLISHED_ID,
           STEP1.id.get,
           UPDATED_STEPV2,
-          PUBLISHED_OWNER.copy(roles = Set(LearningPathRole.ADMIN))
+          PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN))
         )
         .get
         .id
@@ -1108,7 +1110,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newCopy =
       NewCopyLearningPathV2("hehe", None, "nb", None, None, None, None)
     service
-      .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, UserInfo("me", Set.empty))
+      .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty))
       .isSuccess should be(true)
   }
 
@@ -1222,7 +1224,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       PUBLISHED_ID,
       STEP1.id.get,
       updatedLs,
-      PUBLISHED_OWNER.copy(roles = Set(LearningPathRole.ADMIN))
+      PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN))
     )
     val updatedPath = PUBLISHED_LEARNINGPATH.copy(
       lastUpdated = newDate,
@@ -1258,7 +1260,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       isBasedOn = Some(PUBLISHED_ID),
       status = domain.LearningPathStatus.PRIVATE,
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-      owner = PRIVATE_OWNER.userId,
+      owner = PRIVATE_OWNER.id,
       lastUpdated = now
     )
 
@@ -1283,7 +1285,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       isBasedOn = None,
       status = domain.LearningPathStatus.PRIVATE,
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-      owner = PRIVATE_OWNER.userId,
+      owner = PRIVATE_OWNER.id,
       lastUpdated = now
     )
 
@@ -1308,7 +1310,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       isBasedOn = Some(PUBLISHED_ID),
       status = domain.LearningPathStatus.PRIVATE,
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-      owner = PRIVATE_OWNER.userId,
+      owner = PRIVATE_OWNER.id,
       lastUpdated = now
     )
 
@@ -1351,7 +1353,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       isBasedOn = Some(PUBLISHED_ID),
       status = domain.LearningPathStatus.PRIVATE,
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-      owner = PRIVATE_OWNER.userId,
+      owner = PRIVATE_OWNER.id,
       lastUpdated = now,
       title = Seq(converterService.asTitle(api.Title(titlesToOverride, "nb"))),
       description = descriptionsToOverride
@@ -1386,7 +1388,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       isBasedOn = Some(PUBLISHED_ID),
       status = domain.LearningPathStatus.PRIVATE,
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-      owner = PRIVATE_OWNER.userId,
+      owner = PRIVATE_OWNER.id,
       lastUpdated = now,
       learningsteps = PUBLISHED_LEARNINGPATH.learningsteps.map(
         _.map(_.copy(id = None, revision = None, externalId = None, learningPathId = None))
@@ -1426,9 +1428,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That writeOrAccessDenied denies writes while write restriction is enabled.") {
     val readMock = mock[ReadService]
-    when(readService.canWriteNow(any[UserInfo])).thenReturn(false)
+    when(readService.canWriteNow(any[TokenUser])).thenReturn(false)
 
-    service.writeDuringWriteRestrictionOrAccessDenied(UserInfo("SomeDude", roles = Set())) { Success(readMock.tags) }
+    service.writeDuringWriteRestrictionOrAccessDenied(TokenUser("SomeDude", scopes = Set())) { Success(readMock.tags) }
     verify(readMock, times(0)).tags
   }
 
@@ -1438,7 +1440,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
-      UserInfo("Kari", Set(LearningPathRole.PUBLISH))
+      TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH))
     )
     ex.isInstanceOf[AccessDeniedException] should be(true)
   }
@@ -1449,7 +1451,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Success(_) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
-      UserInfo("Kari", Set(LearningPathRole.ADMIN))
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN))
     )
   }
 
@@ -1459,7 +1461,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("123"),
-      UserInfo("Kari", Set(LearningPathRole.ADMIN))
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN))
     )
 
     ex.isInstanceOf[ValidationException] should be(true)
@@ -1471,7 +1473,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val res = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
-      UserInfo("Kari", Set(LearningPathRole.ADMIN))
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN))
     )
     res.isSuccess should be(true)
   }

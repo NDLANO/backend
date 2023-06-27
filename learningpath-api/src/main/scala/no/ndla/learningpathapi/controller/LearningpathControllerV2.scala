@@ -8,12 +8,12 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.errors.AccessDeniedException
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain.{LearningPathStatus => _, License => _, _}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
@@ -289,21 +289,18 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo.getUserOrPublic
-      val idList   = paramAsListOfLong(this.ids.paramName)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = true)
-      val language = paramOrDefault(this.language.paramName, AllLanguages)
-      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
-        case tooSmall if tooSmall < 1 => props.DefaultPageSize
-        case x                        => x
-      }
-      val page = intOrDefault(this.pageNo.paramName, 1) match {
-        case tooSmall if tooSmall < 1 => 1
-        case x                        => x
-      }
-      if (!userInfo.isNdla) {
-        errorHandler(AccessDeniedException("You do not have access to the requested resources."))
-      } else {
+      doIfAccessTrue(user => user.isNdla) { userInfo =>
+        val idList   = paramAsListOfLong(this.ids.paramName)
+        val fallback = booleanOrDefault(this.fallback.paramName, default = true)
+        val language = paramOrDefault(this.language.paramName, AllLanguages)
+        val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
+          case tooSmall if tooSmall < 1 => props.DefaultPageSize
+          case x                        => x
+        }
+        val page = intOrDefault(this.pageNo.paramName, 1) match {
+          case tooSmall if tooSmall < 1 => 1
+          case x                        => x
+        }
         readService.withIdV2List(idList, language, fallback, page, pageSize, userInfo) match {
           case Failure(ex)       => errorHandler(ex)
           case Success(articles) => Ok(articles)
@@ -438,15 +435,15 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val language =
-        paramOrDefault(this.language.paramName, AllLanguages)
-      val id       = long(this.learningpathId.paramName)
-      val userInfo = UserInfo(requireUserId)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      requireUserId { userInfo =>
+        val language = paramOrDefault(this.language.paramName, AllLanguages)
+        val id       = long(this.learningpathId.paramName)
+        val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      readService.learningstepsForWithStatusV2(id, StepStatus.DELETED, language, fallback, userInfo) match {
-        case Success(x)  => Ok(x)
-        case Failure(ex) => errorHandler(ex)
+        readService.learningstepsForWithStatusV2(id, StepStatus.DELETED, language, fallback, userInfo) match {
+          case Success(x)  => Ok(x)
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }: Unit
 
@@ -487,7 +484,7 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      readService.withOwnerV2(UserInfo(requireUserId))
+      requireUserId(readService.withOwnerV2)
     }: Unit
 
     get(
@@ -529,13 +526,14 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val newLearningPath = extract[NewLearningPathV2](request.body)
-      val userInfo        = UserInfo(requireUserId)
-      updateService.addLearningPathV2(newLearningPath, userInfo) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(learningPath) =>
-          logger.info(s"CREATED LearningPath with ID =  ${learningPath.id}")
-          Created(headers = Map("Location" -> learningPath.metaUrl), body = learningPath)
+      requireUserId { userInfo =>
+        val newLearningPath = extract[NewLearningPathV2](request.body)
+        updateService.addLearningPathV2(newLearningPath, userInfo) match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(learningPath) =>
+            logger.info(s"CREATED LearningPath with ID =  ${learningPath.id}")
+            Created(headers = Map("Location" -> learningPath.metaUrl), body = learningPath)
+        }
       }
     }: Unit
 
@@ -583,11 +581,12 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
-      val pathId   = long(this.learningpathId.paramName)
-      updateService.updateLearningPathV2(pathId, extract[UpdatedLearningPathV2](request.body), userInfo) match {
-        case Success(lp) => Ok(lp)
-        case Failure(ex) => errorHandler(ex)
+      requireUserId { userInfo =>
+        val pathId = long(this.learningpathId.paramName)
+        updateService.updateLearningPathV2(pathId, extract[UpdatedLearningPathV2](request.body), userInfo) match {
+          case Success(lp) => Ok(lp)
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }: Unit
 
@@ -606,14 +605,15 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo        = UserInfo(requireUserId)
-      val newLearningStep = extract[NewLearningStepV2](request.body)
-      val pathId          = long(this.learningpathId.paramName)
-      updateService.addLearningStepV2(pathId, newLearningStep, userInfo) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(learningStep) =>
-          logger.info(s"CREATED LearningStep with ID =  ${learningStep.id} for LearningPath with ID = $pathId")
-          Created(headers = Map("Location" -> learningStep.metaUrl), body = learningStep)
+      requireUserId { userInfo =>
+        val newLearningStep = extract[NewLearningStepV2](request.body)
+        val pathId          = long(this.learningpathId.paramName)
+        updateService.addLearningStepV2(pathId, newLearningStep, userInfo) match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(learningStep) =>
+            logger.info(s"CREATED LearningStep with ID =  ${learningStep.id} for LearningPath with ID = $pathId")
+            Created(headers = Map("Location" -> learningStep.metaUrl), body = learningStep)
+        }
       }
     }: Unit
 
@@ -633,18 +633,19 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo            = UserInfo(requireUserId)
-      val updatedLearningStep = extract[UpdatedLearningStepV2](request.body)
-      val pathId              = long(this.learningpathId.paramName)
-      val stepId              = long(this.learningstepId.paramName)
-      val createdLearningStep =
-        updateService.updateLearningStepV2(pathId, stepId, updatedLearningStep, userInfo)
+      requireUserId { userInfo =>
+        val updatedLearningStep = extract[UpdatedLearningStepV2](request.body)
+        val pathId              = long(this.learningpathId.paramName)
+        val stepId              = long(this.learningstepId.paramName)
+        val createdLearningStep =
+          updateService.updateLearningStepV2(pathId, stepId, updatedLearningStep, userInfo)
 
-      createdLearningStep match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(learningStep) =>
-          logger.info(s"UPDATED LearningStep with ID = $stepId for LearningPath with ID = $pathId")
-          Ok(learningStep)
+        createdLearningStep match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(learningStep) =>
+            logger.info(s"UPDATED LearningStep with ID = $stepId for LearningPath with ID = $pathId")
+            Ok(learningStep)
+        }
       }
     }: Unit
 
@@ -666,14 +667,15 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
-      val newSeqNo = extract[LearningStepSeqNo](request.body)
-      val pathId   = long(this.learningpathId.paramName)
-      val stepId   = long(this.learningstepId.paramName)
+      requireUserId { userInfo =>
+        val newSeqNo = extract[LearningStepSeqNo](request.body)
+        val pathId   = long(this.learningpathId.paramName)
+        val stepId   = long(this.learningstepId.paramName)
 
-      updateService.updateSeqNo(pathId, stepId, newSeqNo.seqNo, userInfo) match {
-        case Success(seqNo) => Ok(seqNo)
-        case Failure(ex)    => errorHandler(ex)
+        updateService.updateSeqNo(pathId, stepId, newSeqNo.seqNo, userInfo) match {
+          case Success(seqNo) => Ok(seqNo)
+          case Failure(ex)    => errorHandler(ex)
+        }
       }
     }: Unit
 
@@ -693,21 +695,22 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo           = UserInfo(requireUserId)
-      val learningStepStatus = extract[LearningStepStatus](request.body)
-      val stepStatus         = StepStatus.valueOfOrError(learningStepStatus.status)
-      val pathId             = long(this.learningpathId.paramName)
-      val stepId             = long(this.learningstepId.paramName)
+      requireUserId { userInfo =>
+        val learningStepStatus = extract[LearningStepStatus](request.body)
+        val stepStatus         = StepStatus.valueOfOrError(learningStepStatus.status)
+        val pathId             = long(this.learningpathId.paramName)
+        val stepId             = long(this.learningstepId.paramName)
 
-      val updatedStep = updateService.updateLearningStepStatusV2(pathId, stepId, stepStatus, userInfo)
+        val updatedStep = updateService.updateLearningStepStatusV2(pathId, stepId, stepStatus, userInfo)
 
-      updatedStep match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(learningStep) =>
-          logger.info(
-            s"UPDATED LearningStep with id: $stepId for LearningPath with id: $pathId to STATUS = ${learningStep.status}"
-          )
-          Ok(learningStep)
+        updatedStep match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(learningStep) =>
+            logger.info(
+              s"UPDATED LearningStep with id: $stepId for LearningPath with id: $pathId to STATUS = ${learningStep.status}"
+            )
+            Ok(learningStep)
+        }
       }
     }: Unit
 
@@ -726,16 +729,23 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo   = UserInfo(requireUserId)
-      val toUpdate   = extract[UpdateLearningPathStatus](request.body)
-      val pathStatus = domain.LearningPathStatus.valueOfOrError(toUpdate.status)
-      val pathId     = long(this.learningpathId.paramName)
+      requireUserId { userInfo =>
+        val toUpdate   = extract[UpdateLearningPathStatus](request.body)
+        val pathStatus = domain.LearningPathStatus.valueOfOrError(toUpdate.status)
+        val pathId     = long(this.learningpathId.paramName)
 
-      updateService.updateLearningPathStatusV2(pathId, pathStatus, userInfo, DefaultLanguage, toUpdate.message) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(learningPath) =>
-          logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
-          Ok(learningPath)
+        updateService.updateLearningPathStatusV2(
+          pathId,
+          pathStatus,
+          userInfo,
+          DefaultLanguage,
+          toUpdate.message
+        ) match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(learningPath) =>
+            logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
+            Ok(learningPath)
+        }
       }
     }: Unit
 
@@ -774,19 +784,20 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
-      val pathId   = long(this.learningpathId.paramName)
+      requireUserId { userInfo =>
+        val pathId = long(this.learningpathId.paramName)
 
-      updateService.updateLearningPathStatusV2(
-        pathId,
-        domain.LearningPathStatus.DELETED,
-        userInfo,
-        DefaultLanguage
-      ) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(_) =>
-          logger.info(s"MARKED LearningPath with ID: $pathId as DELETED")
-          NoContent()
+        updateService.updateLearningPathStatusV2(
+          pathId,
+          domain.LearningPathStatus.DELETED,
+          userInfo,
+          DefaultLanguage
+        ) match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(_) =>
+            logger.info(s"MARKED LearningPath with ID: $pathId as DELETED")
+            NoContent()
+        }
       }
     }: Unit
 
@@ -805,15 +816,16 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
-      val pathId   = long(this.learningpathId.paramName)
-      val stepId   = long(this.learningstepId.paramName)
-      val deleted  = updateService.updateLearningStepStatusV2(pathId, stepId, StepStatus.DELETED, userInfo)
-      deleted match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(_) =>
-          logger.info(s"MARKED LearningStep with id: $stepId for LearningPath with id: $pathId as DELETED.")
-          NoContent()
+      requireUserId { userInfo =>
+        val pathId  = long(this.learningpathId.paramName)
+        val stepId  = long(this.learningstepId.paramName)
+        val deleted = updateService.updateLearningStepStatusV2(pathId, stepId, StepStatus.DELETED, userInfo)
+        deleted match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(_) =>
+            logger.info(s"MARKED LearningStep with id: $stepId for LearningPath with id: $pathId as DELETED.")
+            NoContent()
+        }
       }
     }: Unit
 
@@ -875,15 +887,22 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo                = UserInfo(requireUserId)
-      val pathId                  = long(this.learningpathId.paramName)
-      val language                = paramOrDefault(this.language.paramName, AllLanguages)
-      val fallback                = booleanOrDefault(this.fallback.paramName, default = false)
-      val createResourceIfMissing = booleanOrDefault(this.createResourceIfMissing.paramName, default = false)
+      requireUserId { userInfo =>
+        val pathId                  = long(this.learningpathId.paramName)
+        val language                = paramOrDefault(this.language.paramName, AllLanguages)
+        val fallback                = booleanOrDefault(this.fallback.paramName, default = false)
+        val createResourceIfMissing = booleanOrDefault(this.createResourceIfMissing.paramName, default = false)
 
-      updateService.updateTaxonomyForLearningPath(pathId, createResourceIfMissing, language, fallback, userInfo) match {
-        case Success(lp) => Ok(lp)
-        case Failure(ex) => errorHandler(ex)
+        updateService.updateTaxonomyForLearningPath(
+          pathId,
+          createResourceIfMissing,
+          language,
+          fallback,
+          userInfo
+        ) match {
+          case Success(lp) => Ok(lp)
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }: Unit
 

@@ -8,21 +8,19 @@
 
 package no.ndla.learningpathapi.service
 
+import cats.implicits._
+import no.ndla.common.Clock
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.implicits._
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
 import no.ndla.learningpathapi.model.api.{config, _}
-import no.ndla.learningpathapi.model.api
-import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.{api, domain}
+import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
-import no.ndla.learningpathapi.model.domain.{
-  Folder,
-  LearningPathStatus,
-  UserInfo,
-  LearningPath => _,
-  LearningStep => _,
-  _
-}
+import no.ndla.learningpathapi.model.domain.{Folder, LearningPathStatus, LearningPath => _, LearningStep => _, _}
 import no.ndla.learningpathapi.repository.{
   ConfigRepository,
   FolderRepository,
@@ -31,12 +29,8 @@ import no.ndla.learningpathapi.repository.{
 }
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
-import cats.implicits._
-import no.ndla.common.Clock
-import no.ndla.common.implicits._
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
@@ -68,7 +62,7 @@ trait UpdateService {
         createResourceIfMissing: Boolean,
         language: String,
         fallback: Boolean,
-        userInfo: UserInfo
+        userInfo: TokenUser
     ): Try[LearningPathV2] = {
       writeOrAccessDenied(userInfo.isWriter) {
         readService.withIdAndAccessGranted(pathId, userInfo) match {
@@ -83,7 +77,7 @@ trait UpdateService {
 
     def insertDump(dump: domain.LearningPath): domain.LearningPath = learningPathRepository.insert(dump)
 
-    private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: UserInfo)(w: => Try[T]): Try[T] =
+    private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: TokenUser)(w: => Try[T]): Try[T] =
       writeOrAccessDenied(
         readService.canWriteNow(owner),
         "You do not have write access while write restriction is active."
@@ -99,7 +93,7 @@ trait UpdateService {
       if (willExecute) w
       else Failure(AccessDeniedException(reason))
 
-    def newFromExistingV2(id: Long, newLearningPath: NewCopyLearningPathV2, owner: UserInfo): Try[LearningPathV2] =
+    def newFromExistingV2(id: Long, newLearningPath: NewCopyLearningPathV2, owner: TokenUser): Try[LearningPathV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
           case None              => Failure(NotFoundException("Could not find learningpath to copy."))
@@ -116,7 +110,7 @@ trait UpdateService {
         }
       }
 
-    def addLearningPathV2(newLearningPath: NewLearningPathV2, owner: UserInfo): Try[LearningPathV2] =
+    def addLearningPathV2(newLearningPath: NewLearningPathV2, owner: TokenUser): Try[LearningPathV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         val learningPath = converterService.newLearningPath(newLearningPath, owner)
         learningPathValidator.validate(learningPath)
@@ -132,7 +126,7 @@ trait UpdateService {
     def updateLearningPathV2(
         id: Long,
         learningPathToUpdate: UpdatedLearningPathV2,
-        owner: UserInfo
+        owner: TokenUser
     ): Try[LearningPathV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       learningPathValidator.validate(learningPathToUpdate)
 
@@ -173,7 +167,7 @@ trait UpdateService {
     def updateLearningPathStatusV2(
         learningPathId: Long,
         status: LearningPathStatus.Value,
-        owner: UserInfo,
+        owner: TokenUser,
         language: String,
         message: Option[String] = None
     ): Try[LearningPathV2] =
@@ -186,7 +180,7 @@ trait UpdateService {
 
             validatedLearningPath.flatMap(valid => {
               val newMessage = message match {
-                case Some(msg) if owner.isAdmin => Some(domain.Message(msg, owner.userId, clock.now()))
+                case Some(msg) if owner.isAdmin => Some(domain.Message(msg, owner.id, clock.now()))
                 case _                          => valid.message
               }
 
@@ -224,7 +218,7 @@ trait UpdateService {
     def addLearningStepV2(
         learningPathId: Long,
         newLearningStep: NewLearningStepV2,
-        owner: UserInfo
+        owner: TokenUser
     ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       optimisticLockRetries(10) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
@@ -266,7 +260,7 @@ trait UpdateService {
         learningPathId: Long,
         learningStepId: Long,
         learningStepToUpdate: UpdatedLearningStepV2,
-        owner: UserInfo
+        owner: TokenUser
     ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
         case Failure(ex) => Failure(ex)
@@ -318,7 +312,7 @@ trait UpdateService {
         learningPathId: Long,
         learningStepId: Long,
         newStatus: StepStatus,
-        owner: UserInfo
+        owner: TokenUser
     ): Try[LearningStepV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
@@ -377,16 +371,16 @@ trait UpdateService {
         }
       }
 
-    def updateConfig(configKey: ConfigKey, value: UpdateConfigValue, userInfo: UserInfo): Try[config.ConfigMeta] = {
+    def updateConfig(configKey: ConfigKey, value: UpdateConfigValue, userInfo: TokenUser): Try[config.ConfigMeta] = {
 
       writeOrAccessDenied(userInfo.isAdmin, "Only administrators can edit configuration.") {
-        ConfigMeta(configKey, value.value, clock.now(), userInfo.userId).validate.flatMap(newConfigValue => {
+        ConfigMeta(configKey, value.value, clock.now(), userInfo.id).validate.flatMap(newConfigValue => {
           configRepository.updateConfigParam(newConfigValue).map(converterService.asApiConfig)
         })
       }
     }
 
-    def updateSeqNo(learningPathId: Long, learningStepId: Long, seqNo: Int, owner: UserInfo): Try[LearningStepSeqNo] =
+    def updateSeqNo(learningPathId: Long, learningStepId: Long, seqNo: Int, owner: TokenUser): Try[LearningStepSeqNo] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         optimisticLockRetries(10) {
           withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {

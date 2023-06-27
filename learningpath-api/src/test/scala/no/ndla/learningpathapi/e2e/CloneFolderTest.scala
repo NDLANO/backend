@@ -508,7 +508,9 @@ class CloneFolderTest
   }
 
   test("that sharing a folder will update shared field to current date") {
+    reset(testClock)
     when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(testClock.now()).thenReturn(LocalDateTime.now())
     val folderRepository = learningpathApi.componentRegistry.folderRepository
     val destinationFolder =
       NewFolderData(

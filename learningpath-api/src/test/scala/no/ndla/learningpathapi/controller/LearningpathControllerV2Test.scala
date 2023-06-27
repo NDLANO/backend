@@ -16,6 +16,7 @@ import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
@@ -244,14 +245,14 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That /with-status returns 400 if invalid status is specified") {
-    when(readService.learningPathWithStatus(any[String], any[UserInfo]))
+    when(readService.learningPathWithStatus(any[String], any[TokenUser]))
       .thenReturn(Failure(InvalidStatusException("Bad status")))
 
     get("/status/invalidStatusHurrDurr") {
       status should equal(400)
     }
 
-    when(readService.learningPathWithStatus(any[String], any[UserInfo]))
+    when(readService.learningPathWithStatus(any[String], any[TokenUser]))
       .thenReturn(Success(List.empty))
     get("/status/unlisted") {
       status should equal(200)

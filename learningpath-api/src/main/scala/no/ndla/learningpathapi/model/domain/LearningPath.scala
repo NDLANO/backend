@@ -15,6 +15,8 @@ import no.ndla.learningpathapi.validation.DurationValidator
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
@@ -61,7 +63,7 @@ case class LearningPath(
     status == LearningPathStatus.PUBLISHED
   }
 
-  def canSetStatus(status: LearningPathStatus.Value, user: UserInfo): Try[LearningPath] = {
+  def canSetStatus(status: LearningPathStatus.Value, user: TokenUser): Try[LearningPath] = {
     if (status == LearningPathStatus.PUBLISHED && !user.canPublish) {
       Failure(AccessDeniedException("You need to be a publisher to publish learningpaths."))
     } else {
@@ -69,9 +71,9 @@ case class LearningPath(
     }
   }
 
-  def canEditLearningpath(user: UserInfo): Try[LearningPath] = {
+  def canEditLearningpath(user: TokenUser): Try[LearningPath] = {
     if (
-      (user.userId == owner) ||
+      (user.id == owner) ||
       user.isAdmin ||
       (user.isWriter && verificationStatus == LearningPathVerificationStatus.CREATED_BY_NDLA)
     ) {
@@ -81,7 +83,7 @@ case class LearningPath(
     }
   }
 
-  def isOwnerOrPublic(user: UserInfo): Try[LearningPath] = {
+  def isOwnerOrPublic(user: TokenUser): Try[LearningPath] = {
     if (isPrivate) {
       canEditLearningpath(user)
     } else {
@@ -89,7 +91,7 @@ case class LearningPath(
     }
   }
 
-  def canEdit(userInfo: UserInfo): Boolean = canEditLearningpath(userInfo).isSuccess
+  def canEdit(userInfo: TokenUser): Boolean = canEditLearningpath(userInfo).isSuccess
 
   def lsLength = learningsteps.map(_.length).getOrElse(0)
 
@@ -107,17 +109,6 @@ case class LearningPath(
       Success(this)
     else
       Failure(new ValidationException(errors = validationResult))
-  }
-}
-
-object LearningPathRole extends Enumeration {
-  val ADMIN: LearningPathRole.Value   = Value("ADMIN")
-  val WRITE: LearningPathRole.Value   = Value("WRITE")
-  val PUBLISH: LearningPathRole.Value = Value("PUBLISH")
-
-  def valueOf(s: String): Option[LearningPathRole.Value] = {
-    val lpRole = s.split("learningpath:")
-    LearningPathRole.values.find(_.toString == lpRole.lastOption.getOrElse("").toUpperCase)
   }
 }
 

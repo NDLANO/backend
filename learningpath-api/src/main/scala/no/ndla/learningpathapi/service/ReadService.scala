@@ -13,8 +13,9 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.learningpathapi.model.api._
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
-import no.ndla.learningpathapi.model.domain.{StepStatus, UserInfo, LearningPathStatus => _, _}
+import no.ndla.learningpathapi.model.domain.{StepStatus, LearningPathStatus => _, _}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.{
   ConfigRepository,
@@ -23,6 +24,7 @@ import no.ndla.learningpathapi.repository.{
   UserRepository
 }
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession}
 
 import java.util.UUID
@@ -67,9 +69,9 @@ trait ReadService {
       learningPathRepository.allPublishedContributors.map(author => api.Author(author.`type`, author.name))
     }
 
-    def withOwnerV2(user: UserInfo = UserInfo.getUserOrPublic): List[LearningPathSummaryV2] = {
+    def withOwnerV2(user: TokenUser): List[LearningPathSummaryV2] = {
       learningPathRepository
-        .withOwner(user.userId)
+        .withOwner(user.id)
         .flatMap(value => converterService.asApiLearningpathSummaryV2(value, user).toOption)
     }
 
@@ -79,7 +81,7 @@ trait ReadService {
         fallback: Boolean,
         page: Int,
         pageSize: Int,
-        userInfo: UserInfo
+        userInfo: TokenUser
     ): Try[Seq[LearningPathV2]] = {
       if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
@@ -95,14 +97,14 @@ trait ReadService {
         learningPathId: Long,
         language: String,
         fallback: Boolean,
-        user: UserInfo = UserInfo.getUserOrPublic
+        user: TokenUser
     ): Try[LearningPathV2] = {
       withIdAndAccessGranted(learningPathId, user).flatMap(lp =>
         converterService.asApiLearningpathV2(lp, language, fallback, user)
       )
     }
 
-    def statusFor(learningPathId: Long, user: UserInfo = UserInfo.getUserOrPublic): Try[LearningPathStatus] = {
+    def statusFor(learningPathId: Long, user: TokenUser): Try[LearningPathStatus] = {
       withIdAndAccessGranted(learningPathId, user).map(lp => LearningPathStatus(lp.status.toString))
     }
 
@@ -111,7 +113,7 @@ trait ReadService {
         learningStepId: Long,
         language: String,
         fallback: Boolean,
-        user: UserInfo = UserInfo.getUserOrPublic
+        user: TokenUser
     ): Try[LearningStepStatus] = {
       learningstepV2For(learningPathId, learningStepId, language, fallback, user).map(ls =>
         LearningStepStatus(ls.status)
@@ -123,7 +125,7 @@ trait ReadService {
         status: StepStatus,
         language: String,
         fallback: Boolean,
-        user: UserInfo = UserInfo.getUserOrPublic
+        user: TokenUser
     ): Try[LearningStepContainerSummary] = {
       withIdAndAccessGranted(learningPathId, user) match {
         case Success(lp) => converterService.asLearningStepContainerSummary(status, lp, language, fallback)
@@ -136,7 +138,7 @@ trait ReadService {
         learningStepId: Long,
         language: String,
         fallback: Boolean,
-        user: UserInfo = UserInfo.getUserOrPublic
+        user: TokenUser
     ): Try[LearningStepV2] = {
       withIdAndAccessGranted(learningPathId, user) match {
         case Success(lp) =>
@@ -155,7 +157,7 @@ trait ReadService {
       }
     }
 
-    def withIdAndAccessGranted(learningPathId: Long, user: UserInfo): Try[domain.LearningPath] = {
+    def withIdAndAccessGranted(learningPathId: Long, user: TokenUser): Try[domain.LearningPath] = {
       val learningPath = learningPathRepository.withId(learningPathId)
       learningPath.map(_.isOwnerOrPublic(user)) match {
         case Some(Success(lp)) => Success(lp)
@@ -180,7 +182,7 @@ trait ReadService {
       LearningPathDomainDump(count, safePageNo, safePageSize, results)
     }
 
-    def learningPathWithStatus(status: String, user: UserInfo): Try[List[LearningPathV2]] = {
+    def learningPathWithStatus(status: String, user: TokenUser): Try[List[LearningPathV2]] = {
       if (user.isAdmin) {
         domain.LearningPathStatus.valueOf(status) match {
           case Some(ps) =>
@@ -215,7 +217,7 @@ trait ReadService {
       }
     }
 
-    def canWriteNow(userInfo: UserInfo): Boolean =
+    def canWriteNow(userInfo: TokenUser): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
 
     def getAllResources(
