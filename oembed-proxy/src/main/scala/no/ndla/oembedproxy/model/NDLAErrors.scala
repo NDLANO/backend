@@ -20,7 +20,7 @@ trait ErrorHelpers extends TapirErrorHelpers with FLogging {
 
   import ErrorHelpers._
 
-  override def returnError(ex: Throwable): IO[ErrorBody] = ex match {
+  override def handleErrors: PartialFunction[Throwable, IO[ErrorBody]] = {
     case pnse: ProviderNotSupportedException =>
       IO(ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 501))
     case hre: HttpRequestException if hre.is404 =>
@@ -33,9 +33,6 @@ trait ErrorHelpers extends TapirErrorHelpers with FLogging {
       )
       logger.error(hre)(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}") >>
         IO(ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502))
-    case t: Throwable =>
-      logger.error(t)(t.getMessage) >>
-        IO(generic)
   }
 }
 

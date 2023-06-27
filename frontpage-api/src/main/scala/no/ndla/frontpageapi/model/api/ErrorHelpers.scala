@@ -24,12 +24,11 @@ trait ErrorHelpers extends TapirErrorHelpers with FLogging {
 
   import ErrorHelpers._
 
-  override def returnError(throwable: Throwable): IO[ErrorBody] = throwable match {
+  override def handleErrors: PartialFunction[Throwable, IO[ErrorBody]] = {
     case ex: ValidationException          => IO(badRequest(ex.getMessage))
     case ex: SubjectPageNotFoundException => IO(notFoundWithMsg(ex.getMessage))
     case ex: NotFoundException            => IO(notFoundWithMsg(ex.getMessage))
     case ex: LanguageNotFoundException    => IO(notFoundWithMsg(ex.getMessage))
-    case ex                               => logger.error(ex)(s"Internal error: ${ex.getMessage}").as(generic)
   }
 
 }

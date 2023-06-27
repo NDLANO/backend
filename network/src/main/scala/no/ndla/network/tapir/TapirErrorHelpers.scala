@@ -11,11 +11,12 @@ import cats.effect.IO
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.network.logging.FLogging
 import no.ndla.network.tapir.auth.{Scope, TokenUser}
 
 import scala.util.{Failure, Success, Try}
 
-trait TapirErrorHelpers {
+trait TapirErrorHelpers extends FLogging {
   this: HasBaseProps with Clock =>
 
   object ErrorHelpers {
@@ -71,7 +72,16 @@ trait TapirErrorHelpers {
     }
   }
 
-  def returnError(ex: Throwable): IO[ErrorBody]
+  private def handleUnknownError(e: Throwable): IO[ErrorBody] = {
+    logger.error(e.getMessage).as {
+      e.printStackTrace()
+      ErrorHelpers.generic
+    }
+  }
+
+  def handleErrors: PartialFunction[Throwable, IO[ErrorBody]]
+  def returnError(ex: Throwable): IO[ErrorBody] = handleErrors.applyOrElse(ex, handleUnknownError)
+
   def returnLeftError[R](ex: Throwable): IO[Either[ErrorBody, R]] = returnError(ex).map(_.asLeft[R])
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
