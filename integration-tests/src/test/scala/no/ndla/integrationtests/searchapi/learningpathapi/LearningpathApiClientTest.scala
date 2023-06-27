@@ -95,8 +95,6 @@ class LearningpathApiClientTest
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "tittel")))
     searchable.get.description.languageValues should be(Seq(LanguageValue("nb", "deskripsjon")))
-    searchable.get.learningsteps.head.title.languageValues should be(Seq(LanguageValue("nb", "Step1Title")))
-    searchable.get.learningsteps.last.title.languageValues should be(Seq(LanguageValue("nb", "Step2Title")))
   }
 
 }

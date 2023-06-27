@@ -7,10 +7,6 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.search.model.SearchableLanguageValues
-
 case class SearchableLearningStep(
-    stepType: String,
-    title: SearchableLanguageValues,
-    description: SearchableLanguageValues
+    stepType: String
 )

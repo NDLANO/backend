@@ -315,17 +315,16 @@ trait IndexService {
 
     protected def getTaxonomyContextMapping: NestedField = {
       nestedField("contexts").fields(
-        List(
-          keywordField("publicId"),
-          keywordField("path"),
-          keywordField("contextType"),
-          keywordField("rootId"),
-          keywordField("parentIds"),
-          keywordField("relevanceId"),
-          booleanField("isActive"),
-          nestedField("resourceTypes").fields(
-            List(keywordField("id"))
-          )
+        keywordField("publicId"),
+        keywordField("path"),
+        keywordField("contextType"),
+        keywordField("rootId"),
+        keywordField("parentIds"),
+        keywordField("relevanceId"),
+        booleanField("isActive"),
+        booleanField("isPrimary"),
+        nestedField("resourceTypes").fields(
+          keywordField("id")
         )
       )
     }

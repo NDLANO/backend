@@ -38,22 +38,9 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
     )
 
     val learningsteps = List(
-      SearchableLearningStep(
-        stepType = StepType.INTRODUCTION.toString,
-        title = SearchableLanguageValues(Seq(LanguageValue("nb", "Introsteg"))),
-        description = SearchableLanguageValues(Seq(LanguageValue("nb", "IntroDesc")))
-      ),
-      SearchableLearningStep(
-        stepType = StepType.SUMMARY.toString,
-        title = SearchableLanguageValues(Seq(LanguageValue("nb", "Summary a gitt"))),
-        description =
-          SearchableLanguageValues(Seq(LanguageValue("nb", "Summariereire"), LanguageValue("en", "Summingz")))
-      ),
-      SearchableLearningStep(
-        stepType = StepType.TEXT.toString,
-        title = SearchableLanguageValues(Seq(LanguageValue("en", "TEXTITexTy"))),
-        description = SearchableLanguageValues(Seq(LanguageValue("en", "TextarUøø")))
-      )
+      SearchableLearningStep(stepType = StepType.INTRODUCTION.toString),
+      SearchableLearningStep(stepType = StepType.SUMMARY.toString),
+      SearchableLearningStep(stepType = StepType.TEXT.toString)
     )
 
     val original = SearchableLearningPath(
@@ -77,7 +64,6 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       supportedLanguages = List("nb", "en", "nn"),
       authors = List("Yap"),
       contexts = searchableTaxonomyContexts,
-      embedResourcesAndIds = List.empty,
       license = "by-sa"
     )
 

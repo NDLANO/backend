@@ -312,8 +312,7 @@ trait SearchConverterService {
           isBasedOn = lp.isBasedOn,
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
-          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
-          embedResourcesAndIds = List.empty
+          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
         )
       )
     }
@@ -366,12 +365,12 @@ trait SearchConverterService {
         List(draft.updatedBy) ++ draft.notes.map(_.user) ++ draft.previousVersionsNotes.map(_.user)
       val nextRevision =
         draft.revisionMeta.filter(_.status == RevisionStatus.NeedsRevision).sortBy(_.revisionDate).headOption
+      val draftStatus = search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq)
 
       Success(
         SearchableDraft(
           id = draft.id.get,
-          draftStatus =
-            search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq),
+          draftStatus = draftStatus,
           title = model.SearchableLanguageValues(draft.title.map(title => LanguageValue(title.language, title.title))),
           content = model.SearchableLanguageValues(
             draft.content.map(article =>
@@ -420,14 +419,7 @@ trait SearchConverterService {
     }
 
     private def asSearchableLearningStep(learningStep: LearningStep): SearchableLearningStep = {
-      val nonHtmlDescriptions = learningStep.description.map(desc =>
-        domain.learningpath.Description(Jsoup.parseBodyFragment(desc.description).text(), desc.language)
-      )
-      SearchableLearningStep(
-        learningStep.`type`.toString,
-        model.SearchableLanguageValues(learningStep.title.map(t => LanguageValue(t.language, t.title))),
-        model.SearchableLanguageValues(nonHtmlDescriptions.map(d => LanguageValue(d.language, d.description)))
-      )
+      SearchableLearningStep(learningStep.`type`.toString)
     }
 
     /** Attempts to extract language that hit from highlights in elasticsearch response.
