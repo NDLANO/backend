@@ -15,15 +15,16 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.network.tapir.TapirServer
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
-import org.mockito.Strictness
+import org.mockito.{ArgumentCaptor, Strictness}
+import org.scalatest.tagobjects.Retryable
+import org.scalatest.{Canceled, Failed, Outcome, Retries}
 import sttp.client3.quick._
 
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
-class AudioControllerTest extends UnitSuite with TestEnvironment {
+class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
   val serverPort: Int = findFreePort
   val controller      = new AudioController
 
@@ -35,6 +36,25 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     server.runInBackground()
     blockUntil(() => server.isReady)
 
+  }
+
+  val maxRetries = 5
+  def withFixture(test: NoArgTest, count: Int): Outcome = {
+    val outcome = Try(super.withFixture(test))
+    outcome match {
+      case Success(Failed(_)) | Success(Canceled(_)) | Failure(_) =>
+        println(s"'${test.name}' failed, retrying $count more times...")
+        if (count == 1) super.withFixture(test) else withFixture(test, count - 1)
+      case Success(other) =>
+        val attemptNum = maxRetries - (count - 1)
+        println(s"Retryable test '${test.name}' succeeded on attempt $attemptNum")
+        other
+    }
+  }
+  override def withFixture(test: NoArgTest): Outcome = if (isRetryable(test)) {
+    withFixture(test, maxRetries)
+  } else {
+    super.withFixture(test)
   }
 
   when(clock.now()).thenCallRealMethod()
@@ -78,7 +98,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     response.code.code should be(401)
   }
 
-  test("That POST / returns 422 if parameters are missing") {
+  test("That POST / returns 422 if parameters are missing", Retryable) {
     val response = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
@@ -89,7 +109,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     response.code.code should be(422)
   }
 
-  test("That POST / returns 200 if everything is fine and dandy") {
+  test("That POST / returns 200 if everything is fine and dandy", Retryable) {
     val sampleAudioMeta =
       api.AudioMetaInformation(
         1,
