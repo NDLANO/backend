@@ -23,10 +23,5 @@ trait UnitSuite extends UnitTestSuite with PrivateMethodTester {
   setPropEnv("SEARCH_SERVER", "search-server")
   setPropEnv("SEARCH_REGION", "some-region")
   setPropEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
-  setPropEnv("MIGRATION_HOST", "some-host")
-  setPropEnv("MIGRATION_USER", "some-user")
-  setPropEnv("MIGRATION_PASSWORD", "some-password")
   setPropEnv("SEARCH_INDEX_NAME", "audio-integration-test-index")
-  setPropEnv("NDLA_RED_USERNAME", "redusername")
-  setPropEnv("NDLA_RED_PASSWORD", "redpassword")
 }
