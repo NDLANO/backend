@@ -25,7 +25,8 @@ case class DraftSearchSettings(
     shouldScroll: Boolean,
     embedResource: Option[String],
     embedId: Option[String],
-    responsibleIdFilter: List[String]
+    responsibleIdFilter: List[String],
+    conceptType: Option[String]
 )
 
 trait DraftSearchSettingsHelper {
@@ -46,7 +47,8 @@ trait DraftSearchSettingsHelper {
         shouldScroll = false,
         embedResource = None,
         embedId = None,
-        responsibleIdFilter = List.empty
+        responsibleIdFilter = List.empty,
+        conceptType = None
       )
     }
   }

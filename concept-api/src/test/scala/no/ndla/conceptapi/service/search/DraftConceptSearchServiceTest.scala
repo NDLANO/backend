@@ -189,6 +189,23 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     status = Status(current = ConceptStatus.ARCHIVED, other = Set.empty)
   )
 
+  val concept13: Concept = TestData.sampleConcept.copy(
+    id = Option(13),
+    copyright = Some(byNcSa),
+    title = List(Title("gloss", "en"), Title("glose", "nb")),
+    content = List(ConceptContent("This is a gloss", "en"), ConceptContent("Dette er en glose", "nb")),
+    conceptType = ConceptType.GLOSS,
+    glossData = Some(
+      GlossData(
+        gloss = "gloss",
+        wordClass = WordClass.NOUN,
+        originalLanguage = "de",
+        transcriptions = Map.empty,
+        examples = List.empty
+      )
+    )
+  )
+
   val searchSettings: DraftSearchSettings = DraftSearchSettings(
     withIdIn = List.empty,
     searchLanguage = DefaultLanguage,
@@ -203,7 +220,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     shouldScroll = false,
     embedResource = None,
     embedId = None,
-    responsibleIdFilter = List.empty
+    responsibleIdFilter = List.empty,
+    conceptType = None
   )
 
   override def beforeAll(): Unit = {
@@ -223,9 +241,10 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       draftConceptIndexService.indexDocument(concept10).get
       draftConceptIndexService.indexDocument(concept11).get
       draftConceptIndexService.indexDocument(concept12).get
+      draftConceptIndexService.indexDocument(concept13).get
 
       blockUntil(() => {
-        draftConceptSearchService.countDocuments == 12
+        draftConceptSearchService.countDocuments == 13
       })
     }
   }
@@ -256,7 +275,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(results) =
       draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByIdAsc))
     val hits = results.results
-    results.totalCount should be(10)
+    results.totalCount should be(11)
     hits.head.id should be(1)
     hits(1).id should be(2)
     hits(2).id should be(3)
@@ -271,10 +290,10 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   test("That all returns all documents ordered by id descending") {
     val Success(results) =
-      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByIdDesc))
+      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByIdDesc, pageSize = 20))
     val hits = results.results
-    results.totalCount should be(10)
-    hits.head.id should be(10)
+    results.totalCount should be(11)
+    hits.head.id should be(13)
     hits.last.id should be(1)
   }
 
@@ -283,18 +302,18 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleAsc, pageSize = 20, fallback = true))
     val hits = results.results
 
-    results.totalCount should be(11)
-    results.totalCount should be(11)
+    results.totalCount should be(12)
     hits.head.id should be(8)
     hits(1).id should be(9)
     hits(2).id should be(1)
     hits(3).id should be(3)
     hits(4).id should be(11)
-    hits(5).id should be(5)
-    hits(6).id should be(6)
-    hits(7).id should be(2)
-    hits(8).id should be(4)
-    hits(9).id should be(10)
+    hits(5).id should be(13)
+    hits(6).id should be(5)
+    hits(7).id should be(6)
+    hits(8).id should be(2)
+    hits(9).id should be(4)
+    hits(10).id should be(10)
     hits.last.id should be(7)
   }
 
@@ -302,27 +321,28 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(results) =
       draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleDesc, pageSize = 20, fallback = true))
     val hits = results.results
-    results.totalCount should be(11)
+    results.totalCount should be(12)
     hits.head.id should be(7)
     hits(1).id should be(10)
     hits(2).id should be(4)
     hits(3).id should be(2)
     hits(4).id should be(6)
     hits(5).id should be(5)
-    hits(6).id should be(11)
-    hits(7).id should be(3)
-    hits(8).id should be(1)
-    hits(9).id should be(9)
+    hits(6).id should be(13)
+    hits(7).id should be(11)
+    hits(8).id should be(3)
+    hits(9).id should be(1)
+    hits(10).id should be(9)
     hits.last.id should be(8)
 
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
     val Success(results) =
-      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
+      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByLastUpdatedDesc, pageSize = 20))
     val hits = results.results
-    results.totalCount should be(10)
-    hits.map(_.id) should be(Seq(10, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+    results.totalCount should be(11)
+    hits.map(_.id) should be(Seq(10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13))
   }
 
   test("That all filtered by id only returns documents with the given ids") {
@@ -341,14 +361,14 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       draftConceptSearchService.all(searchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByTitleAsc))
 
     val hits1 = page1.results
-    page1.totalCount should be(10)
+    page1.totalCount should be(11)
     page1.page.get should be(1)
     hits1.size should be(2)
     hits1.head.id should be(8)
     hits1.last.id should be(9)
 
     val hits2 = page2.results
-    page2.totalCount should be(10)
+    page2.totalCount should be(11)
     page2.page.get should be(2)
     hits2.size should be(2)
     hits2.head.id should be(1)
@@ -428,7 +448,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       draftConceptSearchService.all(searchSettings.copy(searchLanguage = Language.AllLanguages, pageSize = 100))
     val hits = search.results
 
-    search.totalCount should equal(11)
+    search.totalCount should equal(12)
     hits.head.id should be(1)
     hits.head.title.language should be("nb")
     hits(1).id should be(2)
@@ -478,7 +498,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   test("That scrolling works as expected") {
     val pageSize    = 2
-    val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
+    val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
       draftConceptSearchService.all(
@@ -822,5 +842,16 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(search2) =
       draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByStatusDesc, withIdIn = List(1, 8, 9, 10)))
     search2.results.map(_.id) should be(Seq(9, 1, 10, 8))
+  }
+
+  test("that filtering for conceptType works as expected") {
+    {
+      val Success(search) = draftConceptSearchService.all(searchSettings.copy(conceptType = Some("concept")))
+      search.totalCount should be(10)
+    }
+    {
+      val Success(search) = draftConceptSearchService.all(searchSettings.copy(conceptType = Some("gloss")))
+      search.totalCount should be(1)
+    }
   }
 }

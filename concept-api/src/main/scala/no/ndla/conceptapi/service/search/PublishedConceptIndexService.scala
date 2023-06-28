@@ -46,6 +46,7 @@ trait PublishedConceptIndexService {
     def getMapping: MappingDefinition = {
       val fields = List(
         intField("id"),
+        keywordField("conceptType"),
         keywordField("defaultTitle").normalizer("lower"),
         keywordField("subjectIds"),
         nestedField("metaImage").fields(

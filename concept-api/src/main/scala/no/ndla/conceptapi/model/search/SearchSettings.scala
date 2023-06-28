@@ -23,7 +23,8 @@ case class SearchSettings(
     exactTitleMatch: Boolean,
     shouldScroll: Boolean,
     embedResource: Option[String],
-    embedId: Option[String]
+    embedId: Option[String],
+    conceptType: Option[String]
 )
 
 trait SearchSettingsHelper {
@@ -42,7 +43,8 @@ trait SearchSettingsHelper {
         exactTitleMatch = false,
         shouldScroll = false,
         embedResource = None,
-        embedId = None
+        embedId = None,
+        conceptType = None
       )
     }
   }

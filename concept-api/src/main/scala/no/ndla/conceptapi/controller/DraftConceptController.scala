@@ -21,7 +21,7 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.Ok
+import org.scalatra.{Created, Ok}
 import org.scalatra.swagger.Swagger
 
 import scala.util.{Failure, Success}
@@ -32,7 +32,6 @@ trait DraftConceptController {
     with User
     with DraftConceptSearchService
     with SearchConverterService
-    with DraftNdlaController
     with ConverterService
     with Props
     with NdlaController
@@ -40,7 +39,7 @@ trait DraftConceptController {
   val draftConceptController: DraftConceptController
 
   class DraftConceptController(implicit val swagger: Swagger)
-      extends DraftNdlaControllerClass
+      extends NdlaController
       with NdlaSwaggerSupport
       with StrictLogging {
     import props._
@@ -89,7 +88,8 @@ trait DraftConceptController {
         shouldScroll: Boolean,
         embedResource: Option[String],
         embedId: Option[String],
-        responsibleId: List[String]
+        responsibleId: List[String],
+        conceptType: Option[String]
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
@@ -105,7 +105,8 @@ trait DraftConceptController {
         shouldScroll = shouldScroll,
         embedResource = embedResource,
         embedId = embedId,
-        responsibleIdFilter = responsibleId
+        responsibleIdFilter = responsibleId,
+        conceptType = conceptType
       )
 
       val result = query.emptySomeToNone match {
@@ -171,7 +172,8 @@ trait DraftConceptController {
             asQueryParam(userFilter),
             asQueryParam(embedResource),
             asQueryParam(embedId),
-            asQueryParam(responsibleIdFilter)
+            asQueryParam(responsibleIdFilter),
+            asQueryParam(conceptType)
           )
           .authorizations("oauth2")
           .responseMessages(response500)
@@ -195,6 +197,7 @@ trait DraftConceptController {
         val embedResource      = paramOrNone(this.embedResource.paramName)
         val embedId            = paramOrNone(this.embedId.paramName)
         val responsibleIds     = paramAsListOfString(this.responsibleIdFilter.paramName)
+        val conceptType        = paramOrNone(this.conceptType.paramName)
 
         search(
           query,
@@ -211,7 +214,8 @@ trait DraftConceptController {
           shouldScroll,
           embedResource,
           embedId,
-          responsibleIds
+          responsibleIds,
+          conceptType
         )
 
       }
@@ -303,6 +307,7 @@ trait DraftConceptController {
             val embedResource  = searchParams.embedResource
             val embedId        = searchParams.embedId
             val responsibleId  = searchParams.responsibleIds
+            val conceptType    = searchParams.conceptType
 
             search(
               query,
@@ -319,7 +324,8 @@ trait DraftConceptController {
               shouldScroll,
               embedResource,
               embedId,
-              responsibleId
+              responsibleId,
+              conceptType
             )
           case Failure(ex) => errorHandler(ex)
         }
@@ -393,6 +399,88 @@ trait DraftConceptController {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         converterService.stateTransitionsToApi(user.getUser)
+      }
+    }: Unit
+
+    get(
+      "/tag-search/",
+      operation(
+        apiOperation[TagsSearchResult]("getTags-paginated")
+          .summary("Retrieves a list of all previously used tags in concepts")
+          .description("Retrieves a list of all previously used tags in concepts")
+          .parameters(
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo),
+            asQueryParam(language)
+          )
+          .responseMessages(response500)
+          .authorizations("oauth2")
+      )
+    ) {
+
+      val query = paramOrDefault(this.query.paramName, "")
+      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => props.DefaultPageSize
+        case x                        => x
+      }
+      val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
+
+      readService.getAllTags(query, pageSize, pageNo, language)
+    }: Unit
+
+    post(
+      "/",
+      operation(
+        apiOperation[Concept]("newConceptById")
+          .summary("Create new concept")
+          .description("Create new concept")
+          .parameters(
+            asHeaderParam(correlationId),
+            bodyParam[NewConcept]
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response500)
+      )
+    ) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
+        val body = tryExtract[NewConcept](request.body)
+        body.flatMap(concept => writeService.newConcept(concept, userInfo)) match {
+          case Success(c)  => Created(c)
+          case Failure(ex) => errorHandler(ex)
+        }
+      }
+    }: Unit
+
+    patch(
+      "/:concept_id",
+      operation(
+        apiOperation[Concept]("updateConceptById")
+          .summary("Update a concept")
+          .description("Update a concept")
+          .parameters(
+            asHeaderParam(correlationId),
+            bodyParam[UpdatedConcept],
+            asPathParam(conceptId)
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response404, response500)
+      )
+    ) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
+        val body      = tryExtract[UpdatedConcept](request.body)
+        val conceptId = long(this.conceptId.paramName)
+        body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {
+          case Success(c)  => Ok(c)
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }: Unit
   }

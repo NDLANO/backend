@@ -17,7 +17,7 @@ import no.ndla.conceptapi.model.api.{
   OperationNotAllowedException,
   ValidationError
 }
-import no.ndla.conceptapi.model.domain.Sort
+import no.ndla.conceptapi.model.domain.{ConceptType, Sort}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -87,6 +87,10 @@ trait NdlaController {
       "ids",
       "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,)."
     )
+    protected val conceptType = Param[Option[String]](
+      "concept-type",
+      s"Return only concepts of given type. Allowed values are ${ConceptType.values.mkString(",")}"
+    )
     protected val correlationId =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
     protected val pageNo   = Param[Option[Int]]("page", "The page number of the search hits to display.")
@@ -97,7 +101,6 @@ trait NdlaController {
              The following are supported: ${Sort.values.mkString(",")}
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
-    protected val deprecatedNodeId = Param[Long]("deprecated_node_id", "Id of deprecated NDLA node")
     protected val language     = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
     protected val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
     protected val license      = Param[Option[String]]("license", "Return only results with provided license.")

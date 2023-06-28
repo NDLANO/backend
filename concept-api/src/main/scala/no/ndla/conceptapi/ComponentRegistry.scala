@@ -29,7 +29,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
     extends BaseComponentRegistry[ConceptApiProperties]
     with DraftConceptController
     with PublishedConceptController
-    with DraftNdlaController
     with Clock
     with User
     with WriteService

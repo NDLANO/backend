@@ -29,4 +29,5 @@ case class DraftConceptSearchParams(
   @(ApiModelProperty @field)(description = "Embed resource type that should exist in the concepts.") embedResource: Option[String],
   @(ApiModelProperty @field)(description = "Embed id attribute that should exist in the concepts.") embedId: Option[String],
   @(ApiModelProperty @field)(description = "A comma-separated list of NDLA IDs to filter the search by.") responsibleIds: List[String],
+  @(ApiModelProperty @field)(description = "The type of concepts to return.") conceptType: Option[String],
 )

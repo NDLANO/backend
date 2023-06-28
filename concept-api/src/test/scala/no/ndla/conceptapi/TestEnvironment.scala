@@ -9,33 +9,20 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.Clock
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.controller.{
-  DraftConceptController,
-  DraftNdlaController,
-  NdlaController,
-  PublishedConceptController
-}
+import no.ndla.conceptapi.controller.{DraftConceptController, NdlaController, PublishedConceptController}
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service.search.{
-  DraftConceptIndexService,
-  DraftConceptSearchService,
-  IndexService,
-  PublishedConceptIndexService,
-  PublishedConceptSearchService,
-  SearchConverterService,
-  SearchService
-}
-import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService, StateTransitionRules, WriteService}
+import no.ndla.conceptapi.service.search._
+import no.ndla.conceptapi.service._
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import no.ndla.common.Clock
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -47,7 +34,6 @@ trait TestEnvironment
     with DBConcept
     with PublishedConceptController
     with NdlaController
-    with DraftNdlaController
     with SearchConverterService
     with PublishedConceptSearchService
     with PublishedConceptIndexService
