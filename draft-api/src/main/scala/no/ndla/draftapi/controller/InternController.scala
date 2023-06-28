@@ -188,7 +188,7 @@ trait InternController {
     }
 
     delete("/article/:id/") {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val id = long("id")
         deleteArticleWithRetries(id).flatMap(id => writeService.deleteArticle(id.id)) match {
           case Success(a)  => a

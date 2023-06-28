@@ -130,7 +130,7 @@ trait AgreementController {
           .responseMessages(response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         scrollSearchOr {
           val query        = paramOrNone(this.query.paramName)
           val sort         = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
@@ -159,7 +159,7 @@ trait AgreementController {
           .responseMessages(response404, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val agreementId = long(this.agreementId.paramName)
 
         readService.agreementWithId(agreementId) match {
@@ -183,7 +183,7 @@ trait AgreementController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val newAgreement = tryExtract[NewAgreement](request.body)
 
         newAgreement.flatMap(writeService.newAgreement(_, userInfo)) match {
@@ -210,7 +210,7 @@ trait AgreementController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val agreementId      = long(this.agreementId.paramName)
         val updatedAgreement = tryExtract[UpdatedAgreement](request.body)
         updatedAgreement.flatMap(writeService.updateAgreement(agreementId, _, userInfo)) match {

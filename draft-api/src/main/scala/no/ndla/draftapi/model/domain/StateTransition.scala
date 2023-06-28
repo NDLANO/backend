@@ -18,24 +18,24 @@ case class StateTransition(
     otherStatesToKeepOnTransition: Set[DraftStatus],
     sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
-    requiredRoles: Set[Permission],
+    requiredPermissions: Set[Permission],
     illegalStatuses: Set[DraftStatus],
-    private val ignoreRolesIf: Option[(Set[Permission], IgnoreFunction)]
+    private val ignorePermissionsIf: Option[(Set[Permission], IgnoreFunction)]
 ) {
 
   def keepCurrentOnTransition: StateTransition                = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[DraftStatus]): StateTransition   = copy(otherStatesToKeepOnTransition = toKeep)
   def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
 
-  def require(roles: Set[Permission], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
-    copy(requiredRoles = roles, ignoreRolesIf = ignoreRoleRequirementIf.map(requiredRoles -> _))
+  def require(permissions: Set[Permission], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
+    copy(requiredPermissions = permissions, ignorePermissionsIf = ignoreRoleRequirementIf.map(requiredPermissions -> _))
 
   def hasRequiredRoles(user: TokenUser, article: Option[Draft]): Boolean = {
-    val ignore = ignoreRolesIf match {
+    val ignore = ignorePermissionsIf match {
       case Some((oldRoles, ignoreFunc)) => ignoreFunc(article, this) && user.hasPermissions(oldRoles)
       case None                         => false
     }
-    ignore || user.hasPermissions(this.requiredRoles)
+    ignore || user.hasPermissions(this.requiredPermissions)
   }
 
   def withIllegalStatuses(illegalStatuses: Set[DraftStatus]): StateTransition =

@@ -36,7 +36,7 @@ trait RuleController {
           .responseMessages(response403, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         ValidationRules.htmlRulesJson
       }
     }: Unit
@@ -52,7 +52,7 @@ trait RuleController {
           .responseMessages(response403, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         ValidationRules.embedTagRulesJson
       }
     }: Unit
@@ -68,7 +68,7 @@ trait RuleController {
           .responseMessages(response403, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         ValidationRules.mathMLRulesJson
       }
     }: Unit

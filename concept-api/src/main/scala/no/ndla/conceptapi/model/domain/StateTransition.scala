@@ -17,14 +17,14 @@ case class StateTransition(
     otherStatesToKeepOnTransition: Set[ConceptStatus.Value],
     sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
-    requiredRoles: Set[Permission],
+    requiredPermissions: Set[Permission],
     illegalStatuses: Set[ConceptStatus.Value]
 ) {
 
   def keepCurrentOnTransition: StateTransition                      = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[ConceptStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
   def withSideEffect(sideEffect: SideEffect): StateTransition       = copy(sideEffects = sideEffects :+ sideEffect)
-  def require(roles: Set[Permission]): StateTransition              = copy(requiredRoles = roles)
+  def require(permissions: Set[Permission]): StateTransition        = copy(requiredPermissions = permissions)
 
   def illegalStatuses(illegalStatuses: Set[ConceptStatus.Value]): StateTransition =
     copy(illegalStatuses = illegalStatuses)

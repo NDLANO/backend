@@ -110,7 +110,7 @@ trait StateTransitionRules {
     ): Option[StateTransition] =
       StateTransitions
         .find(transition => transition.from == from && transition.to == to)
-        .filter(t => user.hasPermissions(t.requiredRoles))
+        .filter(t => user.hasPermissions(t.requiredPermissions))
 
     private def validateTransition(current: domain.Concept, transition: StateTransition): Try[Unit] = {
       val statusRequiresResponsible = ConceptStatus.thatRequiresResponsible.contains(transition.to)

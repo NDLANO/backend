@@ -54,7 +54,7 @@ trait FileController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         fileParams.get(file.paramName) match {
           case Some(fileToUpload) =>
             writeService.storeFile(fileToUpload) match {
@@ -82,7 +82,7 @@ trait FileController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         paramOrNone(this.filePath.paramName) match {
           case Some(filePath) =>
             writeService.deleteFile(filePath) match {

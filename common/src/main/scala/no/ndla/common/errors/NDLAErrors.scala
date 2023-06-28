@@ -4,9 +4,9 @@ case class AccessDeniedException(message: String, unauthorized: Boolean = false)
 
 object AccessDeniedException {
   def unauthorized: AccessDeniedException =
-    AccessDeniedException("User is missing required role(s) to perform this operation", unauthorized = true)
+    AccessDeniedException("User is missing required permission(s) to perform this operation", unauthorized = true)
   def forbidden: AccessDeniedException =
-    AccessDeniedException("User is missing required role(s) to perform this operation")
+    AccessDeniedException("User is missing required permission(s) to perform this operation")
 }
 case class NotFoundException(message: String) extends RuntimeException(message)
 case class RollbackException(ex: Throwable)   extends RuntimeException

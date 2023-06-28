@@ -634,7 +634,7 @@ trait SearchController {
           .responseMessages(response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         scrollWithOr(multiDraftSearchService) {
           multiDraftSearchService.matchingQuery(getDraftSearchSettingsFromRequest) match {
             case Success(searchResult) =>

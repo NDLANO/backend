@@ -122,7 +122,7 @@ trait DraftController {
           .authorizations("oauth2")
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val query = paramOrDefault(this.query.paramName, "")
         val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => DefaultPageSize
@@ -209,7 +209,7 @@ trait DraftController {
           .authorizations("oauth2")
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val query = paramOrDefault(this.query.paramName, "")
         val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => DefaultPageSize
@@ -247,7 +247,7 @@ trait DraftController {
           .responseMessages(response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
         val scrollId = paramOrNone(this.scrollId.paramName)
 
@@ -296,7 +296,7 @@ trait DraftController {
           .responseMessages(response400, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         tryExtract[ArticleSearchParams](request.body) match {
           case Success(searchParams) =>
             val language = searchParams.language.getOrElse(Language.AllLanguages)
@@ -354,7 +354,7 @@ trait DraftController {
       val article        = readService.withId(articleId, language, fallback)
       val currentOption  = article.map(_.status.current).toOption
       val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
-      doOrAccessDenied(DRAFT_API_WRITE, isPublicStatus) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE, isPublicStatus) {
         article match {
           case Success(a)  => a
           case Failure(ex) => errorHandler(ex)
@@ -389,7 +389,7 @@ trait DraftController {
         case tooSmall if tooSmall < 1 => 1
         case x                        => x
       }
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         readService.getArticlesByIds(idList, language, fallback, page.toLong, pageSize.toLong)
       }
     }: Unit
@@ -416,7 +416,7 @@ trait DraftController {
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         readService.getArticles(articleId, language, fallback)
       }
     }: Unit
@@ -435,7 +435,7 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val externalId = long(this.deprecatedNodeId.paramName)
         readService.getInternalArticleIdByExternalId(externalId) match {
           case Some(id) => id
@@ -489,7 +489,7 @@ trait DraftController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val externalId         = paramAsListOfString("externalId")
         val oldNdlaCreatedDate = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
         val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
@@ -520,7 +520,7 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val externalId                         = paramAsListOfString("externalId")
         val externalSubjectIds                 = paramAsListOfString("externalSubjectIds")
         val oldNdlaCreateddDate                = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
@@ -561,7 +561,7 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val id         = long(this.articleId.paramName)
         val isImported = booleanOrDefault("import_publish", default = false)
         DraftStatus
@@ -589,7 +589,7 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
         val importValidate = booleanOrDefault("import_validate", default = false)
         val updateArticle  = tryExtract[UpdatedArticle](request.body)
 
@@ -623,7 +623,7 @@ trait DraftController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val id       = long(this.articleId.paramName)
         val language = params(this.language.paramName)
         writeService.deleteLanguage(id, language, userInfo)
@@ -643,7 +643,7 @@ trait DraftController {
           .responseMessages(response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
         val id = longOrNone(this.optionalArticleId.paramName)
         converterService.stateTransitionsToApi(user, id) match {
           case Success(transitions) => Ok(transitions)
@@ -674,7 +674,7 @@ trait DraftController {
       val fallback           = booleanOrDefault(this.fallback.paramName, default = false)
       val copiedTitlePostfix = booleanOrDefault(this.copiedTitleFlag.paramName, default = true)
 
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         writeService.copyArticleFromId(articleId, userInfo, language, fallback, copiedTitlePostfix) match {
           case Success(article) => article
           case Failure(ex)      => errorHandler(ex)
@@ -703,7 +703,7 @@ trait DraftController {
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         tryExtract[Seq[PartialArticleFields]](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(articleFieldsToUpdate) =>
@@ -736,7 +736,7 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
         tryExtract[PartialBulkArticles](request.body) match {
           case Failure(ex) => errorHandler(ex)
@@ -765,7 +765,7 @@ trait DraftController {
     ) {
       val nodeId = paramOrNone(this.nodeId.paramName)
 
-      doOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         nodeId match {
           case None => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No nodeid supplied"))
           case Some(publicId) =>
@@ -800,7 +800,7 @@ trait DraftController {
       val article        = readService.getArticleBySlug(slug, language, fallback)
       val currentOption  = article.map(_.status.current).toOption
       val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
-      doOrAccessDenied(DRAFT_API_WRITE, isPublicStatus) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE, isPublicStatus) {
         article match {
           case Success(a)  => a
           case Failure(ex) => errorHandler(ex)

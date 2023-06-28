@@ -149,7 +149,7 @@ trait InternController {
     }: Unit
 
     post("/import/concept") {
-      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { _ =>
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { _ =>
         val start       = System.currentTimeMillis
         val forceUpdate = booleanOrDefault("forceUpdate", default = false)
 

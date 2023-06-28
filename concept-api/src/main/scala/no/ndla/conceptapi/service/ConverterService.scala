@@ -382,7 +382,7 @@ trait ConverterService {
     def stateTransitionsToApi(user: TokenUser): Map[String, Seq[String]] = {
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to
-          .filter(t => user.hasPermissions(t.requiredRoles))
+          .filter(t => user.hasPermissions(t.requiredPermissions))
           .map(_.to.toString)
           .toSeq
       }

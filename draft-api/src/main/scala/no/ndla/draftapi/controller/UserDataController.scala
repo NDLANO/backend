@@ -37,7 +37,7 @@ trait UserDataController {
           .authorizations(" oauth2")
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         readService.getUserData(userInfo.id) match {
           case Failure(error)    => errorHandler(error)
           case Success(userData) => userData
@@ -59,7 +59,7 @@ trait UserDataController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val updatedUserData = tryExtract[UpdatedUserData](request.body)
         updatedUserData.flatMap(userData => writeService.updateUserData(userData, userInfo)) match {
           case Success(data)      => Ok(data)

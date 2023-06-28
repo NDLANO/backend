@@ -328,7 +328,7 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response413, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
+      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
         val imageMetaFromParam = params.get(this.metadata.paramName)
         val imageMetaFromFile = fileParams
           .get(this.metadata.paramName)
@@ -364,7 +364,7 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response413, response500)
       )
     ) {
-      doOrAccessDenied(IMAGE_API_WRITE) {
+      requirePermissionOrAccessDenied(IMAGE_API_WRITE) {
         val imageId = long(this.imageId.paramName)
         writeService.deleteImageAndFiles(imageId) match {
           case Failure(ex) => errorHandler(ex)
@@ -388,7 +388,7 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
+      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
         val imageId  = long(this.imageId.paramName)
         val language = params(this.language.paramName)
 
@@ -421,7 +421,7 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
+      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
         val imageId            = long(this.imageId.paramName)
         val imageMetaFromParam = params.get(this.updateMetadata.paramName)
 

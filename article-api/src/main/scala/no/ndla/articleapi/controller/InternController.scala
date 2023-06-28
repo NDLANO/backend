@@ -135,7 +135,7 @@ trait InternController {
     }: Unit
 
     post("/article/:id") {
-      doOrAccessDenied(ARTICLE_API_WRITE) {
+      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
         val externalIds         = paramAsListOfString("external-id")
         val useImportValidation = booleanOrDefault("use-import-validation", default = false)
         val useSoftValidation   = booleanOrDefault("use-soft-validation", default = false)
@@ -155,7 +155,7 @@ trait InternController {
     }: Unit
 
     delete("/article/:id/") {
-      doOrAccessDenied(ARTICLE_API_WRITE) {
+      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
         val revision = intOrNone("revision")
         writeService.deleteArticle(long("id"), revision) match {
           case Success(a)  => a
@@ -165,7 +165,7 @@ trait InternController {
     }: Unit
 
     post("/article/:id/unpublish/") {
-      doOrAccessDenied(ARTICLE_API_WRITE) {
+      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
         val revision = intOrNone("revision")
         writeService.unpublishArticle(long("id"), revision) match {
           case Success(a)  => a
@@ -175,7 +175,7 @@ trait InternController {
     }: Unit
 
     patch("/partial-publish/:article_id") {
-      doOrAccessDenied(ARTICLE_API_WRITE) {
+      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
         val articleId         = long("article_id")
         val partialUpdateBody = extract[PartialPublishArticle](request.body)
         val language          = paramOrDefault("language", Language.AllLanguages)

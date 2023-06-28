@@ -347,7 +347,7 @@ trait DraftConceptController {
       )
     ) {
       val language = paramOrNone(this.language.paramName)
-      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val id = long(this.conceptId.paramName)
         language match {
           case Some(language) => writeService.deleteLanguage(id, language, userInfo)
@@ -370,7 +370,7 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val id = long(this.conceptId.paramName)
 
         ConceptStatus
@@ -393,7 +393,7 @@ trait DraftConceptController {
           .responseMessages(response500)
       )
     ) {
-      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { user =>
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { user =>
         converterService.stateTransitionsToApi(user)
       }
     }: Unit
@@ -444,7 +444,7 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val body = tryExtract[NewConcept](request.body)
         body.flatMap(concept => writeService.newConcept(concept, userInfo)) match {
           case Success(c)  => Created(c)
@@ -468,7 +468,7 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      doOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { userInfo =>
         val body      = tryExtract[UpdatedConcept](request.body)
         val conceptId = long(this.conceptId.paramName)
         body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {

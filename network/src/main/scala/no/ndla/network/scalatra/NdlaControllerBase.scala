@@ -32,11 +32,14 @@ trait NdlaControllerBase {
   trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with StrictLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
-    def doOrAccessDenied(requiredScope: Permission, isAllowedWithoutScope: Boolean = false)(f: => Any): Any =
-      doOrAccessDeniedWithUser(requiredScope.some, isAllowedWithoutScope) { _ => f }
+    def requirePermissionOrAccessDenied(
+        requiredPermission: Permission,
+        isAllowedWithoutPermission: Boolean = false
+    )(f: => Any): Any =
+      requirePermissionOrAccessDenied(requiredPermission.some, isAllowedWithoutPermission)(_ => f)
 
-    def doOrAccessDeniedWithUser(requiredScope: Permission)(f: TokenUser => Any): Any =
-      doOrAccessDeniedWithUser(Some(requiredScope), isAllowedWithoutScope = false)(f)
+    def requirePermissionOrAccessDeniedWithUser(requiredPermission: Permission)(f: TokenUser => Any): Any =
+      requirePermissionOrAccessDenied(requiredPermission.some, isAllowedWithoutPermission = false)(f)
 
     def requireUserId(f: TokenUser => Any): Any = doIfAccessTrue(_.jwt.ndla_id.isDefined)(f)
 
@@ -47,12 +50,13 @@ trait NdlaControllerBase {
         case Failure(_)                         => errorHandler(AccessDeniedException.unauthorized)
       }
 
-    private def doOrAccessDeniedWithUser(requiredScope: Option[Permission], isAllowedWithoutScope: Boolean)(
-        f: TokenUser => Any
-    ): Any = doIfAccessTrue { user =>
-      requiredScope match {
-        case Some(reqScope) => user.hasPermission(reqScope) || isAllowedWithoutScope
-        case None           => true
+    private def requirePermissionOrAccessDenied(
+        requiredPermission: Option[Permission],
+        isAllowedWithoutPermission: Boolean
+    )(f: TokenUser => Any): Any = doIfAccessTrue { user =>
+      requiredPermission match {
+        case Some(permission) => user.hasPermission(permission) || isAllowedWithoutPermission
+        case None             => true
       }
     }(f)
 
