@@ -57,6 +57,7 @@ export interface IConceptSearchParams {
   exactTitleMatch?: boolean
   embedResource?: string
   embedId?: string
+  conceptType?: string
 }
 
 export interface IConceptSearchResult {
@@ -124,6 +125,7 @@ export interface IDraftConceptSearchParams {
   embedResource?: string
   embedId?: string
   responsibleIds: string[]
+  conceptType?: string
 }
 
 export interface IGlossData {
