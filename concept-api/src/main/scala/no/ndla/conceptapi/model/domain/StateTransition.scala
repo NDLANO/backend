@@ -7,8 +7,9 @@
 
 package no.ndla.conceptapi.model.domain
 
-import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
+import no.ndla.network.tapir.auth.Permission
+import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 
 case class StateTransition(
     from: ConceptStatus.Value,
@@ -16,14 +17,14 @@ case class StateTransition(
     otherStatesToKeepOnTransition: Set[ConceptStatus.Value],
     sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
-    requiredRoles: Set[Role.Value],
+    requiredPermissions: Set[Permission],
     illegalStatuses: Set[ConceptStatus.Value]
 ) {
 
   def keepCurrentOnTransition: StateTransition                      = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[ConceptStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
   def withSideEffect(sideEffect: SideEffect): StateTransition       = copy(sideEffects = sideEffects :+ sideEffect)
-  def require(roles: Set[Role.Value]): StateTransition              = copy(requiredRoles = roles)
+  def require(permissions: Set[Permission]): StateTransition        = copy(requiredPermissions = permissions)
 
   def illegalStatuses(illegalStatuses: Set[ConceptStatus.Value]): StateTransition =
     copy(illegalStatuses = illegalStatuses)
@@ -38,7 +39,7 @@ object StateTransition {
       Set(ConceptStatus.PUBLISHED),
       Seq.empty[SideEffect],
       addCurrentStateToOthersOnTransition = false,
-      UserInfo.WriteRoles,
+      Set(CONCEPT_API_WRITE),
       Set()
     )
   }

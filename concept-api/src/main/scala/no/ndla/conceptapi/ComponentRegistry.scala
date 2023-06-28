@@ -9,7 +9,6 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller._
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
@@ -30,7 +29,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with DraftConceptController
     with PublishedConceptController
     with Clock
-    with User
     with WriteService
     with ContentValidator
     with ReadService
@@ -96,7 +94,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val writeService     = new WriteService
   lazy val readService      = new ReadService
   lazy val converterService = new ConverterService
-  lazy val user             = new User
   lazy val clock            = new SystemClock
   lazy val contentValidator = new ContentValidator
 

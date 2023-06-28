@@ -8,13 +8,13 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ReindexClient
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.{AgreementSearchSettings, Sort}
 import no.ndla.draftapi.service.search.{AgreementSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language.AllLanguages
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 import org.scalatra.{Created, NotFound, Ok}
@@ -27,7 +27,6 @@ trait AgreementController {
     with AgreementSearchService
     with ConverterService
     with SearchConverterService
-    with User
     with ReindexClient
     with NdlaController
     with Props
@@ -131,8 +130,7 @@ trait AgreementController {
           .responseMessages(response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         scrollSearchOr {
           val query        = paramOrNone(this.query.paramName)
           val sort         = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
@@ -161,8 +159,7 @@ trait AgreementController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         val agreementId = long(this.agreementId.paramName)
 
         readService.agreementWithId(agreementId) match {
@@ -186,8 +183,7 @@ trait AgreementController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val newAgreement = tryExtract[NewAgreement](request.body)
 
         newAgreement.flatMap(writeService.newAgreement(_, userInfo)) match {
@@ -214,9 +210,7 @@ trait AgreementController {
           .responseMessages(response400, response403, response404, response500)
       )
     ) {
-      val userInfo = user.getUser
-
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val agreementId      = long(this.agreementId.paramName)
         val updatedAgreement = tryExtract[UpdatedAgreement](request.body)
         updatedAgreement.flatMap(writeService.updateAgreement(agreementId, _, userInfo)) match {

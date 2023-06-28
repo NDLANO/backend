@@ -9,11 +9,12 @@ package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.{domain => common}
-import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.domain.WordClass
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
+import no.ndla.network.tapir.auth.TokenUser
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success}
@@ -21,7 +22,7 @@ import scala.util.{Failure, Success}
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val converterService = new ConverterService
-  val userInfo: UserInfo        = UserInfo.SystemUser.copy(id = "")
+  val userInfo: TokenUser       = TokenUser("", Set(CONCEPT_API_WRITE, CONCEPT_API_ADMIN))
 
   test("toApiConcept converts a domain.Concept to an api.Concept with defined language") {
     converterService.toApiConcept(TestData.domainConcept, "nn", fallback = false) should be(
@@ -385,7 +386,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("test"),
       updated = updated
     )
-    val updateWith = UserInfo.SystemUser.copy(id = "test")
+    val updateWith = TokenUser.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiUpdatedConcept
 
     converterService.toDomainConcept(beforeUpdate, dummy, updateWith).get should be(afterUpdate)
@@ -403,7 +404,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("test1", "test2"),
       updated = updated
     )
-    val updateWith = UserInfo.SystemUser.copy(id = "test1")
+    val updateWith = TokenUser.SystemUser.copy(id = "test1")
     val dummy      = TestData.emptyApiUpdatedConcept
 
     converterService.toDomainConcept(beforeUpdate, dummy, updateWith).get should be(afterUpdate)
@@ -419,7 +420,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today
     )
-    val updateWith = UserInfo.SystemUser.copy(id = "test")
+    val updateWith = TokenUser.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiUpdatedConcept
 
     converterService.toDomainConcept(12, dummy, updateWith) should be(afterUpdate)
@@ -435,7 +436,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today
     )
-    val updateWith = UserInfo.SystemUser.copy(id = "test")
+    val updateWith = TokenUser.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiNewConcept
 
     converterService.toDomainConcept(dummy, updateWith) should be(Success(afterUpdate))

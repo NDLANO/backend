@@ -19,13 +19,13 @@ import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.{RelatedContentLink, api => commonApi, domain => common}
 import no.ndla.common.{Clock, DateParser, UUIDUtil}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{NewAgreement, NewComment, NotFoundException, UpdatedComment}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
@@ -52,7 +52,7 @@ trait ConverterService {
         newArticleId: Long,
         newArticle: api.NewArticle,
         externalIds: List[String],
-        user: UserInfo,
+        user: TokenUser,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
     ): Try[Draft] = {
@@ -210,7 +210,7 @@ trait ConverterService {
 
     private[service] def newNotes(
         notes: Seq[String],
-        user: UserInfo,
+        user: TokenUser,
         status: common.Status
     ): Try[Seq[common.EditorNote]] = {
       notes match {
@@ -228,7 +228,7 @@ trait ConverterService {
 
     }
 
-    def toDomainAgreement(newAgreement: NewAgreement, user: UserInfo): domain.Agreement = {
+    def toDomainAgreement(newAgreement: NewAgreement, user: TokenUser): domain.Agreement = {
       domain.Agreement(
         id = None,
         title = newAgreement.title,
@@ -363,7 +363,7 @@ trait ConverterService {
     def updateStatus(
         status: DraftStatus,
         draft: Draft,
-        user: UserInfo,
+        user: TokenUser,
         isImported: Boolean
     ): IO[Try[Draft]] = StateTransitionRules.doTransition(draft, status, user, isImported)
 
@@ -546,7 +546,7 @@ trait ConverterService {
     def deleteLanguage(
         article: Draft,
         language: String,
-        userInfo: UserInfo
+        userInfo: TokenUser
     ): Try[Draft] = {
       val title               = article.title.filter(_.language != language)
       val content             = article.content.filter(_.language != language)
@@ -665,7 +665,7 @@ trait ConverterService {
 
     private def getNewEditorialNotes(
         isNewLanguage: Boolean,
-        user: UserInfo,
+        user: TokenUser,
         article: api.UpdatedArticle,
         toMergeInto: Draft
     ): Try[Seq[common.EditorNote]] = {
@@ -693,7 +693,7 @@ trait ConverterService {
         toMergeInto: Draft,
         article: api.UpdatedArticle,
         isImported: Boolean,
-        user: UserInfo,
+        user: TokenUser,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
     ): Try[Draft] = {
@@ -802,7 +802,7 @@ trait ConverterService {
         id: Long,
         article: api.UpdatedArticle,
         isImported: Boolean,
-        user: UserInfo,
+        user: TokenUser,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
     ): Try[Draft] = article.language match {
@@ -878,7 +878,7 @@ trait ConverterService {
     }
 
     private[service] def _stateTransitionsToApi(
-        user: UserInfo,
+        user: TokenUser,
         article: Option[Draft]
     ): Map[String, Seq[String]] = {
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
@@ -889,7 +889,7 @@ trait ConverterService {
       }
     }
 
-    def stateTransitionsToApi(user: UserInfo, articleId: Option[Long]): Try[Map[String, Seq[String]]] =
+    def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, Seq[String]]] =
       articleId match {
         case Some(id) =>
           draftRepository.withId(id)(ReadOnlyAutoSession) match {
@@ -903,7 +903,7 @@ trait ConverterService {
       api.GrepCodesSearchResult(result.totalCount, result.page.getOrElse(1), result.pageSize, result.results)
     }
 
-    def addNote(article: Draft, noteText: String, user: UserInfo): Draft = {
+    def addNote(article: Draft, noteText: String, user: TokenUser): Draft = {
       article.copy(
         notes = article.notes :+ common.EditorNote(noteText, user.id, article.status, clock.now())
       )

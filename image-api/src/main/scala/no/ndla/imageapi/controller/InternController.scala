@@ -9,13 +9,13 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.imageapi.service.{ConverterService, ReadService}
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.Swagger
 import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
@@ -31,7 +31,6 @@ trait InternController {
     with ConverterService
     with ImageIndexService
     with TagIndexService
-    with User
     with ImageRepository
     with DBImageMetaInformation
     with NdlaController
@@ -92,9 +91,11 @@ trait InternController {
     get("/extern/:image_id") {
       val externalId = params("image_id")
       val language   = paramOrNone("language")
+      val user       = TokenUser.fromScalatraRequest(request).toOption
+
       imageRepository.withExternalId(externalId) match {
         case Some(image) =>
-          converterService.asApiImageMetaInformationWithDomainUrlV2(image, language) match {
+          converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user) match {
             case Failure(ex)        => errorHandler(ex)
             case Success(converted) => Ok(converted)
           }

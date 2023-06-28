@@ -14,7 +14,6 @@ import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport, ValidationError}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.service.ConverterService
-import no.ndla.network.AuthUser
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -88,15 +87,6 @@ trait NdlaController {
         InternalServerError(body = Error(GENERIC, GENERIC_DESCRIPTION))
     }
 
-    def requireUserId(implicit request: HttpServletRequest): String = {
-      AuthUser.get match {
-        case Some(user) => user
-        case None =>
-          logger.warn(s"Request made to ${request.getRequestURI} without authorization")
-          throw AccessDeniedException("You do not have access to the requested resource.")
-      }
-    }
-
     def uuidParam(paramName: String)(implicit request: HttpServletRequest): Try[UUID] = {
       val maybeParam = paramOrNone(paramName)(request)
       converterService.toUUIDValidated(maybeParam, paramName)
@@ -114,14 +104,6 @@ trait NdlaController {
       maybeParam match {
         case None               => Failure(InvalidStatusException("Parameter 'folder-status' is required"))
         case Some(folderStatus) => FolderStatus.valueOfOrError(folderStatus)
-      }
-    }
-
-    def doOrAccessDenied(hasAccess: Boolean, reason: String = "Missing user/client-id or role")(w: => Any): Any = {
-      if (hasAccess) {
-        w
-      } else {
-        errorHandler(AccessDeniedException(reason))
       }
     }
   }

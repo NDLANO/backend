@@ -13,7 +13,6 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
 import no.ndla.draftapi.integration._
@@ -70,7 +69,6 @@ class ComponentRegistry(properties: DraftApiProperties)
     with ContentValidator
     with Clock
     with UUIDUtil
-    with User
     with ArticleApiClient
     with SearchApiClient
     with ConceptApiClient
@@ -141,5 +139,4 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val learningpathApiClient = new LearningpathApiClient
   lazy val conceptApiClient      = new ConceptApiClient
   lazy val h5pApiClient          = new H5PApiClient
-  lazy val user                  = new User
 }

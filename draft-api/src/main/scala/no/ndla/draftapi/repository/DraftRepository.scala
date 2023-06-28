@@ -12,10 +12,10 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.RollbackException
 import no.ndla.common.model.domain.EditorNote
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, GenerateIDException, NotFoundException}
 import no.ndla.draftapi.model.domain._
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
@@ -94,7 +94,7 @@ trait DraftRepository {
       article.copy(revision = Some(startRevision))
     }
 
-    def storeArticleAsNewVersion(article: Draft, user: Option[UserInfo], keepDraftData: Boolean = false)(implicit
+    def storeArticleAsNewVersion(article: Draft, user: Option[TokenUser], keepDraftData: Boolean = false)(implicit
         session: DBSession
     ): Try[Draft] = {
       article.id match {

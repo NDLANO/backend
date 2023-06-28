@@ -7,17 +7,17 @@
 
 package no.ndla.conceptapi.controller
 
-import java.util.concurrent.Executors
-import no.ndla.conceptapi.auth.{User, UserInfo}
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
+import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import org.json4s.Formats
 import org.scalatra.swagger.Swagger
-import org.scalatra.{InternalServerError, Ok, Unauthorized}
+import org.scalatra.{InternalServerError, Ok}
 
+import java.util.concurrent.Executors
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.language.postfixOps
@@ -30,7 +30,6 @@ trait InternController {
     with ImportService
     with ConverterService
     with ReadService
-    with User
     with DraftConceptRepository
     with PublishedConceptRepository
     with NdlaController
@@ -150,27 +149,24 @@ trait InternController {
     }: Unit
 
     post("/import/concept") {
-      UserInfo.get match {
-        case Some(user) if user.canWrite =>
-          val start       = System.currentTimeMillis
-          val forceUpdate = booleanOrDefault("forceUpdate", default = false)
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { _ =>
+        val start       = System.currentTimeMillis
+        val forceUpdate = booleanOrDefault("forceUpdate", default = false)
 
-          importService.importConcepts(forceUpdate) match {
-            case Success(result) =>
-              if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
-                InternalServerError(result)
-              } else {
-                Ok(result)
-              }
-            case Failure(ex) =>
-              val errMsg =
-                s"Import of concepts failed after ${System.currentTimeMillis - start} ms with error: ${ex.getMessage}\n"
-              logger.warn(errMsg, ex)
-              InternalServerError(body = errMsg)
-          }
-        case _ => Unauthorized("You do not have access to perform this action")
+        importService.importConcepts(forceUpdate) match {
+          case Success(result) =>
+            if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
+              InternalServerError(result)
+            } else {
+              Ok(result)
+            }
+          case Failure(ex) =>
+            val errMsg =
+              s"Import of concepts failed after ${System.currentTimeMillis - start} ms with error: ${ex.getMessage}\n"
+            logger.warn(errMsg, ex)
+            InternalServerError(body = errMsg)
+        }
       }
-
     }: Unit
 
   }

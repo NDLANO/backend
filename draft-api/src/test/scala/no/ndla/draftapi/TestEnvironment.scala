@@ -11,7 +11,6 @@ import com.amazonaws.services.s3.AmazonS3
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.{Clock, UUIDUtil}
-import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
 import no.ndla.draftapi.integration._
@@ -67,7 +66,6 @@ trait TestEnvironment
     with AmazonClient
     with Clock
     with UUIDUtil
-    with User
     with ArticleApiClient
     with SearchApiClient
     with DBArticle
@@ -128,5 +126,4 @@ trait TestEnvironment
   val taxonomyApiClient = mock[TaxonomyApiClient]
   val conceptApiClient  = mock[ConceptApiClient]
   val h5pApiClient      = mock[H5PApiClient]
-  val user              = mock[User]
 }

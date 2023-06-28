@@ -14,8 +14,6 @@ import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{domain => common}
-import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles}
 import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
@@ -24,6 +22,7 @@ import no.ndla.draftapi.service.SideEffect.SideEffect
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.model.RequestInfo
+import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import scalikejdbc.ReadOnlyAutoSession
 
 import scala.collection.mutable
@@ -59,7 +58,7 @@ trait StateTransitionRules {
       Success(article.copy(responsible = None))
     }
 
-    private val addResponsible: SideEffect = (article: Draft, _: Boolean, user: UserInfo) => {
+    private val addResponsible: SideEffect = (article: Draft, _: Boolean, user: TokenUser) => {
       val responsible = article.responsible.getOrElse(Responsible(user.id, clock.now()))
       Success(article.copy(responsible = Some(responsible)))
     }
@@ -76,7 +75,7 @@ trait StateTransitionRules {
         }
       }
 
-    private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean, _: UserInfo) => {
+    private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean, _: TokenUser) => {
       val validatedArticle = converterService.toArticleApiArticle(draft) match {
         case Failure(ex)      => Failure(ex)
         case Success(article) => articleApiClient.validateArticle(article, isImported)
@@ -126,6 +125,9 @@ trait StateTransitionRules {
     })
 
     import StateTransition._
+
+    private val PublishRoles: Set[Permission]       = Set(Permission.DRAFT_API_WRITE, Permission.DRAFT_API_PUBLISH)
+    private val DirectPublishRoles: Set[Permission] = PublishRoles + Permission.DRAFT_API_ADMIN
 
     // format: off
     val StateTransitions: mutable.LinkedHashSet[StateTransition] = mutable.LinkedHashSet(
@@ -193,7 +195,7 @@ trait StateTransitionRules {
     private def getTransition(
         from: DraftStatus,
         to: DraftStatus,
-        user: UserInfo,
+        user: TokenUser,
         current: Draft
     ): Option[StateTransition] = {
       StateTransitions
@@ -228,7 +230,7 @@ trait StateTransitionRules {
         current: Draft,
         to: DraftStatus,
         newStatus: common.Status,
-        user: UserInfo,
+        user: TokenUser,
         isImported: Boolean
     ) = {
       if (current.status.current != to)
@@ -244,7 +246,7 @@ trait StateTransitionRules {
     private[service] def doTransitionWithoutSideEffect(
         current: Draft,
         to: DraftStatus,
-        user: UserInfo,
+        user: TokenUser,
         isImported: Boolean
     ): (Try[Draft], Seq[SideEffect]) = {
       getTransition(current.status.current, to, user, current) match {
@@ -271,7 +273,7 @@ trait StateTransitionRules {
     def doTransition(
         current: Draft,
         to: DraftStatus,
-        user: UserInfo,
+        user: TokenUser,
         isImported: Boolean
     ): IO[Try[Draft]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)

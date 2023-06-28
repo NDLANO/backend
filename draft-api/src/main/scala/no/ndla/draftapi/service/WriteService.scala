@@ -21,7 +21,6 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.{api, domain}
@@ -36,6 +35,7 @@ import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
 import no.ndla.network.model.RequestInfo
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem
@@ -99,7 +99,7 @@ trait WriteService {
 
     def copyArticleFromId(
         articleId: Long,
-        userInfo: UserInfo,
+        userInfo: TokenUser,
         language: String,
         fallback: Boolean,
         usePostFix: Boolean
@@ -174,7 +174,7 @@ trait WriteService {
     def updateAgreement(
         agreementId: Long,
         updatedAgreement: api.UpdatedAgreement,
-        user: UserInfo
+        user: TokenUser
     ): Try[api.Agreement] = {
       agreementRepository.withId(agreementId) match {
         case None => Failure(api.NotFoundException(s"Agreement with id $agreementId does not exist"))
@@ -200,7 +200,7 @@ trait WriteService {
       }
     }
 
-    def newAgreement(newAgreement: api.NewAgreement, user: UserInfo): Try[api.Agreement] = {
+    def newAgreement(newAgreement: api.NewAgreement, user: TokenUser): Try[api.Agreement] = {
       val apiErrors = contentValidator.validateDates(newAgreement.copyright)
 
       val domainAgreement = converterService.toDomainAgreement(newAgreement, user)
@@ -217,7 +217,7 @@ trait WriteService {
         newArticle: api.NewArticle,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
-        user: UserInfo,
+        user: TokenUser,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
@@ -257,7 +257,7 @@ trait WriteService {
     def updateArticleStatus(
         status: DraftStatus,
         id: Long,
-        user: UserInfo,
+        user: TokenUser,
         isImported: Boolean
     ): Try[api.Article] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
@@ -321,7 +321,7 @@ trait WriteService {
         isImported: Boolean,
         importId: Option[String],
         createNewVersion: Boolean,
-        user: UserInfo,
+        user: TokenUser,
         statusWasUpdated: Boolean
     ): Try[Draft] =
       if (createNewVersion) {
@@ -341,7 +341,7 @@ trait WriteService {
       }
 
     def addRevisionDateNotes(
-        user: UserInfo,
+        user: TokenUser,
         updatedArticle: Draft,
         oldArticle: Option[Draft]
     ): Draft = {
@@ -410,7 +410,7 @@ trait WriteService {
 
     private def addPartialPublishNote(
         draft: Draft,
-        user: UserInfo,
+        user: TokenUser,
         partialPublishFields: Set[PartialArticleFields]
     ): Draft =
       if (partialPublishFields.nonEmpty)
@@ -426,7 +426,7 @@ trait WriteService {
         isImported: Boolean,
         createNewVersion: Boolean,
         oldArticle: Option[Draft],
-        user: UserInfo,
+        user: TokenUser,
         statusWasUpdated: Boolean,
         updatedApiArticle: api.UpdatedArticle
     ): Try[Draft] = {
@@ -552,7 +552,7 @@ trait WriteService {
         convertedArticle: Draft,
         existingArticle: Draft,
         updatedApiArticle: api.UpdatedArticle,
-        user: UserInfo
+        user: TokenUser
     ): Try[Draft] = {
       val newManualStatus           = updatedApiArticle.status.traverse(DraftStatus.valueOfOrError).?
       val shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existingArticle)
@@ -576,7 +576,7 @@ trait WriteService {
         updatedApiArticle: api.UpdatedArticle,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
-        user: UserInfo,
+        user: TokenUser,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
@@ -603,7 +603,7 @@ trait WriteService {
         updatedApiArticle: api.UpdatedArticle,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
-        user: UserInfo,
+        user: TokenUser,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
@@ -638,7 +638,7 @@ trait WriteService {
       )
     } yield apiArticle
 
-    def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Article] = {
+    def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.Article] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case Some(article) =>
           article.title.size match {
@@ -737,7 +737,7 @@ trait WriteService {
         .map(converterService.toApiUserData)
     }
 
-    def updateUserData(updatedUserData: api.UpdatedUserData, user: UserInfo): Try[api.UserData] = {
+    def updateUserData(updatedUserData: api.UpdatedUserData, user: TokenUser): Try[api.UserData] = {
       val userId = user.id
       userDataRepository.withUserId(userId) match {
         case None =>

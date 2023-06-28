@@ -25,13 +25,9 @@ class AgreementControllerTest extends UnitSuite with TestEnvironment with Scalat
 
   val agreementId = 1L
 
-  override def beforeEach(): Unit = {
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
-  }
-
   test("/<agreement_id> should return 200 if the agreement was found") {
     when(readService.agreementWithId(1)).thenReturn(Some(TestData.sampleApiAgreement))
-    get(s"/test/$agreementId") {
+    get(s"/test/$agreementId", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
@@ -39,13 +35,13 @@ class AgreementControllerTest extends UnitSuite with TestEnvironment with Scalat
   test("/<agreement_id> should return 404 if the article was not found") {
     when(readService.agreementWithId(agreementId)).thenReturn(None)
 
-    get(s"/test/$agreementId") {
+    get(s"/test/$agreementId", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(404)
     }
   }
 
   test("/<agreement_id> should return 400 if the request was bad") {
-    get(s"/test/one") {
+    get(s"/test/one", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(400)
     }
   }
@@ -64,7 +60,7 @@ class AgreementControllerTest extends UnitSuite with TestEnvironment with Scalat
     when(agreementSearchService.matchingQuery(any[AgreementSearchSettings]))
       .thenReturn(Success(searchResponse))
 
-    get(s"/test/") {
+    get(s"/test/", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should be(200)
       body.contains(scrollId) should be(false)
       header("search-context") should be(scrollId)
@@ -86,7 +82,7 @@ class AgreementControllerTest extends UnitSuite with TestEnvironment with Scalat
 
     when(agreementSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    get(s"/test?search-context=$scrollId") {
+    get(s"/test?search-context=$scrollId", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should be(200)
     }
 

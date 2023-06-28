@@ -9,7 +9,6 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.common.model.domain.Availability
-import no.ndla.searchapi.auth.{Role, UserInfo}
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -27,6 +26,14 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   lazy val controller = new SearchController
   addServlet(controller, "/test")
+
+  val authTokenWithNoRole =
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6W10sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.vw9YhRtgUQr_vuDhLNHfBsZz-4XLhCc1Kwxi0w0_qGI"
+  val authTokenWithWriteRole =
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
+
+  val authHeadersWithWriteRole: Map[String, String] = Map("Authorization" -> s"Bearer $authTokenWithWriteRole")
+  val authHeadersWithNoRole: Map[String, String]    = Map("Authorization" -> s"Bearer $authTokenWithNoRole")
 
   test("That /draft/ returns 200 ok") {
     when(searchService.search(any[SearchParams], any[Set[SearchApiClient]])).thenReturn(Seq.empty)
@@ -77,8 +84,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val multiResult = domain.SearchResult(0, None, 10, "nb", Seq.empty, Seq.empty, Seq.empty, Some(validScrollId))
 
     when(multiDraftSearchService.matchingQuery(any[MultiDraftSearchSettings])).thenReturn(Success(multiResult))
-    when(user.getUser).thenReturn(UserInfo("SomeId", Set(Role.DRAFTWRITE)))
-    get(s"/test/editorial/") {
+    get(s"/test/editorial/", headers = authHeadersWithWriteRole) {
       status should equal(200)
       response.headers("search-context").head should be(validScrollId)
     }
@@ -114,8 +120,10 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, Some(newValidScrollId))
 
     when(multiDraftSearchService.scroll(eqTo(validScrollId), eqTo("nn"))).thenReturn(Success(multiResult))
-    when(user.getUser).thenReturn(UserInfo("SomeId", Set(Role.DRAFTWRITE)))
-    get(s"/test/editorial/?search-context=$validScrollId&language=nn&fallback=true") {
+    get(
+      s"/test/editorial/?search-context=$validScrollId&language=nn&fallback=true",
+      headers = authHeadersWithWriteRole
+    ) {
       status should equal(200)
       response.headers("search-context").head should be(newValidScrollId)
     }
@@ -124,8 +132,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("That /editorial/ returns access denied if user does not have drafts:write role") {
-    when(user.getUser).thenReturn(UserInfo("SomeId", Set()))
-    get(s"/test/editorial/") {
+    get(s"/test/editorial/", headers = authHeadersWithNoRole) {
       status should equal(403)
     }
   }
@@ -138,8 +145,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, Some(newValidScrollId))
     when(multiDraftSearchService.matchingQuery(any[MultiDraftSearchSettings])).thenReturn(Success(multiResult))
 
-    when(user.getUser).thenReturn(UserInfo("SomeId", Set(Role.DRAFTWRITE)))
-    get(s"/test/editorial/?search-context=initial&language=nn&fallback=true") {
+    get(s"/test/editorial/?search-context=initial&language=nn&fallback=true", headers = authHeadersWithWriteRole) {
       status should equal(200)
       response.headers("search-context").head should be(newValidScrollId)
     }
@@ -168,8 +174,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, Some(newValidScrollId))
     when(multiSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(multiResult))
 
-    when(user.getUser).thenReturn(UserInfo("SomeId", Set(Role.DRAFTWRITE)))
-    get(s"/test/?search-context=initial&language=nn&fallback=true") {
+    get(s"/test/?search-context=initial&language=nn&fallback=true", headers = authHeadersWithWriteRole) {
       status should equal(200)
       response.headers("search-context").head should be(newValidScrollId)
     }

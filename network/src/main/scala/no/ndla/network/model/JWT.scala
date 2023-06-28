@@ -27,6 +27,22 @@ case class JWTClaims(
 object JWTClaims {
   implicit val formats: DefaultFormats = org.json4s.DefaultFormats
 
+  def empty(): JWTClaims = {
+    new JWTClaims(
+      iss = None,
+      sub = None,
+      aud = None,
+      azp = None,
+      exp = None,
+      iat = None,
+      scope = List.empty,
+      ndla_id = None,
+      user_name = None,
+      jti = None
+    )
+
+  }
+
   case class ClaimsJSON(
       azp: Option[String],
       scope: Option[String],

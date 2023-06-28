@@ -8,21 +8,18 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.{ValidationError, Error}
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaRestricted, UpdateConfigValue}
-import no.ndla.learningpathapi.model.domain.UserInfo
+import no.ndla.learningpathapi.model.api.{Error, ValidationError}
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.network.scalatra.NdlaSwaggerSupport
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.ResponseMessage
-
-import scala.util.{Failure, Success}
 import org.json4s.ext.JavaTimeSerializers
-import org.scalatra.swagger.Swagger
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.BadRequest
+import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import javax.servlet.http.HttpServletRequest
+import scala.util.{Failure, Success}
 
 trait ConfigController {
 
@@ -93,14 +90,15 @@ trait ConfigController {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
-      withConfigKey(configKey => {
-        val newConfigValue = extract[UpdateConfigValue](request.body)
-        updateService.updateConfig(configKey, newConfigValue, userInfo) match {
-          case Success(c)  => c
-          case Failure(ex) => errorHandler(ex)
-        }
-      })
+      requireUserId { userInfo =>
+        withConfigKey(configKey => {
+          val newConfigValue = extract[UpdateConfigValue](request.body)
+          updateService.updateConfig(configKey, newConfigValue, userInfo) match {
+            case Success(c)  => c
+            case Failure(ex) => errorHandler(ex)
+          }
+        })
+      }
     }: Unit
 
   }

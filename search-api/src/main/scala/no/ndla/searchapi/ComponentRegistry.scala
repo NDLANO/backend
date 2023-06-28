@@ -14,7 +14,6 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import no.ndla.searchapi.auth.User
 import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ErrorHelpers
@@ -51,7 +50,6 @@ class ComponentRegistry(properties: SearchApiProperties)
     with FeideApiClient
     with RedisClient
     with InternController
-    with User
     with SearchApiClient
     with GrepApiClient
     with Props
@@ -96,6 +94,4 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val learningPathIndexService = new LearningPathIndexService
   lazy val draftIndexService        = new DraftIndexService
   lazy val multiDraftSearchService  = new MultiDraftSearchService
-
-  lazy val user = new User
 }

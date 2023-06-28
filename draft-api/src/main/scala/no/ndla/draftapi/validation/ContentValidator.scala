@@ -22,7 +22,6 @@ import no.ndla.common.model.domain.{
 }
 import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NewAgreementCopyright, NotFoundException, UpdatedArticle}
 import no.ndla.draftapi.model.domain._
@@ -30,6 +29,7 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation._
 import scalikejdbc.ReadOnlyAutoSession
@@ -141,7 +141,7 @@ trait ContentValidator {
         id: Long,
         updatedArticle: UpdatedArticle,
         importValidate: Boolean,
-        user: UserInfo
+        user: TokenUser
     ): Try[ContentId] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))

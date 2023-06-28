@@ -14,7 +14,6 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{DBImageMetaInformation, SearchResult, SearchSettings, Sort}
@@ -22,6 +21,8 @@ import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.common.implicits._
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
+import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.Elastic4sClient
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
@@ -34,7 +35,6 @@ trait ImageSearchService {
     with ImageIndexService
     with SearchService
     with SearchConverterService
-    with Role
     with Props
     with ErrorHelpers
     with DBImageMetaInformation =>
@@ -81,25 +81,33 @@ trait ImageSearchService {
     }
 
     private def convertToV2(
-        result: Try[SearchResult[(SearchableImage, MatchedLanguage)]]
+        result: Try[SearchResult[(SearchableImage, MatchedLanguage)]],
+        user: Option[TokenUser]
     ): Try[SearchResult[ImageMetaSummary]] =
       for {
         searchResult <- result
         summaries <- searchResult.results.traverse { case (image, language) =>
-          searchConverterService.asImageMetaSummary(image, language)
+          searchConverterService.asImageMetaSummary(image, language, user)
         }
         convertedResult = searchResult.copy(results = summaries)
       } yield convertedResult
 
-    def scrollV2(scrollId: String, language: String): Try[SearchResult[ImageMetaSummary]] = convertToV2(
-      scroll(scrollId, language)
-    )
+    def scrollV2(scrollId: String, language: String, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummary]] =
+      convertToV2(
+        scroll(scrollId, language),
+        user
+      )
 
-    def matchingQuery(settings: SearchSettings): Try[SearchResult[ImageMetaSummary]] = convertToV2(
-      matchingQueryV3(settings)
-    )
+    def matchingQuery(settings: SearchSettings, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummary]] =
+      convertToV2(
+        matchingQueryV3(settings, user),
+        user
+      )
 
-    def matchingQueryV3(settings: SearchSettings): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
+    def matchingQueryV3(
+        settings: SearchSettings,
+        user: Option[TokenUser]
+    ): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
       val fullSearch = settings.query.emptySomeToNone match {
         case None => boolQuery()
         case Some(query) =>
@@ -114,7 +122,7 @@ trait ImageSearchService {
             idsQuery(query)
           )
 
-          val maybeNoteQuery = Option.when(authRole.userHasWriteRole()) {
+          val maybeNoteQuery = Option.when(user.hasPermission(IMAGE_API_WRITE)) {
             simpleStringQuery(query).field("editorNotes", 1)
           }
 

@@ -23,14 +23,14 @@ import no.ndla.common.implicits._
 import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.{NonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
+import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
 import sttp.tapir.model.CommaSeparated
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.{EndpointInput, _}
+import sttp.tapir._
 
 import java.io.File
 import java.nio.file.Files

@@ -21,14 +21,14 @@ import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
+import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.common.implicits._
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.{EndpointInput, _}
+import sttp.tapir._
 
 import scala.util.{Failure, Success, Try}
 

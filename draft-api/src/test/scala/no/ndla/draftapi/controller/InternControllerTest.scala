@@ -31,8 +31,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       Success(ContentId(10))
     )
 
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
-    delete(s"/test/article/10/") {
+    delete(s"/test/article/10/", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       verify(articleApiClient, times(4)).deleteArticle(10)
     }
   }

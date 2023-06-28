@@ -16,7 +16,6 @@ import no.ndla.common.implicits._
 import no.ndla.common.model.api.Deletable
 import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model._
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2,
@@ -29,6 +28,7 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
+import no.ndla.network.tapir.auth.TokenUser
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
@@ -45,7 +45,6 @@ trait WriteService {
     with ImageStorageService
     with TagIndexService
     with Clock
-    with User
     with Props
     with DBImageFile
     with DBImageMetaInformation
@@ -54,16 +53,25 @@ trait WriteService {
 
   class WriteService extends StrictLogging {
 
-    def deleteImageLanguageVersionV2(imageId: Long, language: String): Try[Option[ImageMetaInformationV2]] = {
-      deleteImageLanguageVersion(imageId, language).flatMap {
-        case Some(updated) => converterService.asApiImageMetaInformationWithDomainUrlV2(updated, None).map(_.some)
-        case None          => Success(None)
+    def deleteImageLanguageVersionV2(
+        imageId: Long,
+        language: String,
+        user: TokenUser
+    ): Try[Option[ImageMetaInformationV2]] = {
+      deleteImageLanguageVersion(imageId, language, user).flatMap {
+        case Some(updated) =>
+          converterService.asApiImageMetaInformationWithDomainUrlV2(updated, None, user.some).map(_.some)
+        case None => Success(None)
       }
     }
 
-    def deleteImageLanguageVersionV3(imageId: Long, language: String): Try[Option[ImageMetaInformationV3]] = {
-      deleteImageLanguageVersion(imageId, language).flatMap {
-        case Some(updated) => converterService.asApiImageMetaInformationV3(updated, None).map(_.some)
+    def deleteImageLanguageVersionV3(
+        imageId: Long,
+        language: String,
+        user: TokenUser
+    ): Try[Option[ImageMetaInformationV3]] = {
+      deleteImageLanguageVersion(imageId, language, user).flatMap {
+        case Some(updated) => converterService.asApiImageMetaInformationV3(updated, None, user.some).map(_.some)
         case None          => Success(None)
       }
     }
@@ -94,11 +102,12 @@ trait WriteService {
 
     private[service] def deleteImageLanguageVersion(
         imageId: Long,
-        language: String
+        language: String,
+        user: TokenUser
     ): Try[Option[ImageMetaInformation]] =
       imageRepository.withId(imageId) match {
         case Some(existing) if converterService.getSupportedLanguages(existing).contains(language) =>
-          val newImage = converterService.withoutLanguage(existing, language)
+          val newImage = converterService.withoutLanguage(existing, language, user)
 
           // If last language version delete entire image
           val isLastLanguage = converterService.getSupportedLanguages(newImage).isEmpty
@@ -134,13 +143,17 @@ trait WriteService {
       }
     }
 
-    def storeNewImage(newImage: NewImageMetaInformationV2, file: FileItem): Try[ImageMetaInformation] = {
+    def storeNewImage(
+        newImage: NewImageMetaInformationV2,
+        file: FileItem,
+        user: TokenUser
+    ): Try[ImageMetaInformation] = {
       validationService.validateImageFile(file) match {
         case Some(validationMessage) => return Failure(new ValidationException(errors = Seq(validationMessage)))
         case _                       =>
       }
 
-      val toInsert = converterService.asDomainImageMetaInformationV2(newImage).?
+      val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user).?
       validationService.validate(toInsert, None).??
       val insertedMeta       = Try(imageRepository.insert(toInsert)).?
       val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
@@ -200,10 +213,11 @@ trait WriteService {
 
     private[service] def mergeImages(
         existing: ImageMetaInformation,
-        toMerge: UpdateImageMetaInformation
+        toMerge: UpdateImageMetaInformation,
+        user: TokenUser
     ): Try[ImageMetaInformation] = {
       val now    = clock.now()
-      val userId = authUser.userOrClientid()
+      val userId = user.id
 
       val newImageMeta = existing.copy(
         titles = mergeLanguageFields(
@@ -284,7 +298,8 @@ trait WriteService {
         imageId: Long,
         newFile: FileItem,
         oldImage: ImageMetaInformation,
-        language: String
+        language: String,
+        user: TokenUser
     ): Try[ImageMetaInformation] = {
       val imageForLang  = oldImage.images.find(_.language == language)
       val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
@@ -315,13 +330,14 @@ trait WriteService {
           imageRepository.insertImageFile(imageId, uploaded.fileName, doc)
       }).?
 
-      Success(converterService.withNewImage(oldImage, imageFileData, language))
+      Success(converterService.withNewImage(oldImage, imageFileData, language, user))
     }
 
     private[service] def updateImageAndFile(
         imageId: Long,
         updateMeta: UpdateImageMetaInformation,
-        newFile: Option[FileItem]
+        newFile: Option[FileItem],
+        user: TokenUser
     ): Try[domain.ImageMetaInformation] = {
       imageRepository.withId(imageId) match {
         case None => Failure(new ImageNotFoundException(s"Image with id $imageId found"))
@@ -330,14 +346,14 @@ trait WriteService {
             case Some(file) =>
               validationService.validateImageFile(file) match {
                 case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
-                case _                       => updateImageFile(imageId, file, oldImage, updateMeta.language)
+                case _                       => updateImageFile(imageId, file, oldImage, updateMeta.language, user)
               }
             case _ => Success(oldImage)
           }
 
           for {
             overwritten <- maybeOverwrittenImage
-            newImage    <- mergeImages(overwritten, updateMeta)
+            newImage    <- mergeImages(overwritten, updateMeta, user)
             indexed     <- updateAndIndexImage(imageId, newImage, oldImage.some)
           } yield indexed
       }
@@ -346,21 +362,27 @@ trait WriteService {
     def updateImage(
         imageId: Long,
         updateMeta: UpdateImageMetaInformation,
-        newFile: Option[FileItem]
+        newFile: Option[FileItem],
+        user: TokenUser
     ): Try[ImageMetaInformationV2] =
       for {
-        updated   <- updateImageAndFile(imageId, updateMeta, newFile)
-        converted <- converterService.asApiImageMetaInformationWithDomainUrlV2(updated, updateMeta.language.some)
+        updated <- updateImageAndFile(imageId, updateMeta, newFile, user)
+        converted <- converterService.asApiImageMetaInformationWithDomainUrlV2(
+          updated,
+          updateMeta.language.some,
+          user.some
+        )
       } yield converted
 
     def updateImageV3(
         imageId: Long,
         updateMeta: UpdateImageMetaInformation,
-        newFile: Option[FileItem]
+        newFile: Option[FileItem],
+        user: TokenUser
     ): Try[ImageMetaInformationV3] =
       for {
-        updated   <- updateImageAndFile(imageId, updateMeta, newFile)
-        converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some)
+        updated   <- updateImageAndFile(imageId, updateMeta, newFile, user)
+        converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some, user.some)
       } yield converted
 
     private[service] def getFileExtension(fileName: String): Option[String] = {

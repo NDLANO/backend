@@ -10,7 +10,6 @@ package no.ndla.imageapi.controller
 
 import no.ndla.common.errors.ValidationException
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.api.{
   Error,
@@ -27,6 +26,8 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
+import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import org.scalatra.swagger._
 import org.scalatra.{NoContent, NotFound, Ok}
 
@@ -40,8 +41,6 @@ trait ImageControllerV3 {
     with WriteService
     with DraftApiClient
     with SearchConverterService
-    with Role
-    with User
     with NdlaController
     with DBImageMetaInformation
     with Props
@@ -61,13 +60,15 @@ trait ImageControllerV3 {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
+    private def scrollSearchOr(scrollId: Option[String], language: String, user: Option[TokenUser])(
+        orFunction: => Any
+    ): Any =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           imageSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-              searchConverterService.asApiSearchResultV3(scrollResult, language) match {
+              searchConverterService.asApiSearchResultV3(scrollResult, language, user) match {
                 case Failure(ex)        => Failure(ex)
                 case Success(converted) => Ok(converted, headers = responseHeader)
               }
@@ -87,7 +88,8 @@ trait ImageControllerV3 {
         page: Option[Int],
         includeCopyrighted: Boolean,
         shouldScroll: Boolean,
-        modelReleasedStatus: Seq[ModelReleasedStatus.Value]
+        modelReleasedStatus: Seq[ModelReleasedStatus.Value],
+        user: Option[TokenUser]
     ) = {
       val settings = query match {
         case Some(searchString) =>
@@ -120,10 +122,10 @@ trait ImageControllerV3 {
           )
       }
 
-      imageSearchService.matchingQueryV3(settings) match {
+      imageSearchService.matchingQueryV3(settings, user) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          searchConverterService.asApiSearchResultV3(searchResult, language) match {
+          searchConverterService.asApiSearchResultV3(searchResult, language, user) match {
             case Failure(ex)        => errorHandler(ex)
             case Success(converted) => Ok(converted, headers = responseHeader)
           }
@@ -157,8 +159,9 @@ trait ImageControllerV3 {
       val scrollId = paramOrNone(this.scrollId.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val user     = TokenUser.fromScalatraRequest(request).toOption
 
-      scrollSearchOr(scrollId, language) {
+      scrollSearchOr(scrollId, language, user) {
         val minimumSize        = intOrNone(this.minSize.paramName)
         val query              = paramOrNone(this.query.paramName)
         val license            = params.get(this.license.paramName)
@@ -181,7 +184,8 @@ trait ImageControllerV3 {
           page,
           includeCopyrighted,
           shouldScroll,
-          modelReleasedStatus
+          modelReleasedStatus,
+          user
         )
       }
     }: Unit
@@ -203,8 +207,9 @@ trait ImageControllerV3 {
       val searchParams = extract[SearchParams](request.body)
       val language     = searchParams.language.getOrElse(Language.AllLanguages)
       val fallback     = searchParams.fallback.getOrElse(false)
+      val user         = TokenUser.fromScalatraRequest(request).toOption
 
-      scrollSearchOr(searchParams.scrollId, language) {
+      scrollSearchOr(searchParams.scrollId, language, user) {
         val minimumSize        = searchParams.minimumSize
         val query              = searchParams.query
         val license            = searchParams.license
@@ -227,7 +232,8 @@ trait ImageControllerV3 {
           page,
           includeCopyrighted,
           shouldScroll,
-          modelReleasedStatus
+          modelReleasedStatus,
+          user
         )
       }
     }: Unit
@@ -248,8 +254,9 @@ trait ImageControllerV3 {
     ) {
       val imageId  = long(this.imageId.paramName)
       val language = paramOrNone(this.language.paramName)
+      val user     = TokenUser.fromScalatraRequest(request).toOption
 
-      readService.withIdV3(imageId, language) match {
+      readService.withIdV3(imageId, language, user) match {
         case Success(Some(image)) => image
         case Success(None) =>
           NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId and language $language not found"))
@@ -272,8 +279,9 @@ trait ImageControllerV3 {
     ) {
       val imageIds = paramAsListOfLong(this.imageIds.paramName)
       val language = paramOrNone(this.language.paramName)
+      val user     = TokenUser.fromScalatraRequest(request).toOption
 
-      readService.getImagesByIdsV3(imageIds, language) match {
+      readService.getImagesByIdsV3(imageIds, language, user) match {
         case Success(images) => Ok(images)
         case Failure(ex)     => errorHandler(ex)
       }
@@ -295,9 +303,10 @@ trait ImageControllerV3 {
     ) {
       val externalId = params(this.externalId.paramName)
       val language   = paramOrNone(this.language.paramName)
+      val user       = TokenUser.fromScalatraRequest(request).toOption
 
       imageRepository.withExternalId(externalId) match {
-        case Some(image) => Ok(converterService.asApiImageMetaInformationV3(image, language))
+        case Some(image) => Ok(converterService.asApiImageMetaInformationV3(image, language, user))
         case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
       }
     }: Unit
@@ -319,26 +328,25 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response413, response500)
       )
     ) {
-      authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
+        val imageMetaFromParam = params.get(this.metadata.paramName)
+        val imageMetaFromFile = fileParams
+          .get(this.metadata.paramName)
+          .map(f => scala.io.Source.fromInputStream(f.getInputStream).mkString)
 
-      val imageMetaFromParam = params.get(this.metadata.paramName)
-      val imageMetaFromFile = fileParams
-        .get(this.metadata.paramName)
-        .map(f => scala.io.Source.fromInputStream(f.getInputStream).mkString)
-
-      imageMetaFromParam.orElse(imageMetaFromFile).map(extract[NewImageMetaInformationV2]) match {
-        case None => errorHandler(ValidationException("metadata", "The request must contain image metadata"))
-        case Some(imageMeta) =>
-          fileParams.get(this.file.paramName) match {
-            case None => errorHandler(ValidationException("file", "The request must contain an image file"))
-            case Some(file) =>
-              writeService.storeNewImage(imageMeta, file) match {
-                case Failure(ex) => errorHandler(ex)
-                case Success(storedImage) =>
-                  converterService.asApiImageMetaInformationV3(storedImage, Some(imageMeta.language))
-              }
-          }
+        imageMetaFromParam.orElse(imageMetaFromFile).map(extract[NewImageMetaInformationV2]) match {
+          case None => errorHandler(ValidationException("metadata", "The request must contain image metadata"))
+          case Some(imageMeta) =>
+            fileParams.get(this.file.paramName) match {
+              case None => errorHandler(ValidationException("file", "The request must contain an image file"))
+              case Some(file) =>
+                writeService.storeNewImage(imageMeta, file, user) match {
+                  case Failure(ex) => errorHandler(ex)
+                  case Success(storedImage) =>
+                    converterService.asApiImageMetaInformationV3(storedImage, Some(imageMeta.language), Some(user))
+                }
+            }
+        }
       }
     }: Unit
 
@@ -356,15 +364,13 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response413, response500)
       )
     ) {
-      authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
-
-      val imageId = long(this.imageId.paramName)
-      writeService.deleteImageAndFiles(imageId) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(_)  => Ok()
+      requirePermissionOrAccessDenied(IMAGE_API_WRITE) {
+        val imageId = long(this.imageId.paramName)
+        writeService.deleteImageAndFiles(imageId) match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(_)  => Ok()
+        }
       }
-
     }: Unit
 
     delete(
@@ -382,16 +388,15 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
+        val imageId  = long(this.imageId.paramName)
+        val language = params(this.language.paramName)
 
-      val imageId  = long(this.imageId.paramName)
-      val language = params(this.language.paramName)
-
-      writeService.deleteImageLanguageVersionV3(imageId, language) match {
-        case Failure(ex)          => errorHandler(ex)
-        case Success(Some(image)) => Ok(image)
-        case Success(None)        => NoContent()
+        writeService.deleteImageLanguageVersionV3(imageId, language, user) match {
+          case Failure(ex)          => errorHandler(ex)
+          case Success(Some(image)) => Ok(image)
+          case Success(None)        => NoContent()
+        }
       }
     }: Unit
 
@@ -416,27 +421,26 @@ trait ImageControllerV3 {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
+        val imageId            = long(this.imageId.paramName)
+        val imageMetaFromParam = params.get(this.updateMetadata.paramName)
 
-      val imageId            = long(this.imageId.paramName)
-      val imageMetaFromParam = params.get(this.updateMetadata.paramName)
+        lazy val imageMetaFromFile =
+          fileParams
+            .get(this.updateMetadata.paramName)
+            .map(f => scala.io.Source.fromInputStream(f.getInputStream).mkString)
 
-      lazy val imageMetaFromFile =
-        fileParams
-          .get(this.updateMetadata.paramName)
-          .map(f => scala.io.Source.fromInputStream(f.getInputStream).mkString)
+        val metaToUse = imageMetaFromParam.orElse(imageMetaFromFile).getOrElse(request.body)
 
-      val metaToUse = imageMetaFromParam.orElse(imageMetaFromFile).getOrElse(request.body)
-
-      tryExtract[UpdateImageMetaInformation](metaToUse) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(metaInfo) =>
-          val fileItem = fileParams.get(this.file.paramName)
-          writeService.updateImageV3(imageId, metaInfo, fileItem) match {
-            case Success(imageMeta) => Ok(imageMeta)
-            case Failure(e)         => errorHandler(e)
-          }
+        tryExtract[UpdateImageMetaInformation](metaToUse) match {
+          case Failure(ex) => errorHandler(ex)
+          case Success(metaInfo) =>
+            val fileItem = fileParams.get(this.file.paramName)
+            writeService.updateImageV3(imageId, metaInfo, fileItem, user) match {
+              case Success(imageMeta) => Ok(imageMeta)
+              case Failure(e)         => errorHandler(e)
+            }
+        }
       }
     }: Unit
 

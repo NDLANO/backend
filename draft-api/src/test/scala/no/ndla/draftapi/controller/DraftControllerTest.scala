@@ -11,11 +11,11 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
-import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.{read, write}
 import org.mockito.ArgumentMatchers._
@@ -37,14 +37,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   val lang              = "nb"
   val articleId         = 1L
 
-  override def beforeEach(): Unit = {
-    when(user.getUser).thenReturn(TestData.userWithWriteAccess)
-  }
-
   test("/<article_id> should return 200 if the cover was found withId") {
     when(readService.withId(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
 
-    get(s"/test/$articleId?language=$lang") {
+    get(s"/test/$articleId?language=$lang", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
@@ -52,7 +48,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   test("/<article_id> should return 404 if the article was not found withId") {
     when(readService.withId(articleId, lang)).thenReturn(Failure(api.NotFoundException("not found yo")))
 
-    get(s"/test/$articleId?language=$lang") {
+    get(s"/test/$articleId?language=$lang", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(404)
     }
   }
@@ -93,7 +89,11 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     when(articleSearchService.matchingQuery(any[SearchSettings]))
       .thenReturn(Success(searchMock))
 
-    get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
+    get(
+      "/test/",
+      Seq("ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb"),
+      headers = Map("Authorization" -> authHeaderWithWriteRole)
+    ) {
       status should equal(200)
 
       verify(articleSearchService, times(1)).matchingQuery(
@@ -110,7 +110,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test("POST / should return 400 if body does not contain all required fields") {
-    post("/test/", invalidArticle) {
+    post("/test/", invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(400)
     }
   }
@@ -122,7 +122,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           any[api.NewArticle],
           any[List[String]],
           any[Seq[String]],
-          any[UserInfo],
+          any[TokenUser],
           any[Option[LocalDateTime]],
           any[Option[LocalDateTime]],
           any[Option[String]]
@@ -135,40 +135,35 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test("That / returns a validation message if article is invalid") {
-    post("/test") {
+    post("/test", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(400)
     }
   }
 
   test("That POST / returns 403 if no auth-header") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
     post("/test") {
       status should equal(403)
     }
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
-
-    post("/test") {
+    post("/test", headers = Map("Authorization" -> TestData.authHeaderWithoutAnyRoles)) {
       status should equal(403)
     }
   }
 
   test("That GET /<article_id> returns 403 if auth header does not have any roles") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(readService.withId(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
 
-    get(s"/test/$articleId?language=$lang") {
+    get(s"/test/$articleId?language=$lang", headers = Map("Authorization" -> TestData.authHeaderWithoutAnyRoles)) {
       status should equal(403)
     }
   }
 
   test("That GET /<article_id> returns 200 if status is allowed even if auth header does not have any roles") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(readService.withId(articleId, lang)).thenReturn(Success(TestData.apiArticleUserTest))
 
-    get(s"/test/$articleId?language=$lang") {
+    get(s"/test/$articleId?language=$lang", headers = Map("Authorization" -> TestData.authHeaderWithoutAnyRoles)) {
       status should equal(200)
     }
 
@@ -176,7 +171,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
       Success(TestData.apiArticleUserTest.copy(status = api.Status(EXTERNAL_REVIEW.toString, Seq.empty)))
     )
 
-    get(s"/test/$articleId?language=$lang") {
+    get(s"/test/$articleId?language=$lang", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
@@ -188,14 +183,13 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test("That PATCH /:id returns 403 if access denied") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(
       writeService.updateArticle(
         any[Long],
         any[api.UpdatedArticle],
         any[List[String]],
         any[Seq[String]],
-        any[UserInfo],
+        any[TokenUser],
         any[Option[LocalDateTime]],
         any[Option[LocalDateTime]],
         any[Option[String]]
@@ -215,21 +209,21 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[api.UpdatedArticle],
         any[List[String]],
         any[Seq[String]],
-        any[UserInfo],
+        any[TokenUser],
         any[Option[LocalDateTime]],
         any[Option[LocalDateTime]],
         any[Option[String]]
       )
     )
       .thenReturn(Success(TestData.apiArticleWithHtmlFaultV2))
-    patch("/test/123", updateTitleJson) {
+    patch("/test/123", updateTitleJson, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
 
   test("PUT /:id/validate/ should return 204 if user has required permissions") {
     when(contentValidator.validateArticleApiArticle(any[Long], any[Boolean])).thenReturn(Success(api.ContentId(1)))
-    put("/test/1/validate/") {
+    put("/test/1/validate/", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
@@ -247,7 +241,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     )
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
 
-    get(s"/test/") {
+    get(s"/test/", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should be(200)
       body.contains(scrollId) should be(false)
       response.headers.get("search-context") should be(Some(List(scrollId)))
@@ -269,7 +263,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    get(s"/test?search-context=$scrollId") {
+    get(s"/test?search-context=$scrollId", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should be(200)
     }
 
@@ -292,7 +286,11 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    post(s"/test/search/", body = s"""{"scrollId": "$scrollId"}""") {
+    post(
+      s"/test/search/",
+      body = s"""{"scrollId": "$scrollId"}""",
+      headers = Map("Authorization" -> authHeaderWithWriteRole)
+    ) {
       status should be(200)
     }
 
@@ -304,7 +302,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     when(readService.getAllGrepCodes(anyString, anyInt, anyInt))
       .thenReturn(Success(TestData.sampleApiGrepCodesSearchResult))
 
-    get("/test/grep-codes/") {
+    get("/test/grep-codes/", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
@@ -313,7 +311,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     when(readService.getAllGrepCodes(anyString, anyInt, anyInt))
       .thenReturn(Success(TestData.sampleApiGrepCodesSearchResult.copy(results = Seq.empty)))
 
-    get("/test/grep-codes/") {
+    get("/test/grep-codes/", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
@@ -322,13 +320,12 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
       .thenReturn(Success(TestData.sampleApiTagsSearchResult))
 
-    get("/test/tag-search/") {
+    get("/test/tag-search/", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
 
   test("tags should return 403 Forbidden if user has no access role") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
       .thenReturn(Success(TestData.sampleApiTagsSearchResult.copy(results = Seq.empty)))
 
@@ -348,7 +345,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           any[api.UpdatedArticle],
           any[List[String]],
           any[Seq[String]],
-          any[UserInfo],
+          any[TokenUser],
           any[Option[LocalDateTime]],
           any[Option[LocalDateTime]],
           any[Option[String]]
@@ -374,7 +371,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         eqTo(missingExpected),
         any[List[String]],
         any[Seq[String]],
-        any[UserInfo],
+        any[TokenUser],
         any[Option[LocalDateTime]],
         any[Option[LocalDateTime]],
         any[Option[String]]
@@ -388,7 +385,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         eqTo(nullExpected),
         any[List[String]],
         any[Seq[String]],
-        any[UserInfo],
+        any[TokenUser],
         any[Option[LocalDateTime]],
         any[Option[LocalDateTime]],
         any[Option[String]]
@@ -402,7 +399,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         eqTo(existingExpected),
         any[List[String]],
         any[Seq[String]],
-        any[UserInfo],
+        any[TokenUser],
         any[Option[LocalDateTime]],
         any[Option[LocalDateTime]],
         any[Option[String]]
@@ -430,7 +427,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     )
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
 
-    get("/test/?search-context=initial") {
+    get("/test/?search-context=initial", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should be(200)
       verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
       verify(articleSearchService, times(0)).scroll(any[String], any[String])

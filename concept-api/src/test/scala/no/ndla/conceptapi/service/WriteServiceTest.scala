@@ -9,11 +9,11 @@ package no.ndla.conceptapi.service
 
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
-import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.ConceptResponsible
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
@@ -28,7 +28,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
   val service                  = new WriteService()
   val conceptId                = 13L
-  val userInfo: UserInfo       = UserInfo.SystemUser
+  val userInfo: TokenUser      = TokenUser.SystemUser
 
   val concept: api.Concept =
     TestData.sampleNbApiConcept.copy(

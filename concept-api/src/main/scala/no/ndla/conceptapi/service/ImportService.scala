@@ -9,7 +9,6 @@ package no.ndla.conceptapi.service
 
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.{ArticleApiClient, ImageApiClient}
 import no.ndla.conceptapi.model.api.ConceptImportResults
 import no.ndla.conceptapi.repository.DraftConceptRepository
@@ -17,12 +16,7 @@ import no.ndla.conceptapi.repository.DraftConceptRepository
 import scala.util.{Failure, Try}
 
 trait ImportService {
-  this: ConverterService
-    with User
-    with WriteService
-    with DraftConceptRepository
-    with ArticleApiClient
-    with ImageApiClient =>
+  this: ConverterService with WriteService with DraftConceptRepository with ArticleApiClient with ImageApiClient =>
   val importService: ImportService
 
   class ImportService extends StrictLogging {

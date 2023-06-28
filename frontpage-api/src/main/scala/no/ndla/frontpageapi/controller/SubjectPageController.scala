@@ -8,10 +8,8 @@
 package no.ndla.frontpageapi.controller
 
 import cats.effect.IO
-import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.frontpageapi.Props
-import no.ndla.frontpageapi.auth.UserInfo
 import no.ndla.frontpageapi.model.api.{
   ErrorHelpers,
   NewSubjectFrontPageData,
@@ -22,6 +20,8 @@ import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
@@ -35,7 +35,7 @@ trait SubjectPageController {
   class SubjectPageController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "subjectpage"
 
-    import UserInfo._
+    import ErrorHelpers._
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
         .summary("Fetch all subjectpages")
@@ -81,15 +81,11 @@ trait SubjectPageController {
         },
       endpoint.post
         .summary("Create new subject page")
-        .securityIn(auth.bearer[Option[UserInfo]]())
         .in(jsonBody[NewSubjectFrontPageData])
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
-        .serverSecurityLogicPure {
-          case Some(user) if user.canWrite => user.asRight
-          case Some(_)                     => ErrorHelpers.forbidden.asLeft
-          case None                        => ErrorHelpers.unauthorized.asLeft
-        }
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(FRONTPAGE_API_WRITE))
         .serverLogic { _ => newSubjectFrontPageData =>
           {
             writeService
@@ -101,18 +97,14 @@ trait SubjectPageController {
         },
       endpoint.patch
         .summary("Update subject page")
-        .securityIn(auth.bearer[Option[UserInfo]]())
         .in(jsonBody[UpdatedSubjectFrontPageData])
         .in(path[Long]("subjectpage-id").description("The subjectpage id"))
         .in(query[String]("language").default(props.DefaultLanguage))
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
-        .serverSecurityLogicPure {
-          case Some(user) if user.canWrite => user.asRight
-          case Some(_)                     => ErrorHelpers.forbidden.asLeft
-          case None                        => ErrorHelpers.unauthorized.asLeft
-        }
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(FRONTPAGE_API_WRITE))
         .serverLogic { _ =>
           { case (subjectPage, id, language, fallback) =>
             writeService

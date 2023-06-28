@@ -8,8 +8,9 @@
 package no.ndla.draftapi.model.domain
 
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.service.SideEffect.SideEffect
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.{Permission, TokenUser}
 
 case class StateTransition(
     from: DraftStatus,
@@ -17,24 +18,24 @@ case class StateTransition(
     otherStatesToKeepOnTransition: Set[DraftStatus],
     sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
-    requiredRoles: Set[Role.Value],
+    requiredPermissions: Set[Permission],
     illegalStatuses: Set[DraftStatus],
-    private val ignoreRolesIf: Option[(Set[Role.Value], IgnoreFunction)]
+    private val ignorePermissionsIf: Option[(Set[Permission], IgnoreFunction)]
 ) {
 
   def keepCurrentOnTransition: StateTransition                = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[DraftStatus]): StateTransition   = copy(otherStatesToKeepOnTransition = toKeep)
   def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
 
-  def require(roles: Set[Role.Value], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
-    copy(requiredRoles = roles, ignoreRolesIf = ignoreRoleRequirementIf.map(requiredRoles -> _))
+  def require(permissions: Set[Permission], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
+    copy(requiredPermissions = permissions, ignorePermissionsIf = ignoreRoleRequirementIf.map(requiredPermissions -> _))
 
-  def hasRequiredRoles(user: UserInfo, article: Option[Draft]): Boolean = {
-    val ignore = ignoreRolesIf match {
-      case Some((oldRoles, ignoreFunc)) => ignoreFunc(article, this) && user.hasRoles(oldRoles)
+  def hasRequiredRoles(user: TokenUser, article: Option[Draft]): Boolean = {
+    val ignore = ignorePermissionsIf match {
+      case Some((oldRoles, ignoreFunc)) => ignoreFunc(article, this) && user.hasPermissions(oldRoles)
       case None                         => false
     }
-    ignore || user.hasRoles(this.requiredRoles)
+    ignore || user.hasPermissions(this.requiredPermissions)
   }
 
   def withIllegalStatuses(illegalStatuses: Set[DraftStatus]): StateTransition =
@@ -50,7 +51,7 @@ object StateTransition {
       Set(DraftStatus.PUBLISHED),
       Seq.empty[SideEffect],
       addCurrentStateToOthersOnTransition = false,
-      UserInfo.WriteRoles,
+      Set(DRAFT_API_WRITE),
       Set(),
       None
     )

@@ -11,7 +11,6 @@ import io.lemonlabs.uri.Uri.parse
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary, ImageTitle}
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
@@ -30,11 +29,13 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import cats.implicits._
+import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
-  this: ConverterService with Role with Props with DBImageMetaInformation with DBImageFile =>
+  this: ConverterService with Props with DBImageMetaInformation with DBImageFile =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
@@ -105,7 +106,11 @@ trait SearchConverterService {
       }
     }
 
-    def asImageMetaSummary(searchableImage: SearchableImage, language: String): Try[ImageMetaSummary] = {
+    def asImageMetaSummary(
+        searchableImage: SearchableImage,
+        language: String,
+        user: Option[TokenUser]
+    ): Try[ImageMetaSummary] = {
       val apiToRawRegex = "/v\\d+/images/".r
       val title = Language
         .findByLanguageOrBestEffort(searchableImage.titles.languageValues, Some(language))
@@ -127,7 +132,7 @@ trait SearchConverterService {
         searchableImage.tags.languageValues
       )
 
-      val editorNotes = Option.when(authRole.userHasWriteRole())(searchableImage.editorNotes)
+      val editorNotes = Option.when(user.hasPermission(IMAGE_API_WRITE))(searchableImage.editorNotes)
 
       getSearchableImageFileFromSearchableImage(searchableImage, language.some).map(imageFile => {
         ImageMetaSummary(
@@ -199,10 +204,11 @@ trait SearchConverterService {
 
     def asApiSearchResultV3(
         searchResult: domain.SearchResult[(SearchableImage, MatchedLanguage)],
-        language: String
+        language: String,
+        user: Option[TokenUser]
     ): Try[api.SearchResultV3] = {
       searchResult.results
-        .traverse(r => converterService.asApiImageMetaInformationV3(r._1.domainObject, language.some))
+        .traverse(r => converterService.asApiImageMetaInformationV3(r._1.domainObject, language.some, user))
         .map(results =>
           api.SearchResultV3(
             searchResult.totalCount,

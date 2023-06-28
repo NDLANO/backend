@@ -7,16 +7,16 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.auth.User
-import no.ndla.draftapi.model.api.{UserData, UpdatedUserData}
+import no.ndla.draftapi.model.api.{UpdatedUserData, UserData}
 import no.ndla.draftapi.service.{ReadService, WriteService}
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import org.scalatra.Ok
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import scala.util.{Failure, Success}
 
 trait UserDataController {
-  this: ReadService with WriteService with User with NdlaController =>
+  this: ReadService with WriteService with NdlaController =>
   val userDataController: UserDataController
 
   class UserDataController(implicit val swagger: Swagger) extends NdlaController {
@@ -37,8 +37,7 @@ trait UserDataController {
           .authorizations(" oauth2")
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         readService.getUserData(userInfo.id) match {
           case Failure(error)    => errorHandler(error)
           case Success(userData) => userData
@@ -60,8 +59,7 @@ trait UserDataController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val updatedUserData = tryExtract[UpdatedUserData](request.body)
         updatedUserData.flatMap(userData => writeService.updateUserData(userData, userInfo)) match {
           case Success(data)      => Ok(data)

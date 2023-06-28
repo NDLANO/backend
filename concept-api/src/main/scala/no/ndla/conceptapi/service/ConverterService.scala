@@ -16,13 +16,13 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordClass}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
@@ -183,7 +183,7 @@ trait ConverterService {
         .sequence
     }
 
-    def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
+    def toDomainConcept(concept: api.NewConcept, userInfo: TokenUser): Try[domain.Concept] = {
       val conceptType = ConceptType.valueOfOrError(concept.conceptType).getOrElse(ConceptType.CONCEPT)
       for {
         glossData <- toDomainGlossData(concept.glossData)
@@ -240,7 +240,7 @@ trait ConverterService {
     def toDomainConcept(
         toMergeInto: domain.Concept,
         updateConcept: api.UpdatedConcept,
-        userInfo: UserInfo
+        userInfo: TokenUser
     ): Try[domain.Concept] = {
       val domainTitle = updateConcept.title
         .map(t => Title(t, updateConcept.language))
@@ -301,10 +301,10 @@ trait ConverterService {
       )
     }
 
-    def updateStatus(status: ConceptStatus.Value, concept: domain.Concept, user: UserInfo): IO[Try[domain.Concept]] =
+    def updateStatus(status: ConceptStatus.Value, concept: domain.Concept, user: TokenUser): IO[Try[domain.Concept]] =
       StateTransitionRules.doTransition(concept, status, user)
 
-    def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: UserInfo): domain.Concept = {
+    def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: TokenUser): domain.Concept = {
       val lang = concept.language
 
       val newMetaImage = concept.metaImage match {
@@ -379,10 +379,10 @@ trait ConverterService {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
     }
 
-    def stateTransitionsToApi(user: UserInfo): Map[String, Seq[String]] = {
+    def stateTransitionsToApi(user: TokenUser): Map[String, Seq[String]] = {
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to
-          .filter(t => user.hasRoles(t.requiredRoles))
+          .filter(t => user.hasPermissions(t.requiredPermissions))
           .map(_.to.toString)
           .toSeq
       }

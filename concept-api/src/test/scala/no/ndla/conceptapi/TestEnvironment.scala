@@ -10,15 +10,14 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller.{DraftConceptController, NdlaController, PublishedConceptController}
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service.search._
 import no.ndla.conceptapi.service._
+import no.ndla.conceptapi.service.search._
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
@@ -56,7 +55,6 @@ trait TestEnvironment
     with ImageApiClient
     with NdlaClient
     with Clock
-    with User
     with Props
     with ErrorHelpers
     with SearchSettingsHelper
@@ -86,7 +84,6 @@ trait TestEnvironment
   val converterService = mock[ConverterService]
   val contentValidator = mock[ContentValidator]
   val clock            = mock[SystemClock]
-  val user             = mock[User]
   val importService    = mock[ImportService]
 
   val ndlaClient       = mock[NdlaClient]

@@ -8,10 +8,10 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.service.WriteService
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.NoContent
 import org.scalatra.servlet.FileUploadSupport
@@ -20,7 +20,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger}
 import scala.util.{Failure, Success}
 
 trait FileController {
-  this: WriteService with User with NdlaController =>
+  this: WriteService with NdlaController =>
   val fileController: FileController
 
   class FileController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport {
@@ -54,8 +54,7 @@ trait FileController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         fileParams.get(file.paramName) match {
           case Some(fileToUpload) =>
             writeService.storeFile(fileToUpload) match {
@@ -83,8 +82,7 @@ trait FileController {
           .responseMessages(response400, response403, response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
+      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
         paramOrNone(this.filePath.paramName) match {
           case Some(filePath) =>
             writeService.deleteFile(filePath) match {

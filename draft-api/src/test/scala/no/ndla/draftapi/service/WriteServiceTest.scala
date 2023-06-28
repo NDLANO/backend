@@ -14,12 +14,13 @@ import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBL
 import no.ndla.common.model.domain.draft._
 import no.ndla.common.model.domain._
 import no.ndla.common.model.{RelatedContentLink, domain, api => commonApi}
-import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.domain.Agreement
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
@@ -106,7 +107,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         val arg = invocation.getArgument[Draft](0)
         arg.copy(revision = Some(arg.revision.getOrElse(0) + 1))
       })
-    when(draftRepository.storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]], any[Boolean])(any[DBSession]))
+    when(draftRepository.storeArticleAsNewVersion(any[Draft], any[Option[TokenUser]], any[Boolean])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
         val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
@@ -417,7 +418,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That delete article should fail when only one language") {
-    val Failure(result) = service.deleteLanguage(article.id.get, "nb", UserInfo("asdf", Set()))
+    val Failure(result) = service.deleteLanguage(article.id.get, "nb", TokenUser("asdf", Set()))
     result.getMessage should equal("Only one language left")
   }
 
@@ -430,7 +431,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val articleCaptor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
     when(draftRepository.withId(anyLong)(any)).thenReturn(Some(article))
-    service.deleteLanguage(article.id.get, "nn", UserInfo("asdf", Set()))
+    service.deleteLanguage(article.id.get, "nn", TokenUser("asdf", Set()))
     verify(draftRepository).updateArticle(articleCaptor.capture(), anyBoolean)(any)
 
     articleCaptor.getValue.title.length should be(1)
@@ -495,7 +496,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = yesterday,
       responsible = Some(Responsible("hei", TestData.today))
     )
-    val user = UserInfo("Pelle", Set(Role.WRITE))
+    val user = TokenUser("Pelle", Set(DRAFT_API_WRITE))
     val updatedArticle = converterService
       .updateStatus(DraftStatus.IN_PROGRESS, articleToUpdate, user, isImported = false)
       .attempt
@@ -567,7 +568,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         published = yesterday
       )
 
-    val userinfo = UserInfo("somecoolid", Set.empty)
+    val userinfo = TokenUser("somecoolid", Set.empty)
 
     val newId = 1231.toLong
     when(draftRepository.newEmptyArticleId()(any[DBSession]))
@@ -616,7 +617,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       published = yesterday
     )
 
-    val userinfo = UserInfo("somecoolid", Set.empty)
+    val userinfo = TokenUser("somecoolid", Set.empty)
 
     val newId = 1231.toLong
     when(draftRepository.newEmptyArticleId()(any[DBSession]))
@@ -920,7 +921,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     updated.get.notes.length should be(1)
 
     verify(draftRepository, never).updateArticle(any[Draft], anyBoolean)(any[DBSession])
-    verify(draftRepository, times(1)).storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]], any[Boolean])(
+    verify(draftRepository, times(1)).storeArticleAsNewVersion(any[Draft], any[Option[TokenUser]], any[Boolean])(
       any[DBSession]
     )
   }

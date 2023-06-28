@@ -8,14 +8,14 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
-import no.ndla.network.tapir.auth.Scope
+import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{Service, SwaggerControllerConfig, SwaggerInfo}
 
 trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
   this: Service with Props =>
 
   object SwaggerDocControllerConfig {
-    private val scopes = Scope.toSwaggerMap(Scope.thatStartsWith("audio"))
+    private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("audio"))
 
     val swaggerInfo: SwaggerInfo = SwaggerInfo(
       mountPoint = "/audio-api/api-docs",

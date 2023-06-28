@@ -12,7 +12,6 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller._
 import no.ndla.imageapi.integration._
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump}
@@ -61,8 +60,6 @@ class ComponentRegistry(properties: ImageApiProperties)
     with InternController
     with HealthController
     with ImageConverter
-    with User
-    with Role
     with Clock
     with Props
     with DBMigrator
@@ -115,8 +112,6 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val searchConverterService = new SearchConverterService
 
   lazy val imageConverter = new ImageConverter
-  lazy val authUser       = new AuthUser
-  lazy val authRole       = new AuthRole
   lazy val clock          = new SystemClock
   lazy val random         = new Random
 }

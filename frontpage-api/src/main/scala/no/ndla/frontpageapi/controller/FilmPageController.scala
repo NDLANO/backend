@@ -9,12 +9,13 @@ package no.ndla.frontpageapi.controller
 import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
-import no.ndla.frontpageapi.auth.UserInfo
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
@@ -25,6 +26,7 @@ trait FilmPageController {
   val filmPageController: FilmPageController
 
   class FilmPageController extends SwaggerService {
+    import ErrorHelpers._
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "filmfrontpage"
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
@@ -43,12 +45,8 @@ trait FilmPageController {
         .errorOut(errorOutputsFor(400, 401, 403, 404, 422))
         .in(jsonBody[NewOrUpdatedFilmFrontPageData])
         .out(jsonBody[FilmFrontPageData])
-        .securityIn(auth.bearer[Option[UserInfo]]())
-        .serverSecurityLogicPure {
-          case Some(user) if user.canWrite => user.asRight
-          case Some(_)                     => ErrorHelpers.forbidden.asLeft
-          case None                        => ErrorHelpers.unauthorized.asLeft
-        }
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(FRONTPAGE_API_WRITE))
         .serverLogic { _ => filmFrontPage =>
           writeService.updateFilmFrontPage(filmFrontPage).partialOverride { case ex: ValidationException =>
             ErrorHelpers.unprocessableEntity(ex.getMessage)

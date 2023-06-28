@@ -12,7 +12,7 @@ import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.network.logging.FLogging
-import no.ndla.network.tapir.auth.{Scope, TokenUser}
+import no.ndla.network.tapir.auth.{Permission, TokenUser}
 
 import scala.util.{Failure, Success, Try}
 
@@ -65,10 +65,10 @@ trait TapirErrorHelpers extends FLogging {
     /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
       * some endpoint.
       */
-    def requireScope(scope: Scope): Option[TokenUser] => Either[ErrorBody, TokenUser] = {
-      case Some(user) if user.hasScope(scope) => user.asRight
-      case Some(_)                            => ErrorHelpers.forbidden.asLeft
-      case None                               => ErrorHelpers.unauthorized.asLeft
+    def requireScope(scope: Permission): Option[TokenUser] => Either[ErrorBody, TokenUser] = {
+      case Some(user) if user.hasPermission(scope) => user.asRight
+      case Some(_)                                 => ErrorHelpers.forbidden.asLeft
+      case None                                    => ErrorHelpers.unauthorized.asLeft
     }
   }
 

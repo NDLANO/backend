@@ -35,17 +35,16 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   import props.MaxImageFileSizeBytes
 
   val authHeaderWithWriteRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiaW1hZ2VzOndyaXRlIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.tbX5zgN1Ff53PsHnepnb3JWrs1NNHskPBoY8R-mLd9U"
+    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJpbWFnZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.1_j9R9KML2LTqeAE4bpRByJcR6m6Tv3pTOozpYCnTC8"
 
   val authHeaderWithoutAnyRoles =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.fb9eTuBwIlbGDgDKBQ5FVpuSUdgDVBZjCenkOrWLzUByVCcaFhbFU8CVTWWKhKJqt6u-09-99hh86szURLqwl3F5rxSX9PrnbyhI9LsPut_3fr6vezs6592jPJRbdBz3-xLN0XY5HIiJElJD3Wb52obTqJCrMAKLZ5x_GLKGhcY"
+    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6W10sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.vw9YhRtgUQr_vuDhLNHfBsZz-4XLhCc1Kwxi0w0_qGI"
 
   val authHeaderWithWrongRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Hbmh9KX19nx7yT3rEcP9pyzRO0uQJBRucfqH9QEZtLyXjYj_fAyOhsoicOVEbHSES7rtdiJK43-gijSpWWmGWOkE6Ym7nHGhB_nLdvp_25PDgdKHo-KawZdAyIcJFr5_t3CJ2Z2IPVbrXwUd99vuXEBaV0dMwkT0kDtkwHuS-8E"
+    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJzb21lOm90aGVyIl0sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.u8o7-FXyVzWurle2tP1pngad8KRja6VjFdmy71T4m0k"
 
   implicit val swagger: ImageSwagger = new ImageSwagger
   override val converterService      = new ConverterService
-  override val authRole              = new AuthRole
   lazy val controller                = new ImageControllerV2
   addServlet(controller, "/*")
 
@@ -95,7 +94,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val expectedBody       = """{"totalCount":0,"page":1,"pageSize":10,"language":"nb","results":[]}"""
     val domainSearchResult = domain.SearchResult[ImageMetaSummary](0, Some(1), 10, "nb", List(), None)
     val apiSearchResult    = SearchResult(0, Some(1), 10, "nb", List())
-    when(imageSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(domainSearchResult))
+    when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))
     when(searchConverterService.asApiSearchResult(domainSearchResult)).thenReturn(apiSearchResult)
     get("/") {
       status should equal(200)
@@ -135,7 +134,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       """{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"caption":{"caption":"Caption","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"by-sa","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"2021-04-01T12:34:56Z","fileSize":123,"contentType":"image/jpg"}]}"""
     val domainSearchResult = domain.SearchResult(1, Some(1), 10, "nb", List(imageSummary), None)
     val apiSearchResult    = api.SearchResult(1, Some(1), 10, "nb", List(imageSummary))
-    when(imageSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(domainSearchResult))
+    when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))
     when(searchConverterService.asApiSearchResult(domainSearchResult)).thenReturn(apiSearchResult)
     get("/") {
       status should equal(200)
@@ -144,7 +143,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   }
 
   test("That GET /<id> returns 404 when image does not exist") {
-    when(readService.withId(123, None)).thenReturn(Success(None))
+    when(readService.withId(123, None, None)).thenReturn(Success(None))
     get("/123") {
       status should equal(404)
     }
@@ -156,7 +155,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
-    when(readService.withId(1, None)).thenReturn(Success(Option(expectedObject)))
+    when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
     get("/1") {
       status should equal(200)
@@ -172,7 +171,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
 
-    when(readService.withId(1, None)).thenReturn(Success(Option(expectedObject)))
+    when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
     get("/1") {
       status should equal(200)
@@ -188,7 +187,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
 
-    when(readService.withId(1, None)).thenReturn(Success(Option(expectedObject)))
+    when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
     get("/1") {
       status should equal(200)
@@ -242,7 +241,8 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       editorNotes = Seq.empty
     )
 
-    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem])).thenReturn(Success(sampleImageMeta))
+    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem], any))
+      .thenReturn(Success(sampleImageMeta))
 
     post(
       "/",
@@ -283,7 +283,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   test("That POST / returns 500 if an unexpected error occurs") {
     reset(writeService)
     val exceptionMock = mock[RuntimeException](withSettings.strictness(Strictness.Lenient))
-    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem]))
+    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem], any))
       .thenReturn(Failure(exceptionMock))
 
     post(
@@ -298,7 +298,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
 
   test("That PATCH /<id> returns 200 when everything went well") {
     reset(writeService)
-    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any[Option[FileItem]]))
+    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any[Option[FileItem]], any))
       .thenReturn(Try(TestData.apiElg))
     patch("/1", sampleUpdateImageMeta, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
@@ -307,7 +307,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
 
   test("That PATCH /<id> returns 404 when image doesn't exist") {
     reset(writeService)
-    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any[Option[FileItem]]))
+    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any[Option[FileItem]], any))
       .thenThrow(new ImageNotFoundException(s"Image with id 1 not found"))
     patch("/1", sampleUpdateImageMeta, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(404)
@@ -331,7 +331,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Seq.empty,
       Some(scrollId)
     )
-    when(imageSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+    when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(searchResponse))
 
     get(s"/") {
       status should be(200)
@@ -353,14 +353,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(scrollId)
     )
 
-    when(imageSearchService.scrollV2(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(imageSearchService.scrollV2(anyString, anyString, any)).thenReturn(Success(searchResponse))
 
     get(s"/?search-context=$scrollId") {
       status should be(200)
     }
 
-    verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String])
+    verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings], any)
+    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String], any)
   }
 
   test("That scrolling with POST uses scroll and not searches normally") {
@@ -376,14 +376,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(scrollId)
     )
 
-    when(imageSearchService.scrollV2(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(imageSearchService.scrollV2(anyString, anyString, any)).thenReturn(Success(searchResponse))
 
     post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
       status should be(200)
     }
 
-    verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String])
+    verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings], any)
+    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String], any)
   }
 
   test("that initial search-context doesn't scroll") {
@@ -402,12 +402,12 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       results = Seq.empty,
       scrollId = Some("heiheihei")
     )
-    when(imageSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
+    when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(result))
 
     get("/?search-context=initial") {
       status should be(200)
-      verify(imageSearchService, times(1)).matchingQuery(expectedSettings)
-      verify(imageSearchService, times(0)).scrollV2(any[String], any[String])
+      verify(imageSearchService, times(1)).matchingQuery(eqTo(expectedSettings), any)
+      verify(imageSearchService, times(0)).scrollV2(any[String], any[String], any)
     }
 
   }
