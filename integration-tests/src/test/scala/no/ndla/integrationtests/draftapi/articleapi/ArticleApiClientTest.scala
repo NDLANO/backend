@@ -16,7 +16,6 @@ import no.ndla.draftapi.model.api.ContentId
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.eclipse.jetty.server.Server
 import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
 
@@ -45,12 +44,13 @@ class ArticleApiClientTest
     override def SearchServer: String = esHost
   }
 
-  val articleApi               = new articleapi.MainClass(articleApiProperties)
-  val articleApiServer: Server = articleApi.startServer()
+  import cats.effect.unsafe.implicits.global
+  val articleApi = new articleapi.MainClass(articleApiProperties)
+  val cancelFunc = articleApi.run(List.empty).unsafeRunCancelable()
 
   override def afterAll(): Unit = {
     super.afterAll()
-    articleApiServer.stop()
+    cancelFunc()
   }
 
   val idResponse: ContentId     = ContentId(1)

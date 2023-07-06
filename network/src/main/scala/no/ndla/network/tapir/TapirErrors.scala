@@ -16,10 +16,10 @@ import sttp.tapir.generic.auto._
 
 object TapirErrors {
   val logger: Logger = getLogger
-  private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[ErrorBody]] = codes
+  private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[AllErrors]] = codes
     .map(code => {
       val statusCode = StatusCode(code)
-      oneOfVariantValueMatcher(statusCode, NoNullJsonPrinter.jsonBody[ErrorBody]) { case errorBody: ErrorBody =>
+      oneOfVariantValueMatcher(statusCode, NoNullJsonPrinter.jsonBody[AllErrors]) { case errorBody: AllErrors =>
         errorBody.statusCode == statusCode.code
       }
     })
@@ -35,12 +35,12 @@ object TapirErrors {
       })
   )
 
-  def errorOutputsFor(codes: Int*): OneOf[ErrorBody, ErrorBody] = {
+  def errorOutputsFor(codes: Int*): OneOf[AllErrors, AllErrors] = {
     val non500DefaultCodes   = List(400, 404)
     val codesToGetVariantFor = (codes ++ non500DefaultCodes).distinct
     val variants             = variantsForCodes(codesToGetVariantFor)
     val err                  = variants :+ internalServerErrorDefaultVariant
 
-    oneOf[ErrorBody](err.head, err.tail: _*)
+    oneOf[AllErrors](err.head, err.tail: _*)
   }
 }

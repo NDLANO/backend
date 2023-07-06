@@ -7,6 +7,8 @@
 
 package no.ndla.common.model.domain
 
+import io.circe.{Decoder, Encoder}
+
 object Availability extends Enumeration {
   val everyone, teacher = Value
 
@@ -20,5 +22,8 @@ object Availability extends Enumeration {
       case Some(s) => valueOf(s)
     }
   }
+
+  implicit val encoder: Encoder[Availability.Value] = Encoder.encodeEnumeration(Availability)
+  implicit val decoder: Decoder[Availability.Value] = Decoder.decodeEnumeration(Availability)
 
 }

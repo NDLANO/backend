@@ -7,21 +7,17 @@
 
 package no.ndla.articleapi.db.migrationwithdependencies
 
-import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.articleapi.{ArticleApiProperties, Props}
-import no.ndla.common.model.domain.article.Article
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{Extraction, Formats}
+import org.json4s.{DefaultFormats, Extraction, Formats}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
 
-class V33__ConvertLanguageUnknown(properties: ArticleApiProperties)
-    extends BaseJavaMigration
-    with Props
-    with DBArticle {
+class V33__ConvertLanguageUnknown(properties: ArticleApiProperties) extends BaseJavaMigration with Props {
   override val props: ArticleApiProperties = properties
-  implicit val formats: Formats            = Article.jsonEncoder
+  implicit val formats: Formats            = DefaultFormats.withLong ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
@@ -66,9 +62,26 @@ class V33__ConvertLanguageUnknown(properties: ArticleApiProperties)
       .update()
   }
 
+  case class V33_Title(title: String, language: String)
+  case class V33_Content(content: String, language: String)
+  case class V33_Introduction(introduction: String, language: String)
+  case class V33_MetaImage(imageId: String, altText: String, language: String)
+  case class V33_MetaDescription(content: String, language: String)
+  case class V33_Tag(tags: Seq[String], language: String)
+  case class V33_VisualElement(resource: String, language: String)
+  case class V33_Article(
+      title: Seq[V33_Title],
+      content: Seq[V33_Content],
+      introduction: Seq[V33_Introduction],
+      metaImage: Seq[V33_MetaImage],
+      metaDescription: Seq[V33_MetaDescription],
+      tags: Seq[V33_Tag],
+      visualElement: Seq[V33_VisualElement]
+  )
+
   def convertArticleUpdate(document: String): String = {
     val oldArticle       = parse(document)
-    val extractedArticle = oldArticle.extract[Article]
+    val extractedArticle = oldArticle.extract[V33_Article]
     val title = extractedArticle.title.map(t => {
       if (t.language == "unknown")
         t.copy(language = "und")

@@ -8,18 +8,28 @@
 
 package no.ndla.articleapi.controller
 
+import cats.effect.IO
+import cats.implicits._
+import io.circe.generic.auto._
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.api.PartialPublishArticle
-import no.ndla.articleapi.model.domain.DBArticle
+import no.ndla.articleapi.model.api._
+import no.ndla.articleapi.model.domain.{ArticleIds, DBArticle}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language
+import no.ndla.network.logging.FLogging
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
-import org.json4s.Formats
-import org.scalatra.{InternalServerError, NotFound, Ok}
+import no.ndla.network.tapir.{Service, TapirErrorHelpers}
+import sttp.model.StatusCode
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.model.CommaSeparated
+import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent._
@@ -34,158 +44,203 @@ trait InternController {
     with IndexService
     with ArticleIndexService
     with ContentValidator
+    with TapirErrorHelpers
     with Props
     with DBArticle
-    with NdlaController =>
+    with Service =>
   val internController: InternController
 
-  class InternController extends NdlaController {
-    protected implicit override val jsonFormats: Formats = Article.jsonEncoder
+  class InternController extends SwaggerService with FLogging {
+    import ErrorHelpers._
 
-    post("/index") {
-      val numShards    = intOrNone("numShards")
-      implicit val ec  = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
+    override val prefix                   = "intern"
+    override val enableSwagger            = false
+    private val stringInternalServerError = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-      Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
-        case Success(articleResult) =>
-          val result =
-            s"Completed indexing of ${articleResult.totalIndexed} articles ${articleResult.millisUsed} ms."
-          logger.info(result)
-          Ok(result)
-        case Failure(articleFail) =>
-          logger.warn(articleFail.getMessage, articleFail)
-          InternalServerError(articleFail.getMessage)
-      }
-    }: Unit
+    def index: ServerEndpoint[Any, IO] = endpoint.post
+      .in("index")
+      .in(query[Option[Int]]("numShards"))
+      .out(stringBody)
+      .errorOut(stringInternalServerError)
+      .serverLogic(numShards => {
+        implicit val ec  = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+        val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
 
-    delete("/index") {
-      implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+        Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
+          case Success(articleResult) =>
+            val result =
+              s"Completed indexing of ${articleResult.totalIndexed} articles ${articleResult.millisUsed} ms."
+            logger.info(result).as(result.asRight)
+          case Failure(articleFail) =>
+            logger.warn(articleFail.getMessage, articleFail) >>
+              IO.pure(articleFail.getMessage.asLeft)
+        }
+      })
 
-      val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
+    def deleteIndex: ServerEndpoint[Any, IO] = endpoint.delete
+      .in("index")
+      .out(stringBody)
+      .errorOut(stringInternalServerError)
+      .serverLogic { _ =>
+        implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+        def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
-      val deleteResults: Seq[Try[_]] = Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
-        case (Failure(articleFail)) => halt(status = 500, body = articleFail.getMessage)
-        case (Success(articleIndexes)) => {
-          articleIndexes.map(index => {
-            logger.info(s"Deleting article index $index")
-            articleIndexService.deleteIndexWithName(Option(index))
-          })
+        val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
+
+        Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
+          case Failure(articleFail) => IO.pure(Left(articleFail.getMessage))
+          case Success(articleIndexes) =>
+            articleIndexes
+              .traverse(index =>
+                logger
+                  .info(s"Deleting article index $index")
+                  .as(
+                    articleIndexService.deleteIndexWithName(Option(index))
+                  )
+              )
+              .map((deleteResults: Seq[Try[_]]) => {
+                val (errors, successes) = deleteResults.partition(_.isFailure)
+                if (errors.nonEmpty) {
+                  val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+                    s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+                    s"${pluralIndex(successes.length)} were deleted successfully."
+                  message.asLeft
+                } else {
+                  s"Deleted ${pluralIndex(successes.length)}".asRight
+                }
+              })
         }
       }
 
-      val (errors, successes) = deleteResults.partition(_.isFailure)
-      if (errors.nonEmpty) {
-        val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
-          s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
-          s"${pluralIndex(successes.length)} were deleted successfully."
-        halt(status = 500, body = message)
-      } else {
-        Ok(body = s"Deleted ${pluralIndex(successes.length)}")
+    def getIds: ServerEndpoint[Any, IO] = endpoint.get
+      .in("ids")
+      .out(jsonBody[Seq[ArticleIds]])
+      .serverLogicPure(_ => articleRepository.getAllIds.asRight)
+
+    def getByExternalId: ServerEndpoint[Any, IO] = endpoint.get
+      .in("id")
+      .in(path[String]("external_id"))
+      .out(jsonBody[Long])
+      .errorOut(statusCode(StatusCode.NotFound))
+      .serverLogicPure(externalId => {
+        articleRepository.getIdFromExternalId(externalId) match {
+          case Some(id) => id.asRight
+          case None     => Left(())
+        }
+      })
+
+    def dumpApiArticles: ServerEndpoint[Any, IO] = endpoint.get
+      .in("articles")
+      .in(query[Int]("page").default(1))
+      .in(query[Int]("page-size").default(250))
+      .in(query[String]("language").default(Language.AllLanguages))
+      .in(query[Boolean]("fallback").default(false))
+      .out(jsonBody[ArticleDump])
+      .serverLogicPure { case (pageNo, pageSize, language, fallback) =>
+        readService.getArticlesByPage(pageNo, pageSize, language, fallback).asRight
       }
 
-    }: Unit
-
-    get("/ids") {
-      articleRepository.getAllIds
-    }: Unit
-
-    get("/id/:external_id") {
-      val externalId = params("external_id")
-      articleRepository.getIdFromExternalId(externalId) match {
-        case Some(id) => id
-        case None     => NotFound()
+    def dumpDomainArticles: ServerEndpoint[Any, IO] = endpoint.get
+      .in("dump" / "article")
+      .in(query[Int]("page").default(1))
+      .in(query[Int]("page-size").default(250))
+      .out(jsonBody[ArticleDomainDump])
+      .serverLogicPure { case (pageNo, pageSize) =>
+        readService.getArticleDomainDump(pageNo, pageSize).asRight
       }
-    }: Unit
 
-    get("/articles") {
-      // Dumps Api articles
-      val pageNo   = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-      val lang     = paramOrDefault("language", Language.AllLanguages)
-      val fallback = booleanOrDefault("fallback", default = false)
-
-      readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
-    }: Unit
-
-    get("/dump/article/?") {
-      // Dumps Domain articles
-      val pageNo   = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-
-      readService.getArticleDomainDump(pageNo, pageSize)
-    }: Unit
-
-    get("/dump/article/:article_id") {
-      val articleId = long("article_id")
-      articleRepository.withId(articleId).map(_.article) match {
-        case Some(value) => Ok(value)
-        case None        => NotFound()
-      }
-    }: Unit
-
-    post("/validate/article") {
-      val importValidate = booleanOrDefault("import_validate", default = false)
-      val article        = extract[Article](request.body)
-      contentValidator.validateArticle(article, isImported = importValidate) match {
-        case Success(_)  => article
-        case Failure(ex) => errorHandler(ex)
-      }
-    }: Unit
-
-    post("/article/:id") {
-      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
-        val externalIds         = paramAsListOfString("external-id")
-        val useImportValidation = booleanOrDefault("use-import-validation", default = false)
-        val useSoftValidation   = booleanOrDefault("use-soft-validation", default = false)
-        val article             = extract[Article](request.body)
-        val id                  = long("id")
-
-        writeService.updateArticle(
-          article.copy(id = Some(id)),
-          externalIds,
-          useImportValidation,
-          useSoftValidation
-        ) match {
-          case Success(a)  => a
-          case Failure(ex) => errorHandler(ex)
+    def dumpSingleDomainArticle: ServerEndpoint[Any, IO] = endpoint.get
+      .in("dump" / "article" / path[Long]("article_id"))
+      .out(jsonBody[Article])
+      .errorOut(statusCode(StatusCode.NotFound).and(emptyOutput))
+      .serverLogicPure { articleId =>
+        articleRepository.withId(articleId).flatMap(_.article) match {
+          case Some(value) => value.asRight
+          case None        => ().asLeft
         }
       }
-    }: Unit
 
-    delete("/article/:id/") {
-      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
-        val revision = intOrNone("revision")
-        writeService.deleteArticle(long("id"), revision) match {
-          case Success(a)  => a
-          case Failure(ex) => errorHandler(ex)
-        }
+    def validateArticle: ServerEndpoint[Any, IO] = endpoint.post
+      .in("validate" / "article")
+      .in(query[Boolean]("import_validate").default(false))
+      .in(jsonBody[Article])
+      .out(jsonBody[Article])
+      .errorOut(errorOutputsFor(400))
+      .serverLogic { case (importValidate, article) =>
+        contentValidator
+          .validateArticle(article, isImported = importValidate)
+          .handleErrorsOrOk
       }
-    }: Unit
 
-    post("/article/:id/unpublish/") {
-      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
-        val revision = intOrNone("revision")
-        writeService.unpublishArticle(long("id"), revision) match {
-          case Success(a)  => a
-          case Failure(ex) => errorHandler(ex)
-        }
+    def updateArticle: ServerEndpoint[Any, IO] = endpoint.post
+      .in("article" / path[Long]("id"))
+      .in(query[CommaSeparated[String]]("external-id"))
+      .in(query[Boolean]("use-import-validation").default(false))
+      .in(query[Boolean]("use-soft-validation").default(false))
+      .in(jsonBody[Article])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .out(jsonBody[Article])
+      .requirePermission(ARTICLE_API_WRITE)
+      .serverLogic { _ => params =>
+        val (id, externalIds, useImportValidation, useSoftValidation, article) = params
+        writeService
+          .updateArticle(
+            article.copy(id = Some(id)),
+            externalIds.values,
+            useImportValidation,
+            useSoftValidation
+          )
+          .handleErrorsOrOk
       }
-    }: Unit
 
-    patch("/partial-publish/:article_id") {
-      requirePermissionOrAccessDenied(ARTICLE_API_WRITE) {
-        val articleId         = long("article_id")
-        val partialUpdateBody = extract[PartialPublishArticle](request.body)
-        val language          = paramOrDefault("language", Language.AllLanguages)
-        val fallback          = booleanOrDefault("fallback", default = false)
-
-        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback) match {
-          case Failure(ex)         => errorHandler(ex)
-          case Success(apiArticle) => Ok(apiArticle)
-        }
+    def deleteArticle: ServerEndpoint[Any, IO] = endpoint.delete
+      .in("article" / path[Long]("id"))
+      .in(query[Option[Int]]("revision"))
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .out(jsonBody[ArticleIdV2])
+      .requirePermission(ARTICLE_API_WRITE)
+      .serverLogic { _ => params =>
+        val (id, revision) = params
+        writeService.deleteArticle(id, revision).handleErrorsOrOk
       }
-    }: Unit
+
+    def unpublishArticle: ServerEndpoint[Any, IO] = endpoint.post
+      .in("article" / path[Long]("id") / "unpublish")
+      .in(query[Option[Int]]("revision"))
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .out(jsonBody[ArticleIdV2])
+      .requirePermission(ARTICLE_API_WRITE)
+      .serverLogic { _ => params =>
+        val (id, revision) = params
+        writeService.unpublishArticle(id, revision).handleErrorsOrOk
+      }
+
+    def partialPublishArticle: ServerEndpoint[Any, IO] = endpoint.patch
+      .in("partial-publish" / path[Long]("article_id"))
+      .in(jsonBody[PartialPublishArticle])
+      .in(query[String]("language").default(Language.AllLanguages))
+      .in(query[Boolean]("fallback").default(false))
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .out(jsonBody[ArticleV2])
+      .requirePermission(ARTICLE_API_WRITE)
+      .serverLogic { _ => params =>
+        val (articleId, partialUpdateBody, language, fallback) = params
+        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback).handleErrorsOrOk
+      }
+
+    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+      index,
+      deleteIndex,
+      getIds,
+      getByExternalId,
+      dumpApiArticles,
+      dumpDomainArticles,
+      dumpSingleDomainArticle,
+      validateArticle,
+      updateArticle,
+      deleteArticle,
+      unpublishArticle,
+      partialPublishArticle
+    )
   }
 }

@@ -13,6 +13,7 @@ object commonlib extends Module {
     Seq(
       enumeratum,
       enumeratumJson4s,
+      enumeratumCirce,
       sttp,
       "org.json4s"       %% "json4s-native"     % Json4SV,
       "org.json4s"       %% "json4s-ext"        % Json4SV,

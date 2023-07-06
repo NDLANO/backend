@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi
 
-import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
@@ -21,35 +20,31 @@ trait Props extends HasBaseProps {
   val props: ArticleApiProperties
 }
 
-class ArticleApiProperties extends BaseProps with StrictLogging {
-  def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
+class ArticleApiProperties extends BaseProps {
 
-  def ApplicationName          = "article-api"
-  def Auth0LoginEndpoint       = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
-  def RoleWithWriteAccess      = "articles:write"
-  def DraftRoleWithWriteAccess = "drafts:write"
+  def ApplicationName    = "article-api"
+  def Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
-  def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
-  def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-  def ArticleSearchIndex: String           = propOrElse("SEARCH_INDEX_NAME", "articles")
-  def ArticleSearchDocument                = "article"
-  def DefaultPageSize                      = 10
-  def MaxPageSize                          = 10000
-  def IndexBulkSize                        = 200
-  def ElasticSearchIndexMaxResultWindow    = 10000
-  def ElasticSearchScrollKeepAlive         = "1m"
-  def InitialScrollContextKeywords         = List("0", "initial", "start", "first")
+  def SearchServer: String              = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
+  def ArticleSearchIndex: String        = propOrElse("SEARCH_INDEX_NAME", "articles")
+  def ArticleSearchDocument             = "article"
+  def DefaultPageSize                   = 10
+  def MaxPageSize                       = 10000
+  def IndexBulkSize                     = 200
+  def ElasticSearchIndexMaxResultWindow = 10000
+  def ElasticSearchScrollKeepAlive      = "1m"
+  def InitialScrollContextKeywords      = List("0", "initial", "start", "first")
 
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
@@ -93,7 +88,6 @@ class ArticleApiProperties extends BaseProps with StrictLogging {
 
   def oldRightsholderTypes: List[String] = List("rettighetshaver", "forlag", "distributør", "leverandør")
   def rightsholderTypes: List[String]    = List("rightsholder", "publisher", "distributor", "supplier")
-  def allowedAuthors: List[String]       = creatorTypes ++ processorTypes ++ rightsholderTypes
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node

@@ -13,6 +13,9 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.network.logging.FLogging
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
+import sttp.monad.MonadError
+import sttp.tapir.Endpoint
+import sttp.tapir.server.PartialServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
@@ -23,6 +26,7 @@ trait TapirErrorHelpers extends FLogging {
     val GENERIC                = "GENERIC"
     val NOT_FOUND              = "NOT_FOUND"
     val BAD_REQUEST            = "BAD_REQUEST"
+    val INDEX_MISSING          = "INDEX_MISSING"
     val UNPROCESSABLE_ENTITY   = "UNPROCESSABLE_ENTITY"
     val UNAUTHORIZED           = "UNAUTHORIZED"
     val FORBIDDEN              = "FORBIDDEN"
@@ -48,8 +52,11 @@ trait TapirErrorHelpers extends FLogging {
     val FORBIDDEN_DESCRIPTION            = "You do not have the required permissions to access that resource"
     val RESOURCE_OUTDATED_DESCRIPTION    = "The resource is outdated. Please try fetching before submitting again."
     val METHOD_NOT_ALLOWED_DESCRIPTION   = "You requested a unsupported method on this endpoint."
+    val VALIDATION_DESCRIPTION           = "Validation Error"
     val INVALID_SEARCH_CONTEXT_DESCRIPTION =
       "The search-context specified was not expected. Please create one by searching from page 1."
+    val INDEX_MISSING_DESCRIPTION =
+      s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
 
     def generic: ErrorBody                      = ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 500)
     def notFound: ErrorBody                     = ErrorBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now(), 404)
@@ -65,11 +72,24 @@ trait TapirErrorHelpers extends FLogging {
     /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
       * some endpoint.
       */
-    def requireScope(scope: Permission): Option[TokenUser] => Either[ErrorBody, TokenUser] = {
-      case Some(user) if user.hasPermission(scope) => user.asRight
-      case Some(_)                                 => ErrorHelpers.forbidden.asLeft
-      case None                                    => ErrorHelpers.unauthorized.asLeft
+    def requireScope(scope: Permission*): Option[TokenUser] => Either[AllErrors, TokenUser] = {
+      case Some(user) if user.hasPermissions(scope) => user.asRight
+      case Some(_)                                  => ErrorHelpers.forbidden.asLeft
+      case None                                     => ErrorHelpers.unauthorized.asLeft
     }
+
+    implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
+      def requirePermission[F[_]](
+          requiredPermission: Permission*
+      ): PartialServerEndpoint[Option[TokenUser], TokenUser, I, AllErrors, O, R, F] = {
+        val newEndpoint   = self.securityIn(sttp.tapir.auth.bearer[Option[TokenUser]]())
+        val authFunc      = ErrorHelpers.requireScope(requiredPermission: _*)
+        val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
+
+        PartialServerEndpoint(newEndpoint, securityLogic)
+      }
+    }
+
   }
 
   private def handleUnknownError(e: Throwable): IO[ErrorBody] = {
@@ -79,10 +99,10 @@ trait TapirErrorHelpers extends FLogging {
     }
   }
 
-  def handleErrors: PartialFunction[Throwable, IO[ErrorBody]]
-  def returnError(ex: Throwable): IO[ErrorBody] = handleErrors.applyOrElse(ex, handleUnknownError)
+  def handleErrors: PartialFunction[Throwable, IO[AllErrors]]
+  def returnError(ex: Throwable): IO[AllErrors] = handleErrors.applyOrElse(ex, handleUnknownError)
 
-  def returnLeftError[R](ex: Throwable): IO[Either[ErrorBody, R]] = returnError(ex).map(_.asLeft[R])
+  def returnLeftError[R](ex: Throwable): IO[Either[AllErrors, R]] = returnError(ex).map(_.asLeft[R])
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
     import cats.implicits._
@@ -90,7 +110,7 @@ trait TapirErrorHelpers extends FLogging {
     /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
       * to a generic 500 error.
       */
-    def handleErrorsOrOk: IO[Either[ErrorBody, T]] = t match {
+    def handleErrorsOrOk: IO[Either[AllErrors, T]] = t match {
       case Success(value) => IO(value.asRight)
       case Failure(ex)    => returnLeftError(ex)
     }
@@ -105,7 +125,7 @@ trait TapirErrorHelpers extends FLogging {
       * If the error is not defined in the callback or in the default errorHandler [[returnError]] we fallback to a
       * generic 500 error.
       */
-    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): IO[Either[ErrorBody, T]] = t match {
+    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): IO[Either[AllErrors, T]] = t match {
       case Success(value)                          => IO(value.asRight)
       case Failure(ex) if callback.isDefinedAt(ex) => IO(callback(ex).asLeft)
       case Failure(ex)                             => returnLeftError(ex)

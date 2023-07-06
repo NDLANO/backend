@@ -12,14 +12,15 @@ import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.Availability
+import no.ndla.network.tapir.TapirServer
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.mockito.ArgumentMatchers._
-import org.scalatra.test.scalatest.ScalatraFunSuite
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class ArticleControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
+class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
 
   val legacyAuthHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfbWV0YWRhdGEiOnsicm9sZXMiOlsiYXJ0aWNsZXM6d3JpdGUiXSwibmRsYV9pZCI6ImFiYzEyMyJ9LCJuYW1lIjoiRG9uYWxkIER1Y2siLCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYWJjIiwiZXhwIjoxNDg2MDcwMDYzLCJpYXQiOjE0ODYwMzQwNjN9.VxqM2bu2UF8IAalibIgdRdmsTDDWKEYpKzHPbCJcFzA"
@@ -39,11 +40,23 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Hbmh9KX19nx7yT3rEcP9pyzRO0uQJBRucfqH9QEZtLyXjYj_fAyOhsoicOVEbHSES7rtdiJK43-gijSpWWmGWOkE6Ym7nHGhB_nLdvp_25PDgdKHo-KawZdAyIcJFr5_t3CJ2Z2IPVbrXwUd99vuXEBaV0dMwkT0kDtkwHuS-8E"
 
-  implicit val formats: Formats        = DefaultFormats + new EnumNameSerializer(Availability)
-  implicit val swagger: ArticleSwagger = new ArticleSwagger
+  implicit val formats: Formats = DefaultFormats + new EnumNameSerializer(Availability)
 
   lazy val controller = new ArticleControllerV2
-  addServlet(controller, "/test")
+
+  val serverPort: Int = findFreePort
+
+  override def beforeAll(): Unit = {
+    val app    = Routes.build(List(controller))
+    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
+    server.runInBackground()
+    blockUntil(() => server.isReady)
+  }
+
+  override def beforeEach(): Unit = {
+    reset(clock, searchConverterService)
+    when(clock.now()).thenCallRealMethod()
+  }
 
   val updateTitleJson = """{"revision": 1, "title": "hehe", "language": "nb", "content": "content"}"""
   val invalidArticle  = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
@@ -54,30 +67,47 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     when(readService.withIdV2(articleId, lang, fallback = false, None, None))
       .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
 
-    get(s"/test/$articleId?language=$lang") {
-      status should equal(200)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang")
+      )
+      .code
+      .code should be(200)
   }
 
   test("/<article_id> should return 404 if the article was not found withIdV2") {
     when(readService.withIdV2(articleId, lang, fallback = false, None, None))
       .thenReturn(Failure(api.NotFoundException("Not found")))
 
-    get(s"/test/$articleId?language=$lang") {
-      status should equal(404)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang")
+      )
+      .code
+      .code should be(404)
   }
 
-  test("/<article_id> should return 200 if parameter is correctly formated (urn:article:<id>#<revision>") {
+  test("/<article_id> should return 200 if parameter is correctly formatted (urn:article:<id>#<revision>)") {
     val articleId2             = 23L
     val revision               = 5
     val articleUrnWithRevision = s"urn:article:$articleId2#$revision"
 
-    when(readService.withIdV2(articleId2, "*", fallback = false, None, None))
-      .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
-    get(s"/test/$articleUrnWithRevision") {
-      status should equal(200)
-    }
+    when(
+      readService.withIdV2(
+        articleId2,
+        "*",
+        fallback = false,
+        Some(revision),
+        None
+      )
+    ).thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
+
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleUrnWithRevision")
+      )
+      .code
+      .code should be(200)
   }
 
   test("/<article_id> should return 200 if slug was sent as parameter") {
@@ -85,9 +115,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
 
     when(readService.getArticleBySlug(any, any, any))
       .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
-    get(s"/test/$slug") {
-      status should equal(200)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$slug")
+      )
+      .code
+      .code should be(200)
   }
 
   test("/<article_id> default behavior should be to find by slug") {
@@ -95,9 +128,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
 
     when(readService.getArticleBySlug(any, any, any))
       .thenReturn(Failure(api.NotFoundException("Not found")))
-    get(s"/test/$malformedUrn") {
-      status should equal(404)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$malformedUrn")
+      )
+      .code
+      .code should be(404)
   }
 
   test("That scrollId is in header, and not in body") {
@@ -113,16 +149,21 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
       .thenReturn(Success(domain.Cachable.yes(searchResponse)))
+    when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
-    get(s"/test/") {
-      status should be(200)
-      body.contains(scrollId) should be(false)
-      response.getHeader("search-context") should be(scrollId)
-    }
+    val resp = simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/")
+      )
+
+    resp.code.code should be(200)
+    resp.body.contains(scrollId) should be(false)
+    resp.header("search-context") should be(Some(scrollId))
   }
 
   test("That scrolling uses scroll and not searches normally") {
     reset(articleSearchService, readService)
+    when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
     val searchResponse = SearchResult[api.ArticleSummaryV2](
@@ -136,9 +177,11 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    get(s"/test?search-context=$scrollId") {
-      status should be(200)
-    }
+    val resp = simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=$scrollId")
+      )
+    resp.code.code should be(200)
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
     verify(readService, times(0)).search(any, any, any, any, any, any, any, any, any, any, any, any)
@@ -159,10 +202,16 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     )
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
-    post(s"/test/search/", body = s"""{"scrollId":"$scrollId"}""") {
-      status should be(200)
-    }
+    val response = simpleHttpClient
+      .send(
+        quickRequest
+          .post(uri"http://localhost:$serverPort/article-api/v2/articles/search")
+          .body(s"""{"scrollId":"$scrollId"}""")
+          .header("content-type", "application/json")
+      )
+    response.code.code should be(200)
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String])
@@ -172,9 +221,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
       .thenReturn(TestData.sampleApiTagsSearchResult)
 
-    get("/test/tag-search/") {
-      status should equal(200)
-    }
+    val response = simpleHttpClient
+      .send(
+        quickRequest
+          .get(uri"http://localhost:$serverPort/article-api/v2/articles/tag-search/")
+      )
+    response.code.code should be(200)
   }
 
   test("That initial search-context doesn't scroll") {
@@ -190,25 +242,30 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
       .thenReturn(Success(domain.Cachable.yes(result)))
-
-    get("/test/?search-context=initial") {
-      status should be(200)
-      verify(readService, times(1)).search(
-        query = any,
-        sort = any,
-        language = eqTo("*"),
-        license = any,
-        page = any,
-        pageSize = any,
-        idList = any,
-        articleTypesFilter = any,
-        fallback = any,
-        grepCodes = any,
-        shouldScroll = eqTo(true),
-        feideAccessToken = any
+    when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
+    simpleHttpClient
+      .send(
+        quickRequest
+          .get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=initial")
       )
-      verify(articleSearchService, times(0)).scroll(any[String], any[String])
-    }
+      .code
+      .code should be(200)
+
+    verify(readService, times(1)).search(
+      query = any,
+      sort = any,
+      language = eqTo("*"),
+      license = any,
+      page = any,
+      pageSize = any,
+      idList = any,
+      articleTypesFilter = any,
+      fallback = any,
+      grepCodes = any,
+      shouldScroll = eqTo(true),
+      feideAccessToken = any
+    )
+    verify(articleSearchService, times(0)).scroll(any[String], any[String])
   }
 
 }

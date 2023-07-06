@@ -15,7 +15,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.network.logging.FLogging
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{ErrorBody, TapirErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
 import no.ndla.search.NdlaSearchException
 import org.postgresql.util.PSQLException
 import org.scalatra.servlet.SizeConstraintExceededException
@@ -41,10 +41,10 @@ trait ErrorHelpers extends TapirErrorHelpers with FLogging {
 
   import Helpers._
 
-  override def handleErrors: PartialFunction[Throwable, IO[ErrorBody]] = {
+  override def handleErrors: PartialFunction[Throwable, IO[AllErrors]] = {
     case a: AccessDeniedException => IO(ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403))
     case v: ValidationException =>
-      IO(ErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400))
+      IO(new ValidationErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400))
     case hre: HttpRequestException          => IO(ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502))
     case rw: ResultWindowTooLargeException  => IO(ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422))
     case i: ImportException                 => IO(ErrorBody(IMPORT_FAILED, i.getMessage, clock.now(), 422))
