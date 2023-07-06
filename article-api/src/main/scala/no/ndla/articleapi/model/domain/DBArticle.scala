@@ -21,8 +21,12 @@ import scalikejdbc._
 trait DBArticle {
   this: Props =>
   object Article extends SQLSyntaxSupport[Article] {
-    val jsonEncoder: Formats = DefaultFormats.withLong +
-      new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(ArticleType)
+    val jsonEncoder: Formats =
+      DefaultFormats.withLong +
+        new EnumNameSerializer(Availability) ++
+        JavaTimeSerializers.all +
+        Json4s.serializer(ArticleType)
+
     override val tableName                       = "contentdata"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 

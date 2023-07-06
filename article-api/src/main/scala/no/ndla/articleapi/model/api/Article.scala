@@ -9,10 +9,9 @@
 package no.ndla.articleapi.model.api
 
 import no.ndla.common.model.api.RelatedContent
-
-import java.time.LocalDateTime
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 // format: off

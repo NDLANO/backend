@@ -8,11 +8,14 @@ package no.ndla.network.tapir
 
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.DateParser
 import no.ndla.common.configuration.HasBaseProps
 import org.http4s.HttpRoutes
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.server.ServerEndpoint
+
+import java.time.LocalDateTime
 
 trait Service {
   this: NdlaMiddleware with HasBaseProps =>
@@ -26,6 +29,11 @@ trait Service {
       oneOfVariantValueMatcher(StatusCode.Ok, jsonBody[Option[T]]) { case Some(_) => true },
       oneOfVariantValueMatcher(StatusCode.NoContent, jsonBody[Option[T]]) { case None => true }
     )
+
+    // Since we don't "own" the `LocalDateTime` class we cannot automatically include encoder/decoders
+    // in the companion object.
+    protected implicit val dateTimeEncoder: Encoder[LocalDateTime] = DateParser.Circe.localDateTimeEncoder
+    protected implicit val dateTimeDecoder: Decoder[LocalDateTime] = DateParser.Circe.localDateTimeDecoder
   }
 
   trait NoDocService extends Service {

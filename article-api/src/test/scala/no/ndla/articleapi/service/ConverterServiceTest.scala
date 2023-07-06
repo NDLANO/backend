@@ -13,7 +13,8 @@ import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.{api => commonApi}
 import no.ndla.common.model.RelatedContentLink
-import no.ndla.common.model.domain.{Description, Author, Availability, RequiredLibrary, Tag, Title}
+import no.ndla.common.model.api.UpdateWith
+import no.ndla.common.model.domain.{Author, Availability, Description, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 
 import java.time.LocalDateTime
@@ -249,7 +250,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           )
         ),
         tags = Some(Seq(api.ArticleTag(Seq("nye", "Tags"), "nb"))),
-        revisionDate = Right(Some(revisionDate))
+        revisionDate = UpdateWith(revisionDate)
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
@@ -301,7 +302,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             api.ArticleTag(Seq("Guten", "Tag"), "de")
           )
         ),
-        revisionDate = Right(Some(revisionDate))
+        revisionDate = UpdateWith(revisionDate)
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,

@@ -13,11 +13,11 @@ import io.circe.generic.auto._
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}

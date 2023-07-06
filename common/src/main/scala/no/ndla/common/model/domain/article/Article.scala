@@ -8,20 +8,7 @@
 
 package no.ndla.common.model.domain.article
 
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Availability,
-  Content,
-  Description,
-  Introduction,
-  RelatedContent,
-  RequiredLibrary,
-  Tag,
-  Title,
-  VisualElement
-}
+import no.ndla.common.model.domain._
 
 import java.time.LocalDateTime
 

@@ -45,10 +45,8 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService extends StrictLogging {
-    import ErrorHelpers.ArticleGoneException
-
-    def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
-      articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
+    def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2] =
+      articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2)
 
     def withIdV2(
         id: Long,
@@ -64,7 +62,7 @@ trait ReadService {
 
       article.mapArticle(addUrlsOnEmbedResources) match {
         case None                               => Failure(NotFoundException(s"The article with id $id was not found"))
-        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleErrorHelpers.ArticleGoneException())
         case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(ArticleRow(_, _, _, _, Some(article))) =>
@@ -84,7 +82,7 @@ trait ReadService {
     def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[Cachable[api.ArticleV2]] = {
       articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
         case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
-        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleErrorHelpers.ArticleGoneException())
         case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(ArticleRow(_, _, _, _, Some(article))) =>

@@ -8,58 +8,60 @@
 
 package no.ndla.articleapi.model.api
 
-import java.time.LocalDateTime
-import scala.annotation.meta.field
+import cats.effect.IO
+import cats.implicits.catsSyntaxOptionId
 import no.ndla.articleapi.Props
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import no.ndla.articleapi.integration.DataSource
+import no.ndla.common.Clock
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.network.logging.FLogging
+import no.ndla.network.tapir.{
+  AllErrors,
+  ErrorBody,
+  NotFoundWithSupportedLanguages,
+  TapirErrorHelpers,
+  ValidationErrorBody
+}
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
+import org.postgresql.util.PSQLException
 
-@ApiModel(description = "Information about an error")
-case class Error(
-    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
-    @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now(),
-    @(ApiModelProperty @field)(description = "The supported languages for an article") supportedLanguages: Option[
-      Seq[String]
-    ] = None
-)
+trait ErrorHelpers extends TapirErrorHelpers with FLogging {
+  this: Props with Clock with DataSource =>
 
-trait ErrorHelpers {
-  this: Props =>
+  import ErrorHelpers._
 
-  object ErrorHelpers {
-    val GENERIC              = "GENERIC"
-    val NOT_FOUND            = "NOT_FOUND"
-    val INDEX_MISSING        = "INDEX_MISSING"
-    val VALIDATION           = "VALIDATION"
-    val RESOURCE_OUTDATED    = "RESOURCE_OUTDATED"
-    val ACCESS_DENIED        = "ACCESS DENIED"
-    val WINDOW_TOO_LARGE     = "RESULT_WINDOW_TOO_LARGE"
-    val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
-    val ARTICLE_GONE         = "ARTICLE_GONE"
+  override def handleErrors: PartialFunction[Throwable, IO[AllErrors]] = {
+    case a: AccessDeniedException if a.unauthorized =>
+      IO(ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401))
+    case a: AccessDeniedException =>
+      IO(ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403))
+    case v: ValidationException =>
+      IO.pure(ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400))
+    case _: IndexNotFoundException =>
+      IO(ErrorBody(INDEX_MISSING, INDEX_MISSING, clock.now(), 500))
+    case NotFoundException(message, sl) if sl.isEmpty => IO(notFoundWithMsg(message))
+    case NotFoundException(message, supportedLanguages) =>
+      IO(NotFoundWithSupportedLanguages(NOT_FOUND, message, clock.now(), supportedLanguages, 404))
+    case rw: ArticleErrorHelpers.ResultWindowTooLargeException =>
+      IO(ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422))
+    case _: PSQLException =>
+      DataSource.connectToDatabase()
+      IO(ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500))
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      IO(ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400))
+    case age: ArticleErrorHelpers.ArticleGoneException =>
+      IO(ErrorBody(ArticleErrorHelpers.ARTICLE_GONE, age.getMessage, clock.now(), 410))
+  }
 
-    val VALIDATION_DESCRIPTION = "Validation Error"
-    val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
-
-    val GENERIC_DESCRIPTION =
-      s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-
-    val INDEX_MISSING_DESCRIPTION =
-      s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
-    val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
+  object ArticleErrorHelpers {
+    val ARTICLE_GONE = "ARTICLE_GONE"
 
     val WINDOW_TOO_LARGE_DESCRIPTION =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 
-    val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
-
-    val INVALID_SEARCH_CONTEXT_DESCRIPTION =
-      "The search-context specified was not expected. Please create one by searching from page 1."
-
     val ARTICLE_GONE_DESCRIPTION = "The article you are searching for seems to have vanished 👻"
-
-    val GenericError: Error         = Error(GENERIC, GENERIC_DESCRIPTION)
-    val IndexMissingError: Error    = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
-    val InvalidSearchContext: Error = Error(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION)
 
     case class ResultWindowTooLargeException(message: String = WINDOW_TOO_LARGE_DESCRIPTION)
         extends RuntimeException(message)

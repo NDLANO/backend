@@ -7,38 +7,61 @@
 
 package no.ndla.network.tapir
 
-import io.circe.Encoder
+import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
+import io.circe.syntax.EncoderOps
+import no.ndla.common.DateParser
 import no.ndla.common.errors.ValidationMessage
 import sttp.tapir.Schema.annotations.description
 
 import java.time.LocalDateTime
 
+sealed trait AllErrors {
+  val statusCode: Int
+}
+
+object AllErrors {
+  def removeStatusCode[A](encoder: Encoder.AsObject[A]): Encoder.AsObject[A] = {
+    encoder.mapJsonObject(_.remove("statusCode"))
+  }
+
+  implicit val dateTimeEncoder: Encoder[LocalDateTime] = DateParser.Circe.localDateTimeEncoder
+  implicit val dateTimeDecoder: Decoder[LocalDateTime] = DateParser.Circe.localDateTimeDecoder
+
+  implicit val notFound            = removeStatusCode(deriveEncoder[NotFoundWithSupportedLanguages])
+  implicit val msgEncoder          = deriveEncoder[ValidationMessage]
+  implicit val validationErrorBody = removeStatusCode(deriveEncoder[ValidationErrorBody])
+  implicit val errorBody           = removeStatusCode(deriveEncoder[ErrorBody])
+
+  implicit val encoder: Encoder[AllErrors] = Encoder.instance {
+    case s: ErrorBody                       => s.asJson
+    case vb: ValidationErrorBody            => vb.asJson
+    case nf: NotFoundWithSupportedLanguages => nf.asJson
+  }
+}
+
 @description("Information about an error")
 case class ErrorBody(
     @description("Code stating the type of error") code: String,
     @description("Description of the error") description: String,
-    @description("When the error occured") occurredAt: LocalDateTime,
+    @description("When the error occurred") occurredAt: LocalDateTime,
+    @description("Numeric http status code") override val statusCode: Int
+) extends AllErrors
+
+@description("Information about an error")
+case class ValidationErrorBody(
+    @description("Code stating the type of error") code: String,
+    @description("Description of the error") description: String,
+    @description("When the error occurred") occurredAt: LocalDateTime,
     @description("List of validation messages") messages: Option[Seq[ValidationMessage]],
-    @description("Numeric http status code") statusCode: Int
-)
+    @description("Numeric http status code") override val statusCode: Int
+) extends AllErrors
 
-object ErrorBody {
-  implicit val msgEncoder: Encoder.AsObject[ValidationMessage] = deriveEncoder[ValidationMessage]
-  implicit val encoder: Encoder[ErrorBody] = deriveEncoder[ErrorBody].mapJsonObject(_.remove("statusCode"))
-
-  def apply(
-      code: String,
-      description: String,
-      occurredAt: LocalDateTime,
-      statusCode: Int
-  ): ErrorBody = {
-    new ErrorBody(
-      code = code,
-      description = description,
-      occurredAt = occurredAt,
-      messages = None,
-      statusCode = statusCode
-    )
-  }
-}
+@description("Information about an error")
+case class NotFoundWithSupportedLanguages(
+    @description("Code stating the type of error") code: String,
+    @description("Description of the error") description: String,
+    @description("When the error occurred") occurredAt: LocalDateTime,
+    @description("List of supported languages") supportedLanguages: Seq[String],
+    @description("Numeric http status code") override val statusCode: Int
+) extends AllErrors

@@ -7,10 +7,12 @@
 
 package no.ndla.network.tapir
 
-import no.ndla.network.tapir.NoNullJsonPrinter._
 import cats.data.Kleisli
 import cats.effect.IO
 import io.circe.generic.auto._
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.DateParser
+import no.ndla.network.tapir.NoNullJsonPrinter._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
@@ -27,10 +29,16 @@ import sttp.tapir.server.interceptor.reject.RejectHandler
 import sttp.tapir.server.model.ValuedEndpointOutput
 import sttp.tapir.{EndpointInput, statusCode}
 
+import java.time.LocalDateTime
+
 trait Routes {
   this: Service with NdlaMiddleware with TapirErrorHelpers =>
 
   object Routes {
+
+    implicit val dateTimeEncoder: Encoder[LocalDateTime] = DateParser.Circe.localDateTimeEncoder
+    implicit val dateTimeDecoder: Decoder[LocalDateTime] = DateParser.Circe.localDateTimeDecoder
+
     val logger: Logger = getLogger
     private def buildBindings(routes: List[Service]): List[(String, HttpRoutes[IO])] = {
       val (docServices, noDocServices) = routes.partitionMap {
@@ -50,14 +58,14 @@ trait Routes {
         case None     => logger.error(logMsg)
       }
 
-      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.generic)
+      ValuedEndpointOutput(jsonBody[AllErrors], ErrorHelpers.generic)
     }
 
     private val decodeFailureHandler =
       DefaultDecodeFailureHandler.default
         .response(failureMsg => {
           ValuedEndpointOutput(
-            jsonBody[ErrorBody],
+            jsonBody[AllErrors],
             ErrorHelpers.badRequest(failureMsg)
           )
         })
@@ -67,7 +75,7 @@ trait Routes {
         for {
           errorToReturn <- returnError(ctx.e)
           sc     = StatusCode(errorToReturn.statusCode)
-          resp   = ValuedEndpointOutput(jsonBody[ErrorBody], errorToReturn)
+          resp   = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
           withsc = resp.prepend(statusCode, sc)
           result <- monad.unit(Some(withsc))
         } yield result

@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi
 
-import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller._
@@ -24,6 +23,7 @@ import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -34,14 +34,14 @@ trait TestEnvironment
     with IndexService
     with BaseIndexService
     with SearchService
-    with StrictLogging
-    with NdlaController
     with NdlaControllerBase
     with NdlaSwaggerSupport
     with ArticleControllerV2
     with InternController
-    with HealthController
+    with Service
+    with NdlaMiddleware
     with DataSource
+    with Routes
     with ArticleRepository
     with MockitoSugar
     with DraftApiClient
@@ -52,11 +52,11 @@ trait TestEnvironment
     with NdlaClient
     with SearchConverterService
     with ReadService
+    with TapirHealthController
     with WriteService
     with ContentValidator
     with Clock
     with ErrorHelpers
-    with ArticleApiInfo
     with MemoizeHelpers
     with DBArticle
     with Props
@@ -72,7 +72,7 @@ trait TestEnvironment
   val internController    = mock[InternController]
   val articleControllerV2 = mock[ArticleControllerV2]
 
-  val healthController = mock[HealthController]
+  val healthController = mock[TapirHealthController]
 
   val dataSource        = mock[HikariDataSource]
   val articleRepository = mock[ArticleRepository]

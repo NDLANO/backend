@@ -7,12 +7,12 @@
 
 package no.ndla.common.model.domain
 
-import enumeratum.{Enum, EnumEntry}
+import enumeratum._
 import no.ndla.common.errors.ValidationException
 
 sealed abstract class ArticleType(override val entryName: String) extends EnumEntry
 
-object ArticleType extends Enum[ArticleType] {
+object ArticleType extends Enum[ArticleType] with CirceEnum[ArticleType] {
   case object Standard         extends ArticleType("standard")
   case object TopicArticle     extends ArticleType("topic-article")
   case object FrontpageArticle extends ArticleType("frontpage-article")
