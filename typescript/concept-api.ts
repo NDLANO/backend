@@ -86,6 +86,7 @@ export interface IConceptSummary {
   articleIds: number[]
   source?: string
   responsible?: IConceptResponsible
+  conceptType: string
 }
 
 export interface IConceptTags {
