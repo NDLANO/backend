@@ -8,27 +8,25 @@
 
 package no.ndla.articleapi.model.api
 
-import org.scalatra.swagger.annotations.ApiModel
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
 import java.time.LocalDateTime
-import scala.annotation.meta.field
 
 // format: off
-@ApiModel(description = "Short summary of information about the article")
+@description("Short summary of information about the article")
 case class ArticleSummaryV2(
-    @(ApiModelProperty @field)(description = "The unique id of the article") id: Long,
-    @(ApiModelProperty @field)(description = "The title of the article") title: ArticleTitle,
-    @(ApiModelProperty @field)(description = "A visual element article") visualElement: Option[VisualElement],
-    @(ApiModelProperty @field)(description = "An introduction for the article") introduction: Option[ArticleIntroduction],
-    @(ApiModelProperty @field)(description = "A metaDescription for the article") metaDescription: Option[ArticleMetaDescription],
-    @(ApiModelProperty @field)(description = "A meta image for the article") metaImage: Option[ArticleMetaImage],
-    @(ApiModelProperty @field)(description = "The full url to where the complete information about the article can be found") url: String,
-    @(ApiModelProperty @field)(description = "Describes the license of the article") license: String,
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
-    @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: LocalDateTime,
-    @(ApiModelProperty @field)(description = "A list of available languages for this article") supportedLanguages: Seq[String],
-    @(ApiModelProperty @field)(description = "A list of codes from GREP API attached to this article") grepCodes: Seq[String],
-    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
+    @description("The unique id of the article") id: Long,
+    @description("The title of the article") title: ArticleTitle,
+    @description("A visual element article") visualElement: Option[VisualElement],
+    @description("An introduction for the article") introduction: Option[ArticleIntroduction],
+    @description("A metaDescription for the article") metaDescription: Option[ArticleMetaDescription],
+    @description("A meta image for the article") metaImage: Option[ArticleMetaImage],
+    @description("The full url to where the complete information about the article can be found") url: String,
+    @description("Describes the license of the article") license: String,
+    @description("The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
+    @description("The time when the article was last updated") lastUpdated: LocalDateTime,
+    @description("A list of available languages for this article") supportedLanguages: Seq[String],
+    @description("A list of codes from GREP API attached to this article") grepCodes: Seq[String],
+    @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
 )
 // format: on

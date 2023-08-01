@@ -13,21 +13,20 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.{eitherDecoder, eitherEncoder}
 import no.ndla.common.model.api.{RelatedContent, RelatedContentLink, UpdateOrDelete}
 import no.ndla.common.model.domain.Availability
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
 import java.time.LocalDateTime
-import scala.annotation.meta.field
 
 // format: off
-@ApiModel(description = "Partial data about article to publish independently")
+@description("Partial data about article to publish independently")
 case class PartialPublishArticle(
-    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[Availability.Value],
-    @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "The name of the license") license: Option[String],
-    @(ApiModelProperty @field)(description = "A list of meta description objects") metaDescription: Option[Seq[ArticleMetaDescription]],
-    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
-    @(ApiModelProperty @field)(description = "A list of tag objects") tags: Option[Seq[ArticleTag]],
-    @(ApiModelProperty @field)(description = "A revision date to specify expected earliest revision date of the article") revisionDate:  UpdateOrDelete[LocalDateTime],
+    @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[Availability.Value],
+    @description("A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
+    @description("The name of the license") license: Option[String],
+    @description("A list of meta description objects") metaDescription: Option[Seq[ArticleMetaDescription]],
+    @description("A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
+    @description("A list of tag objects") tags: Option[Seq[ArticleTag]],
+    @description("A revision date to specify expected earliest revision date of the article") revisionDate:  UpdateOrDelete[LocalDateTime],
 )
 
 object PartialPublishArticle {

@@ -8,12 +8,11 @@
 
 package no.ndla.articleapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
-@ApiModel(description = "Description of license information")
+@description("Description of license information")
 case class License(
-    @(ApiModelProperty @field)(description = "The name of the license") license: String,
-    @(ApiModelProperty @field)(description = "Description of the license") description: Option[String],
-    @(ApiModelProperty @field)(description = "Url to where the license can be found") url: Option[String]
+    @description("The name of the license") license: String,
+    @description("Description of the license") description: Option[String],
+    @description("Url to where the license can be found") url: Option[String]
 )

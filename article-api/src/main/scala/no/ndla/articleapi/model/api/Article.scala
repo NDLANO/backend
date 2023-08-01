@@ -9,37 +9,36 @@
 package no.ndla.articleapi.model.api
 
 import no.ndla.common.model.api.RelatedContent
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
 import java.time.LocalDateTime
-import scala.annotation.meta.field
 
 // format: off
-@ApiModel(description = "Information about the article")
+@description("Information about the article")
 case class ArticleV2(
-    @(ApiModelProperty @field)(description = "The unique id of the article") id: Long,
-    @(ApiModelProperty @field)(description = "Link to article on old platform") oldNdlaUrl: Option[String],
-    @(ApiModelProperty @field)(description = "The revision number for the article") revision: Int,
-    @(ApiModelProperty @field)(description = "Available titles for the article") title: ArticleTitle,
-    @(ApiModelProperty @field)(description = "The content of the article in available languages") content: ArticleContentV2,
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the article") copyright: Copyright,
-    @(ApiModelProperty @field)(description = "Searchable tags for the article") tags: ArticleTag,
-    @(ApiModelProperty @field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
-    @(ApiModelProperty @field)(description = "A visual element article") visualElement: Option[VisualElement],
-    @(ApiModelProperty @field)(description = "A meta image for the article") metaImage: Option[ArticleMetaImage],
-    @(ApiModelProperty @field)(description = "An introduction for the article") introduction: Option[ArticleIntroduction],
-    @(ApiModelProperty @field)(description = "Meta description for the article") metaDescription: ArticleMetaDescription,
-    @(ApiModelProperty @field)(description = "When the article was created") created: LocalDateTime,
-    @(ApiModelProperty @field)(description = "When the article was last updated") updated: LocalDateTime,
-    @(ApiModelProperty @field)(description = "By whom the article was last updated") updatedBy: String,
-    @(ApiModelProperty @field)(description = "When the article was last published") published: LocalDateTime,
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
-    @(ApiModelProperty @field)(description = "The languages this article supports") supportedLanguages: Seq[String],
-    @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Seq[String],
-    @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Seq[Long],
-    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
-    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent],
-    @(ApiModelProperty @field)(description = "The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[LocalDateTime],
-    @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
+    @description("The unique id of the article") id: Long,
+    @description("Link to article on old platform") oldNdlaUrl: Option[String],
+    @description("The revision number for the article") revision: Int,
+    @description("Available titles for the article") title: ArticleTitle,
+    @description("The content of the article in available languages") content: ArticleContentV2,
+    @description("Describes the copyright information for the article") copyright: Copyright,
+    @description("Searchable tags for the article") tags: ArticleTag,
+    @description("Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
+    @description("A visual element article") visualElement: Option[VisualElement],
+    @description("A meta image for the article") metaImage: Option[ArticleMetaImage],
+    @description("An introduction for the article") introduction: Option[ArticleIntroduction],
+    @description("Meta description for the article") metaDescription: ArticleMetaDescription,
+    @description("When the article was created") created: LocalDateTime,
+    @description("When the article was last updated") updated: LocalDateTime,
+    @description("By whom the article was last updated") updatedBy: String,
+    @description("When the article was last published") published: LocalDateTime,
+    @description("The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
+    @description("The languages this article supports") supportedLanguages: Seq[String],
+    @description("A list of codes from GREP API connected to the article") grepCodes: Seq[String],
+    @description("A list of conceptIds connected to the article") conceptIds: Seq[Long],
+    @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
+    @description("A list of content related to the article") relatedContent: Seq[RelatedContent],
+    @description("The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[LocalDateTime],
+    @description("The path to the frontpage article") slug: Option[String],
 )
 // format: on
