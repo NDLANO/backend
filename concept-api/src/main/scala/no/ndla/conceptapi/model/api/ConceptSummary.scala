@@ -31,6 +31,7 @@ case class ConceptSummary(
     @(ApiModelProperty @field)(description = "A visual element for the concept") visualElement: Option[VisualElement],
     @(ApiModelProperty @field)(description = "Article ids to which the concept is connected to") articleIds: Seq[Long],
     @(ApiModelProperty @field)(description = "URL for the source of the concept") source: Option[String],
-    @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this concept") responsible: Option[ConceptResponsible]
+    @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this concept") responsible: Option[ConceptResponsible],
+    @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'gloss'") conceptType: String,
 )
 // format: on

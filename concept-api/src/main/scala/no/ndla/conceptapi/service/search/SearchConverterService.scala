@@ -225,7 +225,8 @@ trait SearchConverterService {
         articleIds = searchableConcept.articleIds,
         created = searchableConcept.created,
         source = searchableConcept.source,
-        responsible = responsible
+        responsible = responsible,
+        conceptType = searchableConcept.conceptType
       )
     }
 
