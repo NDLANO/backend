@@ -307,9 +307,9 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
       val response = simpleHttpClient.send(request)
       response.code.code should be(200)
       val parsedBody    = parser.parse(response.body)
-      val jsonObject    = parsedBody.toOption.get
+      val jsonObject    = parsedBody.toTry.get
       val deserializedE = jsonObject.as[api.AudioMetaInformation]
-      val deserialized  = deserializedE.toOption.get
+      val deserialized  = deserializedE.toTry.get
       deserialized should be(TestData.DefaultApiImageMetaInformation)
     }
 
