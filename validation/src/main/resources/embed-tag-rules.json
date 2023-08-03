@@ -107,6 +107,8 @@
           "data-focal-y"
         ], [
           "data-is-decorative"
+        ], [
+          "data-border"
         ]
       ]
     },
