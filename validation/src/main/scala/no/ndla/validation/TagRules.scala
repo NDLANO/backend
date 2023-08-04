@@ -115,6 +115,7 @@ object TagAttributes extends Enumeration {
   val DataUrlText: TagAttributes.Value             = Value("data-url-text")
   val DataImageBeforeId: TagAttributes.Value       = Value("data-image-before-id")
   val DataImageAfterid: TagAttributes.Value        = Value("data-image-after-id")
+  val DataParallaxCell: TagAttributes.Value        = Value("data-parallax-cell")
   val XMLNsAttribute: TagAttributes.Value          = Value("xmlns")
 
   val Href: TagAttributes.Value    = Value("href")

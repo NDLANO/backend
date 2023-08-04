@@ -297,12 +297,7 @@
         "data-image-id",
         "data-title",
         "data-subtitle"
-     ],
-      "optional": [
-        ["data-columns"],
-        ["data-border"],
-        ["data-background"]
-      ]
+     ]
     },
     "campaign-block" : {
       "required": [

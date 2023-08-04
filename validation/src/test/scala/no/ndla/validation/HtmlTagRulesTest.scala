@@ -14,9 +14,9 @@ class HtmlTagRulesTest extends UnitSuite {
   test("embed tag should be an allowed tag and contain data attributes") {
     HtmlTagRules.isTagValid("embed")
     val dataAttrs =
-      TagAttributes.values.map(_.toString).filter(x => x.startsWith("data-") && x != TagAttributes.DataType.toString)
+      TagAttributes.values.map(_.toString).filter(x => x.startsWith("data-"))
     val legalEmbedAttrs = HtmlTagRules.legalAttributesForTag(EmbedTagName)
-    dataAttrs.foreach(x => legalEmbedAttrs should contain(x))
+    legalEmbedAttrs.foreach(x => dataAttrs should contain(x))
   }
 
   test("That isAttributeKeyValid returns false for illegal attributes") {
