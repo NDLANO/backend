@@ -40,7 +40,7 @@ jobs:
           path: ndla/deploy
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
@@ -64,7 +64,9 @@ jobs:
             }}
           restore-keys: "${{ runner.os }}-pip-\n${{ runner.os }}-\n"
       - name: Install python dependencies
-        run: "python -m pip install --upgrade pip\npython -m pip install -r ndla/deploy/scripts/pyshare/requirements.txt\n"
+        run: |
+          python -m pip install --upgrade pip
+          PIP_CONSTRAINT=ndla/deploy/scripts/pyshare/constraints.txt python -m pip install -r ndla/deploy/scripts/pyshare/requirements.txt
       - name: Download blackbox
         uses: actions/checkout@v3
         with:
