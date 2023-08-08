@@ -9,6 +9,7 @@ package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.implicits._
+import no.ndla.common.model.NDLADate
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult, Sort}
@@ -42,8 +43,9 @@ trait DraftConceptController {
       with NdlaSwaggerSupport
       with StrictLogging {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
-    val applicationDescription                           = "This is the Api for concept drafts"
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
+    val applicationDescription = "This is the Api for concept drafts"
 
     after() {
       // We don't want to cache draft responses in nginx since they could require access

@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
@@ -25,7 +26,7 @@ trait PublishedConceptRepository {
   val publishedConceptRepository: PublishedConceptRepository
 
   class PublishedConceptRepository extends StrictLogging with Repository[Concept] {
-    implicit val formats: Formats = Concept.repositorySerializer ++ JavaTimeSerializers.all
+    implicit val formats: Formats = Concept.repositorySerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
     def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()

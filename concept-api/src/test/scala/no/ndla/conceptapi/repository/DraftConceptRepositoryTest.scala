@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.DateParser
 
 import java.net.Socket
 import no.ndla.common.model.{domain => common}
@@ -21,6 +20,7 @@ import org.scalatest.Outcome
 
 import scala.util.{Failure, Success, Try}
 import scalikejdbc._
+import no.ndla.common.model.NDLADate
 
 class DraftConceptRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
@@ -256,8 +256,8 @@ class DraftConceptRepositoryTest
     val art1 = domainConcept.copy(
       revision = None,
       content = Seq(domain.ConceptContent("Originalpls", "nb")),
-      created = DateParser.fromUnixTime(0),
-      updated = DateParser.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
 
     val insertedConcept = repository.insert(art1)
@@ -286,18 +286,18 @@ class DraftConceptRepositoryTest
   test("That getByPage returns all concepts in database") {
     val con1 = domainConcept.copy(
       content = Seq(domain.ConceptContent("Hei", "nb")),
-      updated = DateParser.fromUnixTime(0),
-      created = DateParser.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
+      created = NDLADate.fromUnixTime(0)
     )
     val con2 = domainConcept.copy(
       content = Seq(domain.ConceptContent("På", "nb")),
-      updated = DateParser.fromUnixTime(0),
-      created = DateParser.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
+      created = NDLADate.fromUnixTime(0)
     )
     val con3 = domainConcept.copy(
       content = Seq(domain.ConceptContent("Deg", "nb")),
-      updated = DateParser.fromUnixTime(0),
-      created = DateParser.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
+      created = NDLADate.fromUnixTime(0)
     )
 
     val ins1 = repository.insert(con1)

@@ -13,8 +13,7 @@ import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.{ConceptContent, Status}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
-
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
 
 object TestData {
 
@@ -34,8 +33,8 @@ object TestData {
   val userWithWriteAccess           = TokenUser("unit test", Set(CONCEPT_API_WRITE))
   val userWithWriteAndPublishAccess = TokenUser("unit test", Set(CONCEPT_API_ADMIN, CONCEPT_API_WRITE))
 
-  val today     = LocalDateTime.now().minusDays(0)
-  val yesterday = LocalDateTime.now().minusDays(1)
+  val today     = NDLADate.now().minusDays(0)
+  val yesterday = NDLADate.now().minusDays(1)
 
   val visualElementString =
     s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
@@ -97,8 +96,8 @@ object TestData {
     copyright =
       Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     source = None,
-    created = LocalDateTime.now().minusDays(4),
-    updated = LocalDateTime.now().minusDays(2),
+    created = NDLADate.now().minusDays(4),
+    updated = NDLADate.now().minusDays(2),
     updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("liten", "fisk"), "nb")),

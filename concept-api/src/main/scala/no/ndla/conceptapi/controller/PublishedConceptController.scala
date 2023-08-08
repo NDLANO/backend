@@ -9,6 +9,7 @@ package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.implicits._
+import no.ndla.common.model.NDLADate
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
@@ -39,8 +40,9 @@ trait PublishedConceptController {
       with NdlaSwaggerSupport
       with StrictLogging {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
-    val applicationDescription                           = "This is the Api for concepts"
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
+    val applicationDescription = "This is the Api for concepts"
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {

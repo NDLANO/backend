@@ -11,7 +11,7 @@ import no.ndla.common.model.domain.Responsible
 import no.ndla.conceptapi.model.domain
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
 
 case class SearchableConcept(
     id: Long,
@@ -22,7 +22,7 @@ case class SearchableConcept(
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
     subjectIds: Seq[String],
-    lastUpdated: LocalDateTime,
+    lastUpdated: NDLADate,
     status: Status,
     updatedBy: Seq[String],
     license: Option[String],
@@ -30,7 +30,7 @@ case class SearchableConcept(
     embedResourcesAndIds: List[EmbedValues],
     visualElement: SearchableLanguageValues,
     articleIds: Seq[Long],
-    created: LocalDateTime,
+    created: NDLADate,
     source: Option[String],
     responsible: Option[Responsible]
 )

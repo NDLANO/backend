@@ -20,6 +20,7 @@ import org.scalatest.Outcome
 
 import java.time.LocalDateTime
 import scala.util.Success
+import no.ndla.common.model.NDLADate
 
 class PublishedConceptSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -155,7 +156,7 @@ class PublishedConceptSearchServiceTest
     title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
     tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
-    updated = LocalDateTime.now().minusDays(1),
+    updated = NDLADate.now().minusDays(1),
     subjectIds = Set("urn:subject:2"),
     visualElement = List(
       VisualElement(
