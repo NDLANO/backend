@@ -7,9 +7,9 @@
 
 package no.ndla.common.model.domain
 
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
 
 case class Responsible(
     responsibleId: String,
-    lastUpdated: LocalDateTime
+    lastUpdated: NDLADate
 )

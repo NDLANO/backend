@@ -15,6 +15,7 @@ object commonlib extends Module {
       enumeratumJson4s,
       enumeratumCirce,
       sttp,
+      scalikejdbc,
       "org.json4s"       %% "json4s-native"     % Json4SV,
       "org.json4s"       %% "json4s-ext"        % Json4SV,
       "javax.servlet"     % "javax.servlet-api" % JavaxServletV,

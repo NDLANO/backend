@@ -7,8 +7,8 @@
 
 package no.ndla.common.model.domain.draft
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Author
-import java.time.LocalDateTime
 
 case class Copyright(
     license: Option[String],
@@ -17,6 +17,6 @@ case class Copyright(
     processors: Seq[Author],
     rightsholders: Seq[Author],
     agreementId: Option[Long],
-    validFrom: Option[LocalDateTime],
-    validTo: Option[LocalDateTime]
+    validFrom: Option[NDLADate],
+    validTo: Option[NDLADate]
 )
