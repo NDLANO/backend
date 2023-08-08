@@ -211,6 +211,7 @@ trait SearchConverterService {
       val traits               = getArticleTraits(ai.content)
       val embedAttributes      = getAttributesToIndex(ai.content, ai.visualElement)
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(ai.content, ai.visualElement, ai.metaImage)
+      val subjectContexts      = taxonomyContexts.map(c => c.filter(ct => ct.rootId.contains("subject")))
 
       val articleWithAgreement = converterService.withAgreementCopyright(ai)
 
@@ -258,7 +259,7 @@ trait SearchConverterService {
           metaImage = articleWithAgreement.metaImage.toList,
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
-          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
+          contexts = asSearchableTaxonomyContexts(subjectContexts.getOrElse(List.empty)),
           grepContexts = getGrepContexts(ai.grepCodes, grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
