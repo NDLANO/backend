@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.{Resource, Topic}
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
@@ -24,14 +25,13 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Strictness
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 
 class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
-  implicit val formats: Formats             = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
   implicit val swagger: LearningpathSwagger = new LearningpathSwagger
 
   val copyright: api.Copyright = api.Copyright(api.License("by-sa", None, None), List())
@@ -46,7 +46,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     None,
     None,
     "",
-    LocalDateTime.now(),
+    NDLADate.now(),
     api.LearningPathTags(Seq(), "nb"),
     copyright,
     List("nb"),

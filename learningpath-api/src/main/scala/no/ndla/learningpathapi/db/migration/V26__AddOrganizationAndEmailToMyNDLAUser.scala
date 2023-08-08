@@ -7,6 +7,7 @@
 
 package no.ndla.learningpathapi.db.migration
 
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.domain.UserRole
 import no.ndla.network.model.FeideID
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -31,10 +32,14 @@ class V26__AddOrganizationAndEmailToMyNDLAUser extends BaseJavaMigration {
       email: String
   )
   implicit val formats: Formats =
-    DefaultFormats + new EnumNameSerializer(UserRole) ++ JavaTimeSerializers.all + FieldSerializer[OldMyNDLAUser](
-      ignore("id") orElse
-        ignore("feideId")
-    )
+    DefaultFormats +
+      new EnumNameSerializer(UserRole) ++
+      JavaTimeSerializers.all +
+      NDLADate.Json4sSerializer +
+      FieldSerializer[OldMyNDLAUser](
+        ignore("id") orElse
+          ignore("feideId")
+      )
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)

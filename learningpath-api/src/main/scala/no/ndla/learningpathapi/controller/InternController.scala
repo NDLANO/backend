@@ -16,6 +16,7 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.network.AuthUser
 import org.json4s.Formats
@@ -44,7 +45,9 @@ trait InternController {
         new EnumNameSerializer(LearningPathVerificationStatus) +
         new EnumNameSerializer(StepType) +
         Json4s.serializer(StepStatus) +
-        new EnumNameSerializer(EmbedType) ++ JavaTimeSerializers.all
+        new EnumNameSerializer(EmbedType) ++
+        JavaTimeSerializers.all +
+        NDLADate.Json4sSerializer
 
     def requireClientId(implicit request: HttpServletRequest): String = {
       AuthUser.getClientId match {

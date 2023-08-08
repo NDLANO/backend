@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.learningpathapi.Props
@@ -43,7 +44,8 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       DefaultFormats ++
         DBLearningPath.jsonSerializer ++
         DBLearningStep.jsonSerializer ++
-        JavaTimeSerializers.all
+        JavaTimeSerializers.all +
+        NDLADate.Json4sSerializer
 
     def withId(id: Long)(implicit session: DBSession = AutoSession): Option[LearningPath] = {
       learningPathWhere(sqls"lp.id = $id AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString}")

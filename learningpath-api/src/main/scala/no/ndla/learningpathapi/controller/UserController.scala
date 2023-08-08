@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api.{Error, ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
@@ -23,7 +24,10 @@ trait UserController {
 
   class UserController(implicit val swagger: Swagger) extends NdlaController {
 
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++
+        JavaTimeSerializers.all +
+        NDLADate.Json4sSerializer
 
     protected val applicationDescription = "API for accessing My NDLA from ndla.no."
 

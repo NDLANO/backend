@@ -7,19 +7,19 @@
 
 package no.ndla.learningpathapi.repository
 
+import cats.implicits._
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.{DBFolderResource, Folder, NewFolderData, FolderStatus, ResourceDocument}
+import no.ndla.learningpathapi.model.domain.{DBFolderResource, Folder, FolderStatus, NewFolderData, ResourceDocument}
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 import scalikejdbc._
 
 import java.net.Socket
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
 
 class FolderRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
@@ -109,11 +109,11 @@ class FolderRepositoryTest
   }
 
   test("that inserting and retrieving a folder works as expected") {
-    val created = LocalDateTime.now().withNano(0)
+    val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
-    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument.copy(status = FolderStatus.PRIVATE))
     val folder3 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
     repository.folderWithId(folder1.get.id) should be(folder1)
@@ -122,7 +122,7 @@ class FolderRepositoryTest
   }
 
   test("that inserting and retrieving a resource works as expected") {
-    val created = LocalDateTime.now().withNano(0)
+    val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
@@ -138,7 +138,7 @@ class FolderRepositoryTest
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
-    val created = LocalDateTime.now().withNano(0)
+    val created = NDLADate.now().withNano(0)
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
     val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
@@ -151,7 +151,7 @@ class FolderRepositoryTest
   }
 
   test("that updateFolder updates all fields correctly") {
-    val created = LocalDateTime.now().withNano(0)
+    val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val folderData =
@@ -184,7 +184,7 @@ class FolderRepositoryTest
   }
 
   test("that deleting a folder deletes folder-resource connection") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
 
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
@@ -201,7 +201,7 @@ class FolderRepositoryTest
   }
 
   test("that deleting a resource deletes folder-resource connection") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
 
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
@@ -262,7 +262,7 @@ class FolderRepositoryTest
   }
 
   test("that getFolderResources works as expected") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
     val doc =
       NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None, description = None)
 
@@ -283,7 +283,7 @@ class FolderRepositoryTest
   }
 
   test("that resourcesWithFeideId works as expected") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
 
     repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
     repository.insertResource("feide2", "/path1", "type", created, TestData.baseResourceDocument)
@@ -352,7 +352,7 @@ class FolderRepositoryTest
   }
 
   test("inserting and fetching nested folders with resources works as expected") {
-    val created = LocalDateTime.now().withNano(0)
+    val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val base =
@@ -391,7 +391,7 @@ class FolderRepositoryTest
         "feide",
         "/testPath",
         "resourceType",
-        LocalDateTime.now().withNano(0),
+        NDLADate.now().withNano(0),
         ResourceDocument(List(), "1")
       )
       .failIfFailure
@@ -430,7 +430,7 @@ class FolderRepositoryTest
   }
 
   test("that deleteAllUserResources works as expected") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
 
     repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
     repository.insertResource("feide2", "/path1", "type", created, TestData.baseResourceDocument)
@@ -447,7 +447,7 @@ class FolderRepositoryTest
   test(
     "that deleteAllUserFolders and deleteAllUserResources works as expected when folders and resources are connected"
   ) {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
     val doc =
       NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None, description = None)
 
@@ -519,7 +519,7 @@ class FolderRepositoryTest
   }
 
   test("that getFolderAndChildrenSubfoldersWithResourcesWhere correctly filters data based on filter clause") {
-    val created = LocalDateTime.now().withNano(0)
+    val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val base =
@@ -560,7 +560,7 @@ class FolderRepositoryTest
         "feide",
         "/testPath",
         "resourceType",
-        LocalDateTime.now().withNano(0),
+        NDLADate.now().withNano(0),
         ResourceDocument(List(), "1")
       )
       .failIfFailure

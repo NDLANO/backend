@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.e2e
 
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain.{Folder, FolderStatus, NewFolderData, ResourceDocument, UserRole}
 import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, UnitSuite}
@@ -19,7 +20,6 @@ import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSeriali
 import org.json4s.native.Serialization._
 import org.testcontainers.containers.PostgreSQLContainer
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
 import sttp.client3.quick._
@@ -35,7 +35,11 @@ class CloneFolderTest
     with UnitSuite {
 
   implicit val formats: Formats =
-    DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all + new EnumNameSerializer(UserRole)
+    DefaultFormats ++
+      JavaTimeSerializers.all ++
+      JavaTypesSerializers.all +
+      new EnumNameSerializer(UserRole) +
+      NDLADate.Json4sSerializer
 
   val learningpathApiPort: Int    = findFreePort
   val pgc: PostgreSQLContainer[_] = postgresContainer.get
@@ -68,7 +72,7 @@ class CloneFolderTest
       when(feideApiClient.getFeideExtendedUser(any))
         .thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"), "email")))
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
-      when(clock.now()).thenReturn(LocalDateTime.of(2017, 1, 1, 1, 59))
+      when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
     }
   }
 
@@ -510,7 +514,8 @@ class CloneFolderTest
   test("that sharing a folder will update shared field to current date") {
     reset(testClock)
     when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
-    when(testClock.now()).thenReturn(LocalDateTime.now())
+    val shareTime = NDLADate.now().withNano(0)
+    when(testClock.now()).thenReturn(shareTime)
     val folderRepository = learningpathApi.componentRegistry.folderRepository
     val destinationFolder =
       NewFolderData(
@@ -532,12 +537,12 @@ class CloneFolderTest
     )
 
     val result = read[api.Folder](response.body)
-    result.shared should be(Some(testClock.now().withNano(0)))
+    result.shared should be(Some(shareTime))
   }
 
   test("that sharing a folder with subfolders will update shared field to current date for each subfolder") {
-    val created = LocalDateTime.of(2023, 1, 1, 1, 59)
-    val shared  = LocalDateTime.of(2024, 1, 1, 1, 59)
+    val created = NDLADate.of(2023, 1, 1, 1, 59)
+    val shared  = NDLADate.of(2024, 1, 1, 1, 59)
     when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(testClock.now()).thenReturn(created, created, created, shared)
     val folderRepository = learningpathApi.componentRegistry.folderRepository
@@ -621,8 +626,8 @@ class CloneFolderTest
   }
 
   test("that updating a folder correctly updates the updated field") {
-    val created = LocalDateTime.of(2023, 1, 1, 1, 59)
-    val updated = LocalDateTime.of(2024, 1, 1, 1, 59)
+    val created = NDLADate.of(2023, 1, 1, 1, 59)
+    val updated = NDLADate.of(2024, 1, 1, 1, 59)
     when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     when(testClock.now()).thenReturn(created, updated)
     val folderRepository = learningpathApi.componentRegistry.folderRepository

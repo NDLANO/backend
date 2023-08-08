@@ -9,12 +9,12 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.learningpathapi.integration.ImageMetaInformation
-import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
-import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
@@ -24,7 +24,6 @@ import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers._
 import org.mockito.Strictness
 
-import java.time.LocalDateTime
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
@@ -48,7 +47,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     "PRIVATE",
     "CREATED_BY_NDLA",
-    LocalDateTime.now(),
+    NDLADate.now(),
     api.LearningPathTags(List(), "nb"),
     copyright,
     true,
@@ -72,7 +71,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   )
   val apiTags = List(api.LearningPathTags(Seq("tag"), DefaultLanguage))
 
-  val randomDate                = LocalDateTime.now()
+  val randomDate                = NDLADate.now()
   var service: ConverterService = _
 
   val domainLearningPath = LearningPath(
@@ -490,7 +489,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toNewFolderData transforms correctly") {
-    val shared = LocalDateTime.now()
+    val shared = NDLADate.now()
     when(clock.now()).thenReturn(shared)
 
     val folderUUID = UUID.randomUUID()
@@ -532,7 +531,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toApiFolder transforms correctly when data isn't corrupted") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
     when(clock.now()).thenReturn(created)
     val mainFolderUUID = UUID.randomUUID()
     val subFolder1UUID = UUID.randomUUID()
@@ -691,7 +690,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("updateFolder updates folder correctly") {
-    val shared = LocalDateTime.now()
+    val shared = NDLADate.now()
     when(clock.now()).thenReturn(shared)
 
     val folderUUID = UUID.randomUUID()
@@ -740,8 +739,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that mergeFolder works correctly for shared field and folder status update") {
-    val sharedBefore = LocalDateTime.now().minusDays(1)
-    val sharedNow    = LocalDateTime.now()
+    val sharedBefore = NDLADate.now().minusDays(1)
+    val sharedNow    = NDLADate.now()
     when(clock.now()).thenReturn(sharedNow)
 
     val existingBase = domain.Folder(
@@ -778,7 +777,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that toApiResource converts correctly") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
     when(clock.now()).thenReturn(created)
     val folderUUID = UUID.randomUUID()
 
@@ -808,7 +807,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that newResource toDomainResource converts correctly") {
-    val created = LocalDateTime.now()
+    val created = NDLADate.now()
     when(clock.now()).thenReturn(created)
     val newResource1 =
       api.NewResource(

@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
@@ -52,7 +53,8 @@ trait LearningpathControllerV2 {
       InitialScrollContextKeywords
     }
 
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
     protected val applicationDescription = "API for accessing Learningpaths from ndla.no."
 

@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.model.search
 
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api.Copyright
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
@@ -20,7 +20,7 @@ case class SearchableLearningPath(
     duration: Option[Int],
     status: String,
     verificationStatus: String,
-    lastUpdated: LocalDateTime,
+    lastUpdated: NDLADate,
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
     learningsteps: Seq[SearchableLearningStep],

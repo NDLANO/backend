@@ -9,11 +9,9 @@
 package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.DateParser
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
-
-import java.time.LocalDateTime
+import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -64,7 +62,7 @@ class LearningPathRepositoryComponentIntegrationTest
     None,
     LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.EXTERNAL,
-    LocalDateTime.now().withNano(0),
+    NDLADate.now().withNano(0),
     List(),
     "UNIT-TEST",
     copyright
@@ -387,7 +385,7 @@ class LearningPathRepositoryComponentIntegrationTest
   }
 
   test("That inserted and fetched entry stays the same") {
-    when(clock.now()).thenReturn(DateParser.fromUnixTime(0))
+    when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
     val steps = Vector(
       DefaultLearningStep,
       DefaultLearningStep,

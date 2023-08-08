@@ -7,6 +7,6 @@
 
 package no.ndla.learningpathapi.model.domain
 
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
 
-case class Message(message: String, adminName: String, date: LocalDateTime)
+case class Message(message: String, adminName: String, date: NDLADate)
