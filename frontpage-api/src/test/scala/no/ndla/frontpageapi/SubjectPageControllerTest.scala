@@ -9,10 +9,9 @@ package no.ndla.frontpageapi
 
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
+import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.TapirServer
 import sttp.client3.quick._
-
-import java.time.LocalDateTime
 
 class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
 
@@ -28,7 +27,7 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
   }
 
   test("Should return 400 with cool custom message if bad request") {
-    when(clock.now()).thenReturn(LocalDateTime.now())
+    when(clock.now()).thenReturn(NDLADate.now())
     val response =
       simpleHttpClient.send(
         quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/subjectpage/1?fallback=noefeil")
