@@ -8,6 +8,7 @@
 package no.ndla.search.model
 
 import enumeratum.Json4s
+import no.ndla.common.model.NDLADate.NDLADateJson4sSerializer
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import org.json4s.JsonAST.{JField, JObject, JString}
 import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
@@ -77,6 +78,7 @@ object SearchableLanguageFormats {
   private val serializers = Seq(
     new SearchableLanguageValuesSerializer,
     new SearchableLanguageListSerializer,
+    new NDLADateJson4sSerializer,
     Json4s.serializer(RevisionStatus)
   ) ++
     Draft.serializers ++
