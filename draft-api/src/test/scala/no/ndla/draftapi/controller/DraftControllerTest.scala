@@ -176,6 +176,22 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     }
   }
 
+  test("That GET /<article_id> returns 200 if status is allowed even if no auth header") {
+    when(readService.withId(articleId, lang)).thenReturn(Success(TestData.apiArticleUserTest))
+
+    get(s"/test/$articleId?language=$lang") {
+      status should equal(200)
+    }
+
+    when(readService.withId(articleId, lang)).thenReturn(
+      Success(TestData.apiArticleUserTest.copy(status = api.Status(EXTERNAL_REVIEW.toString, Seq.empty)))
+    )
+
+    get(s"/test/$articleId?language=$lang", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+      status should equal(200)
+    }
+  }
+
   test("That PATCH /:id returns a validation message if article is invalid") {
     patch("/test/123", invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(400)

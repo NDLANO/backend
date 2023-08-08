@@ -36,10 +36,11 @@ trait NdlaControllerBase {
         requiredPermission: Permission,
         isAllowedWithoutPermission: Boolean = false
     )(f: => Any): Any =
-      requirePermissionOrAccessDenied(requiredPermission.some, isAllowedWithoutPermission)(_ => f)
+      if (isAllowedWithoutPermission) { f }
+      else { requirePermissionOrAccessDenied(requiredPermission)(_ => f) }
 
     def requirePermissionOrAccessDeniedWithUser(requiredPermission: Permission)(f: TokenUser => Any): Any =
-      requirePermissionOrAccessDenied(requiredPermission.some, isAllowedWithoutPermission = false)(f)
+      requirePermissionOrAccessDenied(requiredPermission)(f)
 
     def requireUserId(f: TokenUser => Any): Any = doIfAccessTrue(_.jwt.ndla_id.isDefined)(f)
 
@@ -50,15 +51,10 @@ trait NdlaControllerBase {
         case Failure(_)                         => errorHandler(AccessDeniedException.unauthorized)
       }
 
-    private def requirePermissionOrAccessDenied(
-        requiredPermission: Option[Permission],
-        isAllowedWithoutPermission: Boolean
-    )(f: TokenUser => Any): Any = doIfAccessTrue { user =>
-      requiredPermission match {
-        case Some(permission) => user.hasPermission(permission) || isAllowedWithoutPermission
-        case None             => true
-      }
-    }(f)
+    private def requirePermissionOrAccessDenied(requiredPermission: Permission)(f: TokenUser => Any): Any =
+      doIfAccessTrue { user =>
+        user.hasPermission(requiredPermission)
+      }(f)
 
     type NdlaErrorHandler = PartialFunction[Throwable, ActionResult]
     def ndlaErrorHandler: NdlaErrorHandler
