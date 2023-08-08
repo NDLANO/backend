@@ -11,16 +11,14 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, Copyright, SearchSettings}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.api
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
-import java.time.LocalDateTime
-
 object TestData {
 
-  val today: LocalDateTime     = LocalDateTime.now().minusDays(1)
-  val yesterday: LocalDateTime = LocalDateTime.now()
+  val today: NDLADate     = NDLADate.now().minusDays(1).withNano(0)
+  val yesterday: NDLADate = NDLADate.now().withNano(0)
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,
@@ -54,8 +52,8 @@ object TestData {
     copyright = sampleCopyright,
     tags = Seq(common.Tag(Seq("Some", "Tags"), "nb")),
     updatedBy = "someuser",
-    updated = LocalDateTime.now(),
-    created = LocalDateTime.now(),
+    updated = NDLADate.now(),
+    created = NDLADate.now(),
     podcastMeta = Seq.empty,
     audioType = AudioType.Standard,
     manuscript = Seq.empty,
@@ -83,8 +81,8 @@ object TestData {
     copyright = sampleCopyright,
     tags = Seq(common.Tag(Seq("PODCAST", "påddkæst"), "nb")),
     updatedBy = "someuser",
-    updated = LocalDateTime.now(),
-    created = LocalDateTime.now(),
+    updated = NDLADate.now(),
+    created = NDLADate.now(),
     podcastMeta = Seq(
       domain.PodcastMeta(
         introduction = "Intro",
@@ -110,8 +108,8 @@ object TestData {
     hasRSS = true
   )
 
-  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
-  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
+  val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val DefaultApiImageMetaInformation: api.AudioMetaInformation = api.AudioMetaInformation(
     1,

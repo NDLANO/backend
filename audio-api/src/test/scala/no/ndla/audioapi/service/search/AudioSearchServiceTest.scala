@@ -12,12 +12,12 @@ import no.ndla.audioapi.TestData.searchSettings
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.Success
 
 class AudioSearchServiceTest
@@ -54,14 +54,14 @@ class AudioSearchServiceTest
   val copyrighted: Copyright =
     Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
 
-  val updated1: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
-  val updated2: LocalDateTime = LocalDateTime.of(2017, 5, 1, 12, 15, 32)
-  val updated3: LocalDateTime = LocalDateTime.of(2017, 6, 1, 12, 15, 32)
-  val updated4: LocalDateTime = LocalDateTime.of(2017, 7, 1, 12, 15, 32)
-  val updated5: LocalDateTime = LocalDateTime.of(2017, 8, 1, 12, 15, 32)
-  val updated6: LocalDateTime = LocalDateTime.of(2017, 9, 1, 12, 15, 32)
-  val updated7: LocalDateTime = LocalDateTime.of(2017, 9, 1, 12, 15, 32)
-  val created: LocalDateTime  = LocalDateTime.of(2017, 1, 1, 12, 15, 32)
+  val updated1: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  val updated2: NDLADate = NDLADate.of(2017, 5, 1, 12, 15, 32)
+  val updated3: NDLADate = NDLADate.of(2017, 6, 1, 12, 15, 32)
+  val updated4: NDLADate = NDLADate.of(2017, 7, 1, 12, 15, 32)
+  val updated5: NDLADate = NDLADate.of(2017, 8, 1, 12, 15, 32)
+  val updated6: NDLADate = NDLADate.of(2017, 9, 1, 12, 15, 32)
+  val updated7: NDLADate = NDLADate.of(2017, 9, 1, 12, 15, 32)
+  val created: NDLADate  = NDLADate.of(2017, 1, 1, 12, 15, 32)
 
   val podcastSeries1: domain.Series = domain.Series(
     id = 1,

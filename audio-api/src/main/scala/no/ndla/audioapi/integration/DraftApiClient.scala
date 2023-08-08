@@ -10,10 +10,9 @@ package no.ndla.audioapi.integration
 
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
+import no.ndla.common.model.NDLADate
 import no.ndla.network.NdlaClient
 import sttp.client3.quick._
-
-import java.time.LocalDateTime
 
 trait DraftApiClient {
   this: NdlaClient with Props =>
@@ -39,7 +38,7 @@ case class Agreement(
     title: String,
     content: String,
     copyright: api.Copyright,
-    created: LocalDateTime,
-    updated: LocalDateTime,
+    created: NDLADate,
+    updated: NDLADate,
     updatedBy: String
 )

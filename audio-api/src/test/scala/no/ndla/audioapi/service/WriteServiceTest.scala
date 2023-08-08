@@ -14,14 +14,14 @@ import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model
+import no.ndla.common.model.{NDLADate, domain => common}
 import org.mockito.Strictness
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 import sttp.model.Part
 
 import java.io.InputStream
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -54,14 +54,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     seriesId = None
   )
 
-  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
-  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
+  val updated: NDLADate       = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  val created: model.NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val someAudio: Audio = Audio(newFileName1, "audio/mp3", 1024, "en")
 
   val domainAudioMeta: domain.AudioMetaInformation =
     converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio, None, testUser)
-  val updated1: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val updated1: model.NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val publicDomain: domain.Copyright = domain.Copyright(
     "publicdomain",

@@ -16,13 +16,12 @@ import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.common.Clock
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -47,7 +46,7 @@ trait ConverterService {
         title = mergeLanguageField(existingSeries.title, newTitle),
         description = mergeLanguageField(existingSeries.description, newDescription),
         coverPhoto = coverPhoto,
-        updated = LocalDateTime.now(),
+        updated = NDLADate.now(),
         created = existingSeries.created,
         hasRSS = updatedSeries.hasRSS.getOrElse(existingSeries.hasRSS)
       )
@@ -62,7 +61,7 @@ trait ConverterService {
         altText = newSeries.coverPhotoAltText
       )
 
-      val createdDate = LocalDateTime.now()
+      val createdDate = NDLADate.now()
 
       new domain.SeriesWithoutId(
         title = titles,
@@ -92,7 +91,7 @@ trait ConverterService {
         title = series.title.filterNot(_.language == language),
         description = series.description.filterNot(_.language == language),
         coverPhoto = series.coverPhoto,
-        updated = LocalDateTime.now(),
+        updated = NDLADate.now(),
         created = series.created,
         hasRSS = false
       )

@@ -9,6 +9,7 @@
 package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.Props
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Title
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer.ignore
@@ -17,7 +18,6 @@ import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.native.Serialization
 import scalikejdbc._
 
-import java.time.LocalDateTime
 import scala.util.Try
 
 /** Base series without database generated fields */
@@ -25,8 +25,8 @@ class SeriesWithoutId(
     val title: Seq[Title],
     val coverPhoto: CoverPhoto,
     val episodes: Option[Seq[AudioMetaInformation]],
-    val updated: LocalDateTime,
-    val created: LocalDateTime,
+    val updated: NDLADate,
+    val created: NDLADate,
     val description: Seq[Description],
     val hasRSS: Boolean
 )
@@ -40,8 +40,8 @@ case class Series(
     override val episodes: Option[Seq[AudioMetaInformation]],
     override val title: Seq[Title],
     override val coverPhoto: CoverPhoto,
-    override val updated: LocalDateTime,
-    override val created: LocalDateTime,
+    override val updated: NDLADate,
+    override val created: NDLADate,
     override val description: Seq[Description],
     override val hasRSS: Boolean
 ) extends SeriesWithoutId(title, coverPhoto, episodes, updated, created, description, hasRSS) {
@@ -52,7 +52,11 @@ trait DBSeries {
   this: Props =>
 
   object Series extends SQLSyntaxSupport[Series] {
-    val jsonEncoder: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    val jsonEncoder: Formats =
+      DefaultFormats ++
+        JavaTimeSerializers.all +
+        NDLADate.Json4sSerializer
+
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Series](
         ignore("id") orElse
