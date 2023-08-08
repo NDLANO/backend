@@ -20,9 +20,9 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra._
 import cats.implicits._
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.NDLADate.asString
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
@@ -30,7 +30,10 @@ trait NdlaControllerBase {
   this: HasBaseProps =>
 
   trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with StrictLogging {
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++
+        JavaTimeSerializers.all +
+        NDLADate.Json4sSerializer
 
     def requirePermissionOrAccessDenied(
         requiredPermission: Permission,
@@ -224,17 +227,16 @@ trait NdlaControllerBase {
     def longOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Long] =
       paramOrNone(paramName).flatMap(p => Try(p.toLong).toOption)
 
-    protected val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
-    def paramAsDateOrNone(paramName: String)(implicit request: HttpServletRequest): Option[LocalDateTime] = {
+    def paramAsDateOrNone(paramName: String)(implicit request: HttpServletRequest): Option[NDLADate] = {
       paramOrNone(paramName).map(dateString => {
-        Try(LocalDateTime.parse(dateString, dateFormatter)) match {
+        NDLADate.fromString(dateString) match {
           case Success(date) => date
           case Failure(_) =>
             throw new ValidationException(
               errors = Seq(
                 ValidationMessage(
                   paramName,
-                  s"Invalid date passed. Expected format is \"${LocalDateTime.now().format(dateFormatter)}\""
+                  s"Invalid date passed. Expected format is \"${asString(NDLADate.now())}\""
                 )
               )
             )

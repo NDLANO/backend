@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax.EncoderOps
 import no.ndla.common.DateParser
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
 
 import java.time.LocalDateTime
@@ -44,7 +45,7 @@ object AllErrors {
 case class ErrorBody(
     @description("Code stating the type of error") code: String,
     @description("Description of the error") description: String,
-    @description("When the error occurred") occurredAt: LocalDateTime,
+    @description("When the error occurred") occurredAt: NDLADate,
     @description("Numeric http status code") override val statusCode: Int
 ) extends AllErrors
 
@@ -52,7 +53,7 @@ case class ErrorBody(
 case class ValidationErrorBody(
     @description("Code stating the type of error") code: String,
     @description("Description of the error") description: String,
-    @description("When the error occurred") occurredAt: LocalDateTime,
+    @description("When the error occurred") occurredAt: NDLADate,
     @description("List of validation messages") messages: Option[Seq[ValidationMessage]],
     @description("Numeric http status code") override val statusCode: Int
 ) extends AllErrors
@@ -61,7 +62,7 @@ case class ValidationErrorBody(
 case class NotFoundWithSupportedLanguages(
     @description("Code stating the type of error") code: String,
     @description("Description of the error") description: String,
-    @description("When the error occurred") occurredAt: LocalDateTime,
+    @description("When the error occurred") occurredAt: NDLADate,
     @description("List of supported languages") supportedLanguages: Seq[String],
     @description("Numeric http status code") override val statusCode: Int
 ) extends AllErrors
