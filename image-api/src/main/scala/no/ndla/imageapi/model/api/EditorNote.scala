@@ -7,15 +7,15 @@
 
 package no.ndla.imageapi.model.api
 
+import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
-import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 // format: off
 @ApiModel(description = "Note about a change that happened to the image")
 case class EditorNote(
-  @(ApiModelProperty @field)(description = "Timestamp of the change") timestamp: LocalDateTime,
+  @(ApiModelProperty @field)(description = "Timestamp of the change") timestamp: NDLADate,
   @(ApiModelProperty @field)(description = "Who triggered the change") updatedBy: String,
   @(ApiModelProperty @field)(description = "Editorial note") note: String
 )

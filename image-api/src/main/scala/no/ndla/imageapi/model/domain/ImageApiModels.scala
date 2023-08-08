@@ -9,10 +9,10 @@
 package no.ndla.imageapi.model.domain
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Author
 import no.ndla.language.model.LanguageField
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 case class ImageTitle(title: String, language: String) extends LanguageField[String] {
@@ -44,11 +44,11 @@ case class Copyright(
     processors: Seq[Author],
     rightsholders: Seq[Author],
     agreementId: Option[Long],
-    validFrom: Option[LocalDateTime],
-    validTo: Option[LocalDateTime]
+    validFrom: Option[NDLADate],
+    validTo: Option[NDLADate]
 )
 case class License(license: String, description: String, url: Option[String])
-case class EditorNote(timeStamp: LocalDateTime, updatedBy: String, note: String)
+case class EditorNote(timeStamp: NDLADate, updatedBy: String, note: String)
 case class ImageDimensions(width: Int, height: Int)
 
 object ModelReleasedStatus extends Enumeration {

@@ -7,11 +7,10 @@
 
 package no.ndla.imageapi.model.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.imageapi.model.domain.{ImageDimensions, ImageMetaInformation}
 import no.ndla.language.model.WithLanguage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-
-import java.time.LocalDateTime
 
 case class SearchableImage(
     id: Long,
@@ -21,7 +20,7 @@ case class SearchableImage(
     tags: SearchableLanguageList,
     contributors: Seq[String],
     license: String,
-    lastUpdated: LocalDateTime,
+    lastUpdated: NDLADate,
     defaultTitle: Option[String],
     modelReleased: Option[String],
     editorNotes: Seq[String],

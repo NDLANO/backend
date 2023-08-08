@@ -7,10 +7,10 @@
 
 package no.ndla.imageapi.model.api
 
+import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
-import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 // format: off
@@ -24,7 +24,7 @@ case class ImageMetaInformationV3(
     @(ApiModelProperty @field)(description = "Searchable tags for the image") tags: ImageTag,
     @(ApiModelProperty @field)(description = "Searchable caption for the image") caption: ImageCaption,
     @(ApiModelProperty @field)(description = "Supported languages for the image title, alt-text, tags and caption.") supportedLanguages: Seq[String],
-    @(ApiModelProperty @field)(description = "Describes when the image was created") created: LocalDateTime,
+    @(ApiModelProperty @field)(description = "Describes when the image was created") created: NDLADate,
     @(ApiModelProperty @field)(description = "Describes who created the image") createdBy: String,
     @(ApiModelProperty @field)(description = "Describes if the model has released use of the image", allowableValues = "not-set,yes,no,not-applicable") modelRelease: String,
     @(ApiModelProperty @field)(description = "Describes the changes made to the image, only visible to editors") editorNotes: Option[Seq[EditorNote]],

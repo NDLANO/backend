@@ -7,6 +7,7 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.ImageStream
@@ -39,8 +40,9 @@ trait RawController {
       with FileUploadSupport {
     import props.ValidMimeTypes
 
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
-    protected val applicationDescription                 = "API for accessing image files from ndla.no."
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
+    protected val applicationDescription = "API for accessing image files from ndla.no."
 
     registerModel[Error]()
 

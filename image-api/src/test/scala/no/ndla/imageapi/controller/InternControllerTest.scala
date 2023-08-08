@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{api, domain}
@@ -18,7 +19,6 @@ import org.json4s.ext.JavaTimeSerializers
 import org.json4s.jackson.Serialization._
 import org.scalatra.test.scalatest.ScalatraSuite
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
@@ -27,7 +27,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   implicit val swagger: ImageSwagger = new ImageSwagger
   lazy val controller                = new InternController
   addServlet(controller, "/*")
-  val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val updated = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val BySa = getLicense(CC_BY.toString).get
 
@@ -104,7 +104,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   }
 
   test("That GET /extern/123 returns 200 and imagemeta when found") {
-    implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+    implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
     when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Some(DefaultDomainImageMetaInformation))
     get("/extern/123") {
