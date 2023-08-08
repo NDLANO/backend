@@ -8,6 +8,7 @@
 
 package no.ndla.searchapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.{SearchParams, Sort}
@@ -17,7 +18,7 @@ import no.ndla.network.clients.FeideExtendedUserInfo
 import org.mockito.Strictness
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import java.time.{LocalDateTime, Month}
+import java.time.Month
 import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
@@ -242,7 +243,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   test("That retrieving datetime strings from request works") {
     val requestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
 
-    val expectedDate = LocalDateTime.of(2025, Month.JANUARY, 2, 13, 39, 5)
+    val expectedDate = NDLADate.of(2025, Month.JANUARY, 2, 13, 39, 5)
 
     when(requestMock.getQueryString).thenReturn(
       "revision-date-from=2025-01-02T13:39:05Z&revision-date-to=2025-01-02T13:39:05Z"

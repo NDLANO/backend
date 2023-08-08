@@ -8,6 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -19,7 +20,6 @@ import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
 
@@ -114,7 +114,7 @@ class MultiDraftSearchServiceAtomicTest
   }
 
   test("That sorting by revision date sorts by the earliest 'needs-revision'") {
-    val today     = LocalDateTime.now().withNano(0)
+    val today     = NDLADate.now().withNano(0)
     val yesterday = today.minusDays(1)
     val tomorrow  = today.plusDays(1)
 
@@ -192,7 +192,7 @@ class MultiDraftSearchServiceAtomicTest
   }
 
   test("Test that searching for note in revision meta works as expected") {
-    val today     = LocalDateTime.now().withNano(0)
+    val today     = NDLADate.now().withNano(0)
     val yesterday = today.minusDays(1)
     val tomorrow  = today.plusDays(1)
 
@@ -262,7 +262,7 @@ class MultiDraftSearchServiceAtomicTest
   }
 
   test("Test that filtering revision dates works as expected") {
-    val today = LocalDateTime.now().withNano(0)
+    val today = NDLADate.now().withNano(0)
 
     val draft1 = TestData.draft1.copy(
       id = Some(1),
@@ -349,7 +349,7 @@ class MultiDraftSearchServiceAtomicTest
   }
 
   test("That hits from revision log is not included when exclude param is set") {
-    val today = LocalDateTime.now().withNano(0)
+    val today = NDLADate.now().withNano(0)
 
     val status = Status(current = DraftStatus.PLANNED, other = Set.empty)
     val mkNote = (n: String) => EditorNote(n, "some-user", status, today)

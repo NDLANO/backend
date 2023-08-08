@@ -10,6 +10,7 @@ package no.ndla.searchapi.controller
 
 import enumeratum.Json4s
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.common.model.domain.{ArticleType, Availability}
@@ -42,7 +43,8 @@ trait NdlaController {
         JavaTypesSerializers.all +
         Json4s.serializer(ArticleType) +
         Json4s.serializer(RevisionStatus) +
-        Json4s.serializer(DraftStatus)
+        Json4s.serializer(DraftStatus) +
+        NDLADate.Json4sSerializer
 
     before() {
       contentType = formats("json")

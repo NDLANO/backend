@@ -10,6 +10,7 @@ package no.ndla.searchapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.common.model.domain.{ArticleType, Availability}
@@ -100,7 +101,8 @@ trait SearchApiClient {
           new EnumNameSerializer(StepStatus) +
           new EnumNameSerializer(EmbedType) +
           new EnumNameSerializer(LearningResourceType) +
-          new EnumNameSerializer(Availability) ++
+          new EnumNameSerializer(Availability) +
+          NDLADate.Json4sSerializer ++
           JavaTimeSerializers.all ++
           JavaTypesSerializers.all +
           Json4s.serializer(ArticleType) +

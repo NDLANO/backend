@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Responsible, Status => CommonStatus}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
@@ -16,7 +17,6 @@ import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 
-import java.time.LocalDateTime
 import java.util.UUID
 
 class SearchableDraftTest extends UnitSuite with TestEnvironment {
@@ -63,7 +63,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
     val embedResourcesAndIds =
       List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
 
-    val today   = LocalDateTime.now().withNano(0)
+    val today   = NDLADate.now().withNano(0)
     val olddate = today.minusDays(5)
 
     val revisionMeta = List(
