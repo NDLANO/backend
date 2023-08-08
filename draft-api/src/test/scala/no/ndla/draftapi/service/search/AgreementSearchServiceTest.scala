@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.service.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Author
 import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.draftapi.TestData.agreementSearchSettings
@@ -15,7 +16,6 @@ import no.ndla.draftapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.Success
 
 class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -70,15 +70,15 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
     None
   )
 
-  val today: LocalDateTime = LocalDateTime.now()
+  val today: NDLADate = NDLADate.now()
 
   val sampleAgreement = new Agreement(
     Some(1),
     "title",
     "content",
     byNcSa,
-    LocalDateTime.now().minusDays(2),
-    LocalDateTime.now().minusDays(4),
+    NDLADate.now().minusDays(2),
+    NDLADate.now().minusDays(4),
     "ndla1234"
   )
 

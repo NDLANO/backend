@@ -7,20 +7,10 @@
 
 package no.ndla.draftapi.validation
 
-import no.ndla.common.DateParser
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  Author,
-  Description,
-  Introduction,
-  RequiredLibrary,
-  Tag,
-  Title,
-  VisualElement
-}
-import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.draft._
+import no.ndla.common.model.domain._
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NewAgreementCopyright, NotFoundException, UpdatedArticle}
@@ -34,7 +24,6 @@ import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation._
 import scalikejdbc.ReadOnlyAutoSession
 
-import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -70,7 +59,7 @@ trait ContentValidator {
     }
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
-      Try(DateParser.fromString(dateString)) match {
+      NDLADate.fromString(dateString) match {
         case Success(_) => Seq.empty
         case Failure(_) => Seq(ValidationMessage(fieldName, "Date field needs to be in ISO 8601"))
       }
@@ -189,7 +178,7 @@ trait ContentValidator {
 
     private def validateRevisionMeta(revisionMeta: Seq[RevisionMeta]): Seq[ValidationMessage] = {
       revisionMeta.find(rm =>
-        rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(LocalDateTime.now())
+        rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
       ) match {
         case Some(_) => Seq.empty
         case None =>

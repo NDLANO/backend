@@ -7,8 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import java.time.LocalDateTime
-
+import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -21,6 +20,6 @@ case class Copyright(
     @(ApiModelProperty @field)(description = "List of processors") processors: Seq[Author],
     @(ApiModelProperty @field)(description = "List of rightsholders") rightsholders: Seq[Author],
     @(ApiModelProperty @field)(description = "Reference to agreement id") agreementId: Option[Long],
-    @(ApiModelProperty @field)(description = "Date from which the copyright is valid") validFrom: Option[LocalDateTime],
-    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[LocalDateTime]
+    @(ApiModelProperty @field)(description = "Date from which the copyright is valid") validFrom: Option[NDLADate],
+    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[NDLADate]
 )

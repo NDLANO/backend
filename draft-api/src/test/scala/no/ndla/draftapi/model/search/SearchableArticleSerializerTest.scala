@@ -8,13 +8,12 @@
 package no.ndla.draftapi.model.search
 
 import enumeratum.Json4s
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, writePretty}
-
-import java.time.LocalDateTime
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + Json4s.serializer(DraftStatus)
@@ -29,7 +28,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     tags = SearchableLanguageList(
       List(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))
     ),
-    lastUpdated = LocalDateTime.of(2018, 2, 22, 13, 0, 51),
+    lastUpdated = NDLADate.of(2018, 2, 22, 13, 0, 51),
     license = Some("by-sa"),
     authors = Seq("Jonas Natty"),
     notes = Seq("jak"),

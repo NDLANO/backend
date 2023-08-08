@@ -12,7 +12,7 @@ import enumeratum.Json4s
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.{ArticleType, Availability}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
@@ -25,7 +25,6 @@ import org.json4s.native.Serialization
 import org.json4s.{DefaultFormats, Formats}
 import sttp.client3.quick._
 
-import java.time.LocalDateTime
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
 
@@ -38,9 +37,11 @@ trait ArticleApiClient {
     private val deleteTimeout    = 10.seconds
     private val timeout          = 15.seconds
     private implicit val format: Formats =
-      DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(
-        ArticleType
-      )
+      DefaultFormats.withLong +
+        new EnumNameSerializer(Availability) ++
+        JavaTimeSerializers.all +
+        Json4s.serializer(ArticleType) +
+        NDLADate.Json4sSerializer
 
     def partialPublishArticle(
         id: Long,
@@ -149,7 +150,7 @@ trait ArticleApiClient {
       metaDescription: Option[Seq[api.ArticleMetaDescription]],
       relatedContent: Option[Seq[common.RelatedContent]],
       tags: Option[Seq[api.ArticleTag]],
-      revisionDate: Either[Null, Option[LocalDateTime]] // Left means `null` which deletes `revisionDate`
+      revisionDate: Either[Null, Option[NDLADate]] // Left means `null` which deletes `revisionDate`
   ) {
     def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
     def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)

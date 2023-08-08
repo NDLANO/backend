@@ -7,10 +7,9 @@
 
 package no.ndla.draftapi.model.api
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.RelatedContent
 import no.ndla.common.model.api.draft.Comment
-
-import java.time.LocalDateTime
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -31,10 +30,10 @@ case class Article(
     @(ApiModelProperty @field)(description = "An introduction for the article") introduction: Option[ArticleIntroduction],
     @(ApiModelProperty @field)(description = "Meta description for the article") metaDescription: Option[ArticleMetaDescription],
     @(ApiModelProperty @field)(description = "Meta image for the article") metaImage: Option[ArticleMetaImage],
-    @(ApiModelProperty @field)(description = "When the article was created") created: LocalDateTime,
-    @(ApiModelProperty @field)(description = "When the article was last updated") updated: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the article was created") created: NDLADate,
+    @(ApiModelProperty @field)(description = "When the article was last updated") updated: NDLADate,
     @(ApiModelProperty @field)(description = "By whom the article was last updated") updatedBy: String,
-    @(ApiModelProperty @field)(description = "When the article was last published") published: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the article was last published") published: NDLADate,
     @(ApiModelProperty @field)(description = "The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
     @(ApiModelProperty @field)(description = "The languages this article supports") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "The notes for this article draft") notes: Seq[EditorNote],

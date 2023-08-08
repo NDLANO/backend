@@ -12,7 +12,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
 import no.ndla.draftapi.model.domain.StateTransition
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -21,7 +21,6 @@ import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
@@ -143,7 +142,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("doTransition should publish the article when transitioning to PUBLISHED") {
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
     val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
@@ -182,7 +181,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("doTransition should unpublish the article when transitioning to UNPUBLISHED") {
     val expectedStatus  = common.Status(UNPUBLISHED, Set.empty)
-    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
     val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
 
     when(learningpathApiClient.getLearningpathsWithId(any[Long])).thenReturn(Success(Seq.empty))
@@ -413,7 +412,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val h5pId           = "123-kulid-123"
     val h5pPaths        = Seq(s"/resource/$h5pId")
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
     val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)

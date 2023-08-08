@@ -8,17 +8,15 @@
 package no.ndla.draftapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.integration.{LearningPath, Title}
-import no.ndla.draftapi.model.api.{GrepCodesSearchResult, NewAgreement, NewArticle, TagsSearchResult, UpdatedArticle}
+import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA, CC_BY_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
-
-import java.time.LocalDateTime
 
 object TestData {
 
@@ -61,7 +59,7 @@ object TestData {
     None,
     None
   )
-  val today: LocalDateTime = LocalDateTime.now()
+  val today: NDLADate = NDLADate.now()
 
   val (articleId, externalId) = (1L, "751234")
 
@@ -90,10 +88,10 @@ object TestData {
     introduction = None,
     metaDescription = Some(api.ArticleMetaDescription("metaDesc", "nb")),
     None,
-    created = LocalDateTime.of(2017, 1, 1, 12, 15, 32),
-    updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
+    created = NDLADate.of(2017, 1, 1, 12, 15, 32),
+    updated = NDLADate.of(2017, 4, 1, 12, 15, 32),
     updatedBy = "me",
-    published = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
+    published = NDLADate.of(2017, 4, 1, 12, 15, 32),
     articleType = "standard",
     supportedLanguages = Seq("nb"),
     Seq.empty,
@@ -289,10 +287,10 @@ object TestData {
     Seq(common.Introduction("This is an introduction", "en")),
     Seq.empty,
     Seq.empty,
-    LocalDateTime.now().minusDays(4).withNano(0),
-    LocalDateTime.now().minusDays(2).withNano(0),
+    NDLADate.now().minusDays(4).withNano(0),
+    NDLADate.now().minusDays(2).withNano(0),
     userWithWriteAccess.id,
-    LocalDateTime.now().minusDays(2).withNano(0),
+    NDLADate.now().minusDays(2).withNano(0),
     common.ArticleType.TopicArticle,
     Seq.empty,
     Seq.empty,
@@ -322,10 +320,10 @@ object TestData {
     Seq(common.Introduction("This is an introduction", "en")),
     Seq.empty,
     Seq.empty,
-    LocalDateTime.now().minusDays(4).withNano(0),
-    LocalDateTime.now().minusDays(2).withNano(0),
+    NDLADate.now().minusDays(4).withNano(0),
+    NDLADate.now().minusDays(2).withNano(0),
     userWithWriteAccess.id,
-    LocalDateTime.now().minusDays(2).withNano(0),
+    NDLADate.now().minusDays(2).withNano(0),
     common.ArticleType.Standard,
     Seq.empty,
     Seq.empty,
@@ -493,10 +491,10 @@ object TestData {
     None,
     Some(api.ArticleMetaDescription("so meta", "en")),
     None,
-    LocalDateTime.now().minusDays(4),
-    LocalDateTime.now().minusDays(2),
+    NDLADate.now().minusDays(4),
+    NDLADate.now().minusDays(2),
     "ndalId54321",
-    LocalDateTime.now().minusDays(2),
+    NDLADate.now().minusDays(2),
     "standard",
     Seq("en"),
     Seq.empty,
@@ -526,8 +524,8 @@ object TestData {
     "title",
     "content",
     api.Copyright(Some(api.License("publicdomain", None, None)), Some(""), Seq(), List(), List(), None, None, None),
-    LocalDateTime.now().minusDays(4),
-    LocalDateTime.now().minusDays(2),
+    NDLADate.now().minusDays(4),
+    NDLADate.now().minusDays(2),
     "ndalId54321"
   )
 
@@ -536,8 +534,8 @@ object TestData {
     title = "Title",
     content = "Content",
     copyright = byNcSaCopyright,
-    created = LocalDateTime.now().minusDays(4),
-    updated = LocalDateTime.now().minusDays(2),
+    created = NDLADate.now().minusDays(4),
+    updated = NDLADate.now().minusDays(2),
     updatedBy = userWithWriteAccess.id
   )
 
@@ -547,8 +545,8 @@ object TestData {
     content = "Content",
     copyright =
       common.draft.Copyright(Some(CC_BY_SA.toString), Some("Origin"), List(), List(), List(), None, None, None),
-    created = LocalDateTime.now().minusDays(4),
-    updated = LocalDateTime.now().minusDays(2),
+    created = NDLADate.now().minusDays(4),
+    updated = NDLADate.now().minusDays(2),
     updatedBy = userWithWriteAccess.id
   )
 

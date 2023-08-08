@@ -6,8 +6,7 @@
  */
 
 package no.ndla.draftapi.model.api
-import java.time.LocalDateTime
-
+import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -17,5 +16,5 @@ case class EditorNote(
     @(ApiModelProperty @field)(description = "Editorial note") note: String,
     @(ApiModelProperty @field)(description = "User which saved the note") user: String,
     @(ApiModelProperty @field)(description = "Status of article at saved time") status: Status,
-    @(ApiModelProperty @field)(description = "Timestamp of when note was saved") timestamp: LocalDateTime
+    @(ApiModelProperty @field)(description = "Timestamp of when note was saved") timestamp: NDLADate
 )

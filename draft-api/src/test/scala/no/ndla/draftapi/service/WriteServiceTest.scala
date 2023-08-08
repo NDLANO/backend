@@ -10,10 +10,10 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft._
-import no.ndla.common.model.domain._
-import no.ndla.common.model.{RelatedContentLink, domain, api => commonApi}
+import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api => commonApi}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.PartialArticleFields
@@ -29,7 +29,6 @@ import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
 import java.io.ByteArrayInputStream
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -37,9 +36,9 @@ import scala.util.{Failure, Success, Try}
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
-  val today: LocalDateTime     = LocalDateTime.now()
-  val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
-  val service                  = new WriteService()
+  val today: NDLADate     = NDLADate.now()
+  val yesterday: NDLADate = NDLADate.now().minusDays(1)
+  val service             = new WriteService()
 
   val articleId   = 13L
   val agreementId = 14L
@@ -553,8 +552,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That articles are cloned with reasonable values") {
-    val yesterday = LocalDateTime.now().minusDays(1)
-    val today     = LocalDateTime.now()
+    val yesterday = NDLADate.now().minusDays(1)
+    val today     = NDLADate.now()
 
     when(clock.now()).thenReturn(today)
 
@@ -603,8 +602,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That articles are cloned without title postfix if flag is false") {
-    val yesterday = LocalDateTime.now().minusDays(1)
-    val today     = LocalDateTime.now().withNano(0)
+    val yesterday = NDLADate.now().minusDays(1)
+    val today     = NDLADate.now().withNano(0)
 
     when(clock.now()).thenReturn(today)
 
@@ -989,7 +988,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That partialArticleFieldsUpdate updates fields correctly based on language") {
-    val today         = LocalDateTime.now()
+    val today         = NDLADate.now()
     val yesterday     = today.minusDays(1)
     val tomorrow      = today.plusDays(1)
     val afterTomorrow = today.plusDays(2)
@@ -1129,7 +1128,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle should get editor notes if RevisionMeta is added or updated") {
-    val revision = api.RevisionMeta(None, LocalDateTime.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
+    val revision = api.RevisionMeta(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       revisionMeta = Some(Seq(revision))
@@ -1382,7 +1381,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val resource = Resource("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
 
     val revisionMeta =
-      RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+      RevisionMeta(UUID.randomUUID(), NDLADate.now(), "Test revision", RevisionStatus.NeedsRevision)
     val article1 = TestData.sampleDomainArticle.copy(
       id = Some(1),
       revisionMeta = Seq(revisionMeta)
@@ -1427,7 +1426,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val resource = Resource("urn:resource:1", "Resource", Some("urn:article:2"), List.empty)
 
     val revisionMeta =
-      RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+      RevisionMeta(UUID.randomUUID(), NDLADate.now(), "Test revision", RevisionStatus.NeedsRevision)
     val article1 = TestData.sampleDomainArticle.copy(
       id = Some(1),
       revisionMeta = Seq(revisionMeta)
@@ -1447,7 +1446,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData.sampleDomainArticle.copy(
       started = false,
       status = TestData.statusWithPlanned,
-      responsible = Some(Responsible("123", LocalDateTime.now()))
+      responsible = Some(Responsible("123", NDLADate.now()))
     )
 
     val updatedArticle = TestData.blankUpdatedArticle.copy(
@@ -1477,7 +1476,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData.sampleDomainArticle.copy(
       started = true,
       status = TestData.statusWithPlanned,
-      responsible = Some(Responsible("responsible", LocalDateTime.now()))
+      responsible = Some(Responsible("responsible", NDLADate.now()))
     )
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
@@ -1507,7 +1506,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData.sampleDomainArticle.copy(
       started = true,
       status = TestData.statusWithPlanned,
-      responsible = Some(Responsible("responsible", LocalDateTime.now()))
+      responsible = Some(Responsible("responsible", NDLADate.now()))
     )
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
@@ -1536,7 +1535,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData.sampleDomainArticle.copy(
       started = false,
       status = TestData.statusWithPublished,
-      responsible = Some(Responsible("responsible", LocalDateTime.now()))
+      responsible = Some(Responsible("responsible", NDLADate.now()))
     )
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,

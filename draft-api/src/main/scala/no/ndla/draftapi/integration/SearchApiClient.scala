@@ -9,6 +9,7 @@ package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionStatus}
 import no.ndla.draftapi.Props
@@ -41,7 +42,8 @@ trait SearchApiClient {
         Json4s.serializer(ArticleType) +
         Json4s.serializer(RevisionStatus) ++
         JavaTimeSerializers.all ++
-        JavaTypesSerializers.all
+        JavaTypesSerializers.all +
+        NDLADate.Json4sSerializer
 
     def indexDraft(draft: Draft)(implicit ex: ExecutionContext): Draft = {
       val future = postWithData[Draft, Draft](s"$InternalEndpoint/draft/", draft)

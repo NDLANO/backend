@@ -8,8 +8,9 @@
 package no.ndla.draftapi.db.migration
 
 import enumeratum.Json4s
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.Status
 import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.common.model.domain.{EditorNote, Status}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
@@ -22,7 +23,7 @@ import scala.util.{Success, Try}
 
 class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
   implicit val formats: Formats =
-    org.json4s.DefaultFormats + Json4s.serializer(DraftStatus) ++ JavaTimeSerializers.all
+    org.json4s.DefaultFormats + Json4s.serializer(DraftStatus) ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
@@ -64,7 +65,7 @@ class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
       case Success(old) =>
         val newArticle = oldArticle.mapField {
           case ("notes", _) =>
-            val editorNotes        = old.notes.map(EditorNote(_, "System", old.status, old.updated))
+            val editorNotes        = old.notes.map(V16__EditorNote(_, "System", old.status, old.updated))
             val notesWithNewFormat = Extraction.decompose(editorNotes)
             ("notes", notesWithNewFormat)
           case x => x
@@ -84,4 +85,5 @@ class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
   }
 
   case class V15__Article(status: Status, updated: LocalDateTime, notes: Seq[String])
+  case class V16__EditorNote(note: String, user: String, status: Status, timestamp: LocalDateTime)
 }

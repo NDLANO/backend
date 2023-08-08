@@ -7,8 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import java.time.LocalDateTime
-
+import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -21,7 +20,7 @@ case class Agreement(
     @(ApiModelProperty @field)(
       description = "Describes the copyright information for the agreement"
     ) copyright: Copyright,
-    @(ApiModelProperty @field)(description = "When the agreement was created") created: LocalDateTime,
-    @(ApiModelProperty @field)(description = "When the agreement was last updated") updated: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the agreement was created") created: NDLADate,
+    @(ApiModelProperty @field)(description = "When the agreement was last updated") updated: NDLADate,
     @(ApiModelProperty @field)(description = "By whom the agreement was last updated") updatedBy: String
 )
