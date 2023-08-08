@@ -8,12 +8,11 @@
 package no.ndla.articleapi.model.search
 
 import no.ndla.articleapi._
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, writePretty}
-
-import java.time.LocalDateTime
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
@@ -33,7 +32,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     tags = SearchableLanguageList(
       Vector(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))
     ),
-    lastUpdated = LocalDateTime.of(2018, 2, 22, 14, 0, 51),
+    lastUpdated = NDLADate.of(2018, 2, 22, 14, 0, 51),
     license = "by-sa",
     authors = Seq("Jonas Natty"),
     articleType = "standard",

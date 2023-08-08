@@ -10,6 +10,7 @@ package no.ndla.articleapi.controller
 
 import enumeratum.Json4s
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Author, Availability}
 import no.ndla.network.tapir.TapirServer
@@ -21,7 +22,11 @@ import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats =
-    DefaultFormats + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(ArticleType)
+    DefaultFormats +
+      new EnumNameSerializer(Availability) ++
+      JavaTimeSerializers.all +
+      Json4s.serializer(ArticleType) +
+      NDLADate.Json4sSerializer
 
   val author = Author("forfatter", "Henrik")
 

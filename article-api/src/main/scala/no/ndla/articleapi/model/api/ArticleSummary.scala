@@ -8,9 +8,8 @@
 
 package no.ndla.articleapi.model.api
 
+import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
-
-import java.time.LocalDateTime
 
 // format: off
 @description("Short summary of information about the article")
@@ -24,7 +23,7 @@ case class ArticleSummaryV2(
     @description("The full url to where the complete information about the article can be found") url: String,
     @description("Describes the license of the article") license: String,
     @description("The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
-    @description("The time when the article was last updated") lastUpdated: LocalDateTime,
+    @description("The time when the article was last updated") lastUpdated: NDLADate,
     @description("A list of available languages for this article") supportedLanguages: Seq[String],
     @description("A list of codes from GREP API attached to this article") grepCodes: Seq[String],
     @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,

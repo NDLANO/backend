@@ -8,9 +8,8 @@
 
 package no.ndla.articleapi.model.api
 
+import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
-
-import java.time.LocalDateTime
 
 @description("Description of copyright information")
 case class Copyright(
@@ -20,6 +19,6 @@ case class Copyright(
     @description("List of processors") processors: Seq[Author],
     @description("List of rightsholders") rightsholders: Seq[Author],
     @description("Reference to agreement id") agreementId: Option[Long],
-    @description("Date from which the copyright is valid") validFrom: Option[LocalDateTime],
-    @description("Date to which the copyright is valid") validTo: Option[LocalDateTime]
+    @description("Date from which the copyright is valid") validFrom: Option[NDLADate],
+    @description("Date to which the copyright is valid") validTo: Option[NDLADate]
 )

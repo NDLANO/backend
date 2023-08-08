@@ -10,6 +10,7 @@ package no.ndla.articleapi.model.domain
 
 import enumeratum.Json4s
 import no.ndla.articleapi.Props
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.article.Article
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
@@ -25,7 +26,8 @@ trait DBArticle {
       DefaultFormats.withLong +
         new EnumNameSerializer(Availability) ++
         JavaTimeSerializers.all +
-        Json4s.serializer(ArticleType)
+        Json4s.serializer(ArticleType) +
+        NDLADate.Json4sSerializer
 
     override val tableName                       = "contentdata"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)

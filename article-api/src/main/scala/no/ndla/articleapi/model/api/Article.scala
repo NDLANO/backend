@@ -8,10 +8,9 @@
 
 package no.ndla.articleapi.model.api
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.RelatedContent
 import sttp.tapir.Schema.annotations.description
-
-import java.time.LocalDateTime
 
 // format: off
 @description("Information about the article")
@@ -28,17 +27,17 @@ case class ArticleV2(
     @description("A meta image for the article") metaImage: Option[ArticleMetaImage],
     @description("An introduction for the article") introduction: Option[ArticleIntroduction],
     @description("Meta description for the article") metaDescription: ArticleMetaDescription,
-    @description("When the article was created") created: LocalDateTime,
-    @description("When the article was last updated") updated: LocalDateTime,
+    @description("When the article was created") created: NDLADate,
+    @description("When the article was last updated") updated: NDLADate,
     @description("By whom the article was last updated") updatedBy: String,
-    @description("When the article was last published") published: LocalDateTime,
+    @description("When the article was last published") published: NDLADate,
     @description("The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
     @description("The languages this article supports") supportedLanguages: Seq[String],
     @description("A list of codes from GREP API connected to the article") grepCodes: Seq[String],
     @description("A list of conceptIds connected to the article") conceptIds: Seq[Long],
     @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
     @description("A list of content related to the article") relatedContent: Seq[RelatedContent],
-    @description("The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[LocalDateTime],
+    @description("The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[NDLADate],
     @description("The path to the frontpage article") slug: Option[String],
 )
 // format: on

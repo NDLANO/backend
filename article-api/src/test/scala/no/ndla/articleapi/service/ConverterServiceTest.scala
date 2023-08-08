@@ -11,13 +11,11 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.{api => commonApi}
-import no.ndla.common.model.RelatedContentLink
+import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi}
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.{Author, Availability, Description, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 
-import java.time.LocalDateTime
 import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -80,8 +78,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2 with Agreement Copyright") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    val from = LocalDateTime.now().minusDays(5)
-    val to   = LocalDateTime.now().plusDays(10)
+    val from = NDLADate.now().minusDays(5)
+    val to   = NDLADate.now().plusDays(10)
     val agreementCopyright = api.Copyright(
       api.License("gnu", Some("gpl"), None),
       "http://tjohei.com/",
@@ -234,7 +232,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("gammel", "Tag"), "nb"))
     )
 
-    val revisionDate = LocalDateTime.now()
+    val revisionDate = NDLADate.now()
 
     val partialArticle =
       api.PartialPublishArticle(
@@ -281,7 +279,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("Gluten", "Tag"), "de"))
     )
 
-    val revisionDate = LocalDateTime.now()
+    val revisionDate = NDLADate.now()
     val partialArticle =
       api.PartialPublishArticle(
         availability = Some(Availability.teacher),

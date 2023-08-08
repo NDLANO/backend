@@ -11,32 +11,22 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  Description,
-  Introduction,
-  Tag,
-  Title
-}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.domain._
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.Success
 
 class ArticleSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
-  import props._
   import TestData.testSettings
+  import props._
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -89,7 +79,7 @@ class ArticleSearchServiceTest
       None
     )
 
-  val today = LocalDateTime.now()
+  val today = NDLADate.now()
 
   val article1 = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),

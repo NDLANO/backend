@@ -11,11 +11,10 @@ package no.ndla.articleapi.model.api
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.{eitherDecoder, eitherEncoder}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{RelatedContent, RelatedContentLink, UpdateOrDelete}
 import no.ndla.common.model.domain.Availability
 import sttp.tapir.Schema.annotations.description
-
-import java.time.LocalDateTime
 
 // format: off
 @description("Partial data about article to publish independently")
@@ -26,7 +25,7 @@ case class PartialPublishArticle(
     @description("A list of meta description objects") metaDescription: Option[Seq[ArticleMetaDescription]],
     @description("A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
     @description("A list of tag objects") tags: Option[Seq[ArticleTag]],
-    @description("A revision date to specify expected earliest revision date of the article") revisionDate:  UpdateOrDelete[LocalDateTime],
+    @description("A revision date to specify expected earliest revision date of the article") revisionDate:  UpdateOrDelete[NDLADate],
 )
 
 object PartialPublishArticle {
