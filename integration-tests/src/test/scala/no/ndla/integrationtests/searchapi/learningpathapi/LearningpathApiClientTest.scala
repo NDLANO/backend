@@ -8,7 +8,7 @@
 package no.ndla.integrationtests.searchapi.learningpathapi
 
 import enumeratum.Json4s
-import no.ndla.common.DateParser
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.integrationtests.UnitSuite
@@ -37,7 +37,9 @@ class LearningpathApiClientTest
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
-      new EnumNameSerializer(LearningResourceType) ++ JavaTimeSerializers.all
+      new EnumNameSerializer(LearningResourceType) ++
+      JavaTimeSerializers.all +
+      NDLADate.Json4sSerializer
 
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
@@ -71,7 +73,7 @@ class LearningpathApiClientTest
       .map(id => {
         learningpathApi.componentRegistry.learningPathRepository.insert(
           learningpathapi.TestData.sampleDomainLearningPath
-            .copy(id = Some(id), lastUpdated = DateParser.fromUnixTime(0))
+            .copy(id = Some(id), lastUpdated = NDLADate.fromUnixTime(0))
         )
       })
   }
