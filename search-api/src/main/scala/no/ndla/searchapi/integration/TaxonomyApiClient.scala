@@ -46,13 +46,15 @@ trait TaxonomyApiClient {
     def getTaxonomyContext(
         contentUri: String,
         filterVisibles: Boolean,
+        filterContexts: Boolean,
         shouldUsePublishedTax: Boolean
     ): Try[List[TaxonomyContext]] = {
-      get[List[TaxonomyContext]](
+      val contexts = get[List[TaxonomyContext]](
         s"$TaxonomyApiEndpoint/queries/$contentUri",
         headers = getVersionHashHeader(shouldUsePublishedTax),
         params = "filterVisibles" -> filterVisibles.toString
       )
+      if (filterContexts) contexts.map(list => list.filter(c => c.rootId.contains("subject"))) else contexts
     }
 
     private def getVersionHashHeader(shouldUsePublishedTax: Boolean): Map[String, String] = {

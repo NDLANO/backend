@@ -199,11 +199,13 @@ trait SearchConverterService {
     ): Try[SearchableArticle] = {
       val articleId = ai.id.get
       val taxonomyContexts = taxonomyBundle match {
-        case Some(bundle) => Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true))
+        case Some(bundle) =>
+          Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = true))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:article:$articleId",
             filterVisibles = true,
+            filterContexts = true,
             shouldUsePublishedTax = true
           )
       }
@@ -274,11 +276,13 @@ trait SearchConverterService {
         taxonomyBundle: Option[TaxonomyBundle]
     ): Try[SearchableLearningPath] = {
       val taxonomyContexts = taxonomyBundle match {
-        case Some(bundle) => Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true))
+        case Some(bundle) =>
+          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, true))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:learningpath:${lp.id.get}",
             filterVisibles = true,
+            true,
             shouldUsePublishedTax = true
           )
       }
@@ -325,11 +329,12 @@ trait SearchConverterService {
       val taxonomyContexts = {
         val draftId = draft.id.get
         taxonomyBundle match {
-          case Some(bundle) => Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false))
+          case Some(bundle) => Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, true))
           case None =>
             taxonomyApiClient.getTaxonomyContext(
               s"urn:article:$draftId",
               filterVisibles = false,
+              true,
               shouldUsePublishedTax = false
             )
         }
@@ -699,11 +704,13 @@ trait SearchConverterService {
         id: Long,
         taxonomyType: String,
         bundle: TaxonomyBundle,
-        filterVisibles: Boolean
-    ): List[TaxonomyContext] = {
+        filterVisibles: Boolean,
+        filterContexts: Boolean
+    ) = {
       val nodes       = bundle.nodeByContentUri.getOrElse(s"urn:$taxonomyType:$id", List.empty)
       val allContexts = nodes.flatMap(node => node.contexts)
-      if (filterVisibles) allContexts.filter(c => c.isVisible) else allContexts
+      val visibles    = if (filterVisibles) allContexts.filter(c => c.isVisible) else allContexts
+      if (filterContexts) visibles.filter(c => c.rootId.contains("subject")) else visibles
     }
 
     private[service] def getGrepContexts(
