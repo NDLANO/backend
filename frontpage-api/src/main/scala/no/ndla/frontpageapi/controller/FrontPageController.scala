@@ -28,18 +28,11 @@ trait FrontPageController {
 
     import ErrorHelpers._
 
-    val myHeader = sttp.tapir
-      .header[Option[String]]("TestHeader")
-      .description("yessir")
-      .mapDecode(mbHeader => DecodeResult.Value(mbHeader.map(_.replaceFirst("Bearer ", ""))))(x => x)
-
     val getFrontPage: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Get data to display on the front page")
       .out(jsonBody[FrontPage])
-      .in(myHeader)
       .errorOut(errorOutputsFor(404))
-      .serverLogic { header =>
-        println(s"We got header: ${header}")
+      .serverLogic { _ =>
         readService.getFrontPage.handleErrorsOrOk
       }
 
