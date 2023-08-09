@@ -3,10 +3,15 @@
     "h5p": {
       "required": [
         "data-resource",
-        "data-path"],
+        "data-path"
+      ],
       "optional": [
-        [ "data-title" ],
-        [ "data-url" ]
+        [
+          "data-title"
+        ],
+        [
+          "data-url"
+        ]
       ]
     },
     "external": {
@@ -16,9 +21,17 @@
         "data-type"
       ],
       "optional": [
-        [ "data-caption" ],
-        [ "data-title" ],
-        [ "data-imageid", "data-caption", "data-title" ]
+        [
+          "data-caption"
+        ],
+        [
+          "data-title"
+        ],
+        [
+          "data-imageid",
+          "data-caption",
+          "data-title"
+        ]
       ]
     },
     "error": {
@@ -37,8 +50,12 @@
         "data-type"
       ],
       "optional": [
-        [ "data-caption" ],
-        [ "data-alt" ]
+        [
+          "data-caption"
+        ],
+        [
+          "data-alt"
+        ]
       ]
     },
     "nrk": {
@@ -54,8 +71,12 @@
         "data-content-id"
       ],
       "optional": [
-        [ "data-open-in" ],
-        [ "data-content-type" ]
+        [
+          "data-open-in"
+        ],
+        [
+          "data-content-type"
+        ]
       ],
       "children": {
         "required": true,
@@ -80,8 +101,12 @@
         "data-player"
       ],
       "optional": [
-        [ "data-title" ],
-        [ "data-alt" ]
+        [
+          "data-title"
+        ],
+        [
+          "data-alt"
+        ]
       ]
     },
     "image": {
@@ -102,12 +127,15 @@
           "data-upper-left-y",
           "data-lower-right-x",
           "data-lower-right-y"
-        ], [
+        ],
+        [
           "data-focal-x",
           "data-focal-y"
-        ], [
+        ],
+        [
           "data-is-decorative"
-        ], [
+        ],
+        [
           "data-border"
         ]
       ]
@@ -122,7 +150,9 @@
         "data-type"
       ],
       "optional": [
-        ["data-link-text"]
+        [
+          "data-link-text"
+        ]
       ]
     },
     "concept-list": {
@@ -130,9 +160,19 @@
         "data-resource"
       ],
       "optional": [
-        [ "data-tag", "data-title" ],
-        [ "data-tag", "data-title", "data-subject-id" ],
-        [ "data-resource_id", "data-recursive" ]
+        [
+          "data-tag",
+          "data-title"
+        ],
+        [
+          "data-tag",
+          "data-title",
+          "data-subject-id"
+        ],
+        [
+          "data-resource_id",
+          "data-recursive"
+        ]
       ]
     },
     "iframe": {
@@ -146,7 +186,9 @@
           "data-width",
           "data-height"
         ],
-        ["data-title"],
+        [
+          "data-title"
+        ],
         [
           "data-title",
           "data-caption",
@@ -219,7 +261,9 @@
         "data-code-content"
       ],
       "optional": [
-        [ "data-title" ]
+        [
+          "data-title"
+        ]
       ]
     },
     "related-content": {
@@ -230,7 +274,8 @@
       "optional": [
         [
           "data-article-id"
-        ], [
+        ],
+        [
           "data-url",
           "data-title"
         ]
@@ -251,9 +296,15 @@
         "data-path"
       ],
       "optional": [
-        [ "data-type" ],
-        [ "data-alt" ],
-        [ "data-display" ]
+        [
+          "data-type"
+        ],
+        [
+          "data-alt"
+        ],
+        [
+          "data-display"
+        ]
       ],
       "mustBeDirectChildOf": {
         "name": "div",
@@ -274,8 +325,12 @@
         "data-image-id"
       ],
       "optional": [
-        ["data-blob-color"],
-        ["data-blob"]
+        [
+          "data-blob-color"
+        ],
+        [
+          "data-blob"
+        ]
       ]
     },
     "blog-post": {
@@ -287,8 +342,12 @@
         "data-url"
       ],
       "optional": [
-        [ "data-size" ],
-        [ "data-author" ]
+        [
+          "data-size"
+        ],
+        [
+          "data-author"
+        ]
       ]
     },
     "key-figure": {
@@ -297,9 +356,9 @@
         "data-image-id",
         "data-title",
         "data-subtitle"
-     ]
+      ]
     },
-    "campaign-block" : {
+    "campaign-block": {
       "required": [
         "data-resource",
         "data-title",
@@ -311,8 +370,27 @@
         "data-url-text"
       ],
       "optional": [
-        ["data-image-before-id"],
-        ["data-image-after-id"]
+        [
+          "data-image-before-id"
+        ],
+        [
+          "data-image-after-id"
+        ]
+      ]
+    },
+    "link-block": {
+      "required": [
+        "data-resource",
+        "data-title",
+        "data-url"
+      ],
+      "optional": [
+        [
+          "data-date"
+        ],
+        [
+          "data-language"
+        ]
       ]
     }
   }

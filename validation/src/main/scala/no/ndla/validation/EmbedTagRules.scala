@@ -11,8 +11,6 @@ import scala.io.Source
 import scala.language.postfixOps
 
 object EmbedTagRules {
-  case class EmbedThings(attrsForResource: Map[ResourceType.Value, TagRules.TagAttributeRules])
-
   private[validation] lazy val attributeRules: Map[ResourceType.Value, TagRules.TagAttributeRules] = embedRulesToJson
 
   lazy val allEmbedTagAttributes: Set[TagAttributes.Value] = attributeRules.flatMap { case (_, attrRules) =>
@@ -58,6 +56,7 @@ object ResourceType extends Enumeration {
   val BlogPost: ResourceType.Value        = Value("blog-post")
   val KeyFigure: ResourceType.Value       = Value("key-figure")
   val CampaignBlock: ResourceType.Value   = Value("campaign-block")
+  val LinkBlock: ResourceType.Value       = Value("link-block")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 

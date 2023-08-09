@@ -1,5 +1,12 @@
 {
   "attributes": {
+    "nav": {
+      "optional": [
+        [
+          "data-type"
+        ]
+      ]
+    },
     "span": {
       "mustContainAtLeastOneOptionalAttribute": true,
       "optional": [
@@ -202,6 +209,7 @@
     "col",
     "dl",
     "dt",
-    "dd"
+    "dd",
+    "nav"
   ]
 }
