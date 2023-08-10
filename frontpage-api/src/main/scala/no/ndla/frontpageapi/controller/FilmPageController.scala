@@ -27,7 +27,9 @@ trait FilmPageController {
 
   class FilmPageController extends SwaggerService {
     import ErrorHelpers._
-    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "filmfrontpage"
+
+    override val serviceName: String         = "filmfrontpage"
+    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
         .summary("Get data to display on the film front page")

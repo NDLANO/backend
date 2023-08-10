@@ -73,7 +73,8 @@ trait SeriesController {
     private val pathSeriesId = path[Long]("series-id").description("Id of series.")
     private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
 
-    override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / "series"
+    override val serviceName: String         = "series"
+    override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName
 
     val getSeriesSearch: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Find series")

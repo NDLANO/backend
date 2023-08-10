@@ -33,7 +33,8 @@ trait SubjectPageController {
   val subjectPageController: SubjectPageController
 
   class SubjectPageController extends SwaggerService {
-    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "subjectpage"
+    override val serviceName: String         = "subjectpage"
+    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
     import ErrorHelpers._
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
