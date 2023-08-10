@@ -54,6 +54,8 @@ object Dependencies {
       hikari
     )
 
+    lazy val jsoup = "org.jsoup" % "jsoup" % JsoupV
+
     lazy val melody: Seq[ModuleID] = Seq(
       "net.bull.javamelody" % "javamelody-core" % JavaMelodyV,
       "org.jrobin"          % "jrobin"          % "1.5.9" // This is needed for javamelody graphing

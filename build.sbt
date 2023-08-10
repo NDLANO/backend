@@ -122,7 +122,8 @@ lazy val network        = Module.setup(project in file("./network/"), networklib
 lazy val language       = Module.setup(project in file("./language/"), languagelib)
 lazy val mapping        = Module.setup(project in file("./mapping/"), mappinglib)
 lazy val validation     = Module.setup(project in file("./validation/"), validationlib, deps = Seq(common))
-lazy val search         = Module.setup(project in file("./search/"), searchlib, deps = Seq(language, common))
+lazy val search =
+  Module.setup(project in file("./search/"), searchlib, deps = Seq(testWith(scalatestsuite), language, common))
 
 lazy val `integration-tests` = Module.setup(
   project in file("./integration-tests/"),

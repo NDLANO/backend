@@ -16,6 +16,7 @@ object audioapi extends Module {
       enumeratum,
       sttp,
       catsEffect,
+      jsoup,
       "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
       "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",
       "javax.servlet"     % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
@@ -26,8 +27,7 @@ object audioapi extends Module {
       "org.scalatest"    %% "scalatest"                       % ScalaTestV % "test",
       "org.mockito"      %% "mockito-scala"                   % MockitoV   % "test",
       "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test",
-      "org.flywaydb"      % "flyway-core"                     % FlywayV,
-      "org.jsoup"         % "jsoup"                           % JsoupV
+      "org.flywaydb"      % "flyway-core"                     % FlywayV
     ),
     melody,
     elastic4s,

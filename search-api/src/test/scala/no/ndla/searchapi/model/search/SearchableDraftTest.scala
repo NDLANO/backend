@@ -9,6 +9,7 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Responsible, Status => CommonStatus}
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.domain.LearningResourceType

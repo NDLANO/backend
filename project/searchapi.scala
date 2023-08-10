@@ -14,7 +14,7 @@ object searchapi extends Module {
       scalaTsi,
       scalaUri,
       enumeratum,
-      "org.jsoup"         % "jsoup"                           % JsoupV,
+      jsoup,
       "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
       "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
       "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",

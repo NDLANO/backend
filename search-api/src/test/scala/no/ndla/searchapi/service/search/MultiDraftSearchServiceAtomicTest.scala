@@ -876,4 +876,28 @@ class MultiDraftSearchServiceAtomicTest
       .results
       .map(_.id) should be(Seq(1, 2, 3, 4))
   }
+
+  test("That search on embed id supports video embed with timestamp resources") {
+    val videoId = "66772123"
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      content = Seq(
+        ArticleContent(
+          s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></div></section>""",
+          "nb"
+        )
+      )
+    )
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+
+    blockUntil(() => draftIndexService.countDocuments == 1)
+
+    val Success(search1) =
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(embedId = Some(videoId), embedResource = List("video"))
+      )
+
+    search1.totalCount should be(1)
+    search1.results.map(_.id) should be(List(1))
+  }
 }

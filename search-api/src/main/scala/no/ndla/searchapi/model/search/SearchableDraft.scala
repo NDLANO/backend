@@ -9,6 +9,7 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 import java.time.LocalDateTime
