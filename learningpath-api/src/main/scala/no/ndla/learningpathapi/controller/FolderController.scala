@@ -52,10 +52,10 @@ trait FolderController {
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
     val response502 = ResponseMessage(502, "Remote error", Some("Error"))
 
-    private val folderId      = Param[UUID]("folder_id", "UUID of the folder.")
-    private val folderIdQuery = Param[Option[UUID]]("folder-id", "UUID of the folder.")
+    private val folderId      = Param[String]("folder_id", "UUID of the folder.")
+    private val folderIdQuery = Param[Option[String]]("folder-id", "UUID of the folder.")
     private val folderStatus  = Param[String]("folder-status", "Status of the folder")
-    private val resourceId    = Param[UUID]("resource_id", "UUID of the resource.")
+    private val resourceId    = Param[String]("resource_id", "UUID of the resource.")
     private val size          = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val feideToken    = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
@@ -64,8 +64,8 @@ trait FolderController {
     private val includeSubfolders =
       Param[Option[Boolean]]("include-subfolders", "Choose if sub-folders should be included in the response")
 
-    private val sourceId = Param[UUID]("source_folder_id", "Source UUID of the folder.")
-    private val destinationId = Param[Option[UUID]](
+    private val sourceId = Param[String]("source_folder_id", "Source UUID of the folder.")
+    private val destinationId = Param[Option[String]](
       "destination-folder-id",
       "Destination UUID of the folder. If None it will be cloned as a root folder."
     )
