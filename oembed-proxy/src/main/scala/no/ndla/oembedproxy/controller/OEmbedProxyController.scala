@@ -28,7 +28,7 @@ trait OEmbedProxyController {
   val oEmbedProxyController: OEmbedProxyController
 
   class OEmbedProxyController extends SwaggerService with FLogging {
-    override val serviceName: String = "oembed"
+    override val serviceName: String         = "oembed"
     override val prefix: EndpointInput[Unit] = "oembed-proxy" / "v1" / serviceName
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
