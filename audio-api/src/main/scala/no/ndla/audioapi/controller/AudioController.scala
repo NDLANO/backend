@@ -50,7 +50,8 @@ trait AudioController {
 
   class AudioController() extends SwaggerService {
     import props._
-    override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / "audio"
+    override val serviceName: String         = "audio"
+    override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName
 
     private val queryString = query[Option[NonEmptyString]]("query")
       .description("Return only results with titles or tags matching the specified query.")

@@ -34,13 +34,14 @@ trait Service {
 
   trait SwaggerService extends Service {
     val enableSwagger: Boolean = true
+    val serviceName: String    = this.getClass.getSimpleName
     protected val prefix: EndpointInput[Unit]
     protected val endpoints: List[ServerEndpoint[Any, IO]]
 
     lazy val builtEndpoints: List[ServerEndpoint[Any, IO]] = {
       this.endpoints.map(e => {
         ServerEndpoint(
-          endpoint = e.endpoint.prependIn(this.prefix).tag(props.ApplicationName),
+          endpoint = e.endpoint.prependIn(this.prefix).tag(this.serviceName),
           securityLogic = e.securityLogic,
           logic = e.logic
         )

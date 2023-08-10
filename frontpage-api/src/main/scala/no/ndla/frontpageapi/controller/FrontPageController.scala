@@ -25,7 +25,8 @@ trait FrontPageController {
   val frontPageController: FrontPageController
 
   class FrontPageController() extends SwaggerService {
-    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "frontpage"
+    override val serviceName: String         = "frontpage"
+    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
     import ErrorHelpers._
 
