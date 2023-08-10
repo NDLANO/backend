@@ -53,11 +53,17 @@ object SearchConverter {
     "data-article-id"
   )
 
+  private def stripIdPostfix(str: String): String = {
+    // NOTE: Some video ids can contain data like timestamp (`&t=123`)
+    //       Stripping that for better search results
+    str.takeWhile(_ != '&')
+  }
+
   private def getEmbedIds(embed: Element): List[String] = {
     AttributesToKeep.flatMap(attr =>
       embed.attr(attr) match {
-        case "" => None
-        case a  => Some(a)
+        case ""    => None
+        case value => stripIdPostfix(value).some
       }
     )
   }
