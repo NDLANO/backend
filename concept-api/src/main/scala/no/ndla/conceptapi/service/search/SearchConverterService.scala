@@ -10,7 +10,6 @@ package no.ndla.conceptapi.service.search
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.draft.Copyright
-import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Concept, SearchResult}
@@ -19,15 +18,12 @@ import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
+import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.SearchLanguage
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s._
 import org.json4s.native.Serialization.read
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities.EscapeMode
-
-import scala.jdk.CollectionConverters._
 
 trait SearchConverterService {
   this: ConverterService =>
@@ -35,81 +31,6 @@ trait SearchConverterService {
 
   class SearchConverterService extends StrictLogging {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-
-    private def parseHtml(html: String) = {
-      val document = Jsoup.parseBodyFragment(html)
-      document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-      document.body()
-    }
-
-    // To be removed
-    private[service] def getEmbedResources(html: String): List[String] = {
-      parseHtml(html)
-        .select(EmbedTagName)
-        .asScala
-        .flatMap(getEmbedResources)
-        .toList
-    }
-
-    // To be removed
-    private def getEmbedResources(embed: Element): List[String] = {
-      val attributesToKeep = List(
-        "data-resource"
-      )
-
-      attributesToKeep.flatMap(attr =>
-        embed.attr(attr) match {
-          case "" => None
-          case a  => Some(a)
-        }
-      )
-    }
-
-    // To be removed
-    private[service] def getEmbedIds(html: String): List[String] = {
-      parseHtml(html)
-        .select(EmbedTagName)
-        .asScala
-        .flatMap(getEmbedIds)
-        .toList
-    }
-
-    private def getEmbedResource(embed: Element): Option[String] = {
-
-      embed.attr("data-resource") match {
-        case "" => None
-        case a  => Some(a)
-      }
-    }
-
-    private def getEmbedIds(embed: Element): List[String] = {
-      val attributesToKeep = List(
-        "data-videoid",
-        "data-url",
-        "data-resource_id",
-        "data-content-id"
-      )
-
-      attributesToKeep
-        .flatMap(attr =>
-          embed.attr(attr) match {
-            case "" => None
-            case a  => Some(a)
-          }
-        )
-    }
-
-    private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues = {
-      EmbedValues(resource = getEmbedResource(embed), id = getEmbedIds(embed), language = language)
-    }
-
-    private[service] def getEmbedValues(html: String, language: String): List[EmbedValues] = {
-      parseHtml(html)
-        .select(EmbedTagName)
-        .asScala
-        .flatMap(embed => Some(getEmbedValuesFromEmbed(embed, language)))
-        .toList
-    }
 
     private def getEmbedResourcesAndIdsToIndex(
         visualElement: Seq[domain.VisualElement],

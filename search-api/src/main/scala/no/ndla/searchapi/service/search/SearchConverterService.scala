@@ -19,6 +19,8 @@ import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, g
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
+import no.ndla.search.SearchConverter.getEmbedValues
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
@@ -96,43 +98,6 @@ trait SearchConverterService {
         "data-edition",
         "data-publisher",
         "data-authors"
-      )
-
-      attributesToKeep.flatMap(attr =>
-        embed.attr(attr) match {
-          case "" => None
-          case a  => Some(a)
-        }
-      )
-    }
-
-    private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues = {
-      EmbedValues(resource = getEmbedResource(embed), id = getEmbedIds(embed), language = language)
-    }
-
-    private[service] def getEmbedValues(html: String, language: String): List[EmbedValues] = {
-      parseHtml(html)
-        .select(EmbedTagName)
-        .asScala
-        .flatMap(embed => Some(getEmbedValuesFromEmbed(embed, language)))
-        .toList
-    }
-
-    private def getEmbedResource(embed: Element): Option[String] = {
-
-      embed.attr("data-resource") match {
-        case "" => None
-        case a  => Some(a)
-      }
-    }
-
-    private def getEmbedIds(embed: Element): List[String] = {
-      val attributesToKeep = List(
-        "data-videoid",
-        "data-url",
-        "data-resource_id",
-        "data-content-id",
-        "data-article-id"
       )
 
       attributesToKeep.flatMap(attr =>

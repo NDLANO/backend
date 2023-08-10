@@ -11,9 +11,10 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.model.search.{EmbedValues, SearchableArticle, SearchableGrepContext}
+import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization.read
 import org.json4s.{Extraction, Formats}

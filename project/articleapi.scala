@@ -16,6 +16,7 @@ object articleapi extends Module {
       scalaUri,
       enumeratum,
       sttp,
+      jsoup,
       "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
       "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",
       "javax.servlet"     % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
@@ -24,7 +25,6 @@ object articleapi extends Module {
       "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
       "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
       "org.scalatest"    %% "scalatest"                       % ScalaTestV % "test",
-      "org.jsoup"         % "jsoup"                           % JsoupV,
       "org.mockito"      %% "mockito-scala"                   % MockitoV   % "test",
       "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"      % "flyway-core"                     % FlywayV
