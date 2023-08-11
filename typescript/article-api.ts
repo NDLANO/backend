@@ -1,6 +1,6 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type Availability = ("everyone" | "teacher")
+export type Availability = ("decoder" | "encoder" | "everyone" | "teacher")
 
 export interface IArticleContentV2 {
   content: string
@@ -42,12 +42,12 @@ export interface IArticleSearchParams {
   license?: string
   page?: number
   pageSize?: number
-  idList: number[]
-  articleTypes: string[]
+  idList?: number[]
+  articleTypes?: string[]
   sort?: string
   fallback?: boolean
   scrollId?: string
-  grepCodes: string[]
+  grepCodes?: string[]
 }
 
 export interface IArticleSummaryV2 {
@@ -60,7 +60,7 @@ export interface IArticleSummaryV2 {
   url: string
   license: string
   articleType: string
-  lastUpdated: string
+  lastUpdated: INDLADate
   supportedLanguages: string[]
   grepCodes: string[]
   availability: string
@@ -89,17 +89,17 @@ export interface IArticleV2 {
   metaImage?: IArticleMetaImage
   introduction?: IArticleIntroduction
   metaDescription: IArticleMetaDescription
-  created: string
-  updated: string
+  created: INDLADate
+  updated: INDLADate
   updatedBy: string
-  published: string
+  published: INDLADate
   articleType: string
   supportedLanguages: string[]
   grepCodes: string[]
   conceptIds: number[]
   availability: string
   relatedContent: (IRelatedContentLink | number)[]
-  revisionDate?: string
+  revisionDate?: INDLADate
   slug?: string
 }
 
@@ -115,8 +115,8 @@ export interface ICopyright {
   processors: IAuthor[]
   rightsholders: IAuthor[]
   agreementId?: number
-  validFrom?: string
-  validTo?: string
+  validFrom?: INDLADate
+  validTo?: INDLADate
 }
 
 export interface ILicense {
@@ -125,14 +125,8 @@ export interface ILicense {
   url?: string
 }
 
-export interface IPartialPublishArticle {
-  availability?: Availability
-  grepCodes?: string[]
-  license?: string
-  metaDescription?: IArticleMetaDescription[]
-  relatedContent?: (IRelatedContentLink | number)[]
-  tags?: IArticleTag[]
-  revisionDate?: (NullAlias | string)
+export interface INDLADate {
+  underlying: string
 }
 
 export interface IRelatedContentLink {
@@ -178,5 +172,3 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
-
-export type NullAlias = null

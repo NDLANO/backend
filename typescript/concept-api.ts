@@ -15,8 +15,8 @@ export interface IConcept {
   metaImage?: IConceptMetaImage
   tags?: IConceptTags
   subjectIds?: string[]
-  created: string
-  updated: string
+  created: INDLADate
+  updated: INDLADate
   updatedBy?: string[]
   supportedLanguages: string[]
   articleIds: number[]
@@ -40,7 +40,7 @@ export interface IConceptMetaImage {
 
 export interface IConceptResponsible {
   responsibleId: string
-  lastUpdated: string
+  lastUpdated: INDLADate
 }
 
 export interface IConceptSearchParams {
@@ -76,8 +76,8 @@ export interface IConceptSummary {
   tags?: IConceptTags
   subjectIds?: string[]
   supportedLanguages: string[]
-  lastUpdated: string
-  created: string
+  lastUpdated: INDLADate
+  created: INDLADate
   status: IStatus
   updatedBy: string[]
   license?: string
@@ -106,8 +106,8 @@ export interface ICopyright {
   processors: IAuthor[]
   rightsholders: IAuthor[]
   agreementId?: number
-  validFrom?: string
-  validTo?: string
+  validFrom?: INDLADate
+  validTo?: INDLADate
 }
 
 export interface IDraftConceptSearchParams {
@@ -147,6 +147,10 @@ export interface ILicense {
   license: string
   description?: string
   url?: string
+}
+
+export interface INDLADate {
+  underlying: string
 }
 
 export interface INewConcept {

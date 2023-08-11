@@ -19,8 +19,8 @@ export interface IAudioMetaInformation {
   podcastMeta?: IPodcastMeta
   series?: ISeries
   manuscript?: IManuscript
-  created: string
-  updated: string
+  created: INDLADate
+  updated: INDLADate
 }
 
 export interface IAudioSummary {
@@ -33,7 +33,7 @@ export interface IAudioSummary {
   manuscript?: IManuscript
   podcastMeta?: IPodcastMeta
   series?: ISeriesSummary
-  lastUpdated: string
+  lastUpdated: INDLADate
 }
 
 export interface IAudioSummarySearchResult {
@@ -56,8 +56,8 @@ export interface ICopyright {
   processors: IAuthor[]
   rightsholders: IAuthor[]
   agreementId?: number
-  validFrom?: string
-  validTo?: string
+  validFrom?: INDLADate
+  validTo?: INDLADate
 }
 
 export interface ICoverPhoto {
@@ -80,6 +80,10 @@ export interface ILicense {
 export interface IManuscript {
   manuscript: string
   language: string
+}
+
+export interface INDLADate {
+  underlying: string
 }
 
 export interface INewAudioMetaInformation {

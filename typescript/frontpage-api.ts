@@ -23,8 +23,7 @@ export interface IBannerImage {
 export interface IErrorBody {
   code: string
   description: string
-  occurredAt: string
-  messages?: IValidationMessage[]
+  occurredAt: INDLADate
   statusCode: number
 }
 
@@ -55,6 +54,10 @@ export interface IMovieTheme {
 export interface IMovieThemeName {
   name: string
   language: string
+}
+
+export interface INDLADate {
+  underlying: string
 }
 
 export interface INewOrUpdateBannerImage {
@@ -147,11 +150,6 @@ export interface IUpdatedSubjectFrontPageData {
   editorsChoices?: string[]
   latestContent?: string[]
   goTo?: string[]
-}
-
-export interface IValidationMessage {
-  field: string
-  message: string
 }
 
 export interface IVisualElement {

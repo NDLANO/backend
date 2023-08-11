@@ -60,14 +60,14 @@ export interface IAudioResults {
 export interface IComment {
   id: string
   content: string
-  created: string
-  updated: string
+  created: INDLADate
+  updated: INDLADate
   isOpen: boolean
 }
 
 export interface IDraftResponsible {
   responsibleId: string
-  lastUpdated: string
+  lastUpdated: INDLADate
 }
 
 export interface IGroupSearchResult {
@@ -170,7 +170,7 @@ export interface IMultiSearchSummary {
   score: number
   highlights: IHighlightedField[]
   paths: string[]
-  lastUpdated: string
+  lastUpdated: INDLADate
   license?: string
   revisions: IRevisionMeta[]
   responsible?: IDraftResponsible
@@ -185,8 +185,12 @@ export interface IMultiSearchTermsAggregation {
   values: ITermValue[]
 }
 
+export interface INDLADate {
+  underlying: string
+}
+
 export interface IRevisionMeta {
-  revisionDate: string
+  revisionDate: INDLADate
   note: string
   status: string
 }

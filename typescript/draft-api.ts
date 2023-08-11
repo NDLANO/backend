@@ -1,14 +1,14 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type Availability = ("everyone" | "teacher")
+export type Availability = ("decoder" | "encoder" | "everyone" | "teacher")
 
 export interface IAgreement {
   id: number
   title: string
   content: string
   copyright: ICopyright
-  created: string
-  updated: string
+  created: INDLADate
+  updated: INDLADate
   updatedBy: string
 }
 
@@ -40,10 +40,10 @@ export interface IArticle {
   introduction?: IArticleIntroduction
   metaDescription?: IArticleMetaDescription
   metaImage?: IArticleMetaImage
-  created: string
-  updated: string
+  created: INDLADate
+  updated: INDLADate
   updatedBy: string
-  published: string
+  published: INDLADate
   articleType: string
   supportedLanguages: string[]
   notes: IEditorNote[]
@@ -95,7 +95,7 @@ export interface IArticleSummary {
   users: string[]
   grepCodes: string[]
   status: IStatus
-  updated: string
+  updated: INDLADate
 }
 
 export interface IArticleTag {
@@ -116,8 +116,8 @@ export interface IAuthor {
 export interface IComment {
   id: string
   content: string
-  created: string
-  updated: string
+  created: INDLADate
+  updated: INDLADate
   isOpen: boolean
 }
 
@@ -128,20 +128,20 @@ export interface ICopyright {
   processors: IAuthor[]
   rightsholders: IAuthor[]
   agreementId?: number
-  validFrom?: string
-  validTo?: string
+  validFrom?: INDLADate
+  validTo?: INDLADate
 }
 
 export interface IDraftResponsible {
   responsibleId: string
-  lastUpdated: string
+  lastUpdated: INDLADate
 }
 
 export interface IEditorNote {
   note: string
   user: string
   status: IStatus
-  timestamp: string
+  timestamp: INDLADate
 }
 
 export interface IGrepCodesSearchResult {
@@ -155,6 +155,10 @@ export interface ILicense {
   license: string
   description?: string
   url?: string
+}
+
+export interface INDLADate {
+  underlying: string
 }
 
 export interface INewAgreement {
@@ -177,7 +181,7 @@ export interface INewAgreementCopyright {
 export interface INewArticle {
   language: string
   title: string
-  published?: string
+  published?: INDLADate
   content?: string
   tags: string[]
   introduction?: string
@@ -223,7 +227,7 @@ export interface IRequiredLibrary {
 
 export interface IRevisionMeta {
   id?: string
-  revisionDate: string
+  revisionDate: INDLADate
   note: string
   status: string
 }
@@ -260,7 +264,7 @@ export interface IUpdatedArticle {
   language?: string
   title?: string
   status?: string
-  published?: string
+  published?: INDLADate
   content?: string
   tags?: string[]
   introduction?: string
