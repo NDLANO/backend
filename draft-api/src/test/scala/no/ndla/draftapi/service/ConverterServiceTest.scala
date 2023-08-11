@@ -9,12 +9,12 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common
-import no.ndla.common.DateParser
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.domain.draft.{Comment, Copyright, Draft, DraftStatus}
-import no.ndla.common.model.domain._
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{NewComment, UpdatedComment}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -24,7 +24,6 @@ import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
 import org.mockito.invocation.InvocationOnMock
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
 
@@ -97,8 +96,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should use created and updated dates from parameter list if defined") {
     val apiArticle = TestData.newArticle
-    val created    = DateParser.fromString("2016-12-06T16:20:05.000Z")
-    val updated    = DateParser.fromString("2017-03-07T21:18:19.000Z")
+    val created    = NDLADate.fromString("2016-12-06T16:20:05.000Z").get
+    val updated    = NDLADate.fromString("2017-03-07T21:18:19.000Z").get
 
     val Success(result) =
       service.toDomainArticle(1, apiArticle, List.empty, TestData.userWithWriteAccess, Some(created), Some(updated))
@@ -1121,7 +1120,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("that updatedCommentToDomain creates and updates comments correctly") {
     val uuid = UUID.randomUUID()
-    val now  = LocalDateTime.now()
+    val now  = NDLADate.now()
     when(clock.now()).thenReturn(now)
     when(uuidUtil.randomUUID()).thenReturn(uuid)
 
@@ -1142,7 +1141,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val uuid  = UUID.randomUUID()
     val uuid2 = UUID.randomUUID()
     val uuid3 = UUID.randomUUID()
-    val now   = LocalDateTime.now()
+    val now   = NDLADate.now()
     when(clock.now()).thenReturn(now)
 
     val updatedComments = List(UpdatedComment(id = Some(uuid.toString), content = "updated keep", isOpen = Some(true)))
@@ -1159,7 +1158,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("that newCommentToDomain creates comments correctly") {
     val uuid = UUID.randomUUID()
-    val now  = LocalDateTime.now()
+    val now  = NDLADate.now()
     when(clock.now()).thenReturn(now)
 
     val newComments     = List(NewComment(content = "hei", isOpen = None))
@@ -1169,7 +1168,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("that updatedCommentToDomainNullDocument creates and updates comments correctly") {
     val uuid = UUID.randomUUID()
-    val now  = LocalDateTime.now()
+    val now  = NDLADate.now()
     when(clock.now()).thenReturn(now)
     when(uuidUtil.randomUUID()).thenReturn(uuid)
 

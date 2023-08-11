@@ -14,7 +14,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits._
 import no.ndla.common.model.api.Deletable
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model._
 import no.ndla.imageapi.model.api.{
@@ -33,7 +33,6 @@ import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
 import java.lang.Math.max
-import java.time.LocalDateTime
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
@@ -194,7 +193,7 @@ trait WriteService {
       val withoutMetas = (i: ImageMetaInformation) =>
         i.copy(
           images = Seq.empty,
-          updated = LocalDateTime.MIN,
+          updated = NDLADate.MIN,
           updatedBy = ""
         )
 

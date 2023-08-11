@@ -12,13 +12,13 @@ import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.network.logging.FLogging
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}

@@ -8,14 +8,13 @@
 
 package no.ndla.imageapi.model.domain
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.imageapi.Props
 import org.json4s.FieldSerializer.ignore
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization
 import org.json4s.{DefaultFormats, FieldSerializer, Formats, Serializer}
-
-import java.time.LocalDateTime
 import scalikejdbc._
 
 import scala.util.Try
@@ -29,8 +28,8 @@ case class ImageMetaInformation(
     tags: Seq[Tag],
     captions: Seq[ImageCaption],
     updatedBy: String,
-    updated: LocalDateTime,
-    created: LocalDateTime,
+    updated: NDLADate,
+    created: NDLADate,
     createdBy: String,
     modelReleased: ModelReleasedStatus.Value,
     editorNotes: Seq[EditorNote]
@@ -42,7 +41,12 @@ trait DBImageMetaInformation {
   object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
     override val tableName: String          = "imagemetadata"
     override val schemaName: Option[String] = Some(props.MetaSchema)
-    val jsonEncoders: Seq[Serializer[_]] = Seq(new EnumNameSerializer(ModelReleasedStatus)) ++ JavaTimeSerializers.all
+    val jsonEncoders: Seq[Serializer[_]] =
+      Seq(
+        new EnumNameSerializer(ModelReleasedStatus),
+        NDLADate.Json4sSerializer
+      ) ++ JavaTimeSerializers.all
+
     val fieldSerializer: FieldSerializer[ImageMetaInformation] =
       FieldSerializer[ImageMetaInformation](
         PartialFunction.empty

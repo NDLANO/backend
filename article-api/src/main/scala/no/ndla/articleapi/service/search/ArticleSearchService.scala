@@ -123,7 +123,7 @@ trait ArticleSearchService {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(ErrorHelpers.ResultWindowTooLargeException())
+        Failure(ArticleErrorHelpers.ResultWindowTooLargeException())
       } else {
 
         val searchToExecute = search(searchIndex)

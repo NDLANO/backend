@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.model.domain
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.draft.Draft.jsonEncoder
 import no.ndla.common.model.domain.draft.{Copyright, Draft}
@@ -17,15 +18,13 @@ import org.json4s.native.Serialization._
 import org.json4s.{FieldSerializer, Formats}
 import scalikejdbc._
 
-import java.time.LocalDateTime
-
 case class Agreement(
     id: Option[Long],
     title: String,
     content: String,
     copyright: Copyright,
-    created: LocalDateTime,
-    updated: LocalDateTime,
+    created: NDLADate,
+    updated: NDLADate,
     updatedBy: String
 ) extends Content
 
@@ -69,7 +68,8 @@ trait DBArticle {
   object DBAgreement extends SQLSyntaxSupport[Agreement] {
     val JSonSerializer: Formats = org.json4s.DefaultFormats +
       FieldSerializer[Agreement](ignore("id")) ++
-      JavaTimeSerializers.all
+      JavaTimeSerializers.all +
+      NDLADate.Json4sSerializer
 
     implicit val formats    = JSonSerializer
     override val tableName  = "agreementdata"

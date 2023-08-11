@@ -9,9 +9,9 @@
 package no.ndla.audioapi.model.api
 
 import com.scalatsi._
+import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
 
-import java.time.LocalDateTime
 import scala.annotation.unused
 
 // format: off
@@ -28,8 +28,8 @@ case class AudioMetaInformation(
     @description("Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[PodcastMeta],
     @description("Meta information about series if the audio is a podcast and a part of a series.") series: Option[Series],
     @description("Manuscript for the audio") manuscript: Option[Manuscript],
-    @description("The time of creation for the audio-file") created: LocalDateTime,
-    @description("The time of last update for the audio-file") updated: LocalDateTime
+    @description("The time of creation for the audio-file") created: NDLADate,
+    @description("The time of last update for the audio-file") updated: NDLADate
 )
 // format: on
 

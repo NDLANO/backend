@@ -8,6 +8,7 @@
 
 package no.ndla.searchapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
@@ -55,7 +56,10 @@ trait SearchController {
 
   class SearchController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++
+        JavaTimeSerializers.all +
+        NDLADate.Json4sSerializer
 
     protected val applicationDescription = "API for searching across NDLA APIs"
 

@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
@@ -21,7 +21,6 @@ import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
-import java.time.LocalDateTime
 import java.io.InputStream
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
@@ -44,7 +43,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val userId             = "ndla124"
   val userWithWriteScope = TokenUser(userId, Set(IMAGE_API_WRITE))
 
-  def updated() = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  def updated() = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val domainImageMeta =
     converterService
@@ -282,7 +281,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(document.toFull(insertedId, fileName, imageId))
     })
 
-    val date     = LocalDateTime.now()
+    val date     = NDLADate.now()
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
     val image = domain.ImageFileData(
@@ -318,7 +317,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeImages overwrite a languages if specified language already exist in cover") {
-    val date     = LocalDateTime.now()
+    val date     = NDLADate.now()
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
     val toUpdate = UpdateImageMetaInformation(
@@ -343,7 +342,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeImages updates optional values if specified") {
-    val date     = LocalDateTime.now()
+    val date     = NDLADate.now()
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
     val toUpdate = UpdateImageMetaInformation(
@@ -391,7 +390,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val insertedId = 100L
       Success(document.toFull(insertedId, fileName, imageId))
     })
-    val date    = LocalDateTime.now()
+    val date    = NDLADate.now()
     val imageId = 1L
     val user    = "ndla124"
     val image = domain.ImageFileData(
@@ -473,7 +472,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageIndexService)
     reset(tagIndexService)
 
-    val date = LocalDateTime.now()
+    val date = NDLADate.now()
     val user = "ndla124"
 
     when(clock.now()).thenReturn(date)
@@ -537,7 +536,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That updating image file with multiple same filepaths does not override filepath") {
     reset(validationService, imageRepository, imageStorage)
     val imageId  = 100L
-    val coolDate = LocalDateTime.now()
+    val coolDate = NDLADate.now()
     val upd = UpdateImageMetaInformation(
       language = "nb",
       title = Some("new title"),
@@ -625,7 +624,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That uploading image for a new language just adds a new one") {
     reset(validationService, imageRepository, imageStorage)
     val imageId  = 100L
-    val coolDate = LocalDateTime.now()
+    val coolDate = NDLADate.now()
     val upd = UpdateImageMetaInformation(
       language = "nb",
       title = Some("new title"),
@@ -720,7 +719,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("Deleting language version should delete file if only used by that language") {
     reset(validationService, imageRepository, imageStorage)
     val imageId  = 100L
-    val coolDate = LocalDateTime.now()
+    val coolDate = NDLADate.now()
 
     val image = domain.ImageFileData(
       id = 1,
@@ -790,7 +789,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("Deleting language version should not delete file if it used by more languages") {
     reset(validationService, imageRepository, imageStorage)
     val imageId  = 100L
-    val coolDate = LocalDateTime.now()
+    val coolDate = NDLADate.now()
 
     val image = domain.ImageFileData(
       id = 1,

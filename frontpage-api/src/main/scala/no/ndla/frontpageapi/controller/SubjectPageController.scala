@@ -18,13 +18,12 @@ import no.ndla.frontpageapi.model.api.{
 }
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_WRITE
-import no.ndla.network.tapir.auth.TokenUser
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.model.CommaSeparated
 import sttp.tapir.server.ServerEndpoint
 
@@ -85,8 +84,7 @@ trait SubjectPageController {
         .in(jsonBody[NewSubjectFrontPageData])
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
-        .securityIn(auth.bearer[Option[TokenUser]]())
-        .serverSecurityLogicPure(requireScope(FRONTPAGE_API_WRITE))
+        .requirePermission(FRONTPAGE_API_WRITE)
         .serverLogic { _ => newSubjectFrontPageData =>
           {
             writeService
@@ -104,8 +102,7 @@ trait SubjectPageController {
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
-        .securityIn(auth.bearer[Option[TokenUser]]())
-        .serverSecurityLogicPure(requireScope(FRONTPAGE_API_WRITE))
+        .requirePermission(FRONTPAGE_API_WRITE)
         .serverLogic { _ =>
           { case (subjectPage, id, language, fallback) =>
             writeService

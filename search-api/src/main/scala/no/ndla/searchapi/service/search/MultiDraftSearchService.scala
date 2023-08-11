@@ -11,6 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, _}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
@@ -22,7 +23,6 @@ import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
-import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
@@ -225,8 +225,8 @@ trait MultiDraftSearchService {
         )
     }
 
-    private def dateToEs(date: LocalDateTime): Long = date.toEpochSecond(ZoneOffset.UTC) * 1000
-    private def revisionDateFilter(from: Option[LocalDateTime], to: Option[LocalDateTime]): Option[RangeQuery] = {
+    private def dateToEs(date: NDLADate): Long = date.toUTCEpochSecond * 1000
+    private def revisionDateFilter(from: Option[NDLADate], to: Option[NDLADate]): Option[RangeQuery] = {
       val fromDate = from.map(dateToEs)
       val toDate   = to.map(dateToEs)
 

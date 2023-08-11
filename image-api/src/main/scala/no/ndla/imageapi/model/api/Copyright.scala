@@ -7,9 +7,10 @@
 
 package no.ndla.imageapi.model.api
 
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+
 import scala.annotation.meta.field
 
 @ApiModel(description = "Description of copyright information")
@@ -21,7 +22,7 @@ case class Copyright(
     @(ApiModelProperty @field)(description = "List of rightsholders") rightsholders: Seq[Author],
     @(ApiModelProperty @field)(description = "Reference to a agreement id") agreementId: Option[Long],
     @(ApiModelProperty @field)(description = "The date from which the license is valid") validFrom: Option[
-      LocalDateTime
+      NDLADate
     ],
-    @(ApiModelProperty @field)(description = "The date to which the license is valid") validTo: Option[LocalDateTime]
+    @(ApiModelProperty @field)(description = "The date to which the license is valid") validTo: Option[NDLADate]
 )

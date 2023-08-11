@@ -12,17 +12,16 @@ import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.mapping.License.CC_BY_SA
 
-import java.time.LocalDateTime
 import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
-  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
-  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
+  val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val copyrighted =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
@@ -112,7 +111,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val meta = audioMeta.copy(
       copyright = audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test")))
     )
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     val agreementCopyright = api.Copyright(
       license = api.License("gnu", None, None),
       origin = Some("Originstuff"),
@@ -145,7 +144,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val copyright = service.toApiCopyright(
       audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test")))
     )
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     val agreementCopyright = api.Copyright(
       license = api.License("gnu", None, None),
       origin = Some("Originstuff"),

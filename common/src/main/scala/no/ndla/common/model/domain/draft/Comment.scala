@@ -7,13 +7,14 @@
 
 package no.ndla.common.model.domain.draft
 
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
+
 import java.util.UUID
 
 case class Comment(
     id: UUID,
-    created: LocalDateTime,
-    updated: LocalDateTime,
+    created: NDLADate,
+    updated: NDLADate,
     content: String,
     isOpen: Boolean
 )

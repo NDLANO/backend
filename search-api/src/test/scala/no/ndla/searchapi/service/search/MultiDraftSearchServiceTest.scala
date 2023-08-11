@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
@@ -17,7 +18,6 @@ import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -1083,7 +1083,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       )
     val hits = results.results
     results.totalCount should be(1)
-    hits.head.lastUpdated should be(a[LocalDateTime])
+    hits.head.lastUpdated should be(a[NDLADate])
     hits.head.license should be(Some("publicdomain"))
   }
 }

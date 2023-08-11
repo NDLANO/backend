@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Copyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{ArticleContent, Author, EditorNote, Status}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -16,7 +17,6 @@ import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.{Extraction, Formats}
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.Failure
 
@@ -55,7 +55,7 @@ class DraftIndexServiceTest
   implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That mapping contains every field after serialization") {
-    val now = LocalDateTime.now()
+    val now = NDLADate.now()
     val domainDraft = TestData.draft1.copy(
       content = Seq(
         ArticleContent(

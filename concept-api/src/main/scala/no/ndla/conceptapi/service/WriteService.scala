@@ -9,7 +9,6 @@ package no.ndla.conceptapi.service
 
 import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.DateParser
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
@@ -22,6 +21,7 @@ import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.common.model.NDLADate
 
 trait WriteService {
   this: DraftConceptRepository
@@ -91,8 +91,8 @@ trait WriteService {
         (concept: domain.Concept) =>
           concept.copy(
             revision = None,
-            created = DateParser.fromUnixTime(0),
-            updated = DateParser.fromUnixTime(0)
+            created = NDLADate.fromUnixTime(0),
+            updated = NDLADate.fromUnixTime(0)
           )
       withComparableValues(existing) != withComparableValues(changed)
     }

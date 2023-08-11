@@ -7,7 +7,11 @@
 
 package no.ndla.learningpathapi.repository
 
+import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.Clock
+import no.ndla.common.errors.RollbackException
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain._
 import org.json4s.Formats
@@ -16,12 +20,8 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 import scalikejdbc.interpolation.SQLSyntax
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
-import no.ndla.common.Clock
-import no.ndla.common.errors.RollbackException
 
 trait FolderRepository {
   this: DataSource with DBFolder with DBResource with DBFolderResource with Clock =>
@@ -60,10 +60,23 @@ trait FolderRepository {
         val updated = created
         val shared  = if (folderData.status == FolderStatus.SHARED) Some(created) else None
 
-        sql"""
-        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created, updated, shared, description)
-        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created, $updated, $shared, ${folderData.description})
-        """.update(): Unit
+        val column = DBFolder.column.c _
+        withSQL {
+          insert
+            .into(DBFolder)
+            .namedValues(
+              column("id")          -> newId,
+              column("parent_id")   -> folderData.parentId,
+              column("feide_id")    -> feideId,
+              column("name")        -> folderData.name,
+              column("status")      -> folderData.status.toString,
+              column("rank")        -> folderData.rank,
+              column("created")     -> created,
+              column("updated")     -> updated,
+              column("shared")      -> shared,
+              column("description") -> folderData.description
+            )
+        }.update(): Unit
 
         logger.info(s"Inserted new folder with id: $newId")
         folderData.toFullFolder(
@@ -81,19 +94,31 @@ trait FolderRepository {
         feideId: FeideID,
         path: String,
         resourceType: String,
-        created: LocalDateTime,
+        created: NDLADate,
         document: ResourceDocument
     )(implicit session: DBSession = AutoSession): Try[Resource] = Try {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(write(document))
+      val jsonDocument = {
+        val dataObject = new PGobject()
+        dataObject.setType("jsonb")
+        dataObject.setValue(write(document))
+        ParameterBinder(dataObject, (ps, idx) => ps.setObject(idx, dataObject))
+      }
 
-      val newId = UUID.randomUUID()
+      val newId  = UUID.randomUUID()
+      val column = DBResource.column.c _
 
-      sql"""
-        insert into ${DBResource.table} (id, feide_id, path, resource_type, created, document)
-        values ($newId, $feideId, $path, $resourceType, $created, $dataObject)
-        """.update(): Unit
+      withSQL {
+        insert
+          .into(DBResource)
+          .namedValues(
+            column("id")            -> newId,
+            column("feide_id")      -> feideId,
+            column("path")          -> path,
+            column("resource_type") -> resourceType,
+            column("created")       -> created,
+            column("document")      -> jsonDocument
+          )
+      }.update(): Unit
 
       logger.info(s"Inserted new resource with id: $newId")
       document.toFullResource(newId, path, resourceType, feideId, created, None)
@@ -114,15 +139,21 @@ trait FolderRepository {
     def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
         session: DBSession = AutoSession
     ): Try[Folder] = Try {
-      sql"""
-          update ${DBFolder.table}
-          set name=${folder.name},
-              status=${folder.status.toString},
-              shared=${folder.shared},
-              updated=${folder.updated},
-              description=${folder.description}
-          where id=$id and feide_id=$feideId
-      """.update()
+      val column = DBFolder.column.c _
+      withSQL {
+        update(DBFolder)
+          .set(
+            column("name")        -> folder.name,
+            column("status")      -> folder.status.toString,
+            column("shared")      -> folder.shared,
+            column("updated")     -> folder.updated,
+            column("description") -> folder.description
+          )
+          .where
+          .eq(column("id"), id)
+          .and
+          .eq(column("feide_id"), feideId)
+      }.update()
     } match {
       case Failure(ex) => Failure(ex)
       case Success(count) if count == 1 =>
@@ -136,14 +167,19 @@ trait FolderRepository {
         session: DBSession = AutoSession
     ): Try[List[UUID]] = Try {
       val newSharedValue = if (newStatus == FolderStatus.SHARED) Some(clock.now()) else None
-      sql"""
-          UPDATE ${DBFolder.table}
-          SET status = ${newStatus.toString},
-              shared = $newSharedValue
-          where id in ($folderIds);
-           """.update()
+      val column         = DBFolder.column.c _
+      withSQL {
+        update(DBFolder)
+          .set(
+            column("status") -> newStatus.toString,
+            column("shared") -> newSharedValue
+          )
+          .where
+          .in(column("id"), folderIds)
+      }.update()
     } match {
-      case Failure(ex) => Failure(ex)
+      case Failure(ex) =>
+        Failure(ex)
       case Success(count) if count == folderIds.length =>
         logger.info(s"Updated folders with ids (${folderIds.mkString(", ")})")
         Success(folderIds)

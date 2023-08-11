@@ -18,8 +18,10 @@ import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.Success
+import no.ndla.common.model.NDLADate
+
+import java.util.UUID
 
 class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
   import props.{DefaultLanguage, DefaultPageSize}
@@ -31,9 +33,13 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     super.withFixture(test)
   }
 
-  override val draftConceptSearchService = new DraftConceptSearchService
+  val indexName = UUID.randomUUID().toString
+  override val draftConceptSearchService = new DraftConceptSearchService {
+    override val searchIndex = indexName
+  }
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
+    override val searchIndex = indexName
   }
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
@@ -71,7 +77,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     None
   )
 
-  val today: LocalDateTime = LocalDateTime.now()
+  val today: NDLADate = NDLADate.now()
 
   val concept1: Concept = TestData.sampleConcept.copy(
     id = Option(1),
@@ -162,7 +168,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
     tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
-    updated = LocalDateTime.now().minusDays(1),
+    updated = NDLADate.now().minusDays(1),
     subjectIds = Set("urn:subject:2"),
     status = Status(current = ConceptStatus.FOR_APPROVAL, other = Set(ConceptStatus.PUBLISHED)),
     updatedBy = Seq("Test1"),

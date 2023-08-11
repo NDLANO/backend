@@ -7,16 +7,16 @@
 
 package no.ndla.draftapi.service.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft._
-import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi._
+import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.Success
 
 class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -70,7 +70,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     None
   )
 
-  val today: LocalDateTime = LocalDateTime.now()
+  val today: NDLADate = NDLADate.now()
 
   val article1: Draft = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
@@ -128,7 +128,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         "kakemonster",
         TestData.userWithWriteAccess.id,
         Status(DraftStatus.PLANNED, Set.empty),
-        LocalDateTime.now()
+        NDLADate.now()
       )
     ),
     previousVersionsNotes = Seq(
@@ -136,7 +136,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         "kyllingkanon",
         TestData.userWithWriteAccess.id,
         Status(DraftStatus.PLANNED, Set.empty),
-        LocalDateTime.now()
+        NDLADate.now()
       )
     ),
     grepCodes = Seq("KM1234")

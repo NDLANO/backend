@@ -24,7 +24,7 @@ import no.ndla.common.model.domain.{
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain._
@@ -36,7 +36,6 @@ import no.ndla.searchapi.model.taxonomy._
 import org.apache.commons.lang3.RandomStringUtils
 
 import java.net.URI
-import java.time.LocalDateTime
 
 object TestData {
 
@@ -45,7 +44,7 @@ object TestData {
     Copyright("by-nc-sa", "Gotham City", List(Author("Writer", "DC Comics")), List(), List(), None, None, None)
   private val copyrighted =
     Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
-  val today: LocalDateTime = LocalDateTime.now().withNano(0)
+  val today: NDLADate = NDLADate.now().withNano(0)
 
   val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "nb")
   val sampleArticleVisualElement          = ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
@@ -233,10 +232,10 @@ object TestData {
   )
 
   val sampleArticleWithByNcSa: Article =
-    sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright, published = LocalDateTime.now())
+    sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright, published = NDLADate.now())
 
   val sampleArticleWithCopyrighted: Article =
-    sampleArticleWithPublicDomain.copy(copyright = copyrighted, published = LocalDateTime.now())
+    sampleArticleWithPublicDomain.copy(copyright = copyrighted, published = NDLADate.now())
 
   val article1: Article = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
@@ -588,10 +587,10 @@ object TestData {
     introduction = Seq(Introduction("This is an introduction", "en")),
     metaDescription = Seq(common.Description("meta", "en")),
     metaImage = Seq.empty,
-    created = LocalDateTime.now().withNano(0).minusDays(4),
-    updated = LocalDateTime.now().withNano(0).minusDays(2),
+    created = NDLADate.now().withNano(0).minusDays(4),
+    updated = NDLADate.now().withNano(0).minusDays(2),
     updatedBy = "ndalId54321",
-    published = LocalDateTime.now().withNano(0).minusDays(2),
+    published = NDLADate.now().withNano(0).minusDays(2),
     articleType = ArticleType.Standard,
     notes = List.empty,
     previousVersionsNotes = List.empty,

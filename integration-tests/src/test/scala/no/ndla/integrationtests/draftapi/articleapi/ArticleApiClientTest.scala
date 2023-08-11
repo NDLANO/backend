@@ -9,18 +9,15 @@ package no.ndla.integrationtests.draftapi.articleapi
 
 import no.ndla.{articleapi, draftapi}
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.common.DateParser
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.eclipse.jetty.server.Server
 import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
@@ -45,12 +42,13 @@ class ArticleApiClientTest
     override def SearchServer: String = esHost
   }
 
-  val articleApi               = new articleapi.MainClass(articleApiProperties)
-  val articleApiServer: Server = articleApi.startServer()
+  import cats.effect.unsafe.implicits.global
+  val articleApi = new articleapi.MainClass(articleApiProperties)
+  val cancelFunc = articleApi.run(List.empty).unsafeRunCancelable()
 
   override def afterAll(): Unit = {
     super.afterAll()
-    articleApiServer.stop()
+    cancelFunc()
   }
 
   val idResponse: ContentId     = ContentId(1)
@@ -80,10 +78,10 @@ class ArticleApiClientTest
     introduction = Seq(),
     metaDescription = Seq(common.Description("Meta Description", "nb")),
     metaImage = Seq(),
-    created = DateParser.fromUnixTime(0),
-    updated = DateParser.fromUnixTime(0),
+    created = NDLADate.fromUnixTime(0),
+    updated = NDLADate.fromUnixTime(0),
     updatedBy = "updatedBy",
-    published = DateParser.fromUnixTime(0),
+    published = NDLADate.fromUnixTime(0),
     articleType = common.ArticleType.Standard,
     notes = Seq.empty,
     previousVersionsNotes = Seq.empty,
@@ -96,7 +94,7 @@ class ArticleApiClientTest
       common.draft.RevisionMeta(
         id = UUID.randomUUID(),
         note = "Revision",
-        revisionDate = LocalDateTime.now(),
+        revisionDate = NDLADate.now(),
         status = common.draft.RevisionStatus.NeedsRevision
       )
     ),
@@ -122,9 +120,9 @@ class ArticleApiClientTest
             .updateArticleFromDraftApi(
               td.sampleDomainArticle.copy(
                 id = Some(id),
-                updated = DateParser.fromUnixTime(0),
-                created = DateParser.fromUnixTime(0),
-                published = DateParser.fromUnixTime(0)
+                updated = NDLADate.fromUnixTime(0),
+                created = NDLADate.fromUnixTime(0),
+                published = NDLADate.fromUnixTime(0)
               ),
               List(s"1$id")
             )

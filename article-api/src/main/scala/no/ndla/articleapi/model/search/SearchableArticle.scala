@@ -8,10 +8,9 @@
 
 package no.ndla.articleapi.model.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-
-import java.time.LocalDateTime
 
 case class SearchableArticle(
     id: Long,
@@ -22,7 +21,7 @@ case class SearchableArticle(
     metaDescription: SearchableLanguageValues,
     metaImage: Seq[ArticleMetaImage],
     tags: SearchableLanguageList,
-    lastUpdated: LocalDateTime,
+    lastUpdated: NDLADate,
     license: String,
     authors: Seq[String],
     articleType: String,

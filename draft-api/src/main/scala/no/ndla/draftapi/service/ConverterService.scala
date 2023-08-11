@@ -16,8 +16,8 @@ import no.ndla.common.model.api.draft
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
-import no.ndla.common.model.{RelatedContentLink, api => commonApi, domain => common}
-import no.ndla.common.{Clock, DateParser, UUIDUtil}
+import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi, domain => common}
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{NewAgreement, NewComment, NotFoundException, UpdatedComment}
@@ -30,7 +30,6 @@ import no.ndla.validation._
 import org.jsoup.nodes.Element
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -53,8 +52,8 @@ trait ConverterService {
         newArticle: api.NewArticle,
         externalIds: List[String],
         user: TokenUser,
-        oldNdlaCreatedDate: Option[LocalDateTime],
-        oldNdlaUpdatedDate: Option[LocalDateTime]
+        oldNdlaCreatedDate: Option[NDLADate],
+        oldNdlaUpdatedDate: Option[NDLADate]
     ): Try[Draft] = {
       val domainTitles = Seq(common.Title(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
@@ -263,8 +262,8 @@ trait ConverterService {
       common.ArticleMetaImage(metaImage.id, metaImage.alt, language)
 
     def toDomainCopyright(newCopyright: api.NewAgreementCopyright): common.draft.Copyright = {
-      val validFrom = newCopyright.validFrom.map(date => DateParser.fromString(date))
-      val validTo   = newCopyright.validTo.map(date => DateParser.fromString(date))
+      val validFrom = newCopyright.validFrom.flatMap(date => NDLADate.fromString(date).toOption)
+      val validTo   = newCopyright.validTo.flatMap(date => NDLADate.fromString(date).toOption)
 
       val apiCopyright = api.Copyright(
         newCopyright.license,
@@ -694,8 +693,8 @@ trait ConverterService {
         article: api.UpdatedArticle,
         isImported: Boolean,
         user: TokenUser,
-        oldNdlaCreatedDate: Option[LocalDateTime],
-        oldNdlaUpdatedDate: Option[LocalDateTime]
+        oldNdlaCreatedDate: Option[NDLADate],
+        oldNdlaUpdatedDate: Option[NDLADate]
     ): Try[Draft] = {
       val isNewLanguage = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
       val createdDate   = if (isImported) oldNdlaCreatedDate.getOrElse(toMergeInto.created) else toMergeInto.created
@@ -803,8 +802,8 @@ trait ConverterService {
         article: api.UpdatedArticle,
         isImported: Boolean,
         user: TokenUser,
-        oldNdlaCreatedDate: Option[LocalDateTime],
-        oldNdlaUpdatedDate: Option[LocalDateTime]
+        oldNdlaCreatedDate: Option[NDLADate],
+        oldNdlaUpdatedDate: Option[NDLADate]
     ): Try[Draft] = article.language match {
       case None =>
         val error = ValidationMessage("language", "This field must be specified when updating language fields")

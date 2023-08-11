@@ -11,13 +11,12 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.network.tapir.TapirServer
 import sttp.client3.Response
 import sttp.model.StatusCode
 import sttp.client3.quick._
-
-import java.time.LocalDateTime
 
 class HealthControllerTest extends UnitSuite with TestEnvironment {
   implicit val formats = org.json4s.DefaultFormats
@@ -39,8 +38,8 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
 
   controller.setWarmedUp()
 
-  val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
-  val created = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
+  val updated = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  val created = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val copyrighted =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)

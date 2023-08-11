@@ -9,10 +9,10 @@
 package no.ndla.learningpathapi.model.api
 
 import com.scalatsi.{TSIType, TSNamedType, TSType}
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.domain.{CopyableFolder, CopyableResource}
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
-import java.time.LocalDateTime
 import scala.annotation.meta.field
 import scala.annotation.unused
 
@@ -26,9 +26,9 @@ case class Folder(
     @(ApiModelProperty @field)(description = "List of subfolders") subfolders: List[FolderData],
     @(ApiModelProperty @field)(description = "List of resources") resources: List[Resource],
     @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int],
-    @(ApiModelProperty @field)(description = "When the folder was created") created: LocalDateTime,
-    @(ApiModelProperty @field)(description = "When the folder was updated") updated: LocalDateTime,
-    @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[LocalDateTime],
+    @(ApiModelProperty @field)(description = "When the folder was created") created: NDLADate,
+    @(ApiModelProperty @field)(description = "When the folder was updated") updated: NDLADate,
+    @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[NDLADate],
     @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String]
 ) extends FolderData with CopyableFolder
 // format: on
@@ -56,9 +56,9 @@ object FolderData {
       subfolders: List[FolderData],
       resources: List[Resource],
       rank: Option[Int],
-      created: LocalDateTime,
-      updated: LocalDateTime,
-      shared: Option[LocalDateTime],
+      created: NDLADate,
+      updated: NDLADate,
+      shared: Option[NDLADate],
       description: Option[String]
   ): FolderData = {
     Folder(
@@ -100,7 +100,7 @@ case class Resource(
     @(ApiModelProperty @field)(description = "Unique ID of the resource") id: String,
     @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: String,
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
-    @(ApiModelProperty @field)(description = "When the resource was created") created: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the resource was created") created: NDLADate,
     @(ApiModelProperty @field)(description = "List of tags") tags: List[String],
     @(ApiModelProperty @field)(description = "The id of the resource, useful for fetching metadata for the resource") resourceId: String,
     @(ApiModelProperty @field)(description = "The which rank the resource appears in a sorted sequence") rank: Option[Int]

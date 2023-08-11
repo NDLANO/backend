@@ -7,9 +7,10 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
+import cats.effect.unsafe.implicits.global
 import enumeratum.Json4s
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.common.DateParser
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.DraftStatus
@@ -21,7 +22,6 @@ import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
-import org.eclipse.jetty.server.Server
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -42,7 +42,8 @@ class ArticleApiClientTest
       new EnumNameSerializer(EmbedType) +
       new EnumNameSerializer(LearningResourceType) +
       new EnumNameSerializer(Availability) ++
-      JavaTimeSerializers.all
+      JavaTimeSerializers.all +
+      NDLADate.Json4sSerializer
 
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
@@ -62,13 +63,13 @@ class ArticleApiClientTest
     override def SearchServer: String = esHost
   }
 
-  val articleApi               = new articleapi.MainClass(articleApiProperties)
-  val articleApiServer: Server = articleApi.startServer()
-  val articleApiBaseUrl        = s"http://localhost:$articleApiPort"
+  val articleApi        = new articleapi.MainClass(articleApiProperties)
+  val cancelArticleApi  = articleApi.run(List.empty).unsafeRunCancelable()
+  val articleApiBaseUrl = s"http://localhost:$articleApiPort"
 
   override def afterAll(): Unit = {
     super.afterAll()
-    articleApiServer.stop()
+    cancelArticleApi()
   }
 
   val exampleToken =
@@ -86,9 +87,9 @@ class ArticleApiClientTest
             .updateArticleFromDraftApi(
               td.sampleDomainArticle.copy(
                 id = Some(id),
-                updated = DateParser.fromUnixTime(0),
-                created = DateParser.fromUnixTime(0),
-                published = DateParser.fromUnixTime(0)
+                updated = NDLADate.fromUnixTime(0),
+                created = NDLADate.fromUnixTime(0),
+                published = NDLADate.fromUnixTime(0)
               ),
               List(s"1$id")
             )

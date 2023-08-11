@@ -8,10 +8,25 @@
 
 package no.ndla.articleapi.model.domain
 
-import org.scalatra
-import org.scalatra.ActionResult
+import sttp.model.Header
+import sttp.model.headers.CacheDirective
+import sttp.tapir.EndpointIO.annotations.headers
 
 import scala.util.Try
+
+// TODO: This should probably go somewhere else
+case class DynamicHeaders(
+    @headers
+    headers: List[Header]
+)
+
+object DynamicHeaders {
+  def fromMaybeValue(name: String, s: Option[String]): DynamicHeaders =
+    new DynamicHeaders(fromOpt(name, s).toList)
+
+  def fromOpt(name: String, s: Option[String]): Option[Header] =
+    s.map(Header(name, _))
+}
 
 /** Wrapper class for content that can have different cachability attributes based on the content Useful for Articles
   * that require login
@@ -24,10 +39,12 @@ case class Cachable[T](
     canBeCached: Boolean
 ) {
 
-  /** Return the value wrapped in a [[org.scalatra.Ok]] with the correct 'cache-control' header applied. */
-  def Ok(headers: Map[String, String] = Map.empty): ActionResult = {
-    val cacheHeaders = if (canBeCached) Map.empty else Map("Cache-Control" -> "private")
-    scalatra.Ok(value, headers = headers ++ cacheHeaders)
+  /** Return a tuple of [[T]] and [[DynamicHeaders]] type with the value as jsonbody and correct 'cache-control' header
+    * applied.
+    */
+  def Ok(headers: List[Header] = List.empty): (T, DynamicHeaders) = {
+    val cacheHeaders = if (canBeCached) List.empty else List(Header.cacheControl(CacheDirective.Private))
+    value -> DynamicHeaders(headers ++ cacheHeaders)
   }
 
   /** Return a [[Cachable]] object with the function applied to value Example:

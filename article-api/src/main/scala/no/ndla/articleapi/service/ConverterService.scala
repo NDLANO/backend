@@ -20,6 +20,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
 import no.ndla.common.Clock
 import no.ndla.common.model.RelatedContentLink
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -202,9 +203,9 @@ trait ConverterService {
       }
 
       val newRevisionDate = partialArticle.revisionDate match {
-        case Left(_)           => None
-        case Right(None)       => existingArticle.revisionDate
-        case Right(Some(date)) => Some(date)
+        case Missing          => existingArticle.revisionDate
+        case Delete           => None
+        case UpdateWith(date) => Some(date)
       }
 
       existingArticle.copy(

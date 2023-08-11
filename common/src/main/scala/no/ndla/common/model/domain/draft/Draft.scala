@@ -8,26 +8,9 @@
 package no.ndla.common.model.domain.draft
 
 import enumeratum.Json4s
-
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain._
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Availability,
-  Content,
-  Description,
-  EditorNote,
-  Introduction,
-  RelatedContent,
-  RequiredLibrary,
-  Responsible,
-  Status,
-  Tag,
-  Title,
-  VisualElement
-}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{DefaultFormats, Formats}
 
@@ -44,10 +27,10 @@ case class Draft(
     introduction: Seq[Introduction],
     metaDescription: Seq[Description],
     metaImage: Seq[ArticleMetaImage],
-    created: LocalDateTime,
-    updated: LocalDateTime,
+    created: NDLADate,
+    updated: NDLADate,
     updatedBy: String,
-    published: LocalDateTime,
+    published: NDLADate,
     articleType: ArticleType,
     notes: Seq[EditorNote],
     previousVersionsNotes: Seq[EditorNote],
@@ -73,7 +56,8 @@ object Draft {
     new EnumNameSerializer(Availability),
     Json4s.serializer(DraftStatus),
     Json4s.serializer(ArticleType),
-    Json4s.serializer(RevisionStatus)
+    Json4s.serializer(RevisionStatus),
+    NDLADate.Json4sSerializer
   ) ++
     JavaTimeSerializers.all ++
     JavaTypesSerializers.all

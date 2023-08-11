@@ -8,13 +8,13 @@
 package no.ndla.common.model.domain.draft
 
 import enumeratum._
+import no.ndla.common.model.NDLADate
 
-import java.time.LocalDateTime
 import java.util.UUID
 
 case class RevisionMeta(
     id: UUID,
-    revisionDate: LocalDateTime,
+    revisionDate: NDLADate,
     note: String,
     status: RevisionStatus
 ) {
@@ -25,7 +25,7 @@ object RevisionMeta {
   def default: Seq[RevisionMeta] = Seq(
     RevisionMeta(
       UUID.randomUUID(),
-      LocalDateTime.now().plusYears(5).withNano(0),
+      NDLADate.now().plusYears(5).withNano(0),
       "Automatisk revisjonsdato satt av systemet",
       RevisionStatus.NeedsRevision
     )

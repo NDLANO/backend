@@ -7,10 +7,9 @@
 
 package no.ndla.searchapi.model.search.settings
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
-
-import java.time.LocalDateTime
 
 case class MultiDraftSearchSettings(
     query: Option[String],
@@ -37,8 +36,8 @@ case class MultiDraftSearchSettings(
     embedResource: List[String],
     embedId: Option[String],
     includeOtherStatuses: Boolean,
-    revisionDateFilterFrom: Option[LocalDateTime],
-    revisionDateFilterTo: Option[LocalDateTime],
+    revisionDateFilterFrom: Option[NDLADate],
+    revisionDateFilterTo: Option[NDLADate],
     excludeRevisionHistory: Boolean,
     responsibleIdFilter: List[String],
     articleTypes: List[String],

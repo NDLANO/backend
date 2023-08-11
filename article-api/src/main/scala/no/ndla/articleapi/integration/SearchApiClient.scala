@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.NdlaClient
@@ -38,7 +39,8 @@ trait SearchApiClient {
         org.json4s.DefaultFormats +
           Json4s.serializer(ArticleType) +
           new EnumNameSerializer(Availability) ++
-          JavaTimeSerializers.all
+          JavaTimeSerializers.all +
+          NDLADate.Json4sSerializer
 
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

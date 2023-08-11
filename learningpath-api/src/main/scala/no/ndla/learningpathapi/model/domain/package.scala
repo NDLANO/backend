@@ -23,8 +23,20 @@ package object domain {
     case v       => Failure(NDLASQLException(s"Parsing UUID type from '${v.toString}' was not possible."))
   }(v => (ps, idx) => ps.setObject(idx, v))
 
+  implicit val uuidParameterFactory: ParameterBinderFactory[UUID] = ParameterBinderFactory[UUID] { v => (stmt, idx) =>
+    stmt.setObject(idx, v)
+  }
+
   implicit val maybeUuidBinder: Binders[Option[UUID]] = Binders.of[Option[UUID]] {
     case v: UUID => Some(v)
     case _       => None
-  }(v => (ps, idx) => ps.setObject(idx, v))
+  }(v =>
+    (ps, idx) => {
+      v match {
+        case Some(value) =>
+          ps.setObject(idx, value)
+        case None => ps.setObject(idx, null)
+      }
+    }
+  )
 }

@@ -7,8 +7,7 @@
 
 package no.ndla.learningpathapi.model.api.config
 
-import java.time.LocalDateTime
-
+import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.ApiModelProperty
 import org.scalatra.swagger.runtime.annotations.ApiModel
 
@@ -18,7 +17,7 @@ import scala.annotation.meta.field
 case class ConfigMeta(
     @(ApiModelProperty @field)(description = "Configuration key") key: String,
     @(ApiModelProperty @field)(description = "Configuration value.") value: String,
-    @(ApiModelProperty @field)(description = "Date of when configuration was last updated") updatedAt: LocalDateTime,
+    @(ApiModelProperty @field)(description = "Date of when configuration was last updated") updatedAt: NDLADate,
     @(ApiModelProperty @field)(
       description = "UserId of who last updated the configuration parameter."
     ) updatedBy: String

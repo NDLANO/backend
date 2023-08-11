@@ -7,6 +7,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaRestricted, UpdateConfigValue}
 import no.ndla.learningpathapi.model.api.{Error, ValidationError}
@@ -27,7 +28,8 @@ trait ConfigController {
   val configController: ConfigController
 
   class ConfigController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
     protected val applicationDescription =
       "API for changing configuration parameters for learningpaths from ndla.no."

@@ -8,7 +8,7 @@
 package no.ndla.draftapi.controller
 
 import enumeratum.Json4s
-import no.ndla.common.DateParser
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.Props
@@ -44,7 +44,11 @@ trait DraftController {
     import props.{DefaultPageSize, InitialScrollContextKeywords}
 
     protected implicit override val jsonFormats: Formats =
-      DefaultFormats.withLong + Json4s.serializer(PartialArticleFields) ++ JavaTimeSerializers.all
+      DefaultFormats.withLong +
+        Json4s.serializer(PartialArticleFields) ++
+        JavaTimeSerializers.all +
+        NDLADate.Json4sSerializer
+
     protected val applicationDescription = "API for accessing draft articles."
 
     // Additional models used in error responses
@@ -491,8 +495,8 @@ trait DraftController {
     ) {
       requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
         val externalId         = paramAsListOfString("externalId")
-        val oldNdlaCreatedDate = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
-        val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
+        val oldNdlaCreatedDate = paramOrNone("oldNdlaCreatedDate").flatMap(NDLADate.fromString(_).toOption)
+        val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").flatMap(NDLADate.fromString(_).toOption)
         val externalSubjectids = paramAsListOfString("externalSubjectIds")
         val importId           = paramOrNone("importId")
         tryExtract[NewArticle](request.body).flatMap(
@@ -521,12 +525,12 @@ trait DraftController {
       )
     ) {
       requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { userInfo =>
-        val externalId                         = paramAsListOfString("externalId")
-        val externalSubjectIds                 = paramAsListOfString("externalSubjectIds")
-        val oldNdlaCreateddDate                = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
-        val oldNdlaUpdatedDate                 = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
-        val importId                           = paramOrNone("importId")
-        val id                                 = long(this.articleId.paramName)
+        val externalId          = paramAsListOfString("externalId")
+        val externalSubjectIds  = paramAsListOfString("externalSubjectIds")
+        val oldNdlaCreateddDate = paramOrNone("oldNdlaCreatedDate").flatMap(NDLADate.fromString(_).toOption)
+        val oldNdlaUpdatedDate  = paramOrNone("oldNdlaUpdatedDate").flatMap(NDLADate.fromString(_).toOption)
+        val importId            = paramOrNone("importId")
+        val id                  = long(this.articleId.paramName)
         val updateArticle: Try[UpdatedArticle] = tryExtract[UpdatedArticle](request.body)
 
         updateArticle.flatMap(

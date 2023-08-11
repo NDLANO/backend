@@ -1,5 +1,9 @@
 package no.ndla.common
 
+import io.circe.DecodingFailure.Reason
+import io.circe.{Decoder, DecodingFailure, Encoder}
+import io.circe.syntax.EncoderOps
+
 import scala.util.{Failure, Success, Try}
 import scala.reflect.macros.blackbox
 
@@ -89,6 +93,22 @@ package object implicits {
 
   implicit class StringOption(private val self: Option[String]) {
     def emptySomeToNone: Option[String] = StringUtil.emptySomeToNone(self)
+  }
+
+  implicit def eitherEncoder[A: Encoder, B: Encoder]: Encoder[Either[A, B]] = Encoder.instance {
+    case Left(value)  => value.asJson
+    case Right(value) => value.asJson
+  }
+
+  implicit def eitherDecoder[A: Decoder, B: Decoder]: Decoder[Either[A, B]] = Decoder.instance { c =>
+    c.value.as[B] match {
+      case Right(value) => Right(Right(value))
+      case Left(_) =>
+        c.value.as[A] match {
+          case Right(value) => Right(Left(value))
+          case Left(_) => Left(DecodingFailure(Reason.CustomReason(s"Could not match ${c.value} to Either type"), c))
+        }
+    }
   }
 
 }

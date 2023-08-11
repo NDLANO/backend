@@ -9,7 +9,7 @@ package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
@@ -21,7 +21,6 @@ import org.json4s.native.Serialization.{read, write}
 import org.mockito.ArgumentMatchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
@@ -123,8 +122,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           any[List[String]],
           any[Seq[String]],
           any[TokenUser],
-          any[Option[LocalDateTime]],
-          any[Option[LocalDateTime]],
+          any[Option[NDLADate]],
+          any[Option[NDLADate]],
           any[Option[String]]
         )
     )
@@ -206,8 +205,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[TokenUser],
-        any[Option[LocalDateTime]],
-        any[Option[LocalDateTime]],
+        any[Option[NDLADate]],
+        any[Option[NDLADate]],
         any[Option[String]]
       )
     )
@@ -226,8 +225,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[TokenUser],
-        any[Option[LocalDateTime]],
-        any[Option[LocalDateTime]],
+        any[Option[NDLADate]],
+        any[Option[NDLADate]],
         any[Option[String]]
       )
     )
@@ -362,8 +361,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           any[List[String]],
           any[Seq[String]],
           any[TokenUser],
-          any[Option[LocalDateTime]],
-          any[Option[LocalDateTime]],
+          any[Option[NDLADate]],
+          any[Option[NDLADate]],
           any[Option[String]]
         )
     )
@@ -388,8 +387,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[TokenUser],
-        any[Option[LocalDateTime]],
-        any[Option[LocalDateTime]],
+        any[Option[NDLADate]],
+        any[Option[NDLADate]],
         any[Option[String]]
       )
     }
@@ -402,8 +401,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[TokenUser],
-        any[Option[LocalDateTime]],
-        any[Option[LocalDateTime]],
+        any[Option[NDLADate]],
+        any[Option[NDLADate]],
         any[Option[String]]
       )
     }
@@ -416,8 +415,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[TokenUser],
-        any[Option[LocalDateTime]],
-        any[Option[LocalDateTime]],
+        any[Option[NDLADate]],
+        any[Option[NDLADate]],
         any[Option[String]]
       )
     }

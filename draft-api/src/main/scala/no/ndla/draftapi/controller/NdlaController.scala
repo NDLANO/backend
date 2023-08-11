@@ -8,6 +8,7 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.model.NDLADate
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{
@@ -30,7 +31,8 @@ trait NdlaController {
   this: Props with ErrorHelpers with DataSource with NdlaControllerBase with NdlaSwaggerSupport =>
 
   abstract class NdlaController extends NdlaSwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats.withLong ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
     import props._
 
     before() {

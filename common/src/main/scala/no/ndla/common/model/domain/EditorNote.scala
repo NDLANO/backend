@@ -6,6 +6,6 @@
  */
 
 package no.ndla.common.model.domain
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
 
-case class EditorNote(note: String, user: String, status: Status, timestamp: LocalDateTime)
+case class EditorNote(note: String, user: String, status: Status, timestamp: NDLADate)

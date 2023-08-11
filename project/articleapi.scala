@@ -46,7 +46,6 @@ object articleapi extends Module {
       "ArticleV2",
       "ArticleSearchParams",
       "ArticleSummaryV2",
-      "PartialPublishArticle",
       "Availability.type",
       "SearchResultV2",
       "TagsSearchResult",

@@ -7,10 +7,10 @@
 
 package no.ndla.searchapi.model.api
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.Comment
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
-import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 @ApiModel(description = "Object describing matched field with matching words emphasized")
@@ -35,7 +35,7 @@ case class MultiSearchSummary(
     @(ApiModelProperty @field)(description = "Relevance score. The higher the score, the better the document matches your search criteria.") score: Float,
     @(ApiModelProperty @field)(description = "List of objects describing matched field with matching words emphasized") highlights: List[HighlightedField],
     @(ApiModelProperty @field)(description = "The taxonomy paths for the resource") paths: List[String],
-    @(ApiModelProperty @field)(description = "The time and date of last update") lastUpdated: LocalDateTime,
+    @(ApiModelProperty @field)(description = "The time and date of last update") lastUpdated: NDLADate,
     @(ApiModelProperty @field)(description = "Describes the license of the resource") license: Option[String],
     @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta],
     @(ApiModelProperty @field)(description = "Responsible field") responsible: Option[DraftResponsible],

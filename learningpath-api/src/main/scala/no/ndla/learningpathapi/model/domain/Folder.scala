@@ -8,13 +8,13 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.Props
 import org.json4s.FieldSerializer._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.ext.EnumNameSerializer
+import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
@@ -30,9 +30,9 @@ case class NewFolderData(
       feideId: FeideID,
       resources: List[Resource],
       subfolders: List[Folder],
-      created: LocalDateTime,
-      updated: LocalDateTime,
-      shared: Option[LocalDateTime]
+      created: NDLADate,
+      updated: NDLADate,
+      shared: Option[NDLADate]
   ): Folder = {
     Folder(
       id = id,
@@ -59,11 +59,11 @@ case class Folder(
     status: FolderStatus.Value,
     description: Option[String],
     rank: Option[Int],
-    created: LocalDateTime,
-    updated: LocalDateTime,
+    created: NDLADate,
+    updated: NDLADate,
     resources: List[Resource],
     subfolders: List[Folder],
-    shared: Option[LocalDateTime]
+    shared: Option[NDLADate]
 ) extends FeideContent
     with Rankable
     with CopyableFolder {
@@ -106,9 +106,9 @@ trait DBFolder {
       val status      = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
       val description = rs.stringOpt(colNameWrapper("description"))
       val rank        = rs.intOpt(colNameWrapper("rank"))
-      val created     = rs.localDateTime(colNameWrapper("created"))
-      val updated     = rs.localDateTime(colNameWrapper("updated"))
-      val shared      = rs.localDateTimeOpt(colNameWrapper("shared"))
+      val created     = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
+      val updated     = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("updated")))
+      val shared      = rs.localDateTimeOpt(colNameWrapper("shared")).map(NDLADate.fromUtcDate)
 
       for {
         id     <- id

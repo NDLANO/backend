@@ -9,9 +9,8 @@
 package no.ndla.audioapi.model.search
 
 import no.ndla.audioapi.model.domain.CoverPhoto
+import no.ndla.common.model.NDLADate
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-
-import java.time.LocalDateTime
 
 case class SearchablePodcastMeta(
     coverPhoto: CoverPhoto,
@@ -31,7 +30,7 @@ case class SearchableAudioInformation(
     filePaths: Seq[SearchableAudio],
     license: String,
     authors: Seq[String],
-    lastUpdated: LocalDateTime,
+    lastUpdated: NDLADate,
     defaultTitle: Option[String],
     audioType: String,
     podcastMetaIntroduction: SearchableLanguageValues,

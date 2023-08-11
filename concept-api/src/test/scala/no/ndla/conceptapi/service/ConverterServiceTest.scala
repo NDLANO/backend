@@ -16,8 +16,8 @@ import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
+import no.ndla.common.model.NDLADate
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -51,7 +51,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates title in concept correctly") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
@@ -83,7 +83,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates content in concept correctly") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
@@ -115,7 +115,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept adds new language in concept correctly") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
@@ -153,7 +153,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates copyright correctly") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val updateWith = UpdatedConcept(
@@ -207,7 +207,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept deletes removes all articleIds when getting empty list as parameter") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -224,7 +224,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates articleIds when getting list as a parameter") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -241,7 +241,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept does nothing to articleId when getting None as a parameter") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -258,7 +258,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept update concept with ID updates articleId when getting new articleId as a parameter") {
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
@@ -273,7 +273,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept update concept with ID sets articleIds to empty list when articleId is not specified") {
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
@@ -288,7 +288,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept deletes metaImage when getting null as a parameter") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -305,7 +305,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates metaImage when getting new metaImage as a parameter") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -325,7 +325,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept does nothing to metaImage when getting None as a parameter") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -342,7 +342,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept update concept with ID updates metaImage when getting new metaImage as a parameter") {
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
@@ -360,7 +360,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept update concept with ID sets metaImage to Seq.empty when metaImage is not specified") {
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
@@ -375,7 +375,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates updatedBy with new entry from userToken") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -393,7 +393,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept does not produce duplicates in updatedBy") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
@@ -411,7 +411,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept update concept with ID updates updatedBy with new entry from userToken") {
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
@@ -427,7 +427,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates updatedBy with new entry from userToken on create") {
-    val today = LocalDateTime.now()
+    val today = NDLADate.now()
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
@@ -443,7 +443,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainConcept updates timestamp on responsible when id is changed") {
-    val updated = LocalDateTime.now()
+    val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
     val responsible    = Responsible("oldId", updated.minusDays(1))

@@ -17,9 +17,9 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.PartialArticleFields
@@ -42,7 +42,6 @@ import org.scalatra.servlet.FileItem
 import scalikejdbc.{AutoSession, ReadOnlyAutoSession}
 
 import java.io.ByteArrayInputStream
-import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
@@ -218,8 +217,8 @@ trait WriteService {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: TokenUser,
-        oldNdlaCreatedDate: Option[LocalDateTime],
-        oldNdlaUpdatedDate: Option[LocalDateTime],
+        oldNdlaCreatedDate: Option[NDLADate],
+        oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
     ): Try[api.Article] = {
       val newNotes      = "Opprettet artikkel." +: newArticle.notes
@@ -475,8 +474,8 @@ trait WriteService {
             revision = None,
             notes = Seq.empty,
             editorLabels = Seq.empty,
-            created = LocalDateTime.MIN,
-            updated = LocalDateTime.MIN,
+            created = NDLADate.MIN,
+            updated = NDLADate.MIN,
             updatedBy = "",
             availability = common.Availability.everyone,
             grepCodes = Seq.empty,
@@ -577,8 +576,8 @@ trait WriteService {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: TokenUser,
-        oldNdlaCreatedDate: Option[LocalDateTime],
-        oldNdlaUpdatedDate: Option[LocalDateTime],
+        oldNdlaCreatedDate: Option[NDLADate],
+        oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
     ): Try[api.Article] = {
       draftRepository.withId(articleId)(ReadOnlyAutoSession) match {
@@ -604,8 +603,8 @@ trait WriteService {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: TokenUser,
-        oldNdlaCreatedDate: Option[LocalDateTime],
-        oldNdlaUpdatedDate: Option[LocalDateTime],
+        oldNdlaCreatedDate: Option[NDLADate],
+        oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
     ): Try[api.Article] = for {
       convertedArticle <- converterService.toDomainArticle(

@@ -7,12 +7,11 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-
-import java.time.LocalDateTime
 
 case class SearchableDraft(
     id: Long,
@@ -22,7 +21,7 @@ case class SearchableDraft(
     introduction: SearchableLanguageValues,
     metaDescription: SearchableLanguageValues,
     tags: SearchableLanguageList,
-    lastUpdated: LocalDateTime,
+    lastUpdated: NDLADate,
     license: Option[String],
     authors: List[String],
     articleType: String,

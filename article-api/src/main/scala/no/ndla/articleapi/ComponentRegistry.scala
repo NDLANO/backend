@@ -8,10 +8,11 @@
 
 package no.ndla.articleapi
 
-import com.typesafe.scalalogging.StrictLogging
+import cats.data.Kleisli
+import cats.effect.IO
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.caching.MemoizeHelpers
-import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController, NdlaController}
+import no.ndla.articleapi.controller.{ArticleControllerV2, InternController, SwaggerDocControllerConfig}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
@@ -23,9 +24,18 @@ import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
+import no.ndla.network.tapir.{
+  NdlaMiddleware,
+  Routes,
+  Service,
+  SwaggerControllerConfig,
+  TapirErrorHelpers,
+  TapirHealthController
+}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: ArticleApiProperties)
     extends BaseComponentRegistry[ArticleApiProperties]
@@ -33,10 +43,8 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with DataSource
     with InternController
     with ArticleControllerV2
-    with NdlaController
     with NdlaControllerBase
     with NdlaSwaggerSupport
-    with HealthController
     with ArticleRepository
     with Elastic4sClient
     with DraftApiClient
@@ -48,7 +56,6 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with BaseIndexService
     with ArticleIndexService
     with SearchService
-    with StrictLogging
     with ConverterService
     with NdlaClient
     with SearchConverterService
@@ -57,22 +64,25 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with WriteService
     with ContentValidator
     with Clock
-    with ArticleApiInfo
     with ErrorHelpers
     with DBArticle
-    with DBMigrator {
+    with DBMigrator
+    with Routes
+    with TapirErrorHelpers
+    with Service
+    with TapirHealthController
+    with NdlaMiddleware
+    with SwaggerControllerConfig
+    with SwaggerDocControllerConfig {
   override val props: ArticleApiProperties = properties
   override val migrator                    = new DBMigrator
-
-  implicit val swagger: ArticleSwagger = new ArticleSwagger
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
   lazy val internController    = new InternController
   lazy val articleControllerV2 = new ArticleControllerV2
-  lazy val resourcesApp        = new ResourcesApp
-  lazy val healthController    = new HealthController
+  lazy val healthController    = new TapirHealthController
 
   lazy val articleRepository    = new ArticleRepository
   lazy val articleSearchService = new ArticleSearchService
@@ -93,4 +103,14 @@ class ComponentRegistry(properties: ArticleApiProperties)
   lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
 
   lazy val clock = new SystemClock
+
+  private val services: List[Service] = List(
+    articleControllerV2,
+    internController,
+    healthController
+  )
+
+  private val swaggerDocController = new SwaggerController(services, SwaggerDocControllerConfig.swaggerInfo)
+
+  def routes: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services :+ swaggerDocController)
 }

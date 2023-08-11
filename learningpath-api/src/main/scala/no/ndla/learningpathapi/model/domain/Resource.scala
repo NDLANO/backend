@@ -9,12 +9,13 @@
 package no.ndla.learningpathapi.model.domain
 
 import cats.implicits._
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.Props
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
-import java.time.LocalDateTime
+
 import java.util.UUID
 import scala.util.Try
 
@@ -24,7 +25,7 @@ case class ResourceDocument(tags: List[String], resourceId: String) {
       path: String,
       resourceType: String,
       feideId: String,
-      created: LocalDateTime,
+      created: NDLADate,
       connection: Option[FolderResource]
   ): Resource =
     Resource(
@@ -42,7 +43,7 @@ case class ResourceDocument(tags: List[String], resourceId: String) {
 case class Resource(
     id: UUID,
     feideId: FeideID,
-    created: LocalDateTime,
+    created: NDLADate,
     path: String,
     resourceType: String,
     tags: List[String],
@@ -89,7 +90,7 @@ trait DBResource {
         id <- rs.get[Try[UUID]](colNameWrapper("id"))
         jsonString   = rs.string(colNameWrapper("document"))
         feideId      = rs.string(colNameWrapper("feide_id"))
-        created      = rs.localDateTime(colNameWrapper("created"))
+        created      = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
         path         = rs.string(colNameWrapper("path"))
         resourceType = rs.string(colNameWrapper("resource_type"))
         metaData <- Try(read[ResourceDocument](jsonString))

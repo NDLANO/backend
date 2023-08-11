@@ -6,11 +6,9 @@
  */
 
 package no.ndla.articleapi.model.api
-import org.scalatra.swagger.annotations.ApiModelProperty
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 case class NewArticleMetaImage(
-    @(ApiModelProperty @field)(description = "The image-api id of the meta image") id: String,
-    @(ApiModelProperty @field)(description = "The alt text of the meta image") alt: String
+    @description("The image-api id of the meta image") id: String,
+    @description("The alt text of the meta image") alt: String
 )

@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.model.NDLADate
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{
@@ -32,7 +33,8 @@ trait NdlaController {
 
   abstract class NdlaController() extends NdlaSwaggerSupport {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
     before() {
       contentType = formats("json")

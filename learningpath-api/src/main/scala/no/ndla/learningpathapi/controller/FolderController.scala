@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api.{
   Error,
   Folder,
@@ -37,7 +38,7 @@ trait FolderController {
 
   class FolderController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats =
-      DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all
+      DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all + NDLADate.Json4sSerializer
 
     protected val applicationDescription = "API for accessing My NDLA from ndla.no."
 

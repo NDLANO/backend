@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.DateParser
 
 import java.net.Socket
 import no.ndla.common.model.{domain => common}
@@ -19,6 +18,7 @@ import org.scalatest.Outcome
 import scalikejdbc.{DB, _}
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.common.model.NDLADate
 
 class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 
@@ -74,7 +74,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That inserting and updating works") {
-    val consistentDate = DateParser.fromUnixTime(0)
+    val consistentDate = NDLADate.fromUnixTime(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
       title = Seq(common.Title("Yes", "nb")),
@@ -105,7 +105,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That deletion works as expected") {
-    val consistentDate = DateParser.fromUnixTime(0)
+    val consistentDate = NDLADate.fromUnixTime(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
       title = Seq(common.Title("Yes", "nb")),
@@ -201,7 +201,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That count works as expected") {
-    val consistentDate = DateParser.fromUnixTime(0)
+    val consistentDate = NDLADate.fromUnixTime(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
       created = consistentDate,
@@ -241,21 +241,21 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     val con1 = TestData.domainConcept.copy(
       id = Some(1),
       content = Seq(domain.ConceptContent("Hei", "nb")),
-      updated = DateParser.fromUnixTime(0),
-      created = DateParser.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
+      created = NDLADate.fromUnixTime(0)
     )
     val con2 = TestData.domainConcept.copy(
       id = Some(2),
       revision = Some(100),
       content = Seq(domain.ConceptContent("På", "nb")),
-      updated = DateParser.fromUnixTime(0),
-      created = DateParser.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
+      created = NDLADate.fromUnixTime(0)
     )
     val con3 = TestData.domainConcept.copy(
       id = Some(3),
       content = Seq(domain.ConceptContent("Deg", "nb")),
-      updated = DateParser.fromUnixTime(0),
-      created = DateParser.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
+      created = NDLADate.fromUnixTime(0)
     )
 
     val Success(ins1) = repository.insertOrUpdate(con1)

@@ -9,6 +9,7 @@ package no.ndla.conceptapi.model.domain
 
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
@@ -18,7 +19,6 @@ import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 case class Concept(
@@ -28,8 +28,8 @@ case class Concept(
     content: Seq[ConceptContent],
     copyright: Option[Copyright],
     source: Option[String],
-    created: LocalDateTime,
-    updated: LocalDateTime,
+    created: NDLADate,
+    updated: NDLADate,
     updatedBy: Seq[String],
     metaImage: Seq[ConceptMetaImage],
     tags: Seq[Tag],
@@ -56,7 +56,7 @@ trait DBConcept {
       fromResultSet(lp.resultName)(rs)
 
     def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
-      implicit val formats: Formats = this.repositorySerializer ++ JavaTimeSerializers.all
+      implicit val formats: Formats = this.repositorySerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
       val id       = rs.long(lp.c("id"))
       val revision = rs.int(lp.c("revision"))
@@ -90,7 +90,8 @@ trait DBConcept {
       new EnumNameSerializer(ConceptStatus) +
       new EnumNameSerializer(ConceptType) +
       new EnumNameSerializer(WordClass) ++
-      JavaTimeSerializers.all
+      JavaTimeSerializers.all +
+      NDLADate.Json4sSerializer
 
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Concept](

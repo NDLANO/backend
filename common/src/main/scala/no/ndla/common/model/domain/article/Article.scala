@@ -8,22 +8,8 @@
 
 package no.ndla.common.model.domain.article
 
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Availability,
-  Content,
-  Description,
-  Introduction,
-  RelatedContent,
-  RequiredLibrary,
-  Tag,
-  Title,
-  VisualElement
-}
-
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain._
 
 case class Article(
     id: Option[Long],
@@ -37,15 +23,15 @@ case class Article(
     introduction: Seq[Introduction],
     metaDescription: Seq[Description],
     metaImage: Seq[ArticleMetaImage],
-    created: LocalDateTime,
-    updated: LocalDateTime,
+    created: NDLADate,
+    updated: NDLADate,
     updatedBy: String,
-    published: LocalDateTime,
+    published: NDLADate,
     articleType: ArticleType,
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
     relatedContent: Seq[RelatedContent],
-    revisionDate: Option[LocalDateTime],
+    revisionDate: Option[NDLADate],
     slug: Option[String]
 ) extends Content

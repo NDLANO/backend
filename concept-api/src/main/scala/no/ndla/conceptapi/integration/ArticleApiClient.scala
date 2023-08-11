@@ -13,6 +13,7 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.common.model.NDLADate
 import org.json4s.ext.JavaTimeSerializers
 import sttp.client3.quick._
 
@@ -53,7 +54,7 @@ trait ArticleApiClient {
     }
 
     def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
       ndlaClient.fetchWithForwardedAuth[T](
         quickRequest.get(uri"$baseUrl/$path".withParams(params)).readTimeout(timeout.millis)
       )

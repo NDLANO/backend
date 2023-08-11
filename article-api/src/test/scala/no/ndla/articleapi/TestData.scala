@@ -11,22 +11,10 @@ package no.ndla.articleapi
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  Description,
-  Introduction,
-  Tag,
-  Title,
-  VisualElement
-}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.{Article, Copyright}
+import no.ndla.common.model.domain._
 import no.ndla.mapping.License
-
-import java.time.LocalDateTime
 
 trait TestData {
   this: Props =>
@@ -56,7 +44,7 @@ trait TestData {
         None,
         None
       )
-    private val today = LocalDateTime.now().withNano(0)
+    private val today = NDLADate.now().withNano(0)
 
     val (articleId, externalId) = (1L, "751234")
 
@@ -82,10 +70,10 @@ trait TestData {
       metaImage = None,
       introduction = None,
       metaDescription = api.ArticleMetaDescription("metaDesc", "nb"),
-      created = LocalDateTime.of(2017, 1, 1, 12, 15, 32),
-      updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
+      created = NDLADate.of(2017, 1, 1, 12, 15, 32),
+      updated = NDLADate.of(2017, 4, 1, 12, 15, 32),
       updatedBy = "me",
-      published = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
+      published = NDLADate.of(2017, 4, 1, 12, 15, 32),
       articleType = "standard",
       supportedLanguages = Seq("nb"),
       grepCodes = Seq.empty,
@@ -148,16 +136,16 @@ trait TestData {
       Seq(Introduction("This is an introduction", "en")),
       Seq(Description("meta", "en")),
       Seq.empty,
-      LocalDateTime.now().minusDays(4).withNano(0),
-      LocalDateTime.now().minusDays(2).withNano(0),
+      created = NDLADate.now().minusDays(4).withNano(0),
+      updated = NDLADate.now().minusDays(2).withNano(0),
       "ndalId54321",
-      LocalDateTime.now().minusDays(2).withNano(0),
+      published = NDLADate.now().minusDays(2).withNano(0),
       ArticleType.Standard,
       Seq("COMPCODE1"),
       Seq(1),
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionDate = Some(LocalDateTime.now().withNano(0)),
+      revisionDate = Some(NDLADate.now().withNano(0)),
       slug = None
     )
 
@@ -268,10 +256,10 @@ trait TestData {
       None,
       None,
       api.ArticleMetaDescription("so meta", "en"),
-      LocalDateTime.now().minusDays(4),
-      LocalDateTime.now().minusDays(2),
+      NDLADate.now().minusDays(4),
+      NDLADate.now().minusDays(2),
       "ndalId54321",
-      LocalDateTime.now().minusDays(2),
+      NDLADate.now().minusDays(2),
       "standard",
       Seq("en"),
       Seq.empty,

@@ -8,7 +8,7 @@
 package no.ndla.integrationtests.searchapi.draftapi
 
 import enumeratum.Json4s
-import no.ndla.common.DateParser
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.draftapi.DraftApiProperties
@@ -37,7 +37,8 @@ class DraftApiClientTest
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
       new EnumNameSerializer(LearningResourceType) ++
-      JavaTimeSerializers.all
+      JavaTimeSerializers.all +
+      NDLADate.Json4sSerializer
 
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
@@ -72,9 +73,9 @@ class DraftApiClientTest
           draftApi.componentRegistry.draftRepository.insert(
             draftapi.TestData.sampleDomainArticle.copy(
               id = Some(id),
-              updated = DateParser.fromUnixTime(0),
-              created = DateParser.fromUnixTime(0),
-              published = DateParser.fromUnixTime(0)
+              updated = NDLADate.fromUnixTime(0),
+              created = NDLADate.fromUnixTime(0),
+              published = NDLADate.fromUnixTime(0)
             )
           )
         })

@@ -8,6 +8,7 @@
 package no.ndla.integrationtests.articleapi.draftapi
 
 import no.ndla.articleapi.model.api
+import no.ndla.common.model.NDLADate
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
@@ -22,7 +23,7 @@ class DraftApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
     with articleapi.TestEnvironment {
-  implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+  implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
   override val ndlaClient       = new NdlaClient
 
   val draftApiPort: Int           = findFreePort

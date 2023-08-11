@@ -7,7 +7,8 @@
 
 package no.ndla.searchapi.integration
 
-import java.time.LocalDateTime
+import no.ndla.common.model.NDLADate
+
 import no.ndla.common.model.domain.Author
 import no.ndla.common.model.domain.article
 import no.ndla.network.NdlaClient
@@ -41,7 +42,7 @@ trait DraftApiClient {
       getAgreementCopyright(agreementId).nonEmpty
 
     def getAgreementCopyright(agreementId: Long): Option[article.Copyright] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
       val url                       = s"$draftApiGetAgreementEndpoint".replace(":agreement_id", agreementId.toString)
       val request                   = quickRequest.get(uri"$url")
       ndlaClient.fetchWithForwardedAuth[Agreement](request).toOption match {
@@ -57,8 +58,8 @@ trait DraftApiClient {
         processors: Seq[Author],
         rightsholders: Seq[Author],
         agreementId: Option[Long],
-        validFrom: Option[LocalDateTime],
-        validTo: Option[LocalDateTime]
+        validFrom: Option[NDLADate],
+        validTo: Option[NDLADate]
     ) {
 
       def toDomainCopyright: article.Copyright = {
@@ -73,8 +74,8 @@ trait DraftApiClient {
         title: String,
         content: String,
         copyright: ApiCopyright,
-        created: LocalDateTime,
-        updated: LocalDateTime,
+        created: NDLADate,
+        updated: NDLADate,
         updatedBy: String
     )
   }

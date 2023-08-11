@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.NDLADate
 import no.ndla.conceptapi.Props
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
@@ -32,7 +33,7 @@ trait ImageApiClient {
     }
 
     def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
       ndlaClient.fetchWithForwardedAuth[T](
         quickRequest.get(uri"$baseUrl/$path".withParams(params)).readTimeout(timeout.millis)
       )

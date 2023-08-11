@@ -24,9 +24,9 @@ import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with ConverterService with StrictLogging with Props =>
+  this: Elastic4sClient with ConverterService with Props =>
 
-  trait SearchService[T] {
+  trait SearchService[T] extends StrictLogging {
     val searchIndex: String
 
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =

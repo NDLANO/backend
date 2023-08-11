@@ -8,6 +8,7 @@
 package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.NDLADate
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
@@ -62,7 +63,7 @@ trait ConceptApiClient {
     private[integration] def get[T](path: String, timeout: Int, params: (String, String)*)(implicit
         mf: Manifest[T]
     ): Try[T] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
       ndlaClient.fetchWithForwardedAuth[T](
         quickRequest
           .get(uri"$conceptBaseUrl/$path".withParams(params: _*))

@@ -9,18 +9,18 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.model.domain.{Author, Title}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.api.Stats
-import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
 
@@ -48,7 +48,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     LearningPathStatus.PUBLISHED,
     LearningPathVerificationStatus.EXTERNAL,
-    LocalDateTime.now(),
+    NDLADate.now(),
     List(),
     PUBLISHED_OWNER.id,
     copyright
@@ -65,7 +65,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.EXTERNAL,
-    LocalDateTime.now(),
+    NDLADate.now(),
     List(),
     PRIVATE_OWNER.id,
     copyright
@@ -601,7 +601,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
-    when(clock.now()).thenReturn(LocalDateTime.now())
+    when(clock.now()).thenReturn(NDLADate.now())
 
     val feideId = "feide"
     val domainUserData = domain.MyNDLAUser(
@@ -638,7 +638,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
-    when(clock.now()).thenReturn(LocalDateTime.now())
+    when(clock.now()).thenReturn(NDLADate.now())
 
     val feideId = "feide"
     val domainUserData = domain.MyNDLAUser(
@@ -664,7 +664,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getMyNDLAUserData returns already created user if it exists but needs update") {
-    when(clock.now()).thenReturn(LocalDateTime.now())
+    when(clock.now()).thenReturn(NDLADate.now())
 
     val feideId = "feide"
     val domainUserData = domain.MyNDLAUser(

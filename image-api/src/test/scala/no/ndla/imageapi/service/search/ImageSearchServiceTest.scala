@@ -7,6 +7,7 @@
 
 package no.ndla.imageapi.service.search
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
@@ -18,7 +19,6 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.{Outcome, PrivateMethodTester}
 
-import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
@@ -71,7 +71,7 @@ class ImageSearchServiceTest
     None,
     None
   )
-  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val agreement1Copyright: api.Copyright = api.Copyright(
     api.License("gnu", "gnustuff", Some("http://gnugnusen")),
@@ -113,7 +113,7 @@ class ImageSearchServiceTest
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
-    editorNotes = Seq(EditorNote(LocalDateTime.now(), "someone", "Lillehjelper"))
+    editorNotes = Seq(EditorNote(NDLADate.now(), "someone", "Lillehjelper"))
   )
 
   val image3 = new ImageMetaInformation(

@@ -28,9 +28,13 @@ class TagSearchServiceTest
     super.withFixture(test)
   }
 
-  override val tagSearchService = new TagSearchService
+  val indexName = "tags-testing"
+  override val tagSearchService = new TagSearchService {
+    override val searchIndex: String = indexName
+  }
   override val tagIndexService: TagIndexService = new TagIndexService {
-    override val indexShards: Int = 1
+    override val indexShards: Int    = 1
+    override val searchIndex: String = indexName
   }
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
@@ -78,13 +82,8 @@ class TagSearchServiceTest
   val imagesToIndex = Seq(image1, image2, image3, image4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    val indexName = tagIndexService.createIndexWithGeneratedName
-    tagIndexService.updateAliasTarget(None, indexName.get)
-
-    imagesToIndex.foreach(a => {
-      val x = tagIndexService.indexDocument(a)
-      x
-    })
+    tagIndexService.createIndexAndAlias().get
+    imagesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
 
     val allTagsToIndex         = imagesToIndex.flatMap(_.tags)
     val groupedByLanguage      = allTagsToIndex.groupBy(_.language)

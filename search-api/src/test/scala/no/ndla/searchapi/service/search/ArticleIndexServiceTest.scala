@@ -8,6 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
@@ -20,7 +21,6 @@ import org.json4s.native.Serialization.read
 import org.json4s.{Extraction, Formats}
 import org.scalatest.Outcome
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class ArticleIndexServiceTest
@@ -102,7 +102,7 @@ class ArticleIndexServiceTest
   test("That mapping contains every field after serialization") {
     val languageValues = SearchableLanguageValues(Seq(LanguageValue("nb", "hei"), LanguageValue("en", "hå")))
     val languageList   = SearchableLanguageList(Seq(LanguageValue("nb", Seq("")), LanguageValue("en", Seq(""))))
-    val now            = LocalDateTime.now()
+    val now            = NDLADate.now()
 
     val searchableToTestWith = SearchableArticle(
       id = 10L,

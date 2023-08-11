@@ -8,8 +8,9 @@
 package no.ndla.draftapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
@@ -17,7 +18,6 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 import scalikejdbc._
 
-import java.time.LocalDateTime
 import java.net.Socket
 import scala.util.{Failure, Success, Try}
 
@@ -338,7 +338,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("published, then copied article keeps old notes in hidden field and notes is emptied") {
-    val now = LocalDateTime.now().withNano(0)
+    val now = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(now)
     val status = Status(DraftStatus.PLANNED, Set.empty)
     val prevNotes1 = Seq(
@@ -390,7 +390,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("copied article should have new note about copying if user present") {
-    val now = LocalDateTime.now().withNano(0)
+    val now = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(now)
 
     val draftArticle1 = TestData.sampleDomainArticle.copy(
