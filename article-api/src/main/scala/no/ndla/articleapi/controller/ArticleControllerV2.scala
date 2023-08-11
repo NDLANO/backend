@@ -48,7 +48,8 @@ trait ArticleControllerV2 {
   class ArticleControllerV2() extends SwaggerService {
     protected val applicationDescription = "Services for accessing articles from NDLA."
 
-    override val prefix: EndpointInput[Unit] = "article-api" / "v2" / "articles"
+    override val serviceName: String         = "articles"
+    override val prefix: EndpointInput[Unit] = "article-api" / "v2" / serviceName
 
     private val queryParam =
       query[Option[String]]("query").description("Return only articles with content matching the specified query.")
