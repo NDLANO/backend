@@ -60,7 +60,7 @@ export interface IArticleSummaryV2 {
   url: string
   license: string
   articleType: string
-  lastUpdated: INDLADate
+  lastUpdated: string
   supportedLanguages: string[]
   grepCodes: string[]
   availability: string
@@ -89,17 +89,17 @@ export interface IArticleV2 {
   metaImage?: IArticleMetaImage
   introduction?: IArticleIntroduction
   metaDescription: IArticleMetaDescription
-  created: INDLADate
-  updated: INDLADate
+  created: string
+  updated: string
   updatedBy: string
-  published: INDLADate
+  published: string
   articleType: string
   supportedLanguages: string[]
   grepCodes: string[]
   conceptIds: number[]
   availability: string
   relatedContent: (IRelatedContentLink | number)[]
-  revisionDate?: INDLADate
+  revisionDate?: string
   slug?: string
 }
 
@@ -115,18 +115,14 @@ export interface ICopyright {
   processors: IAuthor[]
   rightsholders: IAuthor[]
   agreementId?: number
-  validFrom?: INDLADate
-  validTo?: INDLADate
+  validFrom?: string
+  validTo?: string
 }
 
 export interface ILicense {
   license: string
   description?: string
   url?: string
-}
-
-export interface INDLADate {
-  underlying: string
 }
 
 export interface IRelatedContentLink {

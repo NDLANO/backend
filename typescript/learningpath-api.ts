@@ -13,7 +13,7 @@ export interface IBreadcrumb {
 export interface IConfigMeta {
   key: string
   value: string
-  updatedAt: INDLADate
+  updatedAt: string
   updatedBy: string
 }
 
@@ -57,9 +57,9 @@ export interface IFolder {
   subfolders: IFolderData[]
   resources: IResource[]
   rank?: number
-  created: INDLADate
-  updated: INDLADate
-  shared?: INDLADate
+  created: string
+  updated: string
+  shared?: string
   description?: string
 }
 
@@ -84,7 +84,7 @@ export interface ILearningPathSummaryV2 {
   coverPhotoUrl?: string
   duration?: number
   status: string
-  lastUpdated: INDLADate
+  lastUpdated: string
   tags: ILearningPathTags
   copyright: ICopyright
   supportedLanguages: string[]
@@ -116,7 +116,7 @@ export interface ILearningPathV2 {
   duration?: number
   status: string
   verificationStatus: string
-  lastUpdated: INDLADate
+  lastUpdated: string
   tags: ILearningPathTags
   copyright: ICopyright
   canEdit: boolean
@@ -171,7 +171,7 @@ export interface ILicense {
 
 export interface IMessage {
   message: string
-  date: INDLADate
+  date: string
 }
 
 export interface IMyNDLAUser {
@@ -179,10 +179,6 @@ export interface IMyNDLAUser {
   favoriteSubjects: string[]
   role: string
   organization: string
-}
-
-export interface INDLADate {
-  underlying: string
 }
 
 export interface INewFolder {
@@ -203,7 +199,7 @@ export interface IResource {
   id: string
   resourceType: string
   path: string
-  created: INDLADate
+  created: string
   tags: string[]
   resourceId: string
   rank?: number

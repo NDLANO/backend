@@ -7,6 +7,7 @@
 
 package no.ndla.common.model
 
+import com.scalatsi.TSType
 import io.circe.{Decoder, Encoder}
 import io.circe.syntax._
 import org.json4s.{CustomSerializer, JString, MappingException}
@@ -56,6 +57,9 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
 }
 
 object NDLADate {
+
+  implicit val typescriptType = TSType.sameAs[NDLADate, String]
+
   case class NDLADateError(message: String) extends RuntimeException(message)
 
   private val baseFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")

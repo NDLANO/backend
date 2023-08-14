@@ -12,12 +12,12 @@ export interface ICopyright {
   processors: IAuthor[]
   rightsholders: IAuthor[]
   agreementId?: number
-  validFrom?: INDLADate
-  validTo?: INDLADate
+  validFrom?: string
+  validTo?: string
 }
 
 export interface IEditorNote {
-  timestamp: INDLADate
+  timestamp: string
   updatedBy: string
   note: string
 }
@@ -64,7 +64,7 @@ export interface IImageMetaInformationV2 {
   tags: IImageTag
   caption: IImageCaption
   supportedLanguages: string[]
-  created: INDLADate
+  created: string
   createdBy: string
   modelRelease: string
   editorNotes?: IEditorNote[]
@@ -80,7 +80,7 @@ export interface IImageMetaInformationV3 {
   tags: IImageTag
   caption: IImageCaption
   supportedLanguages: string[]
-  created: INDLADate
+  created: string
   createdBy: string
   modelRelease: string
   editorNotes?: IEditorNote[]
@@ -99,7 +99,7 @@ export interface IImageMetaSummary {
   supportedLanguages: string[]
   modelRelease?: string
   editorNotes?: string[]
-  lastUpdated: INDLADate
+  lastUpdated: string
   fileSize: number
   contentType: string
   imageDimensions?: IImageDimensions
@@ -119,10 +119,6 @@ export interface ILicense {
   license: string
   description: string
   url?: string
-}
-
-export interface INDLADate {
-  underlying: string
 }
 
 export interface INewImageMetaInformationV2 {
