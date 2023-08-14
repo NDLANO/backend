@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.integration
 
+import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.network.NdlaClient
@@ -39,16 +40,17 @@ trait TaxonomyApiClient {
       get[List[Node]](
         s"$TaxonomyApiEndpoint/nodes/",
         headers = getVersionHashHeader(shouldUsePublishedTax),
-        "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
-        "includeContexts" -> "true"
+        Seq(
+          "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
+          "includeContexts" -> "true"
+        )
       )
 
     private def getResources(shouldUsePublishedTax: Boolean): Try[List[Node]] =
-      get[List[Node]](
-        s"$TaxonomyApiEndpoint/nodes/",
+      getPaginated[Node](
+        s"$TaxonomyApiEndpoint/nodes/search",
         headers = getVersionHashHeader(shouldUsePublishedTax),
-        "nodeType"        -> NodeType.RESOURCE.toString,
-        "includeContexts" -> "true"
+        Seq("pageSize" -> "1000", "nodeType" -> NodeType.RESOURCE.toString, "includeContexts" -> "true")
       )
 
     def getTaxonomyContext(
@@ -60,7 +62,7 @@ trait TaxonomyApiClient {
       val contexts = get[List[TaxonomyContext]](
         s"$TaxonomyApiEndpoint/queries/$contentUri",
         headers = getVersionHashHeader(shouldUsePublishedTax),
-        params = "filterVisibles" -> filterVisibles.toString
+        params = Seq("filterVisibles" -> filterVisibles.toString)
       )
       if (filterContexts) contexts.map(list => list.filter(c => c.rootId.contains("subject"))) else contexts
     }
@@ -104,7 +106,7 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def get[A](url: String, headers: Map[String, String], params: (String, String)*)(implicit
+    private def get[A](url: String, headers: Map[String, String], params: Seq[(String, String)])(implicit
         mf: Manifest[A],
         formats: Formats
     ): Try[A] = {
@@ -112,5 +114,31 @@ trait TaxonomyApiClient {
         quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeoutSeconds)
       )
     }
+
+    private def getPaginated[T](url: String, headers: Map[String, String], params: Seq[(String, String)])(implicit
+        mf: Manifest[T],
+        formats: Formats
+    ): Try[List[T]] = {
+      def fetchPage(p: Seq[(String, String)]): Try[PaginationPage[T]] =
+        get[PaginationPage[T]](url, headers, p)
+
+      val pageSize   = params.toMap.get("pageSize").get.toInt
+      val pageParams = params :+ ("page" -> "1")
+      fetchPage(pageParams).flatMap(firstPage => {
+        val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
+        val pageRange = 1 to numPages
+
+        val numThreads = Math.max(20, numPages)
+        implicit val executionContext: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
+
+        val pages        = pageRange.map(pageNum => Future(fetchPage(params :+ ("page" -> s"$pageNum"))))
+        val mergedFuture = Future.sequence(pages)
+        val awaited      = Await.result(mergedFuture, timeoutSeconds)
+
+        awaited.toList.sequence.map(_.flatMap(_.results))
+      })
+    }
   }
 }
+case class PaginationPage[T](totalCount: Long, results: List[T])

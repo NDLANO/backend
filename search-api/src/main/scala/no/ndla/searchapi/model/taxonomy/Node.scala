@@ -13,10 +13,11 @@ import no.ndla.searchapi.model.search.SearchableTaxonomyResourceType
 
 sealed trait NodeType extends EnumEntry {}
 object NodeType extends Enum[NodeType] {
-  case object NODE     extends NodeType
-  case object SUBJECT  extends NodeType
-  case object TOPIC    extends NodeType
-  case object RESOURCE extends NodeType
+  case object NODE      extends NodeType
+  case object SUBJECT   extends NodeType
+  case object TOPIC     extends NodeType
+  case object RESOURCE  extends NodeType
+  case object PROGRAMME extends NodeType
 
   val values: IndexedSeq[NodeType] = findValues
 }
@@ -46,7 +47,8 @@ case class TaxonomyContext(
     isPrimary: Boolean,
     contextId: String,
     isVisible: Boolean,
-    isActive: Boolean
+    isActive: Boolean,
+    url: String
 )
 
 case class TaxonomyTranslation(name: String, language: String)
