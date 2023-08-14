@@ -28,8 +28,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
-  def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-search-api.ndla-local")
-  def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+  def SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-search-api.ndla-local")
 
   def SearchIndexes: Map[SearchType.Value, String] = Map(
     SearchType.Articles      -> propOrElse("ARTICLE_SEARCH_INDEX_NAME", "articles"),

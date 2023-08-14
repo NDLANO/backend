@@ -55,7 +55,7 @@ object searchapi extends Module {
   ) ++
     commonSettings ++
     assemblySettings() ++
-    dockerSettings("-Xmx3G") ++
+    dockerSettings("-Xmx5G") ++
     tsSettings
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
