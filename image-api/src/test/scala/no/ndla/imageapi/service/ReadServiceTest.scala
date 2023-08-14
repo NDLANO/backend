@@ -122,7 +122,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
     val testUrl                   = s"${props.Domain}/image-api/v2/images/1"
     val testRawUrl                = s"${props.Domain}/image-api/raw/Elg.jpg"
-    val dateString = TestData.updated().asString
+    val dateString                = TestData.updated().asString
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"$dateString","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]

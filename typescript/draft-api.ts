@@ -7,8 +7,8 @@ export interface IAgreement {
   title: string
   content: string
   copyright: ICopyright
-  created: INDLADate
-  updated: INDLADate
+  created: string
+  updated: string
   updatedBy: string
 }
 
@@ -40,10 +40,10 @@ export interface IArticle {
   introduction?: IArticleIntroduction
   metaDescription?: IArticleMetaDescription
   metaImage?: IArticleMetaImage
-  created: INDLADate
-  updated: INDLADate
+  created: string
+  updated: string
   updatedBy: string
-  published: INDLADate
+  published: string
   articleType: string
   supportedLanguages: string[]
   notes: IEditorNote[]
@@ -95,7 +95,7 @@ export interface IArticleSummary {
   users: string[]
   grepCodes: string[]
   status: IStatus
-  updated: INDLADate
+  updated: string
 }
 
 export interface IArticleTag {
@@ -116,8 +116,8 @@ export interface IAuthor {
 export interface IComment {
   id: string
   content: string
-  created: INDLADate
-  updated: INDLADate
+  created: string
+  updated: string
   isOpen: boolean
 }
 
@@ -128,20 +128,20 @@ export interface ICopyright {
   processors: IAuthor[]
   rightsholders: IAuthor[]
   agreementId?: number
-  validFrom?: INDLADate
-  validTo?: INDLADate
+  validFrom?: string
+  validTo?: string
 }
 
 export interface IDraftResponsible {
   responsibleId: string
-  lastUpdated: INDLADate
+  lastUpdated: string
 }
 
 export interface IEditorNote {
   note: string
   user: string
   status: IStatus
-  timestamp: INDLADate
+  timestamp: string
 }
 
 export interface IGrepCodesSearchResult {
@@ -155,10 +155,6 @@ export interface ILicense {
   license: string
   description?: string
   url?: string
-}
-
-export interface INDLADate {
-  underlying: string
 }
 
 export interface INewAgreement {
@@ -181,7 +177,7 @@ export interface INewAgreementCopyright {
 export interface INewArticle {
   language: string
   title: string
-  published?: INDLADate
+  published?: string
   content?: string
   tags: string[]
   introduction?: string
@@ -227,7 +223,7 @@ export interface IRequiredLibrary {
 
 export interface IRevisionMeta {
   id?: string
-  revisionDate: INDLADate
+  revisionDate: string
   note: string
   status: string
 }
@@ -264,7 +260,7 @@ export interface IUpdatedArticle {
   language?: string
   title?: string
   status?: string
-  published?: INDLADate
+  published?: string
   content?: string
   tags?: string[]
   introduction?: string

@@ -7,9 +7,10 @@
 
 package no.ndla.common.model
 
+import com.scalatsi.TSType
 import io.circe.{Decoder, Encoder}
 import io.circe.syntax._
-import org.json4s.{CustomSerializer, JString}
+import org.json4s.{CustomSerializer, JString, MappingException}
 import scalikejdbc.ParameterBinderFactory
 import sttp.tapir.Schema
 
@@ -56,6 +57,9 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
 }
 
 object NDLADate {
+
+  implicit val typescriptType = TSType.sameAs[NDLADate, String]
+
   case class NDLADateError(message: String) extends RuntimeException(message)
 
   private val baseFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
@@ -148,7 +152,7 @@ object NDLADate {
       }
     }
 
-    _fromString(dateFormats)
+    _fromString(dateFormats).recoverWith(_ => Failure(NDLADateError(s"Was unable to parse '${str}' as a date.")))
   }
 
   def asString(date: NDLADate): String = {
@@ -174,15 +178,24 @@ object NDLADate {
         (
           {
             // NOTE: Unsafe as everything json4s :^)
-            case JString(s) => NDLADate.fromString(s).get
+            case JString(s) =>
+              NDLADate.fromString(s) match {
+                case Success(date) => date
+                case Failure(exception) =>
+                  throw new MappingException(
+                    exception.getMessage,
+                    NDLADateError(exception.getMessage)
+                  )
+              }
           },
           { case x: NDLADate => JString(NDLADate.asString(x)) }
         )
       )
   val Json4sSerializer = new NDLADateJson4sSerializer
 
-  implicit val yolopants = ParameterBinderFactory[NDLADate] { v => (ps, idx) =>
-    ps.setObject(idx, v.asUtcLocalDateTime)
+  implicit val parameterBinderFactory: ParameterBinderFactory[NDLADate] = ParameterBinderFactory[NDLADate] {
+    v => (ps, idx) =>
+      ps.setObject(idx, v.asUtcLocalDateTime)
   }
 
 }

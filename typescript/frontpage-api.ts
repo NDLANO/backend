@@ -23,7 +23,7 @@ export interface IBannerImage {
 export interface IErrorBody {
   code: string
   description: string
-  occurredAt: INDLADate
+  occurredAt: string
   statusCode: number
 }
 
@@ -54,10 +54,6 @@ export interface IMovieTheme {
 export interface IMovieThemeName {
   name: string
   language: string
-}
-
-export interface INDLADate {
-  underlying: string
 }
 
 export interface INewOrUpdateBannerImage {
