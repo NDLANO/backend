@@ -268,4 +268,19 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
     verify(articleSearchService, times(0)).scroll(any[String], any[String])
   }
 
+  test("that /ids/ works, and isnt a slug") {
+    reset(readService)
+    when(readService.getArticlesByIds(any, any, any, any, any, any)).thenReturn(Success(Seq.empty))
+
+    val response = simpleHttpClient
+      .send(
+        quickRequest
+          .get(uri"http://localhost:$serverPort/article-api/v2/articles/ids/?ids=1,2,3")
+      )
+    verify(readService, times(1)).getArticlesByIds(eqTo(List(1L, 2L, 3L)), any, any, any, any, any)
+    verify(readService, never).getArticleBySlug(any, any, any)
+    verify(readService, never).withIdV2(any, any, any, any, any)
+    response.code.code should be(200)
+  }
+
 }

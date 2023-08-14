@@ -403,8 +403,8 @@ trait ArticleControllerV2 {
 
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       tagSearch,
-      getSingle,
       getByIds,
+      getSingle,
       getSearch,
       postSearch,
       getRevisions,
