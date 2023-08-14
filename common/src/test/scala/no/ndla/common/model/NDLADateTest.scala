@@ -12,7 +12,7 @@ import no.ndla.common.model.NDLADate.fromTimestampSeconds
 import no.ndla.scalatestsuite.UnitTestSuite
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
-import scala.util.Success
+import scala.util.{Failure, Success, Try}
 
 class NDLADateTest extends UnitTestSuite {
 
@@ -45,18 +45,17 @@ class NDLADateTest extends UnitTestSuite {
     import io.circe.parser.parse
     import io.circe.syntax._
 
-    case class ObjectWithDate(date: NDLADate, unrelatedField: String)
-    implicit val decoder: Decoder[ObjectWithDate] = deriveDecoder[ObjectWithDate]
-    implicit val encoder: Encoder[ObjectWithDate] = deriveEncoder[ObjectWithDate]
+    implicit val decoder: Decoder[TestObjectWithDate] = deriveDecoder[TestObjectWithDate]
+    implicit val encoder: Encoder[TestObjectWithDate] = deriveEncoder[TestObjectWithDate]
 
     val dateString       = "2023-08-03T06:01:31.000Z"
     val objectJsonString = s"""{"date":"$dateString","unrelatedField":"test"}"""
     val parsed           = parse(objectJsonString).toTry.get
 
-    val result         = parsed.as[ObjectWithDate].toTry.get
+    val result         = parsed.as[TestObjectWithDate].toTry.get
     val timestamp      = 1691042491L
     val expectedDate   = new NDLADate(ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault()))
-    val expectedObject = ObjectWithDate(expectedDate, "test")
+    val expectedObject = TestObjectWithDate(expectedDate, "test")
 
     result should be(expectedObject)
 
@@ -72,7 +71,48 @@ class NDLADateTest extends UnitTestSuite {
 
     val dates = List(b, a, c)
     dates.sorted should be(List(a, b, c))
+  }
 
+  test("That json4s parsing works like before") {
+    import org.json4s.native.Serialization.{read, write}
+    val formats = org.json4s.DefaultFormats + NDLADate.Json4sSerializer
+
+    val dateString       = "2023-08-03T06:01:31.000Z"
+    val objectJsonString = s"""{"date":"$dateString","unrelatedField":"test"}"""
+
+    val timestamp    = 1691042491L
+    val expectedDate = new NDLADate(ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault()))
+
+    val result = read[TestObjectWithDate](objectJsonString)(formats, implicitly[Manifest[TestObjectWithDate]])
+    result.date should be(expectedDate)
+    result.unrelatedField should be("test")
+
+    val jsonStringResult = write(result)(formats)
+    jsonStringResult should be(objectJsonString)
+  }
+
+  test("That json4s parsing returns some sensible errors") {
+    import org.json4s.native.Serialization.read
+    val formats = org.json4s.DefaultFormats + NDLADate.Json4sSerializer
+
+    val dateString       = ""
+    val objectJsonString = s"""{"date":"$dateString","unrelatedField":"test"}"""
+
+    val result = Try(read[TestObjectWithDate](objectJsonString)(formats, implicitly[Manifest[TestObjectWithDate]]))
+    val Failure(ex: org.json4s.MappingException) = result
+    ex.msg should be("No usable value for date\nWas unable to parse '' as a date.")
+  }
+
+  test("That json4s weird optional parsing returns valid") {
+    import org.json4s.native.Serialization.read
+    val formats = org.json4s.DefaultFormats + NDLADate.Json4sSerializer
+
+    val dateString       = ""
+    val objectJsonString = s"""{"optDate":"$dateString"}"""
+
+    val result =
+      read[TestObjectWithOptionalDate](objectJsonString)(formats, implicitly[Manifest[TestObjectWithOptionalDate]])
+    result should be(TestObjectWithOptionalDate(None))
   }
 
 }
