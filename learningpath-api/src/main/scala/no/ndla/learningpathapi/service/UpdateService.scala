@@ -605,11 +605,11 @@ trait UpdateService {
     }
 
     private def getFolderValidName(
-        makeUniqueName: Option[String],
+        makeUniqueNamePostfix: Option[String],
         folderName: String,
         maybeParentAndSiblings: FolderAndDirectChildren
     ): String = {
-      makeUniqueName match {
+      makeUniqueNamePostfix match {
         case None => folderName
         case Some(postfix) =>
           @tailrec
