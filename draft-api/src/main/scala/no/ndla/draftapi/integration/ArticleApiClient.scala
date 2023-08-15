@@ -59,20 +59,18 @@ trait ArticleApiClient {
         externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
-    ): Try[Draft] = {
-      converterService
-        .toArticleApiArticle(draft)
-        .map(article =>
-          postWithData[common.article.Article, common.article.Article](
-            s"$InternalEndpoint/article/$id",
-            article,
-            "external-id"           -> externalIds.mkString(","),
-            "use-import-validation" -> useImportValidation.toString,
-            "use-soft-validation"   -> useSoftValidation.toString
-          )
+    ): Try[Draft] = converterService
+      .toArticleApiArticle(draft)
+      .flatMap(article =>
+        postWithData[common.article.Article, common.article.Article](
+          s"$InternalEndpoint/article/$id",
+          article,
+          "external-id"           -> externalIds.mkString(","),
+          "use-import-validation" -> useImportValidation.toString,
+          "use-soft-validation"   -> useSoftValidation.toString
         )
-        .map(_ => draft)
-    }
+      )
+      .map(_ => draft)
 
     def unpublishArticle(article: Draft): Try[Draft] = {
       val id = article.id.get
