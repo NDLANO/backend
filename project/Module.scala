@@ -11,6 +11,7 @@ import _root_.io.github.davidgregory084.TpolecatPlugin.autoImport.*
 import _root_.io.github.davidgregory084.ScalaVersion.*
 import _root_.io.github.davidgregory084.ScalacOption
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
+import GithubWorkflowPlugin.autoImport.*
 import sbtassembly.AssemblyKeys.*
 import sbtdocker.DockerKeys.*
 import sbtdocker.*
@@ -38,6 +39,7 @@ trait Module {
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
   lazy val plugins: Seq[sbt.Plugins]                         = Seq.empty
   lazy val disablePlugins: Seq[sbt.AutoPlugin]               = Seq.empty
+  val enableReleases: Boolean                                = true
   val moduleName: String
 
   protected val MainClass: Option[String] = None
@@ -50,6 +52,8 @@ trait Module {
     version             := "0.0.1",
     scalaVersion        := ScalaV,
     javacOptions ++= Seq("-source", "17", "-target", "17"),
+    ghGenerateEnable        := true,
+    ghGenerateEnableRelease := this.enableReleases,
     javaOptions ++= reflectiveAccessOptions,
     tpolecatScalacOptions ++= scalacOptions,
     tpolecatExcludeOptions ++= excludeOptions,

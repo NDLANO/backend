@@ -4,7 +4,8 @@ import sbt.Keys._
 import sbt._
 
 object languagelib extends Module {
-  override val moduleName: String = "language"
+  override val moduleName: String      = "language"
+  override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       "org.json4s"    %% "json4s-native" % Json4SV,

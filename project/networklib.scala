@@ -5,7 +5,8 @@ import Dependencies.versions._
 import Dependencies._
 
 object networklib extends Module {
-  override val moduleName: String = "network"
+  override val moduleName: String      = "network"
+  override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       sttp,
