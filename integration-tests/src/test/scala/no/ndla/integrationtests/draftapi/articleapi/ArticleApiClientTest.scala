@@ -44,7 +44,13 @@ class ArticleApiClientTest
 
   import cats.effect.unsafe.implicits.global
   val articleApi = new articleapi.MainClass(articleApiProperties)
-  val cancelFunc = articleApi.run(List.empty).unsafeRunCancelable()
+  val server     = articleApi.startServer
+  val cancelFunc = server.server.unsafeRunCancelable()
+
+  override def beforeAll(): Unit = {
+    Thread.sleep(1000)
+    blockUntil(() => server.isReady)
+  }
 
   override def afterAll(): Unit = {
     super.afterAll()

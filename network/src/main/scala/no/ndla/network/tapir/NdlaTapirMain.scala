@@ -44,16 +44,20 @@ trait NdlaTapirMain extends IOApp {
     }: Unit
   }
 
-  override def run(args: List[String]): IO[ExitCode] = {
+  def startServer: TapirServer = {
     setPropsFromEnv()
     logCopyrightHeader()
     beforeStart()
 
-    logger.info(s"Starting ${props.ApplicationName} on port ${props.ApplicationPort}")
-    val server = TapirServer(props.ApplicationName, props.ApplicationPort, app, enableMelody = true)({
+    val server: TapirServer = TapirServer(props.ApplicationName, props.ApplicationPort, app, enableMelody = true)({
       performWarmup()
     })
 
-    server.as(ExitCode.Success)
+    logger.info(s"Starting ${props.ApplicationName} on port ${props.ApplicationPort}")
+    server
+  }
+
+  override def run(args: List[String]): IO[ExitCode] = {
+    startServer.as(ExitCode.Success)
   }
 }
