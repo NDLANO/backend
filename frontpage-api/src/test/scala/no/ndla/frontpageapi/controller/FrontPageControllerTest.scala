@@ -43,26 +43,28 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment {
   val malformedNewFrontPage: String = """{"malformed": "x"}"""
 
   val sampleNewFrontPage: String =
-    """
-      |{
-      |	"articleId": 15,
-      |	"menu": [
-      |		{
-      |			"articleId": 1,
-      |			"menu": [
-      |				{
-      |					"Menu": {
-      |						"articleId": 2,
-      |						"menu": []
-      |					}
-      |				}
-      |			]
-      |		},
-      |		{
-      |			"articleId": 3,
-      |			"menu": []
-      |		}
-      |	]
+    """{
+      |  "articleId": 15,
+      |  "menu": [
+      |    {
+      |      "articleId": 1,
+      |      "menu": [
+      |        {
+      |          "articleId": 2,
+      |          "menu": [
+      |            {
+      |              "articleId": 4,
+      |              "menu": []
+      |            }
+      |          ]
+      |        }
+      |      ]
+      |    },
+      |    {
+      |      "articleId": 3,
+      |      "menu": []
+      |    }
+      |  ]
       |}
     """.stripMargin
 
