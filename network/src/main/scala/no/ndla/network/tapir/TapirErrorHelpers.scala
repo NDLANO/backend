@@ -103,6 +103,14 @@ trait TapirErrorHelpers extends FLogging {
   def returnError(ex: Throwable): IO[AllErrors] = handleErrors.applyOrElse(ex, handleUnknownError)
 
   def returnLeftError[R](ex: Throwable): IO[Either[AllErrors, R]] = returnError(ex).map(_.asLeft[R])
+  implicit class handleErrorOrOkIOClass[T](self: IO[T]) {
+    def handleErrorsOrOk: IO[Either[AllErrors, T]] = {
+      self
+        .map(_.asRight)
+        .handleErrorWith(returnLeftError)
+    }
+
+  }
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
     import cats.implicits._

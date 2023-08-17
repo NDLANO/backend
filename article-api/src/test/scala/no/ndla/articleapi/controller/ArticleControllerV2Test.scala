@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.controller
 
+import cats.effect.IO
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
@@ -148,7 +149,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
       Some(scrollId)
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
-      .thenReturn(Success(domain.Cachable.yes(searchResponse)))
+      .thenReturn(IO.pure(domain.Cachable.yes(searchResponse)))
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
     val resp = simpleHttpClient
@@ -175,7 +176,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
       Some(scrollId)
     )
 
-    when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(articleSearchService.scroll(anyString, anyString)).thenReturn(IO.pure(searchResponse))
 
     val resp = simpleHttpClient
       .send(
@@ -201,7 +202,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
       Some(scrollId)
     )
 
-    when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(articleSearchService.scroll(anyString, anyString)).thenReturn(IO.pure(searchResponse))
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
     val response = simpleHttpClient
@@ -241,7 +242,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
       scrollId = Some("heiheihei")
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
-      .thenReturn(Success(domain.Cachable.yes(result)))
+      .thenReturn(IO.pure(domain.Cachable.yes(result)))
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
     simpleHttpClient
       .send(

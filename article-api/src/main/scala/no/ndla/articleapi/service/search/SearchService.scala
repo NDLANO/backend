@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi.service.search
 
+import cats.effect.IO
+import cats.implicits.toTraverseOps
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
@@ -21,7 +23,7 @@ import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import java.lang.Math.max
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait SearchService {
   this: Elastic4sClient with ConverterService with Props =>
@@ -29,22 +31,19 @@ trait SearchService {
   trait SearchService[T] extends StrictLogging {
     val searchIndex: String
 
-    def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
-      e4sClient
-        .execute {
-          searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
-        }
-        .map(response => {
-          val hits = getHits(response.result, language)
-          SearchResult[T](
-            totalCount = response.result.totalHits,
-            page = None,
-            pageSize = response.result.hits.hits.length,
-            language = language,
-            results = hits,
-            scrollId = response.result.scrollId
-          )
-        })
+    def scroll(scrollId: String, language: String): IO[SearchResult[T]] = {
+      for {
+        response <- IO.fromTry(e4sClient.execute(searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)))
+        hits     <- getHits(response.result, language)
+      } yield SearchResult[T](
+        totalCount = response.result.totalHits,
+        page = None,
+        pageSize = response.result.hits.hits.length,
+        language = language,
+        results = hits,
+        scrollId = response.result.scrollId
+      )
+    }
 
     /** Returns hit as summary
       *
@@ -55,14 +54,14 @@ trait SearchService {
       * @return
       *   api-model summary of hit
       */
-    def hitToApiModel(hit: String, language: String): T
+    def hitToApiModel(hit: String, language: String): IO[T]
 
-    def getHits(response: SearchResponse, language: String): Seq[T] = {
+    def getHits(response: SearchResponse, language: String): IO[Seq[T]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
 
-          resultArray.map(result => {
+          resultArray.traverse(result => {
             val matchedLanguage = language match {
               case AllLanguages =>
                 converterService.getLanguageFromHit(result).getOrElse(language)
@@ -71,7 +70,7 @@ trait SearchService {
 
             hitToApiModel(result.sourceAsString, matchedLanguage)
           })
-        case _ => Seq()
+        case _ => IO.pure(Seq())
       }
     }
 
@@ -121,16 +120,16 @@ trait SearchService {
 
     protected def scheduleIndexDocuments(): Unit
 
-    protected def errorHandler[U](failure: Throwable): Failure[U] = {
+    protected def errorHandler[U](failure: Throwable): IO[U] = {
       failure match {
         case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _) if status == 404 =>
           logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
           scheduleIndexDocuments()
-          Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
+          IO.raiseError(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
         case e: NdlaSearchException =>
           logger.error(e.getMessage)
-          Failure(NdlaSearchException(s"Unable to execute search in $searchIndex", e))
-        case t: Throwable => Failure(t)
+          IO.raiseError(NdlaSearchException(s"Unable to execute search in $searchIndex", e))
+        case t: Throwable => IO.raiseError(t)
       }
     }
 

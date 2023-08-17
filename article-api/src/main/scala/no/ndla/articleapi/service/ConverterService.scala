@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import cats.effect.IO
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
@@ -37,7 +38,7 @@ import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
-import no.ndla.network.ApplicationUrl
+import no.ndla.network.model.RequestInfo
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s._
 import org.json4s.native.Serialization.read
@@ -95,8 +96,7 @@ trait ConverterService {
       * @return
       *   Article summary extracted from hitString in specified language.
       */
-    def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
-
+    def hitAsArticleSummaryV2(hitString: String, language: String): IO[ArticleSummaryV2] = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
       val searchableArticle         = read[SearchableArticle](hitString)
 
@@ -121,22 +121,26 @@ trait ConverterService {
       val metaImage       = findByLanguageOrBestEffort(metaImages, language).map(toApiArticleMetaImage)
       val lastUpdated     = searchableArticle.lastUpdated
       val availability    = searchableArticle.availability
+      RequestInfo.get.map(req => {
+        val url = s"${req.applicationUrl}${searchableArticle.id}"
 
-      ArticleSummaryV2(
-        searchableArticle.id,
-        title,
-        visualElement,
-        introduction,
-        metaDescription,
-        metaImage,
-        ApplicationUrl.get + searchableArticle.id.toString,
-        searchableArticle.license,
-        searchableArticle.articleType,
-        lastUpdated,
-        supportedLanguages,
-        searchableArticle.grepCodes,
-        availability
-      )
+        ArticleSummaryV2(
+          id = searchableArticle.id,
+          title = title,
+          visualElement = visualElement,
+          introduction = introduction,
+          metaDescription = metaDescription,
+          metaImage = metaImage,
+          url = url,
+          license = searchableArticle.license,
+          articleType = searchableArticle.articleType,
+          lastUpdated = lastUpdated,
+          supportedLanguages = supportedLanguages,
+          grepCodes = searchableArticle.grepCodes,
+          availability = availability
+        )
+      })
+
     }
 
     private[service] def oldToNewLicenseKey(license: String): String = {

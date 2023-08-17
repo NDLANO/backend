@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
@@ -180,7 +181,7 @@ trait ReadService {
         grepCodes: Seq[String],
         shouldScroll: Boolean,
         feideAccessToken: Option[String]
-    ): Try[Cachable[SearchResult[ArticleSummaryV2]]] = {
+    ): IO[Cachable[SearchResult[ArticleSummaryV2]]] = {
       val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
         case Success(user) => user.availabilities
         case Failure(ex) =>
@@ -225,9 +226,9 @@ trait ReadService {
       val result       = articleSearchService.matchingQuery(settings)
       val isRestricted = !settings.availability.distinct.forall(_ == Availability.everyone)
       if (isRestricted)
-        Cachable.no(result)
+        Cachable.No(result)
       else
-        Cachable.yes(result)
+        Cachable.Yes(result)
     }
 
     private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability.Value] = {

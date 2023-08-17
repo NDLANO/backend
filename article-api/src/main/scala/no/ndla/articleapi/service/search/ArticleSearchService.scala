@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service.search
 
+import cats.effect.IO
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
@@ -25,7 +26,7 @@ import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait ArticleSearchService {
   this: Elastic4sClient
@@ -44,11 +45,11 @@ trait ArticleSearchService {
 
     override val searchIndex: String = ArticleSearchIndex
 
-    override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2 = {
+    override def hitToApiModel(hit: String, language: String): IO[api.ArticleSummaryV2] = {
       converterService.hitAsArticleSummaryV2(hit, language)
     }
 
-    def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
+    def matchingQuery(settings: SearchSettings): IO[SearchResult[ArticleSummaryV2]] = {
       val fullQuery = settings.query.emptySomeToNone match {
         case Some(query) =>
           val language      = if (settings.fallback) "*" else settings.language
@@ -75,7 +76,7 @@ trait ArticleSearchService {
       executeSearch(fullQuery, settings)
     }
 
-    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
+    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): IO[SearchResult[ArticleSummaryV2]] = {
 
       val articleTypesFilter =
         if (settings.articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", settings.articleTypes)))
@@ -123,7 +124,7 @@ trait ArticleSearchService {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(ArticleErrorHelpers.ResultWindowTooLargeException())
+        IO.raiseError(ArticleErrorHelpers.ResultWindowTooLargeException())
       } else {
 
         val searchToExecute = search(searchIndex)
@@ -142,13 +143,13 @@ trait ArticleSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            Success(
+            getHits(response.result, settings.language).map(hits =>
               SearchResult[ArticleSummaryV2](
                 response.result.totalHits,
                 Some(settings.page),
                 numResults,
                 settings.language,
-                getHits(response.result, settings.language),
+                hits,
                 response.result.scrollId
               )
             )

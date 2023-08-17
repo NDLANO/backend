@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.model.domain
 
+import cats.effect.IO
 import sttp.model.Header
 import sttp.model.headers.CacheDirective
 import sttp.tapir.EndpointIO.annotations.headers
@@ -71,6 +72,12 @@ object Cachable {
     value.map(v => Cachable.yes(v))
 
   def no[T <: Try[U], U](value: T): Try[Cachable[U]] =
+    value.map(v => Cachable.no(v))
+
+  def Yes[T <: IO[U], U](value: T): IO[Cachable[U]] =
+    value.map(v => Cachable.yes(v))
+
+  def No[T <: IO[U], U](value: T): IO[Cachable[U]] =
     value.map(v => Cachable.no(v))
 
   def yes[T](value: T): Cachable[T] =

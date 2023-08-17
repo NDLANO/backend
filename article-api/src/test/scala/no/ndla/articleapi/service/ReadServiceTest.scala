@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import cats.effect.IO
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain._
@@ -120,7 +121,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("search should use size of id-list as page-size if defined") {
     val searchMock = mock[SearchResult[ArticleSummaryV2]]
-    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
+    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(IO.pure(searchMock))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
     readService.search(

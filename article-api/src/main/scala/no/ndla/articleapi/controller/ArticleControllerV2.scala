@@ -29,7 +29,7 @@ import sttp.tapir.generic.auto._
 import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait ArticleControllerV2 {
   this: ReadService
@@ -120,16 +120,14 @@ trait ArticleControllerV2 {
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(
-        orFunction: => Try[(SearchResultV2, DynamicHeaders)]
-    ): Try[(SearchResultV2, DynamicHeaders)] =
+        orFunction: => IO[(SearchResultV2, DynamicHeaders)]
+    ): IO[(SearchResultV2, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          articleSearchService.scroll(scroll, language) match {
-            case Success(scrollResult) =>
-              val body    = searchConverterService.asApiSearchResultV2(scrollResult)
-              val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
-              Success((body, headers))
-            case Failure(ex) => Failure(ex)
+          articleSearchService.scroll(scroll, language).map { scrollResult =>
+            val body    = searchConverterService.asApiSearchResultV2(scrollResult)
+            val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+            (body, headers)
           }
         case _ => orFunction
       }
@@ -181,7 +179,7 @@ trait ArticleControllerV2 {
         grepCodes: Seq[String],
         shouldScroll: Boolean,
         feideToken: Option[String]
-    ) = {
+    ): IO[(SearchResultV2, DynamicHeaders)] = {
       val result = readService.search(
         query,
         sort,
@@ -197,12 +195,9 @@ trait ArticleControllerV2 {
         feideToken
       )
 
-      result match {
-        case Success(searchResult) =>
-          val scrollHeader = DynamicHeaders.fromOpt("search-context", searchResult.value.scrollId)
-          val output       = searchResult.map(searchConverterService.asApiSearchResultV2).Ok(scrollHeader.toList)
-          Success(output)
-        case Failure(ex) => Failure(ex)
+      result.map { searchResult =>
+        val scrollHeader = DynamicHeaders.fromOpt("search-context", searchResult.value.scrollId)
+        searchResult.map(searchConverterService.asApiSearchResultV2).Ok(scrollHeader.toList)
       }
 
     }
@@ -312,7 +307,7 @@ trait ArticleControllerV2 {
         val language = searchParams.language.getOrElse(AllLanguages)
         val fallback = searchParams.fallback.getOrElse(false)
 
-        val x = scrollSearchOr(searchParams.scrollId, language) {
+        scrollSearchOr(searchParams.scrollId, language) {
           val query              = searchParams.query
           val sort               = Sort.valueOf(searchParams.sort.getOrElse(""))
           val license            = searchParams.license
@@ -337,8 +332,7 @@ trait ArticleControllerV2 {
             shouldScroll,
             feideToken
           )
-        }
-        x.handleErrorsOrOk
+        }.handleErrorsOrOk
       }
 
     val getSingle: ServerEndpoint[Any, IO] = endpoint.get

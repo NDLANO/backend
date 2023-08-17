@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service.search
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
@@ -277,79 +278,87 @@ class ArticleSearchServiceTest
   }
 
   test("searching should return only articles of a given type if a type filter is specified") {
-    val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.entryName)))
+    val results =
+      articleSearchService
+        .matchingQuery(testSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.entryName)))
+        .unsafeRunSync()
     results.totalCount should be(3)
 
-    val Success(results2) = articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq.empty))
+    val results2 = articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq.empty)).unsafeRunSync()
     results2.totalCount should be(10)
   }
 
   test("That searching without query returns all documents ordered by id ascending") {
-    val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = None))
+    val results =
+      articleSearchService.matchingQuery(testSettings.copy(query = None)).unsafeRunSync()
     val hits = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 8, 9, 11, 13))
   }
 
   test("That searching returns all documents ordered by id descending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByIdDesc))
-    val hits             = results.results
+    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByIdDesc)).unsafeRunSync()
+    val hits    = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(13, 11, 9, 8, 7, 6, 5, 3, 2, 1))
   }
 
   test("That searching returns all documents ordered by title ascending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc))
-    val hits             = results.results
+    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc)).unsafeRunSync()
+    val hits    = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(8, 1, 3, 9, 5, 11, 6, 2, 7, 13))
   }
 
   test("That searching returns all documents ordered by title descending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleDesc))
-    val hits             = results.results
+    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleDesc)).unsafeRunSync()
+    val hits    = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(13, 7, 2, 6, 11, 5, 9, 3, 1, 8))
   }
 
   test("That searching returns all documents ordered by lastUpdated descending") {
-    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedDesc))
-    val hits    = results.get.results
-    results.get.totalCount should be(10)
+    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedDesc)).unsafeRunSync()
+    val hits    = results.results
+    results.totalCount should be(10)
     hits.map(_.id) should be(Seq(3, 2, 1, 8, 9, 11, 13, 7, 6, 5))
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedAsc))
-    val hits             = results.results
+    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedAsc)).unsafeRunSync()
+    val hits    = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 13, 1, 2, 3))
   }
 
   test("That all filtering on license only returns documents with given license") {
-    val Success(results) = articleSearchService.matchingQuery(
-      testSettings.copy(sort = Sort.ByTitleAsc, license = Some(PublicDomain.toString))
-    )
+    val results = articleSearchService
+      .matchingQuery(
+        testSettings.copy(sort = Sort.ByTitleAsc, license = Some(PublicDomain.toString))
+      )
+      .unsafeRunSync()
     val hits = results.results
     results.totalCount should be(9)
     hits.map(_.id) should be(Seq(8, 3, 9, 5, 11, 6, 2, 7, 13))
   }
 
   test("That all filtered by id only returns documents with the given ids") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1, 3)))
-    val hits             = results.results
+    val results = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1, 3))).unsafeRunSync()
+    val hits    = results.results
     results.totalCount should be(2)
     hits.head.id should be(1)
     hits.last.id should be(3)
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val Success(page1) =
-      articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 1, pageSize = 2))
-    val Success(page2) =
-      articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 2, pageSize = 2))
+    val page1 =
+      articleSearchService
+        .matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 1, pageSize = 2))
+        .unsafeRunSync()
+    val page2 =
+      articleSearchService
+        .matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 2, pageSize = 2))
+        .unsafeRunSync()
 
     val hits1 = page1.results
     val hits2 = page2.results
@@ -366,31 +375,43 @@ class ArticleSearchServiceTest
   }
 
   test("matchingQuery should filter results based on an article type filter") {
-    val results = articleSearchService.matchingQuery(
-      testSettings
-        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.TopicArticle.entryName))
-    )
-    results.get.totalCount should be(0)
+    val results = articleSearchService
+      .matchingQuery(
+        testSettings
+          .copy(
+            query = Some("bil"),
+            sort = Sort.ByRelevanceDesc,
+            articleTypes = Seq(ArticleType.TopicArticle.entryName)
+          )
+      )
+      .unsafeRunSync()
+    results.totalCount should be(0)
 
-    val results2 = articleSearchService.matchingQuery(
-      testSettings
-        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.Standard.entryName))
-    )
-    results2.get.totalCount should be(3)
+    val results2 = articleSearchService
+      .matchingQuery(
+        testSettings
+          .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.Standard.entryName))
+      )
+      .unsafeRunSync()
+    results2.totalCount should be(3)
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
-    val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
+    val results =
+      articleSearchService
+        .matchingQuery(testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
+        .unsafeRunSync()
     val hits = results.results
     results.totalCount should be(3)
     hits.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
-    val Success(results) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("bil"), withIdIn = List(3), sort = Sort.ByRelevanceDesc)
-    )
+    val results = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("bil"), withIdIn = List(3), sort = Sort.ByRelevanceDesc)
+      )
+      .unsafeRunSync()
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -398,77 +419,97 @@ class ArticleSearchServiceTest
   }
 
   test("That search matches title") {
-    val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc))
+    val results =
+      articleSearchService
+        .matchingQuery(testSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc))
+        .unsafeRunSync()
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
   }
 
   test("That search matches tags") {
-    val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc))
+    val results =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc)).unsafeRunSync()
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
-    val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc))
+    val results =
+      articleSearchService
+        .matchingQuery(testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc))
+        .unsafeRunSync()
     results.totalCount should be(0)
   }
 
   test("That search returns superman since license is specified as copyrighted") {
-    val Success(results) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc, license = Some(Copyrighted.toString))
-    )
+    val results = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc, license = Some(Copyrighted.toString))
+      )
+      .unsafeRunSync()
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(4)
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val Success(search1) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc))
+    val search1 =
+      articleSearchService
+        .matchingQuery(testSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc))
+        .unsafeRunSync()
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
-    val Success(search2) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc))
+    val search2 =
+      articleSearchService
+        .matchingQuery(testSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc))
+        .unsafeRunSync()
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
-    val Success(search3) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("bil + bilde + -flaggermusmann"), sort = Sort.ByTitleAsc)
-    )
+    val search3 = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("bil + bilde + -flaggermusmann"), sort = Sort.ByTitleAsc)
+      )
+      .unsafeRunSync()
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(3, 5))
 
-    val Success(search4) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("bil + -hulken"), sort = Sort.ByTitleAsc))
+    val search4 =
+      articleSearchService
+        .matchingQuery(testSettings.copy(query = Some("bil + -hulken"), sort = Sort.ByTitleAsc))
+        .unsafeRunSync()
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3))
   }
 
   test("search in content should be ranked lower than introduction and title") {
-    val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("mareritt+ragnarok"), sort = Sort.ByRelevanceDesc)
-    )
+    val search = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("mareritt+ragnarok"), sort = Sort.ByRelevanceDesc)
+      )
+      .unsafeRunSync()
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
   }
 
   test("Search for all languages should return all articles in different languages") {
-    val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(language = Language.AllLanguages, pageSize = 100, sort = Sort.ByTitleAsc)
-    )
+    val search = articleSearchService
+      .matchingQuery(
+        testSettings.copy(language = Language.AllLanguages, pageSize = 100, sort = Sort.ByTitleAsc)
+      )
+      .unsafeRunSync()
     search.totalCount should equal(11)
   }
 
   test("Search for all languages should return all articles in correct language") {
-    val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = Language.AllLanguages, pageSize = 100))
+    val search =
+      articleSearchService
+        .matchingQuery(testSettings.copy(language = Language.AllLanguages, pageSize = 100))
+        .unsafeRunSync()
     val hits = search.results
 
     search.totalCount should equal(11)
@@ -487,14 +528,16 @@ class ArticleSearchServiceTest
   }
 
   test("Search for all languages should return all languages if copyrighted") {
-    val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(
-        language = Language.AllLanguages,
-        license = Some(Copyrighted.toString),
-        sort = Sort.ByTitleAsc,
-        pageSize = 100
+    val search = articleSearchService
+      .matchingQuery(
+        testSettings.copy(
+          language = Language.AllLanguages,
+          license = Some(Copyrighted.toString),
+          sort = Sort.ByTitleAsc,
+          pageSize = 100
+        )
       )
-    )
+      .unsafeRunSync()
     val hits = search.results
 
     search.totalCount should equal(1)
@@ -502,12 +545,16 @@ class ArticleSearchServiceTest
   }
 
   test("Searching with query for all languages should return language that matched") {
-    val Success(searchEn) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("Cats"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
-    )
-    val Success(searchNb) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("Katter"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
-    )
+    val searchEn = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("Cats"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
+      )
+      .unsafeRunSync()
+    val searchNb = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("Katter"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
+      )
+      .unsafeRunSync()
 
     searchEn.totalCount should equal(1)
     searchEn.results.head.id should equal(11)
@@ -521,9 +568,11 @@ class ArticleSearchServiceTest
   }
 
   test("metadescription is searchable") {
-    val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("hurr dirr"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
-    )
+    val search = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("hurr dirr"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
+      )
+      .unsafeRunSync()
 
     search.totalCount should equal(1)
     search.results.head.id should equal(11)
@@ -532,10 +581,12 @@ class ArticleSearchServiceTest
   }
 
   test("That searching with fallback parameter returns article in language priority even if doesnt match on language") {
-    val Success(search) =
-      articleSearchService.matchingQuery(
-        testSettings.copy(withIdIn = List(9, 10, 11), language = "en", fallback = true)
-      )
+    val search =
+      articleSearchService
+        .matchingQuery(
+          testSettings.copy(withIdIn = List(9, 10, 11), language = "en", fallback = true)
+        )
+        .unsafeRunSync()
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -547,8 +598,10 @@ class ArticleSearchServiceTest
   }
 
   test("That searching for language not in analyzer works as expected") {
-    val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = "biz"))
+    val search =
+      articleSearchService
+        .matchingQuery(testSettings.copy(language = "biz"))
+        .unsafeRunSync()
 
     search.totalCount should equal(1)
     search.results.head.id should equal(11)
@@ -556,21 +609,27 @@ class ArticleSearchServiceTest
   }
 
   test("That searching for language not in index works as expected") {
-    val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = "mix"))
+    val search =
+      articleSearchService
+        .matchingQuery(testSettings.copy(language = "mix"))
+        .unsafeRunSync()
 
     search.totalCount should equal(0)
   }
 
   test("That searching for not supported language does not break") {
-    val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = "asdf"))
+    val search =
+      articleSearchService
+        .matchingQuery(testSettings.copy(language = "asdf"))
+        .unsafeRunSync()
 
     search.totalCount should equal(0)
   }
 
   test("That metaImage altText is included in the search") {
-    val Success(search) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1), fallback = true))
+    val search = articleSearchService
+      .matchingQuery(testSettings.copy(withIdIn = List(1), fallback = true))
+      .unsafeRunSync()
     search.totalCount should be(1)
     search.results.head.metaImage should be(
       Some(
@@ -583,21 +642,23 @@ class ArticleSearchServiceTest
     val pageSize    = 2
     val expectedIds = List(1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13).sliding(pageSize, pageSize).toList
 
-    val Success(initialSearch) =
-      articleSearchService.matchingQuery(
-        testSettings.copy(
-          language = Language.AllLanguages,
-          pageSize = pageSize,
-          fallback = true,
-          shouldScroll = true
+    val initialSearch =
+      articleSearchService
+        .matchingQuery(
+          testSettings.copy(
+            language = Language.AllLanguages,
+            pageSize = pageSize,
+            fallback = true,
+            shouldScroll = true
+          )
         )
-      )
+        .unsafeRunSync()
 
-    val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
-    val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "*")
-    val Success(scroll3) = articleSearchService.scroll(scroll2.scrollId.get, "*")
-    val Success(scroll4) = articleSearchService.scroll(scroll3.scrollId.get, "*")
-    val Success(scroll5) = articleSearchService.scroll(scroll4.scrollId.get, "*")
+    val scroll1 = articleSearchService.scroll(initialSearch.scrollId.get, "*").unsafeRunSync()
+    val scroll2 = articleSearchService.scroll(scroll1.scrollId.get, "*").unsafeRunSync()
+    val scroll3 = articleSearchService.scroll(scroll2.scrollId.get, "*").unsafeRunSync()
+    val scroll4 = articleSearchService.scroll(scroll3.scrollId.get, "*").unsafeRunSync()
+    val scroll5 = articleSearchService.scroll(scroll4.scrollId.get, "*").unsafeRunSync()
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -608,16 +669,19 @@ class ArticleSearchServiceTest
   }
 
   test("That highlighting works when scrolling") {
-    val Success(initialSearch) =
-      articleSearchService.matchingQuery(
-        testSettings.copy(
-          query = Some("about"),
-          pageSize = 1,
-          fallback = true,
-          shouldScroll = true
+    val initialSearch =
+      articleSearchService
+        .matchingQuery(
+          testSettings.copy(
+            query = Some("about"),
+            pageSize = 1,
+            fallback = true,
+            shouldScroll = true
+          )
         )
-      )
-    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
+        .unsafeRunSync()
+
+    val scroll = articleSearchService.scroll(initialSearch.scrollId.get, "*").unsafeRunSync()
 
     initialSearch.results.size should be(1)
     initialSearch.results.head.id should be(10)
@@ -630,43 +694,51 @@ class ArticleSearchServiceTest
 
   test("That filtering for grepCodes works as expected") {
 
-    val Success(search1) = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV123")))
+    val search1 = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV123"))).unsafeRunSync()
     search1.totalCount should be(2)
     search1.results.map(_.id) should be(Seq(1, 2))
 
-    val Success(search2) = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV123", "KV456")))
+    val search2 =
+      articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV123", "KV456"))).unsafeRunSync()
     search2.totalCount should be(3)
     search2.results.map(_.id) should be(Seq(1, 2, 3))
 
-    val Success(search3) = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV456")))
+    val search3 = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV456"))).unsafeRunSync()
     search3.totalCount should be(3)
     search3.results.map(_.id) should be(Seq(1, 2, 3))
   }
 
   test("That 'everyone' doesn't see teacher and student articles in search") {
-    val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
-    )
+    val search1 = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
+      )
+      .unsafeRunSync()
 
-    val Success(search2) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("availability"), availability = Seq.empty))
-
+    val search2 =
+      articleSearchService
+        .matchingQuery(testSettings.copy(query = Some("availability"), availability = Seq.empty))
+        .unsafeRunSync()
     search1.results.map(_.id) should be(Seq(13))
     search2.results.map(_.id) should be(Seq(13))
   }
 
   test("That 'everyone' doesn't see teacher articles in search") {
-    val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
-    )
+    val search1 = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
+      )
+      .unsafeRunSync()
 
     search1.results.map(_.id) should be(Seq(13))
   }
 
   test("That 'teachers' sees teacher articles in search") {
-    val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"), availability = Seq(Availability.teacher, Availability.everyone))
-    )
+    val search1 = articleSearchService
+      .matchingQuery(
+        testSettings.copy(query = Some("availability"), availability = Seq(Availability.teacher, Availability.everyone))
+      )
+      .unsafeRunSync()
 
     search1.results.map(_.id) should be(Seq(12, 13))
   }

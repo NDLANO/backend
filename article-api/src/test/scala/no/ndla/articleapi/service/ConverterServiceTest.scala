@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
@@ -157,7 +158,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val hitString =
       s"""{  "availability": "everyone", "visualElement": {    "en": "$visualElement"  },  "introduction": {    "nb": "$introduction"  }, "metaImage": [{"imageId": "1", "altText": "$metaImageAlt", "language": "nb"}], "tags": {"nb": ["test"]},  "metaDescription": {    "nb": "$metaDescription"  },  "lastUpdated": "2017-12-29T07:18:27Z",  "tags.nb": [    "baldur"  ],  "license": "$license",  "id": $id,  "authors": [],  "content": {    "nb": "Bilde av Baldurs mareritt om Ragnarok."  },  "defaultTitle": "Baldur har mareritt",  "title": {    "nb": "Baldur har mareritt"  },  "articleType": "$articleType"}"""
 
-    val result = service.hitAsArticleSummaryV2(hitString, "nb")
+    val Right(result) = service.hitAsArticleSummaryV2(hitString, "nb").attempt.unsafeRunSync()
 
     result.id should equal(id)
     result.title.title should equal(title)
