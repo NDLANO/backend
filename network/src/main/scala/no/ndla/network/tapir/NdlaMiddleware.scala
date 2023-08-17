@@ -64,7 +64,7 @@ trait NdlaMiddleware {
 
     def apply(req: Request[IO], responseIO: IO[Response[IO]]): IO[Response[IO]] = {
       val reqInfo = RequestInfo.fromRequest(req)
-      val set     = RequestInfo.set(reqInfo)
+      val set     = reqInfo.setRequestInfo()
       MDC.put("correlationID", reqInfo.correlationId.get): Unit
       val beforeTime = before(req)
 
