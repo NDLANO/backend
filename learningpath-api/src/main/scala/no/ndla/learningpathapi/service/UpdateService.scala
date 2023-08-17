@@ -585,17 +585,18 @@ trait UpdateService {
     private def createNewFolder(
         newFolder: api.NewFolder,
         feideId: FeideID,
-        makeUniqueName: Boolean,
+        makeUniqueNamePostfix: Option[String],
         isCloning: Boolean
     )(implicit
         session: DBSession
     ): Try[domain.Folder] = {
 
-      val parentId          = getMaybeParentId(newFolder.parentId).?
-      val maybeSiblings     = getFolderWithDirectChildren(parentId, feideId).?
-      val nextRank          = getNextRank(maybeSiblings.childrenFolders)
-      val withStatus        = changeStatusToSharedIfParentIsShared(newFolder, maybeSiblings.folder, isCloning)
-      val folderWithName    = withStatus.copy(name = getFolderValidName(makeUniqueName, newFolder.name, maybeSiblings))
+      val parentId      = getMaybeParentId(newFolder.parentId).?
+      val maybeSiblings = getFolderWithDirectChildren(parentId, feideId).?
+      val nextRank      = getNextRank(maybeSiblings.childrenFolders)
+      val withStatus    = changeStatusToSharedIfParentIsShared(newFolder, maybeSiblings.folder, isCloning)
+      val folderWithName =
+        withStatus.copy(name = getFolderValidName(makeUniqueNamePostfix, newFolder.name, maybeSiblings))
       val validatedParentId = validateNewFolder(folderWithName.name, parentId, maybeSiblings).?
       val newFolderData     = converterService.toNewFolderData(folderWithName, validatedParentId, nextRank.some).?
       val inserted          = folderRepository.insertFolder(feideId, newFolderData).?
@@ -604,21 +605,21 @@ trait UpdateService {
     }
 
     private def getFolderValidName(
-        makeUniqueName: Boolean,
+        makeUniqueNamePostfix: Option[String],
         folderName: String,
         maybeParentAndSiblings: FolderAndDirectChildren
     ): String = {
-      if (!makeUniqueName) {
-        return folderName
+      makeUniqueNamePostfix match {
+        case None => folderName
+        case Some(postfix) =>
+          @tailrec
+          def getCopyUntilValid(folderName: String): String =
+            if (validateSiblingNames(folderName, maybeParentAndSiblings).isFailure) {
+              getCopyUntilValid(s"$folderName$postfix")
+            } else { folderName }
+
+          getCopyUntilValid(folderName)
       }
-
-      @tailrec
-      def getCopyUntilValid(folderName: String): String =
-        if (validateSiblingNames(folderName, maybeParentAndSiblings).isFailure) {
-          getCopyUntilValid(s"$folderName (Fra import)")
-        } else { folderName }
-
-      getCopyUntilValid(folderName)
     }
 
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
@@ -626,7 +627,7 @@ trait UpdateService {
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
         _        <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-        inserted <- createNewFolder(newFolder, feideId, makeUniqueName = false, isCloning = false)
+        inserted <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
         crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api      <- converterService.toApiFolder(inserted, crumbs)
       } yield api
@@ -963,7 +964,7 @@ trait UpdateService {
         sourceFolder: CopyableFolder,
         destinationId: Option[UUID],
         feideId: FeideID,
-        makeUniqueRootNames: Boolean
+        makeUniqueRootNamesWithPostfix: Option[String]
     )(implicit
         session: DBSession
     ): Try[domain.Folder] = {
@@ -977,15 +978,25 @@ trait UpdateService {
       destinationId match {
         case None =>
           for {
-            createdFolder <- createNewFolder(sourceFolderCopy, feideId, makeUniqueRootNames, isCloning = true)
-            clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
+            createdFolder <- createNewFolder(
+              sourceFolderCopy,
+              feideId,
+              makeUniqueRootNamesWithPostfix,
+              isCloning = true
+            )
+            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
           } yield clonedFolder
         case Some(id) =>
           for {
             existingFolder <- folderRepository.folderWithId(id)
             clonedSourceFolder = sourceFolderCopy.copy(parentId = existingFolder.id.toString.some)
-            createdFolder <- createNewFolder(clonedSourceFolder, feideId, makeUniqueRootNames, isCloning = true)
-            clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
+            createdFolder <- createNewFolder(
+              clonedSourceFolder,
+              feideId,
+              makeUniqueRootNamesWithPostfix,
+              isCloning = true
+            )
+            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
           } yield existingFolder.copy(subfolders = existingFolder.subfolders :+ clonedFolder)
       }
     }
@@ -1002,7 +1013,7 @@ trait UpdateService {
           maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
           sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
           _            <- sourceFolder.isClonable
-          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, makeUniqueRootNames = false)(session)
+          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some)(session)
           breadcrumbs  <- readService.getBreadcrumbs(clonedFolder)
           converted    <- converterService.toApiFolder(clonedFolder, breadcrumbs)
         } yield converted
@@ -1012,7 +1023,9 @@ trait UpdateService {
     private def importFolders(toImport: Seq[api.Folder], feideId: FeideID)(implicit
         session: DBSession
     ): Try[Seq[domain.Folder]] =
-      toImport.traverse(folder => cloneRecursively(folder, None, feideId, makeUniqueRootNames = true))
+      toImport.traverse(folder =>
+        cloneRecursively(folder, None, feideId, makeUniqueRootNamesWithPostfix = " (Fra import)".some)
+      )
 
     private def importUser(userData: api.MyNDLAUser, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(
         implicit session: DBSession

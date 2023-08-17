@@ -655,4 +655,79 @@ class CloneFolderTest
     result.updated should be(updated)
   }
 
+  test("that cloning a folder with destination with conflicting sibling works as expected") {
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
+    val folderRepository = learningpathApi.componentRegistry.folderRepository
+
+    val toCopy =
+      NewFolderData(
+        parentId = None,
+        name = "toCopy",
+        status = FolderStatus.SHARED,
+        rank = Some(1),
+        description = Some("desc hue")
+      )
+    val toCopyId = folderRepository.insertFolder(feideId, toCopy).get.id
+
+    val existingChild = NewFolderData(
+      parentId = Some(toCopyId),
+      name = "toCopyChild",
+      status = FolderStatus.SHARED,
+      rank = Some(1),
+      description = Some("desc hue")
+    )
+    folderRepository.insertFolder(feideId, existingChild).failIfFailure
+
+    val destinationFolder =
+      NewFolderData(
+        parentId = None,
+        name = "destination",
+        status = FolderStatus.SHARED,
+        rank = Some(1),
+        description = Some("desc hue")
+      )
+    val destinationId = folderRepository.insertFolder(feideId, destinationFolder).get.id
+
+    val conflictingChild = NewFolderData(
+      parentId = Some(destinationId),
+      name = "toCopy",
+      status = FolderStatus.SHARED,
+      rank = Some(1),
+      description = Some("desc hue")
+    )
+    folderRepository.insertFolder(feideId, conflictingChild).failIfFailure
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(
+          uri"$learningpathApiFolderUrl/clone/$toCopyId"
+            .withParam("destination-folder-id", destinationId.toString)
+        )
+        .readTimeout(10.seconds)
+        .header("FeideAuthorization", s"Bearer asd")
+    )
+    response.code.code should be(200)
+
+    val allFolders = learningpathApi.componentRegistry.readService
+      .getFolders(
+        includeSubfolders = true,
+        includeResources = true,
+        Some(feideId)
+      )
+      .get
+
+    allFolders.size should be(2)
+    allFolders.head.name should be("toCopy")
+
+    val destFolder = allFolders(1)
+    destFolder.name should be("destination")
+
+    val destSubFolders = destFolder.subfolders
+    destSubFolders.head.name should be("toCopy")
+    destSubFolders(1).name should be("toCopy_Kopi")
+
+    val List(copySubFolder) = destSubFolders(1).subfolders
+    copySubFolder.name should be("toCopyChild")
+  }
+
 }
