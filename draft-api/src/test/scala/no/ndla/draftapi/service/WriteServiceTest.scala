@@ -1559,4 +1559,33 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.status.current should be(IN_PROGRESS.toString)
     result.started should be(true)
   }
+
+  test("That partial published fields does set started") {
+    val existing = TestData.sampleDomainArticle.copy(
+      started = false,
+      status = TestData.statusWithPublished,
+      responsible = Some(Responsible("responsible", NDLADate.now()))
+    )
+    val updatedArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      metaDescription = Some("updated title"),
+      language = Some("nb")
+    )
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    val result = service
+      .updateArticle(
+        existing.id.get,
+        updatedArticle,
+        List.empty,
+        Seq.empty,
+        TestData.userWithWriteAccess,
+        None,
+        None,
+        None
+      )
+      .get
+
+    result.status.current should be(PUBLISHED.toString)
+    result.started should be(false)
+  }
 }

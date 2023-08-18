@@ -384,16 +384,18 @@ trait WriteService {
         draft: Draft,
         oldDraft: Option[Draft],
         statusWasUpdated: Boolean,
-        updatedApiArticle: api.UpdatedArticle
+        updatedApiArticle: api.UpdatedArticle,
+        shouldNotAutoUpdateStatus: Boolean
     ): Draft = {
-      val isAutomaticReponsibleChange = updatedApiArticle.responsibleId.map(_.isEmpty).getOrElse(true)
-      val isAutomaticStatusChange     = updatedApiArticle.status.isEmpty
-      val isAutomaticOnEditTransition = isAutomaticReponsibleChange && isAutomaticStatusChange
+      val isAutomaticResponsibleChange = updatedApiArticle.responsibleId.map(_.isEmpty).getOrElse(true)
+      val isAutomaticStatusChange      = updatedApiArticle.status.isEmpty
+      val isAutomaticOnEditTransition  = isAutomaticResponsibleChange && isAutomaticStatusChange
 
-      if (isAutomaticOnEditTransition) {
+      if (shouldNotAutoUpdateStatus) {
+        draft
+      } else if (isAutomaticOnEditTransition && statusWasUpdated) {
         draft.copy(started = true)
       } else {
-
         val responsibleIdWasUpdated = draft.responsible match {
           case None => false
           case Some(responsible) =>
@@ -427,12 +429,19 @@ trait WriteService {
         oldArticle: Option[Draft],
         user: TokenUser,
         statusWasUpdated: Boolean,
-        updatedApiArticle: api.UpdatedArticle
+        updatedApiArticle: api.UpdatedArticle,
+        shouldNotAutoUpdateStatus: Boolean
     ): Try[Draft] = {
       val fieldsToPartialPublish = shouldPartialPublish(oldArticle, toUpdate)
       val withPartialPublishNote = addPartialPublishNote(toUpdate, user, fieldsToPartialPublish)
       val withRevisionDateNotes  = addRevisionDateNotes(user, withPartialPublishNote, oldArticle)
-      val withStarted = updateStartedField(withRevisionDateNotes, oldArticle, statusWasUpdated, updatedApiArticle)
+      val withStarted = updateStartedField(
+        withRevisionDateNotes,
+        oldArticle,
+        statusWasUpdated,
+        updatedApiArticle,
+        shouldNotAutoUpdateStatus
+      )
 
       for {
         _ <- contentValidator.validateArticleOnLanguage(toUpdate, language)
@@ -551,10 +560,10 @@ trait WriteService {
         convertedArticle: Draft,
         existingArticle: Draft,
         updatedApiArticle: api.UpdatedArticle,
-        user: TokenUser
+        user: TokenUser,
+        shouldNotAutoUpdateStatus: Boolean
     ): Try[Draft] = {
-      val newManualStatus           = updatedApiArticle.status.traverse(DraftStatus.valueOfOrError).?
-      val shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existingArticle)
+      val newManualStatus = updatedApiArticle.status.traverse(DraftStatus.valueOfOrError).?
       if (shouldNotAutoUpdateStatus && newManualStatus.isEmpty)
         return Success(convertedArticle)
 
@@ -615,8 +624,19 @@ trait WriteService {
         oldNdlaCreatedDate,
         oldNdlaUpdatedDate
       )
-      articleWithStatus <- updateStatusIfNeeded(convertedArticle, existing, updatedApiArticle, user)
+
+      shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existing)
+
+      articleWithStatus <- updateStatusIfNeeded(
+        convertedArticle,
+        existing,
+        updatedApiArticle,
+        user,
+        shouldNotAutoUpdateStatus
+      )
+
       didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
+
       updatedArticle <- updateArticle(
         articleWithStatus,
         importId,
@@ -628,8 +648,10 @@ trait WriteService {
         oldArticle = Some(existing),
         user = user,
         statusWasUpdated = didUpdateStatus,
-        updatedApiArticle = updatedApiArticle
+        updatedApiArticle = updatedApiArticle,
+        shouldNotAutoUpdateStatus = shouldNotAutoUpdateStatus
       )
+
       apiArticle <- converterService.toApiArticle(
         readService.addUrlsOnEmbedResources(updatedArticle),
         updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
