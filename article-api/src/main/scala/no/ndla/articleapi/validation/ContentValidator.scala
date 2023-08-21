@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.validation
 
+import cats.effect.IO
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.repository.ArticleRepository
@@ -48,22 +49,24 @@ trait ContentValidator {
       }
     }
 
-    def validateArticle(article: Article, isImported: Boolean = false): Try[Article] = {
-      val validationErrors = validateArticleContent(article.content) ++
-        article.introduction.flatMap(i => validateIntroduction(i)) ++
-        validateMetaDescription(article.metaDescription, isImported) ++
-        validateTitle(article.title) ++
-        validateCopyright(article.copyright) ++
-        validateTags(article.tags, isImported) ++
-        article.requiredLibraries.flatMap(validateRequiredLibrary) ++
-        article.metaImage.flatMap(validateMetaImage) ++
-        article.visualElement.flatMap(v => validateVisualElement(v)) ++
-        validateRevisionDate(article.revisionDate) ++
-        validateSlug(article.slug, article.articleType, article.id, articleRepository.slugExists)
-      if (validationErrors.isEmpty) {
-        Success(article)
-      } else {
-        Failure(new ValidationException(errors = validationErrors))
+    def validateArticle(article: Article, isImported: Boolean = false): IO[Article] = {
+      validateCopyright(article.copyright).flatMap { copyrightMessages =>
+        val validationErrors = validateArticleContent(article.content) ++
+          article.introduction.flatMap(i => validateIntroduction(i)) ++
+          validateMetaDescription(article.metaDescription, isImported) ++
+          validateTitle(article.title) ++
+          copyrightMessages ++
+          validateTags(article.tags, isImported) ++
+          article.requiredLibraries.flatMap(validateRequiredLibrary) ++
+          article.metaImage.flatMap(validateMetaImage) ++
+          article.visualElement.flatMap(v => validateVisualElement(v)) ++
+          validateRevisionDate(article.revisionDate) ++
+          validateSlug(article.slug, article.articleType, article.id, articleRepository.slugExists)
+        if (validationErrors.isEmpty) {
+          IO.pure(article)
+        } else {
+          IO.raiseError(new ValidationException(errors = validationErrors))
+        }
       }
     }
 
@@ -143,7 +146,7 @@ trait ContentValidator {
       }) ++ validateNonEmpty("title", titles)
     }
 
-    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+    private def validateCopyright(copyright: Copyright): IO[Seq[ValidationMessage]] = {
       val licenseMessage            = validateLicense(copyright.license)
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
@@ -151,21 +154,20 @@ trait ContentValidator {
         copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", props.creatorTypes)) ++
           copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", props.processorTypes)) ++
           copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", props.rightsholderTypes))
-      val originMessage    = NoHtmlValidator.validate("copyright.origin", copyright.origin)
-      val agreementMessage = validateAgreement(copyright)
-
-      licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
+      val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
+      validateAgreement(copyright).map(agreementMessage => {
+        licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
+      })
     }
 
-    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
+    def validateAgreement(copyright: Copyright): IO[Seq[ValidationMessage]] = {
       copyright.agreementId match {
         case Some(id) =>
-          if (draftApiClient.agreementExists(id)) {
-            Seq()
-          } else {
-            Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
+          draftApiClient.agreementExists(id).map {
+            case true  => Seq.empty
+            case false => Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
           }
-        case _ => Seq()
+        case _ => IO.pure(Seq.empty)
       }
     }
 

@@ -8,7 +8,9 @@
 
 package no.ndla.articleapi.service
 
+import cats.data.EitherT
 import cats.effect.IO
+import cats.implicits.toTraverseOps
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
@@ -22,18 +24,7 @@ import no.ndla.common
 import no.ndla.common.Clock
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  Author,
-  Description,
-  Introduction,
-  RelatedContent,
-  RequiredLibrary,
-  Tag,
-  Title,
-  VisualElement
-}
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Author, Description, Introduction, RelatedContent, RequiredLibrary, Tag, Title, VisualElement}
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -236,23 +227,29 @@ trait ConverterService {
       Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None, None)
     }
 
-    def withAgreementCopyright(article: Article): Article = {
-      val agreementCopyright = article.copyright.agreementId
-        .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
-        .getOrElse(article.copyright)
-
-      article.copy(
-        copyright = article.copyright.copy(
-          license = agreementCopyright.license,
-          creators = agreementCopyright.creators,
-          rightsholders = agreementCopyright.rightsholders,
-          validFrom = agreementCopyright.validFrom,
-          validTo = agreementCopyright.validTo
-        )
-      )
+    def withAgreementCopyright(article: Article): IO[Article] = {
+      article.copyright.agreementId
+        .traverse(aid => {
+          val maybeCopyright = draftApiClient.getAgreementCopyright(aid)
+          maybeCopyright.map(_.map(toDomainCopyright))
+        })
+        .map(ac => {
+          val agreementCopyright = ac.flatten.getOrElse(article.copyright)
+          article.copy(
+            copyright = article.copyright.copy(
+              license = agreementCopyright.license,
+              creators = agreementCopyright.creators,
+              rightsholders = agreementCopyright.rightsholders,
+              validFrom = agreementCopyright.validFrom,
+              validTo = agreementCopyright.validTo
+            )
+          )
+        })
     }
 
-    def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
+    def withAgreementCopyright(copyright: api.Copyright): IO[api.Copyright] = {
+      val copyrightio = copyright.agreementId.traverse(draftApiClient.getAgreementCopyright)
+      EitherT.fromEither()
       val agreementCopyright =
         copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
       copyright.copy(

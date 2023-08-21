@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.integration
 
+import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api
@@ -24,16 +25,16 @@ trait DraftApiClient {
   val draftApiClient: DraftApiClient
 
   class DraftApiClient(DraftBaseUrl: String = props.DraftApiUrl) extends StrictLogging {
-    def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty
+    def agreementExists(agreementId: Long): IO[Boolean] = getAgreementCopyright(agreementId).map(_.nonEmpty)
 
-    def getAgreementCopyright(agreementId: Long): Option[api.Copyright] = {
+    def getAgreementCopyright(agreementId: Long): IO[Option[api.Copyright]] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
       val request = quickRequest.get(uri"$DraftBaseUrl/draft-api/v1/agreements/$agreementId")
-      ndlaClient.fetchWithForwardedAuth[Agreement](request) match {
-        case Success(a) =>
+      ndlaClient.fetchWithForwardedAuth[Agreement](request).attempt.map {
+        case Right(a) =>
           Some(a.copyright)
-        case Failure(ex) =>
+        case Left(ex) =>
           logger.error("", ex)
           None
       }

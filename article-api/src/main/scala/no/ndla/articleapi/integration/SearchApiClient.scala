@@ -7,6 +7,7 @@
 
 package no.ndla.articleapi.integration
 
+import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.articleapi.Props
@@ -45,24 +46,19 @@ trait SearchApiClient {
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
 
-      val future = postWithData[Article, Article](s"$InternalEndpoint/article/", article)
-      future.onComplete {
-        case Success(Success(_)) =>
-          logger.info(s"Successfully indexed article with id: '${article.id
-              .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api")
-        case Failure(e) =>
-          logger.error(
-            s"Failed to indexed article with id: '${article.id
-                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
-            e
-          )
-        case Success(Failure(e)) =>
-          logger.error(
-            s"Failed to indexed article with id: '${article.id
-                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
-            e
-          )
-      }
+      postWithData[Article, Article](s"$InternalEndpoint/article/", article).attempt
+        .map {
+          case Right(_) =>
+            logger.info(s"Successfully indexed article with id: '${article.id
+                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api")
+          case Left(e) =>
+            logger.error(
+              s"Failed to indexed article with id: '${article.id
+                  .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
+              e
+            )
+        }
+        .startOn(executionContext)
 
       article
     }
@@ -71,17 +67,15 @@ trait SearchApiClient {
         mf: Manifest[A],
         format: org.json4s.Formats,
         executionContext: ExecutionContext
-    ): Future[Try[A]] = {
+    ): IO[A] = {
 
-      Future {
-        ndlaClient.fetchWithForwardedAuth[A](
-          quickRequest
-            .post(uri"$endpointUrl".withParams(params.toMap))
-            .body(write(data))
-            .readTimeout(indexTimeout)
-            .header("content-type", "application/json", replaceExisting = true)
-        )
-      }
+      ndlaClient.fetchWithForwardedAuth[A](
+        quickRequest
+          .post(uri"$endpointUrl".withParams(params.toMap))
+          .body(write(data))
+          .readTimeout(indexTimeout)
+          .header("content-type", "application/json", replaceExisting = true)
+      )
     }
 
     def deleteArticle(id: Long): Long = {

@@ -8,6 +8,7 @@
 
 package no.ndla.network
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
 import org.mockito.Strictness
@@ -50,7 +51,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.statusText).thenReturn("status")
     when(httpResponseMock.body).thenReturn("body-with-error")
 
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result = ndlaClient.fetch[TestObject](httpRequestMock).attempt.unsafeRunSync().toTry
 
     result.isFailure should be(true)
     result.failure.exception.getMessage should equal(
@@ -67,7 +68,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(unparseableResponse)
 
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result = ndlaClient.fetch[TestObject](httpRequestMock).attempt.unsafeRunSync().toTry
     result.isFailure should be(true)
     result.failure.exception.getMessage should equal(s"Could not parse response with body: $unparseableResponse")
   }
@@ -80,7 +81,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result = ndlaClient.fetch[TestObject](httpRequestMock).attempt.unsafeRunSync().toTry
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
@@ -98,7 +99,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpRequestMock.header(eqTo("X-Correlation-ID"), eqTo("correlation-id"))).thenReturn(httpRequestMock)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result = ndlaClient.fetch[TestObject](httpRequestMock).attempt.unsafeRunSync().toTry
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
@@ -121,7 +122,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
-    val result = ndlaClient.fetchWithBasicAuth[TestObject](httpRequestMock, user, password)
+    val result = ndlaClient.fetchWithBasicAuth[TestObject](httpRequestMock, user, password).attempt.unsafeRunSync().toTry
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
@@ -146,7 +147,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
-    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock)
+    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock).attempt.unsafeRunSync().toTry
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
@@ -170,10 +171,10 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
     when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeader), any)).thenReturn(httpRequestMock)
 
-    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock)
+    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock).attempt.unsafeRunSync().toTry
     result.isSuccess should be(false)
 
-    val rawResult = ndlaClient.fetchRawWithForwardedAuth(httpRequestMock)
+    val rawResult = ndlaClient.fetchRawWithForwardedAuth(httpRequestMock).attempt.unsafeRunSync().toTry
     rawResult.isSuccess should be(true)
     rawResult.get.body should be("")
     rawResult.get.code.code should be(204)
