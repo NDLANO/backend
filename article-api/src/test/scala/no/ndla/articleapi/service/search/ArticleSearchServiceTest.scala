@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service.search
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
@@ -17,6 +18,8 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain._
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
+import no.ndla.network.AuthUser
+import no.ndla.network.model.RequestInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
@@ -342,12 +345,23 @@ class ArticleSearchServiceTest
     hits.map(_.id) should be(Seq(8, 3, 9, 5, 11, 6, 2, 7, 13))
   }
 
+  override def asyncBefore(): IO[_] = {
+    super.asyncBefore() *> {
+      val fakeRequestInfo = mock[RequestInfo]
+      when(fakeRequestInfo.applicationUrl).thenReturn("fakeurl")
+      RequestInfo.set(fakeRequestInfo)
+    }
+  }
+
   test("That all filtered by id only returns documents with the given ids") {
-    val results = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1, 3))).unsafeRunSync()
-    val hits    = results.results
-    results.totalCount should be(2)
-    hits.head.id should be(1)
-    hits.last.id should be(3)
+    articleSearchService
+      .matchingQuery(testSettings.copy(withIdIn = List(1, 3)))
+      .map(results => {
+        val hits = results.results
+        results.totalCount should be(2)
+        hits.head.id should be(1)
+        hits.last.id should be(3)
+      })
   }
 
   test("That paging returns only hits on current page and not more than page-size") {

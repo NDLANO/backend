@@ -7,7 +7,9 @@
 
 package no.ndla.scalatestsuite
 
+import cats.effect.IO
 import org.mockito.scalatest.MockitoSugar
+import org.scalactic.source.Position
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -15,7 +17,7 @@ import org.scalatest.matchers.should.Matchers
 import java.io.IOException
 import java.net.ServerSocket
 import scala.util.Properties.{propOrNone, setProp}
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 abstract class UnitTestSuite
     extends AnyFunSuite
@@ -26,6 +28,22 @@ abstract class UnitTestSuite
     with MockitoSugar
     with BeforeAndAfterEach
     with BeforeAndAfterAll {
+
+  def asyncBefore(): IO[_] = {
+    IO.unit
+  }
+
+  override def test(testName: String, testTags: Tag*)(testFun: => Any)(implicit pos: Position): Unit = {
+    import cats.effect.unsafe.implicits.global
+    lazy val myfunc = {
+      testFun match {
+        case io: IO[Any] => (asyncBefore() >> io).unsafeRunSync()
+        case other       => other
+      }
+    }
+
+    super.test(testName, testTags: _*)(myfunc)(pos)
+  }
 
   def setPropEnv(key: String, value: String): String = setProp(key, value)
 

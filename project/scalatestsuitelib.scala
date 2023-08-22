@@ -6,6 +6,8 @@ import sbt._
 object scalatestsuitelib extends Module {
   override val moduleName: String = "scalatestsuite"
   lazy val dependencies: Seq[ModuleID] = Seq(
+    catsEffect,
+    catsTesting,
     "org.scalatest"     %% "scalatest"               % ScalaTestV,
     "org.mockito"       %% "mockito-scala"           % MockitoV,
     "org.mockito"       %% "mockito-scala-scalatest" % MockitoV,
