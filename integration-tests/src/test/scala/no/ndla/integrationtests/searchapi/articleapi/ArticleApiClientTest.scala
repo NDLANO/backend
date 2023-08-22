@@ -64,12 +64,18 @@ class ArticleApiClientTest
   }
 
   val articleApi        = new articleapi.MainClass(articleApiProperties)
-  val cancelArticleApi  = articleApi.run(List.empty).unsafeRunCancelable()
+  val server            = articleApi.startServer
+  val cancelFunc        = server.server.unsafeRunCancelable()
   val articleApiBaseUrl = s"http://localhost:$articleApiPort"
+
+  override def beforeAll(): Unit = {
+    Thread.sleep(1000)
+    blockUntil(() => server.isReady)
+  }
 
   override def afterAll(): Unit = {
     super.afterAll()
-    cancelArticleApi()
+    cancelFunc()
   }
 
   val exampleToken =

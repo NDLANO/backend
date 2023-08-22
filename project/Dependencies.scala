@@ -19,17 +19,17 @@ object Dependencies {
     val MockitoV              = "1.17.12"
     val Elastic4sV            = "8.5.0"
     val JacksonV              = "2.14.1"
-    val CatsEffectV           = "3.4.5"
+    val CatsEffectV           = "3.5.1"
     val ElasticsearchV        = "7.16.2"
     val Json4SV               = "4.0.6"
     val JavaxServletV         = "4.0.1"
     val FlywayV               = "7.5.3"
     val PostgresV             = "42.5.1"
     val ScalaTsiV             = "0.6.0"
-    val Http4sV               = "0.23.18"
-    val TapirV                = "1.2.7"
-    val ApiSpecV              = "0.3.2"
-    val SttpV                 = "3.8.10"
+    val Http4sV               = "0.23.23"
+    val TapirV                = "1.7.0"
+    val ApiSpecV              = "0.6.0"
+    val SttpV                 = "3.9.0"
     val CirceV                = "0.14.2"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.17.6"
@@ -75,7 +75,7 @@ object Dependencies {
       "org.http4s" %% "http4s-dsl"          % Http4sV,
       "org.http4s" %% "http4s-circe"        % Http4sV,
       "org.http4s" %% "http4s-ember-server" % Http4sV,
-      "org.http4s" %% "http4s-jetty-server" % "0.23.12"
+      "org.http4s" %% "http4s-jetty-server" % "0.23.13"
     )
 
     lazy val tapir: Seq[ModuleID] = Seq(

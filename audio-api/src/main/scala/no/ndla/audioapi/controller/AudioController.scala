@@ -270,8 +270,8 @@ trait AudioController {
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       getSearch,
       postSearch,
-      getSingle,
       getIds,
+      getSingle,
       deleteAudio,
       deleteLanguage,
       postNewAudio,

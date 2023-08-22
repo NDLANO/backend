@@ -43,7 +43,7 @@ case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMe
     .withIdleTimeout(Duration.Inf)
     .withAsyncTimeout(Duration.Inf)
 
-  val server: IO[Nothing] = builder.resource
+  val server: IO[Unit] = builder.resource
     .use(server => {
       IO {
         logger.info(s"$name server has started at ${server.address}")

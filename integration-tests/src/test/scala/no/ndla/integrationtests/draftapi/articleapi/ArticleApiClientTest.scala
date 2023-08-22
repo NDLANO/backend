@@ -44,7 +44,13 @@ class ArticleApiClientTest
 
   import cats.effect.unsafe.implicits.global
   val articleApi = new articleapi.MainClass(articleApiProperties)
-  val cancelFunc = articleApi.run(List.empty).unsafeRunCancelable()
+  val server     = articleApi.startServer
+  val cancelFunc = server.server.unsafeRunCancelable()
+
+  override def beforeAll(): Unit = {
+    Thread.sleep(1000)
+    blockUntil(() => server.isReady)
+  }
 
   override def afterAll(): Unit = {
     super.afterAll()
@@ -154,14 +160,14 @@ class ArticleApiClientTest
     val contentId = ContentId(1)
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
-    articleApiClient.deleteArticle(1) should be(Success(contentId))
+    articleApiClient.deleteArticle(1).get should be(contentId)
   }
 
   test("that unpublishing an article returns 200") {
     dataFixer.setupArticles()
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
-    articleApiCient.unpublishArticle(testArticle).isSuccess should be(true)
+    articleApiCient.unpublishArticle(testArticle).get
   }
 
   test("that verifying an article returns 200 if valid") {
