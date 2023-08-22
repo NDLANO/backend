@@ -1560,7 +1560,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.started should be(true)
   }
 
-  test("That partial published fields does set started") {
+  test("That partial published fields does not set started") {
     val existing = TestData.sampleDomainArticle.copy(
       started = false,
       status = TestData.statusWithPublished,
