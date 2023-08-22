@@ -428,21 +428,6 @@ class CloneFolderTest
       description = Some("samling 0")
     )
 
-    val expectedFolder = api.Folder(
-      id = customId,
-      name = destinationFolder.name,
-      status = destinationFolder.status.toString,
-      parentId = None,
-      breadcrumbs = List(api.Breadcrumb(id = customId, name = destinationFolder.name)),
-      subfolders = List(parent),
-      resources = List.empty,
-      rank = Some(1),
-      created = testClock.now(),
-      updated = testClock.now(),
-      shared = None,
-      description = Some("desc hue")
-    )
-
     val response = simpleHttpClient.send(
       quickRequest
         .post(
@@ -455,7 +440,7 @@ class CloneFolderTest
 
     val deserialized = read[api.Folder](response.body)
     val result       = replaceIdRecursively(deserialized, customId)
-    result should be(expectedFolder)
+    result should be(parent)
   }
 
   test("that cloning a folder with destination fails if destination-folder-id is not found") {
