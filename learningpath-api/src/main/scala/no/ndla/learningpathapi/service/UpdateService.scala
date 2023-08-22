@@ -997,7 +997,7 @@ trait UpdateService {
               isCloning = true
             )
             clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
-          } yield existingFolder.copy(subfolders = existingFolder.subfolders :+ clonedFolder)
+          } yield clonedFolder
       }
     }
 
