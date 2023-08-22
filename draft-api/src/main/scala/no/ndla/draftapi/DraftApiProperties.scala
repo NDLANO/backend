@@ -124,6 +124,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
     ".xlsx",
     ".xml",
     ".f3d",
-    ".mp4"
+    ".mp4",
+    ".ino"
   )
 }
