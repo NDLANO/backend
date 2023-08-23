@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
@@ -36,39 +37,44 @@ trait WriteService {
         externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
-    ): Try[Article] = {
+    ): IO[Article] = {
 
-      val strictValidationResult =
-        contentValidator.validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
+      contentValidator
+        .validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
+        .attempt
+        .flatMap(strictValidationResultEither => {
+          val strictValidationResult = strictValidationResultEither.toTry
+          val softValidationResult   = contentValidator.softValidateArticle(article, isImported = useImportValidation)
+          val validationResult =
+            if (useSoftValidation) {
+              (
+                strictValidationResult,
+                softValidationResult
+              ) match {
+                case (Failure(strictEx: ValidationException), Success(art)) =>
+                  val strictErrors = strictEx.errors
+                    .map(msg => {
+                      s"\t'${msg.field}' => '${msg.message}'"
+                    })
+                    .mkString("\n\t")
 
-      val validationResult =
-        if (useSoftValidation) {
-          (
-            strictValidationResult,
-            contentValidator.softValidateArticle(article, isImported = useImportValidation)
-          ) match {
-            case (Failure(strictEx: ValidationException), Success(art)) =>
-              val strictErrors = strictEx.errors
-                .map(msg => {
-                  s"\t'${msg.field}' => '${msg.message}'"
-                })
-                .mkString("\n\t")
+                  logger.warn(
+                    s"Article with id '${art.id.getOrElse(-1)}' was updated with soft validation while strict validation failed with the following errors:\n$strictErrors"
+                  )
+                  Success(art)
+                case (_, Success(art)) => Success(art)
+                case (_, Failure(ex))  => Failure(ex)
+              }
+            } else strictValidationResult
 
-              logger.warn(
-                s"Article with id '${art.id.getOrElse(-1)}' was updated with soft validation while strict validation failed with the following errors:\n$strictErrors"
-              )
-              Success(art)
-            case (_, Success(art)) => Success(art)
-            case (_, Failure(ex))  => Failure(ex)
-          }
-        } else strictValidationResult
-
-      for {
-        _             <- validationResult
-        domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds.map(_.toString))
-        _             <- articleIndexService.indexDocument(domainArticle)
-        _             <- Try(searchApiClient.indexArticle(domainArticle))
-      } yield domainArticle
+          val result = for {
+            _             <- validationResult
+            domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds.map(_.toString))
+            _             <- articleIndexService.indexDocument(domainArticle)
+            _             <- Try(searchApiClient.indexArticle(domainArticle))
+          } yield domainArticle
+          IO.fromTry(result)
+        })
     }
 
     def partialUpdate(

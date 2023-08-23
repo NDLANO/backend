@@ -9,7 +9,6 @@
 package no.ndla.network
 
 import cats.effect.IO
-import no.ndla.common.CorrelationID
 import no.ndla.network.model.{HttpRequestException, NdlaRequest, RequestInfo}
 import org.json4s.Formats
 import org.json4s.jackson.JsonMethods._

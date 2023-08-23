@@ -136,8 +136,8 @@ trait InternController {
       .in(query[String]("language").default(Language.AllLanguages))
       .in(query[Boolean]("fallback").default(false))
       .out(jsonBody[ArticleDump])
-      .serverLogicPure { case (pageNo, pageSize, language, fallback) =>
-        readService.getArticlesByPage(pageNo, pageSize, language, fallback).asRight
+      .serverLogic { case (pageNo, pageSize, language, fallback) =>
+        readService.getArticlesByPage(pageNo, pageSize, language, fallback).map(_.asRight)
       }
 
     def dumpDomainArticles: ServerEndpoint[Any, IO] = endpoint.get

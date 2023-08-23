@@ -55,39 +55,38 @@ trait ReadService {
         fallback: Boolean,
         revision: Option[Int],
         feideAccessToken: Option[String]
-    ): Try[Cachable[api.ArticleV2]] = {
+    ): IO[Cachable[api.ArticleV2]] = {
       val article = revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
         case None      => articleRepository.withId(id)
       }
 
       article.mapArticle(addUrlsOnEmbedResources) match {
-        case None                               => Failure(NotFoundException(s"The article with id $id was not found"))
-        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleErrorHelpers.ArticleGoneException())
+        case None => IO.raiseError(NotFoundException(s"The article with id $id was not found"))
+        case Some(ArticleRow(_, _, _, _, None)) => IO.raiseError(ArticleErrorHelpers.ArticleGoneException())
         case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
-          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+          Cachable.Yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(ArticleRow(_, _, _, _, Some(article))) =>
-          feideApiClient
-            .getFeideExtendedUser(feideAccessToken)
+          IO.fromTry(feideApiClient.getFeideExtendedUser(feideAccessToken))
             .flatMap(feideUser =>
               article.availability match {
                 case Availability.teacher if !feideUser.isTeacher =>
-                  Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
+                  IO.raiseError(AccessDeniedException("User is missing required role(s) to perform this operation"))
                 case _ =>
-                  Cachable.no(converterService.toApiArticleV2(article, language, fallback))
+                  Cachable.No(converterService.toApiArticleV2(article, language, fallback))
               }
             )
       }
     }
 
-    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[Cachable[api.ArticleV2]] = {
+    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): IO[Cachable[api.ArticleV2]] = {
       articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
-        case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
-        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleErrorHelpers.ArticleGoneException())
+        case None => IO.raiseError(NotFoundException(s"The article with slug '$slug' was not found"))
+        case Some(ArticleRow(_, _, _, _, None)) => IO.raiseError(ArticleErrorHelpers.ArticleGoneException())
         case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
-          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+          Cachable.Yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(ArticleRow(_, _, _, _, Some(article))) =>
-          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+          Cachable.Yes(converterService.toApiArticleV2(article, language, fallback))
       }
     }
 
@@ -104,13 +103,12 @@ trait ReadService {
       converterService.toApiArticleTags(tags, tagsCount, pageSize, offset, language)
     }
 
-    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
+    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): IO[api.ArticleDump] = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = articleRepository
+      articleRepository
         .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
-        .flatMap(article => converterService.toApiArticleV2(article, lang, fallback).toOption)
-
-      api.ArticleDump(articleRepository.articleCount, pageNo, pageSize, lang, results)
+        .traverse(article => converterService.toApiArticleV2(article, lang, fallback))
+        .map(results => api.ArticleDump(articleRepository.articleCount, pageNo, pageSize, lang, results))
     }
 
     def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDump = {
@@ -253,8 +251,8 @@ trait ReadService {
         page: Int,
         pageSize: Int,
         feideAccessToken: Option[String] = None
-    ): Try[Seq[api.ArticleV2]] = {
-      if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
+    ): IO[Seq[api.ArticleV2]] = {
+      if (articleIds.isEmpty) IO.raiseError(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
         val offset         = (page - 1) * pageSize
         val domainArticles = articleRepository.withIds(articleIds, offset, pageSize).toArticles

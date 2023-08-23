@@ -24,7 +24,18 @@ import no.ndla.common
 import no.ndla.common.Clock
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Author, Description, Introduction, RelatedContent, RequiredLibrary, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  Author,
+  Description,
+  Introduction,
+  RelatedContent,
+  RequiredLibrary,
+  Tag,
+  Title,
+  VisualElement
+}
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -248,17 +259,18 @@ trait ConverterService {
     }
 
     def withAgreementCopyright(copyright: api.Copyright): IO[api.Copyright] = {
-      val copyrightio = copyright.agreementId.traverse(draftApiClient.getAgreementCopyright)
-      EitherT.fromEither()
-      val agreementCopyright =
-        copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
-      copyright.copy(
-        license = agreementCopyright.license,
-        creators = agreementCopyright.creators,
-        rightsholders = agreementCopyright.rightsholders,
-        validFrom = agreementCopyright.validFrom,
-        validTo = agreementCopyright.validTo
-      )
+      copyright.agreementId
+        .flatTraverse(draftApiClient.getAgreementCopyright)
+        .map(_.getOrElse(copyright))
+        .map(agreementCopyright => {
+          copyright.copy(
+            license = agreementCopyright.license,
+            creators = agreementCopyright.creators,
+            rightsholders = agreementCopyright.rightsholders,
+            validFrom = agreementCopyright.validFrom,
+            validTo = agreementCopyright.validTo
+          )
+        })
     }
 
     def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
@@ -300,7 +312,7 @@ trait ConverterService {
       )
     }
 
-    def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
+    def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): IO[api.ArticleV2] = {
       val supportedLanguages = getSupportedArticleLanguages(article)
       val isLanguageNeutral  = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
@@ -320,15 +332,14 @@ trait ConverterService {
           .map(toApiArticleContentV2)
           .getOrElse(api.ArticleContentV2("", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
-
-        Success(
+        withAgreementCopyright(toApiCopyright(article.copyright)).map(copyright => {
           api.ArticleV2(
             article.id.get,
             article.id.flatMap(getMainNidUrlToOldNdla),
             article.revision.get,
             title,
             articleContent,
-            withAgreementCopyright(toApiCopyright(article.copyright)),
+            copyright,
             tags,
             article.requiredLibraries.map(toApiRequiredLibrary),
             visualElement,
@@ -348,9 +359,9 @@ trait ConverterService {
             article.revisionDate,
             article.slug
           )
-        )
+        })
       } else {
-        Failure(
+        IO.raiseError(
           NotFoundException(
             s"The article with id ${article.id.get} and language $language was not found",
             supportedLanguages
