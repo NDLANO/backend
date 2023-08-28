@@ -47,6 +47,7 @@ trait AudioController {
 
   class AudioController() extends Service[Eff] {
     import props._
+    val maxAudioFileSizeBytes                = props.MaxAudioFileSizeBytes
     override val serviceName: String         = "audio"
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName
 
@@ -214,11 +215,13 @@ trait AudioController {
       .description("Upload a new audio file with meta data")
       .in(multipartBody[MetaDataAndFileForm])
       .out(jsonBody[AudioMetaInformation])
-      .errorOut(errorOutputsFor(400, 401, 403, 404))
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 413))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { user => formData =>
-        val fileBytes = getBytesAndDeleteFile(formData.file)
-        writeService.storeNewAudio(formData.metadata.body, fileBytes, user).handleErrorsOrOk
+        (for {
+          fileBytes <- getBytesAndDeleteFile(formData.file)
+          res       <- writeService.storeNewAudio(formData.metadata.body, fileBytes, user)
+        } yield res).handleErrorsOrOk
       }
 
     def putUpdateAudio: ServerEndpoint[Any, Eff] = endpoint.put
@@ -226,13 +229,15 @@ trait AudioController {
       .description("Update the metadata for an existing language, or upload metadata for a new language.")
       .in(pathAudioId)
       .in(multipartBody[MetaDataAndOptFileForm])
-      .errorOut(errorOutputsFor(400, 401, 403, 404))
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 413))
       .out(jsonBody[AudioMetaInformation])
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { user => input =>
         val (id, formData) = input
-        val fileBytes      = formData.file.map(getBytesAndDeleteFile)
-        writeService.updateAudio(id, formData.metadata.body, fileBytes, user).handleErrorsOrOk
+        (for {
+          fileBytes <- formData.file.traverse(getBytesAndDeleteFile)
+          res       <- writeService.updateAudio(id, formData.metadata.body, fileBytes, user)
+        } yield res).handleErrorsOrOk
       }
 
     def tagSearch: ServerEndpoint[Any, Eff] = endpoint.get
@@ -272,10 +277,16 @@ trait AudioController {
       putUpdateAudio
     )
 
-    def getBytesAndDeleteFile(file: Part[File]): Part[Array[Byte]] = {
-      val x: Part[Array[Byte]] = file.copy(body = Files.readAllBytes(file.body.toPath))
-      file.body.delete()
-      x
+    def getBytesAndDeleteFile(file: Part[File]): Try[Part[Array[Byte]]] = {
+      if (file.body.length() > maxAudioFileSizeBytes) {
+        Failure(FileTooBigException())
+      } else {
+        Try {
+          val x: Part[Array[Byte]] = file.copy(body = Files.readAllBytes(file.body.toPath))
+          file.body.delete()
+          x
+        }
+      }
     }
 
     case class MetaDataAndFileForm(metadata: Part[NewAudioMetaInformation], file: Part[File])

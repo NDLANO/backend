@@ -199,8 +199,8 @@ trait WriteService {
         tokenUser: TokenUser
     ): Try[api.AudioMetaInformation] = {
       validationService.validateAudioFile(file) match {
-        case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
-        case None =>
+        case msgs if msgs.nonEmpty => Failure(new ValidationException(errors = msgs))
+        case _ =>
           val audioFileMeta = uploadFile(file, newAudioMeta.language) match {
             case Failure(e)         => return Failure(e)
             case Success(audioMeta) => audioMeta
@@ -285,7 +285,7 @@ trait WriteService {
             case Some(file) =>
               val validationMessages = validationService.validateAudioFile(file)
               if (validationMessages.nonEmpty) {
-                return Failure(new ValidationException(errors = Seq(validationMessages.get)))
+                return Failure(new ValidationException(errors = validationMessages))
               }
 
               uploadFile(file, metadataToUpdate.language) match {

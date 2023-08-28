@@ -16,7 +16,6 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
 import no.ndla.search.NdlaSearchException
 import org.postgresql.util.PSQLException
-import org.scalatra.servlet.SizeConstraintExceededException
 
 trait ErrorHelpers extends TapirErrorHelpers {
   this: Props with Clock with DataSource =>
@@ -48,7 +47,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
     case i: ImportException                 => ErrorBody(IMPORT_FAILED, i.getMessage, clock.now(), 422)
     case nfe: NotFoundException             => notFoundWithMsg(nfe.getMessage)
     case o: OptimisticLockException         => ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409)
-    case _: SizeConstraintExceededException => ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413)
+    case _: FileTooBigException            => ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413)
     case _: PSQLException =>
       DataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
@@ -67,3 +66,4 @@ class AudioStorageException(message: String)                         extends Run
 class LanguageMappingException(message: String)                      extends RuntimeException(message)
 class ImportException(message: String)                               extends RuntimeException(message)
 case class ElasticIndexingException(message: String)                 extends RuntimeException(message)
+case class FileTooBigException()                                     extends RuntimeException()
