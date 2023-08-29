@@ -20,7 +20,7 @@ import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi, dom
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewAgreement, NewComment, NotFoundException, UpdatedComment}
+import no.ndla.draftapi.model.api.{NewComment, NotFoundException, UpdatedComment}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -227,18 +227,6 @@ trait ConverterService {
 
     }
 
-    def toDomainAgreement(newAgreement: NewAgreement, user: TokenUser): domain.Agreement = {
-      domain.Agreement(
-        id = None,
-        title = newAgreement.title,
-        content = newAgreement.content,
-        copyright = toDomainCopyright(newAgreement.copyright),
-        created = clock.now(),
-        updated = clock.now(),
-        updatedBy = user.id
-      )
-    }
-
     def toDomainTitle(articleTitle: api.ArticleTitle): common.Title =
       common.Title(articleTitle.title, articleTitle.language)
 
@@ -261,23 +249,6 @@ trait ConverterService {
     def toDomainMetaImage(metaImage: api.NewArticleMetaImage, language: String): common.ArticleMetaImage =
       common.ArticleMetaImage(metaImage.id, metaImage.alt, language)
 
-    def toDomainCopyright(newCopyright: api.NewAgreementCopyright): common.draft.Copyright = {
-      val validFrom = newCopyright.validFrom.flatMap(date => NDLADate.fromString(date).toOption)
-      val validTo   = newCopyright.validTo.flatMap(date => NDLADate.fromString(date).toOption)
-
-      val apiCopyright = api.Copyright(
-        newCopyright.license,
-        newCopyright.origin,
-        newCopyright.creators,
-        newCopyright.processors,
-        newCopyright.rightsholders,
-        newCopyright.agreementId,
-        validFrom,
-        validTo
-      )
-      toDomainCopyright(apiCopyright)
-    }
-
     def toDomainCopyright(copyright: api.Copyright): common.draft.Copyright = {
       common.draft.Copyright(
         copyright.license.map(_.license),
@@ -285,7 +256,6 @@ trait ConverterService {
         copyright.creators.map(toDomainAuthor),
         copyright.processors.map(toDomainAuthor),
         copyright.rightsholders.map(toDomainAuthor),
-        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
       )
@@ -433,18 +403,6 @@ trait ConverterService {
       }
     }
 
-    def toApiAgreement(agreement: domain.Agreement): api.Agreement = {
-      api.Agreement(
-        id = agreement.id.get,
-        title = agreement.title,
-        content = agreement.content,
-        copyright = toApiCopyright(agreement.copyright),
-        created = agreement.created,
-        updated = agreement.updated,
-        updatedBy = agreement.updatedBy
-      )
-    }
-
     def toApiUserData(userData: domain.UserData): api.UserData = {
       api.UserData(
         userId = userData.userId,
@@ -481,7 +439,6 @@ trait ConverterService {
         copyright.creators.map(toApiAuthor),
         copyright.processors.map(toApiAuthor),
         copyright.rightsholders.map(toApiAuthor),
-        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
       )
@@ -536,7 +493,6 @@ trait ConverterService {
         copyright.creators,
         copyright.processors,
         copyright.rightsholders,
-        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
       )

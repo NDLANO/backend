@@ -45,16 +45,12 @@ object draftapi extends Module {
       "no.ndla.common.model.domain.Availability"
     ),
     exports = Seq(
-      "Agreement",
       "Article",
       "Availability.type",
-      "NewAgreement",
       "NewArticle",
       "SearchResult",
       "GrepCodesSearchResult",
       "TagsSearchResult",
-      "AgreementSearchResult",
-      "UpdatedAgreement",
       "UpdatedArticle",
       "UpdatedUserData",
       "UploadedFile",

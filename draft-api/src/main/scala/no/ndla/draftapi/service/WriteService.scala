@@ -24,13 +24,8 @@ import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.{api, domain}
-import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
-import no.ndla.draftapi.service.search.{
-  AgreementIndexService,
-  ArticleIndexService,
-  GrepCodesIndexService,
-  TagIndexService
-}
+import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
+import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexService, TagIndexService}
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
@@ -51,14 +46,12 @@ import scala.util.{Failure, Random, Success, Try}
 
 trait WriteService {
   this: DraftRepository
-    with AgreementRepository
     with UserDataRepository
     with ConverterService
     with ContentValidator
     with ArticleIndexService
     with TagIndexService
     with GrepCodesIndexService
-    with AgreementIndexService
     with Clock
     with ReadService
     with ArticleApiClient
@@ -80,14 +73,14 @@ trait WriteService {
           })
       })
 
-    private def indexArticle(article: Draft): Try[Unit] = {
+    private def indexArticle(article: Draft, user: TokenUser): Try[Unit] = {
       val executor = Executors.newSingleThreadExecutor
       val ec       = ExecutionContext.fromExecutorService(executor)
 
       article.id match {
         case None => Failure(new IllegalStateException("No id found for article when indexing. This is a bug."))
         case Some(articleId) =>
-          searchApiClient.indexDraft(article)(ec): Unit
+          searchApiClient.indexDraft(article, user)(ec): Unit
           articleIndexService.indexAsync(articleId, article)(ec): Unit
           tagIndexService.indexAsync(articleId, article)(ec): Unit
           grepCodesIndexService.indexAsync(articleId, article)(ec): Unit
@@ -130,7 +123,7 @@ trait WriteService {
                 notes = notes
               )
               inserted = draftRepository.insert(articleToInsert)
-              _        = indexArticle(inserted)
+              _        = indexArticle(inserted, userInfo)
               enriched = readService.addUrlsOnEmbedResources(inserted)
               converted <- converterService.toApiArticle(enriched, language, fallback)
             } yield converted
@@ -170,48 +163,6 @@ trait WriteService {
       fileStorage.copyResource(withoutPrefix, newFileName).map(f => s"/files/$f")
     }
 
-    def updateAgreement(
-        agreementId: Long,
-        updatedAgreement: api.UpdatedAgreement,
-        user: TokenUser
-    ): Try[api.Agreement] = {
-      agreementRepository.withId(agreementId) match {
-        case None => Failure(api.NotFoundException(s"Agreement with id $agreementId does not exist"))
-        case Some(existing) =>
-          val toUpdate = existing.copy(
-            title = updatedAgreement.title.getOrElse(existing.title),
-            content = updatedAgreement.content.getOrElse(existing.content),
-            copyright =
-              updatedAgreement.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(existing.copyright),
-            updated = clock.now(),
-            updatedBy = user.id
-          )
-
-          val dateErrors = updatedAgreement.copyright
-            .map(updatedCopyright => contentValidator.validateDates(updatedCopyright))
-            .getOrElse(Seq.empty)
-
-          for {
-            _         <- contentValidator.validateAgreement(toUpdate, preExistingErrors = dateErrors)
-            agreement <- agreementRepository.update(toUpdate)
-            _         <- agreementIndexService.indexDocument(agreement)
-          } yield converterService.toApiAgreement(agreement)
-      }
-    }
-
-    def newAgreement(newAgreement: api.NewAgreement, user: TokenUser): Try[api.Agreement] = {
-      val apiErrors = contentValidator.validateDates(newAgreement.copyright)
-
-      val domainAgreement = converterService.toDomainAgreement(newAgreement, user)
-      contentValidator.validateAgreement(domainAgreement, preExistingErrors = apiErrors) match {
-        case Success(_) =>
-          val agreement = agreementRepository.insert(domainAgreement)
-          agreementIndexService.indexDocument(agreement): Unit
-          Success(converterService.toApiAgreement(agreement))
-        case Failure(exception) => Failure(exception)
-      }
-    }
-
     def newArticle(
         newArticle: api.NewArticle,
         externalIds: List[String],
@@ -247,7 +198,7 @@ trait WriteService {
           )
           _               <- contentValidator.validateArticle(domainArticle)
           insertedArticle <- Try(insertFunction(domainArticle))
-          _ = indexArticle(insertedArticle)
+          _ = indexArticle(insertedArticle, user)
           apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
         } yield apiArticle
       }
@@ -274,7 +225,7 @@ trait WriteService {
               isImported,
               statusWasUpdated = true
             )
-            _ = indexArticle(updatedArticle)
+            _ = indexArticle(updatedArticle, user)
             apiArticle <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
           } yield apiArticle
       }
@@ -458,16 +409,17 @@ trait WriteService {
         _ = partialPublishIfNeeded(
           domainArticle,
           fieldsToPartialPublish.toSeq,
-          language.getOrElse(Language.AllLanguages)
+          language.getOrElse(Language.AllLanguages),
+          user
         )
-        _ = indexArticle(domainArticle)
-        _ <- updateTaxonomyForArticle(domainArticle)
+        _ = indexArticle(domainArticle, user)
+        _ <- updateTaxonomyForArticle(domainArticle, user)
       } yield domainArticle
     }
 
-    private def updateTaxonomyForArticle(article: Draft) = {
+    private def updateTaxonomyForArticle(article: Draft, user: TokenUser) = {
       article.id match {
-        case Some(id) => taxonomyApiClient.updateTaxonomyIfExists(id, article).map(_ => article)
+        case Some(id) => taxonomyApiClient.updateTaxonomyIfExists(id, article, user).map(_ => article)
         case None =>
           Failure(
             api.ArticleVersioningException("Article supplied to taxonomy update did not have an id. This is a bug.")
@@ -811,31 +763,34 @@ trait WriteService {
         id: Long,
         fieldsToPublish: Seq[api.PartialArticleFields],
         language: String,
-        fallback: Boolean
+        fallback: Boolean,
+        user: TokenUser
     ): Try[api.Article] =
-      partialPublish(id, fieldsToPublish, language)._2.flatMap(article =>
+      partialPublish(id, fieldsToPublish, language, user)._2.flatMap(article =>
         converterService.toApiArticle(article, language, fallback)
       )
 
     def partialPublish(
         id: Long,
         articleFieldsToUpdate: Seq[api.PartialArticleFields],
-        language: String
+        language: String,
+        user: TokenUser
     ): (Long, Try[Draft]) =
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => id -> Failure(api.NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
         case Some(article) =>
-          partialPublish(article, articleFieldsToUpdate, language): Unit
+          partialPublish(article, articleFieldsToUpdate, language, user): Unit
           id -> Success(article)
       }
 
     private def partialPublishIfNeeded(
         article: Draft,
         articleFieldsToUpdate: Seq[api.PartialArticleFields],
-        language: String
+        language: String,
+        user: TokenUser
     ): Future[Try[Draft]] = {
       if (articleFieldsToUpdate.nonEmpty)
-        partialPublish(article, articleFieldsToUpdate, language)
+        partialPublish(article, articleFieldsToUpdate, language, user)
       else
         Future.successful(Success(article))
     }
@@ -843,7 +798,8 @@ trait WriteService {
     private def partialPublish(
         article: Draft,
         fieldsToPublish: Seq[api.PartialArticleFields],
-        language: String
+        language: String,
+        user: TokenUser
     ): Future[Try[Draft]] = {
       article.id match {
         case None =>
@@ -857,7 +813,7 @@ trait WriteService {
           val requestInfo    = RequestInfo.fromThreadContext()
           val fut = Future {
             requestInfo.setThreadContextRequestInfo()
-            articleApiClient.partialPublishArticle(id, partialArticle)
+            articleApiClient.partialPublishArticle(id, partialArticle, user)
           }
 
           val logError = (ex: Throwable) =>
@@ -875,7 +831,8 @@ trait WriteService {
 
     def partialPublishMultiple(
         language: String,
-        partialBulk: api.PartialBulkArticles
+        partialBulk: api.PartialBulkArticles,
+        user: TokenUser
     ): Try[api.MultiPartialPublishResult] = {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
       val requestInfo = RequestInfo.fromThreadContext()
@@ -883,7 +840,7 @@ trait WriteService {
       val futures = partialBulk.articleIds.map(id =>
         Future {
           requestInfo.setThreadContextRequestInfo()
-          partialPublish(id, partialBulk.fields, language)
+          partialPublish(id, partialBulk.fields, language, user)
         }
       )
 

@@ -44,7 +44,6 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     List(),
     List(),
     None,
-    None,
     None
   )
 
@@ -55,7 +54,6 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     List(),
     List(),
     None,
-    None,
     None
   )
 
@@ -65,7 +63,6 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     List(Author("Forfatter", "Clark Kent")),
     List(),
     List(),
-    None,
     None,
     None
   )

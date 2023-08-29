@@ -14,7 +14,7 @@ import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.{api, domain}
-import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA, CC_BY_SA}
+import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -32,20 +32,20 @@ object TestData {
   val authHeaderWithAllRoles =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiLCJkcmFmdHM6cHVibGlzaCIsImRyYWZ0czpodG1sIiwiZHJhZnRzOmFkbWluIiwiYXJ0aWNsZXM6d3JpdGUiLCJhcnRpY2xlczpwdWJsaXNoIl0sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.0HD_oOqKSMNopVF9zZpRr0guIweNB9v0Yi9kyWrH5DE"
 
-  val userWithNoRoles: TokenUser       = TokenUser("unit test", Set.empty)
-  val userWithWriteAccess: TokenUser   = TokenUser("unit test", Set(DRAFT_API_WRITE))
-  val userWithPublishAccess: TokenUser = TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH))
-  val userWithAdminAccess: TokenUser = TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN))
+  val userWithNoRoles: TokenUser       = TokenUser("unit test", Set.empty, None)
+  val userWithWriteAccess: TokenUser   = TokenUser("unit test", Set(DRAFT_API_WRITE), None)
+  val userWithPublishAccess: TokenUser = TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH), None)
+  val userWithAdminAccess: TokenUser =
+    TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
   val publicDomainCopyright: common.draft.Copyright =
-    common.draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
+    common.draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None)
   private val byNcSaCopyright = common.draft.Copyright(
     Some(CC_BY_NC_SA.toString),
     Some("Gotham City"),
     List(common.Author("Forfatter", "DC Comics")),
     List(),
     List(),
-    None,
     None,
     None
   )
@@ -55,7 +55,6 @@ object TestData {
     List(common.Author("Forfatter", "Clark Kent")),
     List(),
     List(),
-    None,
     None,
     None
   )
@@ -77,7 +76,6 @@ object TestData {
         Seq(api.Author("developer", "Per")),
         List(),
         List(),
-        None,
         None,
         None
       )
@@ -193,7 +191,6 @@ object TestData {
         List(),
         List(),
         None,
-        None,
         None
       )
     ),
@@ -243,7 +240,6 @@ object TestData {
         Seq.empty,
         List(),
         List(),
-        None,
         None,
         None
       )
@@ -346,7 +342,7 @@ object TestData {
     common.Status(PLANNED, Set.empty),
     Seq(common.Title("title", "nb")),
     Seq(common.ArticleContent("content", "nb")),
-    Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+    Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
     Seq.empty,
     Seq.empty,
     Seq.empty,
@@ -391,7 +387,6 @@ object TestData {
         Seq.empty,
         Seq.empty,
         None,
-        None,
         None
       )
     ),
@@ -430,7 +425,7 @@ object TestData {
         "en"
       )
     ),
-    Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+    Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
     Seq.empty,
     Seq.empty,
     Seq.empty,
@@ -481,7 +476,6 @@ object TestData {
         Seq.empty,
         Seq.empty,
         None,
-        None,
         None
       )
     ),
@@ -519,37 +513,6 @@ object TestData {
     "nb"
   )
 
-  val sampleApiAgreement: api.Agreement = api.Agreement(
-    1,
-    "title",
-    "content",
-    api.Copyright(Some(api.License("publicdomain", None, None)), Some(""), Seq(), List(), List(), None, None, None),
-    NDLADate.now().minusDays(4),
-    NDLADate.now().minusDays(2),
-    "ndalId54321"
-  )
-
-  val sampleDomainAgreement: domain.Agreement = domain.Agreement(
-    id = Some(1),
-    title = "Title",
-    content = "Content",
-    copyright = byNcSaCopyright,
-    created = NDLADate.now().minusDays(4),
-    updated = NDLADate.now().minusDays(2),
-    updatedBy = userWithWriteAccess.id
-  )
-
-  val sampleBySaDomainAgreement: domain.Agreement = domain.Agreement(
-    id = Some(1),
-    title = "Title",
-    content = "Content",
-    copyright =
-      common.draft.Copyright(Some(CC_BY_SA.toString), Some("Origin"), List(), List(), List(), None, None, None),
-    created = NDLADate.now().minusDays(4),
-    updated = NDLADate.now().minusDays(2),
-    updatedBy = userWithWriteAccess.id
-  )
-
   val emptyDomainUserData: domain.UserData =
     domain.UserData(
       id = None,
@@ -569,20 +532,6 @@ object TestData {
       latestEditedConcepts = None
     )
 
-  val newAgreement: NewAgreement = NewAgreement(
-    "newTitle",
-    "newString",
-    api.NewAgreementCopyright(
-      Some(api.License("by-sa", None, None)),
-      Some(""),
-      List(),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    )
-  )
   val statusWithPublished: common.Status      = common.Status(PUBLISHED, Set.empty)
   val statusWithPlanned: common.Status        = common.Status(PLANNED, Set.empty)
   val statusWithInProcess: common.Status      = common.Status(IN_PROGRESS, Set.empty)

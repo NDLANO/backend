@@ -17,7 +17,7 @@ import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.NotFoundException
 import no.ndla.draftapi.model.domain.ImportId
-import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
+import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
   ArticleSearchService,
   GrepCodesSearchService,
@@ -34,7 +34,6 @@ import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: DraftRepository
-    with AgreementRepository
     with ConverterService
     with ArticleSearchService
     with TagSearchService
@@ -157,9 +156,6 @@ trait ReadService {
         case _ =>
       }
     }
-
-    def agreementWithId(id: Long): Option[api.Agreement] =
-      agreementRepository.withId(id).map(agreement => converterService.toApiAgreement(agreement))
 
     def importIdOfArticle(externalId: String): Option[ImportId] = {
       draftRepository.importIdOfArticle(externalId)

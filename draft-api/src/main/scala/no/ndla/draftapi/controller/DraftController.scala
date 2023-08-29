@@ -601,7 +601,7 @@ trait DraftController {
           case Success(art) =>
             contentValidator.validateArticleApiArticle(long(this.articleId.paramName), art, importValidate, user)
           case Failure(_) if request.body.isEmpty =>
-            contentValidator.validateArticleApiArticle(long(this.articleId.paramName), importValidate)
+            contentValidator.validateArticleApiArticle(long(this.articleId.paramName), importValidate, user)
           case Failure(ex) => Failure(ex)
         }
 
@@ -707,7 +707,7 @@ trait DraftController {
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
         tryExtract[Seq[PartialArticleFields]](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(articleFieldsToUpdate) =>
@@ -715,7 +715,8 @@ trait DraftController {
               articleId,
               articleFieldsToUpdate,
               language,
-              fallback
+              fallback,
+              user
             ) match {
               case Success(article) => Ok(article)
               case Failure(ex)      => errorHandler(ex)
@@ -740,12 +741,12 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
         val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
         tryExtract[PartialBulkArticles](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(partialBulk) =>
-            writeService.partialPublishMultiple(language, partialBulk) match {
+            writeService.partialPublishMultiple(language, partialBulk, user) match {
               case Success(response) => Ok(response)
               case Failure(ex)       => errorHandler(ex)
             }

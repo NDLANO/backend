@@ -9,7 +9,6 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft._
@@ -17,7 +16,6 @@ import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api => common
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.PartialArticleFields
-import no.ndla.draftapi.model.domain.Agreement
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -54,16 +52,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val topicArticle: Draft =
     TestData.sampleTopicArticle.copy(id = Some(articleId), created = yesterday, updated = yesterday)
-  val agreement: Agreement = TestData.sampleDomainAgreement.copy(id = Some(agreementId))
 
   override def beforeEach(): Unit = {
     reset(
       articleIndexService,
       draftRepository,
-      agreementIndexService,
       tagIndexService,
       grepCodesIndexService,
-      agreementRepository,
       contentValidator
     )
 
@@ -73,7 +68,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     }).when(draftRepository).rollbackOnFailure(any)
 
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Option(article))
-    when(agreementRepository.withId(agreementId)).thenReturn(Option(agreement))
     when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Draft](0))
     )
@@ -83,9 +77,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(grepCodesIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Draft](0))
     )
-    when(agreementIndexService.indexDocument(any[Agreement])).thenAnswer((invocation: InvocationOnMock) =>
-      Try(invocation.getArgument[Agreement](0))
-    )
     when(readService.addUrlsOnEmbedResources(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
       invocation.getArgument[Draft](0)
     )
@@ -93,7 +84,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(contentValidator.validateArticleOnLanguage(any[Draft], any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Draft](0))
     )
-    when(contentValidator.validateAgreement(any[Agreement], any[Seq[ValidationMessage]])).thenReturn(Success(agreement))
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(clock.now()).thenReturn(today)
     when(draftRepository.updateArticle(any[Draft], any[Boolean])(any[DBSession]))
@@ -112,11 +102,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
       })
 
-    when(agreementRepository.update(any[Agreement])(any[DBSession])).thenAnswer((invocation: InvocationOnMock) => {
-      val arg = invocation.getArgument[Agreement](0)
-      Try(arg)
-    })
-    when(taxonomyApiClient.updateTaxonomyIfExists(any[Long], any[Draft])).thenAnswer((i: InvocationOnMock) => {
+    when(taxonomyApiClient.updateTaxonomyIfExists(any[Long], any[Draft], any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[Long](0))
     })
   }
@@ -140,27 +126,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(grepCodesIndexService, times(1)).indexAsync(any, any)(any)
   }
 
-  test("newAgreement should insert a given Agreement") {
-    when(agreementRepository.insert(any[Agreement])(any[DBSession])).thenReturn(agreement)
-    when(contentValidator.validateAgreement(any[Agreement], any[Seq[ValidationMessage]])).thenReturn(Success(agreement))
-
-    service.newAgreement(TestData.newAgreement, TestData.userWithWriteAccess).get.id.toString should equal(
-      agreement.id.get.toString
-    )
-    verify(agreementRepository, times(1)).insert(any[Agreement])(any)
-    verify(agreementIndexService, times(1)).indexDocument(any[Agreement])
-  }
-
-  test("That updateAgreement updates only content properly") {
-    val newContent          = "NyContentTest"
-    val updatedApiAgreement = api.UpdatedAgreement(None, Some(newContent), None)
-    val expectedAgreement   = agreement.copy(content = newContent, updated = today)
-
-    service.updateAgreement(agreementId, updatedApiAgreement, TestData.userWithWriteAccess).get should equal(
-      converterService.toApiAgreement(expectedAgreement)
-    )
-  }
-
   test("That updateArticle updates only content properly") {
     val newContent = "NyContentTest"
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
@@ -176,8 +141,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         started = true
       )
 
-    when(writeService.partialPublish(any, any, any)).thenReturn((expectedArticle.id.get, Success(expectedArticle)))
-    when(articleApiClient.partialPublishArticle(any, any)).thenReturn(Success(expectedArticle.id.get))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((expectedArticle.id.get, Success(expectedArticle)))
+    when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(expectedArticle.id.get))
 
     service.updateArticle(
       articleId,
@@ -235,7 +200,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       List(),
       List(),
       None,
-      None,
       None
     )
     val updatedRequiredLib = api.RequiredLibrary("tjup", "tjap", "tjim")
@@ -263,7 +227,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(Title(updatedTitle, "en")),
       content = Seq(ArticleContent(updatedContent, "en")),
       copyright =
-        Some(Copyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None, None)),
+        Some(Copyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None)),
       tags = Seq(Tag(Seq("en", "to", "tre"), "en")),
       requiredLibraries = Seq(RequiredLibrary("tjup", "tjap", "tjim")),
       visualElement = Seq(VisualElement(updatedVisualElement, "en")),
@@ -397,7 +361,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
       when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
       when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(existing))
-      when(articleApiClient.validateArticle(any[domain.article.Article], any[Boolean])).thenAnswer(
+      when(articleApiClient.validateArticle(any[domain.article.Article], any[Boolean], any)).thenAnswer(
         (i: InvocationOnMock) => {
           Success(i.getArgument[domain.article.Article](0))
         }
@@ -417,7 +381,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That delete article should fail when only one language") {
-    val Failure(result) = service.deleteLanguage(article.id.get, "nb", TokenUser("asdf", Set()))
+    val Failure(result) = service.deleteLanguage(article.id.get, "nb", TokenUser("asdf", Set(), None))
     result.getMessage should equal("Only one language left")
   }
 
@@ -430,7 +394,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val articleCaptor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
     when(draftRepository.withId(anyLong)(any)).thenReturn(Some(article))
-    service.deleteLanguage(article.id.get, "nn", TokenUser("asdf", Set()))
+    service.deleteLanguage(article.id.get, "nn", TokenUser("asdf", Set(), None))
     verify(draftRepository).updateArticle(articleCaptor.capture(), anyBoolean)(any)
 
     articleCaptor.getValue.title.length should be(1)
@@ -495,7 +459,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = yesterday,
       responsible = Some(Responsible("hei", TestData.today))
     )
-    val user = TokenUser("Pelle", Set(DRAFT_API_WRITE))
+    val user = TokenUser("Pelle", Set(DRAFT_API_WRITE), None)
     val updatedArticle = converterService
       .updateStatus(DraftStatus.IN_PROGRESS, articleToUpdate, user, isImported = false)
       .attempt
@@ -515,7 +479,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleIndexService.indexAsync(any, any[Draft])(any))
       .thenReturn(Future.successful(Success(updatedAndInserted)))
-    when(searchApiClient.indexDraft(any[Draft])(any)).thenReturn(updatedAndInserted)
+    when(searchApiClient.indexDraft(any[Draft], any)(any)).thenReturn(updatedAndInserted)
 
     service.updateArticleStatus(DraftStatus.IN_PROGRESS, 10, user, isImported = false)
 
@@ -523,7 +487,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val argCap2: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
     verify(articleIndexService, times(1)).indexAsync(any, argCap1.capture())(any)
-    verify(searchApiClient, times(1)).indexDraft(argCap2.capture())(any)
+    verify(searchApiClient, times(1)).indexDraft(argCap2.capture(), any)(any)
 
     val captured1 = argCap1.getValue
     captured1.copy(updated = today, notes = captured1.notes.map(_.copy(timestamp = today))) should be(
@@ -567,7 +531,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         published = yesterday
       )
 
-    val userinfo = TokenUser("somecoolid", Set.empty)
+    val userinfo = TokenUser("somecoolid", Set.empty, None)
 
     val newId = 1231.toLong
     when(draftRepository.newEmptyArticleId()(any[DBSession]))
@@ -616,7 +580,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       published = yesterday
     )
 
-    val userinfo = TokenUser("somecoolid", Set.empty)
+    val userinfo = TokenUser("somecoolid", Set.empty, None)
 
     val newId = 1231.toLong
     when(draftRepository.newEmptyArticleId()(any[DBSession]))
@@ -715,7 +679,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )
@@ -737,8 +700,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
-    when(writeService.partialPublish(any, any, any)).thenReturn((existing.id.get, Success(existing)))
-    when(articleApiClient.partialPublishArticle(any, any)).thenReturn(Success(existing.id.get))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) = service.updateArticle(
       existing.id.get,
@@ -777,7 +740,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )
@@ -797,8 +759,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
-    when(writeService.partialPublish(any, any, any)).thenReturn((existing.id.get, Success(existing)))
-    when(articleApiClient.partialPublishArticle(any, any)).thenReturn(Success(existing.id.get))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) = service.updateArticle(
       existing.id.get,
@@ -832,7 +794,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )
@@ -857,8 +818,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
-    when(writeService.partialPublish(any, any, any)).thenReturn((existing.id.get, Success(existing)))
-    when(articleApiClient.partialPublishArticle(any, any)).thenReturn(Success(existing.id.get))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) = service.updateArticle(
       existing.id.get,
@@ -996,7 +957,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("A", "B"),
-      copyright = Some(Copyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None, None)),
+      copyright = Some(Copyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None)),
       metaDescription = Seq(
         Description("oldDesc", "nb"),
         Description("oldDescc", "es"),
@@ -1194,7 +1155,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )
@@ -1216,8 +1176,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
-    when(writeService.partialPublish(any, any, any)).thenReturn((existing.id.get, Success(existing)))
-    when(articleApiClient.partialPublishArticle(any, any)).thenReturn(Success(existing.id.get))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) = service.updateArticle(
       existing.id.get,

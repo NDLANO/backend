@@ -10,12 +10,12 @@ package no.ndla.draftapi.service.search
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
-import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.draftapi.model.api.{AgreementSearchResult, ArticleSearchResult}
-import no.ndla.draftapi.model.domain.{Agreement, SearchResult}
-import no.ndla.draftapi.model.search._
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.model.api
+import no.ndla.draftapi.model.api.ArticleSearchResult
+import no.ndla.draftapi.model.domain.SearchResult
+import no.ndla.draftapi.model.search._
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -23,7 +23,6 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
 
@@ -114,24 +113,6 @@ trait SearchConverterService {
       )
     }
 
-    def asSearchableAgreement(domainModel: Agreement): SearchableAgreement = {
-      SearchableAgreement(
-        id = domainModel.id.get,
-        title = domainModel.title,
-        content = domainModel.content,
-        license = domainModel.copyright.license.get
-      )
-    }
-
-    def hitAsAgreementSummary(hitString: String): api.AgreementSummary = {
-      val hit     = parse(hitString)
-      val id      = (hit \ "id").extract[Long]
-      val title   = (hit \ "title").extract[String]
-      val license = (hit \ "license").extract[String]
-
-      api.AgreementSummary(id, title, license)
-    }
-
     /** Attempts to extract language that hit from highlights in elasticsearch response.
       *
       * @param result
@@ -178,15 +159,6 @@ trait SearchConverterService {
       api.TagsSearchResult(
         searchResult.totalCount,
         searchResult.page.getOrElse(1),
-        searchResult.pageSize,
-        searchResult.language,
-        searchResult.results
-      )
-
-    def asApiAgreementSearchResult(searchResult: SearchResult[api.AgreementSummary]): AgreementSearchResult =
-      api.AgreementSearchResult(
-        searchResult.totalCount,
-        searchResult.page,
         searchResult.pageSize,
         searchResult.language,
         searchResult.results

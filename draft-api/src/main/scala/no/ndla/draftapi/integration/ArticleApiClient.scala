@@ -19,6 +19,7 @@ import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.native.Serialization
@@ -45,11 +46,13 @@ trait ArticleApiClient {
 
     def partialPublishArticle(
         id: Long,
-        article: PartialPublishArticle
+        article: PartialPublishArticle,
+        user: TokenUser
     ): Try[Long] = {
       patchWithData[ArticleApiId, PartialPublishArticle](
         s"$InternalEndpoint/partial-publish/$id",
-        article
+        article,
+        Some(user)
       ).map(res => res.id)
     }
 
@@ -58,7 +61,8 @@ trait ArticleApiClient {
         draft: Draft,
         externalIds: List[String],
         useImportValidation: Boolean,
-        useSoftValidation: Boolean
+        useSoftValidation: Boolean,
+        user: TokenUser
     ): Try[Draft] = {
       converterService
         .toArticleApiArticle(draft)
@@ -66,6 +70,7 @@ trait ArticleApiClient {
           postWithData[common.article.Article, common.article.Article](
             s"$InternalEndpoint/article/$id",
             article,
+            Some(user),
             "external-id"           -> externalIds.mkString(","),
             "use-import-validation" -> useImportValidation.toString,
             "use-soft-validation"   -> useSoftValidation.toString
@@ -74,19 +79,24 @@ trait ArticleApiClient {
         .map(_ => draft)
     }
 
-    def unpublishArticle(article: Draft): Try[Draft] = {
+    def unpublishArticle(article: Draft, user: TokenUser): Try[Draft] = {
       val id = article.id.get
-      post[ContentId](s"$InternalEndpoint/article/$id/unpublish/").map(_ => article)
+      post[ContentId](s"$InternalEndpoint/article/$id/unpublish/", Some(user)).map(_ => article)
     }
 
-    def deleteArticle(id: Long): Try[ContentId] = {
-      delete[ContentId](s"$InternalEndpoint/article/$id/")
+    def deleteArticle(id: Long, user: TokenUser): Try[ContentId] = {
+      delete[ContentId](s"$InternalEndpoint/article/$id/", Some(user))
     }
 
-    def validateArticle(article: common.article.Article, importValidate: Boolean): Try[common.article.Article] = {
+    def validateArticle(
+        article: common.article.Article,
+        importValidate: Boolean,
+        user: Option[TokenUser]
+    ): Try[common.article.Article] = {
       postWithData[common.article.Article, common.article.Article](
         s"$InternalEndpoint/validate/article",
         article,
+        user,
         ("import_validate", importValidate.toString)
       ) match {
         case Failure(ex: HttpRequestException) =>
@@ -101,23 +111,29 @@ trait ArticleApiClient {
       }
     }
 
-    private def post[A](endpointUrl: String, params: (String, String)*)(implicit
+    private def post[A](endpointUrl: String, user: Option[TokenUser], params: (String, String)*)(implicit
         mf: Manifest[A],
         format: org.json4s.Formats
     ): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params: _*)))
+      ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params: _*)), user)
     }
 
-    private def delete[A](endpointUrl: String, params: (String, String)*)(implicit
+    private def delete[A](endpointUrl: String, user: Option[TokenUser], params: (String, String)*)(implicit
         mf: Manifest[A],
         format: org.json4s.Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest.delete(uri"$endpointUrl".withParams(params: _*)).readTimeout(deleteTimeout)
+        quickRequest.delete(uri"$endpointUrl".withParams(params: _*)).readTimeout(deleteTimeout),
+        user
       )
     }
 
-    private def patchWithData[A, B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(implicit
+    private def patchWithData[A, B <: AnyRef](
+        endpointUrl: String,
+        data: B,
+        user: Option[TokenUser],
+        params: (String, String)*
+    )(implicit
         mf: Manifest[A],
         format: org.json4s.Formats
     ): Try[A] = {
@@ -126,11 +142,17 @@ trait ArticleApiClient {
           .patch(uri"$endpointUrl".withParams(params: _*))
           .body(Serialization.write(data))
           .header("content-type", "application/json", replaceExisting = true)
-          .readTimeout(timeout)
+          .readTimeout(timeout),
+        user
       )
     }
 
-    private def postWithData[A, B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(implicit
+    private def postWithData[A, B <: AnyRef](
+        endpointUrl: String,
+        data: B,
+        user: Option[TokenUser],
+        params: (String, String)*
+    )(implicit
         mf: Manifest[A],
         format: org.json4s.Formats
     ): Try[A] = {
@@ -138,7 +160,8 @@ trait ArticleApiClient {
         quickRequest
           .post(uri"$endpointUrl".withParams(params: _*))
           .body(Serialization.write(data))
-          .header("content-type", "application/json", replaceExisting = true)
+          .header("content-type", "application/json", replaceExisting = true),
+        user
       )
     }
   }

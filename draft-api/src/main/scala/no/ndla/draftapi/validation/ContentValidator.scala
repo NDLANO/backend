@@ -13,8 +13,7 @@ import no.ndla.common.model.domain.draft._
 import no.ndla.common.model.domain._
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{ContentId, NewAgreementCopyright, NotFoundException, UpdatedArticle}
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.api.{ContentId, NotFoundException, UpdatedArticle}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.model.Iso639
@@ -36,27 +35,6 @@ trait ContentValidator {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator   = new TextValidator(allowHtml = true)
-
-    def validateAgreement(
-        agreement: Agreement,
-        preExistingErrors: Seq[ValidationMessage] = Seq.empty
-    ): Try[Agreement] = {
-      val validationErrors = NoHtmlValidator.validate("title", agreement.title).toList ++
-        NoHtmlValidator.validate("content", agreement.content).toList ++
-        preExistingErrors.toList ++
-        validateAgreementCopyright(agreement.copyright)
-
-      if (validationErrors.isEmpty) {
-        Success(agreement)
-      } else {
-        Failure(new ValidationException(errors = validationErrors))
-      }
-    }
-
-    def validateDates(newCopyright: NewAgreementCopyright): Seq[ValidationMessage] = {
-      newCopyright.validFrom.map(dateString => validateDate("copyright.validFrom", dateString)).toSeq.flatten ++
-        newCopyright.validTo.map(dateString => validateDate("copyright.validTo", dateString)).toSeq.flatten
-    }
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
       NDLADate.fromString(dateString) match {
@@ -115,13 +93,13 @@ trait ContentValidator {
 
     }
 
-    def validateArticleApiArticle(id: Long, importValidate: Boolean): Try[ContentId] = {
+    def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentId] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(draft) =>
           converterService
             .toArticleApiArticle(draft)
-            .flatMap(article => articleApiClient.validateArticle(article, importValidate))
+            .flatMap(article => articleApiClient.validateArticle(article, importValidate, Some(user)))
             .map(_ => ContentId(id))
       }
     }
@@ -138,7 +116,7 @@ trait ContentValidator {
           converterService
             .toDomainArticle(existing, updatedArticle, isImported = false, user, None, None)
             .flatMap(converterService.toArticleApiArticle)
-            .flatMap(articleApiClient.validateArticle(_, importValidate))
+            .flatMap(articleApiClient.validateArticle(_, importValidate, Some(user)))
             .map(_ => ContentId(id))
       }
     }
@@ -218,13 +196,6 @@ trait ContentValidator {
         validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
-    }
-
-    private def validateAgreementCopyright(copyright: Copyright): Seq[ValidationMessage] = {
-      val agreementMessage = copyright.agreementId
-        .map(_ => ValidationMessage("copyright.agreementId", "Agreement copyrights cant contain agreements"))
-        .toSeq
-      agreementMessage ++ validateCopyright(copyright)
     }
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
