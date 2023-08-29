@@ -55,70 +55,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
-  test("That withId returns with agreement license and authors") {
-    when(draftApiClient.getAgreementCopyright(1)).thenReturn(
-      Some(
-        api.Copyright(
-          api.License("gnu", "gnuggert", Some("https://gnuli/")),
-          "http://www.scanpix.no",
-          List(api.Author("Forfatter", "Knutulf Knagsen")),
-          List(),
-          List(),
-          None,
-          None,
-          None
-        )
-      )
-    )
-    implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-    val testUrl                   = s"${props.Domain}/image-api/v2/images/1"
-    val testRawUrl                = s"${props.Domain}/image-api/raw/Elg.jpg"
-    val dateString                = TestData.updated().asString
-    val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","created":"$dateString","createdBy":"ndla124","modelRelease":"yes","title":{"title":"Elg i busk","language":"nb"},"alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
-    val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
-    val agreementElg = new ImageMetaInformation(
-      id = Some(1),
-      titles = List(domain.ImageTitle("Elg i busk", "nb")),
-      alttexts = List(domain.ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 1,
-          fileName = "Elg.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          imageMetaId = 1
-        )
-      ),
-      copyright = domain.Copyright(
-        TestData.ByNcSa,
-        "http://www.scanpix.no",
-        List(common.Author("Fotograf", "Test Testesen")),
-        List(common.Author("Redaksjonelt", "Kåre Knegg")),
-        List(common.Author("Leverandør", "Leverans Leveransensen")),
-        Some(1),
-        None,
-        None
-      ),
-      tags = List(common.Tag(List("rovdyr", "elg"), "nb")),
-      captions = List(domain.ImageCaption("Elg i busk", "nb")),
-      updatedBy = "ndla124",
-      updated = TestData.updated(),
-      created = TestData.updated(),
-      createdBy = "ndla124",
-      modelReleased = ModelReleasedStatus.YES,
-      editorNotes = Seq.empty
-    )
-
-    when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
-    val result = readService.withId(1, None, None)
-    result should be(Success(Some(expectedObject)))
-  }
-
   test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
-    when(draftApiClient.getAgreementCopyright(1)).thenReturn(None)
     implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
     val testUrl                   = s"${props.Domain}/image-api/v2/images/1"
     val testRawUrl                = s"${props.Domain}/image-api/raw/Elg.jpg"

@@ -9,8 +9,6 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Author
-import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
@@ -142,41 +140,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     apiImage.metaUrl should equal("http://api-gateway.ndla-local/image-api/v2/images/1")
     apiImage.imageUrl should equal("http://api-gateway.ndla-local/image-api/raw/123.png")
-  }
-
-  test("That asApiImageMetaInformationWithApplicationUrlV2 returns with agreement copyright features") {
-    val from = NDLADate.now().minusDays(5)
-    val to   = NDLADate.now().plusDays(10)
-    val agreementCopyright = api.Copyright(
-      api.License("gnu", "gpl", None),
-      "http://tjohei.com/",
-      List(),
-      List(),
-      List(api.Author("Supplier", "Mads LakseService")),
-      None,
-      Some(from),
-      Some(to)
-    )
-    when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
-    val Success(apiImage) = converterService.asApiImageMetaInformationWithApplicationUrlV2(
-      DefaultImageMetaInformation.copy(
-        copyright = DefaultImageMetaInformation.copyright.copy(
-          processors = List(Author("Idea", "Kaptein Snabelfant")),
-          rightsholders = List(Author("Publisher", "KjeksOgKakerAS")),
-          agreementId = Some(1)
-        )
-      ),
-      None,
-      None
-    )
-
-    apiImage.copyright.creators.size should equal(0)
-    apiImage.copyright.processors.head.name should equal("Kaptein Snabelfant")
-    apiImage.copyright.rightsholders.head.name should equal("Mads LakseService")
-    apiImage.copyright.rightsholders.size should equal(1)
-    apiImage.copyright.license.license should equal("gnu")
-    apiImage.copyright.validFrom.get should equal(from)
-    apiImage.copyright.validTo.get should equal(to)
   }
 
   test("that asImageMetaInformationV2 properly") {

@@ -174,10 +174,6 @@ class ImageSearchServiceTest
       val indexName = imageIndexService.createIndexWithGeneratedName
       imageIndexService.updateAliasTarget(None, indexName.get)
 
-      when(draftApiClient.getAgreementCopyright(any[Long])).thenReturn(None)
-
-      when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreement1Copyright))
-
       imageIndexService.indexDocument(image1).get
       imageIndexService.indexDocument(image2).get
       imageIndexService.indexDocument(image3).get
@@ -382,15 +378,6 @@ class ImageSearchServiceTest
     search4.results.map(_.id) should equal(Seq("1"))
   }
 
-  test("Agreement information should be used in search") {
-    val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("urelatert")), None)
-    searchResult.totalCount should be(1)
-    searchResult.results.size should be(1)
-    searchResult.results.head.id should be("5")
-    searchResult.results.head.license should equal(agreement1Copyright.license.license)
-  }
-
   test("Searching for multiple languages should returned matched language") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
@@ -544,7 +531,7 @@ class ImageSearchServiceTest
         query = Some("lillehjelper"),
         language = "*"
       ),
-      Some(TokenUser("someeditor", Set(IMAGE_API_WRITE)))
+      Some(TokenUser("someeditor", Set(IMAGE_API_WRITE), None))
     )
 
     searchResult2.results.map(_.id) should be(Seq("2"))

@@ -49,7 +49,6 @@ class ComponentRegistry(properties: ImageApiProperties)
     with AmazonClient
     with ImageStorageService
     with NdlaClient
-    with DraftApiClient
     with ConverterService
     with ValidationService
     with TagsService
@@ -99,7 +98,6 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val validationService      = new ValidationService
   lazy val imageStorage           = new AmazonImageStorageService
   lazy val ndlaClient             = new NdlaClient
-  lazy val draftApiClient         = new DraftApiClient
   lazy val imageControllerV2      = new ImageControllerV2
   lazy val imageControllerV3      = new ImageControllerV3
   lazy val rawController          = new RawController
