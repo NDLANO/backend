@@ -24,9 +24,7 @@ trait SearchConverterService {
   class SearchConverterService extends StrictLogging {
 
     def asSearchableArticle(ai: Article): SearchableArticle = {
-      val articleWithAgreement = converterService.withAgreementCopyright(ai)
-
-      val defaultTitle = articleWithAgreement.title
+      val defaultTitle = ai.title
         .sortBy(title => {
           val languagePriority = languageAnalyzers.map(la => la.languageTag.toString).reverse
           languagePriority.indexOf(title.language)
@@ -34,33 +32,30 @@ trait SearchConverterService {
         .lastOption
 
       SearchableArticle(
-        id = articleWithAgreement.id.get,
-        title =
-          SearchableLanguageValues(articleWithAgreement.title.map(title => LanguageValue(title.language, title.title))),
+        id = ai.id.get,
+        title = SearchableLanguageValues(ai.title.map(title => LanguageValue(title.language, title.title))),
         visualElement = SearchableLanguageValues(
-          articleWithAgreement.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
+          ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
         ),
         introduction = SearchableLanguageValues(
-          articleWithAgreement.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
+          ai.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
         ),
         metaDescription = SearchableLanguageValues(
-          articleWithAgreement.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
+          ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
         ),
-        metaImage = articleWithAgreement.metaImage,
+        metaImage = ai.metaImage,
         content = SearchableLanguageValues(
-          articleWithAgreement.content.map(article =>
-            LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text())
-          )
+          ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))
         ),
-        tags = SearchableLanguageList(articleWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        lastUpdated = articleWithAgreement.updated,
-        license = articleWithAgreement.copyright.license,
-        authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors
-          .map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
-        articleType = articleWithAgreement.articleType.entryName,
+        tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+        lastUpdated = ai.updated,
+        license = ai.copyright.license,
+        authors = ai.copyright.creators.map(_.name) ++ ai.copyright.processors
+          .map(_.name) ++ ai.copyright.rightsholders.map(_.name),
+        articleType = ai.articleType.entryName,
         defaultTitle = defaultTitle.map(t => t.title),
-        grepCodes = articleWithAgreement.grepCodes,
-        availability = articleWithAgreement.availability.toString
+        grepCodes = ai.grepCodes,
+        availability = ai.availability.toString
       )
     }
 

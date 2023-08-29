@@ -79,7 +79,11 @@ trait ReadService {
       }
     }
 
-    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[Cachable[api.ArticleV2]] = {
+    def getArticleBySlug(
+        slug: String,
+        language: String,
+        fallback: Boolean
+    ): Try[Cachable[api.ArticleV2]] = {
       articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
         case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
         case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleErrorHelpers.ArticleGoneException())
@@ -103,7 +107,12 @@ trait ReadService {
       converterService.toApiArticleTags(tags, tagsCount, pageSize, offset, language)
     }
 
-    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
+    def getArticlesByPage(
+        pageNo: Int,
+        pageSize: Int,
+        lang: String,
+        fallback: Boolean
+    ): api.ArticleDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       val results = articleRepository
         .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
@@ -251,7 +260,7 @@ trait ReadService {
         fallback: Boolean,
         page: Int,
         pageSize: Int,
-        feideAccessToken: Option[String] = None
+        feideAccessToken: Option[String]
     ): Try[Seq[api.ArticleV2]] = {
       if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {

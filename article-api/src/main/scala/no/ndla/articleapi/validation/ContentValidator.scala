@@ -9,7 +9,6 @@
 package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
@@ -25,7 +24,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftApiClient with ArticleRepository with Props =>
+  this: ArticleRepository with Props =>
   val contentValidator: ContentValidator
 
   class ContentValidator() {
@@ -48,7 +47,7 @@ trait ContentValidator {
       }
     }
 
-    def validateArticle(article: Article, isImported: Boolean = false): Try[Article] = {
+    def validateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val validationErrors = validateArticleContent(article.content) ++
         article.introduction.flatMap(i => validateIntroduction(i)) ++
         validateMetaDescription(article.metaDescription, isImported) ++
@@ -151,22 +150,9 @@ trait ContentValidator {
         copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", props.creatorTypes)) ++
           copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", props.processorTypes)) ++
           copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", props.rightsholderTypes))
-      val originMessage    = NoHtmlValidator.validate("copyright.origin", copyright.origin)
-      val agreementMessage = validateAgreement(copyright)
+      val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
 
-      licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
-    }
-
-    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
-      copyright.agreementId match {
-        case Some(id) =>
-          if (draftApiClient.agreementExists(id)) {
-            Seq()
-          } else {
-            Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
-          }
-        case _ => Seq()
-      }
+      licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
     }
 
     private def validateLicense(license: String): Seq[ValidationMessage] = {

@@ -59,7 +59,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
   }
 
   test("POST /validate should return 204 if the article is valid") {
-    when(contentValidator.validateArticle(any[Article], any[Boolean]))
+    when(contentValidator.validateArticle(any[Article], any))
       .thenReturn(Success(TestData.sampleArticleWithByNcSa))
 
     import io.circe.generic.auto._

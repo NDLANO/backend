@@ -51,7 +51,6 @@ class ArticleSearchServiceTest
       List(),
       List(),
       None,
-      None,
       None
     )
 
@@ -63,7 +62,6 @@ class ArticleSearchServiceTest
       List(),
       List(),
       None,
-      None,
       None
     )
 
@@ -74,7 +72,6 @@ class ArticleSearchServiceTest
       List(Author("Forfatter", "Clark Kent")),
       List(),
       List(),
-      None,
       None,
       None
     )

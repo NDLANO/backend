@@ -39,7 +39,7 @@ trait WriteService {
     ): Try[Article] = {
 
       val strictValidationResult =
-        contentValidator.validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
+        contentValidator.validateArticle(article, externalIds.nonEmpty || useImportValidation)
 
       val validationResult =
         if (useSoftValidation) {
@@ -65,7 +65,7 @@ trait WriteService {
 
       for {
         _             <- validationResult
-        domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds.map(_.toString))
+        domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)
         _             <- articleIndexService.indexDocument(domainArticle)
         _             <- Try(searchApiClient.indexArticle(domainArticle))
       } yield domainArticle

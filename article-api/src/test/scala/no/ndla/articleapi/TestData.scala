@@ -21,7 +21,7 @@ trait TestData {
 
   class TestData {
     private val publicDomainCopyright =
-      Copyright(License.PublicDomain.toString, "", List(), List(), List(), None, None, None)
+      Copyright(License.PublicDomain.toString, "", List(), List(), List(), None, None)
     private val byNcSaCopyright =
       Copyright(
         License.CC_BY_NC_SA.toString,
@@ -29,7 +29,6 @@ trait TestData {
         List(Author("Writer", "DC Comics")),
         List(),
         List(),
-        None,
         None,
         None
       )
@@ -40,7 +39,6 @@ trait TestData {
         List(Author("Writer", "Clark Kent")),
         List(),
         List(),
-        None,
         None,
         None
       )
@@ -60,7 +58,6 @@ trait TestData {
         Seq(api.Author("developer", "Per")),
         List(),
         List(),
-        None,
         None,
         None
       ),
@@ -100,7 +97,6 @@ trait TestData {
         List(),
         List(),
         List(),
-        None,
         None,
         None
       ),
@@ -154,7 +150,7 @@ trait TestData {
       Option(2),
       Seq(Title("title", "nb")),
       Seq(ArticleContent("content", "nb")),
-      Copyright("CC-BY-4.0", "", Seq(), Seq(), Seq(), None, None, None),
+      Copyright("CC-BY-4.0", "", Seq(), Seq(), Seq(), None, None),
       Seq(Tag(Seq("tag"), "nb")),
       Seq(),
       Seq(),
@@ -179,7 +175,7 @@ trait TestData {
       None,
       Seq(Title("test", "en")),
       Seq(ArticleContent("<article><div>test</div></article>", "en")),
-      Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None),
+      Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None),
       Seq(),
       Seq(),
       Seq(),
@@ -216,7 +212,7 @@ trait TestData {
           "en"
         )
       ),
-      Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None),
+      Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None),
       Seq(),
       Seq(),
       Seq(),
@@ -249,7 +245,7 @@ trait TestData {
       """.stripMargin,
         "en"
       ),
-      api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None),
+      api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None),
       api.ArticleTag(Seq.empty, "en"),
       Seq.empty,
       None,
@@ -284,7 +280,7 @@ trait TestData {
         Option(2),
         Seq(Title("title", lang)),
         Seq(ArticleContent("content", lang)),
-        Copyright("by", "", Seq(), Seq(), Seq(), None, None, None),
+        Copyright("by", "", Seq(), Seq(), Seq(), None, None),
         Seq(),
         Seq(),
         Seq(),
