@@ -110,7 +110,7 @@ trait SearchApiClient {
           Json4s.serializer(RevisionStatus)
       val url     = s"$baseUrl/$path"
       val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)
-      ndlaClient.fetchWithForwardedAuth[T](request)
+      ndlaClient.fetchWithForwardedAuth[T](request, None)
     }
 
     protected def search[T <: ApiSearchResults](

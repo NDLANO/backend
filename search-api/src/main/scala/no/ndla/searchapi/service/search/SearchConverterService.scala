@@ -179,9 +179,7 @@ trait SearchConverterService {
       val embedAttributes      = getAttributesToIndex(ai.content, ai.visualElement)
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(ai.content, ai.visualElement, ai.metaImage)
 
-      val articleWithAgreement = converterService.withAgreementCopyright(ai)
-
-      val defaultTitle = articleWithAgreement.title
+      val defaultTitle = ai.title
         .sortBy(title => {
           ISO639.languagePriority.reverse.indexOf(title.language)
         })
@@ -198,31 +196,29 @@ trait SearchConverterService {
 
       Success(
         SearchableArticle(
-          id = articleWithAgreement.id.get,
+          id = ai.id.get,
           title = SearchableLanguageValues(
-            articleWithAgreement.title.map(title => LanguageValue(title.language, title.title))
+            ai.title.map(title => LanguageValue(title.language, title.title))
           ),
           visualElement = model.SearchableLanguageValues(
-            articleWithAgreement.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
+            ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
           ),
           introduction = model.SearchableLanguageValues(
-            articleWithAgreement.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
+            ai.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
           ),
           metaDescription = model.SearchableLanguageValues(
-            articleWithAgreement.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
+            ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
           ),
           content = model.SearchableLanguageValues(
-            articleWithAgreement.content.map(article =>
-              LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text())
-            )
+            ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))
           ),
-          tags = SearchableLanguageList(articleWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-          lastUpdated = articleWithAgreement.updated,
-          license = articleWithAgreement.copyright.license,
-          authors = (articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors
-            .map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name)).toList,
-          articleType = articleWithAgreement.articleType.entryName,
-          metaImage = articleWithAgreement.metaImage.toList,
+          tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+          lastUpdated = ai.updated,
+          license = ai.copyright.license,
+          authors = (ai.copyright.creators.map(_.name) ++ ai.copyright.processors
+            .map(_.name) ++ ai.copyright.rightsholders.map(_.name)).toList,
+          articleType = ai.articleType.entryName,
+          metaImage = ai.metaImage.toList,
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
@@ -230,7 +226,7 @@ trait SearchConverterService {
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
-          availability = articleWithAgreement.availability.toString
+          availability = ai.availability.toString
         )
       )
 

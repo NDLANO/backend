@@ -16,7 +16,6 @@ import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.invocation.InvocationOnMock
 
 import scala.util.{Success, Try}
 
@@ -95,10 +94,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(converterService.withAgreementCopyright(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      invocation.getArgument[Article](0)
-    )
-
     when(taxonomyApiClient.getTaxonomyBundle)
       .thenReturn(new Memoize[Boolean, Try[TaxonomyBundle]](0, _ => Success(emptyBundle)))
   }
@@ -132,15 +127,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     verifyTitles(searchableArticle)
     verifyArticles(searchableArticle)
     verifyTags(searchableArticle)
-  }
-
-  test("That asSearchableArticle converts titles with license from agreement") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = titles)
-    when(converterService.withAgreementCopyright(any[Article]))
-      .thenReturn(article.copy(copyright = article.copyright.copy(license = "gnu")))
-    val Success(searchableArticle) =
-      searchConverterService.asSearchableArticle(article, Some(emptyBundle), Some(TestData.emptyGrepBundle))
-    searchableArticle.license should equal("gnu")
   }
 
   test("That resource types are derived correctly") {
