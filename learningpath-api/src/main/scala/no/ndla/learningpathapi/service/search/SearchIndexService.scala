@@ -27,6 +27,7 @@ import org.json4s.native.Serialization._
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import no.ndla.network.tapir.auth.TokenUser
 
 trait SearchIndexService {
   this: Elastic4sClient
@@ -76,7 +77,7 @@ trait SearchIndexService {
       )
     } yield learningPath
 
-    def deleteDocument(learningPath: LearningPath): Try[LearningPath] = {
+    def deleteDocument(learningPath: LearningPath, user: Option[TokenUser]): Try[LearningPath] = {
       learningPath.id
         .map(id => {
           for {
@@ -86,7 +87,7 @@ trait SearchIndexService {
                 deleteById(searchIndex, id.toString)
               }
             }
-            _ <- searchApiClient.deleteLearningPathDocument(id)
+            _ <- searchApiClient.deleteLearningPathDocument(id, user)
           } yield learningPath
         })
         .getOrElse(Success(learningPath))

@@ -69,7 +69,7 @@ trait UpdateService {
           case Failure(ex) => Failure(ex)
           case Success(lp) =>
             taxononyApiClient
-              .updateTaxonomyForLearningPath(lp, createResourceIfMissing)
+              .updateTaxonomyForLearningPath(lp, createResourceIfMissing, Some(userInfo))
               .flatMap(l => converterService.asApiLearningpathV2(l, language, fallback, userInfo))
         }
       }
@@ -141,7 +141,7 @@ trait UpdateService {
 
           val updatedLearningPath = learningPathRepository.update(toUpdate)
 
-          updateSearchAndTaxonomy(updatedLearningPath).flatMap(_ =>
+          updateSearchAndTaxonomy(updatedLearningPath, owner.some).flatMap(_ =>
             converterService.asApiLearningpathV2(
               updatedLearningPath,
               learningPathToUpdate.language,
@@ -152,16 +152,16 @@ trait UpdateService {
       }
     }
 
-    private def updateSearchAndTaxonomy(learningPath: domain.LearningPath) = {
+    private def updateSearchAndTaxonomy(learningPath: domain.LearningPath, user: Option[TokenUser]) = {
       val sRes = searchIndexService.indexDocument(learningPath)
 
       if (learningPath.isPublished) {
-        searchApiClient.indexLearningPathDocument(learningPath): Unit
+        searchApiClient.indexLearningPathDocument(learningPath, user): Unit
       } else {
         deleteIsBasedOnReference(learningPath): Unit
       }
 
-      sRes.flatMap(lp => taxononyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false))
+      sRes.flatMap(lp => taxononyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false, user))
     }
 
     def updateLearningPathStatusV2(
@@ -188,7 +188,7 @@ trait UpdateService {
                 valid.copy(message = newMessage, status = status, lastUpdated = clock.now())
               )
 
-              updateSearchAndTaxonomy(updatedLearningPath)
+              updateSearchAndTaxonomy(updatedLearningPath, owner.some)
                 .flatMap(_ =>
                   converterService.asApiLearningpathV2(
                     updatedLearningPath,
@@ -241,7 +241,7 @@ trait UpdateService {
                   (insertedStep, updatedPath)
                 }
 
-                updateSearchAndTaxonomy(updatedPath)
+                updateSearchAndTaxonomy(updatedPath, owner.some)
                   .flatMap(_ =>
                     converterService.asApiLearningStepV2(
                       insertedStep,
@@ -292,7 +292,7 @@ trait UpdateService {
                     (updatedStep, updatedPath)
                   }
 
-                  updateSearchAndTaxonomy(updatedPath)
+                  updateSearchAndTaxonomy(updatedPath, owner.some)
                     .flatMap(_ =>
                       converterService.asApiLearningStepV2(
                         updatedStep,
@@ -357,7 +357,7 @@ trait UpdateService {
                   (updatedPath, updatedStep)
                 }
 
-                updateSearchAndTaxonomy(updatedPath).flatMap(_ =>
+                updateSearchAndTaxonomy(updatedPath, owner.some).flatMap(_ =>
                   converterService.asApiLearningStepV2(
                     updatedStep,
                     updatedPath,

@@ -18,6 +18,7 @@ import no.ndla.common.model.domain.Title
 import no.ndla.language.Language
 import no.ndla.learningpathapi.Props
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
+import no.ndla.network.tapir.auth.TokenUser
 import sttp.client3.Response
 
 import scala.concurrent.duration.DurationInt
@@ -36,7 +37,8 @@ trait TaxonomyApiClient {
 
     def updateTaxonomyForLearningPath(
         learningPath: LearningPath,
-        createResourceIfMissing: Boolean
+        createResourceIfMissing: Boolean,
+        user: Option[TokenUser]
     ): Try[LearningPath] = {
       val result = learningPath.id match {
         case None =>
@@ -48,24 +50,29 @@ trait TaxonomyApiClient {
             case None =>
               Failure(TaxonomyUpdateException("Can't update taxonomy resource when learningpath is missing titles."))
             case Some(mainTitle) =>
-              queryResource(contentUri) match {
+              queryResource(contentUri, user) match {
                 case Failure(ex) => Failure(ex)
                 case Success(resources) if resources.isEmpty && createResourceIfMissing =>
-                  createAndUpdateResource(learningPath, contentUri, mainTitle)
+                  createAndUpdateResource(learningPath, contentUri, mainTitle, user)
                 case Success(resources) =>
-                  updateExistingResources(resources, contentUri, learningPath.title, mainTitle)
+                  updateExistingResources(resources, contentUri, learningPath.title, mainTitle, user)
               }
           }
       }
       result.map(_ => learningPath)
     }
 
-    private def createAndUpdateResource(learningPath: LearningPath, contentUri: String, mainTitle: Title) = {
+    private def createAndUpdateResource(
+        learningPath: LearningPath,
+        contentUri: String,
+        mainTitle: Title,
+        user: Option[TokenUser]
+    ) = {
       val newResource = NewOrUpdateTaxonomyResource(
         name = mainTitle.title,
         contentUri = contentUri
       )
-      createResource(newResource) match {
+      createResource(newResource, user) match {
         case Failure(ex) => Failure(ex)
         case Success(newLocation) =>
           newLocation.split('/').lastOption match {
@@ -80,27 +87,31 @@ trait TaxonomyApiClient {
                 contentUri = Some(contentUri),
                 path = None
               )
-              addLearningPathResourceType(resourceId).flatMap(_ =>
-                updateExistingResources(List(newResource), contentUri, learningPath.title, mainTitle)
+              addLearningPathResourceType(resourceId, user).flatMap(_ =>
+                updateExistingResources(List(newResource), contentUri, learningPath.title, mainTitle, user)
               )
           }
       }
     }
 
-    private def addLearningPathResourceType(resourceId: String): Try[String] = {
+    private def addLearningPathResourceType(resourceId: String, user: Option[TokenUser]): Try[String] = {
       val resourceType = ResourceResourceType(
         resourceId = resourceId,
         resourceTypeId = LearningPathResourceTypeId
       )
-      postRaw[ResourceResourceType](s"$TaxonomyApiEndpoint/resource-resourcetypes", resourceType) match {
+      postRaw[ResourceResourceType](s"$TaxonomyApiEndpoint/resource-resourcetypes", resourceType, user) match {
         case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) => Success(resourceId)
         case Failure(ex)                                                              => Failure(ex)
         case Success(_)                                                               => Success(resourceId)
       }
     }
 
-    private def updateTaxonomyResource(taxonomyId: String, resource: NewOrUpdateTaxonomyResource) = {
-      putRaw[NewOrUpdateTaxonomyResource](s"$TaxonomyApiEndpoint/resources/${taxonomyId}", resource) match {
+    private def updateTaxonomyResource(
+        taxonomyId: String,
+        resource: NewOrUpdateTaxonomyResource,
+        user: Option[TokenUser]
+    ) = {
+      putRaw[NewOrUpdateTaxonomyResource](s"$TaxonomyApiEndpoint/resources/${taxonomyId}", resource, user) match {
         case Failure(ex) =>
           logger.error(s"Failed updating taxonomy resource $taxonomyId with name.")
           Failure(ex)
@@ -110,8 +121,8 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def createResource(resource: NewOrUpdateTaxonomyResource) = {
-      postRaw[NewOrUpdateTaxonomyResource](s"$TaxonomyApiEndpoint/resources", resource) match {
+    private def createResource(resource: NewOrUpdateTaxonomyResource, user: Option[TokenUser]) = {
+      postRaw[NewOrUpdateTaxonomyResource](s"$TaxonomyApiEndpoint/resources", resource, user) match {
         case Success(resp) =>
           resp.header("location") match {
             case Some(locationHeader) if locationHeader.nonEmpty => Success(locationHeader)
@@ -131,7 +142,8 @@ trait TaxonomyApiClient {
         existingResources: List[TaxonomyResource],
         contentUri: String,
         titles: Seq[Title],
-        mainTitle: Title
+        mainTitle: Title,
+        user: Option[TokenUser]
     ) = {
       existingResources
         .traverse(r => {
@@ -140,8 +152,8 @@ trait TaxonomyApiClient {
             contentUri = r.contentUri.getOrElse(contentUri)
           )
 
-          updateTaxonomyResource(r.id, resourceToPut)
-            .flatMap(_ => updateResourceTranslations(r.id, titles))
+          updateTaxonomyResource(r.id, resourceToPut, user)
+            .flatMap(_ => updateResourceTranslations(r.id, titles, user))
         })
     }
 
@@ -149,21 +161,25 @@ trait TaxonomyApiClient {
       translation.name == title.title &&
         translation.language.exists(_ == title.language)
 
-    private def updateResourceTranslations(resourceId: String, titles: Seq[Title]): Try[List[Translation]] = {
+    private def updateResourceTranslations(
+        resourceId: String,
+        titles: Seq[Title],
+        user: Option[TokenUser]
+    ): Try[List[Translation]] = {
       // Since 'unknown' language is known as 'unk' in taxonomy we do a conversion
       val titlesWithConvertedLang = titles.map(t => t.copy(language = t.language.replace("unknown", "unk")))
-      getResourceTranslations(resourceId) match {
+      getResourceTranslations(resourceId, user) match {
         case Failure(ex) =>
           logger.error(s"Failed to get translations for $resourceId when updating taxonomy...")
           Failure(ex)
         case Success(existingTranslations) =>
           val toDelete =
             existingTranslations.filterNot(_.language.exists(titlesWithConvertedLang.map(_.language).contains))
-          val deleted = toDelete.map(deleteResourceTranslation(resourceId, _))
+          val deleted = toDelete.map(deleteResourceTranslation(resourceId, _, user))
           val updated = titlesWithConvertedLang.toList.traverse(title =>
             existingTranslations.find(titleIsEqualToTranslation(title, _)) match {
               case Some(existingTranslation) => Success(existingTranslation)
-              case None                      => updateResourceTranslation(resourceId, title.language, title.title)
+              case None                      => updateResourceTranslation(resourceId, title.language, title.title, user)
             }
           )
 
@@ -174,13 +190,22 @@ trait TaxonomyApiClient {
       }
     }
 
-    private[integration] def updateResourceTranslation(resourceId: String, lang: String, name: String) =
-      putRaw(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$lang", Translation(name))
+    private[integration] def updateResourceTranslation(
+        resourceId: String,
+        lang: String,
+        name: String,
+        user: Option[TokenUser]
+    ) =
+      putRaw(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$lang", Translation(name), user)
 
-    private[integration] def deleteResourceTranslation(resourceId: String, translation: Translation) = {
+    private[integration] def deleteResourceTranslation(
+        resourceId: String,
+        translation: Translation,
+        user: Option[TokenUser]
+    ) = {
       translation.language
         .map(language => {
-          delete(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$language")
+          delete(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$language", user)
         })
         .getOrElse({
           logger.info(s"Cannot delete translation without language for $resourceId")
@@ -188,19 +213,19 @@ trait TaxonomyApiClient {
         })
     }
 
-    private[integration] def getResourceTranslations(resourceId: String) =
-      get[List[Translation]](s"$TaxonomyApiEndpoint/resources/$resourceId/translations")
+    private[integration] def getResourceTranslations(resourceId: String, user: Option[TokenUser]) =
+      get[List[Translation]](s"$TaxonomyApiEndpoint/resources/$resourceId/translations", user)
 
-    private def queryResource(contentUri: String): Try[List[TaxonomyResource]] = {
-      get[List[TaxonomyResource]](s"$TaxonomyApiEndpoint/queries/resources", "contentURI" -> contentUri) match {
+    private def queryResource(contentUri: String, user: Option[TokenUser]): Try[List[TaxonomyResource]] = {
+      get[List[TaxonomyResource]](s"$TaxonomyApiEndpoint/queries/resources", user, "contentURI" -> contentUri) match {
         case Success(resources) => Success(resources)
         case Failure(ex)        => Failure(ex)
       }
     }
 
-    def getResource(nodeId: String): Try[TaxonomyResource] = {
+    def getResource(nodeId: String, user: Option[TokenUser]): Try[TaxonomyResource] = {
       val resourceId = s"urn:resource:1:$nodeId"
-      get[TaxonomyResource](s"$TaxonomyApiEndpoint/resources/$resourceId") match {
+      get[TaxonomyResource](s"$TaxonomyApiEndpoint/resources/$resourceId", user) match {
         case Failure(ex) =>
           Failure(ex)
         case Success(a) =>
@@ -208,8 +233,8 @@ trait TaxonomyApiClient {
       }
     }
 
-    def updateResource(resource: TaxonomyResource): Try[TaxonomyResource] = {
-      put[String, TaxonomyResource](s"$TaxonomyApiEndpoint/resources/${resource.id}", resource) match {
+    def updateResource(resource: TaxonomyResource, user: Option[TokenUser]): Try[TaxonomyResource] = {
+      put[String, TaxonomyResource](s"$TaxonomyApiEndpoint/resources/${resource.id}", resource, user) match {
         case Success(_) => Success(resource)
         case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) =>
           Success(resource)
@@ -218,44 +243,48 @@ trait TaxonomyApiClient {
     }
 
     def queryResource(articleId: Long): Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/queries/resources", "contentURI" -> s"urn:article:$articleId")
+      get[List[Resource]](s"$TaxonomyApiEndpoint/queries/resources", None, "contentURI" -> s"urn:article:$articleId")
 
     def queryTopic(articleId: Long): Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", "contentURI" -> s"urn:article:$articleId")
+      get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", None, "contentURI" -> s"urn:article:$articleId")
 
-    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest
-          .get(uri"$url".withParams(params: _*))
-          .readTimeout(taxonomyTimeout)
-          .header(TAXONOMY_VERSION_HEADER, defaultVersion)
-      )
+    private def get[A](url: String, user: Option[TokenUser], params: (String, String)*)(implicit
+        mf: Manifest[A]
+    ): Try[A] = {
+      val request = quickRequest
+        .get(uri"$url".withParams(params: _*))
+        .readTimeout(taxonomyTimeout)
+        .header(TAXONOMY_VERSION_HEADER, defaultVersion)
+      ndlaClient.fetchWithForwardedAuth[A](request, user)
     }
 
-    private def put[A, B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
+    private def put[A, B <: AnyRef](url: String, data: B, user: Option[TokenUser], params: (String, String)*)(implicit
         mf: Manifest[A],
         format: org.json4s.Formats
     ): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest
-          .put(uri"$url".withParams(params: _*))
-          .readTimeout(taxonomyTimeout)
-          .body(write(data)(format))
-          .header("content-type", "application/json", replaceExisting = true)
-      )
+      val request = quickRequest
+        .put(uri"$url".withParams(params: _*))
+        .readTimeout(taxonomyTimeout)
+        .body(write(data)(format))
+        .header("content-type", "application/json", replaceExisting = true)
+      ndlaClient.fetchWithForwardedAuth[A](request, user)
     }
 
-    private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
+    private[integration] def putRaw[B <: AnyRef](
+        url: String,
+        data: B,
+        user: Option[TokenUser],
+        params: (String, String)*
+    )(implicit
         formats: org.json4s.Formats
     ): Try[B] = {
       logger.info(s"Doing call to $url")
-      ndlaClient.fetchRawWithForwardedAuth(
-        quickRequest
-          .put(uri"$url".withParams(params: _*))
-          .body(write(data))
-          .readTimeout(taxonomyTimeout)
-          .header("content-type", "application/json", replaceExisting = true)
-      ) match {
+      val request = quickRequest
+        .put(uri"$url".withParams(params: _*))
+        .body(write(data))
+        .readTimeout(taxonomyTimeout)
+        .header("content-type", "application/json", replaceExisting = true)
+      ndlaClient.fetchRawWithForwardedAuth(request, user) match {
         case Success(_)  => Success(data)
         case Failure(ex) => Failure(ex)
       }
@@ -264,6 +293,7 @@ trait TaxonomyApiClient {
     private def postRaw[B <: AnyRef](
         endpointUrl: String,
         data: B,
+        user: Option[TokenUser],
         params: (String, String)*
     ): Try[Response[String]] = {
       ndlaClient.fetchRawWithForwardedAuth(
@@ -271,18 +301,20 @@ trait TaxonomyApiClient {
           .post(uri"$endpointUrl".withParams(params.toMap))
           .body(write(data))
           .readTimeout(taxonomyTimeout)
-          .header("content-type", "application/json", replaceExisting = true)
+          .header("content-type", "application/json", replaceExisting = true),
+        user
       ) match {
         case Success(resp) => Success(resp)
         case Failure(ex)   => Failure(ex)
       }
     }
 
-    private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
+    private[integration] def delete(url: String, user: Option[TokenUser], params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
         quickRequest
           .delete(uri"$url".withParams(params: _*))
-          .readTimeout(taxonomyTimeout)
+          .readTimeout(taxonomyTimeout),
+        user
       ) match {
         case Failure(ex) => Failure(ex)
         case Success(_)  => Success(())

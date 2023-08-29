@@ -31,8 +31,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_ID = 1L
   val PRIVATE_ID   = 2L
 
-  val PUBLISHED_OWNER: TokenUser = TokenUser("published_owner", Set.empty)
-  val PRIVATE_OWNER: TokenUser   = TokenUser("private_owner", Set.empty)
+  val PUBLISHED_OWNER: TokenUser = TokenUser("published_owner", Set.empty, None)
+  val PRIVATE_OWNER: TokenUser   = TokenUser("private_owner", Set.empty, None)
   val cruz: Author               = Author("author", "Lyin' Ted")
   val license                    = "publicdomain"
   val copyright: Copyright       = Copyright(license, List(cruz))

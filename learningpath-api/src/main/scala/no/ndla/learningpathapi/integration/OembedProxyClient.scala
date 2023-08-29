@@ -47,10 +47,11 @@ trait OembedProxyClient {
       get[OembedResponse](s"$OembedProxyBaseUrl/oembed", ("url" -> url))
     }
 
-    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest.get(uri"$url".withParams(params.toMap)).readTimeout(OembedProxyTimeout)
-      )
+    private def get[A](url: String, params: (String, String)*)(implicit
+        mf: Manifest[A]
+    ): Try[A] = {
+      val request = quickRequest.get(uri"$url".withParams(params.toMap)).readTimeout(OembedProxyTimeout)
+      ndlaClient.fetchWithForwardedAuth[A](request, None)
     }
   }
 

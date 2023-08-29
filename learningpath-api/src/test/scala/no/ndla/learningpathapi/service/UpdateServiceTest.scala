@@ -43,8 +43,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_ID: Long = 1
   val PRIVATE_ID: Long   = 2
 
-  val PUBLISHED_OWNER = TokenUser("eier1", Set.empty)
-  val PRIVATE_OWNER   = TokenUser("eier2", Set.empty)
+  val PUBLISHED_OWNER = TokenUser("eier1", Set.empty, None)
+  val PRIVATE_OWNER   = TokenUser("eier2", Set.empty, None)
 
   val STEP1 = domain.LearningStep(
     Some(1),
@@ -252,13 +252,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     resetMocks()
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
     when(readService.canWriteNow(any[TokenUser])).thenReturn(true)
-    when(searchIndexService.deleteDocument(any[domain.LearningPath])).thenAnswer((i: InvocationOnMock) =>
+    when(searchIndexService.deleteDocument(any[domain.LearningPath], any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.LearningPath](0))
     )
     when(searchIndexService.indexDocument(any[domain.LearningPath])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.LearningPath](0))
     )
-    when(taxononyApiClient.updateTaxonomyForLearningPath(any[domain.LearningPath], any[Boolean]))
+    when(taxononyApiClient.updateTaxonomyForLearningPath(any[domain.LearningPath], any[Boolean], any))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.LearningPath](0)))
     when(learningStepValidator.validate(any[LearningStep], any[Boolean])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[LearningStep](0))
@@ -335,7 +335,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
 
     val Failure(ex) =
-      service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, TokenUser("not_the_owner", Set.empty))
+      service.updateLearningPathV2(
+        PRIVATE_ID,
+        UPDATED_PRIVATE_LEARNINGPATHV2,
+        TokenUser("not_the_owner", Set.empty, None)
+      )
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -403,7 +407,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PUBLISHED_ID,
           LearningPathStatus.PRIVATE,
-          TokenUser("not_the_owner", Set(LEARNINGPATH_API_ADMIN)),
+          TokenUser("not_the_owner", Set(LEARNINGPATH_API_ADMIN), None),
           "nb"
         )
         .get
@@ -411,7 +415,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     }
     verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
-    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath])
+    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath], any)
   }
 
   test(
@@ -629,7 +633,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(learningPathRepository, times(1))
       .update(any[domain.LearningPath])(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
-    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath])
+    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath], any)
   }
 
   test(
@@ -651,7 +655,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(learningPathRepository, times(1))
       .update(any[domain.LearningPath])(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
-    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath])
+    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath], any)
   }
 
   test("That addLearningStepV2 throws an AccessDeniedException when the given user is NOT the owner") {
@@ -821,7 +825,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
-    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath])
+    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath], any)
   }
 
   test("That marking the first learningStep as deleted changes the seqNo for all other learningsteps") {
@@ -1108,7 +1112,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newCopy =
       NewCopyLearningPathV2("hehe", None, "nb", None, None, None, None)
     service
-      .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty))
+      .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty, None))
       .isSuccess should be(true)
   }
 
@@ -1146,7 +1150,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(learningPathRepository, times(1)).updateLearningStep(eqTo(stepWithBadTitle))(any[DBSession])
     verify(learningPathRepository, times(1)).update(eqTo(updatedPath))(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(updatedPath)
-    verify(searchIndexService, times(0)).deleteDocument(updatedPath)
+    verify(searchIndexService, times(0)).deleteDocument(eqTo(updatedPath), any)
   }
 
   test("owner updates published path should update status to unlisted") {
@@ -1172,7 +1176,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     verify(learningPathRepository, times(1)).update(eqTo(expectedUpdatedPath))(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(expectedUpdatedPath)
-    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath])
+    verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath], any)
   }
 
   test("owner updates step private should not update status") {
@@ -1200,7 +1204,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(learningPathRepository, times(1)).updateLearningStep(eqTo(stepWithBadTitle))(any[DBSession])
     verify(learningPathRepository, times(1)).update(eqTo(updatedPath))(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(updatedPath)
-    verify(searchIndexService, times(0)).deleteDocument(updatedPath)
+    verify(searchIndexService, times(0)).deleteDocument(eqTo(updatedPath), any)
   }
 
   test("admin updates step should not update status") {
@@ -1428,7 +1432,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val readMock = mock[ReadService]
     when(readService.canWriteNow(any[TokenUser])).thenReturn(false)
 
-    service.writeDuringWriteRestrictionOrAccessDenied(TokenUser("SomeDude", scopes = Set())) { Success(readMock.tags) }
+    service.writeDuringWriteRestrictionOrAccessDenied(TokenUser("SomeDude", scopes = Set(), None)) {
+      Success(readMock.tags)
+    }
     verify(readMock, times(0)).tags
   }
 
@@ -1438,7 +1444,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
-      TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH))
+      TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH), None)
     )
     ex.isInstanceOf[AccessDeniedException] should be(true)
   }
@@ -1449,7 +1455,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Success(_) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
-      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN))
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
     )
   }
 
@@ -1459,7 +1465,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("123"),
-      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN))
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
     )
 
     ex.isInstanceOf[ValidationException] should be(true)
@@ -1471,7 +1477,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val res = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
-      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN))
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
     )
     res.isSuccess should be(true)
   }

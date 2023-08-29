@@ -15,6 +15,7 @@ import sttp.client3.quick._
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.network.model.NdlaRequest
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
@@ -42,15 +43,15 @@ trait SearchApiClient {
         Json4s.serializer(StepStatus) +
         new EnumNameSerializer(EmbedType)
 
-    def deleteLearningPathDocument(id: Long): Try[_] = {
+    def deleteLearningPathDocument(id: Long, user: Option[TokenUser]): Try[_] = {
       val req = quickRequest
         .delete(uri"http://$SearchApiHost/intern/learningpath/$id")
         .readTimeout(IndexTimeout)
 
-      doRawRequest(req)
+      doRawRequest(req, user)
     }
 
-    def indexLearningPathDocument(document: LearningPath): Future[Try[_]] = {
+    def indexLearningPathDocument(document: LearningPath, user: Option[TokenUser]): Future[Try[_]] = {
       val idString    = document.id.map(_.toString).getOrElse("<missing id>")
       implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
       val future = Future {
@@ -62,7 +63,7 @@ trait SearchApiClient {
           .body(body)
           .readTimeout(IndexTimeout)
 
-        doRawRequest(req)
+        doRawRequest(req, user)
       }
 
       future.onComplete {
@@ -84,8 +85,8 @@ trait SearchApiClient {
       future
     }
 
-    private def doRawRequest(request: NdlaRequest): Try[Response[String]] = {
-      ndlaClient.fetchRawWithForwardedAuth(request) match {
+    private def doRawRequest(request: NdlaRequest, user: Option[TokenUser]): Try[Response[String]] = {
+      ndlaClient.fetchRawWithForwardedAuth(request, user) match {
         case Success(r) =>
           if (r.code.isSuccess)
             Success(r)

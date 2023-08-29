@@ -22,14 +22,14 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
 
   test("That some metaInfo is returned when images is found") {
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest], any)(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )
     )
       .thenReturn(Success(DefaultImage))
 
-    val imageMeta = imageApiClient.imageMetaWithExternalId("abc")
+    val imageMeta = imageApiClient.imageMetaWithExternalId("abc", None)
     imageMeta.isDefined should be(true)
     imageMeta.get.id should equal("1")
     imageMeta.get.size should be(1000)
@@ -39,7 +39,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
     val exception = mock[HttpRequestException]
     when(exception.is404).thenReturn(true)
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest], any)(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )
@@ -53,7 +53,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
     val exception = mock[HttpRequestException]
     when(exception.is404).thenReturn(false)
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest], any)(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )
@@ -71,7 +71,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
   test("That exception is returned for a randomly chosen exception") {
     val exception = mock[NoSuchElementException]
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest], any)(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )
@@ -79,7 +79,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Failure(exception))
 
     intercept[NoSuchElementException] {
-      imageApiClient.imageMetaWithExternalId("abc")
+      imageApiClient.imageMetaWithExternalId("abc", None)
       fail("Exception should have been thrown")
     } should be(exception)
   }

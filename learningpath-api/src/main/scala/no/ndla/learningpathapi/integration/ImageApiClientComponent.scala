@@ -12,9 +12,9 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
+import no.ndla.network.tapir.auth.TokenUser
 import sttp.client3.quick._
 
-import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
 
 trait ImageApiClientComponent {
@@ -22,24 +22,15 @@ trait ImageApiClientComponent {
   val imageApiClient: ImageApiClient
 
   class ImageApiClient extends StrictLogging {
-    private val ImageImportTimeout = 10.seconds
-
-    def imageMetaWithExternalId(externalId: String): Option[ImageMetaInformation] = {
-      doRequest(quickRequest.get(uri"http://${props.ImageApiHost}/intern/extern/$externalId"))
+    def imageMetaWithExternalId(externalId: String, user: Option[TokenUser]): Option[ImageMetaInformation] = {
+      doRequest(quickRequest.get(uri"http://${props.ImageApiHost}/intern/extern/$externalId"), user)
     }
 
     def imageMetaOnUrl(url: String): Option[ImageMetaInformation] =
-      doRequest(quickRequest.get(uri"$url"))
+      doRequest(quickRequest.get(uri"$url"), None)
 
-    def importImage(externalId: String): Option[ImageMetaInformation] =
-      doRequest(
-        quickRequest
-          .post(uri"http://${props.ImageApiHost}/intern/import/$externalId")
-          .readTimeout(ImageImportTimeout)
-      )
-
-    private def doRequest(httpRequest: NdlaRequest): Option[ImageMetaInformation] = {
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](httpRequest) match {
+    private def doRequest(httpRequest: NdlaRequest, user: Option[TokenUser]): Option[ImageMetaInformation] = {
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](httpRequest, user) match {
         case Success(metaInfo) => Some(metaInfo)
         case Failure(hre: HttpRequestException) =>
           if (hre.is404) None else throw hre
