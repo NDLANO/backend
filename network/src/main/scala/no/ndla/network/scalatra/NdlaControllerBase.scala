@@ -54,6 +54,13 @@ trait NdlaControllerBase {
         case Failure(_)                         => errorHandler(AccessDeniedException.unauthorized)
       }
 
+    def doWithUser(f: Option[TokenUser] => Any): Any = {
+      TokenUser.fromScalatraRequest(request) match {
+        case Failure(_)    => f(None)
+        case Success(user) => f(Some(user))
+      }
+    }
+
     private def requirePermissionOrAccessDenied(requiredPermission: Permission)(f: TokenUser => Any): Any =
       doIfAccessTrue { user =>
         user.hasPermission(requiredPermission)

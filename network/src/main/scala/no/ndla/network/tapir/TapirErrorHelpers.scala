@@ -90,6 +90,15 @@ trait TapirErrorHelpers extends FLogging {
       }
     }
 
+    implicit class authlessErrorlessEndpoint[A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
+      def withOptionalUser[F[_]]: PartialServerEndpoint[Option[TokenUser], Option[TokenUser], I, X, O, R, F] = {
+        val newEndpoint   = self.securityIn(sttp.tapir.auth.bearer[Option[TokenUser]]())
+        val authFunc      = (tokenUser: Option[TokenUser]) => Right(tokenUser): Either[X, Option[TokenUser]]
+        val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
+        PartialServerEndpoint(newEndpoint, securityLogic)
+      }
+    }
+
   }
 
   private def handleUnknownError(e: Throwable): IO[ErrorBody] = {

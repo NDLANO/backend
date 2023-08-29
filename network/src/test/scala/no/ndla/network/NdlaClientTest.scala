@@ -10,6 +10,7 @@ package no.ndla.network
 
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
+import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.Strictness
 
 import javax.servlet.http.HttpServletRequest
@@ -136,22 +137,23 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     val httpResponseMock   = mock[Response[String]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
 
-    val authHeaderKey = "Authorization"
-    val authHeader    = "abc"
+    val authHeaderKey   = "Authorization"
+    val authHeader      = "abc"
+    val authHeaderValue = s"Bearer $authHeader"
+    val user            = TokenUser("id", Set.empty, Some(authHeader))
 
     when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeader)
-    AuthUser.set(servletRequestMock)
 
-    doReturn(httpRequestMock).when(httpRequestMock).header(eqTo(authHeaderKey), eqTo(authHeader), any)
+    doReturn(httpRequestMock).when(httpRequestMock).header(eqTo(authHeaderKey), eqTo(authHeaderValue), any)
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
-    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock)
+    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock, Some(user))
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
 
-    verify(httpRequestMock, times(1)).header(eqTo(authHeaderKey), eqTo(authHeader), any)
+    verify(httpRequestMock, times(1)).header(eqTo(authHeaderKey), eqTo(authHeaderValue), any)
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {
@@ -159,21 +161,23 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     val httpRequestMock    = mock[NdlaRequest]
     val httpResponseMock   = mock[Response[String]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
-    val authHeaderKey = "Authorization"
-    val authHeader    = "abc"
+    val authHeaderKey   = "Authorization"
+    val authHeader      = "abc"
+    val authHeaderValue = s"Bearer $authHeader"
+    val user            = TokenUser("id", Set.empty, Some(authHeader))
     when(httpResponseMock.body).thenReturn("")
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.code).thenReturn(StatusCode(204))
 
-    when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeader)
+    when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeaderValue)
     AuthUser.set(servletRequestMock)
 
-    when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeader), any)).thenReturn(httpRequestMock)
+    when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeaderValue), any)).thenReturn(httpRequestMock)
 
-    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock)
+    val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock, Some(user))
     result.isSuccess should be(false)
 
-    val rawResult = ndlaClient.fetchRawWithForwardedAuth(httpRequestMock)
+    val rawResult = ndlaClient.fetchRawWithForwardedAuth(httpRequestMock, Some(user))
     rawResult.isSuccess should be(true)
     rawResult.get.body should be("")
     rawResult.get.code.code should be(204)

@@ -10,6 +10,7 @@ package no.ndla.network
 
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.jackson.JsonMethods._
 import sttp.client3.{Response, SimpleHttpClient}
@@ -37,14 +38,15 @@ trait NdlaClient {
     }
 
     def fetchWithForwardedAuth[A](
-        request: NdlaRequest
+        request: NdlaRequest,
+        tokenUser: Option[TokenUser]
     )(implicit mf: Manifest[A], formats: Formats = formats): Try[A] = {
-      doFetch(addCorrelationId(addForwardedAuth(request)))
+      doFetch(addCorrelationId(addForwardedAuth(request, tokenUser)))
     }
 
     /** Useful if response body is not json. */
-    def fetchRawWithForwardedAuth(request: NdlaRequest): Try[Response[String]] = {
-      doRequest(addCorrelationId(addForwardedAuth(request)))
+    def fetchRawWithForwardedAuth(request: NdlaRequest, tokenUser: Option[TokenUser]): Try[Response[String]] = {
+      doRequest(addCorrelationId(addForwardedAuth(request, tokenUser)))
     }
 
     private def doFetch[A](request: NdlaRequest)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
@@ -94,9 +96,14 @@ trait NdlaClient {
       request.auth.basic(user, password)
     }
 
-    private def addForwardedAuth[T](request: NdlaRequest) = AuthUser.getHeader match {
-      case Some(auth) => request.header("Authorization", auth, replaceExisting = true)
-      case None       => request
+    private def addForwardedAuth[T](request: NdlaRequest, tokenUser: Option[TokenUser]) = tokenUser match {
+      case Some(TokenUser(_, _, _, Some(auth))) =>
+        request.header(
+          "Authorization",
+          s"Bearer $auth",
+          replaceExisting = true
+        )
+      case _ => request
     }
   }
 }
