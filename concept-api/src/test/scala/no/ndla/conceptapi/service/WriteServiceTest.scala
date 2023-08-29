@@ -132,7 +132,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedTitle   = "NyTittelTestJee"
     val updatedContent = "NyContentTestYepp"
     val updatedCopyright =
-      api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)
+      api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None)
     val updatedMetaImage = api.NewConceptMetaImage("2", "AltTxt")
     val updatedSource    = "https://www.ndla.no"
 
@@ -158,7 +158,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       content = Option(api.ConceptContent(updatedContent, "en")),
       metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
-        api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)
+        api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None)
       ),
       source = Some("https://www.ndla.no"),
       supportedLanguages = Set("nb", "en"),

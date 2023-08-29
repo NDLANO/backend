@@ -25,7 +25,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           creators = Seq(Author("writer", "Ape Katt")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )
@@ -78,7 +77,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           creators = Seq(Author("writer", "Ape Katt")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )
@@ -131,7 +129,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           creators = Seq(Author("writer", "Ape Katt")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )
@@ -183,7 +180,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           creators = Seq(Author("writer", "Katronk")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
-          agreementId = None,
           validFrom = None,
           validTo = None
         )

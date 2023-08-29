@@ -149,11 +149,11 @@ trait InternController {
     }: Unit
 
     post("/import/concept") {
-      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { _ =>
+      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { user =>
         val start       = System.currentTimeMillis
         val forceUpdate = booleanOrDefault("forceUpdate", default = false)
 
-        importService.importConcepts(forceUpdate) match {
+        importService.importConcepts(forceUpdate, user) match {
           case Success(result) =>
             if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
               InternalServerError(result)

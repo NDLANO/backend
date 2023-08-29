@@ -14,6 +14,7 @@ import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.model.NDLADate
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.ext.JavaTimeSerializers
 import sttp.client3.quick._
 
@@ -34,8 +35,8 @@ trait ArticleApiClient {
     val baseUrl        = s"http://${props.ArticleApiHost}/intern"
     val dumpDomainPath = "dump/concepts"
 
-    def getChunks: Iterator[Try[Seq[domain.Concept]]] = {
-      getChunk(0, 0) match {
+    def getChunks(user: TokenUser): Iterator[Try[Seq[domain.Concept]]] = {
+      getChunk(0, 0, user) match {
         case Success(initSearch) =>
           val dbCount  = initSearch.totalCount
           val pageSize = props.IndexBulkSize
@@ -43,7 +44,7 @@ trait ArticleApiClient {
           val pages    = Seq.range(1, numPages + 1)
 
           val iterator: Iterator[Try[Seq[domain.Concept]]] = pages.iterator.map(p => {
-            getChunk(p, pageSize).map(_.results)
+            getChunk(p, pageSize, user).map(_.results)
           })
 
           iterator
@@ -53,20 +54,23 @@ trait ArticleApiClient {
       }
     }
 
-    def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
+    def get[T](path: String, params: Map[String, String], timeout: Int, user: TokenUser)(implicit
+        mf: Manifest[T]
+    ): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
       ndlaClient.fetchWithForwardedAuth[T](
-        quickRequest.get(uri"$baseUrl/$path".withParams(params)).readTimeout(timeout.millis)
+        quickRequest.get(uri"$baseUrl/$path".withParams(params)).readTimeout(timeout.millis),
+        Some(user)
       )
     }
 
-    private def getChunk(page: Int, pageSize: Int): Try[ConceptDomainDumpResults] = {
+    private def getChunk(page: Int, pageSize: Int, user: TokenUser): Try[ConceptDomainDumpResults] = {
       val params = Map(
         "page"      -> page.toString,
         "page-size" -> pageSize.toString
       )
 
-      get[ConceptDomainDumpResults](dumpDomainPath, params, timeout = 20000) match {
+      get[ConceptDomainDumpResults](dumpDomainPath, params, timeout = 20000, user) match {
         case Success(result) =>
           logger.info(s"Fetched chunk of ${result.results.size} concepts from ${baseUrl.addParams(params)}")
           Success(result)

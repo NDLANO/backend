@@ -22,7 +22,7 @@ import no.ndla.common.model.NDLADate
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val converterService = new ConverterService
-  val userInfo: TokenUser       = TokenUser("", Set(CONCEPT_API_WRITE, CONCEPT_API_ADMIN))
+  val userInfo: TokenUser       = TokenUser("", Set(CONCEPT_API_WRITE, CONCEPT_API_ADMIN), None)
 
   test("toApiConcept converts a domain.Concept to an api.Concept with defined language") {
     converterService.toApiConcept(TestData.domainConcept, "nn", fallback = false) should be(
@@ -169,7 +169,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           Seq(api.Author("Photographer", "Photographer")),
           Seq(api.Author("Photographer", "Photographer")),
           None,
-          None,
           None
         )
       ),
@@ -196,7 +195,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             Seq(common.Author("Photographer", "Photographer")),
             Seq(common.Author("Photographer", "Photographer")),
             Seq(common.Author("Photographer", "Photographer")),
-            None,
             None,
             None
           )

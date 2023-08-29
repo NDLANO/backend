@@ -9,21 +9,22 @@ package no.ndla.conceptapi.service
 
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.conceptapi.integration.{ArticleApiClient, ImageApiClient}
+import no.ndla.conceptapi.integration.ArticleApiClient
 import no.ndla.conceptapi.model.api.ConceptImportResults
 import no.ndla.conceptapi.repository.DraftConceptRepository
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Try}
 
 trait ImportService {
-  this: ConverterService with WriteService with DraftConceptRepository with ArticleApiClient with ImageApiClient =>
+  this: ConverterService with WriteService with DraftConceptRepository with ArticleApiClient =>
   val importService: ImportService
 
   class ImportService extends StrictLogging {
 
-    def importConcepts(forceUpdate: Boolean): Try[ConceptImportResults] = {
+    def importConcepts(forceUpdate: Boolean, user: TokenUser): Try[ConceptImportResults] = {
       val start      = System.currentTimeMillis()
-      val pageStream = articleApiClient.getChunks
+      val pageStream = articleApiClient.getChunks(user)
       pageStream
         .map(page => {
           page.map(successfulPage => {

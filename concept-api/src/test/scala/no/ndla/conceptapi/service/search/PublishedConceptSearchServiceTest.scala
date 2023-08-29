@@ -48,7 +48,6 @@ class PublishedConceptSearchServiceTest
     List(),
     List(),
     None,
-    None,
     None
   )
 
@@ -59,7 +58,6 @@ class PublishedConceptSearchServiceTest
     List(),
     List(),
     None,
-    None,
     None
   )
 
@@ -69,7 +67,6 @@ class PublishedConceptSearchServiceTest
     List(Author("Forfatter", "Clark Kent")),
     List(),
     List(),
-    None,
     None,
     None
   )
