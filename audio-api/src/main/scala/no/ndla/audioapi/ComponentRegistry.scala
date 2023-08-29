@@ -38,7 +38,6 @@ class ComponentRegistry(properties: AudioApiProperties)
     with AmazonClient
     with ReadService
     with WriteService
-    with DraftApiClient
     with ValidationService
     with ConverterService
     with AudioStorageService
@@ -84,8 +83,7 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val seriesRepository = new SeriesRepository
   lazy val audioStorage     = new AudioStorage
 
-  lazy val ndlaClient     = new NdlaClient
-  lazy val draftApiClient = new DraftApiClient
+  lazy val ndlaClient = new NdlaClient
 
   lazy val readService       = new ReadService
   lazy val writeService      = new WriteService

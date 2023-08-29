@@ -39,7 +39,6 @@ object TestData {
     creators = Seq(common.Author("originator", "ole")),
     processors = Seq(common.Author("processor", "dole")),
     rightsholders = Seq(common.Author("rightsholder", "doffen")),
-    agreementId = None,
     validFrom = None,
     validTo = None
   )
@@ -116,7 +115,7 @@ object TestData {
     1,
     api.Title("title", "nb"),
     api.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb"),
-    api.Copyright(api.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, None),
+    api.Copyright(api.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None),
     api.Tag(Seq("tag"), "nb"),
     Seq("nb"),
     "standard",
@@ -127,5 +126,5 @@ object TestData {
     updated
   )
 
-  val testUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE))
+  val testUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE), None)
 }

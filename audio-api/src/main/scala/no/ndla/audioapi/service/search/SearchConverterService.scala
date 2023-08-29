@@ -127,9 +127,7 @@ trait SearchConverterService {
     }
 
     def asSearchableAudioInformation(ai: AudioMetaInformation): Try[SearchableAudioInformation] = {
-      val metaWithAgreement = converterService.withAgreementCopyright(ai)
-
-      val defaultTitle = metaWithAgreement.titles
+      val defaultTitle = ai.titles
         .sortBy(title => {
           val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
           languagePriority.indexOf(title.language)
@@ -137,36 +135,35 @@ trait SearchConverterService {
         .lastOption
 
       val authors =
-        metaWithAgreement.copyright.creators.map(_.name) ++
-          metaWithAgreement.copyright.processors.map(_.name) ++
-          metaWithAgreement.copyright.rightsholders.map(_.name)
+        ai.copyright.creators.map(_.name) ++
+          ai.copyright.processors.map(_.name) ++
+          ai.copyright.rightsholders.map(_.name)
 
       val podcastMetaIntros = SearchableLanguageValues(
-        metaWithAgreement.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction))
+        ai.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction))
       )
 
-      val searchablePodcastMeta = metaWithAgreement.podcastMeta.map(pm =>
-        SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language)
-      )
+      val searchablePodcastMeta =
+        ai.podcastMeta.map(pm => SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
 
-      val searchableAudios = metaWithAgreement.filePaths.map(fp => SearchableAudio(fp.filePath, fp.language))
+      val searchableAudios = ai.filePaths.map(fp => SearchableAudio(fp.filePath, fp.language))
 
-      metaWithAgreement.series
+      ai.series
         .traverse(s => asSearchableSeries(s))
         .map(series =>
           SearchableAudioInformation(
-            id = metaWithAgreement.id.get.toString,
-            titles = SearchableLanguageValues.fromFields(metaWithAgreement.titles),
-            tags = SearchableLanguageList.fromFields(metaWithAgreement.tags),
+            id = ai.id.get.toString,
+            titles = SearchableLanguageValues.fromFields(ai.titles),
+            tags = SearchableLanguageList.fromFields(ai.tags),
             filePaths = searchableAudios,
-            license = metaWithAgreement.copyright.license,
+            license = ai.copyright.license,
             authors = authors,
-            lastUpdated = metaWithAgreement.updated,
+            lastUpdated = ai.updated,
             defaultTitle = defaultTitle.map(t => t.title),
-            audioType = metaWithAgreement.audioType.toString,
+            audioType = ai.audioType.toString,
             podcastMetaIntroduction = podcastMetaIntros,
             podcastMeta = searchablePodcastMeta,
-            manuscript = SearchableLanguageValues.fromFields(metaWithAgreement.manuscript),
+            manuscript = SearchableLanguageValues.fromFields(ai.manuscript),
             series = series
           )
         )

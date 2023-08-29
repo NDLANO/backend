@@ -10,7 +10,6 @@ package no.ndla.audioapi.service
 
 import cats.implicits._
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
@@ -27,7 +26,7 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: DraftApiClient with ConverterService with Props =>
+  this: ConverterService with Props =>
   val validationService: ValidationService
 
   class ValidationService {
@@ -281,7 +280,6 @@ trait ValidationService {
         copyright.rightsholders.flatMap(a =>
           validateAuthor("copyright.rightsholders", a, rightsholderTypeMap.values.toList)
         ) ++
-        validateAgreement(copyright) ++
         copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
@@ -297,14 +295,6 @@ trait ValidationService {
       license match {
         case None      => Seq()
         case Some(lic) => if (lic == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(lic))
-      }
-    }
-
-    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
-      copyright.agreementId match {
-        case Some(id) if !draftApiClient.agreementExists(id) =>
-          Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
-        case _ => Seq.empty
       }
     }
 

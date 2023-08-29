@@ -65,7 +65,6 @@ case class Copyright(
     creators: Seq[Author],
     processors: Seq[Author],
     rightsholders: Seq[Author],
-    agreementId: Option[Long],
     validFrom: Option[NDLADate],
     validTo: Option[NDLADate]
 )

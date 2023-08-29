@@ -34,7 +34,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newAudioMeta: NewAudioMetaInformation = NewAudioMetaInformation(
     "title",
     "en",
-    Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
+    Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None),
     Seq("tag"),
     None,
     None,
@@ -46,7 +46,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     revision = 1,
     title = "title",
     language = "en",
-    copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
+    copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None),
     tags = Seq("tag"),
     audioType = None,
     podcastMeta = None,
@@ -69,7 +69,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     List(common.Author("Forfatter", "Bruce Wayne")),
     Seq(),
     Seq(),
-    None,
     None,
     None
   )
