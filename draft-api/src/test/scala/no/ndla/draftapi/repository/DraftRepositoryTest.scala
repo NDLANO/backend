@@ -401,7 +401,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
     val copiedArticle1 =
       repository
-        .storeArticleAsNewVersion(draftArticle1, Some(TokenUser("user-id", Set(Permission.DRAFT_API_WRITE))))(
+        .storeArticleAsNewVersion(draftArticle1, Some(TokenUser("user-id", Set(Permission.DRAFT_API_WRITE), None)))(
           AutoSession
         )
         .get

@@ -44,7 +44,6 @@ trait TestEnvironment
     with Routes
     with ArticleRepository
     with MockitoSugar
-    with DraftApiClient
     with SearchApiClient
     with FeideApiClient
     with RedisClient
@@ -85,7 +84,6 @@ trait TestEnvironment
   val ndlaClient             = mock[NdlaClient]
   val searchConverterService = mock[SearchConverterService]
   var e4sClient              = mock[NdlaE4sClient]
-  val draftApiClient         = mock[DraftApiClient]
   val searchApiClient        = mock[SearchApiClient]
   val feideApiClient         = mock[FeideApiClient]
   val redisClient            = mock[RedisClient]

@@ -18,7 +18,7 @@ import no.ndla.draftapi.controller._
 import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.model.domain.DBArticle
-import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
+import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
@@ -36,27 +36,23 @@ class ComponentRegistry(properties: DraftApiProperties)
     with LearningpathApiClient
     with TaxonomyApiClient
     with DraftController
-    with AgreementController
     with HealthController
     with NdlaController
     with NdlaControllerBase
     with NdlaSwaggerSupport
     with MemoizeHelpers
     with DraftRepository
-    with AgreementRepository
     with UserDataRepository
     with Elastic4sClient
     with ReindexClient
     with ArticleSearchService
     with TagSearchService
     with GrepCodesSearchService
-    with AgreementSearchService
     with IndexService
     with BaseIndexService
     with ArticleIndexService
     with TagIndexService
     with GrepCodesIndexService
-    with AgreementIndexService
     with SearchService
     with StrictLogging
     with NdlaClient
@@ -71,7 +67,6 @@ class ComponentRegistry(properties: DraftApiProperties)
     with UUIDUtil
     with ArticleApiClient
     with SearchApiClient
-    with ConceptApiClient
     with H5PApiClient
     with RuleController
     with UserDataController
@@ -87,18 +82,16 @@ class ComponentRegistry(properties: DraftApiProperties)
 
   implicit val swagger: DraftSwagger = new DraftSwagger
 
-  lazy val internController    = new InternController
-  lazy val draftController     = new DraftController
-  lazy val fileController      = new FileController
-  lazy val agreementController = new AgreementController
-  lazy val ruleController      = new RuleController
-  lazy val resourcesApp        = new ResourcesApp
-  lazy val healthController    = new HealthController
-  lazy val userDataController  = new UserDataController
+  lazy val internController   = new InternController
+  lazy val draftController    = new DraftController
+  lazy val fileController     = new FileController
+  lazy val ruleController     = new RuleController
+  lazy val resourcesApp       = new ResourcesApp
+  lazy val healthController   = new HealthController
+  lazy val userDataController = new UserDataController
 
-  lazy val draftRepository     = new ArticleRepository
-  lazy val agreementRepository = new AgreementRepository
-  lazy val userDataRepository  = new UserDataRepository
+  lazy val draftRepository    = new ArticleRepository
+  lazy val userDataRepository = new UserDataRepository
 
   lazy val articleSearchService   = new ArticleSearchService
   lazy val articleIndexService    = new ArticleIndexService
@@ -106,8 +99,6 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val tagIndexService        = new TagIndexService
   lazy val grepCodesSearchService = new GrepCodesSearchService
   lazy val grepCodesIndexService  = new GrepCodesIndexService
-  lazy val agreementSearchService = new AgreementSearchService
-  lazy val agreementIndexService  = new AgreementIndexService
 
   lazy val converterService = new ConverterService
   lazy val contentValidator = new ContentValidator()
@@ -137,6 +128,5 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val searchApiClient       = new SearchApiClient
   lazy val taxonomyApiClient     = new TaxonomyApiClient
   lazy val learningpathApiClient = new LearningpathApiClient
-  lazy val conceptApiClient      = new ConceptApiClient
   lazy val h5pApiClient          = new H5PApiClient
 }

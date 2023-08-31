@@ -72,9 +72,8 @@ trait SearchApiClient {
         format: org.json4s.Formats,
         executionContext: ExecutionContext
     ): Future[Try[A]] = {
-
       Future {
-        ndlaClient.fetchWithForwardedAuth[A](
+        ndlaClient.fetch[A](
           quickRequest
             .post(uri"$endpointUrl".withParams(params.toMap))
             .body(write(data))
@@ -85,7 +84,7 @@ trait SearchApiClient {
     }
 
     def deleteArticle(id: Long): Long = {
-      ndlaClient.fetchRawWithForwardedAuth(
+      ndlaClient.fetch(
         quickRequest
           .delete(uri"$InternalEndpoint/article/$id")
           .readTimeout(indexTimeout)

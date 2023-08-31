@@ -21,6 +21,7 @@ case class NdlaHttpRequest(
     servletPath: String
 ) {
   def getHeader(name: String): Option[String] = getHeaderFunc(name)
+  def getToken: Option[String]                = getHeader("Authorization").map(_.replace("Bearer ", ""))
 }
 
 object NdlaHttpRequest {

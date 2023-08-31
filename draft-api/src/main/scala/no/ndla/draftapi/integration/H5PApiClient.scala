@@ -14,6 +14,7 @@ import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.H5PException
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.DefaultFormats
 import sttp.client3.quick._
 
@@ -31,12 +32,12 @@ trait H5PApiClient {
     private val h5pTimeout                    = 20.seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
-    def publishH5Ps(paths: Seq[String]): Try[Unit] = {
+    def publishH5Ps(paths: Seq[String], user: TokenUser): Try[Unit] = {
       if (paths.isEmpty) {
         Success(())
       } else {
         implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(paths.size))
-        val future      = Future.sequence(paths.map(publishH5P))
+        val future      = Future.sequence(paths.map(publishH5P(_, user)))
         Try(Await.result(future, Duration.Inf)) match {
           case Failure(ex) => Failure(ex)
           case Success(s)  => s.toList.sequence.map(_ => ())
@@ -44,7 +45,7 @@ trait H5PApiClient {
       }
     }
 
-    private def publishH5P(path: String)(implicit ec: ExecutionContext): Future[Try[Unit]] = {
+    private def publishH5P(path: String, user: TokenUser)(implicit ec: ExecutionContext): Future[Try[Unit]] = {
       path.path.parts.lastOption match {
         case None =>
           Future.successful {
@@ -53,7 +54,7 @@ trait H5PApiClient {
             Failure(H5PException(msg))
           }
         case Some(h5pId) =>
-          val future = putNothing(s"$H5PApi/resource/$h5pId/publish")
+          val future = putNothing(s"$H5PApi/resource/$h5pId/publish", user)
           logWhenComplete(future, path, h5pId)
           future
       }
@@ -77,7 +78,7 @@ trait H5PApiClient {
       }
     }
 
-    private[integration] def putNothing(url: String, params: (String, String)*)(implicit
+    private[integration] def putNothing(url: String, user: TokenUser, params: (String, String)*)(implicit
         ec: ExecutionContext
     ): Future[Try[Unit]] = {
       val threadInfo = RequestInfo.fromThreadContext()
@@ -88,7 +89,8 @@ trait H5PApiClient {
           quickRequest
             .put(uri"$url".withParams(params: _*))
             .header("content-type", "application/json")
-            .readTimeout(h5pTimeout)
+            .readTimeout(h5pTimeout),
+          Some(user)
         ) match {
           case Success(_)  => Success(())
           case Failure(ex) => Failure(ex)

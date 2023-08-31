@@ -18,7 +18,6 @@ case class Copyright(
     @description("List of creators") creators: Seq[Author],
     @description("List of processors") processors: Seq[Author],
     @description("List of rightsholders") rightsholders: Seq[Author],
-    @description("Reference to agreement id") agreementId: Option[Long],
     @description("Date from which the copyright is valid") validFrom: Option[NDLADate],
     @description("Date to which the copyright is valid") validTo: Option[NDLADate]
 )

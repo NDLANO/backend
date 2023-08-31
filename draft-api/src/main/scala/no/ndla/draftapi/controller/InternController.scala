@@ -21,6 +21,7 @@ import org.scalatra.swagger.Swagger
 import org.scalatra.{InternalServerError, NotFound, Ok}
 import cats.implicits._
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.ReadOnlyAutoSession
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -38,7 +39,6 @@ trait InternController {
     with ArticleIndexService
     with TagIndexService
     with GrepCodesIndexService
-    with AgreementIndexService
     with ArticleApiClient
     with NdlaController
     with DBArticle
@@ -46,7 +46,7 @@ trait InternController {
   val internController: InternController
 
   class InternController(implicit val swagger: Swagger) extends NdlaController {
-    import props.{DraftSearchIndex, AgreementSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
+    import props.{DraftSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
 
     protected val applicationDescription                 = "API for accessing internal functionality in draft API"
     protected implicit override val jsonFormats: Formats = Draft.jsonEncoder
@@ -77,11 +77,10 @@ trait InternController {
       val numShards = intOrNone("numShards")
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
-      val articleIndex   = createIndexFuture(articleIndexService, numShards)
-      val agreementIndex = createIndexFuture(agreementIndexService, numShards)
-      val tagIndex       = createIndexFuture(tagIndexService, numShards)
-      val grepIndex      = createIndexFuture(grepCodesIndexService, numShards)
-      val indexResults   = Future.sequence(List(articleIndex, agreementIndex, tagIndex, grepIndex))
+      val articleIndex = createIndexFuture(articleIndexService, numShards)
+      val tagIndex     = createIndexFuture(tagIndexService, numShards)
+      val grepIndex    = createIndexFuture(grepCodesIndexService, numShards)
+      val indexResults = Future.sequence(List(articleIndex, tagIndex, grepIndex))
 
       Await.result(indexResults, Duration.Inf).sequence match {
         case Failure(ex) =>
@@ -101,25 +100,19 @@ trait InternController {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
       val indexes = for {
-        articleIndex   <- Future { articleIndexService.findAllIndexes(DraftSearchIndex) }
-        agreementIndex <- Future { agreementIndexService.findAllIndexes(AgreementSearchIndex) }
-        tagIndex       <- Future { tagIndexService.findAllIndexes(DraftTagSearchIndex) }
-        grepIndex      <- Future { grepCodesIndexService.findAllIndexes(DraftGrepCodesSearchIndex) }
-      } yield (articleIndex, agreementIndex, tagIndex, grepIndex)
+        articleIndex <- Future { articleIndexService.findAllIndexes(DraftSearchIndex) }
+        tagIndex     <- Future { tagIndexService.findAllIndexes(DraftTagSearchIndex) }
+        grepIndex    <- Future { grepCodesIndexService.findAllIndexes(DraftGrepCodesSearchIndex) }
+      } yield (articleIndex, tagIndex, grepIndex)
 
       val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
-        case (Failure(articleFail), _, _, _)   => halt(status = 500, body = articleFail.getMessage)
-        case (_, Failure(agreementFail), _, _) => halt(status = 500, body = agreementFail.getMessage)
-        case (_, _, Failure(tagFail), _)       => halt(status = 500, body = tagFail.getMessage)
-        case (_, _, _, Failure(grepFail))      => halt(status = 500, body = grepFail.getMessage)
-        case (Success(articleIndexes), Success(agreementIndexes), Success(tagIndexes), Success(grepIndexes)) => {
+        case (Failure(articleFail), _, _) => halt(status = 500, body = articleFail.getMessage)
+        case (_, Failure(tagFail), _)     => halt(status = 500, body = tagFail.getMessage)
+        case (_, _, Failure(grepFail))    => halt(status = 500, body = grepFail.getMessage)
+        case (Success(articleIndexes), Success(tagIndexes), Success(grepIndexes)) =>
           val articleDeleteResults = articleIndexes.map(index => {
             logger.info(s"Deleting article index $index")
             articleIndexService.deleteIndexWithName(Option(index))
-          })
-          val agreementDeleteResults = agreementIndexes.map(index => {
-            logger.info(s"Deleting agreement index $index")
-            agreementIndexService.deleteIndexWithName(Option(index))
           })
           val tagDeleteResults = tagIndexes.map(index => {
             logger.info(s"Deleting tag index $index")
@@ -129,8 +122,7 @@ trait InternController {
             logger.info(s"Deleting grep index $index")
             grepCodesIndexService.deleteIndexWithName(Option(index))
           })
-          articleDeleteResults ++ agreementDeleteResults ++ tagDeleteResults ++ grepDeleteResults
-        }
+          articleDeleteResults ++ tagDeleteResults ++ grepDeleteResults
       }
 
       val (errors, successes) = deleteResults.partition(_.isFailure)
@@ -179,18 +171,23 @@ trait InternController {
     }: Unit
 
     @tailrec
-    private def deleteArticleWithRetries(id: Long, maxRetries: Int = 10, retries: Int = 0): Try[ContentId] = {
-      articleApiClient.deleteArticle(id) match {
-        case Failure(_) if retries <= maxRetries => deleteArticleWithRetries(id, maxRetries, retries + 1)
+    private def deleteArticleWithRetries(
+        id: Long,
+        user: TokenUser,
+        maxRetries: Int = 10,
+        retries: Int = 0
+    ): Try[ContentId] = {
+      articleApiClient.deleteArticle(id, user) match {
+        case Failure(_) if retries <= maxRetries => deleteArticleWithRetries(id, user, maxRetries, retries + 1)
         case Failure(ex)                         => Failure(ex)
         case Success(x)                          => Success(x)
       }
     }
 
     delete("/article/:id/") {
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
+      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
         val id = long("id")
-        deleteArticleWithRetries(id).flatMap(id => writeService.deleteArticle(id.id)) match {
+        deleteArticleWithRetries(id, user).flatMap(id => writeService.deleteArticle(id.id)) match {
           case Success(a)  => a
           case Failure(ex) => errorHandler(ex)
         }

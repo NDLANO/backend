@@ -15,6 +15,7 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.Serialization
@@ -45,8 +46,8 @@ trait SearchApiClient {
         JavaTypesSerializers.all +
         NDLADate.Json4sSerializer
 
-    def indexDraft(draft: Draft)(implicit ex: ExecutionContext): Draft = {
-      val future = postWithData[Draft, Draft](s"$InternalEndpoint/draft/", draft)
+    def indexDraft(draft: Draft, user: TokenUser)(implicit ex: ExecutionContext): Draft = {
+      val future = postWithData[Draft, Draft](s"$InternalEndpoint/draft/", draft, user)
       future.onComplete {
         case Success(Success(_)) =>
           logger.info(
@@ -67,26 +68,28 @@ trait SearchApiClient {
       draft
     }
 
-    private def postWithData[A, B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(implicit
+    private def postWithData[A, B <: AnyRef](endpointUrl: String, data: B, user: TokenUser, params: (String, String)*)(
+        implicit
         mf: Manifest[A],
         formats: org.json4s.Formats,
         executionContext: ExecutionContext
     ): Future[Try[A]] = {
-
       Future {
         ndlaClient.fetchWithForwardedAuth[A](
           quickRequest
             .post(uri"$endpointUrl".withParams(params: _*))
             .body(Serialization.write(data))
             .readTimeout(indexTimeout)
-            .header("content-type", "application/json", replaceExisting = true)
+            .header("content-type", "application/json", replaceExisting = true),
+          Some(user)
         )
       }
     }
 
-    def draftsWhereUsed(articleId: Long): Seq[SearchHit] = {
+    def draftsWhereUsed(articleId: Long, user: TokenUser): Seq[SearchHit] = {
       get[SearchResults](
         SearchEndpoint,
+        user,
         "embed-resource" -> "content-link,related-content",
         "embed-id"       -> s"${articleId}"
       ) match {
@@ -95,9 +98,10 @@ trait SearchApiClient {
       }
     }
 
-    def publishedWhereUsed(articleId: Long): Seq[SearchHit] = {
+    def publishedWhereUsed(articleId: Long, user: TokenUser): Seq[SearchHit] = {
       get[SearchResults](
         SearchEndpointPublished,
+        user,
         "embed-resource" -> "content-link,related-content",
         "embed-id"       -> s"${articleId}"
       ) match {
@@ -106,11 +110,11 @@ trait SearchApiClient {
       }
     }
 
-    private def get[A](endpointUrl: String, params: (String, String)*)(implicit
+    private def get[A](endpointUrl: String, user: TokenUser, params: (String, String)*)(implicit
         mf: Manifest[A],
         formats: org.json4s.Formats
     ): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params: _*)))
+      ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params: _*)), Some(user))
     }
   }
 

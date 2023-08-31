@@ -111,7 +111,8 @@ trait TaxonomyApiClient {
         formats: Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeoutSeconds)
+        quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeoutSeconds),
+        None
       )
     }
 

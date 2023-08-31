@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.language.Language
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.network.{NdlaClient, TaxonomyData}
 import org.json4s.jackson.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
@@ -32,12 +33,12 @@ trait TaxonomyApiClient {
     private val taxonomyTimeout               = 20.seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
-    def updateTaxonomyIfExists(articleId: Long, article: Draft): Try[Long] = {
+    def updateTaxonomyIfExists(articleId: Long, article: Draft, user: TokenUser): Try[Long] = {
       for {
         resources <- queryResource(articleId)
-        _         <- updateTaxonomy[Resource](resources, article.title, updateResourceTitleAndTranslations)
+        _         <- updateTaxonomy[Resource](resources, article.title, updateResourceTitleAndTranslations, user)
         topics    <- queryTopic(articleId)
-        _         <- updateTaxonomy[Topic](topics, article.title, updateTopicTitleAndTranslations)
+        _         <- updateTaxonomy[Topic](topics, article.title, updateTopicTitleAndTranslations, user)
       } yield articleId
     }
 
@@ -58,11 +59,12 @@ trait TaxonomyApiClient {
     private def updateTaxonomy[T](
         resource: Seq[T],
         titles: Seq[Title],
-        updateFunc: (T, Title, Seq[Title]) => Try[T]
+        updateFunc: (T, Title, Seq[Title], TokenUser) => Try[T],
+        user: TokenUser
     ): Try[List[T]] = {
       Language.findByLanguageOrBestEffort(titles, DefaultLanguage) match {
         case Some(title) =>
-          val updated = resource.map(updateFunc(_, title, titles))
+          val updated = resource.map(updateFunc(_, title, titles, user))
           updated
             .collect { case Failure(ex) => ex }
             .foreach(ex => logger.warn(s"Taxonomy update failed with: ${ex.getMessage}"))
@@ -75,12 +77,13 @@ trait TaxonomyApiClient {
         res: T,
         defaultTitle: Title,
         titles: Seq[Title],
-        updateFunc: T => Try[T],
+        updateFunc: (T, TokenUser) => Try[T],
         updateTranslationsFunc: Seq[Title] => Try[List[Translation]],
         getTranslationsFunc: String => Try[List[Translation]],
-        deleteTranslationFunc: Translation => Try[Unit]
+        deleteTranslationFunc: Translation => Try[Unit],
+        user: TokenUser
     ) = {
-      val resourceResult    = updateFunc(res.withName(defaultTitle.title))
+      val resourceResult    = updateFunc(res.withName(defaultTitle.title), user)
       val translationResult = updateTranslationsFunc(titles)
 
       val deleteResult = getTranslationsFunc(res.id).flatMap(translations => {
@@ -102,18 +105,20 @@ trait TaxonomyApiClient {
     private def updateTranslations(
         id: String,
         titles: Seq[Title],
-        updateTranslationFunc: (String, String, String) => Try[Translation]
+        user: TokenUser,
+        updateTranslationFunc: (String, String, String, TokenUser) => Try[Translation]
     ) = {
-      val tries = titles.map(t => updateTranslationFunc(id, t.language, t.title))
+      val tries = titles.map(t => updateTranslationFunc(id, t.language, t.title, user))
       Traverse[List].sequence(tries.toList)
     }
 
     private def updateResourceTitleAndTranslations(
         res: Resource,
         defaultTitle: Title,
-        titles: Seq[Title]
+        titles: Seq[Title],
+        user: TokenUser
     ) = {
-      val updateTranslationsFunc = updateTranslations(res.id, _: Seq[Title], updateResourceTranslation)
+      val updateTranslationsFunc = updateTranslations(res.id, _: Seq[Title], user, updateResourceTranslation)
       updateTitleAndTranslations(
         res,
         defaultTitle,
@@ -121,12 +126,18 @@ trait TaxonomyApiClient {
         updateResource,
         updateTranslationsFunc,
         getResourceTranslations,
-        (t: Translation) => deleteResourceTranslation(res.id, t)
+        (t: Translation) => deleteResourceTranslation(res.id, t, user),
+        user
       )
     }
 
-    private def updateTopicTitleAndTranslations(top: Topic, defaultTitle: Title, titles: Seq[Title]) = {
-      val updateTranslationsFunc = updateTranslations(top.id, _: Seq[Title], updateTopicTranslation)
+    private def updateTopicTitleAndTranslations(
+        top: Topic,
+        defaultTitle: Title,
+        titles: Seq[Title],
+        user: TokenUser
+    ) = {
+      val updateTranslationsFunc = updateTranslations(top.id, _: Seq[Title], user, updateTopicTranslation)
       updateTitleAndTranslations(
         top,
         defaultTitle,
@@ -134,29 +145,35 @@ trait TaxonomyApiClient {
         updateTopic,
         updateTranslationsFunc,
         getTopicTranslations,
-        (t: Translation) => deleteTopicTranslation(top.id, t)
+        (t: Translation) => deleteTopicTranslation(top.id, t, user),
+        user
       )
     }
 
-    private[integration] def updateResourceTranslation(resourceId: String, lang: String, name: String) =
-      putRaw(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$lang", Translation(name))
+    private[integration] def updateResourceTranslation(
+        resourceId: String,
+        lang: String,
+        name: String,
+        user: TokenUser
+    ) =
+      putRaw(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$lang", Translation(name), user)
 
-    private[integration] def updateTopicTranslation(topicId: String, lang: String, name: String) =
-      putRaw(s"$TaxonomyApiEndpoint/topics/$topicId/translations/$lang", Translation(name))
+    private[integration] def updateTopicTranslation(topicId: String, lang: String, name: String, user: TokenUser) =
+      putRaw(s"$TaxonomyApiEndpoint/topics/$topicId/translations/$lang", Translation(name), user)
 
-    private[integration] def updateResource(resource: Resource)(implicit formats: Formats) =
-      putRaw[Resource](s"$TaxonomyApiEndpoint/resources/${resource.id}", resource)
+    private[integration] def updateResource(resource: Resource, user: TokenUser)(implicit formats: Formats) =
+      putRaw[Resource](s"$TaxonomyApiEndpoint/resources/${resource.id}", resource, user)
 
-    private[integration] def updateTopic(topic: Topic)(implicit formats: Formats) =
-      putRaw[Topic](s"$TaxonomyApiEndpoint/topics/${topic.id}", topic)
+    private[integration] def updateTopic(topic: Topic, user: TokenUser)(implicit formats: Formats) =
+      putRaw[Topic](s"$TaxonomyApiEndpoint/topics/${topic.id}", topic, user)
 
     private[integration] def getTopicTranslations(topicId: String) =
       get[List[Translation]](s"$TaxonomyApiEndpoint/topics/$topicId/translations")
 
-    private def deleteTopicTranslation(topicId: String, translation: Translation) = {
+    private def deleteTopicTranslation(topicId: String, translation: Translation, user: TokenUser) = {
       translation.language
         .map(language => {
-          delete(s"$TaxonomyApiEndpoint/topics/$topicId/translations/$language")
+          delete(s"$TaxonomyApiEndpoint/topics/$topicId/translations/$language", user)
         })
         .getOrElse({
           logger.info(s"Cannot delete translation without language for $topicId")
@@ -167,10 +184,14 @@ trait TaxonomyApiClient {
     private[integration] def getResourceTranslations(resourceId: String) =
       get[List[Translation]](s"$TaxonomyApiEndpoint/resources/$resourceId/translations")
 
-    private[integration] def deleteResourceTranslation(resourceId: String, translation: Translation) = {
+    private[integration] def deleteResourceTranslation(
+        resourceId: String,
+        translation: Translation,
+        user: TokenUser
+    ) = {
       translation.language
         .map(language => {
-          delete(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$language")
+          delete(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$language", user)
         })
         .getOrElse({
           logger.info(s"Cannot delete translation without language for $resourceId")
@@ -178,18 +199,18 @@ trait TaxonomyApiClient {
         })
     }
 
-    def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean) = {
+    def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean, user: TokenUser) = {
       for {
         resources                      <- queryResource(articleId)
         existingResourceMetadataWithId <- resources.traverse(res => getResourceMetadata(res.id).map((res.id, _)))
         _ <- existingResourceMetadataWithId.traverse { case (resId, existingMeta) =>
-          updateResourceMetadata(resId, existingMeta.copy(visible = visible))
+          updateResourceMetadata(resId, existingMeta.copy(visible = visible), user)
         }
 
         topics                      <- queryTopic(articleId)
         existingTopicMetadataWithId <- topics.traverse(top => getTopicMetadata(top.id).map((top.id, _)))
         _ <- existingTopicMetadataWithId.traverse { case (topId, existingMeta) =>
-          updateTopicMetadata(topId, existingMeta.copy(visible = visible))
+          updateTopicMetadata(topId, existingMeta.copy(visible = visible), user)
         }
       } yield articleId
     }
@@ -202,12 +223,20 @@ trait TaxonomyApiClient {
       get[TaxonomyMetadata](s"$TaxonomyApiEndpoint/topics/$resourceId/metadata")
     }
 
-    private def updateResourceMetadata(resourceId: String, body: TaxonomyMetadata): Try[TaxonomyMetadata] = {
-      putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/resources/$resourceId/metadata", body)
+    private def updateResourceMetadata(
+        resourceId: String,
+        body: TaxonomyMetadata,
+        user: TokenUser
+    ): Try[TaxonomyMetadata] = {
+      putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/resources/$resourceId/metadata", body, user)
     }
 
-    private def updateTopicMetadata(resourceId: String, body: TaxonomyMetadata): Try[TaxonomyMetadata] = {
-      putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/topics/$resourceId/metadata", body)
+    private def updateTopicMetadata(
+        resourceId: String,
+        body: TaxonomyMetadata,
+        user: TokenUser
+    ): Try[TaxonomyMetadata] = {
+      putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/topics/$resourceId/metadata", body, user)
     }
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
@@ -215,7 +244,8 @@ trait TaxonomyApiClient {
         quickRequest
           .get(uri"$url".withParams(params: _*))
           .readTimeout(taxonomyTimeout)
-          .header(TaxonomyVersionHeader, TaxonomyData.get)
+          .header(TaxonomyVersionHeader, TaxonomyData.get),
+        None
       )
     }
 
@@ -233,18 +263,19 @@ trait TaxonomyApiClient {
     def getChildResources(uri: String): Try[List[Resource]] =
       get[List[Resource]](s"$TaxonomyApiEndpoint/nodes/${uri}/resources")
 
-    private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
+    private[integration] def delete(url: String, user: TokenUser, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
         quickRequest
           .delete(uri"$url".withParams(params: _*))
-          .readTimeout(taxonomyTimeout)
+          .readTimeout(taxonomyTimeout),
+        Some(user)
       ) match {
         case Failure(ex) => Failure(ex)
         case Success(_)  => Success(())
       }
 
-    private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
-        formats: org.json4s.Formats
+    private[integration] def putRaw[B <: AnyRef](url: String, data: B, user: TokenUser, params: (String, String)*)(
+        implicit formats: org.json4s.Formats
     ): Try[B] = {
       val uri = uri"$url".withParams(params: _*)
       logger.info(s"Doing call to $uri")
@@ -254,7 +285,7 @@ trait TaxonomyApiClient {
         .readTimeout(taxonomyTimeout)
         .header(TaxonomyVersionHeader, TaxonomyData.get)
         .header("Content-Type", "application/json", replaceExisting = true)
-      ndlaClient.fetchRawWithForwardedAuth(request) match {
+      ndlaClient.fetchRawWithForwardedAuth(request, Some(user)) match {
         case Success(_)  => Success(data)
         case Failure(ex) => Failure(ex)
       }

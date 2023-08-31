@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.conceptapi.controller.{DraftConceptController, NdlaController, PublishedConceptController}
-import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
@@ -52,7 +52,6 @@ trait TestEnvironment
     with ContentValidator
     with ImportService
     with ArticleApiClient
-    with ImageApiClient
     with NdlaClient
     with Clock
     with Props
@@ -88,6 +87,5 @@ trait TestEnvironment
 
   val ndlaClient       = mock[NdlaClient]
   val articleApiClient = mock[ArticleApiClient]
-  val imageApiClient   = mock[ImageApiClient]
 
 }

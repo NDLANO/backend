@@ -19,7 +19,8 @@ import scala.util.{Failure, Success, Try}
 case class TokenUser(
     id: String,
     permissions: Set[Permission],
-    jwt: JWTClaims
+    jwt: JWTClaims,
+    originalToken: Option[String]
 ) {
   def hasPermission(permission: Permission): Boolean             = permissions.contains(permission)
   def hasPermissions(permissions: Iterable[Permission]): Boolean = permissions.forall(hasPermission)
@@ -28,7 +29,7 @@ case class TokenUser(
 object TokenUser {
 
   /** Constructor to simplify creating testdata */
-  def apply(id: String, scopes: Set[Permission]) = {
+  def apply(id: String, scopes: Set[Permission], token: Option[String]) = {
     new TokenUser(
       id = id,
       permissions = scopes,
@@ -43,37 +44,42 @@ object TokenUser {
         ndla_id = id.some,
         user_name = id.some,
         jti = None
-      )
+      ),
+      token
     )
 
   }
 
-  val PublicUser: TokenUser = TokenUser("public", Set.empty)
-  val SystemUser: TokenUser = TokenUser("system", Permission.values.toSet)
+  val PublicUser: TokenUser = TokenUser("public", Set.empty, None)
+  val SystemUser: TokenUser = TokenUser("system", Permission.values.toSet, None)
 
   case class UserInfoException() extends RuntimeException("Could not build `TokenUser` from token.")
 
-  private def fromExtractor(jWTExtractor: JWTExtractor) = {
+  private def fromExtractor(jWTExtractor: JWTExtractor, token: String) = {
     val userId   = jWTExtractor.extractUserId()
     val roles    = jWTExtractor.extractUserRoles()
     val userName = jWTExtractor.extractUserName()
     val clientId = jWTExtractor.extractClientId()
 
     userId.orElse(clientId).orElse(userName) match {
-      case Some(userInfoName) => Success(TokenUser(userInfoName, Permission.fromStrings(roles)))
-      case None               => Failure(UserInfoException())
+      case Some(userInfoName) =>
+        Success(
+          TokenUser(userInfoName, Permission.fromStrings(roles), Some(token))
+        )
+      case None => Failure(UserInfoException())
     }
   }
 
   def fromToken(token: String): Try[TokenUser] = {
     val jWTExtractor = JWTExtractor(token)
-    fromExtractor(jWTExtractor)
+    fromExtractor(jWTExtractor, token)
   }
 
   /* Only for scalatra, function can be removed when we move to tapir everywhere :^) */
   def fromScalatraRequest(request: HttpServletRequest): Try[TokenUser] = {
-    val extractor = JWTExtractor(NdlaHttpRequest(request))
-    fromExtractor(extractor)
+    val token     = NdlaHttpRequest(request).getToken.getOrElse("")
+    val extractor = JWTExtractor(token)
+    fromExtractor(extractor, token)
   }
 
   implicit class MaybeTokenUser(self: Option[TokenUser]) {

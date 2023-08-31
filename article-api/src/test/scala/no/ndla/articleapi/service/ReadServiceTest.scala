@@ -68,7 +68,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       converterService.toApiArticleV2(
         article
           .copy(content = Seq(expectedArticleContent1), visualElement = Seq(VisualElement(visualElementAfter, "nb"))),
-        "nb"
+        "nb",
+        false
       )
     )
     readService.withIdV2(1, "nb", fallback = false, None, None) should equal(expectedResult)
@@ -272,7 +273,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         language = "nb",
         fallback = true,
         page = 1,
-        pageSize = 10
+        pageSize = 10,
+        feideAccessToken = None
       )
     result.errors.head.message should be("Query parameter 'ids' is missing")
 

@@ -279,6 +279,7 @@ trait ArticleControllerV2 {
       .out(jsonBody[Seq[ArticleV2]])
       .serverLogic { case (feideToken, ids, fallback, language, mbPageSize, mbPageNo) =>
         val pageSize = mbPageSize.getOrElse(props.DefaultPageSize) match {
+
           case tooSmall if tooSmall < 1 => props.DefaultPageSize
           case x                        => x
         }
@@ -350,7 +351,8 @@ trait ArticleControllerV2 {
       .errorOut(errorOutputsFor(410))
       .out(jsonBody[ArticleV2])
       .out(EndpointOutput.derived[DynamicHeaders])
-      .serverLogic { case (articleId, revisionQuery, feideToken, language, fallback) =>
+      .serverLogic { params =>
+        val (articleId, revisionQuery, feideToken, language, fallback) = params
         (parseArticleIdAndRevision(articleId) match {
           case (Failure(_), _) =>
             readService.getArticleBySlug(articleId, language, fallback)

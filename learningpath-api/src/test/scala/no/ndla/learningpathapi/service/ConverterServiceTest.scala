@@ -131,12 +131,17 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
       DefaultLanguage,
       false,
-      TokenUser("me", Set.empty)
+      TokenUser("me", Set.empty, None)
     ) should equal(expected)
   }
 
   test("asApiLearningpathV2 returns Failure if fallback is false and language is not supported") {
-    service.asApiLearningpathV2(domainLearningPath, "hurr-durr-lang", false, TokenUser("me", Set.empty)) should equal(
+    service.asApiLearningpathV2(
+      domainLearningPath,
+      "hurr-durr-lang",
+      false,
+      TokenUser("me", Set.empty, None)
+    ) should equal(
       Failure(NotFoundException("Language 'hurr-durr-lang' is not supported for learningpath with id '1'."))
     )
   }
@@ -176,7 +181,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
       "hurr durr I'm a language",
       true,
-      TokenUser("me", Set.empty)
+      TokenUser("me", Set.empty, None)
     ) should equal(expected)
   }
 
@@ -236,7 +241,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath,
       DefaultLanguage,
       false,
-      TokenUser("me", Set.empty)
+      TokenUser("me", Set.empty, None)
     ) should equal(learningstep)
   }
 
@@ -246,7 +251,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath,
       "hurr durr I'm a language",
       false,
-      TokenUser("me", Set.empty)
+      TokenUser("me", Set.empty, None)
     ) should equal(
       Failure(
         NotFoundException(
@@ -281,7 +286,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath,
       "hurr durr I'm a language",
       true,
-      TokenUser("me", Set.empty)
+      TokenUser("me", Set.empty, None)
     ) should equal(learningstep)
   }
 
@@ -438,9 +443,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That a apiLearningPath should only contain ownerId if admin") {
     val noAdmin =
-      service.asApiLearningpathV2(domainLearningPath, "nb", false, TokenUser(domainLearningPath.owner, Set.empty))
+      service.asApiLearningpathV2(domainLearningPath, "nb", false, TokenUser(domainLearningPath.owner, Set.empty, None))
     val admin =
-      service.asApiLearningpathV2(domainLearningPath, "nb", false, TokenUser("kwakk", Set(LEARNINGPATH_API_ADMIN)))
+      service.asApiLearningpathV2(
+        domainLearningPath,
+        "nb",
+        false,
+        TokenUser("kwakk", Set(LEARNINGPATH_API_ADMIN), None)
+      )
 
     noAdmin.get.ownerId should be(None)
     admin.get.ownerId.get should be(domainLearningPath.owner)
@@ -455,18 +465,18 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val newLp     = NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
 
     service
-      .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty))
+      .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None))
       .verificationStatus should be(LearningPathVerificationStatus.EXTERNAL)
-    service.newLearningPath(newLp, TokenUser("Me", Set.empty)).verificationStatus should be(
+    service.newLearningPath(newLp, TokenUser("Me", Set.empty, None)).verificationStatus should be(
       LearningPathVerificationStatus.EXTERNAL
     )
     service
-      .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set(LEARNINGPATH_API_ADMIN)))
+      .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set(LEARNINGPATH_API_ADMIN), None))
       .verificationStatus should be(LearningPathVerificationStatus.CREATED_BY_NDLA)
-    service.newLearningPath(newLp, TokenUser("Me", Set(LEARNINGPATH_API_PUBLISH))).verificationStatus should be(
+    service.newLearningPath(newLp, TokenUser("Me", Set(LEARNINGPATH_API_PUBLISH), None)).verificationStatus should be(
       LearningPathVerificationStatus.CREATED_BY_NDLA
     )
-    service.newLearningPath(newLp, TokenUser("Me", Set(LEARNINGPATH_API_WRITE))).verificationStatus should be(
+    service.newLearningPath(newLp, TokenUser("Me", Set(LEARNINGPATH_API_WRITE), None)).verificationStatus should be(
       LearningPathVerificationStatus.CREATED_BY_NDLA
     )
   }

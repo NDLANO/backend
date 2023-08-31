@@ -64,9 +64,7 @@ trait SearchConverterService {
     }
 
     def asSearchableImage(image: ImageMetaInformation): SearchableImage = {
-      val imageWithAgreement = converterService.withAgreementCopyright(image)
-
-      val defaultTitle = imageWithAgreement.titles
+      val defaultTitle = image.titles
         .sortBy(title => {
           val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
           languagePriority.indexOf(title.language)
@@ -74,20 +72,19 @@ trait SearchConverterService {
         .lastOption
 
       SearchableImage(
-        id = imageWithAgreement.id.get,
-        titles =
-          SearchableLanguageValues(imageWithAgreement.titles.map(title => LanguageValue(title.language, title.title))),
+        id = image.id.get,
+        titles = SearchableLanguageValues(image.titles.map(title => LanguageValue(title.language, title.title))),
         alttexts = SearchableLanguageValues(
-          imageWithAgreement.alttexts.map(alttext => LanguageValue(alttext.language, alttext.alttext))
+          image.alttexts.map(alttext => LanguageValue(alttext.language, alttext.alttext))
         ),
         captions = SearchableLanguageValues(
-          imageWithAgreement.captions.map(caption => LanguageValue(caption.language, caption.caption))
+          image.captions.map(caption => LanguageValue(caption.language, caption.caption))
         ),
-        tags = SearchableLanguageList(imageWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+        tags = SearchableLanguageList(image.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         contributors = image.copyright.creators.map(c => c.name) ++ image.copyright.processors
           .map(p => p.name) ++ image.copyright.rightsholders.map(r => r.name),
-        license = imageWithAgreement.copyright.license,
-        lastUpdated = imageWithAgreement.updated,
+        license = image.copyright.license,
+        lastUpdated = image.updated,
         defaultTitle = defaultTitle.map(t => t.title),
         modelReleased = Some(image.modelReleased.toString),
         editorNotes = image.editorNotes.map(_.note),

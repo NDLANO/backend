@@ -8,17 +8,15 @@
 package no.ndla.searchapi.service
 
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.common.model.domain.article.Article
 import no.ndla.network.ApplicationUrl
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.DraftApiClient
 import no.ndla.searchapi.model.api
 import no.ndla.searchapi.model.api.LearningPathIntroduction
 import no.ndla.searchapi.model.api.article.ArticleIntroduction
 import no.ndla.searchapi.model.domain._
 
 trait ConverterService {
-  this: DraftApiClient with Props =>
+  this: Props =>
   val converterService: ConverterService
 
   class ConverterService {
@@ -120,22 +118,5 @@ trait ConverterService {
       val url = audio.url.withHost(host).withScheme(scheme).toString
       api.AudioResult(audio.id, api.Title(audio.title.title, audio.title.language), url, audio.supportedLanguages)
     }
-
-    def withAgreementCopyright(article: Article): Article = {
-      val agreementCopyright = article.copyright.agreementId
-        .flatMap(aid => draftApiClient.getAgreementCopyright(aid))
-        .getOrElse(article.copyright)
-
-      article.copy(
-        copyright = article.copyright.copy(
-          license = agreementCopyright.license,
-          creators = agreementCopyright.creators,
-          rightsholders = agreementCopyright.rightsholders,
-          validFrom = agreementCopyright.validFrom,
-          validTo = agreementCopyright.validTo
-        )
-      )
-    }
-
   }
 }

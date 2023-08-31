@@ -51,7 +51,6 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     List(),
     List(),
     None,
-    None,
     None
   )
 
@@ -62,7 +61,6 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     List(),
     List(),
     None,
-    None,
     None
   )
 
@@ -72,7 +70,6 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     List(Author("Forfatter", "Clark Kent")),
     List(),
     List(),
-    None,
     None,
     None
   )

@@ -13,7 +13,6 @@ import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.UrlPath
 import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
   DBImageMetaInformation,
@@ -36,7 +35,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with DraftApiClient with Props with DBImageFile with DBImageMetaInformation =>
+  this: Clock with Props with DBImageFile with DBImageMetaInformation =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
@@ -125,7 +124,7 @@ trait ConverterService {
               metaUrl = baseUrl + imageMeta.id.get,
               title = title,
               alttext = alttext,
-              copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
+              copyright = asApiCopyright(imageMeta.copyright),
               tags = tags,
               caption = caption,
               supportedLanguages = supportedLanguages,
@@ -201,7 +200,7 @@ trait ConverterService {
               imageUrl = apiUrl,
               size = image.size,
               contentType = image.contentType,
-              copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
+              copyright = asApiCopyright(imageMeta.copyright),
               tags = tags,
               caption = caption,
               supportedLanguages = supportedLanguages,
@@ -213,34 +212,6 @@ trait ConverterService {
             )
         )
       })
-    }
-
-    def withAgreementCopyright(image: ImageMetaInformation): ImageMetaInformation = {
-      val agreementCopyright = image.copyright.agreementId
-        .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
-        .getOrElse(image.copyright)
-
-      image.copy(
-        copyright = image.copyright.copy(
-          license = agreementCopyright.license,
-          creators = agreementCopyright.creators,
-          rightsholders = agreementCopyright.rightsholders,
-          validFrom = agreementCopyright.validFrom,
-          validTo = agreementCopyright.validTo
-        )
-      )
-    }
-
-    def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
-      val agreementCopyright =
-        copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
-      copyright.copy(
-        license = agreementCopyright.license,
-        creators = agreementCopyright.creators,
-        rightsholders = agreementCopyright.rightsholders,
-        validFrom = agreementCopyright.validFrom,
-        validTo = agreementCopyright.validTo
-      )
     }
 
     def asApiImageTag(domainImageTag: common.Tag): api.ImageTag = {

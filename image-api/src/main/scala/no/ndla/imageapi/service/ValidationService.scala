@@ -10,7 +10,6 @@ package no.ndla.imageapi.service
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
@@ -21,7 +20,7 @@ import org.scalatra.servlet.FileItem
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: DraftApiClient with Props with DBImageMetaInformation =>
+  this: Props with DBImageMetaInformation =>
   val validationService: ValidationService
 
   class ValidationService {
@@ -110,19 +109,7 @@ trait ValidationService {
         copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, props.creatorTypes)) ++
         copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, props.processorTypes)) ++
         copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, props.rightsholderTypes)) ++
-        containsNoHtml("copyright.origin", copyright.origin) ++
-        validateAgreement(copyright)
-    }
-
-    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
-      copyright.agreementId match {
-        case Some(id) =>
-          draftApiClient.agreementExists(id) match {
-            case false => Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
-            case _     => Seq()
-          }
-        case _ => Seq()
-      }
+        containsNoHtml("copyright.origin", copyright.origin)
     }
 
     def validateLicense(license: String): Seq[ValidationMessage] = {

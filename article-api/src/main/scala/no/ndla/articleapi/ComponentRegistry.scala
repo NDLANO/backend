@@ -47,7 +47,6 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with NdlaSwaggerSupport
     with ArticleRepository
     with Elastic4sClient
-    with DraftApiClient
     with SearchApiClient
     with FeideApiClient
     with RedisClient
@@ -97,7 +96,6 @@ class ComponentRegistry(properties: ArticleApiProperties)
   lazy val writeService           = new WriteService
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
-  lazy val draftApiClient      = new DraftApiClient
   lazy val searchApiClient     = new SearchApiClient
   lazy val feideApiClient      = new FeideApiClient
   lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)

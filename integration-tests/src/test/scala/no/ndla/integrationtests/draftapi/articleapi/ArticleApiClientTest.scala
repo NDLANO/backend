@@ -14,6 +14,7 @@ import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
@@ -67,7 +68,6 @@ class ArticleApiClientTest
     Seq.empty,
     Seq.empty,
     None,
-    None,
     None
   )
 
@@ -114,6 +114,7 @@ class ArticleApiClientTest
   val exampleToken =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJhcnRpY2xlczpwdWJsaXNoIiwiZHJhZnRzOndyaXRlIiwiZHJhZnRzOnNldF90b19wdWJsaXNoIiwiYXJ0aWNsZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.v6q6y6owx9VXri1h4FJJHDAnMllmNYFAAT2b9CJLm88"
   val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
+  val authUser                           = TokenUser.SystemUser.copy(originalToken = Some(exampleToken))
 
   class LocalArticleApiTestData extends articleapi.Props with articleapi.TestData {
     override val props: ArticleApiProperties = articleApiProperties
@@ -150,7 +151,8 @@ class ArticleApiClientTest
       testArticle,
       List("1234"),
       useImportValidation = false,
-      useSoftValidation = false
+      useSoftValidation = false,
+      authUser
     )
     response.isSuccess should be(true)
   }
@@ -160,14 +162,14 @@ class ArticleApiClientTest
     val contentId = ContentId(1)
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
-    articleApiClient.deleteArticle(1).get should be(contentId)
+    articleApiClient.deleteArticle(1, authUser).get should be(contentId)
   }
 
   test("that unpublishing an article returns 200") {
     dataFixer.setupArticles()
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
-    articleApiCient.unpublishArticle(testArticle).get
+    articleApiCient.unpublishArticle(testArticle, authUser).get
   }
 
   test("that verifying an article returns 200 if valid") {
@@ -175,7 +177,7 @@ class ArticleApiClientTest
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result = converterService
       .toArticleApiArticle(testArticle)
-      .flatMap(article => articleApiCient.validateArticle(article, importValidate = false))
+      .flatMap(article => articleApiCient.validateArticle(article, importValidate = false, None))
     println(result)
     result.isSuccess should be(true)
   }
@@ -185,7 +187,7 @@ class ArticleApiClientTest
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result = converterService
       .toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))))
-      .flatMap(article => articleApiCient.validateArticle(article, importValidate = false))
+      .flatMap(article => articleApiCient.validateArticle(article, importValidate = false, None))
     result.isSuccess should be(false)
   }
 }

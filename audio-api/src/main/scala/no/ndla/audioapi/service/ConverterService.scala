@@ -11,7 +11,6 @@ package no.ndla.audioapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
@@ -25,7 +24,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with DraftApiClient with Props =>
+  this: Clock with Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
@@ -97,34 +96,6 @@ trait ConverterService {
       )
     }
 
-    def withAgreementCopyright(audio: AudioMetaInformation): AudioMetaInformation = {
-      val agreementCopyright = audio.copyright.agreementId
-        .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
-        .getOrElse(audio.copyright)
-
-      audio.copy(
-        copyright = audio.copyright.copy(
-          license = agreementCopyright.license,
-          creators = agreementCopyright.creators,
-          rightsholders = agreementCopyright.rightsholders,
-          validFrom = agreementCopyright.validFrom,
-          validTo = agreementCopyright.validTo
-        )
-      )
-    }
-
-    def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
-      val agreementCopyright =
-        copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
-      copyright.copy(
-        license = agreementCopyright.license,
-        creators = agreementCopyright.creators,
-        rightsholders = agreementCopyright.rightsholders,
-        validFrom = agreementCopyright.validFrom,
-        validTo = agreementCopyright.validTo
-      )
-    }
-
     def toApiAudioMetaInformation(
         audioMeta: domain.AudioMetaInformation,
         language: Option[String]
@@ -138,7 +109,7 @@ trait ConverterService {
           revision = audioMeta.revision.get,
           title = maybeToApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
           audioFile = toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
-          copyright = withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
+          copyright = toApiCopyright(audioMeta.copyright),
           tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
           supportedLanguages = audioMeta.supportedLanguages,
           audioType = audioMeta.audioType.toString,
@@ -176,17 +147,14 @@ trait ConverterService {
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
-      withAgreementCopyright(
-        api.Copyright(
-          toApiLicence(copyright.license),
-          copyright.origin,
-          copyright.creators.map(toApiAuthor),
-          copyright.processors.map(toApiAuthor),
-          copyright.rightsholders.map(toApiAuthor),
-          copyright.agreementId,
-          copyright.validFrom,
-          copyright.validTo
-        )
+      api.Copyright(
+        toApiLicence(copyright.license),
+        copyright.origin,
+        copyright.creators.map(toApiAuthor),
+        copyright.processors.map(toApiAuthor),
+        copyright.rightsholders.map(toApiAuthor),
+        copyright.validFrom,
+        copyright.validTo
       )
 
     def toApiLicence(licenseAbbrevation: String): api.License = {
@@ -278,7 +246,6 @@ trait ConverterService {
         copyright.creators.map(toDomainAuthor),
         copyright.processors.map(toDomainAuthor),
         copyright.rightsholders.map(toDomainAuthor),
-        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
       )

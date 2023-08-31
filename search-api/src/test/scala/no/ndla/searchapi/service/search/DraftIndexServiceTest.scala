@@ -75,7 +75,6 @@ class DraftIndexServiceTest
           creators = Seq(Author("writer", "Jonas")),
           processors = Seq(Author("writer", "Jonas")),
           rightsholders = Seq(Author("writer", "Jonas")),
-          agreementId = None,
           validFrom = Some(now),
           validTo = Some(now)
         )

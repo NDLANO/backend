@@ -276,7 +276,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("newNotes should fail if empty strings are recieved") {
     service
-      .newNotes(Seq("", "jonas"), TokenUser.apply("Kari", Set.empty), Status(DraftStatus.IN_PROGRESS, Set.empty))
+      .newNotes(Seq("", "jonas"), TokenUser.apply("Kari", Set.empty, None), Status(DraftStatus.IN_PROGRESS, Set.empty))
       .isFailure should be(true)
   }
 
@@ -1056,7 +1056,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       status = Status(PLANNED, Set.empty),
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
-      copyright = Some(Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+      copyright = Some(Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
       tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
       visualElement = Seq(VisualElement("e", "nb")),
@@ -1088,7 +1088,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
       copyright =
-        common.model.domain.article.Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None, None),
+        common.model.domain.article.Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None),
       tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
       visualElement = Seq(VisualElement("e", "nb")),

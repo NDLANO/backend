@@ -8,21 +8,20 @@
 
 package no.ndla.audioapi.service.search
 
-import no.ndla.audioapi.{TestEnvironment, UnitSuite}
-import no.ndla.audioapi.model.{api, domain}
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
+import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.search.SearchableAudioInformation
+import no.ndla.audioapi.model.{api, domain}
+import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import org.mockito.invocation.InvocationOnMock
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
+    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None)
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   def created(): NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
@@ -81,11 +80,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-  override def beforeAll(): Unit = {
-    when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[AudioMetaInformation](0)
-    )
-  }
+  override def beforeAll(): Unit = {}
 
   test("That asSearchableAudioInformation converts titles with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
@@ -106,13 +101,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
     verifyTitles(searchableAudio.get)
     verifyTags(searchableAudio.get)
-  }
-
-  test("That asSearchableArticle converts audio with license from agreement") {
-    when(converterService.withAgreementCopyright(any[AudioMetaInformation]))
-      .thenReturn(sampleAudio.copy(copyright = sampleAudio.copyright.copy(license = "gnu")))
-    val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio).get
-    searchableAudio.license should equal("gnu")
   }
 
   private def verifyTitles(searchableAudio: SearchableAudioInformation): Unit = {

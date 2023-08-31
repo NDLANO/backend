@@ -41,7 +41,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Some(ModelReleasedStatus.YES.toString)
   )
   val userId             = "ndla124"
-  val userWithWriteScope = TokenUser(userId, Set(IMAGE_API_WRITE))
+  val userWithWriteScope = TokenUser(userId, Set(IMAGE_API_WRITE), None)
 
   def updated() = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
@@ -262,7 +262,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("converter to domain should set updatedBy from authUser and updated date") {
-    val tokenUser = TokenUser("ndla54321", Set(IMAGE_API_WRITE))
+    val tokenUser = TokenUser("ndla54321", Set(IMAGE_API_WRITE), None)
     when(clock.now()).thenReturn(updated())
     val domain =
       converterService

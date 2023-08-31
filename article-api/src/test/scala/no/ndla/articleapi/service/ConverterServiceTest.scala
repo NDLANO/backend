@@ -44,28 +44,29 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Success(TestData.apiArticleV2))
+    service.toApiArticleV2(TestData.sampleDomainArticle, "nb", false) should equal(Success(TestData.apiArticleV2))
   }
 
   test("that toApiArticleV2 returns sorted supportedLanguages") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticleV2(
       TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
-      "nb"
+      "nb",
+      false
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))
   }
 
   test("toApiArticleV2 returns None when language is not supported") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage").isFailure should be(true)
-    service.toApiArticleV2(TestData.sampleDomainArticle, "").isFailure should be(true)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage", false).isFailure should be(true)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "", false).isFailure should be(true)
   }
 
   test("toApiArticleV2 should always an article if language neutral") {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("und")
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(domainArticle, "someRandomLanguage").isSuccess should be(true)
+    service.toApiArticleV2(domainArticle, "someRandomLanguage", false).isSuccess should be(true)
   }
 
   test(
@@ -73,48 +74,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   ) {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("en")
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(domainArticle, "someRandomLanguage").isFailure should be(true)
-  }
-
-  test("toApiArticleV2 converts a domain.Article to an api.ArticleV2 with Agreement Copyright") {
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    val from = NDLADate.now().minusDays(5)
-    val to   = NDLADate.now().plusDays(10)
-    val agreementCopyright = api.Copyright(
-      api.License("gnu", Some("gpl"), None),
-      "http://tjohei.com/",
-      List(),
-      List(),
-      List(api.Author("Supplier", "Mads LakseService")),
-      None,
-      Some(from),
-      Some(to)
-    )
-    when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
-
-    val apiArticle = service.toApiArticleV2(
-      TestData.sampleDomainArticle.copy(
-        copyright = TestData.sampleDomainArticle.copyright.copy(
-          processors = List(Author("Idea", "Kaptein Snabelfant")),
-          rightsholders = List(Author("Publisher", "KjeksOgKakerAS")),
-          agreementId = Some(1)
-        )
-      ),
-      "nb"
-    )
-
-    apiArticle.get.copyright.creators.size should equal(0)
-    apiArticle.get.copyright.processors.head.name should equal("Kaptein Snabelfant")
-    apiArticle.get.copyright.rightsholders.head.name should equal("Mads LakseService")
-    apiArticle.get.copyright.rightsholders.size should equal(1)
-    apiArticle.get.copyright.license.license should equal("gnu")
-    apiArticle.get.copyright.validFrom.get should equal(from)
-    apiArticle.get.copyright.validTo.get should equal(to)
+    service.toApiArticleV2(domainArticle, "someRandomLanguage", false).isFailure should be(true)
   }
 
   test("that toApiArticleV2 returns none if article does not exist on language, and fallback is not specified") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en")
+    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", false)
     result.isFailure should be(true)
   }
 
@@ -226,7 +191,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None),
       metaDescription = Seq(Description("gammelDesc", "nb")),
       relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       tags = Seq(Tag(Seq("gammel", "Tag"), "nb"))
@@ -253,7 +218,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None),
       metaDescription = Seq(Description("nyDesc", "nb")),
       relatedContent = Seq(
         Left(RelatedContentLink("New Title", "New Url")),
@@ -272,7 +237,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None),
       metaDescription = Seq(Description("oldDesc", "de")),
       relatedContent =
         Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
@@ -305,7 +270,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None),
       metaDescription = Seq(Description("neuDesc", "de")),
       relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
       tags = Seq(Tag(Seq("Guten", "Tag"), "de")),

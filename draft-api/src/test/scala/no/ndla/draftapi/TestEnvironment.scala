@@ -16,7 +16,7 @@ import no.ndla.draftapi.controller._
 import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.model.domain.DBArticle
-import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
+import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
@@ -33,8 +33,6 @@ trait TestEnvironment
     with TagIndexService
     with GrepCodesSearchService
     with GrepCodesIndexService
-    with AgreementSearchService
-    with AgreementIndexService
     with IndexService
     with BaseIndexService
     with SearchService
@@ -42,19 +40,16 @@ trait TestEnvironment
     with DraftController
     with InternController
     with HealthController
-    with AgreementController
     with UserDataController
     with ReindexClient
     with DataSource
     with TaxonomyApiClient
     with H5PApiClient
     with DraftRepository
-    with AgreementRepository
     with UserDataRepository
     with MockitoSugar
     with ConverterService
     with StateTransitionRules
-    with ConceptApiClient
     with LearningpathApiClient
     with NdlaClient
     with SearchConverterService
@@ -86,21 +81,17 @@ trait TestEnvironment
   val tagIndexService        = mock[TagIndexService]
   val grepCodesSearchService = mock[GrepCodesSearchService]
   val grepCodesIndexService  = mock[GrepCodesIndexService]
-  val agreementSearchService = mock[AgreementSearchService]
-  val agreementIndexService  = mock[AgreementIndexService]
 
-  val internController    = mock[InternController]
-  val draftController     = mock[DraftController]
-  val fileController      = mock[FileController]
-  val agreementController = mock[AgreementController]
-  val userDataController  = mock[UserDataController]
+  val internController   = mock[InternController]
+  val draftController    = mock[DraftController]
+  val fileController     = mock[FileController]
+  val userDataController = mock[UserDataController]
 
   val healthController = mock[HealthController]
 
-  val dataSource          = mock[HikariDataSource]
-  val draftRepository     = mock[ArticleRepository]
-  val agreementRepository = mock[AgreementRepository]
-  val userDataRepository  = mock[UserDataRepository]
+  val dataSource         = mock[HikariDataSource]
+  val draftRepository    = mock[ArticleRepository]
+  val userDataRepository = mock[UserDataRepository]
 
   val converterService = mock[ConverterService]
 
@@ -124,6 +115,5 @@ trait TestEnvironment
   val articleApiClient  = mock[ArticleApiClient]
   val searchApiClient   = mock[SearchApiClient]
   val taxonomyApiClient = mock[TaxonomyApiClient]
-  val conceptApiClient  = mock[ConceptApiClient]
   val h5pApiClient      = mock[H5PApiClient]
 }

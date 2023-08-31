@@ -15,7 +15,6 @@ import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
 
 import scala.util.Success
@@ -38,7 +37,7 @@ class AudioSearchServiceTest
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
+    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None)
 
   val publicDomain: Copyright = Copyright(
     "publicdomain",
@@ -47,12 +46,11 @@ class AudioSearchServiceTest
     Seq(),
     Seq(),
     None,
-    None,
     None
   )
 
   val copyrighted: Copyright =
-    Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
+    Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None)
 
   val updated1: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val updated2: NDLADate = NDLADate.of(2017, 5, 1, 12, 15, 32)
@@ -152,7 +150,7 @@ class AudioSearchServiceTest
     Some(1),
     List(Title("Synge sangen", "nb")),
     List(Audio("file5.mp3", "audio/mpeg", 1024, "nb")),
-    byNcSa.copy(agreementId = Some(1)),
+    byNcSa,
     List(Tag(List("synge"), "nb")),
     "ndla124",
     updated1,
@@ -223,12 +221,6 @@ class AudioSearchServiceTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[AudioMetaInformation](0)
-    )
-    when(converterService.withAgreementCopyright(audio5))
-      .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
-
     when(converterService.findAndConvertDomainToApiField(any, any, any)(any)).thenCallRealMethod()
     when(converterService.toApiManuscript(any)).thenCallRealMethod()
     when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
@@ -425,14 +417,6 @@ class AudioSearchServiceTest
     result1.results.head.supportedLanguages should be(audio4.titles.map(_.language))
     // 'Pingvinen' with 'nb', 'nn'
     result2.results(1).supportedLanguages should be(audio2.manuscript.map(_.language))
-  }
-
-  test("Agreement information should be used in search") {
-    val Success(searchResult) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("Synge sangen")))
-    searchResult.totalCount should be(1)
-    searchResult.results.size should be(1)
-    searchResult.results.head.id should be(5)
-    searchResult.results.head.license should equal("gnu")
   }
 
   test("that hit is converted to summary correctly") {

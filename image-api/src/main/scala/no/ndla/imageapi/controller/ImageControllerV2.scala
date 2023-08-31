@@ -10,7 +10,6 @@ package no.ndla.imageapi.controller
 
 import no.ndla.common.errors.ValidationException
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.api.{
   Error,
   ErrorHelpers,
@@ -39,7 +38,6 @@ trait ImageControllerV2 {
     with ConverterService
     with ReadService
     with WriteService
-    with DraftApiClient
     with SearchConverterService
     with NdlaController
     with DBImageMetaInformation

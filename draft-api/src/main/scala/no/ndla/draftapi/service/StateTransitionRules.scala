@@ -36,7 +36,6 @@ trait StateTransitionRules {
     with ArticleApiClient
     with TaxonomyApiClient
     with LearningpathApiClient
-    with ConceptApiClient
     with H5PApiClient
     with ConverterService
     with ContentValidator
@@ -49,8 +48,8 @@ trait StateTransitionRules {
     // Import implicits to clean up SideEffect creation where we don't need all parameters
     import SideEffect.implicits._
 
-    private[service] val checkIfArticleIsInUse: SideEffect = (article: Draft) =>
-      doIfArticleIsNotInUse(article.id.getOrElse(1)) {
+    private[service] val checkIfArticleIsInUse: SideEffect = (article: Draft, _, user: TokenUser) =>
+      doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
         Success(article)
       }
 
@@ -63,37 +62,38 @@ trait StateTransitionRules {
       Success(article.copy(responsible = Some(responsible)))
     }
 
-    private[service] val unpublishArticle: SideEffect = (article: Draft) =>
-      doIfArticleIsNotInUse(article.id.getOrElse(1)) {
+    private[service] val unpublishArticle: SideEffect = (article: Draft, _, user: TokenUser) =>
+      doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
         article.id match {
           case Some(id) =>
-            val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false)
-            val articleUpdT  = articleApiClient.unpublishArticle(article)
+            val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false, user)
+            val articleUpdT  = articleApiClient.unpublishArticle(article, user)
             val failures     = Seq(taxMetadataT, articleUpdT).collectFirst { case Failure(ex) => Failure(ex) }
             failures.getOrElse(articleUpdT)
           case _ => Failure(NotFoundException("This is a bug, article to unpublish has no id."))
         }
       }
 
-    private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean, _: TokenUser) => {
+    private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean, user: TokenUser) => {
       val validatedArticle = converterService.toArticleApiArticle(draft) match {
         case Failure(ex)      => Failure(ex)
-        case Success(article) => articleApiClient.validateArticle(article, isImported)
+        case Success(article) => articleApiClient.validateArticle(article, isImported, Some(user))
       }
       validatedArticle.map(_ => draft)
     }
 
     private def publishArticleSideEffect(useSoftValidation: Boolean): SideEffect =
-      (article, isImported, _) =>
+      (article, isImported, user) =>
         article.id match {
           case Some(id) =>
             val externalIds = draftRepository.getExternalIdsFromId(id)(ReadOnlyAutoSession)
 
             val h5pPaths = converterService.getEmbeddedH5PPaths(article)
-            h5pApiClient.publishH5Ps(h5pPaths): Unit
+            h5pApiClient.publishH5Ps(h5pPaths, user): Unit
 
-            val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article)
-            val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation)
+            val taxonomyT = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
+            val articleUdpT =
+              articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation, user)
             val failures = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
               Failure(ex)
             }
@@ -291,18 +291,18 @@ trait StateTransitionRules {
         }
     }
 
-    private[this] def learningPathsUsingArticle(articleId: Long): Seq[LearningPath] = {
-      learningpathApiClient.getLearningpathsWithId(articleId) match {
+    private[this] def learningPathsUsingArticle(articleId: Long, user: TokenUser): Seq[LearningPath] = {
+      learningpathApiClient.getLearningpathsWithId(articleId, user) match {
         case Success(learningpaths) => learningpaths
         case _                      => Seq.empty
       }
     }
 
-    private def doIfArticleIsNotInUse(articleId: Long)(callback: => Try[Draft]): Try[Draft] =
+    private def doIfArticleIsNotInUse(articleId: Long, user: TokenUser)(callback: => Try[Draft]): Try[Draft] =
       (
-        searchApiClient.draftsWhereUsed(articleId),
-        searchApiClient.publishedWhereUsed(articleId),
-        learningPathsUsingArticle(articleId)
+        searchApiClient.draftsWhereUsed(articleId, user),
+        searchApiClient.publishedWhereUsed(articleId, user),
+        learningPathsUsingArticle(articleId, user)
       ) match {
         case (Nil, Nil, Nil) => callback
         case (draftsUsingArticle, publishedUsingArticle, pathsUsingArticle) =>

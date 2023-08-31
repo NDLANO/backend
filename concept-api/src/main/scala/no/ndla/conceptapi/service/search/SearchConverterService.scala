@@ -121,7 +121,6 @@ trait SearchConverterService {
           creators = c.creators.map(converterService.toApiAuthor),
           processors = c.processors.map(converterService.toApiAuthor),
           rightsholders = c.rightsholders.map(converterService.toApiAuthor),
-          agreementId = None,
           validFrom = None,
           validTo = None
         )

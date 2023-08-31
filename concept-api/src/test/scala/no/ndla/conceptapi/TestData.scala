@@ -29,9 +29,9 @@ object TestData {
   val authHeaderWithAllRoles =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJjb25jZXB0OndyaXRlIiwiY29uY2VwdDphZG1pbiJdLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.RYX5urIY8B5dRxMUgesTLbABjRZ5k-Jc3KMDLz99UnU"
 
-  val userWithNoRoles               = TokenUser("unit test", Set.empty)
-  val userWithWriteAccess           = TokenUser("unit test", Set(CONCEPT_API_WRITE))
-  val userWithWriteAndPublishAccess = TokenUser("unit test", Set(CONCEPT_API_ADMIN, CONCEPT_API_WRITE))
+  val userWithNoRoles               = TokenUser("unit test", Set.empty, None)
+  val userWithWriteAccess           = TokenUser("unit test", Set(CONCEPT_API_WRITE), None)
+  val userWithWriteAndPublishAccess = TokenUser("unit test", Set(CONCEPT_API_ADMIN, CONCEPT_API_WRITE), None)
 
   val today     = NDLADate.now().minusDays(0)
   val yesterday = NDLADate.now().minusDays(1)
@@ -94,7 +94,7 @@ object TestData {
     title = Seq(common.Title("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright =
-      Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+      Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
     source = None,
     created = NDLADate.now().minusDays(4),
     updated = NDLADate.now().minusDays(2),

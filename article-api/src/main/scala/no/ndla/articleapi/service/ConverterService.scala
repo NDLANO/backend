@@ -11,7 +11,6 @@ package no.ndla.articleapi.service
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchableArticle
@@ -45,7 +44,7 @@ import org.json4s.native.Serialization.read
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ArticleRepository with DraftApiClient with Props =>
+  this: Clock with ArticleRepository with Props =>
   val converterService: ConverterService
 
   import props._
@@ -229,35 +228,7 @@ trait ConverterService {
         authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase))
       val rightsholders =
         authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
-      Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None, None)
-    }
-
-    def withAgreementCopyright(article: Article): Article = {
-      val agreementCopyright = article.copyright.agreementId
-        .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
-        .getOrElse(article.copyright)
-
-      article.copy(
-        copyright = article.copyright.copy(
-          license = agreementCopyright.license,
-          creators = agreementCopyright.creators,
-          rightsholders = agreementCopyright.rightsholders,
-          validFrom = agreementCopyright.validFrom,
-          validTo = agreementCopyright.validTo
-        )
-      )
-    }
-
-    def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
-      val agreementCopyright =
-        copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
-      copyright.copy(
-        license = agreementCopyright.license,
-        creators = agreementCopyright.creators,
-        rightsholders = agreementCopyright.rightsholders,
-        validFrom = agreementCopyright.validFrom,
-        validTo = agreementCopyright.validTo
-      )
+      Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None)
     }
 
     def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
@@ -274,7 +245,6 @@ trait ConverterService {
         copyright.creators.map(toDomainAuthor),
         copyright.processors.map(toDomainAuthor),
         copyright.rightsholders.map(toDomainAuthor),
-        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
       )
@@ -299,7 +269,11 @@ trait ConverterService {
       )
     }
 
-    def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
+    def toApiArticleV2(
+        article: Article,
+        language: String,
+        fallback: Boolean
+    ): Try[api.ArticleV2] = {
       val supportedLanguages = getSupportedArticleLanguages(article)
       val isLanguageNeutral  = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
@@ -319,6 +293,7 @@ trait ConverterService {
           .map(toApiArticleContentV2)
           .getOrElse(api.ArticleContentV2("", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
+        val copyright = toApiCopyright(article.copyright)
 
         Success(
           api.ArticleV2(
@@ -327,7 +302,7 @@ trait ConverterService {
             article.revision.get,
             title,
             articleContent,
-            withAgreementCopyright(toApiCopyright(article.copyright)),
+            copyright,
             tags,
             article.requiredLibraries.map(toApiRequiredLibrary),
             visualElement,
@@ -384,7 +359,6 @@ trait ConverterService {
         copyright.creators.map(toApiAuthor),
         copyright.processors.map(toApiAuthor),
         copyright.rightsholders.map(toApiAuthor),
-        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
       )
