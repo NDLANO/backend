@@ -29,16 +29,16 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
     s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   def ConceptRoleWithWriteAccess = "concept:write"
 
-  def ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
+  def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  def MetaUserName: String         = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String         = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String         = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String           = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int                = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String           = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections           = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def SearchServer: String                = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
   def DraftConceptSearchIndex: String     = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
@@ -65,6 +65,6 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
     ResourceType.H5P.toString   -> H5PAddress,
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
-    "raw-image"                 -> s"$Domain/image-api/raw/id",
+    "raw-image"                 -> s"$Domain/image-api/raw/id"
   )
 }
