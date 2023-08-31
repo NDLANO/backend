@@ -114,7 +114,6 @@ export interface ICopyright {
   creators: IAuthor[]
   processors: IAuthor[]
   rightsholders: IAuthor[]
-  agreementId?: number
   validFrom?: string
   validTo?: string
 }

@@ -2,30 +2,6 @@
 
 export type Availability = ("decoder" | "encoder" | "everyone" | "teacher")
 
-export interface IAgreement {
-  id: number
-  title: string
-  content: string
-  copyright: ICopyright
-  created: string
-  updated: string
-  updatedBy: string
-}
-
-export interface IAgreementSearchResult {
-  totalCount: number
-  page?: number
-  pageSize: number
-  language: string
-  results: IAgreementSummary[]
-}
-
-export interface IAgreementSummary {
-  id: number
-  title: string
-  license: string
-}
-
 export interface IArticle {
   id: number
   oldNdlaUrl?: string
@@ -127,7 +103,6 @@ export interface ICopyright {
   creators: IAuthor[]
   processors: IAuthor[]
   rightsholders: IAuthor[]
-  agreementId?: number
   validFrom?: string
   validTo?: string
 }
@@ -155,23 +130,6 @@ export interface ILicense {
   license: string
   description?: string
   url?: string
-}
-
-export interface INewAgreement {
-  title: string
-  content: string
-  copyright: INewAgreementCopyright
-}
-
-export interface INewAgreementCopyright {
-  license?: ILicense
-  origin?: string
-  creators: IAuthor[]
-  processors: IAuthor[]
-  rightsholders: IAuthor[]
-  agreementId?: number
-  validFrom?: string
-  validTo?: string
 }
 
 export interface INewArticle {
@@ -247,12 +205,6 @@ export interface ITagsSearchResult {
   pageSize: number
   language: string
   results: string[]
-}
-
-export interface IUpdatedAgreement {
-  title?: string
-  content?: string
-  copyright?: INewAgreementCopyright
 }
 
 export interface IUpdatedArticle {
