@@ -589,5 +589,10 @@ trait FolderRepository {
         .single()
     }
 
+    def numberOfResourcesGrouped()(implicit session: DBSession = ReadOnlyAutoSession): List[(Long, String)] = {
+      sql"select count(*) as antall, resource_type from ${DBResource.table} group by resource_type"
+        .map(rs => (rs.long("antall"), rs.string("resource_type")))
+        .list()
+    }
   }
 }
