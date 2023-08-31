@@ -29,7 +29,7 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
     s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   def ConceptRoleWithWriteAccess = "concept:write"
 
-  def ApplicationPort         = propOrElse("APPLICATION_PORT", "80").toInt
+  def ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
   def MetaUserName: String         = prop(PropertyKeys.MetaUserNameKey)
@@ -39,11 +39,8 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
   def MetaPort: Int                = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String           = prop(PropertyKeys.MetaSchemaKey)
   def MetaMaxConnections           = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
-  def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
-  def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
-  def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-
+  def SearchServer: String                = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
   def DraftConceptSearchIndex: String     = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
   def PublishedConceptSearchIndex: String = propOrElse("PUBLISHED_CONCEPT_SEARCH_INDEX_NAME", "publishedconcepts")
   def ConceptSearchDocument               = "concept"
@@ -65,8 +62,9 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
   )
 
   def externalApiUrls: Map[String, String] = Map(
+    ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
+    ResourceType.H5P.toString   -> H5PAddress,
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
     "raw-image"                 -> s"$Domain/image-api/raw/id",
-    ResourceType.H5P.toString   -> H5PAddress
   )
 }
