@@ -28,7 +28,7 @@ import no.ndla.network.tapir.{Service, TapirErrorHelpers}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.CommaSeparated
+import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -174,7 +174,7 @@ trait InternController {
 
     def updateArticle: ServerEndpoint[Any, IO] = endpoint.post
       .in("article" / path[Long]("id"))
-      .in(query[CommaSeparated[String]]("external-id"))
+      .in(query[CommaSeparated[String]]("external-id").default(Delimited[",", String](List.empty)))
       .in(query[Boolean]("use-import-validation").default(false))
       .in(query[Boolean]("use-soft-validation").default(false))
       .in(jsonBody[Article])
@@ -186,7 +186,7 @@ trait InternController {
         writeService
           .updateArticle(
             article.copy(id = Some(id)),
-            externalIds.values,
+            externalIds.values.filterNot(_.isEmpty),
             useImportValidation,
             useSoftValidation
           )

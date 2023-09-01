@@ -190,4 +190,20 @@ class ArticleApiClientTest
       .flatMap(article => articleApiCient.validateArticle(article, importValidate = false, None))
     result.isSuccess should be(false)
   }
+
+  test("that updating an article returns 400 if missing required field") {
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
+    val invalidArticle  = testArticle.copy(metaDescription = Seq.empty)
+    val result = articleApiCient.updateArticle(
+      id = 10,
+      draft = invalidArticle,
+      externalIds = List.empty,
+      useImportValidation = false,
+      useSoftValidation = false,
+      user = authUser
+    )
+
+    result.isSuccess should be(false)
+  }
 }

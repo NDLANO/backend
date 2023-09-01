@@ -16,6 +16,7 @@ import no.ndla.common.model.domain.{ArticleType, Author, Availability}
 import no.ndla.network.tapir.TapirServer
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.{DefaultFormats, Formats}
+import org.mockito.invocation.InvocationOnMock
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
@@ -29,9 +30,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
       NDLADate.Json4sSerializer
 
   val author = Author("forfatter", "Henrik")
-
-  val authHeaderWithWriteRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXJ0aWNsZXM6d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.kh82qM84FZgoo3odWbHTLWy-N049m7SyQw4gdatDMk43H2nWHA6gjsbJoiBIZ7BcbSfHElEZH0tP94vRy-kjgA3hflhOBbsD73DIxRvnbH1kSXlBnl6ISbgtHnzv1wQ7ShykMAcBsoWQ6J16ixK_p-msW42kcEqK1LanzPy-_qI"
 
   val controller = new InternController
 
@@ -136,6 +134,35 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     )
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
+  }
+
+  test("that update article arguments are parsed correctly") {
+    reset(writeService)
+    when(writeService.updateArticle(any, any, any, any)).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[Article](0))
+    )
+    val authHeaderWithWriteRole =
+      "Bearer eyJhbGciOiJIUzI1NiJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW86d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6WyJhdWRpbzp3cml0ZSIsImFydGljbGVzOnB1Ymxpc2giLCJhcnRpY2xlczp3cml0ZSIsImNvbmNlcHQ6YWRtaW4iLCJjb25jZXB0OndyaXRlIiwiZHJhZnRzOmFkbWluIiwiZHJhZnRzOmh0bWwiLCJkcmFmdHM6cHVibGlzaCIsImRyYWZ0czp3cml0ZSIsImZyb250cGFnZTphZG1pbiIsImZyb250cGFnZTp3cml0ZSIsImltYWdlczp3cml0ZSIsImxlYXJuaW5ncGF0aDphZG1pbiIsImxlYXJuaW5ncGF0aDpwdWJsaXNoIiwibGVhcm5pbmdwYXRoOndyaXRlIl19.nm77NIe8aFACafNhC1nROU1bTspbT-hCvxlg6_8ztDk"
+
+    import io.circe.generic.auto._
+    import io.circe.syntax._
+    val art     = TestData.sampleArticleWithByNcSa.copy(id = Some(10L))
+    val jsonStr = art.asJson.noSpaces
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/intern/article/10?external-id=")
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+        .body(jsonStr)
+    )
+    response.code.code should be(200)
+
+    verify(writeService, times(1)).updateArticle(
+      article = eqTo(art),
+      externalIds = eqTo(List.empty),
+      useImportValidation = eqTo(false),
+      useSoftValidation = eqTo(false)
+    )
   }
 
 }
