@@ -35,7 +35,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl = "invalidUrl123"
-    when(ndlaClient.fetch[OEmbed](any[NdlaRequest])(any[Manifest[OEmbed]]))
+    when(ndlaClient.fetch[OEmbed](any[NdlaRequest])(any, any[Manifest[OEmbed]]))
       .thenReturn(Failure(new HttpRequestException("An error occured")))
     intercept[DoNotUpdateMemoizeException] {
       providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))
@@ -43,7 +43,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That loadProvidersFromRequest does not return an incomplete provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any[Manifest[List[OEmbedProvider]]]))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any, any[Manifest[List[OEmbedProvider]]]))
       .thenReturn(Success(List(IncompleteProvider)))
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
@@ -51,7 +51,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That loadProvidersFromRequest works for a single provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any[Manifest[List[OEmbedProvider]]]))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any, any[Manifest[List[OEmbedProvider]]]))
       .thenReturn(Success(List(CompleteProvider)))
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
@@ -59,7 +59,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That loadProvidersFromRequest only returns the complete provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any[Manifest[List[OEmbedProvider]]]))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any, any[Manifest[List[OEmbedProvider]]]))
       .thenReturn(Success(List(IncompleteProvider, CompleteProvider)))
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])

@@ -11,6 +11,7 @@ package no.ndla.network
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
 import no.ndla.network.tapir.auth.TokenUser
+import org.json4s.DefaultFormats
 import org.mockito.Strictness
 
 import javax.servlet.http.HttpServletRequest
@@ -51,6 +52,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.statusText).thenReturn("status")
     when(httpResponseMock.body).thenReturn("body-with-error")
 
+    implicit val formats = DefaultFormats
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
 
     result.isFailure should be(true)
@@ -68,6 +70,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(unparseableResponse)
 
+    implicit val formats = DefaultFormats
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isFailure should be(true)
     result.failure.exception.getMessage should equal(s"Could not parse response with body: $unparseableResponse")
@@ -81,6 +84,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
+    implicit val formats = DefaultFormats
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isSuccess should be(true)
     result.get.id should equal("1")
@@ -99,6 +103,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpRequestMock.header(eqTo("X-Correlation-ID"), eqTo("correlation-id"))).thenReturn(httpRequestMock)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
+    implicit val formats = DefaultFormats
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isSuccess should be(true)
     result.get.id should equal("1")

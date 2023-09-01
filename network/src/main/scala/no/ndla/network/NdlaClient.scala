@@ -26,7 +26,7 @@ trait NdlaClient {
     implicit val formats: Formats                = org.json4s.DefaultFormats
     private val ResponseErrorBodyCharacterCutoff = 1000
 
-    def fetch[A](request: NdlaRequest)(implicit mf: Manifest[A]): Try[A] = {
+    def fetch[A](request: NdlaRequest)(implicit formats: Formats, mf: Manifest[A]): Try[A] = {
       doFetch(addCorrelationId(request))
     }
 
