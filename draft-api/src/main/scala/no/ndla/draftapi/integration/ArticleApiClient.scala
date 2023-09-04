@@ -64,19 +64,20 @@ trait ArticleApiClient {
         useSoftValidation: Boolean,
         user: TokenUser
     ): Try[Draft] = {
-      converterService
-        .toArticleApiArticle(draft)
-        .map(article =>
-          postWithData[common.article.Article, common.article.Article](
-            s"$InternalEndpoint/article/$id",
-            article,
-            Some(user),
-            "external-id"           -> externalIds.mkString(","),
-            "use-import-validation" -> useImportValidation.toString,
-            "use-soft-validation"   -> useSoftValidation.toString
-          )
+      val extParam = Option.when(externalIds.nonEmpty)("external-id" -> externalIds.mkString(","))
+      val params = List(
+        "use-import-validation" -> useImportValidation.toString,
+        "use-soft-validation"   -> useSoftValidation.toString
+      ) ++ extParam.toSeq
+      for {
+        converted <- converterService.toArticleApiArticle(draft)
+        _ <- postWithData[common.article.Article, common.article.Article](
+          s"$InternalEndpoint/article/$id",
+          converted,
+          Some(user),
+          params: _*
         )
-        .map(_ => draft)
+      } yield draft
     }
 
     def unpublishArticle(article: Draft, user: TokenUser): Try[Draft] = {

@@ -15,7 +15,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.NdlaClient
-import org.json4s.Formats
+import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization.write
 import sttp.client3.quick._
@@ -36,11 +36,11 @@ trait SearchApiClient {
 
     def indexArticle(article: Article): Article = {
       implicit val formats: Formats =
-        org.json4s.DefaultFormats +
-          Json4s.serializer(ArticleType) +
-          new EnumNameSerializer(Availability) ++
+        org.json4s.DefaultFormats.withLong +
+          new EnumNameSerializer(Availability) +
+          NDLADate.Json4sSerializer ++
           JavaTimeSerializers.all +
-          NDLADate.Json4sSerializer
+          Json4s.serializer(ArticleType)
 
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
@@ -84,6 +84,7 @@ trait SearchApiClient {
     }
 
     def deleteArticle(id: Long): Long = {
+      implicit val formats = DefaultFormats
       ndlaClient.fetch(
         quickRequest
           .delete(uri"$InternalEndpoint/article/$id")
