@@ -8,8 +8,6 @@
 
 package no.ndla.oembedproxy
 
-import cats.data.Kleisli
-import cats.effect.IO
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
@@ -19,7 +17,6 @@ import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{OEmbedProxyController, SwaggerDocControllerConfig}
 import no.ndla.oembedproxy.model.ErrorHelpers
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
-import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: OEmbedProxyProperties)
     extends BaseComponentRegistry[OEmbedProxyProperties]
@@ -33,9 +30,8 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
     with TapirHealthController
     with Props
     with ErrorHelpers
-    with Routes
+    with Routes[Eff]
     with Clock
-    with Service
     with NdlaMiddleware
     with SwaggerDocControllerConfig {
   override val props: OEmbedProxyProperties = properties
@@ -44,16 +40,18 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
   lazy val oEmbedService         = new OEmbedService
   lazy val ndlaClient            = new NdlaClient
   lazy val oEmbedProxyController = new OEmbedProxyController
-  lazy val healthController      = new TapirHealthController
+  lazy val healthController      = new TapirHealthController[Eff]
 
   lazy val clock = new SystemClock
 
-  private val services: List[Service] = List(
-    oEmbedProxyController,
-    healthController
+  private val swagger = new SwaggerController(
+    List(
+      oEmbedProxyController,
+      healthController
+    ),
+    SwaggerDocControllerConfig.swaggerInfo
   )
 
-  private val swaggerDocController = new SwaggerController(services, SwaggerDocControllerConfig.swaggerInfo)
+  override val services: List[Service[Eff]] = swagger.getServices()
 
-  def routes: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services :+ swaggerDocController)
 }

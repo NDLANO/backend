@@ -8,8 +8,8 @@
 
 package no.ndla.oembedproxy.controller
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.TapirServer
 import no.ndla.oembedproxy.model.OEmbed
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.anyString
@@ -18,15 +18,14 @@ import sttp.client3.quick._
 import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment {
-  val controller = new OEmbedProxyController
+  val controller        = new OEmbedProxyController
+  override val services = List(controller)
 
   val serverPort: Int = findFreePort
 
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   val oembed: OEmbed = OEmbed(

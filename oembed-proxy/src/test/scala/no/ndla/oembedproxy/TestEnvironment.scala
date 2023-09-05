@@ -31,17 +31,18 @@ trait TestEnvironment
     with MemoizeHelpers
     with ErrorHelpers
     with Clock
-    with Service
     with NdlaMiddleware
-    with Routes {
+    with Routes[Eff] {
   override val props = new OEmbedProxyProperties
 
   val oEmbedService: OEmbedService                 = mock[OEmbedService]
   val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
   val ndlaClient: NdlaClient                       = mock[NdlaClient]
   val providerService: ProviderService             = mock[ProviderService]
-  val healthController: TapirHealthController      = mock[TapirHealthController]
+  val healthController: TapirHealthController[Eff]      = mock[TapirHealthController[Eff]]
   val clock: SystemClock                           = mock[SystemClock]
+
+  val services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = {
     reset(oEmbedService, oEmbedProxyController, ndlaClient, providerService)
