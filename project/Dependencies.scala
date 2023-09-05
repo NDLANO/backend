@@ -16,7 +16,7 @@ object Dependencies {
     val Log4JV                = "2.19.0"
     val JettyV                = "9.4.48.v20220622"
     val AwsSdkV               = "1.12.276"
-    val MockitoV              = "1.17.12"
+    val MockitoV              = "1.17.22"
     val Elastic4sV            = "8.5.0"
     val JacksonV              = "2.14.1"
     val CatsEffectV           = "3.5.1"
