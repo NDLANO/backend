@@ -10,8 +10,9 @@ package no.ndla.network.tapir
 import cats.data.Kleisli
 import cats.effect.IO
 import io.circe.generic.auto._
-import io.circe.{Decoder, Encoder}
-import no.ndla.common.DateParser
+import no.ndla.common.RequestLogger
+import no.ndla.common.configuration.HasBaseProps
+import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.headers.`Content-Type`
@@ -21,36 +22,26 @@ import org.log4s.{Logger, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.generic.auto.schemaForCaseClass
+import sttp.tapir.model.ServerRequest
 import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
-import sttp.tapir.server.interceptor.RequestResult
+import sttp.tapir.server.interceptor.RequestInterceptor.RequestResultEffectTransform
 import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
 import sttp.tapir.server.interceptor.reject.RejectHandler
+import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
+import sttp.tapir.server.jdkhttp.{Id, JdkHttpServer, JdkHttpServerOptions}
 import sttp.tapir.server.model.ValuedEndpointOutput
-import sttp.tapir.{EndpointInput, statusCode}
+import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 
-import java.time.LocalDateTime
+import java.util.concurrent.{ExecutorService, Executors}
 
-trait Routes {
-  this: Service with NdlaMiddleware with TapirErrorHelpers =>
+trait Routes[F[_]] {
+  this: NdlaMiddleware with TapirErrorHelpers with HasBaseProps =>
+
+  val services: List[Service[F]]
 
   object Routes {
-
-    implicit val dateTimeEncoder: Encoder[LocalDateTime] = DateParser.Circe.localDateTimeEncoder
-    implicit val dateTimeDecoder: Decoder[LocalDateTime] = DateParser.Circe.localDateTimeDecoder
-
     val logger: Logger = getLogger
-    private def buildBindings(routes: List[Service]): List[(String, HttpRoutes[IO])] = {
-      val (docServices, noDocServices) = routes.partitionMap {
-        case swaggerService: SwaggerService  => Left(swaggerService)
-        case serviceWithoutDoc: NoDocService => Right(serviceWithoutDoc)
-      }
-
-      // Full paths are already prefixed in the endpoints to make nice documentation
-      val swaggerBinding = "/" -> swaggerServicesToRoutes(docServices)
-      noDocServices.map(_.getBinding) :+ swaggerBinding
-    }
-
     private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[_] = {
       val logMsg = s"Failure handler got: $error"
       exception match {
@@ -61,7 +52,7 @@ trait Routes {
       ValuedEndpointOutput(jsonBody[AllErrors], ErrorHelpers.generic)
     }
 
-    private val decodeFailureHandler =
+    private val decodeFailureHandler: DefaultDecodeFailureHandler =
       DefaultDecodeFailureHandler.default
         .response(failureMsg => {
           ValuedEndpointOutput(
@@ -70,15 +61,14 @@ trait Routes {
           )
         })
 
-    private case class NdlaExceptionHandler() extends ExceptionHandler[IO] {
-      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[IO]): IO[Option[ValuedEndpointOutput[_]]] =
-        for {
-          errorToReturn <- returnError(ctx.e)
-          sc     = StatusCode(errorToReturn.statusCode)
-          resp   = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
-          withsc = resp.prepend(statusCode, sc)
-          result <- monad.unit(Some(withsc))
-        } yield result
+    private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
+      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[_]]] = {
+        val errorToReturn = returnError(ctx.e)
+        val sc            = StatusCode(errorToReturn.statusCode)
+        val resp          = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
+        val withsc        = resp.prepend(statusCode, sc)
+        monad.unit(Some(withsc))
+      }
     }
 
     private def hasMethodMismatch(f: RequestResult.Failure): Boolean = f.failures.map(_.failingInput).exists {
@@ -86,10 +76,10 @@ trait Routes {
       case _                               => false
     }
 
-    private case class NdlaRejectHandler[F[_]]() extends RejectHandler[F] {
+    case class NdlaRejectHandler[A[_]]() extends RejectHandler[A] {
       override def apply(
           failure: RequestResult.Failure
-      )(implicit monad: MonadError[F]): F[Option[ValuedEndpointOutput[_]]] = {
+      )(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[_]]] = {
         val statusCodeAndBody = if (hasMethodMismatch(failure)) {
           ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.methodNotAllowed)
             .prepend(statusCode, StatusCode.MethodNotAllowed)
@@ -102,14 +92,15 @@ trait Routes {
 
     }
 
-    private def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
+    private def swaggerServicesToRoutes(services: List[Service[IO]]): HttpRoutes[IO] = {
       val swaggerEndpoints = services.flatMap(_.builtEndpoints)
       val options = Http4sServerOptions
         .customiseInterceptors[IO]
         .defaultHandlers(err => failureResponse(err, None))
         .rejectHandler(NdlaRejectHandler[IO]())
-        .exceptionHandler(NdlaExceptionHandler())
+        .exceptionHandler(NdlaExceptionHandler[IO]())
         .decodeFailureHandler(decodeFailureHandler)
+        .serverLog(None)
         .options
       Http4sServerInterpreter[IO](options).toRoutes(swaggerEndpoints)
     }
@@ -119,15 +110,93 @@ trait Routes {
       Response.notFound[IO].withEntity(ErrorHelpers.notFound).withHeaders(headers)
     }
 
-    def build(routes: List[Service]): Kleisli[IO, Request[IO], Response[IO]] = {
+    private def build(routes: List[Service[IO]]): Kleisli[IO, Request[IO], Response[IO]] = {
       logger.info("Building swagger service")
-      val bindings = buildBindings(routes)
-      val router   = Router[IO](bindings: _*)
+      val bindings = "/" -> swaggerServicesToRoutes(routes)
+      val router   = Router[IO](bindings)
       Kleisli[IO, Request[IO], Response[IO]](req => {
         val ran = router.run(req)
         val res = ran.getOrElse { getFallbackRoute }
         NdlaMiddleware(req, res)
       })
+    }
+
+    def startHttp4sServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
+      val app: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services.asInstanceOf[List[Service[IO]]])
+      val server: TapirServer                         = TapirServer(name, port, app, enableMelody = true)(warmupFunc)
+      logger.info(s"Starting $name on port $port")
+      server.as(())
+    }
+
+    val beforeTime = new AttributeKey[Long]("beforeTime")
+
+    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
+
+      // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
+      val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
+
+      def before(req: ServerRequest) = {
+        val requestInfo = RequestInfo.fromRequest(req)
+        requestInfo.setThreadContextRequestInfo()
+        val startTime = System.currentTimeMillis()
+        val s = RequestLogger.beforeRequestLogString(
+          method = req.method.toString(),
+          requestPath = s"/${req.uri.path.mkString("/")}",
+          queryString = req.queryParameters.toString(false)
+        )
+        logger.info(s)
+        req.attribute(beforeTime, startTime)
+      }
+
+      class after extends RequestResultEffectTransform[Id] {
+        def apply[B](req: ServerRequest, result: Id[RequestResult[B]]): Id[RequestResult[B]] = {
+
+          val code: Int = result match {
+            case RequestResult.Response(x) => x.code.code
+            case RequestResult.Failure(_)  => -1
+          }
+
+          val latency = req
+            .attribute(beforeTime)
+            .map(startTime => System.currentTimeMillis() - startTime)
+            .getOrElse(-1L)
+
+          val s = RequestLogger.afterRequestLogString(
+            method = req.method.toString(),
+            requestPath = s"/${req.uri.path.mkString("/")}",
+            queryString = req.queryParameters.toString(false),
+            latency = latency,
+            responseCode = code
+          )
+          logger.info(s)
+          RequestInfo.clear()
+          result
+        }
+      }
+
+      val options: JdkHttpServerOptions = JdkHttpServerOptions.customiseInterceptors
+        .defaultHandlers(err => failureResponse(err, None))
+        .rejectHandler(NdlaRejectHandler[Id]())
+        .exceptionHandler(NdlaExceptionHandler[Id]())
+        .decodeFailureHandler(decodeFailureHandler)
+        .serverLog(None)
+        .prependInterceptor(RequestInterceptor.transformServerRequest[Id](before))
+        .prependInterceptor(RequestInterceptor.transformResultEffect(new after))
+        .options
+
+      val endpoints = services.asInstanceOf[List[Service[Id]]].flatMap(_.builtEndpoints)
+
+      JdkHttpServer()
+        .options(options)
+        .executor(executor)
+        .addEndpoints(endpoints)
+        .port(port)
+        .start(): Unit
+
+      warmupFunc
+
+      logger.info(s"Starting $name on port $port")
+      IO.never
     }
 
   }

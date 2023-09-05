@@ -27,7 +27,7 @@ object Dependencies {
     val PostgresV             = "42.5.1"
     val ScalaTsiV             = "0.6.0"
     val Http4sV               = "0.23.23"
-    val TapirV                = "1.7.0"
+    val TapirV                = "1.7.3"
     val ApiSpecV              = "0.6.0"
     val SttpV                 = "3.9.0"
     val CirceV                = "0.14.2"
@@ -82,8 +82,13 @@ object Dependencies {
       "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"     % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle" % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"        % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-jdkhttp-server"    % TapirV,
       "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"      % ApiSpecV
-    )
+    ).map {
+      // NOTE: tapir-jdkhttp-server includes some logback provider for slf4j
+      //       this conflicts with the existing provider, so lets exclude it.
+      _.exclude("ch.qos.logback", "logback-classic").exclude("ch.qos.logback", "logback-core")
+    }
 
     lazy val catsEffect: ModuleID                = "org.typelevel" %% "cats-effect" % CatsEffectV
     lazy val tapirHttp4sCirce: Seq[sbt.ModuleID] = circe ++ http4s ++ tapir :+ catsEffect

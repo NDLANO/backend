@@ -14,7 +14,6 @@ import org.http4s.{Request, Response}
 import org.log4s.{MDC, getLogger}
 
 trait NdlaMiddleware {
-  this: Service =>
   object NdlaMiddleware {
     private val logger = getLogger
 
@@ -44,10 +43,9 @@ trait NdlaMiddleware {
         requestInfo: RequestInfo,
         resp: Response[IO]
     ): Response[IO] = {
-      val latency = System.currentTimeMillis() - beforeTime
-
       if (shouldLogRequest(req)) {
         MDC.put("correlationID", requestInfo.correlationId.get): Unit
+        val latency = System.currentTimeMillis() - beforeTime
         logger.info(
           afterRequestLogString(
             method = req.method.name,
