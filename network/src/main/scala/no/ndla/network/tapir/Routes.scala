@@ -121,20 +121,8 @@ trait Routes[F[_]] {
       })
     }
 
-    def startHttp4sServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
-      val app: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services.asInstanceOf[List[Service[IO]]])
-      val server: TapirServer                         = TapirServer(name, port, app, enableMelody = true)(warmupFunc)
-      logger.info(s"Starting $name on port $port")
-      server.as(())
-    }
-
-    val beforeTime = new AttributeKey[Long]("beforeTime")
-
-    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
-
-      // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
-      val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
-
+    object JDKMiddleware {
+      val beforeTime = new AttributeKey[Long]("beforeTime")
       def before(req: ServerRequest) = {
         val requestInfo = RequestInfo.fromRequest(req)
         requestInfo.setThreadContextRequestInfo()
@@ -173,6 +161,18 @@ trait Routes[F[_]] {
           result
         }
       }
+    }
+
+    def startHttp4sServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
+      val app: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services.asInstanceOf[List[Service[IO]]])
+      val server: TapirServer                         = TapirServer(name, port, app, enableMelody = true)(warmupFunc)
+      logger.info(s"Starting $name on port $port")
+      server.as(())
+    }
+
+    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
+      // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
+      val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
 
       val options: JdkHttpServerOptions = JdkHttpServerOptions.customiseInterceptors
         .defaultHandlers(err => failureResponse(err, None))
@@ -180,24 +180,26 @@ trait Routes[F[_]] {
         .exceptionHandler(NdlaExceptionHandler[Id]())
         .decodeFailureHandler(decodeFailureHandler)
         .serverLog(None)
-        .prependInterceptor(RequestInterceptor.transformServerRequest[Id](before))
-        .prependInterceptor(RequestInterceptor.transformResultEffect(new after))
+        .prependInterceptor(RequestInterceptor.transformServerRequest[Id](JDKMiddleware.before))
+        .prependInterceptor(RequestInterceptor.transformResultEffect(new JDKMiddleware.after))
         .options
 
       val endpoints = services.asInstanceOf[List[Service[Id]]].flatMap(_.builtEndpoints)
 
-      JdkHttpServer()
+      val serv = JdkHttpServer()
         .options(options)
         .executor(executor)
         .addEndpoints(endpoints)
         .port(port)
-        .start(): Unit
+        .start()
+
+      logger.info(s"Starting $name on port $port")
 
       warmupFunc
 
-      logger.info(s"Starting $name on port $port")
-      IO.never
+      IO.never.onCancel {
+        IO(serv.stop(10))
+      }
     }
-
   }
 }

@@ -129,6 +129,7 @@ lazy val `integration-tests` = Module.setup(
   project in file("./integration-tests/"),
   integrationtests,
   deps = Seq(
+    testWith(validation, withTests = true),
     testWith(scalatestsuite),
     testWith(`article-api`, withTests = true),
     testWith(`draft-api`, withTests = true),
