@@ -8,10 +8,9 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
-import no.ndla.audioapi.Props
+import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHelpers, NotFoundException}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
@@ -37,16 +36,15 @@ trait InternController {
     with TagIndexService
     with ReadService
     with Props
-    with Service
     with ErrorHelpers =>
   val internController: InternController
 
-  class InternController extends SwaggerService {
+  class InternController extends Service[Eff] {
     override val prefix                 = "intern"
     override val enableSwagger          = false
     private val internalErrorStringBody = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       endpoint.get
         .in("external")
         .in(path[String]("external_id"))
@@ -60,57 +58,51 @@ trait InternController {
         .in(query[Option[Int]]("numShards"))
         .out(stringBody)
         .errorOut(internalErrorStringBody)
-        .serverLogic { numShards =>
-          val result = IO(
-            (
-              audioIndexService.indexDocuments(numShards),
-              tagIndexService.indexDocuments(numShards),
-              seriesIndexService.indexDocuments(numShards)
-            )
-          )
-
-          result.flatMap {
+        .serverLogicPure { numShards =>
+          (
+            audioIndexService.indexDocuments(numShards),
+            tagIndexService.indexDocuments(numShards),
+            seriesIndexService.indexDocuments(numShards)
+          ) match {
             case (Success(audioReindexResult), Success(tagReindexResult), Success(seriesReIndexResult)) =>
               val result =
                 s"""Completed indexing of ${audioReindexResult.totalIndexed} documents in ${audioReindexResult.millisUsed} (audios) ms.
                    |Completed indexing of ${tagReindexResult.totalIndexed} documents in ${tagReindexResult.millisUsed} (tags) ms.
                    |Completed indexing of ${seriesReIndexResult.totalIndexed} documents in ${seriesReIndexResult.millisUsed} (series) ms.""".stripMargin
-              logger.info(result) >>
-                IO.pure(result.asRight)
+              logger.info(result)
+              result.asRight
             case (Failure(f), _, _) =>
-              logger.warn(f.getMessage, f) >>
-                IO.pure(f.getMessage.asLeft)
+              logger.warn(f.getMessage, f)
+              f.getMessage.asLeft
             case (_, Failure(f), _) =>
-              logger.warn(f.getMessage, f) >>
-                IO.pure(f.getMessage.asLeft)
+              logger.warn(f.getMessage, f)
+              f.getMessage.asLeft
             case (_, _, Failure(f)) =>
-              logger.warn(f.getMessage, f) >>
-                IO.pure(f.getMessage.asLeft)
+              logger.warn(f.getMessage, f)
+              f.getMessage.asLeft
           }
         },
       endpoint.delete
         .in("index")
         .errorOut(internalErrorStringBody)
         .out(stringBody)
-        .serverLogic { _ =>
+        .serverLogicPure { _ =>
           def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
           audioIndexService.findAllIndexes(props.SearchIndex) match {
-            case Failure(f) => IO.pure(f.getMessage.asLeft)
+            case Failure(f) => f.getMessage.asLeft
             case Success(indexes) =>
-              val deletes = indexes.traverse(index => {
-                logger.info(s"Deleting index $index") >>
-                  IO.pure(audioIndexService.deleteIndexWithName(Option(index)))
+              val deleteResults = indexes.map(index => {
+                logger.info(s"Deleting index $index")
+                audioIndexService.deleteIndexWithName(Option(index))
               })
-              deletes.map { deleteResults =>
-                val (errors, successes) = deleteResults.partition(_.isFailure)
-                if (errors.nonEmpty) {
-                  val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
-                    s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
-                    s"${pluralIndex(successes.length)} were deleted successfully."
-                  message.asLeft
-                } else {
-                  s"Deleted ${pluralIndex(successes.length)}".asRight
-                }
+              val (errors, successes) = deleteResults.partition(_.isFailure)
+              if (errors.nonEmpty) {
+                val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+                  s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+                  s"${pluralIndex(successes.length)} were deleted successfully."
+                message.asLeft
+              } else {
+                s"Deleted ${pluralIndex(successes.length)}".asRight
               }
           }
         },
@@ -128,9 +120,9 @@ trait InternController {
         .in(path[Long]("id"))
         .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[AudioMetaInformation])
-        .serverLogic { id =>
+        .serverLogicPure { id =>
           audioRepository.withId(id) match {
-            case Some(image) => IO(image.asRight)
+            case Some(image) => image.asRight
             case None        => returnLeftError(new NotFoundException(s"Could not find audio with id: '$id'"))
           }
         },

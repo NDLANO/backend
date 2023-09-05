@@ -8,27 +8,26 @@
 
 package no.ndla.audioapi.controller
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.audioapi.TestData._
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.{domain => common}
-import no.ndla.network.tapir.TapirServer
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment {
 
-  val serverPort: Int           = findFreePort
-  override val converterService = new ConverterService
-  val controller                = new InternController
+  val serverPort: Int                           = findFreePort
+  override val converterService                 = new ConverterService
+  val controller                                = new InternController
+  override val services: List[InternController] = List(controller)
 
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer("InternControllerTest", serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(

@@ -21,7 +21,7 @@ import org.jsoup.safety.Safelist
 import sttp.model.Part
 
 import java.awt.image.BufferedImage
-import java.net.URL
+import java.net.URI
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
@@ -103,7 +103,8 @@ trait ValidationService {
         )
       }
 
-      if (audioFile.fileName.getOrElse("").toLowerCase.endsWith(".mp3")) None
+      val fn = audioFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
+      if (fn.toLowerCase.endsWith(".mp3")) None
       else
         Some(
           ValidationMessage("files", s"The file '${audioFile.name}' does not have a known file extension. Must be .mp3")
@@ -179,7 +180,7 @@ trait ValidationService {
     }
 
     private[service] def readImage(imageUrl: String): BufferedImage = {
-      val url = new URL(imageUrl)
+      val url = new URI(imageUrl).toURL
       ImageIO.read(url)
     }
 

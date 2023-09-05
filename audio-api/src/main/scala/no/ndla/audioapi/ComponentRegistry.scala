@@ -8,8 +8,6 @@
 
 package no.ndla.audioapi
 
-import cats.data.Kleisli
-import cats.effect.IO
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller._
@@ -24,7 +22,6 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, SwaggerControllerConfig, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: AudioApiProperties)
     extends BaseComponentRegistry[AudioApiProperties]
@@ -41,7 +38,6 @@ class ComponentRegistry(properties: AudioApiProperties)
     with ConverterService
     with AudioStorageService
     with InternController
-    with Service
     with NdlaMiddleware
     with HealthController
     with TapirHealthController
@@ -60,7 +56,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with SearchConverterService
     with SwaggerControllerConfig
     with Clock
-    with Routes
+    with Routes[Eff]
     with Props
     with DBMigrator
     with ErrorHelpers
@@ -102,15 +98,15 @@ class ComponentRegistry(properties: AudioApiProperties)
 
   lazy val clock = new SystemClock
 
-  private val services: List[Service] = List(
-    audioApiController,
-    seriesController,
-    internController,
-    healthController
+  private val swagger = new SwaggerController(
+    List(
+      audioApiController,
+      seriesController,
+      internController,
+      healthController
+    ),
+    SwaggerDocControllerConfig.swaggerInfo
   )
 
-  private val swaggerDocController = new SwaggerController(services, SwaggerDocControllerConfig.swaggerInfo)
-
-  def routes: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services :+ swaggerDocController)
-
+  override val services: List[Service[Eff]] = swagger.getServices()
 }
