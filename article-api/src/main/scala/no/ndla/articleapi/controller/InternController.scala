@@ -8,10 +8,10 @@
 
 package no.ndla.articleapi.controller
 
-import cats.effect.IO
 import cats.implicits._
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto._
-import no.ndla.articleapi.Props
+import no.ndla.articleapi.{Eff, Props}
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleIds, DBArticle}
 import no.ndla.articleapi.repository.ArticleRepository
@@ -20,7 +20,6 @@ import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language
-import no.ndla.network.logging.FLogging
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
@@ -34,7 +33,7 @@ import sttp.tapir.server.ServerEndpoint
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait InternController {
   this: ReadService
@@ -46,23 +45,22 @@ trait InternController {
     with ContentValidator
     with TapirErrorHelpers
     with Props
-    with DBArticle
-    with Service =>
+    with DBArticle =>
   val internController: InternController
 
-  class InternController extends SwaggerService with FLogging {
+  class InternController extends Service[Eff] with StrictLogging {
     import ErrorHelpers._
 
     override val prefix                   = "intern"
     override val enableSwagger            = false
     private val stringInternalServerError = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-    def index: ServerEndpoint[Any, IO] = endpoint.post
+    def index: ServerEndpoint[Any, Eff] = endpoint.post
       .in("index")
       .in(query[Option[Int]]("numShards"))
       .out(stringBody)
       .errorOut(stringInternalServerError)
-      .serverLogic(numShards => {
+      .serverLogicPure(numShards => {
         implicit val ec  = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
         val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
 
@@ -70,54 +68,49 @@ trait InternController {
           case Success(articleResult) =>
             val result =
               s"Completed indexing of ${articleResult.totalIndexed} articles ${articleResult.millisUsed} ms."
-            logger.info(result).as(result.asRight)
+            logger.info(result)
+            result.asRight
           case Failure(articleFail) =>
-            logger.warn(articleFail.getMessage, articleFail) >>
-              IO.pure(articleFail.getMessage.asLeft)
+            logger.warn(articleFail.getMessage, articleFail)
+            articleFail.getMessage.asLeft
         }
       })
 
-    def deleteIndex: ServerEndpoint[Any, IO] = endpoint.delete
+    def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
       .in("index")
       .out(stringBody)
       .errorOut(stringInternalServerError)
-      .serverLogic { _ =>
+      .serverLogicPure { _ =>
         implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
         def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
         val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
 
         Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
-          case Failure(articleFail) => IO.pure(Left(articleFail.getMessage))
+          case Failure(articleFail) => Left(articleFail.getMessage)
           case Success(articleIndexes) =>
-            articleIndexes
-              .traverse(index =>
-                logger
-                  .info(s"Deleting article index $index")
-                  .as(
-                    articleIndexService.deleteIndexWithName(Option(index))
-                  )
-              )
-              .map((deleteResults: Seq[Try[_]]) => {
-                val (errors, successes) = deleteResults.partition(_.isFailure)
-                if (errors.nonEmpty) {
-                  val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
-                    s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
-                    s"${pluralIndex(successes.length)} were deleted successfully."
-                  message.asLeft
-                } else {
-                  s"Deleted ${pluralIndex(successes.length)}".asRight
-                }
-              })
+            val deleteResults = articleIndexes.map(index => {
+              logger.info(s"Deleting article index $index")
+              articleIndexService.deleteIndexWithName(Option(index))
+            })
+            val (errors, successes) = deleteResults.partition(_.isFailure)
+            if (errors.nonEmpty) {
+              val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+                s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+                s"${pluralIndex(successes.length)} were deleted successfully."
+              message.asLeft
+            } else {
+              s"Deleted ${pluralIndex(successes.length)}".asRight
+            }
         }
       }
 
-    def getIds: ServerEndpoint[Any, IO] = endpoint.get
+    def getIds: ServerEndpoint[Any, Eff] = endpoint.get
       .in("ids")
       .out(jsonBody[Seq[ArticleIds]])
       .serverLogicPure(_ => articleRepository.getAllIds.asRight)
 
-    def getByExternalId: ServerEndpoint[Any, IO] = endpoint.get
+    def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
       .in("id")
       .in(path[String]("external_id"))
       .out(jsonBody[Long])
@@ -129,7 +122,7 @@ trait InternController {
         }
       })
 
-    def dumpApiArticles: ServerEndpoint[Any, IO] = endpoint.get
+    def dumpApiArticles: ServerEndpoint[Any, Eff] = endpoint.get
       .in("articles")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(250))
@@ -140,7 +133,7 @@ trait InternController {
         readService.getArticlesByPage(pageNo, pageSize, language, fallback).asRight
       }
 
-    def dumpDomainArticles: ServerEndpoint[Any, IO] = endpoint.get
+    def dumpDomainArticles: ServerEndpoint[Any, Eff] = endpoint.get
       .in("dump" / "article")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(250))
@@ -149,7 +142,7 @@ trait InternController {
         readService.getArticleDomainDump(pageNo, pageSize).asRight
       }
 
-    def dumpSingleDomainArticle: ServerEndpoint[Any, IO] = endpoint.get
+    def dumpSingleDomainArticle: ServerEndpoint[Any, Eff] = endpoint.get
       .in("dump" / "article" / path[Long]("article_id"))
       .out(jsonBody[Article])
       .errorOut(statusCode(StatusCode.NotFound).and(emptyOutput))
@@ -160,19 +153,19 @@ trait InternController {
         }
       }
 
-    def validateArticle: ServerEndpoint[Any, IO] = endpoint.post
+    def validateArticle: ServerEndpoint[Any, Eff] = endpoint.post
       .in("validate" / "article")
       .in(query[Boolean]("import_validate").default(false))
       .in(jsonBody[Article])
       .out(jsonBody[Article])
       .errorOut(errorOutputsFor(400))
-      .serverLogic { case (importValidate, article) =>
+      .serverLogicPure { case (importValidate, article) =>
         contentValidator
           .validateArticle(article, isImported = importValidate)
           .handleErrorsOrOk
       }
 
-    def updateArticle: ServerEndpoint[Any, IO] = endpoint.post
+    def updateArticle: ServerEndpoint[Any, Eff] = endpoint.post
       .in("article" / path[Long]("id"))
       .in(query[CommaSeparated[String]]("external-id").default(Delimited[",", String](List.empty)))
       .in(query[Boolean]("use-import-validation").default(false))
@@ -181,7 +174,7 @@ trait InternController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .out(jsonBody[Article])
       .requirePermission(ARTICLE_API_WRITE)
-      .serverLogic { _ => params =>
+      .serverLogicPure { _ => params =>
         val (id, externalIds, useImportValidation, useSoftValidation, article) = params
         writeService
           .updateArticle(
@@ -193,29 +186,29 @@ trait InternController {
           .handleErrorsOrOk
       }
 
-    def deleteArticle: ServerEndpoint[Any, IO] = endpoint.delete
+    def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
       .in("article" / path[Long]("id"))
       .in(query[Option[Int]]("revision"))
       .errorOut(errorOutputsFor(401, 403, 404))
       .out(jsonBody[ArticleIdV2])
       .requirePermission(ARTICLE_API_WRITE)
-      .serverLogic { _ => params =>
+      .serverLogicPure { _ => params =>
         val (id, revision) = params
         writeService.deleteArticle(id, revision).handleErrorsOrOk
       }
 
-    def unpublishArticle: ServerEndpoint[Any, IO] = endpoint.post
+    def unpublishArticle: ServerEndpoint[Any, Eff] = endpoint.post
       .in("article" / path[Long]("id") / "unpublish")
       .in(query[Option[Int]]("revision"))
       .errorOut(errorOutputsFor(401, 403, 404))
       .out(jsonBody[ArticleIdV2])
       .requirePermission(ARTICLE_API_WRITE)
-      .serverLogic { _ => params =>
+      .serverLogicPure { _ => params =>
         val (id, revision) = params
         writeService.unpublishArticle(id, revision).handleErrorsOrOk
       }
 
-    def partialPublishArticle: ServerEndpoint[Any, IO] = endpoint.patch
+    def partialPublishArticle: ServerEndpoint[Any, Eff] = endpoint.patch
       .in("partial-publish" / path[Long]("article_id"))
       .in(jsonBody[PartialPublishArticle])
       .in(query[String]("language").default(Language.AllLanguages))
@@ -223,12 +216,12 @@ trait InternController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .out(jsonBody[ArticleV2])
       .requirePermission(ARTICLE_API_WRITE)
-      .serverLogic { _ => params =>
+      .serverLogicPure { _ => params =>
         val (articleId, partialUpdateBody, language, fallback) = params
         writeService.partialUpdate(articleId, partialUpdateBody, language, fallback).handleErrorsOrOk
       }
 
-    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       index,
       deleteIndex,
       getIds,

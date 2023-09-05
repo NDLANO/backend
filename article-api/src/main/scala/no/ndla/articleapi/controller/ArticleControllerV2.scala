@@ -8,10 +8,9 @@
 
 package no.ndla.articleapi.controller
 
-import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
-import no.ndla.articleapi.Props
+import no.ndla.articleapi.{Eff, Props}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{DynamicHeaders, Sort}
@@ -39,13 +38,12 @@ trait ArticleControllerV2 {
     with ConverterService
     with ContentValidator
     with Props
-    with ErrorHelpers
-    with Service =>
+    with ErrorHelpers =>
   val articleControllerV2: ArticleControllerV2
 
   import props._
 
-  class ArticleControllerV2() extends SwaggerService {
+  class ArticleControllerV2() extends Service[Eff] {
     protected val applicationDescription = "Services for accessing articles from NDLA."
 
     override val serviceName: String         = "articles"
@@ -134,7 +132,7 @@ trait ArticleControllerV2 {
         case _ => orFunction
       }
 
-    val tagSearch: ServerEndpoint[Any, IO] =
+    def tagSearch: ServerEndpoint[Any, Eff] =
       endpoint.get
         .in("tag-search")
         .summary("Fetch tags used in articles.")
@@ -145,7 +143,7 @@ trait ArticleControllerV2 {
         .in(language)
         .out(jsonBody[TagsSearchResult])
         .errorOut(errorOutputsFor())
-        .serverLogic { case (query, pageSize, pageNo, language) =>
+        .serverLogicPure { case (query, pageSize, pageNo, language) =>
           val queryOrEmpty = query.getOrElse("")
           val parsedPageSize = pageSize.getOrElse(DefaultPageSize) match {
             case tooSmall if tooSmall < 1 => DefaultPageSize
@@ -156,16 +154,14 @@ trait ArticleControllerV2 {
             case x                        => x
           }
 
-          IO(
-            readService
-              .getAllTags(
-                queryOrEmpty,
-                parsedPageSize,
-                parsedPageNo,
-                language
-              )
-              .asRight
-          )
+          readService
+            .getAllTags(
+              queryOrEmpty,
+              parsedPageSize,
+              parsedPageNo,
+              language
+            )
+            .asRight
         }
 
     private def search(
@@ -181,7 +177,7 @@ trait ArticleControllerV2 {
         grepCodes: Seq[String],
         shouldScroll: Boolean,
         feideToken: Option[String]
-    ) = {
+    ): Try[(SearchResultV2, DynamicHeaders)] = {
       val result = readService.search(
         query,
         sort,
@@ -207,7 +203,7 @@ trait ArticleControllerV2 {
 
     }
 
-    val getSearch: ServerEndpoint[Any, IO] = {
+    def getSearch: ServerEndpoint[Any, Eff] = {
       endpoint.get
         .summary("Find published articles.")
         .description("Returns all articles. You can search it too.")
@@ -226,7 +222,7 @@ trait ArticleControllerV2 {
         .out(jsonBody[SearchResultV2])
         .out(EndpointOutput.derived[DynamicHeaders])
         .errorOut(errorOutputsFor())
-        .serverLogic {
+        .serverLogicPure {
           case (
                 feideToken,
                 query,
@@ -265,7 +261,7 @@ trait ArticleControllerV2 {
         }
     }
 
-    val getByIds: ServerEndpoint[Any, IO] = endpoint.get
+    def getByIds: ServerEndpoint[Any, Eff] = endpoint.get
       .in("ids")
       .summary("Fetch articles that matches ids parameter.")
       .description("Returns articles that matches ids parameter.")
@@ -277,7 +273,7 @@ trait ArticleControllerV2 {
       .in(pageNo)
       .errorOut(errorOutputsFor())
       .out(jsonBody[Seq[ArticleV2]])
-      .serverLogic { case (feideToken, ids, fallback, language, mbPageSize, mbPageNo) =>
+      .serverLogicPure { case (feideToken, ids, fallback, language, mbPageSize, mbPageNo) =>
         val pageSize = mbPageSize.getOrElse(props.DefaultPageSize) match {
 
           case tooSmall if tooSmall < 1 => props.DefaultPageSize
@@ -300,7 +296,7 @@ trait ArticleControllerV2 {
           .handleErrorsOrOk
       }
 
-    val postSearch: ServerEndpoint[Any, IO] = endpoint.post
+    def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
       .in("search")
       .summary("Find published articles.")
       .description("Search all articles.")
@@ -309,11 +305,11 @@ trait ArticleControllerV2 {
       .errorOut(errorOutputsFor())
       .out(jsonBody[SearchResultV2])
       .out(EndpointOutput.derived[DynamicHeaders])
-      .serverLogic { case (feideToken, searchParams) =>
+      .serverLogicPure { case (feideToken, searchParams) =>
         val language = searchParams.language.getOrElse(AllLanguages)
         val fallback = searchParams.fallback.getOrElse(false)
 
-        val x = scrollSearchOr(searchParams.scrollId, language) {
+        scrollSearchOr(searchParams.scrollId, language) {
           val query              = searchParams.query
           val sort               = Sort.valueOf(searchParams.sort.getOrElse(""))
           val license            = searchParams.license
@@ -338,11 +334,10 @@ trait ArticleControllerV2 {
             shouldScroll,
             feideToken
           )
-        }
-        x.handleErrorsOrOk
+        }.handleErrorsOrOk
       }
 
-    val getSingle: ServerEndpoint[Any, IO] = endpoint.get
+    def getSingle: ServerEndpoint[Any, Eff] = endpoint.get
       .in(articleId)
       .in(revision)
       .in(feideHeader)
@@ -351,7 +346,7 @@ trait ArticleControllerV2 {
       .errorOut(errorOutputsFor(410))
       .out(jsonBody[ArticleV2])
       .out(EndpointOutput.derived[DynamicHeaders])
-      .serverLogic { params =>
+      .serverLogicPure { params =>
         val (articleId, revisionQuery, feideToken, language, fallback) = params
         (parseArticleIdAndRevision(articleId) match {
           case (Failure(_), _) =>
@@ -362,18 +357,18 @@ trait ArticleControllerV2 {
         }).map(_.Ok()).handleErrorsOrOk
       }
 
-    val getRevisions: ServerEndpoint[Any, IO] = endpoint.get
+    def getRevisions: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch list of existing revisions for article-id")
       .description("Fetch list of existing revisions for article-id")
       .in(articleIdLong)
       .in("revisions")
       .errorOut(errorOutputsFor(404, 500))
       .out(jsonBody[Seq[Int]])
-      .serverLogic(articleId => {
+      .serverLogicPure(articleId => {
         readService.getRevisions(articleId).handleErrorsOrOk
       })
 
-    val getByExternal: ServerEndpoint[Any, IO] = endpoint.get
+    def getByExternal: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get id of article corresponding to specified deprecated node id.")
       .description("Get internal id of article for a specified ndla_node_id.")
       .in("external_id")
@@ -387,7 +382,7 @@ trait ArticleControllerV2 {
         }
       })
 
-    val getIdsByExternal: ServerEndpoint[Any, IO] = endpoint.get
+    def getIdsByExternal: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get all ids related to article corresponding to specified deprecated node id.")
       .description(
         "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id."
@@ -403,7 +398,7 @@ trait ArticleControllerV2 {
         }
       })
 
-    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       tagSearch,
       getByIds,
       getSingle,

@@ -9,10 +9,10 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.Props
 import no.ndla.network.tapir.auth.Permission
-import no.ndla.network.tapir.{Service, SwaggerControllerConfig, SwaggerInfo}
+import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
 
 trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
-  this: Service with Props =>
+  this: Props =>
 
   object SwaggerDocControllerConfig {
     private val scopes = Permission.toSwaggerMap(

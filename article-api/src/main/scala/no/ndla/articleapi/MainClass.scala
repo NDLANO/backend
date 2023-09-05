@@ -8,18 +8,16 @@
 
 package no.ndla.articleapi
 
-import cats.data.Kleisli
 import cats.effect.IO
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
-import org.http4s.{Request, Response}
 
-class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain {
-  val componentRegistry                                    = new ComponentRegistry(props)
-  override val app: Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
+class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain[Eff] {
+  val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path: String, options: Map[String, String]) =>
     Warmup.warmupRequest(props.ApplicationPort, path, options)
+
   override def warmup(): Unit = {
     warmupRequest("/article-api/v2/articles", Map("query" -> "norge", "fallback" -> "true"))
     warmupRequest("/article-api/v2/articles/1", Map("language" -> "nb"))
@@ -35,4 +33,7 @@ class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain 
     componentRegistry.migrator.migrate()
     logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
   }
+
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] =
+    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

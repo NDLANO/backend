@@ -38,10 +38,9 @@ trait TestEnvironment
     with NdlaSwaggerSupport
     with ArticleControllerV2
     with InternController
-    with Service
     with NdlaMiddleware
     with DataSource
-    with Routes
+    with Routes[Eff]
     with ArticleRepository
     with MockitoSugar
     with SearchApiClient
@@ -71,7 +70,7 @@ trait TestEnvironment
   val internController    = mock[InternController]
   val articleControllerV2 = mock[ArticleControllerV2]
 
-  val healthController = mock[TapirHealthController]
+  val healthController = mock[TapirHealthController[Eff]]
 
   val dataSource        = mock[HikariDataSource]
   val articleRepository = mock[ArticleRepository]
@@ -89,4 +88,6 @@ trait TestEnvironment
   val redisClient            = mock[RedisClient]
 
   val clock = mock[SystemClock]
+
+  val services: List[Service[Eff]] = List.empty
 }
