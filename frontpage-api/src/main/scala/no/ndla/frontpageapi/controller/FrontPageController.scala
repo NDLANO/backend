@@ -7,8 +7,8 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.effect.IO
 import io.circe.generic.auto._
+import no.ndla.frontpageapi.Eff
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -20,35 +20,35 @@ import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
 
 trait FrontPageController {
-  this: ReadService with WriteService with ErrorHelpers with Service =>
+  this: ReadService with WriteService with ErrorHelpers =>
   val frontPageController: FrontPageController
 
-  class FrontPageController() extends SwaggerService {
+  class FrontPageController() extends Service[Eff] {
     override val serviceName: String         = "frontpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
     import ErrorHelpers._
 
-    val getFrontPage: ServerEndpoint[Any, IO] = endpoint.get
+    def getFrontPage: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get data to display on the front page")
       .out(jsonBody[FrontPage])
       .errorOut(errorOutputsFor(404))
-      .serverLogic { _ =>
+      .serverLogicPure { _ =>
         readService.getFrontPage.handleErrorsOrOk
       }
 
-    val newFrontPage: ServerEndpoint[Any, IO] = endpoint.post
+    def newFrontPage: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Create front page")
       .in(jsonBody[FrontPage])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[FrontPage])
       .requirePermission(FRONTPAGE_API_ADMIN)
-      .serverLogic { _ => frontPage =>
+      .serverLogicPure { _ => frontPage =>
         writeService
           .createFrontPage(frontPage)
           .handleErrorsOrOk
       }
 
-    override val endpoints: List[ServerEndpoint[Any, IO]] = List(getFrontPage, newFrontPage)
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getFrontPage, newFrontPage)
   }
 }

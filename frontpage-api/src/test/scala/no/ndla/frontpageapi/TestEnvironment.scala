@@ -27,7 +27,6 @@ trait TestEnvironment
     with FilmPageController
     with SubjectPageController
     with FrontPageController
-    with Service
     with NdlaMiddleware
     with ReadService
     with WriteService
@@ -39,7 +38,7 @@ trait TestEnvironment
     with ErrorHelpers
     with Clock
     with DBMigrator
-    with Routes {
+    with Routes[Eff] {
   override val props = new FrontpageApiProperties
 
   override val clock      = mock[SystemClock]
@@ -54,4 +53,6 @@ trait TestEnvironment
   override val filmFrontPageRepository = mock[FilmFrontPageRepository]
   override val readService             = mock[ReadService]
   override val writeService            = mock[WriteService]
+
+  val services: List[Service[Eff]] = List.empty
 }

@@ -7,9 +7,8 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.effect.IO
 import io.circe.generic.auto._
-import no.ndla.frontpageapi.Props
+import no.ndla.frontpageapi.{Eff, Props}
 import no.ndla.frontpageapi.model.api.{
   ErrorHelpers,
   NewSubjectFrontPageData,
@@ -28,15 +27,15 @@ import sttp.tapir.model.CommaSeparated
 import sttp.tapir.server.ServerEndpoint
 
 trait SubjectPageController {
-  this: ReadService with WriteService with Props with ErrorHelpers with Service =>
+  this: ReadService with WriteService with Props with ErrorHelpers =>
   val subjectPageController: SubjectPageController
 
-  class SubjectPageController extends SwaggerService {
+  class SubjectPageController extends Service[Eff] {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
     import ErrorHelpers._
-    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       endpoint.get
         .summary("Fetch all subjectpages")
         .in(query[Int]("page").default(1))
@@ -45,7 +44,7 @@ trait SubjectPageController {
         .in(query[Boolean]("fallback").default(false))
         .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[List[SubjectPageData]])
-        .serverLogic { case (page, pageSize, language, fallback) =>
+        .serverLogicPure { case (page, pageSize, language, fallback) =>
           readService
             .subjectPages(page, pageSize, language, fallback)
             .handleErrorsOrOk
@@ -57,7 +56,7 @@ trait SubjectPageController {
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
-        .serverLogic { case (id, language, fallback) =>
+        .serverLogicPure { case (id, language, fallback) =>
           readService
             .subjectPage(id, language, fallback)
             .handleErrorsOrOk
@@ -72,7 +71,7 @@ trait SubjectPageController {
         .in(query[Int]("page").default(1))
         .out(jsonBody[List[SubjectPageData]])
         .errorOut(errorOutputsFor(400, 404))
-        .serverLogic { case (ids, language, fallback, pageSize, page) =>
+        .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
           val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
           val parsedPage     = if (page < 1) 1 else page
           readService
@@ -85,7 +84,7 @@ trait SubjectPageController {
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
         .requirePermission(FRONTPAGE_API_WRITE)
-        .serverLogic { _ => newSubjectFrontPageData =>
+        .serverLogicPure { _ => newSubjectFrontPageData =>
           {
             writeService
               .newSubjectPage(newSubjectFrontPageData)
@@ -103,7 +102,7 @@ trait SubjectPageController {
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
         .requirePermission(FRONTPAGE_API_WRITE)
-        .serverLogic { _ =>
+        .serverLogicPure { _ =>
           { case (subjectPage, id, language, fallback) =>
             writeService
               .updateSubjectPage(id, subjectPage, language, fallback)

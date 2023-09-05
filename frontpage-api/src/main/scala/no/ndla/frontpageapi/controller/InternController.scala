@@ -7,10 +7,9 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
-import no.ndla.frontpageapi.Props
+import no.ndla.frontpageapi.{Eff, Props}
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -23,23 +22,23 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ReadService with WriteService with Props with ErrorHelpers with Service =>
+  this: ReadService with WriteService with Props with ErrorHelpers =>
   val internController: InternController
 
-  class InternController extends SwaggerService {
+  class InternController extends Service[Eff] {
     override val prefix        = "intern"
     override val enableSwagger = false
 
-    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       endpoint.get
         .in("subjectpage" / "external" / path[String]("externalId").description("old NDLA node id"))
         .summary("Get subject page id from external id")
         .out(jsonBody[SubjectPageId])
         .errorOut(errorOutputsFor(400, 404))
-        .serverLogic { nid =>
+        .serverLogicPure { nid =>
           readService.getIdFromExternalId(nid) match {
-            case Success(Some(id)) => IO(id.asRight)
-            case Success(None)     => IO(ErrorHelpers.notFound.asLeft)
+            case Success(Some(id)) => id.asRight
+            case Success(None)     => ErrorHelpers.notFound.asLeft
             case Failure(ex)       => returnLeftError(ex)
           }
         },
@@ -49,7 +48,7 @@ trait InternController {
         .in(jsonBody[NewSubjectFrontPageData])
         .errorOut(errorOutputsFor())
         .out(jsonBody[SubjectPageData])
-        .serverLogic { subjectPage =>
+        .serverLogicPure { subjectPage =>
           writeService
             .newSubjectPage(subjectPage)
             .handleErrorsOrOk
@@ -60,7 +59,7 @@ trait InternController {
         .errorOut(errorOutputsFor(400, 404))
         .summary("Update subject page")
         .out(jsonBody[SubjectPageData])
-        .serverLogic { case (id, subjectPage) =>
+        .serverLogicPure { case (id, subjectPage) =>
           writeService
             .updateSubjectPage(id, subjectPage, props.DefaultLanguage)
             .handleErrorsOrOk

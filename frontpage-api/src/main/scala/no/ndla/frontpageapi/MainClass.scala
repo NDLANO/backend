@@ -7,15 +7,12 @@
 
 package no.ndla.frontpageapi
 
-import cats.data.Kleisli
 import cats.effect.IO
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
-import org.http4s.{Request, Response}
 
-class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMain {
-  private val componentRegistry                            = new ComponentRegistry(props)
-  override val app: Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
+class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMain[Eff] {
+  private val componentRegistry = new ComponentRegistry(props)
 
   override def beforeStart(): Unit = {
     logger.info("Starting DB Migration")
@@ -32,4 +29,7 @@ class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMai
 
     componentRegistry.healthController.setWarmedUp()
   }
+
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] =
+    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }
