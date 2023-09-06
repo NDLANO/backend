@@ -23,7 +23,8 @@ object commonlib extends Module {
       "org.scala-lang"    % "scala-compiler"    % ScalaV,
       "org.eclipse.jetty" % "jetty-webapp"      % JettyV  % "compile",
       "org.eclipse.jetty" % "jetty-plus"        % JettyV  % "container",
-      "javax.servlet"     % "javax.servlet-api" % "4.0.1" % "container;provided;test"
+      "javax.servlet"     % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+      "com.amazonaws"     % "aws-java-sdk-s3"   % AwsSdkV
     ),
     melody,
     scalatra,
