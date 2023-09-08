@@ -76,6 +76,7 @@ trait ImageStorageService {
       val metadata = new ObjectMetadata()
       metadata.setContentType(contentType)
       metadata.setContentLength(size)
+      metadata.setCacheControl(props.S3NewFileCacheControlHeader)
 
       Try(amazonClient.putObject(new PutObjectRequest(StorageName, storageKey, stream, metadata))).map(_ => storageKey)
     }
