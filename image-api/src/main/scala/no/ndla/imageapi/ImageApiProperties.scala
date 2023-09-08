@@ -107,6 +107,8 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val StorageName: String    = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
   val StorageRegion: Regions = propToAwsRegion("IMAGE_FILE_S3_BUCKET_REGION")
 
+  val S3NewFileCacheControlHeader: String = propOrElse("IMAGE_FILE_S3_BUCKET_CACHE_CONTROL", "max-age=2592000")
+
   val SearchIndex: String    = propOrElse("SEARCH_INDEX_NAME", "images")
   val SearchDocument         = "image"
   val TagSearchIndex: String = propOrElse("TAG_SEARCH_INDEX_NAME", "tags")
