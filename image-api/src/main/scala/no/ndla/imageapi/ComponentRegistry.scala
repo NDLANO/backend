@@ -8,7 +8,6 @@
 
 package no.ndla.imageapi
 
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
@@ -79,13 +78,10 @@ class ComponentRegistry(properties: ImageApiProperties)
 
   implicit val swagger: ImageSwagger = new ImageSwagger
 
-  val currentRegion: Option[Regions] =
-    Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
-
   val amazonClient: AmazonS3 =
     AmazonS3ClientBuilder
       .standard()
-      .withRegion(currentRegion.getOrElse(Regions.EU_CENTRAL_1))
+      .withRegion(props.StorageRegion)
       .build()
 
   lazy val imageIndexService      = new ImageIndexService

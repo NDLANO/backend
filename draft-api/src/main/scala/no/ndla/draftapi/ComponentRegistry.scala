@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi
 
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
@@ -110,13 +109,12 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val writeService           = new WriteService
   lazy val reindexClient          = new ReindexClient
 
-  lazy val fileStorage               = new FileStorageService
-  val currentRegion: Option[Regions] = Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
+  lazy val fileStorage = new FileStorageService
 
   val amazonClient: AmazonS3 =
     AmazonS3ClientBuilder
       .standard()
-      .withRegion(currentRegion.getOrElse(Regions.EU_WEST_1))
+      .withRegion(props.AttachmentStorageRegion)
       .build()
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)

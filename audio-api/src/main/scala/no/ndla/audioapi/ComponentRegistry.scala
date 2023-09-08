@@ -10,7 +10,6 @@ package no.ndla.audioapi
 
 import cats.data.Kleisli
 import cats.effect.IO
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller._
@@ -71,13 +70,10 @@ class ComponentRegistry(properties: AudioApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  val currentRegion: Option[Regions] = Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
-
-  val amazonClient: AmazonS3 =
-    AmazonS3ClientBuilder
-      .standard()
-      .withRegion(currentRegion.getOrElse(Regions.EU_CENTRAL_1))
-      .build()
+  val amazonClient: AmazonS3 = AmazonS3ClientBuilder
+    .standard()
+    .withRegion(props.StorageRegion)
+    .build()
 
   lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository

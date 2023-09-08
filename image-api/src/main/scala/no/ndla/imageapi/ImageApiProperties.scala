@@ -8,8 +8,9 @@
 
 package no.ndla.imageapi
 
+import com.amazonaws.regions.Regions
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.prop
+import no.ndla.common.Environment.{prop, propToAwsRegion}
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.common.secrets.PropertyKeys
@@ -103,7 +104,8 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
 
-  val StorageName: String = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
+  val StorageName: String    = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
+  val StorageRegion: Regions = propToAwsRegion("IMAGE_FILE_S3_BUCKET_REGION")
 
   val SearchIndex: String    = propOrElse("SEARCH_INDEX_NAME", "images")
   val SearchDocument         = "image"
