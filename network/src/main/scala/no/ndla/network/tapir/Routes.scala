@@ -122,41 +122,49 @@ trait Routes[F[_]] {
     }
 
     object JDKMiddleware {
+      private def shouldLogRequest(req: ServerRequest): Boolean = s"/${req.uri.path.mkString("/")}" != "/health"
+
       val beforeTime = new AttributeKey[Long]("beforeTime")
       def before(req: ServerRequest) = {
         val requestInfo = RequestInfo.fromRequest(req)
         requestInfo.setThreadContextRequestInfo()
         val startTime = System.currentTimeMillis()
-        val s = RequestLogger.beforeRequestLogString(
-          method = req.method.toString(),
-          requestPath = s"/${req.uri.path.mkString("/")}",
-          queryString = req.queryParameters.toString(false)
-        )
-        logger.info(s)
+
+        if (shouldLogRequest(req)) {
+          val s = RequestLogger.beforeRequestLogString(
+            method = req.method.toString(),
+            requestPath = s"/${req.uri.path.mkString("/")}",
+            queryString = req.queryParameters.toString(false)
+          )
+          logger.info(s)
+        }
+
         req.attribute(beforeTime, startTime)
       }
 
       class after extends RequestResultEffectTransform[Id] {
         def apply[B](req: ServerRequest, result: Id[RequestResult[B]]): Id[RequestResult[B]] = {
+          if (shouldLogRequest(req)) {
+            val code: Int = result match {
+              case RequestResult.Response(x) => x.code.code
+              case RequestResult.Failure(_)  => -1
+            }
 
-          val code: Int = result match {
-            case RequestResult.Response(x) => x.code.code
-            case RequestResult.Failure(_)  => -1
+            val latency = req
+              .attribute(beforeTime)
+              .map(startTime => System.currentTimeMillis() - startTime)
+              .getOrElse(-1L)
+
+            val s = RequestLogger.afterRequestLogString(
+              method = req.method.toString(),
+              requestPath = s"/${req.uri.path.mkString("/")}",
+              queryString = req.queryParameters.toString(false),
+              latency = latency,
+              responseCode = code
+            )
+            logger.info(s)
           }
 
-          val latency = req
-            .attribute(beforeTime)
-            .map(startTime => System.currentTimeMillis() - startTime)
-            .getOrElse(-1L)
-
-          val s = RequestLogger.afterRequestLogString(
-            method = req.method.toString(),
-            requestPath = s"/${req.uri.path.mkString("/")}",
-            queryString = req.queryParameters.toString(false),
-            latency = latency,
-            responseCode = code
-          )
-          logger.info(s)
           RequestInfo.clear()
           result
         }

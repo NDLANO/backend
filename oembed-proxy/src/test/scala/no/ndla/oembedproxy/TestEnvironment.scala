@@ -39,7 +39,7 @@ trait TestEnvironment
   val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
   val ndlaClient: NdlaClient                       = mock[NdlaClient]
   val providerService: ProviderService             = mock[ProviderService]
-  val healthController: TapirHealthController[Eff]      = mock[TapirHealthController[Eff]]
+  val healthController: TapirHealthController[Eff] = mock[TapirHealthController[Eff]]
   val clock: SystemClock                           = mock[SystemClock]
 
   val services: List[Service[Eff]] = List.empty
