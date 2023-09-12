@@ -22,7 +22,6 @@ import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
-import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.common.implicits._
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
@@ -135,8 +134,7 @@ trait SeriesController {
       .in(pathSeriesId)
       .out(emptyOutput)
       .errorOut(errorOutputsFor(400, 403, 404))
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { _ => seriesId =>
         writeService.deleteSeries(seriesId) match {
           case Failure(ex) => returnLeftError(ex)
@@ -152,8 +150,7 @@ trait SeriesController {
       .in(pathLanguage)
       .out(noContentOrBodyOutput[Series])
       .errorOut(errorOutputsFor(400, 401, 403))
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { _ => input =>
         val (seriesId, language) = input
         writeService.deleteSeriesLanguageVersion(seriesId, language) match {
@@ -169,8 +166,7 @@ trait SeriesController {
       .in(jsonBody[NewSeries])
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(statusCode(StatusCode.Created).and(jsonBody[Series]))
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { _ => newSeries =>
         writeService
           .newSeries(newSeries)
@@ -184,8 +180,7 @@ trait SeriesController {
       .in(jsonBody[NewSeries])
       .out(jsonBody[Series])
       .errorOut(errorOutputsFor(400, 401, 403))
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { _ => input =>
         val (id, updateSeries) = input
         writeService.updateSeries(id, updateSeries).handleErrorsOrOk

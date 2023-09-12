@@ -24,7 +24,6 @@ import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.{NonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
-import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
@@ -186,8 +185,7 @@ trait AudioController {
       .in(pathAudioId)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(emptyOutput)
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { _ => audioId =>
         writeService.deleteAudioAndFiles(audioId) match {
           case Failure(ex) => returnLeftError(ex)
@@ -203,8 +201,7 @@ trait AudioController {
       .in(pathLanguage)
       .out(noContentOrBodyOutput[AudioMetaInformation])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { _ => input =>
         val (audioId, language) = input
         writeService.deleteAudioLanguageVersion(audioId, language) match {
@@ -220,8 +217,7 @@ trait AudioController {
       .in(multipartBody[MetaDataAndFileForm])
       .out(jsonBody[AudioMetaInformation])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { user => formData =>
         val fileBytes = getBytesAndDeleteFile(formData.file)
         writeService.storeNewAudio(formData.metadata.body, fileBytes, user).handleErrorsOrOk
@@ -234,8 +230,7 @@ trait AudioController {
       .in(multipartBody[MetaDataAndOptFileForm])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[AudioMetaInformation])
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogic { user => input =>
         val (id, formData) = input
         val fileBytes      = formData.file.map(getBytesAndDeleteFile)

@@ -82,7 +82,7 @@ trait TapirErrorHelpers extends FLogging {
       def requirePermission[F[_]](
           requiredPermission: Permission*
       ): PartialServerEndpoint[Option[TokenUser], TokenUser, I, AllErrors, O, R, F] = {
-        val newEndpoint   = self.securityIn(sttp.tapir.auth.bearer[Option[TokenUser]]())
+        val newEndpoint   = self.securityIn(TokenUser.oauth2Input(requiredPermission))
         val authFunc      = ErrorHelpers.requireScope(requiredPermission: _*)
         val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
 
@@ -92,7 +92,7 @@ trait TapirErrorHelpers extends FLogging {
 
     implicit class authlessErrorlessEndpoint[A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
       def withOptionalUser[F[_]]: PartialServerEndpoint[Option[TokenUser], Option[TokenUser], I, X, O, R, F] = {
-        val newEndpoint   = self.securityIn(sttp.tapir.auth.bearer[Option[TokenUser]]())
+        val newEndpoint   = self.securityIn(TokenUser.oauth2Input(Seq.empty))
         val authFunc      = (tokenUser: Option[TokenUser]) => Right(tokenUser): Either[X, Option[TokenUser]]
         val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
         PartialServerEndpoint(newEndpoint, securityLogic)
