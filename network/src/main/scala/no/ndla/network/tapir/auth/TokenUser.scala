@@ -10,10 +10,14 @@ package no.ndla.network.tapir.auth
 import cats.implicits._
 import no.ndla.network.jwt.JWTExtractor
 import no.ndla.network.model.{JWTClaims, NdlaHttpRequest}
+import sttp.model.HeaderNames
+import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
 import sttp.tapir.CodecFormat.TextPlain
+import sttp.tapir.EndpointInput.{AuthInfo, AuthType}
 import sttp.tapir._
 
 import javax.servlet.http.HttpServletRequest
+import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
 
 case class TokenUser(
@@ -91,5 +95,34 @@ object TokenUser {
     case Failure(ex)    => DecodeResult.Error(s, ex)
     case Success(value) => DecodeResult.Value(value)
   }
-  implicit val userinfoCodec: Codec[String, TokenUser, TextPlain] = Codec.string.mapDecode(decode)(encode)
+
+  private implicit val userinfoCodec = Codec.string.mapDecode(decode)(encode)
+  private val authScheme             = AuthenticationScheme.Bearer.name
+  private val codec                  = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
+  private def filterHeaders(headers: List[String]) = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
+  private def stringPrefixWithSpace                = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
+  val authCodec: Codec[List[String], Option[TokenUser], TextPlain] = Codec
+    .id[List[String], CodecFormat.TextPlain](codec.format, Schema.binary)
+    .map(filterHeaders(_))(identity)
+    .map(stringPrefixWithSpace)
+    .mapDecode(codec.decode)(codec.encode)
+    .schema(codec.schema)
+
+  def oauth2Input(permissions: Seq[Permission]) = {
+    val authType: AuthType.ScopedOAuth2 = EndpointInput.AuthType
+      .OAuth2(
+        None,
+        None,
+        ListMap.from(permissions.map(p => p.entryName -> p.entryName)),
+        None
+      )
+      .requiredScopes(permissions.map(_.entryName))
+
+    EndpointInput.Auth(
+      input = sttp.tapir.header(HeaderNames.Authorization)(authCodec),
+      challenge = WWWAuthenticateChallenge.bearer,
+      authType = authType,
+      info = AuthInfo.Empty.securitySchemeName("oauth2")
+    )
+  }
 }
