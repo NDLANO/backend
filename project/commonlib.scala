@@ -8,7 +8,8 @@ import _root_.io.github.davidgregory084.ScalaVersion.*
 import _root_.io.github.davidgregory084.ScalacOption
 
 object commonlib extends Module {
-  override val moduleName: String = "common"
+  override val moduleName: String      = "common"
+  override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       enumeratum,

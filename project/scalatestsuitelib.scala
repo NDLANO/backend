@@ -4,7 +4,8 @@ import sbt.Keys._
 import sbt._
 
 object scalatestsuitelib extends Module {
-  override val moduleName: String = "scalatestsuite"
+  override val moduleName: String      = "scalatestsuite"
+  override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = Seq(
     "org.scalatest"     %% "scalatest"               % ScalaTestV,
     "org.mockito"       %% "mockito-scala"           % MockitoV,
