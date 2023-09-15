@@ -371,10 +371,10 @@
       ],
       "optional": [
         [
-          "data-image-before-id"
+          "data-image-id"
         ],
         [
-          "data-image-after-id"
+          "data-image-side"
         ]
       ]
     },
