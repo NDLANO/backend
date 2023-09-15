@@ -88,7 +88,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def AttachmentStorageName: String =
     propOrElse("ARTICLE_ATTACHMENT_S3_BUCKET", s"$Environment.article-attachments.ndla")
 
-  def AttachmentStorageRegion: Regions = propToAwsRegion("ARTICLE_ATTACHMENT_S3_BUCKET")
+  def AttachmentStorageRegion: Regions = propToAwsRegion("ARTICLE_ATTACHMENT_S3_BUCKET_REGION")
 
   def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",
