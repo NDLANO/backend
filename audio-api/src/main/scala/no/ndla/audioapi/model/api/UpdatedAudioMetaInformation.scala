@@ -7,6 +7,7 @@
 
 package no.ndla.audioapi.model.api
 
+import no.ndla.common.model.api.Copyright
 import sttp.tapir.Schema.annotations.description
 
 // format: off

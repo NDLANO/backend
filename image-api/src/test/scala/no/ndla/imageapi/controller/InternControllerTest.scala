@@ -9,9 +9,11 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.{api => commonApi}
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
-import no.ndla.imageapi.model.{api, domain}
+import no.ndla.imageapi.model.api
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
 import org.json4s.Formats
@@ -39,13 +41,12 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     s"${props.RawImageUrlBase}/test.jpg",
     0,
     "",
-    api.Copyright(
-      api.License(BySa.license.toString, BySa.description, BySa.url),
-      "",
-      List(),
-      List(),
-      List(),
+    commonApi.Copyright(
+      commonApi.License(BySa.license.toString, Some(BySa.description), BySa.url),
       None,
+      List(),
+      List(),
+      List(),
       None,
       None
     ),
@@ -74,7 +75,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
         imageMetaId = 1
       )
     ),
-    copyright = domain.Copyright(CC_BY.toString, "", List(), List(), List(), None, None, None),
+    copyright = Copyright(CC_BY.toString, None, List(), List(), List(), None, None),
     tags = List(),
     captions = List(),
     updatedBy = "ndla124",

@@ -1,11 +1,12 @@
 /*
- * Part of NDLA draft-api.
- * Copyright (C) 2017 NDLA
+ * Part of NDLA common.
+ * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
-package no.ndla.draftapi.model.api
+package no.ndla.common.model.api
 
 import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
@@ -13,7 +14,7 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 import scala.annotation.meta.field
 
 @ApiModel(description = "Description of copyright information")
-case class Copyright(
+case class DraftCopyright(
     @(ApiModelProperty @field)(description = "Describes the license of the article") license: Option[License],
     @(ApiModelProperty @field)(description = "Reference to where the article is procured") origin: Option[String],
     @(ApiModelProperty @field)(description = "List of creators") creators: Seq[Author],

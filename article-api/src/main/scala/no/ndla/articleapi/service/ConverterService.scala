@@ -17,9 +17,9 @@ import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
-import no.ndla.common.Clock
-import no.ndla.common.model.RelatedContentLink
-import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
+import no.ndla.common.{Clock, model}
+import no.ndla.common.model.{RelatedContentLink, api => commonApi}
+import no.ndla.common.model.api.{Delete, License, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -228,7 +228,7 @@ trait ConverterService {
         authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase))
       val rightsholders =
         authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
-      Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None)
+      Copyright(oldToNewLicenseKey(license), Some(origin), creators, processors, rightsholders, None, None)
     }
 
     def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
@@ -238,19 +238,17 @@ trait ConverterService {
       }
     }
 
-    def toDomainCopyright(copyright: api.Copyright): Copyright = {
+    def toDomainCopyright(copyright: model.api.Copyright): Copyright = {
       Copyright(
         copyright.license.license,
         copyright.origin,
-        copyright.creators.map(toDomainAuthor),
-        copyright.processors.map(toDomainAuthor),
-        copyright.rightsholders.map(toDomainAuthor),
+        copyright.creators.map(_.toDomain),
+        copyright.processors.map(_.toDomain),
+        copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
         copyright.validTo
       )
     }
-
-    def toDomainAuthor(author: api.Author): Author = Author(author.`type`, author.name)
 
     private def getMainNidUrlToOldNdla(id: Long): Option[String] = {
       // First nid in externalId's should always be mainNid after import.
@@ -352,27 +350,23 @@ trait ConverterService {
 
     }
 
-    def toApiCopyright(copyright: Copyright): api.Copyright = {
-      api.Copyright(
+    def toApiCopyright(copyright: Copyright): commonApi.Copyright = {
+      commonApi.Copyright(
         toApiLicense(copyright.license),
         copyright.origin,
-        copyright.creators.map(toApiAuthor),
-        copyright.processors.map(toApiAuthor),
-        copyright.rightsholders.map(toApiAuthor),
+        copyright.creators.map(_.toApi),
+        copyright.processors.map(_.toApi),
+        copyright.rightsholders.map(_.toApi),
         copyright.validFrom,
         copyright.validTo
       )
     }
 
-    def toApiLicense(shortLicense: String): api.License = {
+    def toApiLicense(shortLicense: String): License = {
       getLicense(shortLicense) match {
-        case Some(l) => api.License(l.license.toString, Option(l.description), l.url)
-        case None    => api.License("unknown", None, None)
+        case Some(l) => model.api.License(l.license.toString, Option(l.description), l.url)
+        case None    => model.api.License("unknown", None, None)
       }
-    }
-
-    def toApiAuthor(author: Author): api.Author = {
-      api.Author(author.`type`, author.name)
     }
 
     def toApiArticleTag(tag: Tag): api.ArticleTag = {

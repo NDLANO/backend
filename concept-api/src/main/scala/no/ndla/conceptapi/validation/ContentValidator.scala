@@ -9,7 +9,7 @@ package no.ndla.conceptapi.validation
 
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.draft.Copyright
+import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
@@ -87,7 +87,7 @@ trait ContentValidator {
         validateMinimumLength(s"title.$language", title, 1)
     }
 
-    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+    private def validateCopyright(copyright: DraftCopyright): Seq[ValidationMessage] = {
       val licenseMessage            = copyright.license.map(validateLicense).toSeq.flatten
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)

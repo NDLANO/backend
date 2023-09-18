@@ -11,8 +11,9 @@ package no.ndla.audioapi.service
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
 import no.ndla.mapping.License.CC_BY_SA
 
 import scala.util.Success
@@ -92,7 +93,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That toApiLicense converts to an api.License") {
     val licenseAbbr = CC_BY_SA.toString
-    val license = api.License(
+    val license = commonApi.License(
       licenseAbbr,
       Some("Creative Commons Attribution-ShareAlike 4.0 International"),
       Some("https://creativecommons.org/licenses/by-sa/4.0/")
@@ -104,7 +105,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That toApiLicense returns unknown if the license is invalid") {
     val licenseAbbr = "garbage"
 
-    service.toApiLicence(licenseAbbr) should equal(api.License("unknown", None, None))
+    service.toApiLicence(licenseAbbr) should equal(commonApi.License("unknown", None, None))
   }
 
   test("That mergeLanguageField merges language fields as expected") {

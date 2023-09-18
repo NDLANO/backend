@@ -9,6 +9,7 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft._
@@ -193,10 +194,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedMetaAlt         = "HeheAlt"
     val newImageMeta           = api.NewArticleMetaImage(updatedMetaId, updatedMetaAlt)
     val updatedVisualElement   = s"<$EmbedTagName something />"
-    val updatedCopyright = api.Copyright(
-      Some(api.License("a", Some("b"), None)),
+    val updatedCopyright = model.api.DraftCopyright(
+      Some(commonApi.License("a", Some("b"), None)),
       Some("c"),
-      Seq(api.Author("Opphavsmann", "Jonas")),
+      Seq(commonApi.Author("Opphavsmann", "Jonas")),
       List(),
       List(),
       None,
@@ -227,7 +228,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(Title(updatedTitle, "en")),
       content = Seq(ArticleContent(updatedContent, "en")),
       copyright =
-        Some(Copyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None)),
+        Some(DraftCopyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None)),
       tags = Seq(Tag(Seq("en", "to", "tre"), "en")),
       requiredLibraries = Seq(RequiredLibrary("tjup", "tjap", "tjim")),
       visualElement = Seq(VisualElement(updatedVisualElement, "en")),
@@ -673,8 +674,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
@@ -734,8 +735,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       language = Some("nb"),
       title = Some(existingTitle),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = Some("shouldCauseStatusChange"),
           creators = Seq.empty,
           processors = Seq.empty,
@@ -788,8 +789,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
@@ -957,7 +958,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("A", "B"),
-      copyright = Some(Copyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None)),
+      copyright = Some(DraftCopyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None)),
       metaDescription = Seq(
         Description("oldDesc", "nb"),
         Description("oldDescc", "es"),
@@ -1149,8 +1150,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,

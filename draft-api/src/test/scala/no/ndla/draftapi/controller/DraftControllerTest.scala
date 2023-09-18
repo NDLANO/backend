@@ -9,7 +9,7 @@ package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
@@ -62,22 +62,22 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     val creativeCommonlicenses =
       getLicenses
         .filter(_.license.toString.startsWith("by"))
-        .map(l => api.License(l.license.toString, Option(l.description), l.url))
+        .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
         .toSet
 
     get("/test/licenses/", "filter" -> "by") {
       status should equal(200)
-      val convertedBody = read[Set[api.License]](body)
+      val convertedBody = read[Set[commonApi.License]](body)
       convertedBody should equal(creativeCommonlicenses)
     }
   }
 
   test("That GET /licenses/ with filter not specified returns all licenses") {
-    val allLicenses = getLicenses.map(l => api.License(l.license.toString, Option(l.description), l.url)).toSet
+    val allLicenses = getLicenses.map(l => commonApi.License(l.license.toString, Option(l.description), l.url)).toSet
 
     get("/test/licenses/") {
       status should equal(200)
-      val convertedBody = read[Set[api.License]](body)
+      val convertedBody = read[Set[commonApi.License]](body)
       convertedBody should equal(allLicenses)
     }
   }

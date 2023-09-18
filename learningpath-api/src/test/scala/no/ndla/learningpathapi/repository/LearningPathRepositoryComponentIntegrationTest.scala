@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.learningpath.{LearningpathCopyright, EmbedType, EmbedUrl}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._
@@ -47,9 +47,9 @@ class LearningPathRepositoryComponentIntegrationTest
     super.withFixture(test)
   }
 
-  val clinton: Author      = Author("author", "Hilla the Hun")
-  val license              = "publicdomain"
-  val copyright: Copyright = Copyright(license, List(clinton))
+  val clinton: Author                  = Author("author", "Hilla the Hun")
+  val license                          = "publicdomain"
+  val copyright: LearningpathCopyright = LearningpathCopyright(license, List(clinton))
 
   val DefaultLearningPath: LearningPath = LearningPath(
     None,
@@ -262,7 +262,7 @@ class LearningPathRepositoryComponentIntegrationTest
     val publicPath = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        copyright = Copyright(
+        copyright = LearningpathCopyright(
           "by",
           List(
             Author("forfatter", "James Bond"),
@@ -275,7 +275,7 @@ class LearningPathRepositoryComponentIntegrationTest
 
     val privatePath = repository.insert(
       DefaultLearningPath.copy(
-        copyright = Copyright("by", List(Author("forfatter", "Test testesen")))
+        copyright = LearningpathCopyright("by", List(Author("forfatter", "Test testesen")))
       )
     )
 
@@ -293,7 +293,7 @@ class LearningPathRepositoryComponentIntegrationTest
     val publicPath1 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        copyright = Copyright(
+        copyright = LearningpathCopyright(
           "by",
           List(
             Author("forfatter", "James Bond"),
@@ -306,7 +306,8 @@ class LearningPathRepositoryComponentIntegrationTest
     val publicPath2 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        copyright = Copyright("by", List(Author("forfatter", "James Bond"), Author("forfatter", "Test testesen")))
+        copyright =
+          LearningpathCopyright("by", List(Author("forfatter", "James Bond"), Author("forfatter", "Test testesen")))
       )
     )
 

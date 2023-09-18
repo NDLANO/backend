@@ -10,6 +10,7 @@ package no.ndla.imageapi.controller
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.api.{
   ImageMetaSummary,
   NewImageMetaInformationV2,
@@ -212,7 +213,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   test("That POST / returns 200 if everything went well") {
     val titles: Seq[ImageTitle]     = Seq()
     val alttexts: Seq[ImageAltText] = Seq()
-    val copyright                   = Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None, None)
+    val copyright                   = Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None)
     val tags: Seq[Tag]              = Seq()
     val captions: Seq[ImageCaption] = Seq()
 

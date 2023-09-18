@@ -9,4 +9,4 @@ package no.ndla.common.model.domain.learningpath
 
 import no.ndla.common.model.domain.Author
 
-case class Copyright(license: String, contributors: Seq[Author])
+case class LearningpathCopyright(license: String, contributors: Seq[Author])

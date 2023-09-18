@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.api.Stats
@@ -31,11 +31,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_ID = 1L
   val PRIVATE_ID   = 2L
 
-  val PUBLISHED_OWNER: TokenUser = TokenUser("published_owner", Set.empty, None)
-  val PRIVATE_OWNER: TokenUser   = TokenUser("private_owner", Set.empty, None)
-  val cruz: Author               = Author("author", "Lyin' Ted")
-  val license                    = "publicdomain"
-  val copyright: Copyright       = Copyright(license, List(cruz))
+  val PUBLISHED_OWNER: TokenUser       = TokenUser("published_owner", Set.empty, None)
+  val PRIVATE_OWNER: TokenUser         = TokenUser("private_owner", Set.empty, None)
+  val cruz: Author                     = Author("author", "Lyin' Ted")
+  val license                          = "publicdomain"
+  val copyright: LearningpathCopyright = LearningpathCopyright(license, List(cruz))
 
   val PUBLISHED_LEARNINGPATH: LearningPath = LearningPath(
     Some(PUBLISHED_ID),

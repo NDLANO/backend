@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.NDLADate
+import no.ndla.common.model.{NDLADate, api => commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.{Resource, Topic}
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
@@ -34,7 +34,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
   implicit val swagger: LearningpathSwagger = new LearningpathSwagger
 
-  val copyright: api.Copyright = api.Copyright(api.License("by-sa", None, None), List())
+  val copyright: api.Copyright = api.Copyright(commonApi.License("by-sa", None, None), List())
 
   val DefaultLearningPathSummary: LearningPathSummaryV2 = api.LearningPathSummaryV2(
     1,
@@ -179,7 +179,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   test("That GET /licenses with filter sat to by only returns creative common licenses") {
     val creativeCommonlicenses = getLicenses
       .filter(_.license.toString.startsWith("by"))
-      .map(l => api.License(l.license.toString, Option(l.description), l.url))
+      .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
       .toSet
 
     get(
@@ -189,19 +189,19 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
       )
     ) {
       status should equal(200)
-      val convertedBody = read[Set[api.License]](body)
+      val convertedBody = read[Set[commonApi.License]](body)
       convertedBody should equal(creativeCommonlicenses)
     }
   }
 
   test("That GET /licenses with filter not specified returns all licenses") {
     val allLicenses = getLicenses
-      .map(l => api.License(l.license.toString, Option(l.description), l.url))
+      .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
       .toSet
 
     get("/licenses/", Map()) {
       status should equal(200)
-      val convertedBody = read[Set[api.License]](body)
+      val convertedBody = read[Set[commonApi.License]](body)
       convertedBody should equal(allLicenses)
     }
   }

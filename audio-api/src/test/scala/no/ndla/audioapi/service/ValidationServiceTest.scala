@@ -8,9 +8,10 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.domain.{AudioType, Copyright, CoverPhoto, PodcastMeta}
+import no.ndla.audioapi.model.domain.{AudioType, CoverPhoto, PodcastMeta}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.mapping.License.CC_BY
 

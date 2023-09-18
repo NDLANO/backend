@@ -9,6 +9,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.{domain => commonDomain}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
@@ -100,7 +101,7 @@ trait ValidationService {
         validateLanguage(fieldPath, caption.language, oldLanguages)
     }
 
-    def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+    def validateCopyright(copyright: commonDomain.article.Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
         validateAuthorLicenseCorrelation(
           Some(copyright.license),
@@ -109,7 +110,7 @@ trait ValidationService {
         copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, props.creatorTypes)) ++
         copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, props.processorTypes)) ++
         copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, props.rightsholderTypes)) ++
-        containsNoHtml("copyright.origin", copyright.origin)
+        copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
     def validateLicense(license: String): Seq[ValidationMessage] = {

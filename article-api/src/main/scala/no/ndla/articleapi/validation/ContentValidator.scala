@@ -150,7 +150,8 @@ trait ContentValidator {
         copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", props.creatorTypes)) ++
           copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", props.processorTypes)) ++
           copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", props.rightsholderTypes))
-      val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
+      val originMessage =
+        copyright.origin.map(origin => NoHtmlValidator.validate("copyright.origin", origin)).getOrElse(Seq.empty)
 
       licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
     }

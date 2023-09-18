@@ -1,7 +1,7 @@
 package no.ndla.conceptapi.service
 
 import cats.effect.unsafe.implicits.global
-import no.ndla.common.model.domain.draft.Copyright
+import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.conceptapi.model.domain
@@ -19,7 +19,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq(Title("tittel", "nb")),
       content = Seq(ConceptContent("content", "nb")),
       copyright = Some(
-        Copyright(
+        DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
           creators = Seq(Author("writer", "Ape Katt")),
@@ -71,7 +71,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq(Title("tittel", "nb")),
       content = Seq(ConceptContent("content", "nb")),
       copyright = Some(
-        Copyright(
+        DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
           creators = Seq(Author("writer", "Ape Katt")),
@@ -123,7 +123,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq(Title("tittel", "nb")),
       content = Seq(ConceptContent("content", "nb")),
       copyright = Some(
-        Copyright(
+        DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
           creators = Seq(Author("writer", "Ape Katt")),
@@ -174,7 +174,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq(Title("tittel", "nb")),
       content = Seq(ConceptContent("content", "nb")),
       copyright = Some(
-        Copyright(
+        DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
           creators = Seq(Author("writer", "Katronk")),

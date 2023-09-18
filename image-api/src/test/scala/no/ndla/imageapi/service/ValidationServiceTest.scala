@@ -9,6 +9,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -36,8 +37,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
         imageMetaId = 1
       )
     ),
-    copyright =
-      Copyright(CC_BY.toString, "", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None),
+    copyright = Copyright(CC_BY.toString, None, Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None),
     tags = Seq.empty,
     captions = Seq.empty,
     updatedBy = "ndla124",
@@ -101,7 +101,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   test("validate returns a validation error if copyright contains an invalid license") {
     val imageMeta =
       sampleImageMeta.copy(
-        copyright = Copyright("invalid", "", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None)
+        copyright = Copyright("invalid", None, Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None)
       )
     val result    = validationService.validate(imageMeta, None)
     val exception = result.failed.get.asInstanceOf[ValidationException]
@@ -114,11 +114,10 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = sampleImageMeta.copy(
       copyright = Copyright(
         CC_BY.toString,
-        "<h1>origin</h1>",
+        Some("<h1>origin</h1>"),
         Seq(Author("originator", "test")),
         Seq.empty,
         Seq.empty,
-        None,
         None,
         None
       )
@@ -134,11 +133,10 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = sampleImageMeta.copy(
       copyright = Copyright(
         CC_BY.toString,
-        "",
+        None,
         Seq(Author("originator", "<h1>Drumpf</h1>")),
         Seq.empty,
         Seq.empty,
-        None,
         None,
         None
       )
@@ -153,7 +151,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   test("validate returns success if copyright is valid") {
     val imageMeta = sampleImageMeta.copy(
       copyright =
-        Copyright(CC_BY.toString, "ntb", Seq(Author("originator", "Drumpf")), Seq.empty, Seq.empty, None, None, None)
+        Copyright(CC_BY.toString, Some("ntb"), Seq(Author("originator", "Drumpf")), Seq.empty, Seq.empty, None, None)
     )
     validationService.validate(imageMeta, None).isSuccess should be(true)
   }
@@ -161,7 +159,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   test("validate returns error if authortype is invalid") {
     val imageMeta = sampleImageMeta.copy(
       copyright =
-        Copyright(CC_BY.toString, "ntb", Seq(Author("invalidType", "Drumpf")), Seq.empty, Seq.empty, None, None, None)
+        Copyright(CC_BY.toString, Some("ntb"), Seq(Author("invalidType", "Drumpf")), Seq.empty, Seq.empty, None, None)
     )
     val result    = validationService.validate(imageMeta, None)
     val exception = result.failed.get.asInstanceOf[ValidationException]

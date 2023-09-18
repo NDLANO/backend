@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.model.domain
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.learningpathapi.Props
@@ -39,7 +39,7 @@ case class LearningPath(
     lastUpdated: NDLADate,
     tags: Seq[Tag],
     owner: String,
-    copyright: Copyright,
+    copyright: LearningpathCopyright,
     learningsteps: Option[Seq[LearningStep]] = None,
     message: Option[Message] = None
 ) {

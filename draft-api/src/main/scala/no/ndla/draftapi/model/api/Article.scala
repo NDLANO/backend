@@ -8,7 +8,7 @@
 package no.ndla.draftapi.model.api
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.RelatedContent
+import no.ndla.common.model.api.{DraftCopyright, RelatedContent}
 import no.ndla.common.model.api.draft.Comment
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -23,7 +23,7 @@ case class Article(
     @(ApiModelProperty @field)(description = "The status of this article", allowableValues = "CREATED,IMPORTED,DRAFT,SKETCH,USER_TEST,QUALITY_ASSURED,AWAITING_QUALITY_ASSURANCE") status: Status,
     @(ApiModelProperty @field)(description = "Available titles for the article") title: Option[ArticleTitle],
     @(ApiModelProperty @field)(description = "The content of the article in available languages") content: Option[ArticleContent],
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the article") copyright: Option[Copyright],
+    @(ApiModelProperty @field)(description = "Describes the copyright information for the article") copyright: Option[DraftCopyright],
     @(ApiModelProperty @field)(description = "Searchable tags for the article") tags: Option[ArticleTag],
     @(ApiModelProperty @field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
     @(ApiModelProperty @field)(description = "A visual element article") visualElement: Option[VisualElement],

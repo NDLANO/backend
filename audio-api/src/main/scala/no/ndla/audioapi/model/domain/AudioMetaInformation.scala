@@ -11,7 +11,8 @@ package no.ndla.audioapi.model.domain
 import io.circe.{Decoder, Encoder}
 import no.ndla.audioapi.Props
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import org.json4s.FieldSerializer._
@@ -59,15 +60,6 @@ case class Audio(filePath: String, mimeType: String, fileSize: Long, language: S
   override def value: Audio     = this
   override def isEmpty: Boolean = false
 }
-case class Copyright(
-    license: String,
-    origin: Option[String],
-    creators: Seq[Author],
-    processors: Seq[Author],
-    rightsholders: Seq[Author],
-    validFrom: Option[NDLADate],
-    validTo: Option[NDLADate]
-)
 trait DBAudioMetaInformation {
   this: Props =>
 

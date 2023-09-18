@@ -10,7 +10,6 @@ package no.ndla.imageapi.model.domain
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Author
 import no.ndla.language.model.LanguageField
 
 import scala.util.{Failure, Success, Try}
@@ -37,17 +36,6 @@ case class UploadedImage(
     contentType: String,
     dimensions: Option[ImageDimensions]
 )
-case class Copyright(
-    license: String,
-    origin: String,
-    creators: Seq[Author],
-    processors: Seq[Author],
-    rightsholders: Seq[Author],
-    agreementId: Option[Long],
-    validFrom: Option[NDLADate],
-    validTo: Option[NDLADate]
-)
-case class License(license: String, description: String, url: Option[String])
 case class EditorNote(timeStamp: NDLADate, updatedBy: String, note: String)
 case class ImageDimensions(width: Int, height: Int)
 

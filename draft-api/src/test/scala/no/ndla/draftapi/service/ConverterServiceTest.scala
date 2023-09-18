@@ -9,12 +9,13 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common
+import no.ndla.common.model.{api => commonApi}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.domain.draft.{Comment, Copyright, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Comment, DraftCopyright, Draft, DraftStatus}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{NewComment, UpdatedComment}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -32,12 +33,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
   test("toApiLicense defaults to unknown if the license was not found") {
-    service.toApiLicense("invalid") should equal(api.License("unknown", None, None))
+    service.toApiLicense("invalid") should equal(commonApi.License("unknown", None, None))
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
     service.toApiLicense(CC_BY.toString) should equal(
-      api.License(
+      commonApi.License(
         CC_BY.toString,
         Some("Creative Commons Attribution 4.0 International"),
         Some("https://creativecommons.org/licenses/by/4.0/")
@@ -1049,6 +1050,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toArticleApiArticle transforms Draft to Article correctly") {
+    when(clock.now()).thenReturn(TestData.today)
     val articleId = 42L
     val draft = Draft(
       id = Some(articleId),
@@ -1056,7 +1058,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       status = Status(PLANNED, Set.empty),
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
-      copyright = Some(Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+      copyright = Some(DraftCopyright(Some(CC_BY.toString), None, Seq.empty, Seq.empty, Seq.empty, None, None)),
       tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
       visualElement = Seq(VisualElement("e", "nb")),
@@ -1088,7 +1090,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
       copyright =
-        common.model.domain.article.Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None),
+        common.model.domain.article.Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None),
       tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
       visualElement = Seq(VisualElement("e", "nb")),

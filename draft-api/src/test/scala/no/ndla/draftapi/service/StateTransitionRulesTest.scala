@@ -333,7 +333,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright =
-        Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+        Some(common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,
       visualElement = Seq.empty,
@@ -364,7 +364,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       revision = None,
       title = Seq.empty,
       content = Seq.empty,
-      copyright = common.article.Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None),
+      copyright = common.article.Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,
       visualElement = Seq.empty,
@@ -453,7 +453,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.Copyright(
+        common.draft.DraftCopyright(
           Some(CC_BY.toString),
           Some(""),
           Seq.empty,
@@ -517,7 +517,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.Copyright(
+        common.draft.DraftCopyright(
           Some(CC_BY.toString),
           Some(""),
           Seq.empty,
@@ -586,7 +586,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.Copyright(
+        common.draft.DraftCopyright(
           Some(CC_BY.toString),
           Some(""),
           Seq.empty,
@@ -657,7 +657,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.Copyright(
+        common.draft.DraftCopyright(
           Some(CC_BY.toString),
           Some(""),
           Seq.empty,

@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.db.migration
 
-import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType}
+import no.ndla.common.model.domain.learningpath.{LearningpathCopyright, EmbedType}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.model.domain._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -16,7 +16,7 @@ import org.json4s._
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 import java.time.LocalDateTime
 
@@ -115,7 +115,7 @@ case class V5_LearningPath(
     lastUpdated: LocalDateTime,
     tags: Seq[V5_LearningPathTags],
     owner: String,
-    copyright: Copyright,
+    copyright: LearningpathCopyright,
     learningsteps: Seq[LearningStep] = Nil
 )
 

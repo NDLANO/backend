@@ -8,8 +8,9 @@
 package no.ndla.imageapi.service.search
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.imageapi.model.api
+import no.ndla.common.model.{api => commonApi}
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain}
@@ -52,34 +53,31 @@ class ImageSearchServiceTest
 
   val byNcSa: Copyright = Copyright(
     CC_BY_NC_SA.toString,
-    "Gotham City",
+    Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
     List(),
     List(),
-    None,
     None,
     None
   )
 
   val publicDomain: Copyright = Copyright(
     PublicDomain.toString,
-    "Metropolis",
+    Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
     List(),
     List(),
-    None,
     None,
     None
   )
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val agreement1Copyright: api.Copyright = api.Copyright(
-    api.License("gnu", "gnustuff", Some("http://gnugnusen")),
-    "Simsalabim",
+  val agreement1Copyright: commonApi.Copyright = commonApi.Copyright(
+    commonApi.License("gnu", Some("gnustuff"), Some("http://gnugnusen")),
+    Some("Simsalabim"),
     List(),
     List(),
     List(),
-    None,
     None,
     None
   )
@@ -157,7 +155,7 @@ class ImageSearchServiceTest
     ),
     alttexts = Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
     images = Seq(smallImage),
-    copyright = byNcSa.copy(agreementId = Some(1)),
+    copyright = byNcSa,
     tags = Seq(),
     captions = Seq(),
     updatedBy = "ndla124",

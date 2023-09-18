@@ -9,7 +9,7 @@
 package no.ndla.articleapi.model.api
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.RelatedContent
+import no.ndla.common.model.api.{Copyright, RelatedContent}
 import sttp.tapir.Schema.annotations.description
 
 // format: off

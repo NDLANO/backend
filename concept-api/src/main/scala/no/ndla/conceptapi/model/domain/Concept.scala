@@ -10,7 +10,7 @@ package no.ndla.conceptapi.model.domain
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft.Copyright
+import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer._
@@ -26,7 +26,7 @@ case class Concept(
     revision: Option[Int],
     title: Seq[Title],
     content: Seq[ConceptContent],
-    copyright: Option[Copyright],
+    copyright: Option[DraftCopyright],
     source: Option[String],
     created: NDLADate,
     updated: NDLADate,

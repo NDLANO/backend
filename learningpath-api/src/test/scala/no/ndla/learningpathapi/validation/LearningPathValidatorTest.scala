@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.mapping.License.PublicDomain
@@ -29,7 +29,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   val trump     = Author("author", "Donald Drumpf")
   val license   = PublicDomain.toString
-  val copyright = Copyright(license, List(trump))
+  val copyright = LearningpathCopyright(license, List(trump))
 
   val ValidLearningPath = LearningPath(
     id = None,

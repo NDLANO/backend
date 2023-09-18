@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.validation
 import io.lemonlabs.uri.Url
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.mapping.License.getLicense
@@ -109,7 +109,7 @@ trait LearningPathValidator {
       })
     }
 
-    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+    private def validateCopyright(copyright: LearningpathCopyright): Seq[ValidationMessage] = {
       val licenseMessage       = validateLicense(copyright.license)
       val contributorsMessages = copyright.contributors.flatMap(validateAuthor)
 

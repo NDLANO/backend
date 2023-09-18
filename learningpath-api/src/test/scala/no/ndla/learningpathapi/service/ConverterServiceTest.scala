@@ -9,8 +9,8 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.{NDLADate, api => commonApi}
+import no.ndla.common.model.domain.learningpath.{LearningpathCopyright, EmbedType, EmbedUrl}
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
@@ -30,8 +30,8 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
-  val clinton   = api.Author("author", "Crooked Hillary")
-  val license   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+  val clinton = commonApi.Author("author", "Crooked Hillary")
+  val license = commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
   val copyright = api.Copyright(license, List(clinton))
 
   val apiLearningPath = api.LearningPathV2(
@@ -88,7 +88,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     randomDate,
     List(Tag(List("tag"), DefaultLanguage)),
     "me",
-    Copyright(CC_BY.toString, List.empty),
+    LearningpathCopyright(CC_BY.toString, List.empty),
     None
   )
 
@@ -114,7 +114,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         randomDate,
         api.LearningPathTags(Seq("tag"), DefaultLanguage),
         api.Copyright(
-          api.License(
+          commonApi.License(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -164,7 +164,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         randomDate,
         api.LearningPathTags(Seq("tag"), DefaultLanguage),
         api.Copyright(
-          api.License(
+          commonApi.License(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -200,7 +200,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         randomDate,
         api.LearningPathTags(Seq("tag"), DefaultLanguage),
         api.Copyright(
-          api.License(
+          commonApi.License(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -382,7 +382,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLicense returns a License object for a given valid license") {
     service.asApiLicense("CC-BY-4.0") should equal(
-      api.License(
+      commonApi.License(
         CC_BY.toString,
         Option("Creative Commons Attribution 4.0 International"),
         Some("https://creativecommons.org/licenses/by/4.0/")
@@ -391,7 +391,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("asApiLicense returns a default license object for an invalid license") {
-    service.asApiLicense("invalid") should equal(api.License("invalid", Option("Invalid license"), None))
+    service.asApiLicense("invalid") should equal(commonApi.License("invalid", Option("Invalid license"), None))
   }
 
   test("asEmbedUrl returns embedUrl if embedType is oembed") {
@@ -457,8 +457,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("New learningPaths get correct verification") {
-    val apiRubio     = api.Author("author", "Little Marco")
-    val apiLicense   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+    val apiRubio = commonApi.Author("author", "Little Marco")
+    val apiLicense =
+      commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
     val apiCopyright = api.Copyright(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)

@@ -15,6 +15,7 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model
+import no.ndla.common.model.api.{Copyright, License}
 import no.ndla.common.model.{NDLADate, domain => common}
 import org.mockito.Strictness
 import org.mockito.invocation.InvocationOnMock
@@ -63,7 +64,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio, None, testUser)
   val updated1: model.NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val publicDomain: domain.Copyright = domain.Copyright(
+  val publicDomain: common.article.Copyright = common.article.Copyright(
     "publicdomain",
     Some("Metropolis"),
     List(common.Author("Forfatter", "Bruce Wayne")),

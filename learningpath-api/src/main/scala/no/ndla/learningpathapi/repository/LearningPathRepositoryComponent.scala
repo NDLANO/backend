@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain._
@@ -312,7 +312,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       allCopyrights
         .map(copyright => {
-          parse(copyright).extract[Copyright]
+          parse(copyright).extract[LearningpathCopyright]
         })
         .flatMap(_.contributors)
         .distinct

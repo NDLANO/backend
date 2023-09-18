@@ -9,8 +9,9 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.domain.draft.Copyright
+import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.{api => commonApi}
 import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Concept, SearchResult}
 import no.ndla.conceptapi.model.search._
@@ -43,7 +44,7 @@ trait SearchConverterService {
 
     }
 
-    def asSearchableCopyright(maybeCopyright: Option[Copyright]): Option[SearchableCopyright] = {
+    def asSearchableCopyright(maybeCopyright: Option[DraftCopyright]): Option[SearchableCopyright] = {
       maybeCopyright.map(c => {
         SearchableCopyright(
           origin = c.origin,
@@ -113,14 +114,14 @@ trait SearchConverterService {
       val visualElement =
         findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
       val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
-      val license    = searchableConcept.license.map(converterService.toApiLicense)
+      val license    = converterService.toApiLicense(searchableConcept.license)
       val copyright = searchableConcept.copyright.map(c => {
-        api.Copyright(
-          license = license,
+        commonApi.DraftCopyright(
+          license = Some(license),
           origin = c.origin,
-          creators = c.creators.map(converterService.toApiAuthor),
-          processors = c.processors.map(converterService.toApiAuthor),
-          rightsholders = c.rightsholders.map(converterService.toApiAuthor),
+          creators = c.creators.map(_.toApi),
+          processors = c.processors.map(_.toApi),
+          rightsholders = c.rightsholders.map(_.toApi),
           validFrom = None,
           validTo = None
         )

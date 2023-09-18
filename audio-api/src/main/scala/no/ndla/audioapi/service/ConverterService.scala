@@ -15,7 +15,8 @@ import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.common.Clock
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
@@ -146,28 +147,26 @@ trait ConverterService {
       }
     }
 
-    def toApiCopyright(copyright: domain.Copyright): api.Copyright =
-      api.Copyright(
-        toApiLicence(copyright.license),
-        copyright.origin,
-        copyright.creators.map(toApiAuthor),
-        copyright.processors.map(toApiAuthor),
-        copyright.rightsholders.map(toApiAuthor),
-        copyright.validFrom,
-        copyright.validTo
-      )
-
-    def toApiLicence(licenseAbbrevation: String): api.License = {
+    def toApiLicence(licenseAbbrevation: String): commonApi.License = {
       getLicense(licenseAbbrevation) match {
-        case Some(license) => api.License(license.license.toString, Option(license.description), license.url)
+        case Some(license) => commonApi.License(license.license.toString, Option(license.description), license.url)
         case None =>
           logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
-          api.License("unknown", None, None)
+          commonApi.License("unknown", None, None)
       }
     }
 
-    def toApiAuthor(author: common.Author): api.Author =
-      api.Author(author.`type`, author.name)
+    def toApiCopyright(copyright: Copyright): commonApi.Copyright = {
+      commonApi.Copyright(
+        toApiLicence(copyright.license),
+        copyright.origin,
+        copyright.creators.map(_.toApi),
+        copyright.processors.map(_.toApi),
+        copyright.rightsholders.map(_.toApi),
+        copyright.validFrom,
+        copyright.validTo
+      )
+    }
 
     def toDomainTags(tags: api.Tag): Seq[common.Tag] = {
       if (tags.tags.nonEmpty) { Seq() }
@@ -235,24 +234,16 @@ trait ConverterService {
       )
     }
 
-    def toDomainTitle(title: api.Title): common.Title = {
-      common.Title(title.title, title.language)
-    }
-
-    def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
-      domain.Copyright(
+    def toDomainCopyright(copyright: commonApi.Copyright): Copyright = {
+      Copyright(
         copyright.license.license,
         copyright.origin,
-        copyright.creators.map(toDomainAuthor),
-        copyright.processors.map(toDomainAuthor),
-        copyright.rightsholders.map(toDomainAuthor),
+        copyright.creators.map(_.toDomain),
+        copyright.processors.map(_.toDomain),
+        copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
         copyright.validTo
       )
-    }
-
-    def toDomainAuthor(author: api.Author): common.Author = {
-      common.Author(author.`type`, author.name)
     }
 
     def findAndConvertDomainToApiField[DomainType <: WithLanguage, ApiType](

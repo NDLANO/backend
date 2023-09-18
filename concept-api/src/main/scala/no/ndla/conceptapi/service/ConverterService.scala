@@ -11,10 +11,10 @@ import cats.implicits._
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
+import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.draft.Copyright
+import no.ndla.common.model.{domain => commonDomain, api => commonApi}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordClass}
@@ -118,26 +118,28 @@ trait ConverterService {
       )
     }
 
-    def toApiCopyright(copyright: Copyright): api.Copyright = {
-      api.Copyright(
-        copyright.license.map(toApiLicense),
+    def toApiCopyright(copyright: commonDomain.draft.DraftCopyright): commonApi.DraftCopyright = {
+      commonApi.DraftCopyright(
+        copyright.license.flatMap(toMaybeApiLicense),
         copyright.origin,
-        copyright.creators.map(toApiAuthor),
-        copyright.processors.map(toApiAuthor),
-        copyright.rightsholders.map(toApiAuthor),
+        copyright.creators.map(_.toApi),
+        copyright.processors.map(_.toApi),
+        copyright.rightsholders.map(_.toApi),
         copyright.validFrom,
         copyright.validTo
       )
     }
 
-    def toApiLicense(shortLicense: String): api.License = {
+    def toMaybeApiLicense(shortLicense: String): Option[commonApi.License] = {
       getLicense(shortLicense)
-        .map(l => api.License(l.license.toString, Option(l.description), l.url))
-        .getOrElse(api.License("unknown", None, None))
+        .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
     }
 
-    def toApiAuthor(author: Author): api.Author =
-      api.Author(author.`type`, author.name)
+    def toApiLicense(maybeShortLicense: Option[String]): commonApi.License =
+      maybeShortLicense.flatMap(toMaybeApiLicense).getOrElse(commonApi.License("unknown", None, None))
+
+    def toApiLicense(shortLicense: String): commonApi.License =
+      toMaybeApiLicense(shortLicense).getOrElse(commonApi.License("unknown", None, None))
 
     def toApiConceptTitle(title: Title): api.ConceptTitle =
       api.ConceptTitle(title.title, title.language)
@@ -352,20 +354,17 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(copyright: api.Copyright): Copyright = {
-      Copyright(
+    def toDomainCopyright(copyright: commonApi.DraftCopyright): commonDomain.draft.DraftCopyright = {
+      commonDomain.draft.DraftCopyright(
         copyright.license.map(_.license),
         copyright.origin,
-        copyright.creators.map(toDomainAuthor),
-        copyright.processors.map(toDomainAuthor),
-        copyright.rightsholders.map(toDomainAuthor),
+        copyright.creators.map(_.toDomain),
+        copyright.processors.map(_.toDomain),
+        copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
         copyright.validTo
       )
     }
-
-    def toDomainAuthor(author: api.Author): Author =
-      Author(author.`type`, author.name)
 
     def toApiConceptTags(
         tags: Seq[String],

@@ -13,6 +13,7 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
