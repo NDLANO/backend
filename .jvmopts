@@ -9,3 +9,4 @@
 --add-opens=java.base/java.util=ALL-UNNAMED
 --add-opens=java.desktop/java.awt.event=ALL-UNNAMED
 --add-opens=java.desktop/java.awt=ALL-UNNAMED
+--enable-preview

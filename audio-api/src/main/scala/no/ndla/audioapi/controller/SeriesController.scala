@@ -8,10 +8,9 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.extras.auto._
-import no.ndla.audioapi.Props
+import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
@@ -38,10 +37,9 @@ trait SeriesController {
     with SearchConverterService
     with ConverterService
     with Props
-    with Service
     with ErrorHelpers =>
   val seriesController: SeriesController
-  class SeriesController() extends SwaggerService {
+  class SeriesController() extends Service[Eff] {
 
     import ErrorHelpers._
     import props._
@@ -75,7 +73,7 @@ trait SeriesController {
     override val serviceName: String         = "series"
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName
 
-    val getSeriesSearch: ServerEndpoint[Any, IO] = endpoint.get
+    def getSeriesSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find series")
       .description("Shows all the series. Also searchable.")
       .out(EndpointOutput.derived[SummaryWithHeader])
@@ -87,23 +85,21 @@ trait SeriesController {
       .in(scrollId)
       .in(fallback)
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogic { case (query, language, sort, page, pageSize, scrollId, fallback) =>
+      .serverLogicPure { case (query, language, sort, page, pageSize, scrollId, fallback) =>
         scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
-
           search(query, language, sort, pageSize, page, shouldScroll, fallback.getOrElse(false))
         }.handleErrorsOrOk
-
       }
 
-    val postSeriesSearch: ServerEndpoint[Any, IO] = endpoint.post
+    def postSeriesSearch: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Find series")
       .description("Shows all the series. Also searchable.")
       .in("search")
       .in(jsonBody[SeriesSearchParams])
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogic { searchParams =>
+      .serverLogicPure { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
           val query        = searchParams.query
           val language     = searchParams.language
@@ -117,32 +113,32 @@ trait SeriesController {
         }.handleErrorsOrOk
       }
 
-    val getSingleSeries: ServerEndpoint[Any, IO] = endpoint.get
+    def getSingleSeries: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch information for series")
       .description("Shows info of the series with submitted id.")
       .in(pathSeriesId)
       .in(language)
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[Series])
-      .serverLogic { case (id, language) =>
+      .serverLogicPure { case (id, language) =>
         readService.seriesWithId(id, language).handleErrorsOrOk
       }
 
-    val deleteSeries: ServerEndpoint[Any, IO] = endpoint.delete
+    def deleteSeries: ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Deletes series with the specified id")
       .description("Deletes series with the specified id")
       .in(pathSeriesId)
       .out(emptyOutput)
       .errorOut(errorOutputsFor(400, 403, 404))
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { _ => seriesId =>
+      .serverLogicPure { _ => seriesId =>
         writeService.deleteSeries(seriesId) match {
           case Failure(ex) => returnLeftError(ex)
-          case Success(_)  => IO(Right(()))
+          case Success(_)  => Right(())
         }
       }
 
-    val deleteLanguage: ServerEndpoint[Any, IO] = endpoint.delete
+    def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete language version of audio metadata.")
       .description("Delete language version of audio metadata.")
       .in(pathSeriesId)
@@ -151,29 +147,29 @@ trait SeriesController {
       .out(noContentOrBodyOutput[Series])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { _ => input =>
+      .serverLogicPure { _ => input =>
         val (seriesId, language) = input
         writeService.deleteSeriesLanguageVersion(seriesId, language) match {
           case Failure(ex)           => returnLeftError(ex)
-          case Success(Some(series)) => IO(Some(series).asRight)
-          case Success(None)         => IO(None.asRight)
+          case Success(Some(series)) => Some(series).asRight
+          case Success(None)         => None.asRight
         }
       }
 
-    val postNewSeries: ServerEndpoint[Any, IO] = endpoint.post
+    def postNewSeries: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Create a new series with meta information")
       .description("Create a new series with meta information")
       .in(jsonBody[NewSeries])
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(statusCode(StatusCode.Created).and(jsonBody[Series]))
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { _ => newSeries =>
+      .serverLogicPure { _ => newSeries =>
         writeService
           .newSeries(newSeries)
           .handleErrorsOrOk
       }
 
-    val putUpdateSeries: ServerEndpoint[Any, IO] = endpoint.put
+    def putUpdateSeries: ServerEndpoint[Any, Eff] = endpoint.put
       .summary("Upload audio for a different language or update metadata for an existing audio-file")
       .description("Update the metadata for an existing language, or upload metadata for a new language.")
       .in(pathSeriesId)
@@ -181,7 +177,7 @@ trait SeriesController {
       .out(jsonBody[Series])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { _ => input =>
+      .serverLogicPure { _ => input =>
         val (id, updateSeries) = input
         writeService.updateSeries(id, updateSeries).handleErrorsOrOk
       }
@@ -256,7 +252,7 @@ trait SeriesController {
         case _ => orFunction
       }
 
-    override protected val endpoints: List[ServerEndpoint[Any, IO]] = List(
+    override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getSeriesSearch,
       postSeriesSearch,
       getSingleSeries,

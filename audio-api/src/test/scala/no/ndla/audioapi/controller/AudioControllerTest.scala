@@ -8,13 +8,14 @@
 
 package no.ndla.audioapi.controller
 
+import cats.effect.unsafe.implicits.global
 import io.circe.parser
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
-import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
-import no.ndla.network.tapir.TapirServer
+import no.ndla.network.tapir.Service
 import org.mockito.ArgumentMatchers._
 import org.mockito.{ArgumentCaptor, Strictness}
 import org.scalatest.tagobjects.Retryable
@@ -28,14 +29,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
   val serverPort: Int = findFreePort
   val controller      = new AudioController
 
-  override def beforeAll(): Unit = {
-    val app = Routes.build(List(controller))
-    val server = TapirServer("AudioControllerTest", serverPort, app, enableMelody = false) {
-      Thread.sleep(1000)
-    }
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+  override val services: List[Service[Eff]] = List(controller)
 
+  override def beforeAll(): Unit = {
+    Routes.startJdkServer("AudioControllerTest", serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   val maxRetries = 5
@@ -98,15 +96,15 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
     response.code.code should be(401)
   }
 
-  test("That POST / returns 422 if parameters are missing", Retryable) {
+  test("That POST / returns 400 if parameters are missing", Retryable) {
     val response = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .body(Map("metadata" -> sampleNewAudioMeta))
         .readTimeout(Duration.Inf)
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
+        .multipartBody(multipart("metadata", sampleNewAudioMeta))
     )
-    response.code.code should be(422)
+    response.code.code should be(400)
   }
 
   test("That POST / returns 200 if everything is fine and dandy", Retryable) {
@@ -292,39 +290,36 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
     verify(audioSearchService, times(0)).scroll(any[String], any[String])
   }
 
-  test("That deleting language returns audio if exists and 204 on last") {
+  test("That deleting language returns audio if exists") {
+    import io.circe.generic.auto._
 
-    {
-      import io.circe.generic.auto._
+    when(writeService.deleteAudioLanguageVersion(1, "nb"))
+      .thenReturn(Success(Some(TestData.DefaultApiImageMetaInformation)))
 
-      when(writeService.deleteAudioLanguageVersion(1, "nb"))
-        .thenReturn(Success(Some(TestData.DefaultApiImageMetaInformation)))
+    val request = quickRequest
+      .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
 
-      val request = quickRequest
-        .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(200)
+    val parsedBody    = parser.parse(response.body)
+    val jsonObject    = parsedBody.toTry.get
+    val deserializedE = jsonObject.as[api.AudioMetaInformation]
+    val deserialized  = deserializedE.toTry.get
+    deserialized should be(TestData.DefaultApiImageMetaInformation)
+  }
 
-      val response = simpleHttpClient.send(request)
-      response.code.code should be(200)
-      val parsedBody    = parser.parse(response.body)
-      val jsonObject    = parsedBody.toTry.get
-      val deserializedE = jsonObject.as[api.AudioMetaInformation]
-      val deserialized  = deserializedE.toTry.get
-      deserialized should be(TestData.DefaultApiImageMetaInformation)
-    }
+  test("That deleting language returns 204 if last") {
+    when(writeService.deleteAudioLanguageVersion(1, "nb"))
+      .thenReturn(Success(None))
 
-    {
-      when(writeService.deleteAudioLanguageVersion(1, "nb"))
-        .thenReturn(Success(None))
+    val request = quickRequest
+      .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
 
-      val request2 = quickRequest
-        .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-
-      val response2 = simpleHttpClient.send(request2)
-      response2.code.code should be(204)
-      response2.body should be("")
-    }
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(204)
+    response.body should be("")
   }
 
   test("That GET /ids returns 200 and handles comma separated list") {

@@ -7,21 +7,18 @@
 
 package no.ndla.network.tapir
 
-import cats.data.Kleisli
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ExitCode, IO}
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.configuration.BaseProps
-import org.http4s.{Request, Response}
 import org.log4s.{Logger, getLogger}
-
 import scala.concurrent.Future
 import scala.io.Source
 
-trait NdlaTapirMain extends IOApp {
+trait NdlaTapirMain[F[_]] {
   val logger: Logger = getLogger
 
   val props: BaseProps
-  val app: Kleisli[IO, Request[IO], Response[IO]]
+  def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit]
   def warmup(): Unit
   def beforeStart(): Unit
 
@@ -44,20 +41,12 @@ trait NdlaTapirMain extends IOApp {
     }: Unit
   }
 
-  def startServer: TapirServer = {
+  def run(): IO[ExitCode] = {
     setPropsFromEnv()
+
     logCopyrightHeader()
     beforeStart()
-
-    val server: TapirServer = TapirServer(props.ApplicationName, props.ApplicationPort, app, enableMelody = true)({
-      performWarmup()
-    })
-
-    logger.info(s"Starting ${props.ApplicationName} on port ${props.ApplicationPort}")
-    server
-  }
-
-  override def run(args: List[String]): IO[ExitCode] = {
-    startServer.as(ExitCode.Success)
+    startServer(props.ApplicationName, props.ApplicationPort) { performWarmup() }
+      .as(ExitCode.Success)
   }
 }

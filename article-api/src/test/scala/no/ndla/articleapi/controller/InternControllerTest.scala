@@ -8,12 +8,12 @@
 
 package no.ndla.articleapi.controller
 
+import cats.effect.unsafe.implicits.global
 import enumeratum.Json4s
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Author, Availability}
-import no.ndla.network.tapir.TapirServer
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.{DefaultFormats, Formats}
 import org.mockito.invocation.InvocationOnMock
@@ -36,11 +36,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
   val serverPort: Int = findFreePort
   when(clock.now()).thenCallRealMethod()
 
+  override val services = List(controller)
+
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   test("POST /validate/article should return 400 if the article is invalid") {

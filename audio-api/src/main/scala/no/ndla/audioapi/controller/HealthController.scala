@@ -8,20 +8,17 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
-import no.ndla.audioapi.Props
+import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.network.tapir.{Service, TapirHealthController}
-import org.http4s
-import org.http4s.dsl.io._
+import no.ndla.network.tapir.TapirHealthController
 import sttp.client3.Response
 import sttp.client3.quick._
 
 trait HealthController {
-  this: AudioRepository with Props with Service with TapirHealthController =>
+  this: AudioRepository with Props with TapirHealthController =>
   val healthController: HealthController
 
-  class HealthController extends TapirHealthController {
+  class HealthController extends TapirHealthController[Eff] {
     private val localhost = "localhost"
     private val localport = props.ApplicationPort
 
@@ -31,12 +28,12 @@ trait HealthController {
 
     private def getReturnCode(imageResponse: Response[String]) = {
       imageResponse.code.code match {
-        case 200 => Ok()
-        case _   => InternalServerError()
+        case 200 => Right("Healthy")
+        case _   => Left("Internal server error")
       }
     }
 
-    override def checkHealth(): IO[http4s.Response[IO]] = {
+    override def checkHealth(): Either[String, String] = {
       audioRepository
         .getRandomAudio()
         .map(audio => {
@@ -44,7 +41,7 @@ trait HealthController {
           val previewUrl = s"http://$localhost:$localport${props.AudioControllerPath}$id"
           getReturnCode(getApiResponse(previewUrl))
         })
-        .getOrElse(Ok())
+        .getOrElse(Right("Healthy"))
     }
   }
 

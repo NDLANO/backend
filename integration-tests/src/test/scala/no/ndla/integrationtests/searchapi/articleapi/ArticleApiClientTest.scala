@@ -7,7 +7,7 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
-import cats.effect.unsafe.implicits.global
+import cats.effect.unsafe
 import enumeratum.Json4s
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.NDLADate
@@ -26,6 +26,8 @@ import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
@@ -63,19 +65,25 @@ class ArticleApiClientTest
     override def SearchServer: String = esHost
   }
 
-  val articleApi        = new articleapi.MainClass(articleApiProperties)
-  val server            = articleApi.startServer
-  val cancelFunc        = server.server.unsafeRunCancelable()
-  val articleApiBaseUrl = s"http://localhost:$articleApiPort"
+  var articleApi: articleapi.MainClass = null
+  var cancelFunc: () => Future[Unit]   = null
+  val articleApiBaseUrl                = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
-    Thread.sleep(1000)
-    blockUntil(() => server.isReady)
+    articleApi = new articleapi.MainClass(articleApiProperties)
+    cancelFunc = articleApi.run().unsafeRunCancelable()(unsafe.IORuntime.global)
+
+    blockUntil(() => {
+      import sttp.client3.quick._
+      val req = quickRequest.get(uri"$articleApiBaseUrl/health")
+      val res = simpleHttpClient.send(req)
+      res.code.code == 200
+    })
   }
 
   override def afterAll(): Unit = {
     super.afterAll()
-    cancelFunc()
+    Await.result(cancelFunc(), 1.minutes)
   }
 
   val exampleToken =

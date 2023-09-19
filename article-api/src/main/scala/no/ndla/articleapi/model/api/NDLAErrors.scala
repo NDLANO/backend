@@ -8,13 +8,12 @@
 
 package no.ndla.articleapi.model.api
 
-import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.network.logging.FLogging
 import no.ndla.network.tapir.{
   AllErrors,
   ErrorBody,
@@ -25,34 +24,34 @@ import no.ndla.network.tapir.{
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHelpers extends TapirErrorHelpers with FLogging {
+trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
   this: Props with Clock with DataSource =>
 
   import ErrorHelpers._
 
-  override def handleErrors: PartialFunction[Throwable, IO[AllErrors]] = {
+  override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case a: AccessDeniedException if a.unauthorized =>
-      IO(ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401))
+      ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401)
     case a: AccessDeniedException =>
-      IO(ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403))
+      ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
     case v: ValidationException =>
-      IO.pure(ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400))
+      ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
     case _: IndexNotFoundException =>
-      IO(ErrorBody(INDEX_MISSING, INDEX_MISSING, clock.now(), 500))
-    case NotFoundException(message, sl) if sl.isEmpty => IO(notFoundWithMsg(message))
+      ErrorBody(INDEX_MISSING, INDEX_MISSING, clock.now(), 500)
+    case NotFoundException(message, sl) if sl.isEmpty => notFoundWithMsg(message)
     case NotFoundException(message, supportedLanguages) =>
-      IO(NotFoundWithSupportedLanguages(NOT_FOUND, message, clock.now(), supportedLanguages, 404))
+      NotFoundWithSupportedLanguages(NOT_FOUND, message, clock.now(), supportedLanguages, 404)
     case rw: ArticleErrorHelpers.ResultWindowTooLargeException =>
-      IO(ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422))
+      ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
     case _: PSQLException =>
       DataSource.connectToDatabase()
-      IO(ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500))
+      ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
     case NdlaSearchException(_, Some(rf), _)
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
-      IO(ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400))
+      ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
     case age: ArticleErrorHelpers.ArticleGoneException =>
-      IO(ErrorBody(ArticleErrorHelpers.ARTICLE_GONE, age.getMessage, clock.now(), 410))
+      ErrorBody(ArticleErrorHelpers.ARTICLE_GONE, age.getMessage, clock.now(), 410)
   }
 
   object ArticleErrorHelpers {

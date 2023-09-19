@@ -8,21 +8,21 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.TapirServer
+import cats.effect.unsafe.implicits.global
+import no.ndla.articleapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.Service
 import sttp.client3.quick._
 
 class HealthControllerTest extends UnitSuite with TestEnvironment {
   val serverPort: Int = findFreePort
 
-  override val healthController = new TapirHealthController()
+  override val healthController = new TapirHealthController[Eff]()
   healthController.setWarmedUp()
+  override val services: List[Service[Eff]] = List(healthController)
 
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(healthController))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   test("That /health returns 200 ok") {

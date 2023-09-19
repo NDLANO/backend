@@ -59,9 +59,20 @@ class LearningpathApiClientTest
     override def SearchServer: String = esHost
   }
 
-  val learningpathApi               = new learningpathapi.MainClass(learningpathApiProperties)
-  val learningpathApiServer: Server = learningpathApi.startServer()
-  val learningpathApiBaseUrl        = s"http://localhost:$learningpathApiPort"
+  var learningpathApi: learningpathapi.MainClass = null
+  var learningpathApiServer: Server              = null
+  val learningpathApiBaseUrl                     = s"http://localhost:$learningpathApiPort"
+
+  override def beforeAll(): Unit = {
+    learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
+    learningpathApiServer = learningpathApi.startServer()
+    blockUntil(() => {
+      import sttp.client3.quick._
+      val req = quickRequest.get(uri"$learningpathApiBaseUrl/health")
+      val res = simpleHttpClient.send(req)
+      res.code.code == 200
+    })
+  }
 
   override def afterAll(): Unit = {
     super.afterAll()

@@ -7,23 +7,23 @@
 
 package no.ndla.network.tapir
 
-import cats.effect.IO
 import cats.implicits._
 import no.ndla.common.configuration.HasBaseProps
-import org.http4s.headers.`Content-Type`
-import org.http4s.{Header, Headers, HttpRoutes, MediaType}
-import org.typelevel.ci.CIString
 import sttp.apispec.openapi.{Components, Contact, Info, License}
 import sttp.apispec.{OAuthFlow, OAuthFlows, SecurityScheme}
+import sttp.tapir._
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
+import sttp.tapir.server.ServerEndpoint
 
 import scala.collection.immutable.ListMap
 
 trait SwaggerControllerConfig {
-  this: Service with HasBaseProps =>
+  this: HasBaseProps =>
 
-  class SwaggerController(services: List[Service], swaggerInfo: SwaggerInfo) extends NoDocService {
+  class SwaggerController[F[_]](services: List[Service[F]], swaggerInfo: SwaggerInfo) extends Service[F] {
     import props._
+
+    def getServices(): List[Service[F]] = services :+ this
 
     val info: Info = Info(
       title = props.ApplicationName,
@@ -35,12 +35,10 @@ trait SwaggerControllerConfig {
     )
 
     import io.circe.syntax._
-    import org.http4s.circe._
-    import org.http4s.dsl.io._
     import sttp.apispec.openapi.circe._
 
     private val swaggerEndpoints = services.collect {
-      case svc: SwaggerService if svc.enableSwagger => svc.builtEndpoints
+      case svc: Service[F] if svc.enableSwagger => svc.builtEndpoints
     }.flatten
 
     private val securityScheme: SecurityScheme = SecurityScheme(
@@ -68,17 +66,20 @@ trait SwaggerControllerConfig {
       val docsWithComponents  = docs.components(newComponents).asJson
       docsWithComponents.asJson
     }
-    private val corsHeaders: Headers =
-      if (props.Environment == "local") Headers(Header.Raw(CIString("Access-Control-Allow-Origin"), "*"))
-      else Headers.empty
 
-    private val route: HttpRoutes[IO] = HttpRoutes.of { case GET -> Root =>
-      Ok(
-        docs,
-        `Content-Type`(MediaType.application.json),
-        corsHeaders
-      )
-    }
-    override def getBinding: (String, HttpRoutes[IO]) = swaggerInfo.mountPoint -> route
+    private def addCorsHeaders[A, I, X, O, R](end: Endpoint[A, I, X, O, R]) =
+      if (props.Environment == "local") end.out(header("Access-Control-Allow-Origin", "*"))
+      else end
+
+    override val enableSwagger: Boolean       = false
+    protected val prefix: EndpointInput[Unit] = swaggerInfo.mountPoint
+
+    override val endpoints: List[ServerEndpoint[Any, F]] = List(
+      addCorsHeaders(endpoint.get)
+        .out(stringJsonBody)
+        .serverLogicPure { _ =>
+          Right(docs.noSpaces)
+        }
+    )
   }
 }

@@ -51,7 +51,7 @@ trait Module {
     organization        := "ndla",
     version             := "0.0.1",
     scalaVersion        := ScalaV,
-    javacOptions ++= Seq("-source", "17", "-target", "17"),
+    javacOptions ++= Seq("-source", "20", "-target", "20"),
     ghGenerateEnable        := true,
     ghGenerateEnableRelease := this.enableReleases,
     javaOptions ++= reflectiveAccessOptions,
@@ -144,7 +144,7 @@ trait Module {
           Seq("-jar", artifactTargetPath)
 
         new Dockerfile {
-          from("eclipse-temurin:17-jdk")
+          from("eclipse-temurin:20-jdk")
           add(artifact, artifactTargetPath)
           entryPoint(entry: _*)
         }

@@ -7,10 +7,10 @@
 
 package no.ndla.frontpageapi.controller
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.{errors => common}
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.TapirServer
 import sttp.client3.quick._
 
 import scala.concurrent.duration.Duration
@@ -21,14 +21,11 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment {
   val serverPort: Int = findFreePort
   val controller      = new FrontPageController
   when(clock.now()).thenCallRealMethod()
+  override val services = List(controller)
 
   override def beforeAll(): Unit = {
-    val app = Routes.build(List(controller))
-    val server = TapirServer("FrontPageControllerTest", serverPort, app, enableMelody = false) {
-      Thread.sleep(1000)
-    }
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer("FrontPageControllerTest", serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   val authHeaderWithAdminRole =

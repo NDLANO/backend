@@ -8,12 +8,13 @@
 
 package no.ndla.audioapi.controller
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
-import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.network.tapir.TapirServer
+import no.ndla.network.tapir.Service
 import sttp.client3.Response
 import sttp.model.StatusCode
 import sttp.client3.quick._
@@ -29,11 +30,10 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
     override def getApiResponse(url: String): Response[String] = httpResponseMock
   }
 
+  override val services: List[Service[Eff]] = List(controller)
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer("HealthControllerTest", serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   controller.setWarmedUp()

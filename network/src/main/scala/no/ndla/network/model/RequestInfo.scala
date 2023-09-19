@@ -11,6 +11,7 @@ import cats.effect.{IO, IOLocal}
 import no.ndla.common.CorrelationID
 import no.ndla.network.{ApplicationUrl, AuthUser, TaxonomyData}
 import org.http4s.Request
+import sttp.tapir.model.ServerRequest
 
 import javax.servlet.http.HttpServletRequest
 
@@ -62,6 +63,16 @@ object RequestInfo {
   }
 
   def fromRequest(request: Request[IO]): RequestInfo = {
+    val ndlaRequest = NdlaHttpRequest.from(request)
+    new RequestInfo(
+      correlationId = Some(CorrelationID.fromRequest(request)),
+      authUser = AuthUser.fromRequest(ndlaRequest),
+      taxonomyVersion = TaxonomyData.fromRequest(ndlaRequest),
+      applicationUrl = ApplicationUrl.fromRequest(ndlaRequest)
+    )
+  }
+
+  def fromRequest(request: ServerRequest): RequestInfo = {
     val ndlaRequest = NdlaHttpRequest.from(request)
     new RequestInfo(
       correlationId = Some(CorrelationID.fromRequest(request)),

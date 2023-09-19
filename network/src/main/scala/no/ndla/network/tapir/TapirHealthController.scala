@@ -7,20 +7,30 @@
 
 package no.ndla.network.tapir
 
-import cats.effect.IO
 import no.ndla.common.Warmup
-import org.http4s.dsl.io._
-import org.http4s.{HttpRoutes, Response}
+import sttp.model.StatusCode
+import sttp.tapir.EndpointInput
+import sttp.tapir.server.ServerEndpoint
+import sttp.tapir._
 
 trait TapirHealthController {
-  this: Service =>
+  class TapirHealthController[F[_]] extends Warmup with Service[F] {
+    override val enableSwagger: Boolean = false
+    val prefix: EndpointInput[Unit]     = "health"
 
-  class TapirHealthController extends Warmup with NoDocService {
-    protected def checkHealth(): IO[Response[IO]] = Ok("Health check succeeded")
+    protected def checkHealth(): Either[String, String] = Right("Health check succeeded")
 
-    override def getBinding: (String, HttpRoutes[IO]) = "/health" -> HttpRoutes.of[IO] { case GET -> Root =>
-      if (!isWarmedUp) InternalServerError("Warmup hasn't finished")
-      else checkHealth()
-    }
+    override protected val endpoints: List[ServerEndpoint[Any, F]] = List(
+      endpoint.get
+        .out(stringBody)
+        .errorOut(
+          statusCode(StatusCode.InternalServerError)
+            .and(stringBody)
+        )
+        .serverLogicPure { _ =>
+          if (!isWarmedUp) Left("Warmup hasn't finished")
+          else checkHealth()
+        }
+    )
   }
 }

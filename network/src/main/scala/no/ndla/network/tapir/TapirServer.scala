@@ -56,7 +56,7 @@ case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMe
 
   def runInBackground(): Unit = {
     import cats.effect.unsafe.implicits.global
-    server.unsafeRunAndForget()
+    server.flatMap(_ => IO.never).unsafeRunAndForget()
   }
 
   def isReady: Boolean = this.serverReady

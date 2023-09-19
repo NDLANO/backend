@@ -113,6 +113,7 @@ abstract class IntegrationSuite(
       val dataSourceConfig = new HikariConfig()
       dataSourceConfig.setUsername(pgc.getUsername)
       dataSourceConfig.setPassword(pgc.getPassword)
+      dataSourceConfig.setDriverClassName("org.postgresql.Driver")
       dataSourceConfig.setJdbcUrl(
         s"jdbc:postgresql://${pgc.getHost}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}"
       )

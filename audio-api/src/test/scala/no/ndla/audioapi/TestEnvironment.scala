@@ -37,8 +37,7 @@ trait TestEnvironment
     with ConverterService
     with AudioStorageService
     with InternController
-    with Service
-    with Routes
+    with Routes[Eff]
     with NdlaMiddleware
     with HealthController
     with TapirHealthController
@@ -89,6 +88,7 @@ trait TestEnvironment
   val tagIndexService: TagIndexService               = mock[TagIndexService]
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
-  val clock: SystemClock = mock[SystemClock]
+  val clock: SystemClock           = mock[SystemClock]
+  val services: List[Service[Eff]] = List.empty
 
 }

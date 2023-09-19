@@ -43,7 +43,7 @@ object NdlaHttpRequest {
       getHeaderFunc = name => req.header(name),
       getScheme = scheme.getOrElse("http"),
       serverName = req.uri.host.getOrElse("localhost"),
-      servletPath = req.uri.path.mkString("/")
+      servletPath = s"/${req.uri.path.mkString("/")}"
     )
   }
 

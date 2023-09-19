@@ -53,7 +53,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.body).thenReturn("body-with-error")
 
     implicit val formats = DefaultFormats
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
 
     result.isFailure should be(true)
     result.failure.exception.getMessage should equal(
@@ -71,7 +71,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.body).thenReturn(unparseableResponse)
 
     implicit val formats = DefaultFormats
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isFailure should be(true)
     result.failure.exception.getMessage should equal(s"Could not parse response with body: $unparseableResponse")
   }
@@ -85,7 +85,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
     implicit val formats = DefaultFormats
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
@@ -104,7 +104,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
     implicit val formats = DefaultFormats
-    val result = ndlaClient.fetch[TestObject](httpRequestMock)
+    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")

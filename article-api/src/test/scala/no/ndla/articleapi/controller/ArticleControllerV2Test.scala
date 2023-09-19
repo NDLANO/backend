@@ -8,11 +8,11 @@
 
 package no.ndla.articleapi.controller
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.Availability
-import no.ndla.network.tapir.TapirServer
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.mockito.ArgumentMatchers._
@@ -46,11 +46,11 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
 
   val serverPort: Int = findFreePort
 
+  override val services = List(controller)
+
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   override def beforeEach(): Unit = {

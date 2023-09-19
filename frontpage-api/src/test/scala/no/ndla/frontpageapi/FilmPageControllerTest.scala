@@ -7,7 +7,7 @@
 
 package no.ndla.frontpageapi
 
-import no.ndla.network.tapir.TapirServer
+import cats.effect.unsafe.implicits.global
 import sttp.client3.quick._
 
 class FilmPageControllerTest extends UnitSuite with TestEnvironment {
@@ -15,12 +15,11 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
   val serverPort: Int = findFreePort
 
   override val filmPageController = new FilmPageController()
+  override val services           = List(filmPageController)
 
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(filmPageController))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   test("Should return 200 when frontpage exist") {

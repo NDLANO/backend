@@ -7,19 +7,21 @@
 
 package no.ndla.network.tapir
 
-import cats.effect.IO
-import cats.implicits.catsSyntaxEitherId
+import cats.implicits._
+import com.typesafe.scalalogging.StrictLogging
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.network.logging.FLogging
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
+import sttp.model.StatusCode
 import sttp.monad.MonadError
-import sttp.tapir.Endpoint
+import sttp.tapir.{Endpoint, EndpointOutput, Schema, emptyOutputAs, oneOf, oneOfVariantValueMatcher, statusCode}
 import sttp.tapir.server.PartialServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
-trait TapirErrorHelpers extends FLogging {
+trait TapirErrorHelpers extends StrictLogging {
   this: HasBaseProps with Clock =>
 
   object ErrorHelpers {
@@ -78,6 +80,15 @@ trait TapirErrorHelpers extends FLogging {
       case None                                     => ErrorHelpers.unauthorized.asLeft
     }
 
+    /** Helper to simplify returning _both_ NoContent and some json body T from an endpoint */
+    def noContentOrBodyOutput[T: Encoder: Decoder: Schema]: EndpointOutput.OneOf[Option[T], Option[T]] =
+      oneOf[Option[T]](
+        oneOfVariantValueMatcher(statusCode(StatusCode.Ok).and(jsonBody[Option[T]])) { case Some(_) => true },
+        oneOfVariantValueMatcher(statusCode(StatusCode.NoContent).and(emptyOutputAs[Option[T]](None))) { case None =>
+          true
+        }
+      )
+
     implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
       def requirePermission[F[_]](
           requiredPermission: Permission*
@@ -101,17 +112,15 @@ trait TapirErrorHelpers extends FLogging {
 
   }
 
-  private def handleUnknownError(e: Throwable): IO[ErrorBody] = {
-    logger.error(e.getMessage).as {
-      e.printStackTrace()
-      ErrorHelpers.generic
-    }
+  private def handleUnknownError(e: Throwable): ErrorBody = {
+    logger.error(e.getMessage)
+    e.printStackTrace()
+    ErrorHelpers.generic
   }
 
-  def handleErrors: PartialFunction[Throwable, IO[AllErrors]]
-  def returnError(ex: Throwable): IO[AllErrors] = handleErrors.applyOrElse(ex, handleUnknownError)
-
-  def returnLeftError[R](ex: Throwable): IO[Either[AllErrors, R]] = returnError(ex).map(_.asLeft[R])
+  def handleErrors: PartialFunction[Throwable, AllErrors]
+  def returnError(ex: Throwable): AllErrors                   = handleErrors.applyOrElse(ex, handleUnknownError)
+  def returnLeftError[R](ex: Throwable): Either[AllErrors, R] = returnError(ex).asLeft[R]
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
     import cats.implicits._
@@ -119,8 +128,8 @@ trait TapirErrorHelpers extends FLogging {
     /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
       * to a generic 500 error.
       */
-    def handleErrorsOrOk: IO[Either[AllErrors, T]] = t match {
-      case Success(value) => IO(value.asRight)
+    def handleErrorsOrOk: Either[AllErrors, T] = t match {
+      case Success(value) => value.asRight
       case Failure(ex)    => returnLeftError(ex)
     }
 
@@ -134,9 +143,9 @@ trait TapirErrorHelpers extends FLogging {
       * If the error is not defined in the callback or in the default errorHandler [[returnError]] we fallback to a
       * generic 500 error.
       */
-    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): IO[Either[AllErrors, T]] = t match {
-      case Success(value)                          => IO(value.asRight)
-      case Failure(ex) if callback.isDefinedAt(ex) => IO(callback(ex).asLeft)
+    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): Either[AllErrors, T] = t match {
+      case Success(value)                          => value.asRight
+      case Failure(ex) if callback.isDefinedAt(ex) => callback(ex).asLeft
       case Failure(ex)                             => returnLeftError(ex)
     }
 

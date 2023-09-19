@@ -7,8 +7,6 @@
 
 package no.ndla.frontpageapi
 
-import cats.data.Kleisli
-import cats.effect.IO
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.frontpageapi.controller._
@@ -18,7 +16,6 @@ import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, 
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
-import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: FrontpageApiProperties)
     extends DataSource
@@ -40,8 +37,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with DBMigrator
     with ConverterService
     with TapirHealthController
-    with Service
-    with Routes
+    with Routes[Eff]
     with NdlaMiddleware
     with SwaggerDocControllerConfig {
   override val props: FrontpageApiProperties = properties
@@ -62,17 +58,18 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val frontPageController   = new FrontPageController
   override val filmPageController    = new FilmPageController
   override val internController      = new InternController
-  val healthController               = new TapirHealthController
+  val healthController               = new TapirHealthController[Eff]
 
-  val services: List[Service] = List(
-    subjectPageController,
-    frontPageController,
-    filmPageController,
-    internController,
-    healthController
+  private val swagger = new SwaggerController(
+    List(
+      subjectPageController,
+      frontPageController,
+      filmPageController,
+      internController,
+      healthController
+    ),
+    SwaggerDocControllerConfig.swaggerInfo
   )
 
-  private val swaggerDocController = new SwaggerController(services, SwaggerDocControllerConfig.swaggerInfo)
-
-  def routes: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services :+ swaggerDocController)
+  override val services: List[Service[Eff]] = swagger.getServices()
 }

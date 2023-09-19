@@ -8,21 +8,20 @@
 
 package no.ndla.oembedproxy.controller
 
-import no.ndla.network.tapir.TapirServer
-import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
+import cats.effect.unsafe.implicits.global
+import no.ndla.oembedproxy.{Eff, TestEnvironment, UnitSuite}
 import sttp.client3.quick._
 
 class HealthControllerTest extends UnitSuite with TestEnvironment {
 
   val serverPort: Int = findFreePort
 
-  lazy val controller = new TapirHealthController
+  lazy val controller   = new TapirHealthController[Eff]
+  override val services = List(controller)
   controller.setWarmedUp()
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   test("That /health returns 200 ok") {

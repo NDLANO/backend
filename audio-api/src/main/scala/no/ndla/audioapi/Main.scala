@@ -16,6 +16,6 @@ object Main extends IOApp {
     setPropsFromEnv()
     val props     = new AudioApiProperties
     val mainClass = new MainClass(props)
-    mainClass.run(args)
+    mainClass.run()
   }
 }

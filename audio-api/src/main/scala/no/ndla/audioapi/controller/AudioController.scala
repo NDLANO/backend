@@ -8,10 +8,9 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.extras.auto._
-import no.ndla.audioapi.Props
+import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
@@ -43,11 +42,10 @@ trait AudioController {
     with SearchConverterService
     with ConverterService
     with Props
-    with ErrorHelpers
-    with Service =>
+    with ErrorHelpers =>
   val audioApiController: AudioController
 
-  class AudioController() extends SwaggerService {
+  class AudioController() extends Service[Eff] {
     import props._
     override val serviceName: String         = "audio"
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName
@@ -94,7 +92,7 @@ trait AudioController {
 
     import ErrorHelpers._
 
-    val getSearch: ServerEndpoint[Any, IO] = endpoint.get
+    def getSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find audio files")
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
       .out(EndpointOutput.derived[SummaryWithHeader])
@@ -109,7 +107,7 @@ trait AudioController {
       .in(seriesFilter)
       .in(fallback)
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogic {
+      .serverLogicPure {
         case (query, language, license, sort, pageNo, pageSize, scrollId, audioType, seriesFilter, fallback) =>
           scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
             val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
@@ -128,14 +126,14 @@ trait AudioController {
           }.handleErrorsOrOk
       }
 
-    val postSearch: ServerEndpoint[Any, IO] = endpoint.post
+    def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Find audio files")
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
       .in("search")
       .in(jsonBody[SearchParams])
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogic { searchParams =>
+      .serverLogicPure { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           search(
@@ -153,7 +151,7 @@ trait AudioController {
         }.handleErrorsOrOk
       }
 
-    val getSingle: ServerEndpoint[Any, IO] = endpoint.get
+    def getSingle: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch information for audio file")
       .description("Shows info of the audio with submitted id.")
       .in(pathAudioId)
@@ -167,7 +165,7 @@ trait AudioController {
         }
       }
 
-    val getIds: ServerEndpoint[Any, IO] = endpoint.get
+    def getIds: ServerEndpoint[Any, Eff] = endpoint.get
       .in("ids")
       .in(audioIds)
       .in(language)
@@ -175,25 +173,25 @@ trait AudioController {
       .out(jsonBody[List[AudioMetaInformation]])
       .summary("Fetch audio that matches ids parameter.")
       .description("Fetch audios that matches ids parameter.")
-      .serverLogic { case (audioIds, language) =>
+      .serverLogicPure { case (audioIds, language) =>
         readService.getAudiosByIds(audioIds.values, language).handleErrorsOrOk
       }
 
-    val deleteAudio: ServerEndpoint[Any, IO] = endpoint.delete
+    def deleteAudio: ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Deletes audio with the specified id")
       .description("Deletes audio with the specified id")
       .in(pathAudioId)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(emptyOutput)
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { _ => audioId =>
+      .serverLogicPure { _ => audioId =>
         writeService.deleteAudioAndFiles(audioId) match {
           case Failure(ex) => returnLeftError(ex)
-          case Success(_)  => IO(Right(()))
+          case Success(_)  => Right(())
         }
       }
 
-    val deleteLanguage: ServerEndpoint[Any, IO] = endpoint.delete
+    def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete language version of audio metadata.")
       .description("Delete language version of audio metadata.")
       .in(pathAudioId)
@@ -202,28 +200,28 @@ trait AudioController {
       .out(noContentOrBodyOutput[AudioMetaInformation])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { _ => input =>
+      .serverLogicPure { _ => input =>
         val (audioId, language) = input
         writeService.deleteAudioLanguageVersion(audioId, language) match {
-          case Success(Some(audio)) => IO(Right(Some(audio)))
-          case Success(None)        => IO(Right(None))
+          case Success(Some(audio)) => Right(Some(audio))
+          case Success(None)        => Right(None)
           case Failure(ex)          => returnLeftError(ex)
         }
       }
 
-    val postNewAudio: ServerEndpoint[Any, IO] = endpoint.post
+    def postNewAudio: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Upload a new audio file with meta information")
       .description("Upload a new audio file with meta data")
       .in(multipartBody[MetaDataAndFileForm])
       .out(jsonBody[AudioMetaInformation])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { user => formData =>
+      .serverLogicPure { user => formData =>
         val fileBytes = getBytesAndDeleteFile(formData.file)
         writeService.storeNewAudio(formData.metadata.body, fileBytes, user).handleErrorsOrOk
       }
 
-    val putUpdateAudio: ServerEndpoint[Any, IO] = endpoint.put
+    def putUpdateAudio: ServerEndpoint[Any, Eff] = endpoint.put
       .summary("Upload audio for a different language or update metadata for an existing audio-file")
       .description("Update the metadata for an existing language, or upload metadata for a new language.")
       .in(pathAudioId)
@@ -231,13 +229,13 @@ trait AudioController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[AudioMetaInformation])
       .requirePermission(AUDIO_API_WRITE)
-      .serverLogic { user => input =>
+      .serverLogicPure { user => input =>
         val (id, formData) = input
         val fileBytes      = formData.file.map(getBytesAndDeleteFile)
         writeService.updateAudio(id, formData.metadata.body, fileBytes, user).handleErrorsOrOk
       }
 
-    val tagSearch: ServerEndpoint[Any, IO] = endpoint.get
+    def tagSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Retrieves a list of all previously used tags in audios")
       .description("Retrieves a list of all previously used tags in audios")
       .in("tag-search")
@@ -247,7 +245,7 @@ trait AudioController {
       .in(language)
       .out(jsonBody[TagsSearchResult])
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogic { case (query, ps, pn, lang) =>
+      .serverLogicPure { case (query, ps, pn, lang) =>
         val pageSize = ps.getOrElse(DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => DefaultPageSize
           case x                        => x
@@ -262,7 +260,7 @@ trait AudioController {
         readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language).handleErrorsOrOk
       }
 
-    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getSearch,
       postSearch,
       getIds,

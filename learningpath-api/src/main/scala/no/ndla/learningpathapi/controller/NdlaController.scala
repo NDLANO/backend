@@ -82,8 +82,7 @@ trait NdlaController {
             .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
         BadRequest(body = InvalidSearchContext)
       case t: Throwable =>
-        t.printStackTrace()
-        logger.error(t.getMessage)
+        logger.error(t.getMessage, t)
         InternalServerError(body = Error(GENERIC, GENERIC_DESCRIPTION))
     }
 

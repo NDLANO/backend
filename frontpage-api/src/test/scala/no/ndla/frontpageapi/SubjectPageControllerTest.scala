@@ -7,10 +7,9 @@
 
 package no.ndla.frontpageapi
 
-import io.circe.generic.auto._
+import cats.effect.unsafe.implicits.global
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
-import no.ndla.network.tapir.TapirServer
 import sttp.client3.quick._
 
 class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
@@ -18,12 +17,11 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
   val serverPort: Int = findFreePort
 
   override val subjectPageController = new SubjectPageController()
+  override val services              = List(subjectPageController)
 
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(subjectPageController))
-    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.runInBackground()
-    blockUntil(() => server.isReady)
+    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
   test("Should return 400 with cool custom message if bad request") {

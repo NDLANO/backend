@@ -57,9 +57,20 @@ class DraftApiClientTest
     override def SearchServer: String = esHost
   }
 
-  val draftApi               = new draftapi.MainClass(draftApiProperties)
-  val draftApiServer: Server = draftApi.startServer()
-  val draftApiBaseUrl        = s"http://localhost:$draftApiPort"
+  var draftApi: draftapi.MainClass = null
+  var draftApiServer: Server       = null
+  val draftApiBaseUrl              = s"http://localhost:$draftApiPort"
+
+  override def beforeAll(): Unit = {
+    draftApi = new draftapi.MainClass(draftApiProperties)
+    draftApiServer = draftApi.startServer()
+    blockUntil(() => {
+      import sttp.client3.quick._
+      val req = quickRequest.get(uri"$draftApiBaseUrl/health")
+      val res = simpleHttpClient.send(req)
+      res.code.code == 200
+    })
+  }
 
   override def afterAll(): Unit = {
     super.afterAll()

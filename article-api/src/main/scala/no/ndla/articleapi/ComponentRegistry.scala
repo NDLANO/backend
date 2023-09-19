@@ -8,8 +8,6 @@
 
 package no.ndla.articleapi
 
-import cats.data.Kleisli
-import cats.effect.IO
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller.{ArticleControllerV2, InternController, SwaggerDocControllerConfig}
@@ -35,7 +33,6 @@ import no.ndla.network.tapir.{
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: ArticleApiProperties)
     extends BaseComponentRegistry[ArticleApiProperties]
@@ -66,9 +63,8 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with ErrorHelpers
     with DBArticle
     with DBMigrator
-    with Routes
+    with Routes[Eff]
     with TapirErrorHelpers
-    with Service
     with TapirHealthController
     with NdlaMiddleware
     with SwaggerControllerConfig
@@ -81,7 +77,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
 
   lazy val internController    = new InternController
   lazy val articleControllerV2 = new ArticleControllerV2
-  lazy val healthController    = new TapirHealthController
+  lazy val healthController    = new TapirHealthController[Eff]
 
   lazy val articleRepository    = new ArticleRepository
   lazy val articleSearchService = new ArticleSearchService
@@ -102,13 +98,14 @@ class ComponentRegistry(properties: ArticleApiProperties)
 
   lazy val clock = new SystemClock
 
-  private val services: List[Service] = List(
-    articleControllerV2,
-    internController,
-    healthController
+  private val swagger = new SwaggerController(
+    List(
+      articleControllerV2,
+      internController,
+      healthController
+    ),
+    SwaggerDocControllerConfig.swaggerInfo
   )
 
-  private val swaggerDocController = new SwaggerController(services, SwaggerDocControllerConfig.swaggerInfo)
-
-  def routes: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services :+ swaggerDocController)
+  override val services: List[Service[Eff]] = swagger.getServices()
 }

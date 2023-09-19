@@ -25,6 +25,7 @@ trait DataSource {
       dataSourceConfig.setUsername(MetaUserName)
       dataSourceConfig.setPassword(MetaPassword)
       dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://$MetaServer:$MetaPort/$MetaResource")
+      dataSourceConfig.setDriverClassName("org.postgresql.Driver")
       dataSourceConfig.setSchema(MetaSchema)
       dataSourceConfig.setMaximumPoolSize(MetaMaxConnections)
       new HikariDataSource(dataSourceConfig)
