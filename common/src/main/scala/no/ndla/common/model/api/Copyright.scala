@@ -19,5 +19,6 @@ case class Copyright(
     @description("List of processors") processors: Seq[Author],
     @description("List of rightsholders") rightsholders: Seq[Author],
     @description("Date from which the copyright is valid") validFrom: Option[NDLADate],
-    @description("Date to which the copyright is valid") validTo: Option[NDLADate]
+    @description("Date to which the copyright is valid") validTo: Option[NDLADate],
+    @description("Whether or not the content has been processed") processed: Boolean
 )

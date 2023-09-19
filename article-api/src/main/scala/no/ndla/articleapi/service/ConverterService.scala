@@ -23,7 +23,6 @@ import no.ndla.common.model.api.{Delete, License, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
-  Author,
   Description,
   Introduction,
   RelatedContent,
@@ -148,23 +147,6 @@ trait ConverterService {
       newLicense
     }
 
-    private def toNewAuthorType(author: Author): Author = {
-      val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-      val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
-      val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
-
-      (
-        creatorMap(author.`type`.toLowerCase),
-        processorMap(author.`type`.toLowerCase),
-        rightsholderMap(author.`type`.toLowerCase)
-      ) match {
-        case (t: String, _, _) => Author(t.capitalize, author.name)
-        case (_, t: String, _) => Author(t.capitalize, author.name)
-        case (_, _, t: String) => Author(t.capitalize, author.name)
-        case (_, _, _)         => Author(author.`type`, author.name)
-      }
-    }
-
     def updateExistingTagsField(existingTags: Seq[Tag], updatedTags: Seq[Tag]): Seq[Tag] = {
       val newTags    = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
       val tagsToKeep = existingTags.filterNot(tag => newTags.map(_.language).contains(tag.language))
@@ -218,19 +200,6 @@ trait ConverterService {
       )
     }
 
-    private[service] def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
-      val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
-
-      val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
-      val creators =
-        authorsExcludingOrigin.map(toNewAuthorType).filter(a => creatorTypes.contains(a.`type`.toLowerCase))
-      val processors =
-        authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase))
-      val rightsholders =
-        authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
-      Copyright(oldToNewLicenseKey(license), Some(origin), creators, processors, rightsholders, None, None)
-    }
-
     def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
       relatedContent.map {
         case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
@@ -246,7 +215,8 @@ trait ConverterService {
         copyright.processors.map(_.toDomain),
         copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 
@@ -358,7 +328,8 @@ trait ConverterService {
         copyright.processors.map(_.toApi),
         copyright.rightsholders.map(_.toApi),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 

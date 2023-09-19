@@ -251,13 +251,14 @@ trait ConverterService {
 
     def toDomainCopyright(copyright: DraftCopyright): common.draft.DraftCopyright = {
       common.draft.DraftCopyright(
-        copyright.license.map(_.license),
-        copyright.origin,
-        copyright.creators.map(_.toDomain),
-        copyright.processors.map(_.toDomain),
-        copyright.rightsholders.map(_.toDomain),
-        copyright.validFrom,
-        copyright.validTo
+        license = copyright.license.map(_.license),
+        origin = copyright.origin,
+        creators = copyright.creators.map(_.toDomain),
+        processors = copyright.processors.map(_.toDomain),
+        rightsholders = copyright.rightsholders.map(_.toDomain),
+        validFrom = copyright.validFrom,
+        validTo = copyright.validTo,
+        processed = copyright.processed
       )
     }
 
@@ -438,7 +439,8 @@ trait ConverterService {
         copyright.processors.map(_.toApi),
         copyright.rightsholders.map(_.toApi),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 
@@ -490,7 +492,8 @@ trait ConverterService {
         copyright.processors,
         copyright.rightsholders,
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 

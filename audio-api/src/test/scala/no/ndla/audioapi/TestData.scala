@@ -116,7 +116,7 @@ object TestData {
     1,
     api.Title("title", "nb"),
     api.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb"),
-    commonApi.Copyright(commonApi.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None),
+    commonApi.Copyright(commonApi.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, false),
     api.Tag(Seq("tag"), "nb"),
     Seq("nb"),
     "standard",

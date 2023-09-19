@@ -36,7 +36,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newImageMeta = NewImageMetaInformationV2(
     "title",
     Some("alt text"),
-    Copyright(License("by", None, None), None, Seq.empty, Seq.empty, Seq.empty, None, None),
+    Copyright(License("by", None, None), None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
     Seq.empty,
     "",
     "en",
@@ -359,7 +359,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           List(),
           List(),
           None,
-          None
+          None,
+          false
         )
       ),
       Some(List("a", "b", "c")),

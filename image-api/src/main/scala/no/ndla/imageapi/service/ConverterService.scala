@@ -53,7 +53,8 @@ trait ConverterService {
         domainCopyright.processors.map(asApiAuthor),
         domainCopyright.rightsholders.map(asApiAuthor),
         domainCopyright.validFrom,
-        domainCopyright.validTo
+        domainCopyright.validTo,
+        domainCopyright.processed
       )
     }
 

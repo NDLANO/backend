@@ -86,7 +86,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       api.ImageTag(List("rovdyr", "elg"), "nb"),
       api.ImageCaption("Elg i busk", "nb"),
@@ -117,7 +118,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = api.ImageTag(List("rovdyr", "bjørn"), "nb"),
       caption = api.ImageCaption("Bjørn i busk", "nb"),

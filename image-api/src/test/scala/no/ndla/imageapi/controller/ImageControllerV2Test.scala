@@ -62,16 +62,17 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       |  "alttext":"test2",
       |  "copyright": {
       |    "license": {
-      |    "license": "by-sa",
-      |    "description": "Creative Commons Attribution-ShareAlike 2.0 Generic",
-      |    "url": "https:\/\/creativecommons.org\/licenses\/by-sa\/2.0\/"
-      |  },
+      |      "license": "by-sa",
+      |      "description": "Creative Commons Attribution-ShareAlike 2.0 Generic",
+      |      "url": "https:\/\/creativecommons.org\/licenses\/by-sa\/2.0\/"
+      |    },
       |    "origin": "",
+      |    "processed": false,
       |    "authors": [
-      |  {
-      |    "type": "Forfatter",
-      |    "name": "Wenche Heir"
-      |  }
+      |      {
+      |        "type": "Forfatter",
+      |        "name": "Wenche Heir"
+      |      }
       |    ]
       |  },
       |  "tags": [
@@ -155,7 +156,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
     val testUrl                   = "http://test.test/1"
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
@@ -170,7 +171,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
     val testUrl                   = "http://test.test/1"
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
 
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
@@ -186,7 +187,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
     val testUrl                   = "http://test.test/1"
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
 
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))

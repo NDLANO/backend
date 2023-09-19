@@ -82,7 +82,8 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
       |        "origin": "",
       |        "creators": [],
       |        "processors": [],
-      |        "rightsholders": []
+      |        "rightsholders": [],
+      |        "processed": false
       |    },
       |    "tags": ["test"]
       |}
@@ -118,7 +119,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
         1,
         Title("title", "nb"),
         Audio("", "", -1, "nb"),
-        Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None),
+        Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
         Tag(Seq(), "nb"),
         Seq("nb"),
         "podcast",
@@ -332,7 +333,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
       1,
       Title("one", "nb"),
       Audio("", "", -1, "nb"),
-      Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None),
+      Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
       Tag(Seq(), "nb"),
       Seq("nb"),
       "podcast",

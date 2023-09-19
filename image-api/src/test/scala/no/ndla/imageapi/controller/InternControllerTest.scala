@@ -48,7 +48,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
       List(),
       List(),
       None,
-      None
+      None,
+      false
     ),
     ImageTag(Seq.empty, "nb"),
     ImageCaption("", "nb"),

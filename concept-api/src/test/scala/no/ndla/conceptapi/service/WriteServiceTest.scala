@@ -140,7 +140,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     val updatedMetaImage = api.NewConceptMetaImage("2", "AltTxt")
     val updatedSource    = "https://www.ndla.no"
@@ -167,8 +168,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       content = Option(api.ConceptContent(updatedContent, "en")),
       metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
-        commonApi
-          .DraftCopyright(None, Some("c"), Seq(commonApi.Author("Opphavsmann", "Katrine")), List(), List(), None, None)
+        commonApi.DraftCopyright(
+          None,
+          Some("c"),
+          Seq(commonApi.Author("Opphavsmann", "Katrine")),
+          List(),
+          List(),
+          None,
+          None,
+          false
+        )
       ),
       source = Some("https://www.ndla.no"),
       supportedLanguages = Set("nb", "en"),

@@ -201,7 +201,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
     val updatedRequiredLib = api.RequiredLibrary("tjup", "tjap", "tjim")
     val updatedArticleType = "topic-article"
@@ -681,7 +682,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       ),
       metaDescription = Some("newMeta"),
@@ -742,7 +744,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       )
     )
@@ -796,7 +799,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       ),
       metaDescription = Some("newMeta"),
@@ -1157,7 +1161,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       ),
       metaDescription = Some("newMeta"),

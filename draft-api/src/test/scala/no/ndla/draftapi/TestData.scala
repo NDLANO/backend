@@ -79,7 +79,8 @@ object TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     ),
     tags = Some(api.ArticleTag(Seq("tag"), "nb")),
@@ -193,7 +194,8 @@ object TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     ),
     None,
@@ -243,7 +245,8 @@ object TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     ),
     None,
@@ -389,7 +392,8 @@ object TestData {
         Seq.empty,
         Seq.empty,
         None,
-        None
+        None,
+        false
       )
     ),
     Seq.empty,
@@ -478,7 +482,8 @@ object TestData {
         Seq.empty,
         Seq.empty,
         None,
-        None
+        None,
+        false
       )
     ),
     Some(api.ArticleTag(Seq.empty, "en")),

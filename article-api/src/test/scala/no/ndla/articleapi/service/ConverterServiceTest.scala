@@ -137,27 +137,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.availability should equal(availability)
   }
 
-  test("That authors are translated correctly") {
-    val authors = List(
-      Author("Opphavsmann", "A"),
-      Author("Redaksjonelt", "B"),
-      Author("redaKsJoNelT", "C"),
-      Author("distributør", "D"),
-      Author("leVerandør", "E"),
-      Author("Språklig", "F")
-    )
-
-    val copyright = service.toDomainCopyright("CC-BY-SA-4.0", authors)
-    copyright.creators should contain(Author("Originator", "A"))
-    copyright.processors should contain(Author("Editorial", "B"))
-    copyright.processors should contain(Author("Editorial", "C"))
-
-    copyright.rightsholders should contain(Author("Distributor", "D"))
-    copyright.rightsholders should contain(Author("Supplier", "E"))
-
-    copyright.processors should contain(Author("Linguistic", "F"))
-  }
-
   test("That updateExistingTags updates tags correctly") {
     val existingTags = Seq(Tag(Seq("nb-tag1", "nb-tag2"), "nb"), Tag(Seq("Guten", "Tag"), "de"))
     val updatedTags = Seq(

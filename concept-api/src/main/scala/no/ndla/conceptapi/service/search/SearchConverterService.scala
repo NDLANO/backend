@@ -123,7 +123,8 @@ trait SearchConverterService {
           processors = c.processors.map(_.toApi),
           rightsholders = c.rightsholders.map(_.toApi),
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       })
 

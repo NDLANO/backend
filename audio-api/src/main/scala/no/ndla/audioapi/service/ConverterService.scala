@@ -164,7 +164,8 @@ trait ConverterService {
         copyright.processors.map(_.toApi),
         copyright.rightsholders.map(_.toApi),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 

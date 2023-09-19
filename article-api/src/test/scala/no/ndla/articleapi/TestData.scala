@@ -60,7 +60,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = api.ArticleTag(Seq("tag"), "nb"),
       requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
@@ -99,7 +100,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       api.ArticleTag(Seq("tag"), "nb"),
       Seq(),
@@ -246,7 +248,7 @@ trait TestData {
       """.stripMargin,
         "en"
       ),
-      model.api.Copyright(model.api.License("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None),
+      model.api.Copyright(model.api.License("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None, false),
       api.ArticleTag(Seq.empty, "en"),
       Seq.empty,
       None,

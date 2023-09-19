@@ -79,7 +79,8 @@ class ImageSearchServiceTest
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val image1 = new ImageMetaInformation(

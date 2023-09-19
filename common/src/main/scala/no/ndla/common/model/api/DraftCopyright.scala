@@ -21,5 +21,6 @@ case class DraftCopyright(
     @(ApiModelProperty @field)(description = "List of processors") processors: Seq[Author],
     @(ApiModelProperty @field)(description = "List of rightsholders") rightsholders: Seq[Author],
     @(ApiModelProperty @field)(description = "Date from which the copyright is valid") validFrom: Option[NDLADate],
-    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[NDLADate]
+    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[NDLADate],
+    @(ApiModelProperty @field)(description = "Whether or not the content has been processed") processed: Boolean
 )

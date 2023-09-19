@@ -18,5 +18,6 @@ case class Copyright(
     processors: Seq[Author],
     rightsholders: Seq[Author],
     validFrom: Option[NDLADate],
-    validTo: Option[NDLADate]
+    validTo: Option[NDLADate],
+    processed: Boolean = false
 )
