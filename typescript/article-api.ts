@@ -110,7 +110,7 @@ export interface IAuthor {
 
 export interface ICopyright {
   license: ILicense
-  origin: string
+  origin?: string
   creators: IAuthor[]
   processors: IAuthor[]
   rightsholders: IAuthor[]

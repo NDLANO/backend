@@ -9,7 +9,7 @@ export interface IArticle {
   status: IStatus
   title?: IArticleTitle
   content?: IArticleContent
-  copyright?: ICopyright
+  copyright?: IDraftCopyright
   tags?: IArticleTag
   requiredLibraries: IRequiredLibrary[]
   visualElement?: IVisualElement
@@ -97,7 +97,7 @@ export interface IComment {
   isOpen: boolean
 }
 
-export interface ICopyright {
+export interface IDraftCopyright {
   license?: ILicense
   origin?: string
   creators: IAuthor[]
@@ -142,7 +142,7 @@ export interface INewArticle {
   metaDescription?: string
   metaImage?: INewArticleMetaImage
   visualElement?: string
-  copyright?: ICopyright
+  copyright?: IDraftCopyright
   requiredLibraries: IRequiredLibrary[]
   articleType: string
   notes: string[]
@@ -219,7 +219,7 @@ export interface IUpdatedArticle {
   metaDescription?: string
   metaImage?: (null | INewArticleMetaImage)
   visualElement?: string
-  copyright?: ICopyright
+  copyright?: IDraftCopyright
   requiredLibraries?: IRequiredLibrary[]
   articleType?: string
   notes?: string[]

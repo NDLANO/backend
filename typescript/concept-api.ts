@@ -10,7 +10,7 @@ export interface IConcept {
   revision: number
   title: IConceptTitle
   content?: IConceptContent
-  copyright?: ICopyright
+  copyright?: IDraftCopyright
   source?: string
   metaImage?: IConceptMetaImage
   tags?: IConceptTags
@@ -81,7 +81,7 @@ export interface IConceptSummary {
   status: IStatus
   updatedBy: string[]
   license?: string
-  copyright?: ICopyright
+  copyright?: IDraftCopyright
   visualElement?: IVisualElement
   articleIds: number[]
   source?: string
@@ -97,16 +97,6 @@ export interface IConceptTags {
 export interface IConceptTitle {
   title: string
   language: string
-}
-
-export interface ICopyright {
-  license?: ILicense
-  origin?: string
-  creators: IAuthor[]
-  processors: IAuthor[]
-  rightsholders: IAuthor[]
-  validFrom?: string
-  validTo?: string
 }
 
 export interface IDraftConceptSearchParams {
@@ -126,6 +116,16 @@ export interface IDraftConceptSearchParams {
   embedId?: string
   responsibleIds: string[]
   conceptType?: string
+}
+
+export interface IDraftCopyright {
+  license?: ILicense
+  origin?: string
+  creators: IAuthor[]
+  processors: IAuthor[]
+  rightsholders: IAuthor[]
+  validFrom?: string
+  validTo?: string
 }
 
 export interface IGlossData {
@@ -152,7 +152,7 @@ export interface INewConcept {
   language: string
   title: string
   content?: string
-  copyright?: ICopyright
+  copyright?: IDraftCopyright
   source?: string
   metaImage?: INewConceptMetaImage
   tags?: string[]
@@ -193,7 +193,7 @@ export interface IUpdatedConcept {
   title?: string
   content?: string
   metaImage?: (null | INewConceptMetaImage)
-  copyright?: ICopyright
+  copyright?: IDraftCopyright
   source?: string
   tags?: string[]
   subjectIds?: string[]
