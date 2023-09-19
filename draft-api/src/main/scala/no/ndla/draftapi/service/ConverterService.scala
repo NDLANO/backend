@@ -684,12 +684,14 @@ trait ConverterService {
         .map(comments => updatedCommentToDomain(comments, toMergeInto.comments))
         .getOrElse(toMergeInto.comments)
 
+      val copyright = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
+
       failableFields match {
         case Failure(ex) => Failure(ex)
         case Success((allNotes, newContent)) =>
           val partiallyConverted = toMergeInto.copy(
             revision = Option(article.revision),
-            copyright = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
+            copyright = copyright,
             requiredLibraries = updatedRequiredLibraries,
             created = createdDate,
             updated = updatedDate,

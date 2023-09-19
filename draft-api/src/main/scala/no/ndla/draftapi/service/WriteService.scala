@@ -603,11 +603,12 @@ trait WriteService {
         updatedApiArticle = updatedApiArticle,
         shouldNotAutoUpdateStatus = shouldNotAutoUpdateStatus
       )
+      withEmbedUrls = readService.addUrlsOnEmbedResources(updatedArticle)
 
       apiArticle <- converterService.toApiArticle(
-        readService.addUrlsOnEmbedResources(updatedArticle),
-        updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
-        updatedApiArticle.language.isEmpty
+        article = withEmbedUrls,
+        language = updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
+        fallback = updatedApiArticle.language.isEmpty
       )
     } yield apiArticle
 
