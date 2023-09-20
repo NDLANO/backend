@@ -126,6 +126,7 @@ export interface IDraftCopyright {
   rightsholders: IAuthor[]
   validFrom?: string
   validTo?: string
+  processed: boolean
 }
 
 export interface IGlossData {
