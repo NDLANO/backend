@@ -50,7 +50,12 @@ trait TaxonomyApiClient {
       getPaginated[Node](
         s"$TaxonomyApiEndpoint/nodes/search",
         headers = getVersionHashHeader(shouldUsePublishedTax),
-        Seq("pageSize" -> "500", "nodeType" -> NodeType.RESOURCE.toString, "includeContexts" -> "true", "filterProgrammes" -> "true")
+        Seq(
+          "pageSize"         -> "500",
+          "nodeType"         -> NodeType.RESOURCE.toString,
+          "includeContexts"  -> "true",
+          "filterProgrammes" -> "true"
+        )
       )
 
     def getTaxonomyContext(
