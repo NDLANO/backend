@@ -86,13 +86,13 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validateCopyright should succeed if a copyright holder is provided") {
     val copyright =
-      Copyright(CC_BY.toString, None, Seq(Author("artist", "test")), Seq.empty, Seq.empty, None, None)
+      Copyright(CC_BY.toString, None, Seq(Author("artist", "test")), Seq.empty, Seq.empty, None, None, false)
     val result = validationService.validateCopyright(copyright)
     result.length should be(0)
   }
 
   test("validateCopyright should fail if no copyright holders are provided") {
-    val copyright = Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None)
+    val copyright = Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None, false)
     val result    = validationService.validateCopyright(copyright)
     result.length should be(1)
     result should be(

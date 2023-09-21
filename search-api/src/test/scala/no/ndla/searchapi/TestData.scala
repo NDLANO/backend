@@ -39,11 +39,11 @@ import java.net.URI
 
 object TestData {
 
-  private val publicDomainCopyright = Copyright("publicdomain", None, List(), List(), List(), None, None)
+  private val publicDomainCopyright = Copyright("publicdomain", None, List(), List(), List(), None, None, false)
   private val byNcSaCopyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Writer", "DC Comics")), List(), List(), None, None)
+    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Writer", "DC Comics")), List(), List(), None, None, false)
   private val copyrighted =
-    Copyright("copyrighted", Some("New York"), List(Author("Writer", "Clark Kent")), List(), List(), None, None)
+    Copyright("copyrighted", Some("New York"), List(Author("Writer", "Clark Kent")), List(), List(), None, None, false)
   val today: NDLADate = NDLADate.now().withNano(0)
 
   val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "nb")
@@ -186,7 +186,7 @@ object TestData {
     Option(2),
     Seq(Title("title", "nb")),
     Seq(ArticleContent("content", "nb")),
-    Copyright("by", None, Seq(), Seq(), Seq(), None, None),
+    Copyright("by", None, Seq(), Seq(), Seq(), None, None, false),
     Seq(Tag(Seq("tag"), "nb")),
     Seq(),
     Seq(),
@@ -211,7 +211,7 @@ object TestData {
     None,
     Seq(Title("test", "en")),
     Seq(ArticleContent("<article><div>test</div></article>", "en")),
-    Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None),
+    Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
     Seq(),
     Seq(),
     Seq(),
@@ -493,7 +493,7 @@ object TestData {
     revision = None,
     title = Seq.empty,
     content = Seq.empty,
-    copyright = Copyright("", None, Seq.empty, Seq.empty, Seq.empty, None, None),
+    copyright = Copyright("", None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
     tags = Seq.empty,
     requiredLibraries = Seq.empty,
     visualElement = Seq.empty,
@@ -550,7 +550,7 @@ object TestData {
   val importedDraftStatus = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
 
   val draftPublicDomainCopyright: draft.DraftCopyright =
-    draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None)
+    draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
 
   val draftByNcSaCopyright = draft.DraftCopyright(
     Some("by-nc-sa"),
@@ -559,7 +559,8 @@ object TestData {
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val draftCopyrighted = draft.DraftCopyright(
@@ -569,7 +570,8 @@ object TestData {
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val sampleDraftWithPublicDomain = Draft(

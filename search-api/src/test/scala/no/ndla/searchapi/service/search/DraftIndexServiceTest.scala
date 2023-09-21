@@ -76,7 +76,8 @@ class DraftIndexServiceTest
           processors = Seq(Author("writer", "Jonas")),
           rightsholders = Seq(Author("writer", "Jonas")),
           validFrom = Some(now),
-          validTo = Some(now)
+          validTo = Some(now),
+          false
         )
       )
     )

@@ -68,7 +68,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         imageMetaId = 2
       )
     ),
-    copyright = DomainCopyright("", None, List(), List(), List(), None, None),
+    copyright = DomainCopyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
     updatedBy = "ndla124",
@@ -378,7 +378,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = List(common.Tag(List("a", "b", "c"), "nb")),
       captions = List(domain.ImageCaption("Caption", "nb")),

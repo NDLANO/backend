@@ -38,7 +38,7 @@ class AudioSearchServiceTest
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None)
+    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, false)
 
   val publicDomain: Copyright = Copyright(
     "publicdomain",
@@ -47,11 +47,12 @@ class AudioSearchServiceTest
     Seq(),
     Seq(),
     None,
-    None
+    None,
+    false
   )
 
   val copyrighted: Copyright =
-    Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None)
+    Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
 
   val updated1: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val updated2: NDLADate = NDLADate.of(2017, 5, 1, 12, 15, 32)

@@ -71,7 +71,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Seq(),
     Seq(),
     None,
-    None
+    None,
+    false
   )
 
   val multiLangAudio: domain.AudioMetaInformation = domain.AudioMetaInformation(

@@ -55,7 +55,8 @@ trait TestData {
         List(Author("Redaksjonelt", "Kåre Knegg")),
         List(Author("Leverandør", "Leverans Leveransensen")),
         None,
-        None
+        None,
+        false
       ),
       tags = List(Tag(List("rovdyr", "elg"), "nb")),
       captions = List(ImageCaption("Elg i busk", "nb")),
@@ -153,7 +154,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = List(Tag(List("rovdyr", "bjørn"), "nb")),
       captions = List(ImageCaption("Bjørn i busk", "nb")),
@@ -187,7 +189,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = List(Tag(List("rovdyr", "jerv"), "nb")),
       captions = List(ImageCaption("Jerv på stein", "nb")),
@@ -221,7 +224,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = List(Tag(List("rovdyr", "mink"), "nb")),
       captions = List(ImageCaption("Overrasket mink", "nb")),
@@ -255,7 +259,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = List(Tag(List("rovdyr", "rein", "jakt"), "nb")),
       captions = List(ImageCaption("Rein har fanget rødtopp", "nb")),
@@ -289,7 +294,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = List(Tag(List("rovdyr", "krokodille"), "nb")),
       captions = List(ImageCaption("Krokodille på krok", "nb")),
@@ -323,7 +329,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = List(Tag(List("bison"), "nb")),
       captions = List(ImageCaption("Bison på sletten", "nb")),

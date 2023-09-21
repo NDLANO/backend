@@ -22,7 +22,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None)
+    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, false)
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   def created(): NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 

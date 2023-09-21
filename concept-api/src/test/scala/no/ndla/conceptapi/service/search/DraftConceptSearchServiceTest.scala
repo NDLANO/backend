@@ -51,7 +51,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
@@ -61,7 +62,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
@@ -71,7 +73,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val today: NDLADate = NDLADate.now()

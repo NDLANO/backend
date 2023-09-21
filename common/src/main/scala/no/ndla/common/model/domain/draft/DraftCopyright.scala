@@ -18,5 +18,5 @@ case class DraftCopyright(
     rightsholders: Seq[Author],
     validFrom: Option[NDLADate],
     validTo: Option[NDLADate],
-    processed: Boolean = false
+    processed: Boolean
 )

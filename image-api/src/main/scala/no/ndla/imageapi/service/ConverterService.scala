@@ -299,7 +299,8 @@ trait ConverterService {
         copyright.processors.map(_.toDomain),
         copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 

@@ -45,14 +45,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
   test("Copyright validation succeeds if license is omitted and copyright holders are empty") {
     val concept =
-      baseConcept.copy(copyright = Some(DraftCopyright(None, None, Seq(), Seq(), Seq(), None, None)))
+      baseConcept.copy(copyright = Some(DraftCopyright(None, None, Seq(), Seq(), Seq(), None, None, false)))
     val result = contentValidator.validateConcept(concept)
     result should be(Success(concept))
   }
 
   test("Copyright validation fails if license is included and copyright holders are empty") {
     val concept = baseConcept.copy(
-      copyright = Some(DraftCopyright(Some("CC-BY-4.0"), None, Seq(), Seq(), Seq(), None, None))
+      copyright = Some(DraftCopyright(Some("CC-BY-4.0"), None, Seq(), Seq(), Seq(), None, None, false))
     )
     val Failure(exception: ValidationException) = contentValidator.validateConcept(concept)
     exception.errors should be(
@@ -64,7 +64,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
     val concept = baseConcept.copy(
       copyright =
-        Some(DraftCopyright(Some("CC-BY-4.0"), None, Seq(Author("creator", "test")), Seq(), Seq(), None, None))
+        Some(DraftCopyright(Some("CC-BY-4.0"), None, Seq(Author("creator", "test")), Seq(), Seq(), None, None, false))
     )
     val result = contentValidator.validateConcept(concept)
     result should be(Success(concept))

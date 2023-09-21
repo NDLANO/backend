@@ -76,7 +76,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
         imageMetaId = 1
       )
     ),
-    copyright = Copyright(CC_BY.toString, None, List(), List(), List(), None, None),
+    copyright = Copyright(CC_BY.toString, None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
     updatedBy = "ndla124",

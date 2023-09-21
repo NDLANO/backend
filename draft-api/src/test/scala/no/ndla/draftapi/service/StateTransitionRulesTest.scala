@@ -332,8 +332,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       status = common.Status(PLANNED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
-      copyright =
-        Some(common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+      copyright = Some(
+        common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+      ),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,
       visualElement = Seq.empty,
@@ -364,7 +365,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       revision = None,
       title = Seq.empty,
       content = Seq.empty,
-      copyright = common.article.Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None),
+      copyright = common.article.Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,
       visualElement = Seq.empty,
@@ -453,15 +454,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.DraftCopyright(
-          Some(CC_BY.toString),
-          Some(""),
-          Seq.empty,
-          Seq.empty,
-          Seq.empty,
-          None,
-          None
-        )
+        common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
       ),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,
@@ -517,15 +510,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.DraftCopyright(
-          Some(CC_BY.toString),
-          Some(""),
-          Seq.empty,
-          Seq.empty,
-          Seq.empty,
-          None,
-          None
-        )
+        common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
       ),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,
@@ -586,15 +571,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.DraftCopyright(
-          Some(CC_BY.toString),
-          Some(""),
-          Seq.empty,
-          Seq.empty,
-          Seq.empty,
-          None,
-          None
-        )
+        common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
       ),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,
@@ -657,15 +634,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
-        common.draft.DraftCopyright(
-          Some(CC_BY.toString),
-          Some(""),
-          Seq.empty,
-          Seq.empty,
-          Seq.empty,
-          None,
-          None
-        )
+        common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
       ),
       tags = Seq.empty,
       requiredLibraries = Seq.empty,

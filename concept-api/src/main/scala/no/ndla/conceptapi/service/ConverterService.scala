@@ -355,7 +355,7 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(copyright: commonApi.DraftCopyright): commonDomain.draft.DraftCopyright = {
+    def toDomainCopyright(copyright: commonApi.DraftCopyright): commonDomain.draft.DraftCopyright =
       commonDomain.draft.DraftCopyright(
         copyright.license.map(_.license),
         copyright.origin,
@@ -363,9 +363,9 @@ trait ConverterService {
         copyright.processors.map(_.toDomain),
         copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
-    }
 
     def toApiConceptTags(
         tags: Seq[String],

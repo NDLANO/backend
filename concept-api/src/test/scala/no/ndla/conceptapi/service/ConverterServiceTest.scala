@@ -197,7 +197,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             Seq(common.Author("Photographer", "Photographer")),
             Seq(common.Author("Photographer", "Photographer")),
             None,
-            None
+            None,
+            false
           )
         ),
         updated = updated

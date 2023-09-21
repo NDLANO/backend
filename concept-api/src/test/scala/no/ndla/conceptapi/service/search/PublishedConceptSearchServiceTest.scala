@@ -48,7 +48,8 @@ class PublishedConceptSearchServiceTest
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
@@ -58,7 +59,8 @@ class PublishedConceptSearchServiceTest
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
@@ -68,7 +70,8 @@ class PublishedConceptSearchServiceTest
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val today: LocalDateTime = LocalDateTime.now()

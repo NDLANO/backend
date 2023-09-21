@@ -22,7 +22,7 @@ trait TestData {
 
   class TestData {
     private val publicDomainCopyright =
-      Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None)
+      Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
     private val byNcSaCopyright =
       Copyright(
         License.CC_BY_NC_SA.toString,
@@ -31,7 +31,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     private val copyrighted =
       Copyright(
@@ -41,7 +42,8 @@ trait TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     private val today = NDLADate.now().withNano(0)
 
@@ -153,7 +155,7 @@ trait TestData {
       Option(2),
       Seq(Title("title", "nb")),
       Seq(ArticleContent("content", "nb")),
-      Copyright("CC-BY-4.0", None, Seq(), Seq(), Seq(), None, None),
+      Copyright("CC-BY-4.0", None, Seq(), Seq(), Seq(), None, None, false),
       Seq(Tag(Seq("tag"), "nb")),
       Seq(),
       Seq(),
@@ -178,7 +180,7 @@ trait TestData {
       None,
       Seq(Title("test", "en")),
       Seq(ArticleContent("<article><div>test</div></article>", "en")),
-      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None),
+      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -215,7 +217,7 @@ trait TestData {
           "en"
         )
       ),
-      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None),
+      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -283,7 +285,7 @@ trait TestData {
         Option(2),
         Seq(Title("title", lang)),
         Seq(ArticleContent("content", lang)),
-        Copyright("by", None, Seq(), Seq(), Seq(), None, None),
+        Copyright("by", None, Seq(), Seq(), Seq(), None, None, false),
         Seq(),
         Seq(),
         Seq(),

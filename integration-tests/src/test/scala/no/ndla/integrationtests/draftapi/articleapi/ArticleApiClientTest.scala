@@ -84,7 +84,8 @@ class ArticleApiClientTest
     Seq.empty,
     Seq.empty,
     None,
-    None
+    None,
+    false
   )
 
   val testArticle: Draft = Draft(

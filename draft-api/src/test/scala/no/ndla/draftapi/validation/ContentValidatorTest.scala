@@ -168,7 +168,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with an invalid license") {
     val article = articleToValidate.copy(
-      copyright = Some(DraftCopyright(Some("beerware"), None, Seq(), List(), List(), None, None))
+      copyright = Some(DraftCopyright(Some("beerware"), None, Seq(), List(), List(), None, None, false))
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -176,7 +176,16 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle does not throw an exception on an article with a valid license") {
     val article = articleToValidate.copy(
       copyright = Some(
-        DraftCopyright(Some(CC_BY_SA.toString), None, Seq(Author("processor", "navn")), List(), List(), None, None)
+        DraftCopyright(
+          Some(CC_BY_SA.toString),
+          None,
+          Seq(Author("processor", "navn")),
+          List(),
+          List(),
+          None,
+          None,
+          false
+        )
       )
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
@@ -184,7 +193,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
     val article = articleToValidate.copy(
-      copyright = Some(DraftCopyright(Some("by-sa"), Some("<h1>origin</h1>"), Seq(), List(), List(), None, None))
+      copyright = Some(DraftCopyright(Some("by-sa"), Some("<h1>origin</h1>"), Seq(), List(), List(), None, None, false))
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -192,7 +201,16 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
     val article = articleToValidate.copy(
       copyright = Some(
-        DraftCopyright(Some(CC_BY_SA.toString), None, Seq(), List(Author("rightsholder", "test")), List(), None, None)
+        DraftCopyright(
+          Some(CC_BY_SA.toString),
+          None,
+          Seq(),
+          List(Author("rightsholder", "test")),
+          List(),
+          None,
+          None,
+          false
+        )
       )
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
@@ -201,7 +219,16 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle does not throw an exception on an article with plain text in authors field") {
     val article = articleToValidate.copy(
       copyright = Some(
-        DraftCopyright(Some(CC_BY_SA.toString), None, Seq(Author("author", "John Doe")), List(), List(), None, None)
+        DraftCopyright(
+          Some(CC_BY_SA.toString),
+          None,
+          Seq(Author("author", "John Doe")),
+          List(),
+          List(),
+          None,
+          None,
+          false
+        )
       )
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
@@ -209,8 +236,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with html in authors field") {
     val article = articleToValidate.copy(
-      copyright =
-        Some(DraftCopyright(Some("by-sa"), None, Seq(Author("author", "<h1>john</h1>")), List(), List(), None, None))
+      copyright = Some(
+        DraftCopyright(Some("by-sa"), None, Seq(Author("author", "<h1>john</h1>")), List(), List(), None, None, false)
+      )
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }

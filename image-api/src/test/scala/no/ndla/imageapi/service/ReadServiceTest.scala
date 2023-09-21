@@ -86,7 +86,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         List(common.Author("Redaksjonelt", "Kåre Knegg")),
         List(common.Author("Leverandør", "Leverans Leveransensen")),
         None,
-        None
+        None,
+        false
       ),
       tags = List(common.Tag(List("rovdyr", "elg"), "nb")),
       captions = List(domain.ImageCaption("Elg i busk", "nb")),

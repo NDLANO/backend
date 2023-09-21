@@ -51,7 +51,8 @@ class ArticleSearchServiceTest
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
 
   val publicDomain =
@@ -62,7 +63,8 @@ class ArticleSearchServiceTest
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
 
   val copyrighted =
@@ -73,7 +75,8 @@ class ArticleSearchServiceTest
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
 
   val today = NDLADate.now()

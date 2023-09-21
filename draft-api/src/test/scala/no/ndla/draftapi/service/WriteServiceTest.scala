@@ -228,8 +228,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       revision = Some(article.revision.get + 1),
       title = Seq(Title(updatedTitle, "en")),
       content = Seq(ArticleContent(updatedContent, "en")),
-      copyright =
-        Some(DraftCopyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None)),
+      copyright = Some(
+        DraftCopyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None, false)
+      ),
       tags = Seq(Tag(Seq("en", "to", "tre"), "en")),
       requiredLibraries = Seq(RequiredLibrary("tjup", "tjap", "tjim")),
       visualElement = Seq(VisualElement(updatedVisualElement, "en")),
@@ -962,7 +963,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("A", "B"),
-      copyright = Some(DraftCopyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None)),
+      copyright = Some(DraftCopyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None, false)),
       metaDescription = Seq(
         Description("oldDesc", "nb"),
         Description("oldDescc", "es"),

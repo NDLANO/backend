@@ -171,7 +171,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("gammelDesc", "nb")),
       relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       tags = Seq(Tag(Seq("gammel", "Tag"), "nb"))
@@ -198,7 +198,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("nyDesc", "nb")),
       relatedContent = Seq(
         Left(RelatedContentLink("New Title", "New Url")),
@@ -217,7 +217,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("oldDesc", "de")),
       relatedContent =
         Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
@@ -250,7 +250,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("neuDesc", "de")),
       relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
       tags = Seq(Tag(Seq("Guten", "Tag"), "de")),

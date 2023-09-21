@@ -41,7 +41,8 @@ object TestData {
     processors = Seq(common.Author("processor", "dole")),
     rightsholders = Seq(common.Author("rightsholder", "doffen")),
     validFrom = None,
-    validTo = None
+    validTo = None,
+    false
   )
 
   val sampleAudio: AudioMetaInformation = domain.AudioMetaInformation(

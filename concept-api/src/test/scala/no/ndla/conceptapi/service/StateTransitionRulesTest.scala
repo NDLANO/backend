@@ -26,7 +26,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          false
         )
       ),
       source = None,
@@ -78,7 +79,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          false
         )
       ),
       source = None,
@@ -130,7 +132,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          false
         )
       ),
       source = None,
@@ -181,7 +184,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          false
         )
       ),
       source = None,

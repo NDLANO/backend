@@ -25,7 +25,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val copyrighted =
-    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None)
+    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
 
   val audioMeta = domain.AudioMetaInformation(
     Some(1),

@@ -58,7 +58,8 @@ class ImageSearchServiceTest
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val publicDomain: Copyright = Copyright(
@@ -68,7 +69,8 @@ class ImageSearchServiceTest
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 

@@ -41,7 +41,7 @@ object TestData {
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
   val publicDomainCopyright: common.draft.DraftCopyright =
-    common.draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None)
+    common.draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
   private val byNcSaCopyright = common.draft.DraftCopyright(
     Some(CC_BY_NC_SA.toString),
     Some("Gotham City"),
@@ -49,7 +49,8 @@ object TestData {
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
   private val copyrighted = common.draft.DraftCopyright(
     Some("copyrighted"),
@@ -58,7 +59,8 @@ object TestData {
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
   val today: NDLADate = NDLADate.now()
 
@@ -347,7 +349,9 @@ object TestData {
     common.Status(PLANNED, Set.empty),
     Seq(common.Title("title", "nb")),
     Seq(common.ArticleContent("content", "nb")),
-    Some(common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+    Some(
+      common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+    ),
     Seq.empty,
     Seq.empty,
     Seq.empty,
@@ -431,7 +435,9 @@ object TestData {
         "en"
       )
     ),
-    Some(common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+    Some(
+      common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+    ),
     Seq.empty,
     Seq.empty,
     Seq.empty,

@@ -1058,7 +1058,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       status = Status(PLANNED, Set.empty),
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
-      copyright = Some(DraftCopyright(Some(CC_BY.toString), None, Seq.empty, Seq.empty, Seq.empty, None, None)),
+      copyright = Some(DraftCopyright(Some(CC_BY.toString), None, Seq.empty, Seq.empty, Seq.empty, None, None, false)),
       tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
       visualElement = Seq(VisualElement("e", "nb")),
@@ -1090,7 +1090,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
       copyright =
-        common.model.domain.article.Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None),
+        common.model.domain.article.Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
       tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
       visualElement = Seq(VisualElement("e", "nb")),
