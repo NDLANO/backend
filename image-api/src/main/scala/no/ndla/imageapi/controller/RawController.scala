@@ -133,11 +133,18 @@ trait RawController {
     }: Unit
 
     private def getRawImage(imageName: String): Try[ImageStream] = {
-      val dynamicCropOrResize = if (canDoDynamicCrop) dynamicCrop _ else resize _
+      val dynamicCropOrResize   = if (canDoDynamicCrop) dynamicCrop _ else resize _
+      val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
       imageStorage.get(imageName) match {
-        case Success(img) if List("gif", "svg").contains(img.format.toLowerCase) => Success(img)
-        case Success(img) => crop(img).flatMap(dynamicCropOrResize)
-        case Failure(e)   => Failure(e)
+        case Success(img) if nonResizableMimeTypes.contains(img.contentType.toLowerCase) => Success(img)
+        case Success(img) =>
+          crop(img)
+            .flatMap(dynamicCropOrResize)
+            .recover(ex => {
+              logger.error(s"Could not crop or resize image '$imageName', got exception: '${ex.getMessage}'", ex)
+              img
+            })
+        case Failure(e) => Failure(e)
       }
     }
 
