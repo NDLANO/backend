@@ -77,14 +77,15 @@ class ArticleApiClientTest
   val idResponse: ContentId     = ContentId(1)
   override val converterService = new ConverterService
 
-  val testCopyright: common.draft.Copyright = common.draft.Copyright(
+  val testCopyright: common.draft.DraftCopyright = common.draft.DraftCopyright(
     Some("CC-BY-SA-4.0"),
     Some("Origin"),
     Seq(common.Author("Writer", "John doe")),
     Seq.empty,
     Seq.empty,
     None,
-    None
+    None,
+    false
   )
 
   val testArticle: Draft = Draft(

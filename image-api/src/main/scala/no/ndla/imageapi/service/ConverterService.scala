@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.UrlPath
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{domain => commonDomain, api => commonApi}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
@@ -41,20 +41,20 @@ trait ConverterService {
   class ConverterService extends StrictLogging {
     import props.DefaultLanguage
 
-    def asApiAuthor(domainAuthor: common.Author): api.Author = {
-      api.Author(domainAuthor.`type`, domainAuthor.name)
+    def asApiAuthor(domainAuthor: commonDomain.Author): commonApi.Author = {
+      commonApi.Author(domainAuthor.`type`, domainAuthor.name)
     }
 
-    def asApiCopyright(domainCopyright: domain.Copyright): api.Copyright = {
-      api.Copyright(
+    def asApiCopyright(domainCopyright: commonDomain.article.Copyright): commonApi.Copyright = {
+      commonApi.Copyright(
         asApiLicense(domainCopyright.license),
         domainCopyright.origin,
         domainCopyright.creators.map(asApiAuthor),
         domainCopyright.processors.map(asApiAuthor),
         domainCopyright.rightsholders.map(asApiAuthor),
-        domainCopyright.agreementId,
         domainCopyright.validFrom,
-        domainCopyright.validTo
+        domainCopyright.validTo,
+        domainCopyright.processed
       )
     }
 
@@ -214,7 +214,7 @@ trait ConverterService {
       })
     }
 
-    def asApiImageTag(domainImageTag: common.Tag): api.ImageTag = {
+    def asApiImageTag(domainImageTag: commonDomain.Tag): api.ImageTag = {
       api.ImageTag(domainImageTag.tags, domainImageTag.language)
     }
 
@@ -225,10 +225,10 @@ trait ConverterService {
       api.ImageTitle(domainImageTitle.title, domainImageTitle.language)
     }
 
-    def asApiLicense(license: String): api.License = {
+    def asApiLicense(license: String): commonApi.License = {
       getLicense(license)
-        .map(l => api.License(l.license.toString, l.description, l.url))
-        .getOrElse(api.License("unknown", "", None))
+        .map(l => commonApi.License(l.license.toString, Some(l.description), l.url))
+        .getOrElse(commonApi.License("unknown", None, None))
     }
 
     def asApiUrl(url: String, baseUrl: Option[String] = None): String = {
@@ -291,25 +291,21 @@ trait ConverterService {
       domain.ImageAltText(alt, language)
     }
 
-    def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
-      domain.Copyright(
+    def toDomainCopyright(copyright: commonApi.Copyright): commonDomain.article.Copyright = {
+      commonDomain.article.Copyright(
         copyright.license.license,
         copyright.origin,
-        copyright.creators.map(toDomainAuthor),
-        copyright.processors.map(toDomainAuthor),
-        copyright.rightsholders.map(toDomainAuthor),
-        copyright.agreementId,
+        copyright.creators.map(_.toDomain),
+        copyright.processors.map(_.toDomain),
+        copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 
-    def toDomainAuthor(author: api.Author): common.Author = {
-      common.Author(author.`type`, author.name)
-    }
-
-    def toDomainTag(tags: Seq[String], language: String): common.Tag = {
-      common.Tag(tags, language)
+    def toDomainTag(tags: Seq[String], language: String): commonDomain.Tag = {
+      commonDomain.Tag(tags, language)
     }
 
     def toDomainCaption(caption: String, language: String): domain.ImageCaption = {

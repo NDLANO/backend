@@ -8,8 +8,10 @@
 package no.ndla.conceptapi.model.api
 
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
 import scala.annotation.meta.field
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.DraftCopyright
 
 @ApiModel(description = "Information about the concept")
 case class Concept(
@@ -18,7 +20,7 @@ case class Concept(
     @(ApiModelProperty @field)(description = "The revision of the concept") revision: Int,
     @(ApiModelProperty @field)(description = "Available titles for the concept") title: ConceptTitle,
     @(ApiModelProperty @field)(description = "The content of the concept") content: Option[ConceptContent],
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[Copyright],
+    @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[DraftCopyright],
     @(ApiModelProperty @field)(description = "URL for the source of the concept") source: Option[String],
     @(ApiModelProperty @field)(description = "A meta image for the concept") metaImage: Option[ConceptMetaImage],
     @(ApiModelProperty @field)(description = "Search tags the concept is tagged with") tags: Option[ConceptTags],

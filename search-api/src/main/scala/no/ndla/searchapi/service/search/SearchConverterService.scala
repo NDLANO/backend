@@ -11,6 +11,7 @@ import cats.implicits._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
@@ -252,7 +253,7 @@ trait SearchConverterService {
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
       val license = api.learningpath.Copyright(
         asLearningPathApiLicense(lp.copyright.license),
-        lp.copyright.contributors.map(c => api.learningpath.Author(c.`type`, c.name))
+        lp.copyright.contributors.map(c => Author(c.`type`, c.name))
       )
 
       Success(
@@ -377,10 +378,10 @@ trait SearchConverterService {
 
     }
 
-    private def asLearningPathApiLicense(license: String): api.learningpath.License = {
+    private def asLearningPathApiLicense(license: String): License = {
       getLicense(license) match {
-        case Some(l) => api.learningpath.License(l.license.toString, Option(l.description), l.url)
-        case None    => api.learningpath.License(license, Some("Invalid license"), None)
+        case Some(l) => License(l.license.toString, Option(l.description), l.url)
+        case None    => License(license, Some("Invalid license"), None)
       }
     }
 

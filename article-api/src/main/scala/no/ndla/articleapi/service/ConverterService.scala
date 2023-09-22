@@ -17,13 +17,12 @@ import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
-import no.ndla.common.Clock
-import no.ndla.common.model.RelatedContentLink
-import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
+import no.ndla.common.{Clock, model}
+import no.ndla.common.model.{RelatedContentLink, api => commonApi}
+import no.ndla.common.model.api.{Delete, License, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
-  Author,
   Description,
   Introduction,
   RelatedContent,
@@ -148,23 +147,6 @@ trait ConverterService {
       newLicense
     }
 
-    private def toNewAuthorType(author: Author): Author = {
-      val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-      val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
-      val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
-
-      (
-        creatorMap(author.`type`.toLowerCase),
-        processorMap(author.`type`.toLowerCase),
-        rightsholderMap(author.`type`.toLowerCase)
-      ) match {
-        case (t: String, _, _) => Author(t.capitalize, author.name)
-        case (_, t: String, _) => Author(t.capitalize, author.name)
-        case (_, _, t: String) => Author(t.capitalize, author.name)
-        case (_, _, _)         => Author(author.`type`, author.name)
-      }
-    }
-
     def updateExistingTagsField(existingTags: Seq[Tag], updatedTags: Seq[Tag]): Seq[Tag] = {
       val newTags    = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
       val tagsToKeep = existingTags.filterNot(tag => newTags.map(_.language).contains(tag.language))
@@ -218,19 +200,6 @@ trait ConverterService {
       )
     }
 
-    private[service] def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
-      val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
-
-      val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
-      val creators =
-        authorsExcludingOrigin.map(toNewAuthorType).filter(a => creatorTypes.contains(a.`type`.toLowerCase))
-      val processors =
-        authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase))
-      val rightsholders =
-        authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
-      Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None)
-    }
-
     def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
       relatedContent.map {
         case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
@@ -238,19 +207,18 @@ trait ConverterService {
       }
     }
 
-    def toDomainCopyright(copyright: api.Copyright): Copyright = {
+    def toDomainCopyright(copyright: model.api.Copyright): Copyright = {
       Copyright(
         copyright.license.license,
         copyright.origin,
-        copyright.creators.map(toDomainAuthor),
-        copyright.processors.map(toDomainAuthor),
-        copyright.rightsholders.map(toDomainAuthor),
+        copyright.creators.map(_.toDomain),
+        copyright.processors.map(_.toDomain),
+        copyright.rightsholders.map(_.toDomain),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
-
-    def toDomainAuthor(author: api.Author): Author = Author(author.`type`, author.name)
 
     private def getMainNidUrlToOldNdla(id: Long): Option[String] = {
       // First nid in externalId's should always be mainNid after import.
@@ -352,27 +320,24 @@ trait ConverterService {
 
     }
 
-    def toApiCopyright(copyright: Copyright): api.Copyright = {
-      api.Copyright(
+    def toApiCopyright(copyright: Copyright): commonApi.Copyright = {
+      commonApi.Copyright(
         toApiLicense(copyright.license),
         copyright.origin,
-        copyright.creators.map(toApiAuthor),
-        copyright.processors.map(toApiAuthor),
-        copyright.rightsholders.map(toApiAuthor),
+        copyright.creators.map(_.toApi),
+        copyright.processors.map(_.toApi),
+        copyright.rightsholders.map(_.toApi),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 
-    def toApiLicense(shortLicense: String): api.License = {
+    def toApiLicense(shortLicense: String): License = {
       getLicense(shortLicense) match {
-        case Some(l) => api.License(l.license.toString, Option(l.description), l.url)
-        case None    => api.License("unknown", None, None)
+        case Some(l) => model.api.License(l.license.toString, Option(l.description), l.url)
+        case None    => model.api.License("unknown", None, None)
       }
-    }
-
-    def toApiAuthor(author: Author): api.Author = {
-      api.Author(author.`type`, author.name)
     }
 
     def toApiArticleTag(tag: Tag): api.ArticleTag = {

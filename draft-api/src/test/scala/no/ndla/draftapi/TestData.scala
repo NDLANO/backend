@@ -8,9 +8,11 @@
 package no.ndla.draftapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model
+import no.ndla.common.model.api.DraftCopyright
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.{api, domain}
@@ -38,25 +40,27 @@ object TestData {
   val userWithAdminAccess: TokenUser =
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
-  val publicDomainCopyright: common.draft.Copyright =
-    common.draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None)
-  private val byNcSaCopyright = common.draft.Copyright(
+  val publicDomainCopyright: common.draft.DraftCopyright =
+    common.draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
+  private val byNcSaCopyright = common.draft.DraftCopyright(
     Some(CC_BY_NC_SA.toString),
     Some("Gotham City"),
     List(common.Author("Forfatter", "DC Comics")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
-  private val copyrighted = common.draft.Copyright(
+  private val copyrighted = common.draft.DraftCopyright(
     Some("copyrighted"),
     Some("New York"),
     List(common.Author("Forfatter", "Clark Kent")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
   val today: NDLADate = NDLADate.now()
 
@@ -70,14 +74,15 @@ object TestData {
     title = Some(api.ArticleTitle("title", "nb")),
     content = Some(api.ArticleContent("this is content", "nb")),
     copyright = Some(
-      api.Copyright(
-        Some(api.License("licence", None, None)),
+      DraftCopyright(
+        Some(commonApi.License("licence", None, None)),
         Some("origin"),
-        Seq(api.Author("developer", "Per")),
+        Seq(commonApi.Author("developer", "Per")),
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     ),
     tags = Some(api.ArticleTag(Seq("tag"), "nb")),
@@ -178,9 +183,9 @@ object TestData {
     Some(api.ArticleTitle("title", "nb")),
     Some(api.ArticleContent("content", "nb")),
     Some(
-      api.Copyright(
+      model.api.DraftCopyright(
         Some(
-          api.License(
+          commonApi.License(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -191,7 +196,8 @@ object TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     ),
     None,
@@ -228,9 +234,9 @@ object TestData {
     Some(api.ArticleTitle("title", "nb")),
     Some(api.ArticleContent("content", "nb")),
     Some(
-      api.Copyright(
+      model.api.DraftCopyright(
         Some(
-          api.License(
+          commonApi.License(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -241,7 +247,8 @@ object TestData {
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     ),
     None,
@@ -342,7 +349,9 @@ object TestData {
     common.Status(PLANNED, Set.empty),
     Seq(common.Title("title", "nb")),
     Seq(common.ArticleContent("content", "nb")),
-    Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+    Some(
+      common.draft.DraftCopyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+    ),
     Seq.empty,
     Seq.empty,
     Seq.empty,
@@ -380,14 +389,15 @@ object TestData {
     None,
     None,
     Some(
-      api.Copyright(
-        Some(api.License("publicdomain", None, None)),
+      model.api.DraftCopyright(
+        Some(commonApi.License("publicdomain", None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,
         Seq.empty,
         None,
-        None
+        None,
+        false
       )
     ),
     Seq.empty,
@@ -425,7 +435,9 @@ object TestData {
         "en"
       )
     ),
-    Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+    Some(
+      common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+    ),
     Seq.empty,
     Seq.empty,
     Seq.empty,
@@ -469,14 +481,15 @@ object TestData {
       )
     ),
     Some(
-      api.Copyright(
-        Some(api.License("publicdomain", None, None)),
+      model.api.DraftCopyright(
+        Some(commonApi.License("publicdomain", None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,
         Seq.empty,
         None,
-        None
+        None,
+        false
       )
     ),
     Some(api.ArticleTag(Seq.empty, "en")),

@@ -8,7 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft.{Copyright, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{ArticleContent, Author, EditorNote, Status}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
@@ -69,14 +69,15 @@ class DraftIndexServiceTest
         Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
       revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
       copyright = Some(
-        Copyright(
+        DraftCopyright(
           license = Some("hei"),
           origin = Some("ho"),
           creators = Seq(Author("writer", "Jonas")),
           processors = Seq(Author("writer", "Jonas")),
           rightsholders = Seq(Author("writer", "Jonas")),
           validFrom = Some(now),
-          validTo = Some(now)
+          validTo = Some(now),
+          false
         )
       )
     )

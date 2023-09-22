@@ -8,7 +8,7 @@
 package no.ndla.searchapi.model.domain.learningpath
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Content, Tag, Title}
 
 case class LearningPath(
@@ -25,7 +25,7 @@ case class LearningPath(
     lastUpdated: NDLADate,
     tags: List[Tag],
     owner: String,
-    copyright: Copyright,
+    copyright: LearningpathCopyright,
     learningsteps: List[LearningStep] = Nil
 ) extends Content
 

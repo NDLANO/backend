@@ -7,13 +7,13 @@ export interface IAuthor {
 
 export interface ICopyright {
   license: ILicense
-  origin: string
+  origin?: string
   creators: IAuthor[]
   processors: IAuthor[]
   rightsholders: IAuthor[]
-  agreementId?: number
   validFrom?: string
   validTo?: string
+  processed: boolean
 }
 
 export interface IEditorNote {
@@ -117,7 +117,7 @@ export interface IImageTitle {
 
 export interface ILicense {
   license: string
-  description: string
+  description?: string
   url?: string
 }
 

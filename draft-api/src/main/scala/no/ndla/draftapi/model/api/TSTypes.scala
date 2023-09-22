@@ -9,7 +9,7 @@ package no.ndla.draftapi.model.api
 
 import com.scalatsi.TypescriptType.TSNull
 import com.scalatsi._
-import no.ndla.common.model.api.RelatedContentLink
+import no.ndla.common.model.api.{Author, RelatedContentLink}
 import no.ndla.common.model.domain.Availability
 
 /** The `scala-tsi` plugin is not always able to derive the types that are used in `Seq` or other generic types.

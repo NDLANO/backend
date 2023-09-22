@@ -39,11 +39,11 @@ import java.net.URI
 
 object TestData {
 
-  private val publicDomainCopyright = Copyright("publicdomain", "", List(), List(), List(), None, None)
+  private val publicDomainCopyright = Copyright("publicdomain", None, List(), List(), List(), None, None, false)
   private val byNcSaCopyright =
-    Copyright("by-nc-sa", "Gotham City", List(Author("Writer", "DC Comics")), List(), List(), None, None)
+    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Writer", "DC Comics")), List(), List(), None, None, false)
   private val copyrighted =
-    Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None)
+    Copyright("copyrighted", Some("New York"), List(Author("Writer", "Clark Kent")), List(), List(), None, None, false)
   val today: NDLADate = NDLADate.now().withNano(0)
 
   val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "nb")
@@ -186,7 +186,7 @@ object TestData {
     Option(2),
     Seq(Title("title", "nb")),
     Seq(ArticleContent("content", "nb")),
-    Copyright("by", "", Seq(), Seq(), Seq(), None, None),
+    Copyright("by", None, Seq(), Seq(), Seq(), None, None, false),
     Seq(Tag(Seq("tag"), "nb")),
     Seq(),
     Seq(),
@@ -211,7 +211,7 @@ object TestData {
     None,
     Seq(Title("test", "en")),
     Seq(ArticleContent("<article><div>test</div></article>", "en")),
-    Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None),
+    Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
     Seq(),
     Seq(),
     Seq(),
@@ -493,7 +493,7 @@ object TestData {
     revision = None,
     title = Seq.empty,
     content = Seq.empty,
-    copyright = Copyright("", "", Seq.empty, Seq.empty, Seq.empty, None, None),
+    copyright = Copyright("", None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
     tags = Seq.empty,
     requiredLibraries = Seq.empty,
     visualElement = Seq.empty,
@@ -549,27 +549,29 @@ object TestData {
   val draftStatus         = Status(DraftStatus.PLANNED, Set.empty)
   val importedDraftStatus = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
 
-  val draftPublicDomainCopyright: draft.Copyright =
-    draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None)
+  val draftPublicDomainCopyright: draft.DraftCopyright =
+    draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
 
-  val draftByNcSaCopyright = draft.Copyright(
+  val draftByNcSaCopyright = draft.DraftCopyright(
     Some("by-nc-sa"),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
-  val draftCopyrighted = draft.Copyright(
+  val draftCopyrighted = draft.DraftCopyright(
     Some("copyrighted"),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val sampleDraftWithPublicDomain = Draft(
@@ -891,7 +893,7 @@ object TestData {
 
   val paul              = Author("author", "Truly Weird Rand Paul")
   val license           = "publicdomain"
-  val copyright         = common.learningpath.Copyright(license, List(paul))
+  val copyright         = common.learningpath.LearningpathCopyright(license, List(paul))
   val visibleMetadata   = Some(Metadata(Seq.empty, visible = true, Map.empty))
   val invisibleMetadata = Some(Metadata(Seq.empty, visible = false, Map.empty))
 

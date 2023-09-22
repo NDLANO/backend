@@ -8,13 +8,13 @@
 
 package no.ndla.learningpathapi.service.search
 
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.{NDLADate, api => commonApi}
+import no.ndla.common.model.domain.learningpath.{LearningpathCopyright, EmbedType, EmbedUrl}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
-import no.ndla.learningpathapi.model.domain.{Description, _}
-import no.ndla.learningpathapi.model.{api, domain}
+import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -39,9 +39,9 @@ class SearchServiceTest
   }
   override val searchService: SearchService = new SearchService
 
-  val paul: Author         = Author("author", "Truly Weird Rand Paul")
-  val license              = "publicdomain"
-  val copyright: Copyright = Copyright(license, List(paul))
+  val paul: Author                     = Author("author", "Truly Weird Rand Paul")
+  val license                          = "publicdomain"
+  val copyright: LearningpathCopyright = LearningpathCopyright(license, List(paul))
 
   val DefaultLearningPath: LearningPath = LearningPath(
     id = None,
@@ -86,7 +86,7 @@ class SearchServiceTest
     if (elasticSearchContainer.isSuccess) {
       searchIndexService.createIndexAndAlias().get
 
-      doReturn(api.Author("Forfatter", "En eier"), Nil: _*).when(converterService).asAuthor(any[NdlaUserName])
+      doReturn(commonApi.Author("Forfatter", "En eier"), Nil: _*).when(converterService).asAuthor(any[NdlaUserName])
 
       val today      = NDLADate.now()
       val yesterday  = NDLADate.now().minusDays(1)

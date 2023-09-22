@@ -11,6 +11,7 @@ package no.ndla.articleapi
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain._
@@ -21,26 +22,28 @@ trait TestData {
 
   class TestData {
     private val publicDomainCopyright =
-      Copyright(License.PublicDomain.toString, "", List(), List(), List(), None, None)
+      Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
     private val byNcSaCopyright =
       Copyright(
         License.CC_BY_NC_SA.toString,
-        "Gotham City",
+        Some("Gotham City"),
         List(Author("Writer", "DC Comics")),
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     private val copyrighted =
       Copyright(
         License.Copyrighted.toString,
-        "New York",
+        Some("New York"),
         List(Author("Writer", "Clark Kent")),
         List(),
         List(),
         None,
-        None
+        None,
+        false
       )
     private val today = NDLADate.now().withNano(0)
 
@@ -52,14 +55,15 @@ trait TestData {
       revision = 1,
       title = api.ArticleTitle("title", "nb"),
       content = api.ArticleContentV2("this is content", "nb"),
-      copyright = api.Copyright(
-        api.License("licence", None, None),
-        "origin",
-        Seq(api.Author("developer", "Per")),
+      copyright = model.api.Copyright(
+        model.api.License("licence", None, None),
+        Some("origin"),
+        Seq(model.api.Author("developer", "Per")),
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       tags = api.ArticleTag(Seq("tag"), "nb"),
       requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
@@ -87,18 +91,19 @@ trait TestData {
       2,
       api.ArticleTitle("title", "nb"),
       api.ArticleContentV2("content", "nb"),
-      api.Copyright(
-        api.License(
+      model.api.Copyright(
+        model.api.License(
           "CC-BY-4.0",
           Some("Creative Commons Attribution 4.0 International"),
           Some("https://creativecommons.org/licenses/by/4.0/")
         ),
-        "",
+        None,
         List(),
         List(),
         List(),
         None,
-        None
+        None,
+        false
       ),
       api.ArticleTag(Seq("tag"), "nb"),
       Seq(),
@@ -150,7 +155,7 @@ trait TestData {
       Option(2),
       Seq(Title("title", "nb")),
       Seq(ArticleContent("content", "nb")),
-      Copyright("CC-BY-4.0", "", Seq(), Seq(), Seq(), None, None),
+      Copyright("CC-BY-4.0", None, Seq(), Seq(), Seq(), None, None, false),
       Seq(Tag(Seq("tag"), "nb")),
       Seq(),
       Seq(),
@@ -175,7 +180,7 @@ trait TestData {
       None,
       Seq(Title("test", "en")),
       Seq(ArticleContent("<article><div>test</div></article>", "en")),
-      Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None),
+      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -212,7 +217,7 @@ trait TestData {
           "en"
         )
       ),
-      Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None),
+      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -245,7 +250,7 @@ trait TestData {
       """.stripMargin,
         "en"
       ),
-      api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None),
+      model.api.Copyright(model.api.License("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None, false),
       api.ArticleTag(Seq.empty, "en"),
       Seq.empty,
       None,
@@ -280,7 +285,7 @@ trait TestData {
         Option(2),
         Seq(Title("title", lang)),
         Seq(ArticleContent("content", lang)),
-        Copyright("by", "", Seq(), Seq(), Seq(), None, None),
+        Copyright("by", None, Seq(), Seq(), Seq(), None, None, false),
         Seq(),
         Seq(),
         Seq(),

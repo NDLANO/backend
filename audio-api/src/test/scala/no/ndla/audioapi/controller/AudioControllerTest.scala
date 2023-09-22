@@ -15,6 +15,7 @@ import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
+import no.ndla.common.model.api.{Copyright, License}
 import no.ndla.network.tapir.Service
 import org.mockito.ArgumentMatchers._
 import org.mockito.{ArgumentCaptor, Strictness}
@@ -78,7 +79,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
       |        "license": {
       |            "license": "by-sa"
       |        },
-      |        "authors": []
+      |        "origin": "",
+      |        "creators": [],
+      |        "processors": [],
+      |        "rightsholders": [],
+      |        "processed": false
       |    },
       |    "tags": ["test"]
       |}
@@ -114,7 +119,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
         1,
         Title("title", "nb"),
         Audio("", "", -1, "nb"),
-        Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None),
+        Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
         Tag(Seq(), "nb"),
         Seq("nb"),
         "podcast",
@@ -328,7 +333,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
       1,
       Title("one", "nb"),
       Audio("", "", -1, "nb"),
-      Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None),
+      Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
       Tag(Seq(), "nb"),
       Seq("nb"),
       "podcast",

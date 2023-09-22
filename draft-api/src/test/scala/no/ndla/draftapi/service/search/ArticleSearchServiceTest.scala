@@ -37,34 +37,37 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(
+  val byNcSa = DraftCopyright(
     Some("by-nc-sa"),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
-  val publicDomain = Copyright(
+  val publicDomain = DraftCopyright(
     Some("publicdomain"),
     Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
-  val copyrighted = Copyright(
+  val copyrighted = DraftCopyright(
     Some("copyrighted"),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val today: NDLADate = NDLADate.now()

@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.model.api
 
+import no.ndla.common.model.api.License
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 

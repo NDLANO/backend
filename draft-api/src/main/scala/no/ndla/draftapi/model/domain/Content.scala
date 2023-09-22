@@ -10,7 +10,7 @@ package no.ndla.draftapi.model.domain
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.draft.Draft.jsonEncoder
-import no.ndla.common.model.domain.draft.{Copyright, Draft}
+import no.ndla.common.model.domain.draft.{DraftCopyright, Draft}
 import no.ndla.draftapi.Props
 import org.json4s.FieldSerializer._
 import org.json4s.ext.JavaTimeSerializers
@@ -22,7 +22,7 @@ case class Agreement(
     id: Option[Long],
     title: String,
     content: String,
-    copyright: Copyright,
+    copyright: DraftCopyright,
     created: NDLADate,
     updated: NDLADate,
     updatedBy: String

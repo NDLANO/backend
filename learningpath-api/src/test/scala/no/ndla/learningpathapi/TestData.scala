@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi
 
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.language.Language.DefaultLanguage
 
 import java.util.UUID
@@ -92,7 +92,7 @@ object TestData {
     today,
     List(common.Tag(List("tag"), DefaultLanguage)),
     "me",
-    Copyright(CC_BY.toString, List.empty),
+    LearningpathCopyright(CC_BY.toString, List.empty),
     Some(List(domainLearningStep1, domainLearningStep2))
   )
 

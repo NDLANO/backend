@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{Author, License}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient

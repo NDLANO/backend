@@ -13,6 +13,7 @@ import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.network.tapir.Service
 import sttp.client3.Response
@@ -42,7 +43,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
   val created = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val copyrighted =
-    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None)
+    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
 
   val audioMeta = domain.AudioMetaInformation(
     Some(1),

@@ -7,8 +7,9 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.model.api.{Author, License}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.api.learningpath.{Author, Copyright, License}
+import no.ndla.searchapi.model.api.learningpath.Copyright
 import no.ndla.searchapi.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData._

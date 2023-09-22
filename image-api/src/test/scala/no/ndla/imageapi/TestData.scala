@@ -9,7 +9,9 @@
 package no.ndla.imageapi
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.{api => commonApi}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.ImageMetaInformationV2
 import no.ndla.imageapi.model.domain._
@@ -48,13 +50,13 @@ trait TestData {
       ),
       copyright = Copyright(
         ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(Author("Fotograf", "Test Testesen")),
         List(Author("Redaksjonelt", "Kåre Knegg")),
         List(Author("Leverandør", "Leverans Leveransensen")),
         None,
         None,
-        None
+        false
       ),
       tags = List(Tag(List("rovdyr", "elg"), "nb")),
       captions = List(ImageCaption("Elg i busk", "nb")),
@@ -74,19 +76,19 @@ trait TestData {
       "Elg.jpg",
       2865539,
       "image/jpeg",
-      api.Copyright(
-        api.License(
+      commonApi.Copyright(
+        commonApi.License(
           "by-nc-sa",
-          "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
+          Some("Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic"),
           Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
         ),
-        "http://www.scanpix.no",
-        List(api.Author("Fotograf", "Test Testesen")),
+        Some("http://www.scanpix.no"),
+        List(commonApi.Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       api.ImageTag(List("rovdyr", "elg"), "nb"),
       api.ImageCaption("Elg i busk", "nb"),
@@ -106,19 +108,19 @@ trait TestData {
       imageUrl = "",
       size = 141134,
       contentType = "image/jpeg",
-      copyright = api.Copyright(
-        api.License(
+      copyright = commonApi.Copyright(
+        commonApi.License(
           "by-nc-sa",
-          "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
+          Some("Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic"),
           Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
         ),
-        "http://www.scanpix.no",
-        List(api.Author("Fotograf", "Test Testesen")),
+        Some("http://www.scanpix.no"),
+        List(commonApi.Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       tags = api.ImageTag(List("rovdyr", "bjørn"), "nb"),
       caption = api.ImageCaption("Bjørn i busk", "nb"),
@@ -147,13 +149,13 @@ trait TestData {
       ),
       copyright = Copyright(
         ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       tags = List(Tag(List("rovdyr", "bjørn"), "nb")),
       captions = List(ImageCaption("Bjørn i busk", "nb")),
@@ -182,13 +184,13 @@ trait TestData {
       ),
       copyright = Copyright(
         ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       tags = List(Tag(List("rovdyr", "jerv"), "nb")),
       captions = List(ImageCaption("Jerv på stein", "nb")),
@@ -217,13 +219,13 @@ trait TestData {
       ),
       copyright = Copyright(
         ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       tags = List(Tag(List("rovdyr", "mink"), "nb")),
       captions = List(ImageCaption("Overrasket mink", "nb")),
@@ -252,13 +254,13 @@ trait TestData {
       ),
       copyright = Copyright(
         ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       tags = List(Tag(List("rovdyr", "rein", "jakt"), "nb")),
       captions = List(ImageCaption("Rein har fanget rødtopp", "nb")),
@@ -287,13 +289,13 @@ trait TestData {
       ),
       copyright = Copyright(
         ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       tags = List(Tag(List("rovdyr", "krokodille"), "nb")),
       captions = List(ImageCaption("Krokodille på krok", "nb")),
@@ -322,13 +324,13 @@ trait TestData {
       ),
       copyright = Copyright(
         ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(Author("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
-        None
+        false
       ),
       tags = List(Tag(List("bison"), "nb")),
       captions = List(ImageCaption("Bison på sletten", "nb")),

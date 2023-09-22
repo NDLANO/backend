@@ -14,7 +14,7 @@ import no.ndla.common.{Clock, errors}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{domain => common, api => commonApi}
 import no.ndla.language.Language.{
   AllLanguages,
   UnknownLanguage,
@@ -80,25 +80,21 @@ trait ConverterService {
       api.LearningPathTags(tags.tags, tags.language)
     }
 
-    def asApiCopyright(copyright: learningpath.Copyright): api.Copyright = {
-      api.Copyright(asApiLicense(copyright.license), copyright.contributors.map(asApiAuthor))
+    def asApiCopyright(copyright: learningpath.LearningpathCopyright): api.Copyright = {
+      api.Copyright(asApiLicense(copyright.license), copyright.contributors.map(_.toApi))
     }
 
-    def asApiLicense(license: String): api.License =
+    def asApiLicense(license: String): commonApi.License =
       getLicense(license) match {
-        case Some(l) => api.License(l.license.toString, Option(l.description), l.url)
-        case None    => api.License(license, Some("Invalid license"), None)
+        case Some(l) => commonApi.License(l.license.toString, Option(l.description), l.url)
+        case None    => commonApi.License(license, Some("Invalid license"), None)
       }
 
-    def asApiAuthor(author: common.Author): api.Author = {
-      api.Author(author.`type`, author.name)
-    }
-
-    def asAuthor(user: domain.NdlaUserName): api.Author = {
+    def asAuthor(user: domain.NdlaUserName): commonApi.Author = {
       val names = Array(user.first_name, user.middle_name, user.last_name)
         .filter(_.isDefined)
         .map(_.get)
-      api.Author("Forfatter", names.mkString(" "))
+      commonApi.Author("Forfatter", names.mkString(" "))
     }
 
     def asCoverPhoto(imageId: String): Option[CoverPhoto] = {
@@ -111,12 +107,8 @@ trait ConverterService {
         })
     }
 
-    def asCopyright(copyright: api.Copyright): learningpath.Copyright = {
-      learningpath.Copyright(copyright.license.license, copyright.contributors.map(asAuthor))
-    }
-
-    def asAuthor(author: api.Author): common.Author = {
-      common.Author(author.`type`, author.name)
+    def asCopyright(copyright: api.Copyright): learningpath.LearningpathCopyright = {
+      learningpath.LearningpathCopyright(copyright.license.license, copyright.contributors.map(_.toDomain))
     }
 
     def asApiLearningpathV2(

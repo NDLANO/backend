@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.model.api
 
-import no.ndla.common.model.api.Deletable
+import no.ndla.common.model.api.{Deletable, DraftCopyright}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -19,7 +19,7 @@ case class UpdatedConcept(
     @(ApiModelProperty @field)(description = "Available titles for the concept") title: Option[String],
     @(ApiModelProperty @field)(description = "The content of the concept") content: Option[String],
     @(ApiModelProperty @field)(description = "An image-api ID for the concept meta image") metaImage: Deletable[NewConceptMetaImage],
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[Copyright],
+    @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[DraftCopyright],
     @(ApiModelProperty @field)(description = "URL for the source of the concept'") source: Option[String],
     @(ApiModelProperty @field)(description = "A list of searchable tags") tags: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "A list of taxonomy subject ids the concept is connected to") subjectIds: Option[Seq[String]],

@@ -93,8 +93,9 @@ object TestData {
     revision = Some(1),
     title = Seq(common.Title("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
-    copyright =
-      Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None)),
+    copyright = Some(
+      common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+    ),
     source = None,
     created = NDLADate.now().minusDays(4),
     updated = NDLADate.now().minusDays(2),

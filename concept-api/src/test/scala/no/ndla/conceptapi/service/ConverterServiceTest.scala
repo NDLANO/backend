@@ -8,8 +8,8 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.{domain => common}
-import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
+import no.ndla.common.model.{domain => common, api => commonApi}
+import no.ndla.conceptapi.model.api.{NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.domain.WordClass
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
@@ -162,14 +162,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some("Nytt innhald"),
       Right(None),
       Option(
-        Copyright(
+        commonApi.DraftCopyright(
           None,
           None,
-          Seq(api.Author("Photographer", "Photographer")),
-          Seq(api.Author("Photographer", "Photographer")),
-          Seq(api.Author("Photographer", "Photographer")),
+          Seq(commonApi.Author("Photographer", "Photographer")),
+          Seq(commonApi.Author("Photographer", "Photographer")),
+          Seq(commonApi.Author("Photographer", "Photographer")),
           None,
-          None
+          None,
+          false
         )
       ),
       None,
@@ -189,14 +190,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           domain.ConceptContent("Nytt innhald", "nn")
         ),
         copyright = Option(
-          common.draft.Copyright(
+          common.draft.DraftCopyright(
             None,
             None,
             Seq(common.Author("Photographer", "Photographer")),
             Seq(common.Author("Photographer", "Photographer")),
             Seq(common.Author("Photographer", "Photographer")),
             None,
-            None
+            None,
+            false
           )
         ),
         updated = updated

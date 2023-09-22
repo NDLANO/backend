@@ -8,6 +8,7 @@
 package no.ndla.imageapi.model.api
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.Copyright
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 

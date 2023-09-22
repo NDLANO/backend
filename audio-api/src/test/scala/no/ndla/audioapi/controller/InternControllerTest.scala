@@ -13,6 +13,7 @@ import no.ndla.audioapi.TestData._
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{domain => common}
 import sttp.client3.quick._
 
@@ -35,7 +36,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     Some(1),
     Seq(common.Title("title", "nb")),
     Seq(domain.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb")),
-    domain.Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None),
+    Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, false),
     Seq(common.Tag(Seq("tag"), "nb")),
     "ndla124",
     updated,
@@ -52,7 +53,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     Some(1),
     Seq(common.Title("title", "unknown")),
     Seq(domain.Audio("audio/test.mp3", "audio/mpeg", 1024, "unknown")),
-    domain.Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None),
+    Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, false),
     Seq(common.Tag(Seq("tag"), "unknown")),
     "ndla124",
     updated,

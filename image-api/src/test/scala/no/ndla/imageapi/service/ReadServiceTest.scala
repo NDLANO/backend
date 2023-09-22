@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.service
 
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
@@ -61,7 +62,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val testRawUrl                = s"${props.Domain}/image-api/raw/Elg.jpg"
     val dateString                = TestData.updated().asString
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"$dateString","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"$dateString","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
     val agreementElg = new ImageMetaInformation(
       id = Some(1),
@@ -78,15 +79,15 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
           imageMetaId = 1
         )
       ),
-      copyright = domain.Copyright(
+      copyright = Copyright(
         TestData.ByNcSa,
-        "http://www.scanpix.no",
+        Some("http://www.scanpix.no"),
         List(common.Author("Fotograf", "Test Testesen")),
         List(common.Author("Redaksjonelt", "Kåre Knegg")),
         List(common.Author("Leverandør", "Leverans Leveransensen")),
-        Some(1),
         None,
-        None
+        None,
+        false
       ),
       tags = List(common.Tag(List("rovdyr", "elg"), "nb")),
       captions = List(domain.ImageCaption("Elg i busk", "nb")),

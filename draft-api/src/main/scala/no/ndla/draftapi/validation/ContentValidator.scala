@@ -198,7 +198,7 @@ trait ContentValidator {
         validateMinimumLength(s"title.$language", title, 1)
     }
 
-    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+    private def validateCopyright(copyright: DraftCopyright): Seq[ValidationMessage] = {
       val licenseMessage = copyright.license.map(validateLicense).toSeq.flatten
       val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors.flatMap(
         validateAuthor

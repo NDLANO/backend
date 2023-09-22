@@ -9,6 +9,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
@@ -32,7 +33,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
     images = Seq(full),
-    copyright = Copyright("", "", List(), List(), List(), None, None, None),
+    copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
     updatedBy = "ndla124",
@@ -48,7 +49,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
     images = Seq(wanting),
-    copyright = Copyright("", "", List(), List(), List(), None, None, None),
+    copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
     updatedBy = "ndla124",
@@ -64,7 +65,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     titles = List(ImageTitle("nynorsk", "nn"), ImageTitle("english", "en"), ImageTitle("norsk", "und")),
     alttexts = List(),
     images = Seq(full.copy(language = "nn")),
-    copyright = Copyright("", "", List(), List(), List(), None, None, None),
+    copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
     updatedBy = "ndla124",

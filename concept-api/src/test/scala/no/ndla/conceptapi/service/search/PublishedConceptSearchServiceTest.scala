@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.draft.Copyright
+import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
@@ -41,34 +41,37 @@ class PublishedConceptSearchServiceTest
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa: Copyright = Copyright(
+  val byNcSa: DraftCopyright = DraftCopyright(
     Some("by-nc-sa"),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
-  val publicDomain: Copyright = Copyright(
+  val publicDomain: DraftCopyright = DraftCopyright(
     Some("publicdomain"),
     Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
-  val copyrighted: Copyright = Copyright(
+  val copyrighted: DraftCopyright = DraftCopyright(
     Some("copyrighted"),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),
     List(),
     None,
-    None
+    None,
+    false
   )
 
   val today: LocalDateTime = LocalDateTime.now()

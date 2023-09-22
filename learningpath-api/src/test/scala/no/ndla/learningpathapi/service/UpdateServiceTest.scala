@@ -8,10 +8,10 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.domain.{Author, Title}
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
@@ -142,11 +142,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val UPDATED_STEPV2 =
     UpdatedLearningStepV2(1, Option("Tittel"), "nb", Some("Beskrivelse"), None, Some(false), None, None)
 
-  val rubio        = Author("author", "Little Marco")
-  val license      = "publicdomain"
-  val copyright    = Copyright(license, List(rubio))
-  val apiRubio     = api.Author("author", "Little Marco")
-  val apiLicense   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+  val rubio     = Author("author", "Little Marco")
+  val license   = "publicdomain"
+  val copyright = LearningpathCopyright(license, List(rubio))
+  val apiRubio  = commonApi.Author("author", "Little Marco")
+  val apiLicense =
+    commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
   val apiCopyright = api.Copyright(apiLicense, List(apiRubio))
 
   val PUBLISHED_LEARNINGPATH = domain.LearningPath(

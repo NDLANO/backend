@@ -9,7 +9,7 @@ package no.ndla.imageapi.model.api
 
 import com.scalatsi.TSType
 import com.scalatsi.TypescriptType.TSNull
-import no.ndla.common.model.api.Deletable
+import no.ndla.common.model.api.{Copyright, Deletable}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field

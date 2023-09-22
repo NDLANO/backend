@@ -10,6 +10,7 @@ package no.ndla.imageapi.model.domain
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.Props
 import org.json4s.FieldSerializer.ignore
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}

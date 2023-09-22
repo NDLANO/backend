@@ -20,7 +20,7 @@ case class Draft(
     status: Status,
     title: Seq[Title],
     content: Seq[ArticleContent],
-    copyright: Option[Copyright],
+    copyright: Option[DraftCopyright],
     tags: Seq[Tag],
     requiredLibraries: Seq[RequiredLibrary],
     visualElement: Seq[VisualElement],

@@ -12,6 +12,7 @@ import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.model.{api => commonApi}
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
@@ -65,8 +66,8 @@ trait ReadService {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
     }
 
-    def contributors: List[api.Author] = {
-      learningPathRepository.allPublishedContributors.map(author => api.Author(author.`type`, author.name))
+    def contributors: List[commonApi.Author] = {
+      learningPathRepository.allPublishedContributors.map(author => commonApi.Author(author.`type`, author.name))
     }
 
     def withOwnerV2(user: TokenUser): List[LearningPathSummaryV2] = {

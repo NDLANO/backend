@@ -11,8 +11,9 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi}
-import no.ndla.common.model.api.UpdateWith
+import no.ndla.common.model.api.{License, UpdateWith}
 import no.ndla.common.model.domain.{Author, Availability, Description, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 
@@ -29,12 +30,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleAlt       = "Fotografi"
 
   test("toApiLicense defaults to unknown if the license was not found") {
-    service.toApiLicense("invalid") should equal(api.License("unknown", None, None))
+    service.toApiLicense("invalid") should equal(License("unknown", None, None))
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
     service.toApiLicense("CC-BY-4.0") should equal(
-      api.License(
+      model.api.License(
         "CC-BY-4.0",
         Some("Creative Commons Attribution 4.0 International"),
         Some("https://creativecommons.org/licenses/by/4.0/")
@@ -136,27 +137,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.availability should equal(availability)
   }
 
-  test("That authors are translated correctly") {
-    val authors = List(
-      Author("Opphavsmann", "A"),
-      Author("Redaksjonelt", "B"),
-      Author("redaKsJoNelT", "C"),
-      Author("distributør", "D"),
-      Author("leVerandør", "E"),
-      Author("Språklig", "F")
-    )
-
-    val copyright = service.toDomainCopyright("CC-BY-SA-4.0", authors)
-    copyright.creators should contain(Author("Originator", "A"))
-    copyright.processors should contain(Author("Editorial", "B"))
-    copyright.processors should contain(Author("Editorial", "C"))
-
-    copyright.rightsholders should contain(Author("Distributor", "D"))
-    copyright.rightsholders should contain(Author("Supplier", "E"))
-
-    copyright.processors should contain(Author("Linguistic", "F"))
-  }
-
   test("That updateExistingTags updates tags correctly") {
     val existingTags = Seq(Tag(Seq("nb-tag1", "nb-tag2"), "nb"), Tag(Seq("Guten", "Tag"), "de"))
     val updatedTags = Seq(
@@ -191,7 +171,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("gammelDesc", "nb")),
       relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       tags = Seq(Tag(Seq("gammel", "Tag"), "nb"))
@@ -218,7 +198,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("nyDesc", "nb")),
       relatedContent = Seq(
         Left(RelatedContentLink("New Title", "New Url")),
@@ -237,7 +217,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("oldDesc", "de")),
       relatedContent =
         Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
@@ -270,7 +250,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None),
+      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
       metaDescription = Seq(Description("neuDesc", "de")),
       relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
       tags = Seq(Tag(Seq("Guten", "Tag"), "de")),

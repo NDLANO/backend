@@ -12,12 +12,12 @@ import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.api.draft
+import no.ndla.common.model.api.{DraftCopyright, draft}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi, domain => common}
-import no.ndla.common.{Clock, UUIDUtil}
+import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{NewComment, NotFoundException, UpdatedComment}
@@ -249,15 +249,16 @@ trait ConverterService {
     def toDomainMetaImage(metaImage: api.NewArticleMetaImage, language: String): common.ArticleMetaImage =
       common.ArticleMetaImage(metaImage.id, metaImage.alt, language)
 
-    def toDomainCopyright(copyright: api.Copyright): common.draft.Copyright = {
-      common.draft.Copyright(
-        copyright.license.map(_.license),
-        copyright.origin,
-        copyright.creators.map(toDomainAuthor),
-        copyright.processors.map(toDomainAuthor),
-        copyright.rightsholders.map(toDomainAuthor),
-        copyright.validFrom,
-        copyright.validTo
+    def toDomainCopyright(copyright: DraftCopyright): common.draft.DraftCopyright = {
+      common.draft.DraftCopyright(
+        license = copyright.license.map(_.license),
+        origin = copyright.origin,
+        creators = copyright.creators.map(_.toDomain),
+        processors = copyright.processors.map(_.toDomain),
+        rightsholders = copyright.rightsholders.map(_.toDomain),
+        validFrom = copyright.validFrom,
+        validTo = copyright.validTo,
+        processed = copyright.processed
       )
     }
 
@@ -304,8 +305,6 @@ trait ConverterService {
         }
       })
     }
-
-    def toDomainAuthor(author: api.Author): common.Author = common.Author(author.`type`, author.name)
 
     def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): common.RequiredLibrary = {
       common.RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
@@ -432,25 +431,24 @@ trait ConverterService {
       )
     }
 
-    def toApiCopyright(copyright: common.draft.Copyright): api.Copyright = {
-      api.Copyright(
+    def toApiCopyright(copyright: common.draft.DraftCopyright): DraftCopyright = {
+      model.api.DraftCopyright(
         copyright.license.map(toApiLicense),
         copyright.origin,
-        copyright.creators.map(toApiAuthor),
-        copyright.processors.map(toApiAuthor),
-        copyright.rightsholders.map(toApiAuthor),
+        copyright.creators.map(_.toApi),
+        copyright.processors.map(_.toApi),
+        copyright.rightsholders.map(_.toApi),
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 
-    def toApiLicense(shortLicense: String): api.License = {
+    def toApiLicense(shortLicense: String): commonApi.License = {
       getLicense(shortLicense)
-        .map(l => api.License(l.license.toString, Option(l.description), l.url))
-        .getOrElse(api.License("unknown", None, None))
+        .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
+        .getOrElse(commonApi.License("unknown", None, None))
     }
-
-    def toApiAuthor(author: common.Author): api.Author = api.Author(author.`type`, author.name)
 
     def toApiRelatedContent(relatedContent: common.RelatedContent): commonApi.RelatedContent = {
       relatedContent match {
@@ -486,15 +484,16 @@ trait ConverterService {
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-    def toArticleApiCopyright(copyright: common.draft.Copyright): common.article.Copyright = {
+    def toArticleApiCopyright(copyright: common.draft.DraftCopyright): common.article.Copyright = {
       common.article.Copyright(
         copyright.license.getOrElse(""),
-        copyright.origin.getOrElse(""),
+        copyright.origin,
         copyright.creators,
         copyright.processors,
         copyright.rightsholders,
         copyright.validFrom,
-        copyright.validTo
+        copyright.validTo,
+        copyright.processed
       )
     }
 
@@ -685,12 +684,14 @@ trait ConverterService {
         .map(comments => updatedCommentToDomain(comments, toMergeInto.comments))
         .getOrElse(toMergeInto.comments)
 
+      val copyright = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
+
       failableFields match {
         case Failure(ex) => Failure(ex)
         case Success((allNotes, newContent)) =>
           val partiallyConverted = toMergeInto.copy(
             revision = Option(article.revision),
-            copyright = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
+            copyright = copyright,
             requiredLibraries = updatedRequiredLibraries,
             created = createdDate,
             updated = updatedDate,

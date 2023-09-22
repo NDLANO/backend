@@ -9,7 +9,9 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.api.{Copyright, License}
+import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
+import no.ndla.common.model.domain.article.{Copyright => DomainCopyright}
 import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
@@ -34,7 +36,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newImageMeta = NewImageMetaInformationV2(
     "title",
     Some("alt text"),
-    Copyright(License("by", "", None), "", Seq.empty, Seq.empty, Seq.empty, None, None, None),
+    Copyright(License("by", None, None), None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
     Seq.empty,
     "",
     "en",
@@ -66,7 +68,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         imageMetaId = 2
       )
     ),
-    copyright = domain.Copyright("", "", List(), List(), List(), None, None, None),
+    copyright = DomainCopyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
     updatedBy = "ndla124",
@@ -351,14 +353,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Right(Some("AltText")),
       Some(
         Copyright(
-          License("testLic", "License for testing", None),
-          "test",
-          List(Author("Opphavsmann", "Testerud")),
+          License("testLic", Some("License for testing"), None),
+          Some("test"),
+          List(commonApi.Author("Opphavsmann", "Testerud")),
           List(),
           List(),
           None,
           None,
-          None
+          false
         )
       ),
       Some(List("a", "b", "c")),
@@ -369,8 +371,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedResult = existing.copy(
       titles = List(domain.ImageTitle("Title", "nb")),
       alttexts = List(domain.ImageAltText("AltText", "nb")),
-      copyright = domain
-        .Copyright("testLic", "test", List(common.Author("Opphavsmann", "Testerud")), List(), List(), None, None, None),
+      copyright = DomainCopyright(
+        "testLic",
+        Some("test"),
+        List(common.Author("Opphavsmann", "Testerud")),
+        List(),
+        List(),
+        None,
+        None,
+        false
+      ),
       tags = List(common.Tag(List("a", "b", "c"), "nb")),
       captions = List(domain.ImageCaption("Caption", "nb")),
       modelReleased = ModelReleasedStatus.NO,

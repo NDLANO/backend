@@ -9,6 +9,7 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft._
@@ -193,14 +194,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedMetaAlt         = "HeheAlt"
     val newImageMeta           = api.NewArticleMetaImage(updatedMetaId, updatedMetaAlt)
     val updatedVisualElement   = s"<$EmbedTagName something />"
-    val updatedCopyright = api.Copyright(
-      Some(api.License("a", Some("b"), None)),
+    val updatedCopyright = model.api.DraftCopyright(
+      Some(commonApi.License("a", Some("b"), None)),
       Some("c"),
-      Seq(api.Author("Opphavsmann", "Jonas")),
+      Seq(commonApi.Author("Opphavsmann", "Jonas")),
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
     val updatedRequiredLib = api.RequiredLibrary("tjup", "tjap", "tjim")
     val updatedArticleType = "topic-article"
@@ -226,8 +228,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       revision = Some(article.revision.get + 1),
       title = Seq(Title(updatedTitle, "en")),
       content = Seq(ArticleContent(updatedContent, "en")),
-      copyright =
-        Some(Copyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None)),
+      copyright = Some(
+        DraftCopyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None, false)
+      ),
       tags = Seq(Tag(Seq("en", "to", "tre"), "en")),
       requiredLibraries = Seq(RequiredLibrary("tjup", "tjap", "tjim")),
       visualElement = Seq(VisualElement(updatedVisualElement, "en")),
@@ -673,14 +676,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       ),
       metaDescription = Some("newMeta"),
@@ -734,14 +738,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       language = Some("nb"),
       title = Some(existingTitle),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = Some("shouldCauseStatusChange"),
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       )
     )
@@ -788,14 +793,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       ),
       metaDescription = Some("newMeta"),
@@ -957,7 +963,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("A", "B"),
-      copyright = Some(Copyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None)),
+      copyright = Some(DraftCopyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None, false)),
       metaDescription = Seq(
         Description("oldDesc", "nb"),
         Description("oldDescc", "es"),
@@ -1149,14 +1155,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        api.Copyright(
-          license = Some(api.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyright(
+          license = Some(commonApi.License("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
-          validTo = None
+          validTo = None,
+          processed = false
         )
       ),
       metaDescription = Some("newMeta"),

@@ -13,7 +13,7 @@ import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLangua
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.ImageApiClientComponent
 import no.ndla.learningpathapi.model._
-import no.ndla.learningpathapi.model.api.{Author, LearningPathSummaryV2, SearchResultV2}
+import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.search._
 import no.ndla.learningpathapi.service.ConverterService
@@ -103,10 +103,6 @@ trait SearchConverterServiceComponent {
         SearchableLanguageValues(learningStep.title.map(title => LanguageValue(title.language, title.title))),
         SearchableLanguageValues(learningStep.description.map(desc => LanguageValue(desc.language, desc.description)))
       )
-    }
-
-    def asAuthor(author: String): Author = {
-      Author("Forfatter", author)
     }
 
     def createUrlToLearningPath(id: Long): String = {

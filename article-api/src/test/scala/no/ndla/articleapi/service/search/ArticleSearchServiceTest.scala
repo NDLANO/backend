@@ -46,34 +46,37 @@ class ArticleSearchServiceTest
   val byNcSa =
     Copyright(
       CC_BY_NC_SA.toString,
-      "Gotham City",
+      Some("Gotham City"),
       List(Author("Forfatter", "DC Comics")),
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
 
   val publicDomain =
     Copyright(
       PublicDomain.toString,
-      "Metropolis",
+      Some("Metropolis"),
       List(Author("Forfatter", "Bruce Wayne")),
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
 
   val copyrighted =
     Copyright(
       Copyrighted.toString,
-      "New York",
+      Some("New York"),
       List(Author("Forfatter", "Clark Kent")),
       List(),
       List(),
       None,
-      None
+      None,
+      false
     )
 
   val today = NDLADate.now()
