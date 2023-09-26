@@ -450,12 +450,14 @@ trait ReadService {
     def getStats: Option[Stats] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
+      val favouritedResources         = groupedResources.map(gr => ResourceStats(gr._2, gr._1))
       for {
         numberOfUsers         <- userRepository.numberOfUsers()
         numberOfFolders       <- folderRepository.numberOfFolders()
         numberOfResources     <- folderRepository.numberOfResources()
         numberOfTags          <- folderRepository.numberOfTags()
         numberOfSubjects      <- userRepository.numberOfSubjects()
+        favouritedSubjects    <- userRepository.numberOfFavouritedSubjects()
         numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
         stats = Stats(
           numberOfUsers,
@@ -464,7 +466,7 @@ trait ReadService {
           numberOfTags,
           numberOfSubjects,
           numberOfSharedFolders,
-          favouritedResources = groupedResources.map(gr => ResourceStats(gr._2, gr._1))
+          favouritedResources :+ ResourceStats("subject", favouritedSubjects)
         )
       } yield stats
     }
