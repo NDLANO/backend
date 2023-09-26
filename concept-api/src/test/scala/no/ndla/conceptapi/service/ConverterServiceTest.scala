@@ -63,7 +63,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         None,
         None,
         None,
-        None,
         Some(Seq(42L)),
         None,
         None,
@@ -95,7 +94,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         None,
         None,
         None,
-        None,
         Some(Seq(42L)),
         None,
         None,
@@ -124,7 +122,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Some("Title"),
         Some("My content"),
         Right(None),
-        None,
         None,
         None,
         None,
@@ -173,7 +170,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           false
         )
       ),
-      None,
       None,
       None,
       Some(Seq(42L)),
