@@ -187,15 +187,21 @@ trait ConverterService {
 
     def toDomainConcept(concept: api.NewConcept, userInfo: TokenUser): Try[domain.Concept] = {
       val conceptType = ConceptType.valueOfOrError(concept.conceptType).getOrElse(ConceptType.CONCEPT)
+      val content = concept.content
+        .map(content => Seq(domain.ConceptContent(content, concept.language)))
+        .getOrElse(Seq.empty)
+      val visualElement = concept.visualElement
+        .filterNot(_.isEmpty)
+        .map(ve => toDomainVisualElement(ve, concept.language))
+        .toSeq
+
       for {
         glossData <- toDomainGlossData(concept.glossData)
       } yield domain.Concept(
         id = None,
         revision = None,
         title = Seq(Title(concept.title, concept.language)),
-        content = concept.content
-          .map(content => Seq(domain.ConceptContent(content, concept.language)))
-          .getOrElse(Seq.empty),
+        content = content,
         copyright = concept.copyright.map(toDomainCopyright),
         source = concept.source,
         created = clock.now(),
@@ -206,8 +212,7 @@ trait ConverterService {
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
-        visualElement =
-          concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq,
+        visualElement = visualElement,
         responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
         conceptType = conceptType,
         glossData = glossData
@@ -348,7 +353,7 @@ trait ConverterService {
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
-        visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq,
+        visualElement = concept.visualElement.map(ve => toDomainVisualElement(ve, lang)).toSeq,
         responsible = responsible,
         conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT),
         glossData = glossData

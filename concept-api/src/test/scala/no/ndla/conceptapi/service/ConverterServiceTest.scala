@@ -8,9 +8,9 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.{domain => common, api => commonApi}
-import no.ndla.conceptapi.model.api.{NotFoundException, UpdatedConcept}
-import no.ndla.conceptapi.model.domain.WordClass
+import no.ndla.common.model.{api => commonApi, domain => common}
+import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
+import no.ndla.conceptapi.model.domain.{ConceptType, VisualElement, WordClass}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
@@ -698,5 +698,98 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Failure(result) = converterService.toDomainGlossData(apiGlossData)
     result.getMessage should include("'nonexistent' is not a valid gloss type")
+  }
+
+  test("unknown embed attributes should be stripped from new concepts") {
+    val newConcept = NewConcept(
+      language = "nb",
+      title = "tittel",
+      content = Some("Nokko innhald"),
+      copyright = None,
+      metaImage = None,
+      tags = None,
+      subjectIds = None,
+      articleIds = None,
+      visualElement = Some(
+        "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\" data-url=\"https://api.test.ndla.no/audio-api/v1/audio/2755\"></ndlaembed>"
+      ),
+      responsibleId = None,
+      conceptType = ConceptType.CONCEPT.toString,
+      glossData = None,
+      source = None
+    )
+
+    val result = converterService.toDomainConcept(newConcept, TokenUser.SystemUser).get
+
+    result.visualElement should be(
+      Seq(
+        VisualElement(
+          "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\"></ndlaembed>",
+          "nb"
+        )
+      )
+    )
+  }
+
+  test("unknown embed attributes should be stripped from updated concepts (if null document)") {
+    val updatedConcept = UpdatedConcept(
+      language = "nb",
+      title = Some("tittel"),
+      content = Some("Nokko innhald"),
+      copyright = None,
+      metaImage = Right(None),
+      tags = None,
+      subjectIds = None,
+      articleIds = None,
+      visualElement = Some(
+        "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\" data-url=\"https://api.test.ndla.no/audio-api/v1/audio/2755\"></ndlaembed>"
+      ),
+      responsibleId = Right(None),
+      conceptType = None,
+      glossData = None,
+      status = None,
+      source = None
+    )
+
+    val result = converterService.toDomainConcept(1, updatedConcept, TokenUser.SystemUser)
+    result.visualElement should be(
+      Seq(
+        VisualElement(
+          "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\"></ndlaembed>",
+          "nb"
+        )
+      )
+    )
+  }
+
+  test("unknown embed attributes should be stripped from updated concepts") {
+    val updatedConcept = UpdatedConcept(
+      language = "nb",
+      title = Some("tittel"),
+      content = Some("Nokko innhald"),
+      copyright = None,
+      metaImage = Right(None),
+      tags = None,
+      subjectIds = None,
+      articleIds = None,
+      visualElement = Some(
+        "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\" data-url=\"https://api.test.ndla.no/audio-api/v1/audio/2755\"></ndlaembed>"
+      ),
+      responsibleId = Right(None),
+      conceptType = None,
+      glossData = None,
+      status = None,
+      source = None
+    )
+
+    val result = converterService.toDomainConcept(TestData.domainConcept, updatedConcept, TokenUser.SystemUser).get
+    result.visualElement should be(
+      Seq(
+        VisualElement(
+          "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\"></ndlaembed>",
+          "nb"
+        )
+      )
+    )
   }
 }
