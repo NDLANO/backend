@@ -8,10 +8,10 @@
 
 package no.ndla.audioapi.service
 
-import java.io.InputStream
 import com.amazonaws.services.s3.model.{ObjectMetadata, PutObjectRequest}
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.AmazonClient
+import no.ndla.common.model.domain.UploadedFile
 
 import scala.util.{Failure, Success, Try}
 
@@ -23,14 +23,15 @@ trait AudioStorageService {
     import props.StorageName
 
     def storeAudio(
-        audioStream: InputStream,
+        audioStream: UploadedFile,
         contentType: String,
         destinationPath: String
     ): Try[ObjectMetadata] = {
       val metadata = new ObjectMetadata()
       metadata.setContentType(contentType)
+      metadata.setContentLength(audioStream.fileSize)
 
-      val request = new PutObjectRequest(StorageName, destinationPath, audioStream, metadata)
+      val request = new PutObjectRequest(StorageName, destinationPath, audioStream.stream, metadata)
       Try(amazonClient.putObject(request)) match {
         case Success(_)         => getObjectMetaData(destinationPath)
         case Failure(exception) => Failure(exception)

@@ -19,6 +19,7 @@ import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterServi
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.common.implicits._
+import no.ndla.common.model.domain.UploadedFile
 import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.{NonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
@@ -31,7 +32,6 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir._
 
 import java.io.File
-import java.nio.file.Files
 import scala.util.{Failure, Success, Try}
 
 trait AudioController {
@@ -218,10 +218,13 @@ trait AudioController {
       .errorOut(errorOutputsFor(400, 401, 403, 404, 413))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { user => formData =>
-        (for {
-          fileBytes <- getBytesAndDeleteFile(formData.file)
-          res       <- writeService.storeNewAudio(formData.metadata.body, fileBytes, user)
-        } yield res).handleErrorsOrOk
+        doWithStream(formData.file) { uploadedFile =>
+          writeService.storeNewAudio(
+            formData.metadata.body,
+            uploadedFile,
+            user
+          )
+        }.handleErrorsOrOk
       }
 
     def putUpdateAudio: ServerEndpoint[Any, Eff] = endpoint.put
@@ -233,11 +236,18 @@ trait AudioController {
       .out(jsonBody[AudioMetaInformation])
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { user => input =>
-        val (id, formData) = input
-        (for {
-          fileBytes <- formData.file.traverse(getBytesAndDeleteFile)
-          res       <- writeService.updateAudio(id, formData.metadata.body, fileBytes, user)
-        } yield res).handleErrorsOrOk
+        {
+          val (id, formData) = input
+          val result = formData.file match {
+            case Some(f) =>
+              doWithStream(f) { stream =>
+                writeService.updateAudio(id, formData.metadata.body, Some(stream), user)
+              }
+            case None =>
+              writeService.updateAudio(id, formData.metadata.body, None, user)
+          }
+          result.handleErrorsOrOk
+        }
       }
 
     def tagSearch: ServerEndpoint[Any, Eff] = endpoint.get
@@ -277,16 +287,10 @@ trait AudioController {
       putUpdateAudio
     )
 
-    def getBytesAndDeleteFile(file: Part[File]): Try[Part[Array[Byte]]] = {
-      if (file.body.length() > maxAudioFileSizeBytes) {
-        Failure(FileTooBigException())
-      } else {
-        Try {
-          val x: Part[Array[Byte]] = file.copy(body = Files.readAllBytes(file.body.toPath))
-          file.body.delete()
-          x
-        }
-      }
+    def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {
+      val file = UploadedFile.fromFilePart(filePart)
+      if (file.fileSize > maxAudioFileSizeBytes) Failure(FileTooBigException())
+      else file.doWithStream(f)
     }
 
     case class MetaDataAndFileForm(metadata: Part[NewAudioMetaInformation], file: Part[File])

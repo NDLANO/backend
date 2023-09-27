@@ -16,12 +16,11 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.model.Part
 
-import java.io.ByteArrayInputStream
 import java.lang.Math.max
 import scala.util.{Failure, Random, Success, Try}
 
@@ -195,7 +194,7 @@ trait WriteService {
 
     def storeNewAudio(
         newAudioMeta: api.NewAudioMetaInformation,
-        file: Part[Array[Byte]],
+        file: UploadedFile,
         tokenUser: TokenUser
     ): Try[api.AudioMetaInformation] = {
       validationService.validateAudioFile(file) match {
@@ -274,7 +273,7 @@ trait WriteService {
     def updateAudio(
         id: Long,
         metadataToUpdate: api.UpdatedAudioMetaInformation,
-        fileOpt: Option[Part[Array[Byte]]],
+        fileOpt: Option[UploadedFile],
         user: TokenUser
     ): Try[api.AudioMetaInformation] = {
       audioRepository.withId(id) match {
@@ -422,15 +421,13 @@ trait WriteService {
       }
     }
 
-    private[service] def uploadFile(file: Part[Array[Byte]], language: String): Try[Audio] = {
+    private[service] def uploadFile(file: UploadedFile, language: String): Try[Audio] = {
       val fileExtension = file.fileName.flatMap(getFileExtension).getOrElse("")
       val contentType   = file.contentType.getOrElse("")
       val fileName      = LazyList.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
-      val inputStream = new ByteArrayInputStream(file.body)
-
       audioStorage
-        .storeAudio(inputStream, contentType, fileName)
+        .storeAudio(file, contentType, fileName)
         .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
     }
 

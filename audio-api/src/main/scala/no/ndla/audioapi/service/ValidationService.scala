@@ -14,12 +14,11 @@ import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, Tag, Title, UploadedFile}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
-import sttp.model.Part
 
 import java.awt.image.BufferedImage
 import java.net.URI
@@ -91,26 +90,30 @@ trait ValidationService {
       correctTypeError ++ overrideSeriesIdError ++ hasPodcastMetaError
     }
 
-    private def validateMimeType(audioFile: Part[_]): Option[ValidationMessage] = {
+    private def validateMimeType(audioFile: UploadedFile): Option[ValidationMessage] = {
       val validMimeTypes = Seq("audio/mp3", "audio/mpeg")
       val actualMimeType = audioFile.contentType.getOrElse("")
       Option.when(!validMimeTypes.contains(actualMimeType)) {
         ValidationMessage(
           "files",
-          s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"
+          s"The file ${audioFile.partName} is not a valid audio file. Only valid types are '${validMimeTypes
+              .mkString(",")}', but was '$actualMimeType'"
         )
       }
     }
 
-    private def validateFileExtension(audioFile: Part[Array[Byte]]): Option[ValidationMessage] = {
-      val fn = audioFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
+    private def validateFileExtension(audioFile: UploadedFile): Option[ValidationMessage] = {
+      val fn             = audioFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
       val isValidFileExt = fn.toLowerCase.endsWith(".mp3")
       Option.when(!isValidFileExt) {
-        ValidationMessage("files", s"The file '${audioFile.name}' does not have a known file extension. Must be .mp3")
+        ValidationMessage(
+          "files",
+          s"The file '${audioFile.partName}' does not have a known file extension. Must be .mp3"
+        )
       }
     }
 
-    def validateAudioFile(audioFile: Part[Array[Byte]]): Seq[ValidationMessage] = {
+    def validateAudioFile(audioFile: UploadedFile): Seq[ValidationMessage] = {
       validateMimeType(audioFile) ++ validateFileExtension(audioFile)
     }.toSeq
 
