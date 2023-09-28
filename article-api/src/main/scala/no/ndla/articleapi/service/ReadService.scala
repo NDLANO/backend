@@ -26,7 +26,7 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.validation.{ResourceType, TagAttributes}
+import no.ndla.validation.{ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
 
 import scala.jdk.CollectionConverters._
@@ -138,16 +138,16 @@ trait ReadService {
     }
 
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
-      val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
+      val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
         case resourceType
             if resourceType == ResourceType.File.toString
               || resourceType == ResourceType.H5P.toString
-              && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
-          val path = embedTag.attr(TagAttributes.DataPath.toString)
+              && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
+          val path = embedTag.attr(TagAttribute.DataPath.toString)
           Some((resourceType, path))
 
-        case resourceType if embedTag.hasAttr(TagAttributes.DataResource_Id.toString) =>
-          val id = embedTag.attr(TagAttributes.DataResource_Id.toString)
+        case resourceType if embedTag.hasAttr(TagAttribute.DataResource_Id.toString) =>
+          val id = embedTag.attr(TagAttribute.DataResource_Id.toString)
           Some((resourceType, id))
         case _ =>
           None
@@ -159,7 +159,7 @@ trait ReadService {
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(
-            s"${TagAttributes.DataUrl}",
+            s"${TagAttribute.DataUrl}",
             baseUrl.addPathParts(pathParts).toString
           ): Unit
         case _ =>

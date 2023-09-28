@@ -25,7 +25,7 @@ class EmbedTagRulesTest extends UnitSuite {
     val resourceTypesFromConfigFile = EmbedTagRules.attributeRules.keys
 
     resourceTypesFromConfigFile.foreach(resType =>
-      EmbedTagRules.attributesForResourceType(resType).required should contain(TagAttributes.DataResource)
+      EmbedTagRules.attributesForResourceType(resType).required.map(f => f.name) should contain(TagAttribute.DataResource)
     )
   }
 
@@ -73,6 +73,44 @@ class EmbedTagRulesTest extends UnitSuite {
         ValidationMessage(
           "test",
           s"An $EmbedTagName HTML tag with data-resource=image must contain non-empty attributes: data-resource_id."
+        )
+      )
+    )
+  }
+
+  test("Optional standalone fields without coExisting is OK") {
+    val embedString =
+      s"""<$EmbedTagName
+         | data-resource="external"
+         | data-url="https://youtube.com"
+         | data-type="external"
+         | data-title="Youtube-video"
+         |/>""".stripMargin
+    val embedTagValidator = new TagValidator()
+
+    val result = embedTagValidator.validate("test", embedString)
+    result should be(
+      Seq.empty
+    )
+  }
+
+  test("Optional fields dependent on others is !OK") {
+    val embedString =
+      s"""<$EmbedTagName
+         | data-resource="external"
+         | data-url="https://youtube.com"
+         | data-type="external"
+         | data-title="Youtube-video"
+         | data-imageid="123"
+         |/>""".stripMargin
+    val embedTagValidator = new TagValidator()
+
+    val result = embedTagValidator.validate("test", embedString)
+    result should be(
+      Seq(
+        ValidationMessage(
+          "test",
+          s"An $EmbedTagName HTML tag with data-resource=external must contain all or none of the attributes in the optional attribute group: (data-caption (Missing: data-caption))"
         )
       )
     )

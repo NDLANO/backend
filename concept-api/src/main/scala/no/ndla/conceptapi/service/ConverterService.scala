@@ -24,7 +24,7 @@ import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageO
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
+import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
 
 import scala.jdk.CollectionConverters._
@@ -214,14 +214,14 @@ trait ConverterService {
       )
     }
 
-    private def removeUnknownEmbedTagAttributes(html: String): String = {
+    private def removeUnknownEmbedTagAttribute(html: String): String = {
       val document = HtmlTagRules.stringToJsoupDocument(html)
       document
         .select(EmbedTagName)
         .asScala
         .foreach(el => {
           ResourceType
-            .valueOf(el.attr(TagAttributes.DataResource.toString))
+            .valueOf(el.attr(TagAttribute.DataResource.toString))
             .map(EmbedTagRules.attributesForResourceType)
             .map(knownAttributes => HtmlTagRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
         })
@@ -231,7 +231,7 @@ trait ConverterService {
 
     private def toDomainVisualElement(visualElement: String, language: String): domain.VisualElement = {
       domain.VisualElement(
-        visualElement = removeUnknownEmbedTagAttributes(visualElement),
+        visualElement = removeUnknownEmbedTagAttribute(visualElement),
         language = language
       )
     }
@@ -401,15 +401,15 @@ trait ConverterService {
     }
 
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
-      val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
+      val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
         case resourceType
             if resourceType == ResourceType.H5P.toString
-              && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
-          val path = embedTag.attr(TagAttributes.DataPath.toString)
+              && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
+          val path = embedTag.attr(TagAttribute.DataPath.toString)
           Some((resourceType, path))
 
-        case resourceType if embedTag.hasAttr(TagAttributes.DataResource_Id.toString) =>
-          val id = embedTag.attr(TagAttributes.DataResource_Id.toString)
+        case resourceType if embedTag.hasAttr(TagAttribute.DataResource_Id.toString) =>
+          val id = embedTag.attr(TagAttribute.DataResource_Id.toString)
           Some((resourceType, id))
         case _ =>
           None
@@ -422,7 +422,7 @@ trait ConverterService {
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(
-            s"${TagAttributes.DataUrl}",
+            s"${TagAttribute.DataUrl}",
             baseUrl.addPathParts(pathParts).toString
           ): Unit
         case _ =>

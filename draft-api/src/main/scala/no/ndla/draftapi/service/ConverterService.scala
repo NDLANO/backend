@@ -57,7 +57,7 @@ trait ConverterService {
     ): Try[Draft] = {
       val domainTitles = Seq(common.Title(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
-        .map(content => common.ArticleContent(removeUnknownEmbedTagAttributes(content), newArticle.language))
+        .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
 
       val status = externalIds match {
@@ -231,14 +231,14 @@ trait ConverterService {
       common.Title(articleTitle.title, articleTitle.language)
 
     def toDomainContent(articleContent: api.ArticleContent): common.ArticleContent = {
-      common.ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.language)
+      common.ArticleContent(removeUnknownEmbedTagAttribute(articleContent.content), articleContent.language)
     }
 
     def toDomainTag(tag: Seq[String], language: String): Option[common.Tag] =
       if (tag.nonEmpty) Some(common.Tag(tag, language)) else None
 
     def toDomainVisualElement(visual: String, language: String): common.VisualElement =
-      common.VisualElement(removeUnknownEmbedTagAttributes(visual), language)
+      common.VisualElement(removeUnknownEmbedTagAttribute(visual), language)
 
     def toDomainIntroduction(intro: String, language: String): common.Introduction =
       common.Introduction(intro, language)
@@ -265,12 +265,12 @@ trait ConverterService {
     def getEmbeddedConceptIds(article: Draft): Seq[Long] = {
       val htmlElements = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
       val conceptEmbeds = htmlElements.flatMap(elem => {
-        val conceptSelector = s"$EmbedTagName[${TagAttributes.DataResource}=${ResourceType.Concept}]"
+        val conceptSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${ResourceType.Concept}]"
         elem.select(conceptSelector).asScala.toSeq
       })
 
       val conceptIds = conceptEmbeds.flatMap(embed => {
-        Try(embed.attr(TagAttributes.DataContentId.toString).toLong) match {
+        Try(embed.attr(TagAttribute.DataContentId.toString).toLong) match {
           case Failure(ex) =>
             logger.error(s"Could not derive concept id from embed: '${embed.toString}'", ex)
             None
@@ -283,7 +283,7 @@ trait ConverterService {
     def getEmbeddedH5PPaths(article: Draft): Seq[String] = {
       val getH5PEmbeds = (htmlElements: Seq[Element]) => {
         htmlElements.flatMap(elem => {
-          val h5pSelector = s"$EmbedTagName[${TagAttributes.DataResource}=${ResourceType.H5P}]"
+          val h5pSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${ResourceType.H5P}]"
           elem.select(h5pSelector).asScala.toSeq
         })
       }
@@ -294,7 +294,7 @@ trait ConverterService {
       val h5pEmbeds = getH5PEmbeds(htmlElements) ++ getH5PEmbeds(visualElements)
 
       h5pEmbeds.flatMap(embed => {
-        Try(embed.attr(TagAttributes.DataPath.toString)) match {
+        Try(embed.attr(TagAttribute.DataPath.toString)) match {
           case Success(path) if path.isEmpty =>
             logger.error(s"Could not derive h5p path (empty string) from embed: '${embed.toString}'")
             None
@@ -313,14 +313,14 @@ trait ConverterService {
     private def getLinkToOldNdla(id: Long)(implicit session: DBSession): Option[String] =
       draftRepository.getExternalIdsFromId(id).map(createLinkToOldNdla).headOption
 
-    private def removeUnknownEmbedTagAttributes(html: String): String = {
+    private def removeUnknownEmbedTagAttribute(html: String): String = {
       val document = HtmlTagRules.stringToJsoupDocument(html)
       document
         .select(EmbedTagName)
         .asScala
         .foreach(el => {
           ResourceType
-            .valueOf(el.attr(TagAttributes.DataResource.toString))
+            .valueOf(el.attr(TagAttribute.DataResource.toString))
             .map(EmbedTagRules.attributesForResourceType)
             .map(knownAttributes => HtmlTagRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
         })
@@ -580,18 +580,18 @@ trait ConverterService {
 
     private def getExistingPaths(content: String): Seq[String] = {
       val doc        = HtmlTagRules.stringToJsoupDocument(content)
-      val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttributes.DataResource}='${ResourceType.File}']").asScala.toSeq
-      fileEmbeds.flatMap(e => Option(e.attr(TagAttributes.DataPath.toString)))
+      val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala.toSeq
+      fileEmbeds.flatMap(e => Option(e.attr(TagAttribute.DataPath.toString)))
     }
 
     def cloneFilesIfExists(existingContent: Seq[String], newContent: String): Try[String] = {
       val existingFiles = existingContent.flatMap(getExistingPaths)
 
       val doc        = HtmlTagRules.stringToJsoupDocument(newContent)
-      val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
+      val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala
 
       val embedsToCloneFile = fileEmbeds.filter(embed => {
-        Option(embed.attr(TagAttributes.DataPath.toString)).exists(dataPath => existingFiles.contains(dataPath))
+        Option(embed.attr(TagAttribute.DataPath.toString)).exists(dataPath => existingFiles.contains(dataPath))
       })
 
       val cloned = embedsToCloneFile.toList

@@ -1,82 +1,176 @@
 {
   "attributes": {
     "h5p": {
-      "required": [
-        "data-resource",
-        "data-path"
-      ],
-      "optional": [
-        [
-          "data-title"
-        ],
-        [
-          "data-url"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-path",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "external": {
-      "required": [
-        "data-resource",
-        "data-url",
-        "data-type"
-      ],
-      "optional": [
-        [
-          "data-caption"
-        ],
-        [
-          "data-title"
-        ],
-        [
-          "data-imageid",
-          "data-caption",
-          "data-title"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-type",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-caption",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-imageid",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-caption",
+              "data-title"
+            ]
+          }
+        }
       ]
     },
     "error": {
-      "required": [
-        "data-resource",
-        "data-message"
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-message",
+          "validation": {
+            "required": true
+          }
+        }
       ]
     },
     "audio": {
-      "requiredNonEmpty": [
-        "data-resource_id"
-      ],
-      "required": [
-        "data-resource",
-        "data-resource_id",
-        "data-type"
-      ],
-      "optional": [
-        [
-          "data-caption"
-        ],
-        [
-          "data-alt"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-resource_id",
+          "validation": {
+            "required": true,
+            "nullable": false
+          }
+        },
+        {
+          "name": "data-type",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-caption",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "nrk": {
-      "required": [
-        "data-resource",
-        "data-nrk-video-id",
-        "data-url"
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-nrk-video-id",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": true
+          }
+        }
       ]
     },
     "content-link": {
-      "required": [
-        "data-resource",
-        "data-content-id"
-      ],
-      "optional": [
-        [
-          "data-open-in"
-        ],
-        [
-          "data-content-type"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-content-id",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-content-type",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-open-in",
+          "validation": {
+            "required": false
+          }
+        }
       ],
       "children": {
         "required": true,
@@ -93,109 +187,317 @@
       }
     },
     "brightcove": {
-      "required": [
-        "data-resource",
-        "data-caption",
-        "data-videoid",
-        "data-account",
-        "data-player"
-      ],
-      "optional": [
-        [
-          "data-title"
-        ],
-        [
-          "data-alt"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-caption",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-videoid",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-account",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-player",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "image": {
-      "requiredNonEmpty": [
-        "data-resource_id"
-      ],
-      "required": [
-        "data-resource",
-        "data-resource_id",
-        "data-size",
-        "data-alt",
-        "data-caption",
-        "data-align"
-      ],
-      "optional": [
-        [
-          "data-upper-left-x",
-          "data-upper-left-y",
-          "data-lower-right-x",
-          "data-lower-right-y"
-        ],
-        [
-          "data-focal-x",
-          "data-focal-y"
-        ],
-        [
-          "data-is-decorative"
-        ],
-        [
-          "data-border"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-resource_id",
+          "validation": {
+            "required": true,
+            "nullable": false
+          }
+        },
+        {
+          "name": "data-align",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-caption",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-size",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-border",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-is-decorative",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-focal-x",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-focal-y"
+            ]
+          }
+        },
+        {
+          "name": "data-focal-y",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-focal-x"
+            ]
+          }
+        },
+        {
+          "name": "data-upper-left-x",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-upper-left-y",
+              "data-lower-right-x",
+              "data-lower-right-y"
+            ]
+          }
+        },
+        {
+          "name": "data-upper-left-y",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-upper-left-x",
+              "data-lower-right-x",
+              "data-lower-right-y"
+            ]
+          }
+        },
+        {
+          "name": "data-lower-right-x",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-upper-left-x",
+              "data-upper-left-y",
+              "data-lower-right-y"
+            ]
+          }
+        },
+        {
+          "name": "data-lower-right-y",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-upper-left-x",
+              "data-upper-left-y",
+              "data-lower-right-x"
+            ]
+          }
+        }
       ]
     },
     "concept": {
-      "requiredNonEmpty": [
-        "data-content-id"
-      ],
-      "required": [
-        "data-resource",
-        "data-content-id",
-        "data-type"
-      ],
-      "optional": [
-        [
-          "data-link-text"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-content-id",
+          "validation": {
+            "required": true,
+            "nullable": false
+          }
+        },
+        {
+          "name": "data-type",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-link-text",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "concept-list": {
-      "required": [
-        "data-resource"
-      ],
-      "optional": [
-        [
-          "data-tag",
-          "data-title"
-        ],
-        [
-          "data-tag",
-          "data-title",
-          "data-subject-id"
-        ],
-        [
-          "data-resource_id",
-          "data-recursive"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-tag",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-title"
+            ]
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-tag"
+            ]
+          }
+        },
+        {
+          "name": "data-subject-id",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-tag",
+              "data-title"
+            ]
+          }
+        },
+        {
+          "name": "data-resource_id",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-recursive"
+            ]
+          }
+        },
+        {
+          "name": "data-recursive",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-resource_id"
+            ]
+          }
+        }
       ]
     },
     "iframe": {
-      "required": [
-        "data-resource",
-        "data-url",
-        "data-type"
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-type",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-caption",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-title",
+              "data-imageid"
+            ]
+          }
+        },
+        {
+          "name": "data-imageid",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-title",
+              "data-caption"
+            ]
+          }
+        },
+        {
+          "name": "data-height",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-width"
+            ]
+          }
+        },
+        {
+          "name": "data-width",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-height"
+            ]
+          }
+        }
       ],
-      "optional": [
-        [
-          "data-width",
-          "data-height"
-        ],
-        [
-          "data-title"
-        ],
-        [
-          "data-title",
-          "data-caption",
-          "data-imageid"
-        ]
-      ],
-      "validSrcDomains": [
+      "validUrlDomains": [
         ".*.ndla.no",
         "vimeo.com",
         "ndla.filmiundervisning.no",
@@ -244,42 +546,113 @@
       ]
     },
     "footnote": {
-      "required": [
-        "data-resource",
-        "data-title",
-        "data-type",
-        "data-year",
-        "data-edition",
-        "data-publisher",
-        "data-authors"
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-type",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-year",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-edition",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-publisher",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-authors",
+          "validation": {
+            "required": true
+          }
+        }
       ]
     },
     "code-block": {
-      "required": [
-        "data-resource",
-        "data-code-format",
-        "data-code-content"
-      ],
-      "optional": [
-        [
-          "data-title"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-code-format",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-code-content",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "related-content": {
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-article-id",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-title"
+            ]
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-url"
+            ]
+          }
+        }
+      ],
       "mustContainAtLeastOneOptionalAttribute": true,
-      "required": [
-        "data-resource"
-      ],
-      "optional": [
-        [
-          "data-article-id"
-        ],
-        [
-          "data-url",
-          "data-title"
-        ]
-      ],
       "mustBeDirectChildOf": {
         "name": "div",
         "requiredAttr": [
@@ -290,21 +663,43 @@
       }
     },
     "file": {
-      "required": [
-        "data-resource",
-        "data-title",
-        "data-path"
-      ],
-      "optional": [
-        [
-          "data-type"
-        ],
-        [
-          "data-alt"
-        ],
-        [
-          "data-display"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-path",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-type",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-display",
+          "validation": {
+            "required": false
+          }
+        }
       ],
       "mustBeDirectChildOf": {
         "name": "div",
@@ -316,81 +711,239 @@
       }
     },
     "contact-block": {
-      "required": [
-        "data-resource",
-        "data-job-title",
-        "data-name",
-        "data-email",
-        "data-description",
-        "data-image-id"
-      ],
-      "optional": [
-        [
-          "data-blob-color"
-        ],
-        [
-          "data-blob"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-job-title",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-name",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-email",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-description",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-image-id",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-blob",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-blob-color",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "blog-post": {
-      "required": [
-        "data-resource",
-        "data-image-id",
-        "data-language",
-        "data-title",
-        "data-url"
-      ],
-      "optional": [
-        [
-          "data-size"
-        ],
-        [
-          "data-author"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-image-id",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-language",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": true,
+            "allowedHtml": [
+              "span"
+            ]
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-size",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-author",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "key-figure": {
-      "required": [
-        "data-resource",
-        "data-image-id",
-        "data-title",
-        "data-subtitle"
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-image-id",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": true,
+            "allowedHtml": [
+              "span"
+            ]
+          }
+        },
+        {
+          "name": "data-subtitle",
+          "validation": {
+            "required": true,
+            "allowedHtml": [
+              "span"
+            ]
+          }
+        },
+        {
+          "name": "data-size",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-author",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     },
     "campaign-block": {
-      "required": [
-        "data-resource",
-        "data-title",
-        "data-title-language",
-        "data-description",
-        "data-description-language",
-        "data-heading-level",
-        "data-url",
-        "data-url-text"
-      ],
-      "optional": [
-        [
-          "data-image-id"
-        ],
-        [
-          "data-image-side"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": true,
+            "allowedHtml": [
+              "span"
+            ]
+          }
+        },
+        {
+          "name": "data-description",
+          "validation": {
+            "required": true,
+            "allowedHtml": [
+              "span"
+            ]
+          }
+        },
+        {
+          "name": "data-heading-level",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-url-text",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-image-id",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-image-side",
+          "validation": {
+            "required": true
+          }
+        }
       ]
     },
     "link-block": {
-      "required": [
-        "data-resource",
-        "data-title",
-        "data-url"
-      ],
-      "optional": [
-        [
-          "data-date"
-        ],
-        [
-          "data-language"
-        ]
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+          "validation": {
+            "required": true,
+            "allowedHtml": [
+              "span"
+            ]
+          }
+        },
+        {
+          "name": "data-url",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-date",
+          "validation": {
+            "required": false
+          }
+        }
       ]
     }
   }

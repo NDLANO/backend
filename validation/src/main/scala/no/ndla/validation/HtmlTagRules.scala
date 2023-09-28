@@ -7,26 +7,29 @@
 
 package no.ndla.validation
 
+import enumeratum.Json4s
 import no.ndla.common.configuration.Constants.EmbedTagName
+import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.io.Source
-import scala.language.postfixOps
 import scala.jdk.CollectionConverters._
+import scala.language.postfixOps
 
 object HtmlTagRules {
 
   case class HtmlThings(attrsForResource: Map[String, TagRules.TagAttributeRules])
 
   private[validation] lazy val attributeRules: Map[String, TagRules.TagAttributeRules] = tagRulesToJson
-  lazy val allHtmlTagAttributes: Set[TagAttributes.Value] = attributeRules.flatMap { case (_, attrRules) =>
+
+  lazy val allHtmlTagAttributes: Set[TagAttribute] = attributeRules.flatMap { case (_, attrRules) =>
     attrRules.all
   } toSet
 
-  private def tagRulesToJson = {
+  private def tagRulesToJson: Map[String, TagRules.TagAttributeRules] = {
     val attrs = TagRules
       .convertJsonStrToAttributeRules(Source.fromResource("html-rules.json").mkString)
 
@@ -50,7 +53,8 @@ object HtmlTagRules {
     lazy val attributes: Map[String, Seq[String]] = readAttributes
 
     private def convertJsonStr(jsonStr: String): Map[String, Any] = {
-      implicit val formats = org.json4s.DefaultFormats
+      implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(TagAttribute)
+
       parse(jsonStr).extract[Map[String, Any]]
     }
 
@@ -89,7 +93,8 @@ object HtmlTagRules {
 
   def allLegalTags: Set[String] = PermittedHTML.tags
 
-  def attributesForTagType(tagType: String): Seq[String] = PermittedHTML.attributes.getOrElse(tagType, Seq.empty)
+  private def attributesForTagType(tagType: String): Seq[String] =
+    PermittedHTML.attributes.getOrElse(tagType, Seq.empty)
 
   def tagAttributesForTagType(tagType: String): Option[TagRules.TagAttributeRules] = attributeRules.get(tagType)
 

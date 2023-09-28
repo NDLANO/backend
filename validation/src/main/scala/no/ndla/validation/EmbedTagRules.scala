@@ -13,7 +13,7 @@ import scala.language.postfixOps
 object EmbedTagRules {
   private[validation] lazy val attributeRules: Map[ResourceType.Value, TagRules.TagAttributeRules] = embedRulesToJson
 
-  lazy val allEmbedTagAttributes: Set[TagAttributes.Value] = attributeRules.flatMap { case (_, attrRules) =>
+  lazy val allEmbedTagAttributes: Set[TagAttribute] = attributeRules.flatMap { case (_, attrRules) =>
     attrRules.all
   } toSet
 
