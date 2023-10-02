@@ -26,7 +26,7 @@ import no.ndla.mapping.License.{CC_BY_SA, NA}
 import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val contentValidator = new ContentValidator()
+  override val contentValidator = new ContentValidator
   val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
   val validIntroduction         = """heisann <span lang="en">heia</span>"""
   val invalidDocument           = """<section><invalid></invalid></section>"""

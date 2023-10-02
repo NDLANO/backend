@@ -12,9 +12,6 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.mapping.UnitSuite
 import no.ndla.validation.TagRules.Condition
 
-import scala.{Seq, collection}
-import scala.collection.immutable
-
 class EmbedTagRulesTest extends UnitSuite {
 
   test("Rules for all resource types should be defined") {
