@@ -779,7 +779,7 @@
         {
           "name": "data-language",
           "validation": {
-            "required": true
+            "required": false
           }
         },
         {

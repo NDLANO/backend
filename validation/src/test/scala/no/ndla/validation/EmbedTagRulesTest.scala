@@ -12,6 +12,9 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.mapping.UnitSuite
 import no.ndla.validation.TagRules.Condition
 
+import scala.{Seq, collection}
+import scala.collection.immutable
+
 class EmbedTagRulesTest extends UnitSuite {
 
   test("Rules for all resource types should be defined") {
@@ -19,9 +22,8 @@ class EmbedTagRulesTest extends UnitSuite {
     val resourceTypesFromEnumDeclaration = ResourceType.values
 
     resourceTypesFromEnumDeclaration.foreach(rt => {
-        resourceTypesFromConfigFile.should(contain(rt))
-      }
-    )
+      resourceTypesFromConfigFile.should(contain(rt))
+    })
   }
 
   test("data-resource should be required for all resource types") {
@@ -118,6 +120,45 @@ class EmbedTagRulesTest extends UnitSuite {
           s"An $EmbedTagName HTML tag with data-resource=external must contain all or none of the attributes in the optional attribute group: (data-caption (Missing: data-caption))"
         )
       )
+    )
+  }
+
+  test("Html in data-caption is forbidden for image") {
+    val embedString =
+      s"""<$EmbedTagName
+         | data-resource="image"
+         | data-resource_id="1"
+         | data-size=""
+         | data-align=""
+         | data-alt=""
+         | data-caption="Bilde på <span lang='en'>engelsk</span>"
+         |/>""".stripMargin
+    val embedTagValidator = new TagValidator()
+
+    val result = embedTagValidator.validate("test", embedString)
+    result should be(
+      Seq(
+        ValidationMessage(
+          "test",
+          s"HTML tag '$EmbedTagName' contains attributes with HTML: data-caption"
+        )
+      )
+    )
+  }
+
+  test("Html in data-title is ok for blog-post") {
+    val embedString =
+      s"""<$EmbedTagName
+         | data-resource="blog-post"
+         | data-image-id="1"
+         | data-title="Hva skjer hos <span lang='en'>NDLA</span>"
+         | data-url="https://ndla.no"
+         |/>""".stripMargin
+    val embedTagValidator = new TagValidator()
+
+    val result = embedTagValidator.validate("test", embedString)
+    result should be(
+      Seq.empty
     )
   }
 

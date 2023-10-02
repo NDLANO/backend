@@ -85,7 +85,7 @@ class TagValidator {
     }
 
     val validationErrors = attributesAreLegal(fieldName, allAttributesOnTag, EmbedTagName) ++
-      attributesContainsNoHtml(fieldName, legalAttributesUsed) ++
+      verifyEmbedAttributes(fieldName, tagAttributeRules, legalAttributesUsed) ++
       verifyAttributeResource(fieldName, tagAttributeRules, resourceType, legalAttributesUsed) ++
       verifyParent(fieldName, resourceType, embed) ++
       verifyRequiredOptional(fieldName, legalAttributesUsed, resourceType, tagAttributeRules) ++
@@ -319,22 +319,27 @@ class TagValidator {
     illegalTagsError ++ mustContainAttributesError
   }
 
-  private def attributesContainsNoHtml(
+  private def verifyEmbedAttributes(
       fieldName: String,
+      attributeRulesForTag: TagAttributeRules,
       attributes: Map[TagAttribute, String]
   ): Option[ValidationMessage] = {
-    val attributesWithHtml = attributes.toList
-      .filter { case (_, value) =>
-        new TextValidator(allowHtml = false).validate(fieldName, value).nonEmpty
+    val attributesWithIllegalHtml = attributes.toList
+      .filter { case (attribute, value) =>
+        attributeRulesForTag
+          .field(attribute)
+          .exists(field =>
+            new TextValidator().validate(attribute.toString, value, field.validation.allowedHtml).nonEmpty
+          )
       }
       .toMap
       .keySet
 
-    if (attributesWithHtml.nonEmpty) {
+    if (attributesWithIllegalHtml.nonEmpty) {
       Some(
         ValidationMessage(
           fieldName,
-          s"HTML tag '$EmbedTagName' contains attributes with HTML: ${attributesWithHtml.mkString(", ")}"
+          s"HTML tag '$EmbedTagName' contains attributes with HTML: ${attributesWithIllegalHtml.mkString(", ")}"
         )
       )
     } else {

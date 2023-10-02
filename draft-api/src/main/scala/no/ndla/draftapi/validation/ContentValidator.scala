@@ -9,8 +9,8 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft._
 import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.draft._
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException, UpdatedArticle}
@@ -19,6 +19,7 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
 import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation._
 import scalikejdbc.ReadOnlyAutoSession
@@ -33,8 +34,8 @@ trait ContentValidator {
 
   class ContentValidator() {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
-    private val NoHtmlValidator = new TextValidator(allowHtml = false)
-    private val HtmlValidator   = new TextValidator(allowHtml = true)
+    private val textValidator = new TextValidator
+    private val allowedTags   = if (props.AllowHtmlInTitle) Set("span") else Set.empty
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
       NDLADate.fromString(dateString) match {
@@ -122,14 +123,14 @@ trait ContentValidator {
     }
 
     private def validateArticleContent(content: ArticleContent): Seq[ValidationMessage] = {
-      HtmlValidator.validate("content", content.content).toList ++
+      textValidator.validate("content", content.content, allLegalTags).toList ++
         rootElementContainsOnlySectionBlocks("content.content", content.content) ++
         validateLanguage("content.language", content.language)
     }
 
-    def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
+    private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
       val legalTopLevelTag = "section"
-      val topLevelTags     = HtmlTagRules.stringToJsoupDocument(html).children().asScala.map(_.tagName())
+      val topLevelTags     = stringToJsoupDocument(html).children().asScala.map(_.tagName())
 
       if (topLevelTags.forall(_ == legalTopLevelTag)) {
         None
@@ -145,10 +146,11 @@ trait ContentValidator {
     }
 
     private def validateVisualElement(content: VisualElement): List[ValidationMessage] = {
-      HtmlValidator
+      textValidator
         .validateVisualElement(
           "visualElement",
           content.resource,
+          allLegalTags,
           requiredToOptional = Map("image" -> Seq("data-caption"))
         )
         .toList ++ validateLanguage("language", content.language)
@@ -170,12 +172,12 @@ trait ContentValidator {
     }
 
     private def validateIntroduction(content: Introduction): List[ValidationMessage] = {
-      NoHtmlValidator.validate("introduction", content.introduction).toList ++
+      textValidator.validate("introduction", content.introduction, allowedTags).toList ++
         validateLanguage("language", content.language)
     }
 
     private def validateMetaDescription(content: Description): List[ValidationMessage] = {
-      NoHtmlValidator.validate("metaDescription", content.content).toList ++
+      textValidator.validate("metaDescription", content.content, Set.empty).toList ++
         validateLanguage("language", content.language)
     }
 
@@ -192,7 +194,7 @@ trait ContentValidator {
     }
 
     private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate(s"title.$language", title).toList ++
+      textValidator.validate(s"title.$language", title, Set.empty).toList ++
         validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
@@ -204,7 +206,7 @@ trait ContentValidator {
         validateAuthor
       ) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
-        copyright.origin.map(origin => NoHtmlValidator.validate("copyright.origin", origin)).toSeq.flatten
+        copyright.origin.map(origin => textValidator.validate("copyright.origin", origin, Set.empty)).toSeq.flatten
 
       licenseMessage ++ contributorsMessages ++ originMessage
     }
@@ -217,13 +219,13 @@ trait ContentValidator {
     }
 
     private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("author.type", author.`type`).toList ++
-        NoHtmlValidator.validate("author.name", author.name).toList
+      textValidator.validate("author.type", author.`type`, Set.empty).toList ++
+        textValidator.validate("author.name", author.name, Set.empty).toList
     }
 
     private def validateTags(tags: Seq[Tag]) = {
       tags.flatMap(tagList => {
-        tagList.tags.flatMap(NoHtmlValidator.validate("tags", _)).toList :::
+        tagList.tags.flatMap(textValidator.validate("tags", _, Set.empty)).toList :::
           validateLanguage("language", tagList.language).toList
       })
     }
@@ -246,7 +248,7 @@ trait ContentValidator {
       (validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)).toSeq
 
     private def validateMetaImageAltText(altText: String): Seq[ValidationMessage] =
-      NoHtmlValidator.validate("metaImage.alt", altText)
+      textValidator.validate("metaImage.alt", altText, Set.empty)
 
     private def validateMetaImageId(id: String): Option[ValidationMessage] = {
       def isAllDigits(x: String) = x forall Character.isDigit

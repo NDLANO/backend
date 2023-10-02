@@ -14,7 +14,7 @@ import org.jsoup.safety.Safelist
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
-class TextValidator(allowHtml: Boolean) {
+class TextValidator {
   private def IllegalContentInBasicText =
     s"The content contains illegal tags and/or attributes. Allowed HTML tags are: ${HtmlTagRules.allLegalTags.mkString(", ")}"
   private val IllegalContentInPlainText = "The content contains illegal html-characters. No HTML is allowed"
@@ -37,15 +37,20 @@ class TextValidator(allowHtml: Boolean) {
   def validate(
       fieldPath: String,
       text: String,
+      allowedTags: Set[_ <: String],
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
-    if (allowHtml) validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
-    else validateNoHtmlTags(fieldPath, text).toList
+    if (allowedTags.isEmpty) {
+      validateNoHtmlTags(fieldPath, text).toList
+    } else {
+      validateAllowedHtmlTags(fieldPath, text, requiredToOptional, new Safelist().addTags(allowedTags.toSeq: _*))
+    }
   }
 
   def validateVisualElement(
       fieldPath: String,
       text: String,
+      allowedTags: Set[_ <: String] = HtmlTagRules.allLegalTags,
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
 
@@ -59,19 +64,19 @@ class TextValidator(allowHtml: Boolean) {
         if (onlyElement.tagName() != EmbedTagName) {
           errorWith("The root html element for visual elements needs to be `embed`.")
         } else {
-          validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
+          validateAllowedHtmlTags(fieldPath, text, requiredToOptional, new Safelist().addTags(allowedTags.toSeq: _*))
         }
       case Nil => errorWith("The root html element for visual elements needs to be `embed`.")
       case _   => errorWith("Visual element must be a string containing only a single embed element.")
     }
   }
 
-  private def validateOnlyBasicHtmlTags(
+  private def validateAllowedHtmlTags(
       fieldPath: String,
       text: String,
-      requiredToOptional: Map[String, Seq[String]]
+      requiredToOptional: Map[String, Seq[String]],
+      whiteList: Safelist
   ): Seq[ValidationMessage] = {
-    val whiteList = new Safelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
 
     HtmlTagRules.allLegalTags
       .filter(tag => HtmlTagRules.legalAttributesForTag(tag).nonEmpty)

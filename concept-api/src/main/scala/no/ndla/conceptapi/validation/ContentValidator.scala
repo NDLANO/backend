@@ -16,6 +16,7 @@ import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.validation.GlossDataValidator.validateGlossData
 import no.ndla.language.model.{Iso639, WithLanguage}
 import no.ndla.mapping.License.getLicense
+import no.ndla.validation.HtmlTagRules.allLegalTags
 import no.ndla.validation._
 
 import scala.util.{Failure, Success, Try}
@@ -25,8 +26,7 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator {
-    private val NoHtmlValidator = new TextValidator(allowHtml = false)
-    private val HtmlValidator   = new TextValidator(allowHtml = true)
+    private val textValidator = new TextValidator
 
     def validateConcept(concept: Concept): Try[Concept] = {
       val validationErrors =
@@ -60,10 +60,11 @@ trait ContentValidator {
     }
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
-      HtmlValidator
+      textValidator
         .validateVisualElement(
           "visualElement",
           content.visualElement,
+          allLegalTags,
           requiredToOptional = Map("image" -> Seq("data-caption"))
         )
         .toList ++
@@ -71,7 +72,7 @@ trait ContentValidator {
     }
 
     private def validateConceptContent(content: ConceptContent): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("content", content.content).toList ++
+      textValidator.validate("content", content.content, Set.empty).toList ++
         validateLanguage("language", content.language)
     }
 
@@ -81,7 +82,7 @@ trait ContentValidator {
     }
 
     private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate(s"title.$language", title).toList ++
+      textValidator.validate(s"title.$language", title, Set.empty).toList ++
         validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
@@ -95,7 +96,7 @@ trait ContentValidator {
         .flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
         copyright.origin
-          .map(origin => NoHtmlValidator.validate("copyright.origin", origin))
+          .map(origin => textValidator.validate("copyright.origin", origin, Set.empty))
           .toSeq
           .flatten
 
@@ -120,8 +121,8 @@ trait ContentValidator {
     }
 
     private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("author.type", author.`type`).toList ++
-        NoHtmlValidator.validate("author.name", author.name).toList
+      textValidator.validate("author.type", author.`type`, Set.empty).toList ++
+        textValidator.validate("author.name", author.name, Set.empty).toList
     }
 
     private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {

@@ -97,7 +97,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1, articleContent2))
+    val article =
+      TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1, articleContent2), visualElement = Seq.empty)
     val article1ExpectedResult = articleContent1.copy(content =
       s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123" /><$EmbedTagName $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234" />"""
     )

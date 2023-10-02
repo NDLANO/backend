@@ -133,7 +133,12 @@ trait TestData {
       publicDomainCopyright,
       Seq(Tag(Seq("a", "b", "c"), "en")),
       Seq(),
-      Seq(VisualElement("image", "en")),
+      Seq(
+        VisualElement(
+          "<ndlaembed data-resource=\"image\" data-resource_id=\"1\" data-size=\"large\" data-align=\"center\" data-alt=\"alt\" />",
+          "en"
+        )
+      ),
       Seq(Introduction("This is an introduction", "en")),
       Seq(Description("meta", "en")),
       Seq.empty,

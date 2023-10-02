@@ -40,6 +40,7 @@ object TagRules {
   case class Validation(
       required: Boolean = false,
       nullable: Boolean = true,
+      allowedHtml: Set[String] = Set.empty,
       mustCoexistWith: List[TagAttribute] = List.empty
   )
   case class Field(name: TagAttribute, validation: Validation = Validation()) {
