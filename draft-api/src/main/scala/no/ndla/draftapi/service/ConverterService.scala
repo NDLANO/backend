@@ -320,7 +320,7 @@ trait ConverterService {
         .asScala
         .foreach(el => {
           ResourceType
-            .valueOf(el.attr(TagAttribute.DataResource.toString))
+            .withNameOption(el.attr(TagAttribute.DataResource.toString))
             .map(EmbedTagRules.attributesForResourceType)
             .map(knownAttributes => HtmlTagRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
         })

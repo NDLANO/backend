@@ -17,9 +17,12 @@ object TagRules {
   ) {
     lazy val all: Set[TagAttribute] = fields.map(f => f.name)
 
+    lazy val allFields: Set[Field]        = fields
     lazy val optional: Set[Field]         = fields.filter(f => !f.validation.required)
     lazy val required: Set[Field]         = fields.filter(f => f.validation.required)
     lazy val requiredNonEmpty: Set[Field] = required.filter(f => !f.validation.nullable)
+
+    def field(tag: TagAttribute): Option[Field] = fields.find(f => f.name == tag)
 
     def mustContainOptionalAttribute: Boolean = this.mustContainAtLeastOneOptionalAttribute.getOrElse(false)
 
@@ -34,11 +37,14 @@ object TagRules {
     }
   }
 
-  case class TagValidation(required: Boolean = false, nullable: Boolean = true, mustCoexistWith: List[TagAttribute] = List.empty)
-  object TagValidation {
-    def default: TagValidation = TagValidation(mustCoexistWith = List.empty)
+  case class Validation(
+      required: Boolean = false,
+      nullable: Boolean = true,
+      mustCoexistWith: List[TagAttribute] = List.empty
+  )
+  case class Field(name: TagAttribute, validation: Validation = Validation()) {
+    override def toString: String = name.entryName
   }
-  case class Field(name: TagAttribute, validation: TagValidation = TagValidation.default)
 
   case class ParentTag(name: String, requiredAttr: List[(String, String)], conditions: Option[Condition])
   case class ChildrenRule(required: Boolean, allowedChildren: List[String])

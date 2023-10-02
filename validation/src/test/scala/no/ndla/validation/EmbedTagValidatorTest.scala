@@ -55,7 +55,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttribute.DataResource.toString -> ResourceType.ExternalContent.toString,
         TagAttribute.DataUrl.toString      -> "google.com",
-        "illegalattr"                       -> "test"
+        "illegalattr"                      -> "test"
       )
     )
 
