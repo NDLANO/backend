@@ -14,11 +14,10 @@ import org.jsoup.safety.Safelist
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
-class TextValidator {
-  private def IllegalContentInBasicText = "The content contains illegal tags and/or attributes. Allowed HTML tags are:"
+object TextValidator {
+  private val IllegalContentInBasicText = "The content contains illegal tags and/or attributes. Allowed HTML tags are:"
   private val IllegalContentInPlainText = "The content contains illegal html-characters. No HTML is allowed"
   private val FieldEmpty                = "Required field is empty"
-  private val TagValidator              = new TagValidator
 
   /** Validates text Will validate legal html tags if html is allowed.
     *

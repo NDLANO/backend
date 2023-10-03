@@ -9,7 +9,6 @@ package no.ndla.validation
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.mapping.UnitSuite
 import no.ndla.validation.TagRules.Condition
 
 class EmbedTagRulesTest extends UnitSuite {
@@ -34,18 +33,17 @@ class EmbedTagRulesTest extends UnitSuite {
   }
 
   test("Every mustBeDirectChildOf -> condition block must be valid") {
-    val embedTagValidator = new TagValidator()
 
     EmbedTagRules.attributeRules.flatMap { case (tag, rule) =>
       rule.mustBeDirectChildOf.flatMap(parentRule => {
         parentRule.conditions.map(c => {
-          val res = embedTagValidator.checkParentConditions(tag.toString, c, 1)
+          val res = TagValidator.checkParentConditions(tag.toString, c, 1)
           res.isRight should be(true)
         })
       })
     }
 
-    val result1 = embedTagValidator.checkParentConditions("test", Condition("apekatt=2"), 3)
+    val result1 = TagValidator.checkParentConditions("test", Condition("apekatt=2"), 3)
     result1 should be(
       Left(
         Seq(
@@ -69,9 +67,8 @@ class EmbedTagRulesTest extends UnitSuite {
         | data-alt=""
         | data-caption=""
         |/>""".stripMargin
-    val embedTagValidator = new TagValidator()
 
-    val result = embedTagValidator.validate("test", embedString)
+    val result = TagValidator.validate("test", embedString)
     result should be(
       Seq(
         ValidationMessage(
@@ -90,9 +87,8 @@ class EmbedTagRulesTest extends UnitSuite {
          | data-type="external"
          | data-title="Youtube-video"
          |/>""".stripMargin
-    val embedTagValidator = new TagValidator()
 
-    val result = embedTagValidator.validate("test", embedString)
+    val result = TagValidator.validate("test", embedString)
     result should be(
       Seq.empty
     )
@@ -107,9 +103,8 @@ class EmbedTagRulesTest extends UnitSuite {
          | data-title="Youtube-video"
          | data-imageid="123"
          |/>""".stripMargin
-    val embedTagValidator = new TagValidator()
 
-    val result = embedTagValidator.validate("test", embedString)
+    val result = TagValidator.validate("test", embedString)
     result should be(
       Seq(
         ValidationMessage(
@@ -130,9 +125,8 @@ class EmbedTagRulesTest extends UnitSuite {
          | data-alt=""
          | data-caption="Bilde på <span lang='en'>engelsk</span>"
          |/>""".stripMargin
-    val embedTagValidator = new TagValidator()
 
-    val result = embedTagValidator.validate("test", embedString)
+    val result = TagValidator.validate("test", embedString)
     result should be(
       Seq(
         ValidationMessage(
@@ -151,9 +145,8 @@ class EmbedTagRulesTest extends UnitSuite {
          | data-title="Hva skjer hos <span lang='en'>NDLA</span>"
          | data-url="https://ndla.no"
          |/>""".stripMargin
-    val embedTagValidator = new TagValidator()
 
-    val result = embedTagValidator.validate("test", embedString)
+    val result = TagValidator.validate("test", embedString)
     result should be(
       Seq.empty
     )

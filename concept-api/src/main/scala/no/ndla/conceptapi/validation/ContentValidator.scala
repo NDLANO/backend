@@ -26,7 +26,6 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator {
-    private val textValidator = new TextValidator
 
     def validateConcept(concept: Concept): Try[Concept] = {
       val validationErrors =
@@ -60,7 +59,7 @@ trait ContentValidator {
     }
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
-      textValidator
+      TextValidator
         .validateVisualElement(
           "visualElement",
           content.visualElement,
@@ -72,7 +71,7 @@ trait ContentValidator {
     }
 
     private def validateConceptContent(content: ConceptContent): Seq[ValidationMessage] = {
-      textValidator.validate("content", content.content, Set.empty).toList ++
+      TextValidator.validate("content", content.content, Set.empty).toList ++
         validateLanguage("language", content.language)
     }
 
@@ -82,7 +81,7 @@ trait ContentValidator {
     }
 
     private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
-      textValidator.validate(s"title.$language", title, Set.empty).toList ++
+      TextValidator.validate(s"title.$language", title, Set.empty).toList ++
         validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
@@ -96,7 +95,7 @@ trait ContentValidator {
         .flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
         copyright.origin
-          .map(origin => textValidator.validate("copyright.origin", origin, Set.empty))
+          .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
           .toSeq
           .flatten
 
@@ -111,7 +110,10 @@ trait ContentValidator {
       }
     }
 
-    private def validateAuthorLicenseCorrelation(license: Option[String], authors: Seq[Author]) = {
+    private def validateAuthorLicenseCorrelation(
+        license: Option[String],
+        authors: Seq[Author]
+    ): Seq[ValidationMessage] = {
       val errorMessage = (lic: String) =>
         ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
       license match {
@@ -121,8 +123,8 @@ trait ContentValidator {
     }
 
     private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      textValidator.validate("author.type", author.`type`, Set.empty).toList ++
-        textValidator.validate("author.name", author.name, Set.empty).toList
+      TextValidator.validate("author.type", author.`type`, Set.empty).toList ++
+        TextValidator.validate("author.name", author.name, Set.empty).toList
     }
 
     private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
@@ -165,7 +167,7 @@ trait ContentValidator {
       else
         None
 
-    private def languageCodeSupported639(languageCode: String) = Iso639.get(languageCode).isSuccess
+    private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 
   }
 }

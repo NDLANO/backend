@@ -28,8 +28,7 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator() {
-    private val textValidator = new TextValidator
-    private val allowedTags   = if (props.AllowHtmlInTitle) Set("span") else Set.empty
+    private val allowedTags = if (props.AllowHtmlInTitle) Set("span") else Set.empty
 
     def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val metaValidation =
@@ -83,7 +82,7 @@ trait ContentValidator {
     private def validateArticleContent(contents: Seq[ArticleContent]): Seq[ValidationMessage] = {
       contents.flatMap(content => {
         val field = s"content.${content.language}"
-        textValidator.validate(field, content.content, allLegalTags).toList ++
+        TextValidator.validate(field, content.content, allLegalTags).toList ++
           rootElementContainsOnlySectionBlocks(field, content.content) ++
           validateLanguage("content.language", content.language)
       }) ++ validateNonEmpty("content", contents)
@@ -108,7 +107,7 @@ trait ContentValidator {
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
       val field = s"visualElement.${content.language}"
-      textValidator
+      TextValidator
         .validateVisualElement(
           field,
           content.resource,
@@ -121,7 +120,7 @@ trait ContentValidator {
 
     private def validateIntroduction(content: Introduction): Seq[ValidationMessage] = {
       val field = s"introduction.${content.language}"
-      textValidator.validate(field, content.introduction, allowedTags).toList ++
+      TextValidator.validate(field, content.introduction, allowedTags).toList ++
         validateLanguage("introduction.language", content.language)
     }
 
@@ -132,7 +131,7 @@ trait ContentValidator {
       val nonEmptyValidation = if (allowEmpty) None else validateNonEmpty("metaDescription", contents)
       val validations = contents.flatMap(content => {
         val field = s"metaDescription.${content.language}"
-        textValidator.validate(field, content.content, Set.empty).toList ++
+        TextValidator.validate(field, content.content, Set.empty).toList ++
           validateLanguage("metaDescription.language", content.language)
       })
       validations ++ nonEmptyValidation
@@ -141,7 +140,7 @@ trait ContentValidator {
     private def validateTitle(titles: Seq[LanguageField[String]]): Seq[ValidationMessage] = {
       titles.flatMap(title => {
         val field = s"title.$language"
-        textValidator.validate(field, title.value, allowedTags).toList ++
+        TextValidator.validate(field, title.value, allowedTags).toList ++
           validateLanguage("title.language", title.language) ++
           validateLength("title", title.value, 256)
       }) ++ validateNonEmpty("title", titles)
@@ -157,7 +156,7 @@ trait ContentValidator {
           copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", props.rightsholderTypes))
       val originMessage =
         copyright.origin
-          .map(origin => textValidator.validate("copyright.origin", origin, Set.empty))
+          .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
           .getOrElse(Seq.empty)
 
       licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
@@ -177,8 +176,8 @@ trait ContentValidator {
     }
 
     private def validateAuthor(author: Author, fieldPath: String, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
-      textValidator.validate(s"$fieldPath.type", author.`type`, Set.empty).toList ++
-        textValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
+      TextValidator.validate(s"$fieldPath.type", author.`type`, Set.empty).toList ++
+        TextValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
         validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList
     }
 
@@ -212,7 +211,7 @@ trait ContentValidator {
         if (tags.isEmpty) Seq(ValidationMessage("tags", "The article must have at least one set of tags")) else Seq()
 
       tags.flatMap(tagList => {
-        tagList.tags.flatMap(textValidator.validate(s"tags.${tagList.language}", _, Set.empty)).toList :::
+        tagList.tags.flatMap(TextValidator.validate(s"tags.${tagList.language}", _, Set.empty)).toList :::
           validateLanguage("tags.language", tagList.language).toList
       }) ++ languageTagAmountErrors ++ noTagsError
     }
@@ -235,7 +234,7 @@ trait ContentValidator {
       (validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)).toSeq
 
     private def validateMetaImageAltText(altText: String): Seq[ValidationMessage] =
-      textValidator.validate("metaImage.alt", altText, Set.empty)
+      TextValidator.validate("metaImage.alt", altText, Set.empty)
 
     private def validateMetaImageId(id: String): Option[ValidationMessage] = {
       def isAllDigits(x: String) = x forall Character.isDigit

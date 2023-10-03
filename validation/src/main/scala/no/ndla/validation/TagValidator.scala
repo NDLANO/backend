@@ -17,7 +17,7 @@ import org.jsoup.nodes.{Element, Node}
 import scala.jdk.CollectionConverters._
 import scala.util.{Success, Try}
 
-class TagValidator {
+object TagValidator {
 
   def validate(
       fieldName: String,
@@ -34,7 +34,6 @@ class TagValidator {
         else validateHtmlTag(fieldName, tag)
       })
       .toList
-
   }
 
   private def validateHtmlTag(fieldName: String, html: Element): Seq[ValidationMessage] = {
@@ -328,9 +327,7 @@ class TagValidator {
       .filter { case (attribute, value) =>
         attributeRulesForTag
           .field(attribute)
-          .exists(field =>
-            new TextValidator().validate(attribute.toString, value, field.validation.allowedHtml).nonEmpty
-          )
+          .exists(field => TextValidator.validate(attribute.toString, value, field.validation.allowedHtml).nonEmpty)
       }
       .toMap
       .keySet
@@ -440,7 +437,7 @@ class TagValidator {
           val groupErrors = s"${optionGroup.mkString(",")} (Missing: ${optionGroup.diff(usedOptionals).mkString(",")})"
           ValidationMessage(
             fieldName,
-            s"$partialErrorMessage must contain all or none of the attributes in the optional attribute group: (${groupErrors})"
+            s"$partialErrorMessage must contain all or none of the attributes in the optional attribute group: ($groupErrors)"
           )
         })
         .distinct

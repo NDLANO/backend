@@ -63,8 +63,8 @@ trait TestEnvironment
   val props: ArticleApiProperties = new ArticleApiProperties {
     override def AllowHtmlInTitle: Boolean = true
   }
-  val TestData: TestData          = new TestData
-  val migrator                    = mock[DBMigrator]
+  val TestData: TestData = new TestData
+  val migrator           = mock[DBMigrator]
 
   val articleSearchService = mock[ArticleSearchService]
   val articleIndexService  = mock[ArticleIndexService]

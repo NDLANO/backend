@@ -34,8 +34,7 @@ trait ContentValidator {
 
   class ContentValidator() {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
-    private val textValidator = new TextValidator
-    private val allowedTags   = if (props.AllowHtmlInTitle) Set("span") else Set.empty
+    private val allowedTags = if (props.AllowHtmlInTitle) Set("span") else Set.empty
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
       NDLADate.fromString(dateString) match {
@@ -123,7 +122,7 @@ trait ContentValidator {
     }
 
     private def validateArticleContent(content: ArticleContent): Seq[ValidationMessage] = {
-      textValidator.validate("content", content.content, allLegalTags).toList ++
+      TextValidator.validate("content", content.content, allLegalTags).toList ++
         rootElementContainsOnlySectionBlocks("content.content", content.content) ++
         validateLanguage("content.language", content.language)
     }
@@ -146,7 +145,7 @@ trait ContentValidator {
     }
 
     private def validateVisualElement(content: VisualElement): List[ValidationMessage] = {
-      textValidator
+      TextValidator
         .validateVisualElement(
           "visualElement",
           content.resource,
@@ -172,12 +171,12 @@ trait ContentValidator {
     }
 
     private def validateIntroduction(content: Introduction): List[ValidationMessage] = {
-      textValidator.validate("introduction", content.introduction, allowedTags).toList ++
+      TextValidator.validate("introduction", content.introduction, allowedTags).toList ++
         validateLanguage("language", content.language)
     }
 
     private def validateMetaDescription(content: Description): List[ValidationMessage] = {
-      textValidator.validate("metaDescription", content.content, Set.empty).toList ++
+      TextValidator.validate("metaDescription", content.content, Set.empty).toList ++
         validateLanguage("language", content.language)
     }
 
@@ -194,7 +193,7 @@ trait ContentValidator {
     }
 
     private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
-      textValidator.validate(s"title.$language", title, allowedTags).toList ++
+      TextValidator.validate(s"title.$language", title, allowedTags).toList ++
         validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
@@ -206,7 +205,7 @@ trait ContentValidator {
         validateAuthor
       ) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
-        copyright.origin.map(origin => textValidator.validate("copyright.origin", origin, Set.empty)).toSeq.flatten
+        copyright.origin.map(origin => TextValidator.validate("copyright.origin", origin, Set.empty)).toSeq.flatten
 
       licenseMessage ++ contributorsMessages ++ originMessage
     }
@@ -219,13 +218,13 @@ trait ContentValidator {
     }
 
     private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      textValidator.validate("author.type", author.`type`, Set.empty).toList ++
-        textValidator.validate("author.name", author.name, Set.empty).toList
+      TextValidator.validate("author.type", author.`type`, Set.empty).toList ++
+        TextValidator.validate("author.name", author.name, Set.empty).toList
     }
 
-    private def validateTags(tags: Seq[Tag]) = {
+    private def validateTags(tags: Seq[Tag]): Seq[ValidationMessage] = {
       tags.flatMap(tagList => {
-        tagList.tags.flatMap(textValidator.validate("tags", _, Set.empty)).toList :::
+        tagList.tags.flatMap(TextValidator.validate("tags", _, Set.empty)).toList :::
           validateLanguage("language", tagList.language).toList
       })
     }
@@ -248,7 +247,7 @@ trait ContentValidator {
       (validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)).toSeq
 
     private def validateMetaImageAltText(altText: String): Seq[ValidationMessage] =
-      textValidator.validate("metaImage.alt", altText, Set.empty)
+      TextValidator.validate("metaImage.alt", altText, Set.empty)
 
     private def validateMetaImageId(id: String): Option[ValidationMessage] = {
       def isAllDigits(x: String) = x forall Character.isDigit
@@ -259,7 +258,7 @@ trait ContentValidator {
       }
     }
 
-    private def validateLanguage(fieldPath: String, languageCode: String) = {
+    private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
       if (languageCode.nonEmpty && languageCodeSupported639(languageCode)) {
         None
       } else {
