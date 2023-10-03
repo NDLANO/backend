@@ -1,8 +1,6 @@
 package no.ndla.validation
 
-import enumeratum._
-import enumeratum.Json4s
-
+import enumeratum.{Json4s, _}
 import org.json4s.Formats
 import org.json4s.JsonAST.JObject
 import org.json4s.native.JsonMethods._
@@ -17,7 +15,6 @@ object TagRules {
   ) {
     lazy val all: Set[TagAttribute] = fields.map(f => f.name)
 
-    lazy val allFields: Set[Field]        = fields
     lazy val optional: Set[Field]         = fields.filter(f => !f.validation.required)
     lazy val required: Set[Field]         = fields.filter(f => f.validation.required)
     lazy val requiredNonEmpty: Set[Field] = required.filter(f => !f.validation.nullable)
