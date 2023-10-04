@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain._
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
-import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
+import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
 import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation.TextValidator
 
@@ -28,8 +28,7 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator() {
-    private val NoHtmlValidator = new TextValidator(allowHtml = false)
-    private val HtmlValidator   = new TextValidator(allowHtml = true)
+    private val allowedTags = if (props.AllowHtmlInTitle) Set("span") else Set.empty[String]
 
     def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val metaValidation =
@@ -66,7 +65,7 @@ trait ContentValidator {
       }
     }
 
-    def validateRevisionDate(revisionDate: Option[NDLADate]): Seq[ValidationMessage] = {
+    private def validateRevisionDate(revisionDate: Option[NDLADate]): Seq[ValidationMessage] = {
       revisionDate match {
         case None => Seq(ValidationMessage("revisionDate", "Article must have at least one unfinished revision"))
         case _    => Seq.empty
@@ -83,13 +82,13 @@ trait ContentValidator {
     private def validateArticleContent(contents: Seq[ArticleContent]): Seq[ValidationMessage] = {
       contents.flatMap(content => {
         val field = s"content.${content.language}"
-        HtmlValidator.validate(field, content.content).toList ++
+        TextValidator.validate(field, content.content, allLegalTags).toList ++
           rootElementContainsOnlySectionBlocks(field, content.content) ++
           validateLanguage("content.language", content.language)
       }) ++ validateNonEmpty("content", contents)
     }
 
-    def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
+    private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
       val legalTopLevelTag = "section"
       val topLevelTags     = stringToJsoupDocument(html).children().asScala.map(_.tagName())
 
@@ -108,15 +107,20 @@ trait ContentValidator {
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
       val field = s"visualElement.${content.language}"
-      HtmlValidator
-        .validate(field, content.resource, requiredToOptional = Map("image" -> Seq("data-caption")))
+      TextValidator
+        .validateVisualElement(
+          field,
+          content.resource,
+          allLegalTags,
+          requiredToOptional = Map("image" -> Seq("data-caption"))
+        )
         .toList ++
         validateLanguage("visualElement.language", content.language)
     }
 
     private def validateIntroduction(content: Introduction): Seq[ValidationMessage] = {
       val field = s"introduction.${content.language}"
-      NoHtmlValidator.validate(field, content.introduction).toList ++
+      TextValidator.validate(field, content.introduction, allowedTags).toList ++
         validateLanguage("introduction.language", content.language)
     }
 
@@ -127,7 +131,7 @@ trait ContentValidator {
       val nonEmptyValidation = if (allowEmpty) None else validateNonEmpty("metaDescription", contents)
       val validations = contents.flatMap(content => {
         val field = s"metaDescription.${content.language}"
-        NoHtmlValidator.validate(field, content.content).toList ++
+        TextValidator.validate(field, content.content, Set.empty).toList ++
           validateLanguage("metaDescription.language", content.language)
       })
       validations ++ nonEmptyValidation
@@ -136,7 +140,7 @@ trait ContentValidator {
     private def validateTitle(titles: Seq[LanguageField[String]]): Seq[ValidationMessage] = {
       titles.flatMap(title => {
         val field = s"title.$language"
-        NoHtmlValidator.validate(field, title.value).toList ++
+        TextValidator.validate(field, title.value, allowedTags).toList ++
           validateLanguage("title.language", title.language) ++
           validateLength("title", title.value, 256)
       }) ++ validateNonEmpty("title", titles)
@@ -151,7 +155,9 @@ trait ContentValidator {
           copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", props.processorTypes)) ++
           copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", props.rightsholderTypes))
       val originMessage =
-        copyright.origin.map(origin => NoHtmlValidator.validate("copyright.origin", origin)).getOrElse(Seq.empty)
+        copyright.origin
+          .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
+          .getOrElse(Seq.empty)
 
       licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
     }
@@ -170,12 +176,16 @@ trait ContentValidator {
     }
 
     private def validateAuthor(author: Author, fieldPath: String, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate(s"$fieldPath.type", author.`type`).toList ++
-        NoHtmlValidator.validate(s"$fieldPath.name", author.name).toList ++
+      TextValidator.validate(s"$fieldPath.type", author.`type`, Set.empty).toList ++
+        TextValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
         validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList
     }
 
-    def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
+    private def validateAuthorType(
+        fieldPath: String,
+        `type`: String,
+        allowedTypes: Seq[String]
+    ): Option[ValidationMessage] = {
       if (allowedTypes.contains(`type`.toLowerCase)) {
         None
       } else {
@@ -201,7 +211,7 @@ trait ContentValidator {
         if (tags.isEmpty) Seq(ValidationMessage("tags", "The article must have at least one set of tags")) else Seq()
 
       tags.flatMap(tagList => {
-        tagList.tags.flatMap(NoHtmlValidator.validate(s"tags.${tagList.language}", _)).toList :::
+        tagList.tags.flatMap(TextValidator.validate(s"tags.${tagList.language}", _, Set.empty)).toList :::
           validateLanguage("tags.language", tagList.language).toList
       }) ++ languageTagAmountErrors ++ noTagsError
     }
@@ -224,11 +234,11 @@ trait ContentValidator {
       (validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)).toSeq
 
     private def validateMetaImageAltText(altText: String): Seq[ValidationMessage] =
-      NoHtmlValidator.validate("metaImage.alt", altText)
+      TextValidator.validate("metaImage.alt", altText, Set.empty)
 
     private def validateMetaImageId(id: String): Option[ValidationMessage] = {
       def isAllDigits(x: String) = x forall Character.isDigit
-      if (isAllDigits(id) && id.size > 0) {
+      if (isAllDigits(id) && id.nonEmpty) {
         None
       } else {
         Some(ValidationMessage("metaImageId", "Meta image ID must be a number"))

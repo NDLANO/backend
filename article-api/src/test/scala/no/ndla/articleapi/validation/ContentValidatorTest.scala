@@ -26,8 +26,9 @@ import no.ndla.mapping.License.{CC_BY_SA, NA}
 import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val contentValidator = new ContentValidator()
+  override val contentValidator = new ContentValidator
   val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val validIntroduction         = """heisann <span lang="en">heia</span>"""
   val invalidDocument           = """<section><invalid></invalid></section>"""
 
   test("validateArticle does not throw an exception on a valid document") {
@@ -52,12 +53,20 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
 
-  test("validateArticle should throw an error if introduction contains HTML tags") {
+  test("validateArticle should throw an error if introduction contains illegal HTML tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
       introduction = Seq(Introduction(validDocument, "nb"))
     )
     contentValidator.validateArticle(article, false).isFailure should be(true)
+  }
+
+  test("validateArticle should not throw an error if introduction contains legal HTML tags") {
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      introduction = Seq(Introduction(validIntroduction, "nb"))
+    )
+    contentValidator.validateArticle(article, false).isFailure should be(false)
   }
 
   test("validateArticle should not throw an error if introduction contains plain text") {

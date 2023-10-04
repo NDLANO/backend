@@ -60,9 +60,11 @@ trait TestEnvironment
     with Props
     with TestData
     with DBMigrator {
-  val props: ArticleApiProperties = new ArticleApiProperties
-  val TestData: TestData          = new TestData
-  val migrator                    = mock[DBMigrator]
+  val props: ArticleApiProperties = new ArticleApiProperties {
+    override def AllowHtmlInTitle: Boolean = true
+  }
+  val TestData: TestData = new TestData
+  val migrator           = mock[DBMigrator]
 
   val articleSearchService = mock[ArticleSearchService]
   val articleIndexService  = mock[ArticleIndexService]

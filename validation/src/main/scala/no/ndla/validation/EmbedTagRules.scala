@@ -7,25 +7,27 @@
 
 package no.ndla.validation
 
+import enumeratum._
+
 import scala.io.Source
 import scala.language.postfixOps
 
 object EmbedTagRules {
-  private[validation] lazy val attributeRules: Map[ResourceType.Value, TagRules.TagAttributeRules] = embedRulesToJson
+  private[validation] lazy val attributeRules: Map[ResourceType, TagRules.TagAttributeRules] = embedRulesToJson
 
-  lazy val allEmbedTagAttributes: Set[TagAttributes.Value] = attributeRules.flatMap { case (_, attrRules) =>
+  lazy val allEmbedTagAttributes: Set[TagAttribute] = attributeRules.flatMap { case (_, attrRules) =>
     attrRules.all
   } toSet
 
-  def attributesForResourceType(resourceType: ResourceType.Value): TagRules.TagAttributeRules =
+  def attributesForResourceType(resourceType: ResourceType): TagRules.TagAttributeRules =
     attributeRules(resourceType)
 
-  private def embedRulesToJson: Map[ResourceType.Value, TagRules.TagAttributeRules] = {
+  private def embedRulesToJson: Map[ResourceType, TagRules.TagAttributeRules] = {
     val attrs = TagRules.convertJsonStrToAttributeRules(Source.fromResource("embed-tag-rules.json").mkString)
 
-    def strToResourceType(str: String): ResourceType.Value =
+    def strToResourceType(str: String): ResourceType =
       ResourceType
-        .valueOf(str)
+        .withNameOption(str)
         .getOrElse(
           throw new ConfigurationException(s"Missing declaration of resource type '$str' in ResourceType enum")
         )
@@ -36,31 +38,32 @@ object EmbedTagRules {
   }
 }
 
-object ResourceType extends Enumeration {
-  val Error: ResourceType.Value           = Value("error")
-  val Image: ResourceType.Value           = Value("image")
-  val Audio: ResourceType.Value           = Value("audio")
-  val H5P: ResourceType.Value             = Value("h5p")
-  val Brightcove: ResourceType.Value      = Value("brightcove")
-  val ContentLink: ResourceType.Value     = Value("content-link")
-  val ExternalContent: ResourceType.Value = Value("external")
-  val IframeContent: ResourceType.Value   = Value("iframe")
-  val NRKContent: ResourceType.Value      = Value("nrk")
-  val Concept: ResourceType.Value         = Value("concept")
-  val ConceptList: ResourceType.Value     = Value("concept-list")
-  val FootNote: ResourceType.Value        = Value("footnote")
-  val CodeBlock: ResourceType.Value       = Value("code-block")
-  val RelatedContent: ResourceType.Value  = Value("related-content")
-  val File: ResourceType.Value            = Value("file")
-  val ContactBlock: ResourceType.Value    = Value("contact-block")
-  val BlogPost: ResourceType.Value        = Value("blog-post")
-  val KeyFigure: ResourceType.Value       = Value("key-figure")
-  val CampaignBlock: ResourceType.Value   = Value("campaign-block")
-  val LinkBlock: ResourceType.Value       = Value("link-block")
+sealed abstract class ResourceType(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
 
-  def all: Set[String] = ResourceType.values.map(_.toString)
+object ResourceType extends Enum[ResourceType] {
+  val values: IndexedSeq[ResourceType] = findValues
 
-  def valueOf(s: String): Option[ResourceType.Value] = {
-    ResourceType.values.find(_.toString == s)
-  }
+  case object Error           extends ResourceType("error")
+  case object Image           extends ResourceType("image")
+  case object Audio           extends ResourceType("audio")
+  case object H5P             extends ResourceType("h5p")
+  case object Brightcove      extends ResourceType("brightcove")
+  case object ContentLink     extends ResourceType("content-link")
+  case object ExternalContent extends ResourceType("external")
+  case object IframeContent   extends ResourceType("iframe")
+  case object NRKContent      extends ResourceType("nrk")
+  case object Concept         extends ResourceType("concept")
+  case object ConceptList     extends ResourceType("concept-list")
+  case object FootNote        extends ResourceType("footnote")
+  case object CodeBlock       extends ResourceType("code-block")
+  case object RelatedContent  extends ResourceType("related-content")
+  case object File            extends ResourceType("file")
+  case object ContactBlock    extends ResourceType("contact-block")
+  case object BlogPost        extends ResourceType("blog-post")
+  case object KeyFigure       extends ResourceType("key-figure")
+  case object CampaignBlock   extends ResourceType("campaign-block")
+  case object LinkBlock       extends ResourceType("link-block")
+
 }

@@ -1,173 +1,176 @@
 {
   "attributes": {
     "nav": {
-      "optional": [
-        [
-          "data-type"
-        ]
+      "fields": [
+        {
+          "name": "data-type"
+        }
       ]
     },
     "span": {
       "mustContainAtLeastOneOptionalAttribute": true,
-      "optional": [
-        [
-          "lang"
-        ],
-        [
-          "data-size"
-        ]
+      "fields": [
+        {
+          "name": "lang"
+        },
+        {
+          "name": "dir"
+        },
+        {
+          "name": "data-size"
+        }
       ]
     },
     "colgroup": {
-      "optional": [
-        [
-          "span"
-        ],
-        [
-          "style"
-        ]
+      "fields": [
+        {
+          "name": "span"
+        },
+        {
+          "name": "style"
+        }
       ]
     },
     "col": {
-      "optional": [
-        [
-          "span"
-        ],
-        [
-          "style"
-        ]
+      "fields": [
+        {
+          "name": "span"
+        },
+        {
+          "name": "style"
+        }
       ]
     },
     "div": {
-      "optional": [
-        [
-          "class"
-        ],
-        [
-          "data-type"
-        ],
-        [
-          "data-columns"
-        ],
-        [
-          "data-border"
-        ],
-        [
-          "data-background"
-        ],
-        [
-          "data-size"
-        ],
-        [
-          "data-parallax-cell"
-        ]
+      "fields": [
+        {
+          "name": "class"
+        },
+        {
+          "name": "data-type"
+        },
+        {
+          "name": "data-columns"
+        },
+        {
+          "name": "data-border"
+        },
+        {
+          "name": "data-background"
+        },
+        {
+          "name": "data-size"
+        },
+        {
+          "name": "data-parallax-cell"
+        }
       ]
     },
     "td": {
-      "optional": [
-        [
-          "valign"
-        ],
-        [
-          "align"
-        ],
-        [
-          "colspan"
-        ],
-        [
-          "rowspan"
-        ],
-        [
-          "id"
-        ],
-        [
-          "class"
-        ],
-        [
-          "headers"
-        ]
+      "fields": [
+        {
+          "name": "valign"
+        },
+        {
+          "name": "align"
+        },
+        {
+          "name": "colspan"
+        },
+        {
+          "name": "rowspan"
+        },
+        {
+          "name": "id"
+        },
+        {
+          "name": "headers"
+        },
+        {
+          "name": "class"
+        }
       ]
     },
     "th": {
-      "optional": [
-        [
-          "valign"
-        ],
-        [
-          "align"
-        ],
-        [
-          "colspan"
-        ],
-        [
-          "rowspan"
-        ],
-        [
-          "id"
-        ],
-        [
-          "scope"
-        ],
-        [
-          "class"
-        ]
+      "fields": [
+        {
+          "name": "valign"
+        },
+        {
+          "name": "align"
+        },
+        {
+          "name": "colspan"
+        },
+        {
+          "name": "rowspan"
+        },
+        {
+          "name": "id"
+        },
+        {
+          "name": "scope"
+        },
+        {
+          "name": "class"
+        }
       ]
     },
     "a": {
-      "optional": [
-        [
-          "href"
-        ],
-        [
-          "title"
-        ],
-        [
-          "name"
-        ],
-        [
-          "target"
-        ],
-        [
-          "rel"
-        ]
+      "fields": [
+        {
+          "name": "href"
+        },
+        {
+          "name": "title"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "target"
+        },
+        {
+          "name": "rel"
+        }
       ]
     },
     "ol": {
-      "optional": [
-        [
-          "data-type"
-        ],
-        [
-          "start"
-        ]
+      "fields": [
+        {
+          "name": "data-type"
+        },
+        {
+          "name": "start"
+        }
       ]
     },
     "aside": {
-      "optional": [
-        [
-          "data-type"
-        ]
+      "fields": [
+        {
+          "name": "data-type"
+        }
       ]
     },
     "p": {
-      "optional": [
-        [
-          "data-align"
-        ]
+      "fields": [
+        {
+          "name": "data-align"
+        }
       ]
     },
     "ul": {
-      "optional": [
-        [
-          "data-type"
-        ]
+      "fields": [
+        {
+          "name": "data-type"
+        }
       ]
     },
     "details": {
-      "optional": [
-        [
-          "class"
-        ]
+      "fields": [
+        {
+          "name": "class"
+        }
       ]
     }
   },

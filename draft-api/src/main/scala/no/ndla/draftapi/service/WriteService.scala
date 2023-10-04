@@ -134,7 +134,7 @@ trait WriteService {
     def contentWithClonedFiles(contents: List[common.ArticleContent]): Try[List[common.ArticleContent]] = {
       contents.toList.traverse(content => {
         val doc    = HtmlTagRules.stringToJsoupDocument(content.content)
-        val embeds = doc.select(s"$EmbedTagName[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
+        val embeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala
 
         embeds.toList.traverse(cloneEmbedAndUpdateElement) match {
           case Failure(ex) => Failure(ex)
@@ -145,14 +145,14 @@ trait WriteService {
 
     /** MUTATES fileEmbed by cloning file and updating data-path */
     def cloneEmbedAndUpdateElement(fileEmbed: Element): Try[Element] = {
-      Option(fileEmbed.attr(TagAttributes.DataPath.toString)) match {
+      Option(fileEmbed.attr(TagAttribute.DataPath.toString)) match {
         case Some(existingPath) =>
           cloneFileAndGetNewPath(existingPath).map(newPath => {
             // Jsoup is mutable and we use it here to update the embeds data-path with the cloned file
-            fileEmbed.attr(TagAttributes.DataPath.toString, newPath)
+            fileEmbed.attr(TagAttribute.DataPath.toString, newPath)
           })
         case None =>
-          Failure(api.CloneFileException(s"Could not get ${TagAttributes.DataPath} of file embed '$fileEmbed'."))
+          Failure(api.CloneFileException(s"Could not get ${TagAttribute.DataPath} of file embed '$fileEmbed'."))
       }
     }
 

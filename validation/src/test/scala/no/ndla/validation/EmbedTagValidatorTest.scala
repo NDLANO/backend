@@ -9,13 +9,11 @@ package no.ndla.validation
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.mapping.UnitSuite
 import no.ndla.validation.TagRules.Condition
 
 class EmbedTagValidatorTest extends UnitSuite {
-  val embedTagValidator = new TagValidator()
 
-  private def childCountValidationMessage(fieldName: String) =
+  private def childCountValidationMessage(fieldName: String): Seq[ValidationMessage] =
     Seq(
       ValidationMessage(
         fieldName,
@@ -25,60 +23,63 @@ class EmbedTagValidatorTest extends UnitSuite {
     )
 
   private def generateAttributes(attrs: Map[String, String]): String = {
-    attrs.toList.sortBy(_._1.toString).map { case (key, value) => s"""$key="$value"""" }.mkString(" ")
+    attrs.toList.sortBy(_._1).map { case (key, value) => s"""$key="$value"""" }.mkString(" ")
   }
 
-  private def generateTagWithAttrs(attrs: Map[TagAttributes.Value, String]): String = {
+  private def generateTagWithAttrs(attrs: Map[TagAttribute, String]): String = {
     val strAttrs = attrs map { case (k, v) => k.toString -> v }
     s"""<$EmbedTagName ${generateAttributes(strAttrs)}></$EmbedTagName>"""
   }
 
-  private def generateTagWithAttrsAndChildren(attrs: Map[TagAttributes.Value, String], children: String): String = {
+  private def generateTagWithAttrsAndChildren(attrs: Map[TagAttribute, String], children: String): String = {
     val strAttrs = attrs map { case (k, v) => k.toString -> v }
     s"""<$EmbedTagName ${generateAttributes(strAttrs)}>$children</$EmbedTagName>"""
   }
 
-  private def findErrorByMessage(validationMessages: Seq[ValidationMessage], partialMessage: String) =
+  private def findErrorByMessage(
+      validationMessages: Seq[ValidationMessage],
+      partialMessage: String
+  ): Option[ValidationMessage] =
     validationMessages.find(_.message.contains(partialMessage))
 
   test("validate should return an empty sequence if input is not an embed tag or an html tag with attributes") {
-    embedTagValidator.validate("content", "<h1>hello</h1>") should equal(Seq())
+    TagValidator.validate("content", "<h1>hello</h1>") should equal(Seq())
   }
 
   test("validate should return a validation error if input is a html tag with that should not have attributes") {
-    val res = embedTagValidator.validate("content", "<h1 test='test'>hello</h1>")
+    val res = TagValidator.validate("content", "<h1 test='test'>hello</h1>")
     findErrorByMessage(res, "An HTML tag 'h1' contains an illegal attribute(s) 'test'.").size should be(1)
   }
 
   test("validate should return validation error if embed tag uses illegal attributes") {
     val attrs = generateAttributes(
       Map(
-        TagAttributes.DataResource.toString -> ResourceType.ExternalContent.toString,
-        TagAttributes.DataUrl.toString      -> "google.com",
-        "illegalattr"                       -> "test"
+        TagAttribute.DataResource.toString -> ResourceType.ExternalContent.toString,
+        TagAttribute.DataUrl.toString      -> "google.com",
+        "illegalattr"                      -> "test"
       )
     )
 
-    val res = embedTagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
+    val res = TagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
     findErrorByMessage(res, "illegal attribute(s) 'illegalattr'").size should be(1)
   }
 
   test("validate should return validation error if an attribute contains HTML") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.ExternalContent.toString,
-        TagAttributes.DataUrl      -> "<i>google.com</i>"
+        TagAttribute.DataResource -> ResourceType.ExternalContent.toString,
+        TagAttribute.DataUrl      -> "<i>google.com</i>"
       )
     )
-    val res = embedTagValidator.validate("content", tag)
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(res, "contains attributes with HTML: data-url").size should be(1)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=image"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.Image.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.Image.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
       s"data-resource=${ResourceType.Image} must contain the following attributes:"
@@ -88,17 +89,17 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return not validation error if embed tag misses moved required to optional") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Image.toString,
-        TagAttributes.DataResource_Id -> "1234",
-        TagAttributes.DataSize        -> "fullbredde",
-        TagAttributes.DataAlign       -> "",
-        TagAttributes.DataAlt         -> "alttext"
+        TagAttribute.DataResource    -> ResourceType.Image.toString,
+        TagAttribute.DataResource_Id -> "1234",
+        TagAttribute.DataSize        -> "fullbredde",
+        TagAttribute.DataAlign       -> "",
+        TagAttribute.DataAlt         -> "alttext"
       )
     )
-    val res = embedTagValidator.validate(
+    val res = TagValidator.validate(
       "content",
       tag,
-      requiredToOptional = Map("image" -> Seq(TagAttributes.DataCaption.toString))
+      requiredToOptional = Map("image" -> Seq(TagAttribute.DataCaption.toString))
     )
     res should be(Seq.empty)
   }
@@ -106,22 +107,22 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if image embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Image.toString,
-        TagAttributes.DataResource_Id -> "1234",
-        TagAttributes.DataSize        -> "fullbredde",
-        TagAttributes.DataAlt         -> "alternative text",
-        TagAttributes.DataCaption     -> "here is a rabbit",
-        TagAttributes.DataAlign       -> "left"
+        TagAttribute.DataResource    -> ResourceType.Image.toString,
+        TagAttribute.DataResource_Id -> "1234",
+        TagAttribute.DataSize        -> "fullbredde",
+        TagAttribute.DataAlt         -> "alternative text",
+        TagAttribute.DataCaption     -> "here is a rabbit",
+        TagAttribute.DataAlign       -> "left"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=audio"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.Audio.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.Audio.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
       s"data-resource=${ResourceType.Audio} must contain the following attributes:"
@@ -131,20 +132,20 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if audio embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Audio.toString,
-        TagAttributes.DataResource_Id -> "1234",
-        TagAttributes.DataCaption     -> "",
-        TagAttributes.DataType        -> "standard"
+        TagAttribute.DataResource    -> ResourceType.Audio.toString,
+        TagAttribute.DataResource_Id -> "1234",
+        TagAttribute.DataCaption     -> "",
+        TagAttribute.DataType        -> "standard"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=h5p"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.H5P.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.H5P.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(res, s"data-resource=${ResourceType.H5P} must contain the following attributes:").size should be(
       1
     )
@@ -153,19 +154,19 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if h5p embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.H5P.toString,
-        TagAttributes.DataPath     -> "/h5p/embed/1234"
+        TagAttribute.DataResource -> ResourceType.H5P.toString,
+        TagAttribute.DataPath     -> "/h5p/embed/1234"
       )
     )
-    val t = embedTagValidator.validate("content", tag)
+    val t = TagValidator.validate("content", tag)
     t.size should be(0)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=brightcove"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.Brightcove.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.Brightcove.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
       s"data-resource=${ResourceType.Brightcove} must contain the following attributes:"
@@ -175,21 +176,21 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if brightcove embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.Brightcove.toString,
-        TagAttributes.DataCaption  -> "here is a video",
-        TagAttributes.DataVideoId  -> "1234",
-        TagAttributes.DataAccount  -> "2183716",
-        TagAttributes.DataPlayer   -> "B28fas"
+        TagAttribute.DataResource -> ResourceType.Brightcove.toString,
+        TagAttribute.DataCaption  -> "here is a video",
+        TagAttribute.DataVideoId  -> "1234",
+        TagAttribute.DataAccount  -> "2183716",
+        TagAttribute.DataPlayer   -> "B28fas"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=content-link"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.ContentLink.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.ContentLink.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
       s"data-resource=${ResourceType.ContentLink} must contain the following attributes:"
@@ -199,55 +200,55 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if content-link embed-tag is used correctly") {
     val tag = generateTagWithAttrsAndChildren(
       Map(
-        TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
-        TagAttributes.DataContentId -> "54",
-        TagAttributes.DataOpenIn    -> "new-context"
+        TagAttribute.DataResource  -> ResourceType.ContentLink.toString,
+        TagAttribute.DataContentId -> "54",
+        TagAttribute.DataOpenIn    -> "new-context"
       ),
       "interesting article"
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test("validate should return validation errors if content-link embed-tag is used incorrectly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
-        TagAttributes.DataContentId -> "54",
-        TagAttributes.DataOpenIn    -> "new-context"
+        TagAttribute.DataResource  -> ResourceType.ContentLink.toString,
+        TagAttribute.DataContentId -> "54",
+        TagAttribute.DataOpenIn    -> "new-context"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(1)
+    TagValidator.validate("content", tag).size should be(1)
   }
 
   test("validate should return allow valid children for content-link") {
     val tag = generateTagWithAttrsAndChildren(
       Map(
-        TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
-        TagAttributes.DataContentId -> "54",
-        TagAttributes.DataOpenIn    -> "new-context"
+        TagAttribute.DataResource  -> ResourceType.ContentLink.toString,
+        TagAttribute.DataContentId -> "54",
+        TagAttribute.DataOpenIn    -> "new-context"
       ),
       "<strong>Apekatt</strong> er kult"
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test("validate should return validation errors if content-link has invalid children") {
     val tag = generateTagWithAttrsAndChildren(
       Map(
-        TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
-        TagAttributes.DataContentId -> "54",
-        TagAttributes.DataOpenIn    -> "new-context"
+        TagAttribute.DataResource  -> ResourceType.ContentLink.toString,
+        TagAttribute.DataContentId -> "54",
+        TagAttribute.DataOpenIn    -> "new-context"
       ),
       "<div><strong>Apekatt</strong> er kult</div>"
     )
-    embedTagValidator.validate("content", tag).size should be(1)
+    TagValidator.validate("content", tag).size should be(1)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=error"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.Error.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.Error.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
       s"data-resource=${ResourceType.Error} must contain the following attributes:"
@@ -256,16 +257,16 @@ class EmbedTagValidatorTest extends UnitSuite {
 
   test("validate should return no validation errors if error embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
-      Map(TagAttributes.DataResource -> ResourceType.Error.toString, TagAttributes.DataMessage -> "interesting article")
+      Map(TagAttribute.DataResource -> ResourceType.Error.toString, TagAttribute.DataMessage -> "interesting article")
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=external"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.ExternalContent.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.ExternalContent.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
       s"data-resource=${ResourceType.ExternalContent} must contain the following attributes:"
@@ -275,19 +276,19 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if external embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.ExternalContent.toString,
-        TagAttributes.DataUrl      -> "https://www.youtube.com/watch?v=pCZeVTMEsik",
-        TagAttributes.DataType     -> "iframe"
+        TagAttribute.DataResource -> ResourceType.ExternalContent.toString,
+        TagAttribute.DataUrl      -> "https://www.youtube.com/watch?v=pCZeVTMEsik",
+        TagAttribute.DataType     -> "iframe"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=nrk"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.NRKContent.toString))
-    val res = embedTagValidator.validate("content", tag)
+    val tag = generateTagWithAttrs(Map(TagAttribute.DataResource -> ResourceType.NRKContent.toString))
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
       s"data-resource=${ResourceType.NRKContent} must contain the following attributes:"
@@ -297,12 +298,12 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if nrk embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource   -> ResourceType.NRKContent.toString,
-        TagAttributes.DataNRKVideoId -> "123",
-        TagAttributes.DataUrl        -> "http://nrk.no/video/123"
+        TagAttribute.DataResource   -> ResourceType.NRKContent.toString,
+        TagAttribute.DataNRKVideoId -> "123",
+        TagAttribute.DataUrl        -> "http://nrk.no/video/123"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test(
@@ -310,26 +311,26 @@ class EmbedTagValidatorTest extends UnitSuite {
   ) {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.ConceptList.toString,
-        TagAttributes.DataTag      -> "Liste::"
+        TagAttribute.DataResource -> ResourceType.ConceptList.toString,
+        TagAttribute.DataTag      -> "Liste::"
       )
     )
-    val res = embedTagValidator.validate("content", tag)
+    val res = TagValidator.validate("content", tag)
     findErrorByMessage(
       res,
-      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute groups"
+      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute group"
     ).size should be(1)
 
     val tag2 = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.ConceptList.toString,
-        TagAttributes.DataResource_Id -> "1"
+        TagAttribute.DataResource    -> ResourceType.ConceptList.toString,
+        TagAttribute.DataResource_Id -> "1"
       )
     )
-    val res2 = embedTagValidator.validate("content", tag2)
+    val res2 = TagValidator.validate("content", tag2)
     findErrorByMessage(
       res2,
-      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute groups"
+      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute group"
     ).size should be(1)
 
   }
@@ -337,182 +338,183 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if concept-list embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource  -> ResourceType.ConceptList.toString,
-        TagAttributes.DataTitle     -> "Liste",
-        TagAttributes.DataTag       -> "Liste:kategori:kategori2",
-        TagAttributes.DataSubjectId -> "urn:subject:123"
+        TagAttribute.DataResource  -> ResourceType.ConceptList.toString,
+        TagAttribute.DataTitle     -> "Liste",
+        TagAttribute.DataTag       -> "Liste:kategori:kategori2",
+        TagAttribute.DataSubjectId -> "urn:subject:123"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
 
     val tag2 = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.ConceptList.toString,
-        TagAttributes.DataTitle    -> "Liste",
-        TagAttributes.DataTag      -> "Liste:kategori:kategori2"
+        TagAttribute.DataResource -> ResourceType.ConceptList.toString,
+        TagAttribute.DataTitle    -> "Liste",
+        TagAttribute.DataTag      -> "Liste:kategori:kategori2"
       )
     )
-    embedTagValidator.validate("content", tag2).size should be(0)
+    TagValidator.validate("content", tag2).size should be(0)
 
     val tag3 = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.ConceptList.toString,
-        TagAttributes.DataResource_Id -> "1",
-        TagAttributes.DataRecursive   -> "false"
+        TagAttribute.DataResource    -> ResourceType.ConceptList.toString,
+        TagAttribute.DataResource_Id -> "1",
+        TagAttribute.DataRecursive   -> "false"
       )
     )
-    embedTagValidator.validate("content", tag3).size should be(0)
+    TagValidator.validate("content", tag3).size should be(0)
   }
 
   test("validate should fail if only one optional attribute is specified") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Image.toString,
-        TagAttributes.DataAlt         -> "123",
-        TagAttributes.DataCaption     -> "123",
-        TagAttributes.DataResource_Id -> "123",
-        TagAttributes.DataSize        -> "full",
-        TagAttributes.DataAlign       -> "left",
-        TagAttributes.DataUpperLeftX  -> "0",
-        TagAttributes.DataFocalX      -> "0"
+        TagAttribute.DataResource    -> ResourceType.Image.toString,
+        TagAttribute.DataAlt         -> "123",
+        TagAttribute.DataCaption     -> "123",
+        TagAttribute.DataResource_Id -> "123",
+        TagAttribute.DataSize        -> "full",
+        TagAttribute.DataAlign       -> "left",
+        TagAttribute.DataUpperLeftX  -> "0",
+        TagAttribute.DataFocalX      -> "0"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(2)
+    val messages = TagValidator.validate("content", tag)
+    messages.size should be(2)
   }
 
   test("validate should succeed if all optional attributes are specified") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource     -> ResourceType.Image.toString,
-        TagAttributes.DataAlt          -> "123",
-        TagAttributes.DataCaption      -> "123",
-        TagAttributes.DataResource_Id  -> "123",
-        TagAttributes.DataSize         -> "full",
-        TagAttributes.DataAlign        -> "left",
-        TagAttributes.DataUpperLeftX   -> "0",
-        TagAttributes.DataUpperLeftY   -> "0",
-        TagAttributes.DataLowerRightX  -> "1",
-        TagAttributes.DataLowerRightY  -> "1",
-        TagAttributes.DataFocalX       -> "0",
-        TagAttributes.DataFocalY       -> "1",
-        TagAttributes.DataIsDecorative -> "false"
+        TagAttribute.DataResource     -> ResourceType.Image.toString,
+        TagAttribute.DataAlt          -> "123",
+        TagAttribute.DataCaption      -> "123",
+        TagAttribute.DataResource_Id  -> "123",
+        TagAttribute.DataSize         -> "full",
+        TagAttribute.DataAlign        -> "left",
+        TagAttribute.DataUpperLeftX   -> "0",
+        TagAttribute.DataUpperLeftY   -> "0",
+        TagAttribute.DataLowerRightX  -> "1",
+        TagAttribute.DataLowerRightY  -> "1",
+        TagAttribute.DataFocalX       -> "0",
+        TagAttribute.DataFocalY       -> "1",
+        TagAttribute.DataIsDecorative -> "false"
       )
     )
 
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test("validate should succeed if all attributes in an attribute group are specified") {
     val tagWithFocal = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource    -> ResourceType.Image.toString,
-        TagAttributes.DataAlt         -> "123",
-        TagAttributes.DataCaption     -> "123",
-        TagAttributes.DataResource_Id -> "123",
-        TagAttributes.DataSize        -> "full",
-        TagAttributes.DataAlign       -> "left",
-        TagAttributes.DataFocalX      -> "0",
-        TagAttributes.DataFocalY      -> "1"
+        TagAttribute.DataResource    -> ResourceType.Image.toString,
+        TagAttribute.DataAlt         -> "123",
+        TagAttribute.DataCaption     -> "123",
+        TagAttribute.DataResource_Id -> "123",
+        TagAttribute.DataSize        -> "full",
+        TagAttribute.DataAlign       -> "left",
+        TagAttribute.DataFocalX      -> "0",
+        TagAttribute.DataFocalY      -> "1"
       )
     )
 
-    embedTagValidator.validate("content", tagWithFocal).size should be(0)
+    TagValidator.validate("content", tagWithFocal).size should be(0)
 
     val tagWithCrop = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource     -> ResourceType.Image.toString,
-        TagAttributes.DataAlt          -> "123",
-        TagAttributes.DataCaption      -> "123",
-        TagAttributes.DataResource_Id  -> "123",
-        TagAttributes.DataSize         -> "full",
-        TagAttributes.DataAlign        -> "left",
-        TagAttributes.DataUpperLeftX   -> "0",
-        TagAttributes.DataUpperLeftY   -> "0",
-        TagAttributes.DataLowerRightX  -> "1",
-        TagAttributes.DataLowerRightY  -> "1",
-        TagAttributes.DataIsDecorative -> "false"
+        TagAttribute.DataResource     -> ResourceType.Image.toString,
+        TagAttribute.DataAlt          -> "123",
+        TagAttribute.DataCaption      -> "123",
+        TagAttribute.DataResource_Id  -> "123",
+        TagAttribute.DataSize         -> "full",
+        TagAttribute.DataAlign        -> "left",
+        TagAttribute.DataUpperLeftX   -> "0",
+        TagAttribute.DataUpperLeftY   -> "0",
+        TagAttribute.DataLowerRightX  -> "1",
+        TagAttribute.DataLowerRightY  -> "1",
+        TagAttribute.DataIsDecorative -> "false"
       )
     )
 
-    embedTagValidator.validate("content", tagWithCrop).size should be(0)
+    TagValidator.validate("content", tagWithCrop).size should be(0)
 
     val tagWithDecor = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource     -> ResourceType.Image.toString,
-        TagAttributes.DataAlt          -> "123",
-        TagAttributes.DataCaption      -> "123",
-        TagAttributes.DataResource_Id  -> "123",
-        TagAttributes.DataSize         -> "full",
-        TagAttributes.DataAlign        -> "left",
-        TagAttributes.DataIsDecorative -> "false"
+        TagAttribute.DataResource     -> ResourceType.Image.toString,
+        TagAttribute.DataAlt          -> "123",
+        TagAttribute.DataCaption      -> "123",
+        TagAttribute.DataResource_Id  -> "123",
+        TagAttribute.DataSize         -> "full",
+        TagAttribute.DataAlign        -> "left",
+        TagAttribute.DataIsDecorative -> "false"
       )
     )
 
-    embedTagValidator.validate("content", tagWithDecor).size should be(0)
+    TagValidator.validate("content", tagWithDecor).size should be(0)
   }
 
   test("validate should succeed if source url is from a legal domain") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.IframeContent.toString,
-        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
-        TagAttributes.DataUrl      -> "https://prezi.com",
-        TagAttributes.DataWidth    -> "1",
-        TagAttributes.DataHeight   -> "1"
+        TagAttribute.DataResource -> ResourceType.IframeContent.toString,
+        TagAttribute.DataType     -> ResourceType.IframeContent.toString,
+        TagAttribute.DataUrl      -> "https://prezi.com",
+        TagAttribute.DataWidth    -> "1",
+        TagAttribute.DataHeight   -> "1"
       )
     )
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
 
     val tag2 = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.IframeContent.toString,
-        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
-        TagAttributes.DataUrl      -> "https://statisk.test.ndla.no",
-        TagAttributes.DataWidth    -> "1",
-        TagAttributes.DataHeight   -> "1"
+        TagAttribute.DataResource -> ResourceType.IframeContent.toString,
+        TagAttribute.DataType     -> ResourceType.IframeContent.toString,
+        TagAttribute.DataUrl      -> "https://statisk.test.ndla.no",
+        TagAttribute.DataWidth    -> "1",
+        TagAttribute.DataHeight   -> "1"
       )
     )
-    embedTagValidator.validate("content", tag2).size should be(0)
+    TagValidator.validate("content", tag2).size should be(0)
   }
 
   test("validate should fail if source url is from an illlegal domain") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.IframeContent.toString,
-        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
-        TagAttributes.DataUrl      -> "https://evilprezi.com",
-        TagAttributes.DataWidth    -> "1",
-        TagAttributes.DataHeight   -> "1"
+        TagAttribute.DataResource -> ResourceType.IframeContent.toString,
+        TagAttribute.DataType     -> ResourceType.IframeContent.toString,
+        TagAttribute.DataUrl      -> "https://evilprezi.com",
+        TagAttribute.DataWidth    -> "1",
+        TagAttribute.DataHeight   -> "1"
       )
     )
 
-    val result = embedTagValidator.validate("content", tag)
+    val result = TagValidator.validate("content", tag)
     result.size should be(1)
     result.head.message
-      .contains(s"can only contain ${TagAttributes.DataUrl} urls from the following domains:") should be(true)
+      .contains(s"can only contain ${TagAttribute.DataUrl} urls from the following domains:") should be(true)
   }
 
   test("validate should succeed if source url is from a legal wildcard domain") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.IframeContent.toString,
-        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
-        TagAttributes.DataUrl      -> "https://thisisatest.khanacademy.org",
-        TagAttributes.DataWidth    -> "1",
-        TagAttributes.DataHeight   -> "1"
+        TagAttribute.DataResource -> ResourceType.IframeContent.toString,
+        TagAttribute.DataType     -> ResourceType.IframeContent.toString,
+        TagAttribute.DataUrl      -> "https://thisisatest.khanacademy.org",
+        TagAttribute.DataWidth    -> "1",
+        TagAttribute.DataHeight   -> "1"
       )
     )
 
-    embedTagValidator.validate("content", tag).size should be(0)
+    TagValidator.validate("content", tag).size should be(0)
   }
 
   test("validate should not return validation errors if lang attribute is present") {
-    val res = embedTagValidator.validate("content", "<span lang='nb'>test</span>")
+    val res = TagValidator.validate("content", "<span lang='nb'>test</span>")
     res.size should be(0)
   }
 
   test("validate should not return validation errors if lang attribute is present dd") {
-    val res = embedTagValidator.validate("content", "<span test='nb'>test</span>")
+    val res = TagValidator.validate("content", "<span test='nb'>test</span>")
     res.size should equal(2)
     findErrorByMessage(
       res,
@@ -521,7 +523,7 @@ class EmbedTagValidatorTest extends UnitSuite {
   }
 
   test("validate should return not return validation errors if colspan is present on th or td") {
-    val res = embedTagValidator.validate(
+    val res = TagValidator.validate(
       "content",
       "<table><thead><tr><th colspan=\"2\">Hei</th></tr></thead><tbody><tr><td>Hei</td><td>Hå</td></tr></tbody></table>"
     )
@@ -529,7 +531,7 @@ class EmbedTagValidatorTest extends UnitSuite {
   }
 
   test("validate should return error if span does not have any attributes") {
-    val res = embedTagValidator.validate("content", "<span>lorem ipsum</span>")
+    val res = TagValidator.validate("content", "<span>lorem ipsum</span>")
     res.size should equal(1)
   }
 
@@ -540,16 +542,16 @@ class EmbedTagValidatorTest extends UnitSuite {
     val invalidRelatedArticle = s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com" />"""
     val emptyAndInvalidEmbed  = s"""<$EmbedTagName data-resource="related-content" />"""
 
-    val res = embedTagValidator.validate(
+    val res = TagValidator.validate(
       "content",
       s"""<div data-type="related-content">$validRelatedExternalEmbed$validRelatedArticle</div>"""
     )
     res.size should be(0)
     val res2 =
-      embedTagValidator.validate("content", s"""<div data-type="related-content">$invalidRelatedArticle</div>""")
+      TagValidator.validate("content", s"""<div data-type="related-content">$invalidRelatedArticle</div>""")
     res2.size should be(1)
     val res3 =
-      embedTagValidator.validate("content", s"""<div data-type="related-content">$emptyAndInvalidEmbed</div>""")
+      TagValidator.validate("content", s"""<div data-type="related-content">$emptyAndInvalidEmbed</div>""")
     res3.size should be(1)
   }
 
@@ -557,18 +559,18 @@ class EmbedTagValidatorTest extends UnitSuite {
     val validRelatedExternalEmbed =
       s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com" data-title="Eksempel tittel right here, yo" />"""
 
-    val res = embedTagValidator.validate("content", s"""<div>$validRelatedExternalEmbed</div>""")
+    val res = TagValidator.validate("content", s"""<div>$validRelatedExternalEmbed</div>""")
     res.size should be(1)
     res.head.message should be(
       """Embed tag with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
     )
-    val res2 = embedTagValidator.validate("content", s"""$validRelatedExternalEmbed""")
+    val res2 = TagValidator.validate("content", s"""$validRelatedExternalEmbed""")
     res2.size should be(1)
     res2.head.message should be(
       """Embed tag with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
     )
     val res3 =
-      embedTagValidator.validate("content", s"""<p data-type='related-content'>$validRelatedExternalEmbed</p>""")
+      TagValidator.validate("content", s"""<p data-type='related-content'>$validRelatedExternalEmbed</p>""")
     res3.size should be(2)
     res3.last.message should be(
       """Embed tag with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
@@ -576,47 +578,47 @@ class EmbedTagValidatorTest extends UnitSuite {
   }
 
   test("checkParentConditions should work for < operator") {
-    val result1 = embedTagValidator.checkParentConditions("test", Condition("apekatt<2"), 3)
+    val result1 = TagValidator.checkParentConditions("test", Condition("apekatt<2"), 3)
     result1 should be(Left(childCountValidationMessage("test")))
 
-    val result2 = embedTagValidator.checkParentConditions("test", Condition("<2"), 3)
+    val result2 = TagValidator.checkParentConditions("test", Condition("<2"), 3)
     result2 should be(Right(false))
 
-    val result3 = embedTagValidator.checkParentConditions("test", Condition("<2"), 1)
+    val result3 = TagValidator.checkParentConditions("test", Condition("<2"), 1)
     result3 should be(Right(true))
 
-    val result4 = embedTagValidator.checkParentConditions("test", Condition("< 2"), 1)
+    val result4 = TagValidator.checkParentConditions("test", Condition("< 2"), 1)
     result4 should be(Right(true))
   }
 
   test("checkParentConditions should work for > operator") {
-    val result1 = embedTagValidator.checkParentConditions("test", Condition("apekatt>2"), 3)
+    val result1 = TagValidator.checkParentConditions("test", Condition("apekatt>2"), 3)
     result1 should be(Left(childCountValidationMessage("test")))
 
-    val result2 = embedTagValidator.checkParentConditions("test", Condition(">2"), 3)
+    val result2 = TagValidator.checkParentConditions("test", Condition(">2"), 3)
     result2 should be(Right(true))
 
-    val result3 = embedTagValidator.checkParentConditions("test", Condition(">2"), 1)
+    val result3 = TagValidator.checkParentConditions("test", Condition(">2"), 1)
     result3 should be(Right(false))
 
-    val result4 = embedTagValidator.checkParentConditions("test", Condition(">    2"), 1)
+    val result4 = TagValidator.checkParentConditions("test", Condition(">    2"), 1)
     result4 should be(Right(false))
   }
 
   test("checkParentConditions should work for = operator") {
-    val result1 = embedTagValidator.checkParentConditions("test", Condition("apekatt=2"), 3)
+    val result1 = TagValidator.checkParentConditions("test", Condition("apekatt=2"), 3)
     result1 should be(Left(childCountValidationMessage("test")))
 
-    val result2 = embedTagValidator.checkParentConditions("test", Condition("=2"), 2)
+    val result2 = TagValidator.checkParentConditions("test", Condition("=2"), 2)
     result2 should be(Right(true))
 
-    val result3 = embedTagValidator.checkParentConditions("test", Condition("=2"), 1)
+    val result3 = TagValidator.checkParentConditions("test", Condition("=2"), 1)
     result3 should be(Right(false))
 
-    val result4 = embedTagValidator.checkParentConditions("test", Condition(" =  2 "), 2)
+    val result4 = TagValidator.checkParentConditions("test", Condition(" =  2 "), 2)
     result4 should be(Right(true))
 
-    val result5 = embedTagValidator.checkParentConditions("test", Condition("2"), 1)
+    val result5 = TagValidator.checkParentConditions("test", Condition("2"), 1)
     result5 should be(Left(Seq(ValidationMessage("test", "Could not find supported operator (<, > or =)"))))
   }
 
@@ -624,7 +626,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val content =
       s"""<section><$EmbedTagName data-alt="Øvingsark for teiknskriving for leksjon 1" data-path="files/147739/ovelsesark_for_tegnskriving_for_leksjon_1.pdf" data-resource="file" data-title="Øvelsesark for tegnskriving for leksjon 1" data-type="pdf" /><p><span data-size="large">你</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163943" /><p><span data-size="large">您</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163944" /><p><span data-size="large">好</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163946" /><p><span data-size="large">李</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163948" /><p><span data-size="large">美</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163950" /><p><span data-size="large">玉</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163952" /><p><span data-size="large">马</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163953" /><p><span data-size="large">红</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163956" /><p><span data-size="large">老</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163959" /><p><span data-size="large">师</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163960" /><p><span data-size="large">贵</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164025" /><p><span data-size="large">姓</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164029" /><p><span data-size="large">王</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164031" /><p><span data-size="large">们</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164032" /><p><span data-size="large">我</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164034" /><p><span data-size="large">叫</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164035" /><p><span data-size="large">什</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164036" /><p><span data-size="large">么</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164037" /><p><span data-size="large">名</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164038" /><p><span data-size="large">字</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164039" /><p><span data-size="large">呢</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164067" /><p><span data-size="large">认</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164069" /><p><span data-size="large">识</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164072" /><p><span data-size="large">很</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164077" /><p><span data-size="large">高</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164078" /><p><span data-size="large">兴</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164079" /></section>"""
 
-    val res = embedTagValidator.validate("content", content)
+    val res = TagValidator.validate("content", content)
     res should be(
       Seq(
         ValidationMessage(
@@ -639,25 +641,25 @@ class EmbedTagValidatorTest extends UnitSuite {
     {
       val content = s"""<section><p><$EmbedTagName type="a" data-resource="file" /></p></section>"""
       val embed   = HtmlTagRules.stringToJsoupDocument(content).select(EmbedTagName).first()
-      embedTagValidator.numDirectEqualSiblings(embed) should be(1)
+      TagValidator.numDirectEqualSiblings(embed) should be(1)
     }
     {
       val content =
         s"""<section><p><$EmbedTagName type="a" data-resource="file" /><$EmbedTagName type="b" data-resource="file" /><$EmbedTagName type="c" data-resource="file" /><$EmbedTagName type="d" data-resource="file" /></p></section>"""
       val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=b]").first()
-      embedTagValidator.numDirectEqualSiblings(embed) should be(4)
+      TagValidator.numDirectEqualSiblings(embed) should be(4)
     }
     {
       val content =
         s"""<section><p><$EmbedTagName type="a" data-resource="file" />, <$EmbedTagName type="b" data-resource="file" />, <$EmbedTagName type="c" data-resource="file" />, <$EmbedTagName type="d" data-resource="file" /></p></section>"""
       val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=d]").first()
-      embedTagValidator.numDirectEqualSiblings(embed) should be(1)
+      TagValidator.numDirectEqualSiblings(embed) should be(1)
     }
     {
       val content =
         s"""<section><p><$EmbedTagName type="a" data-resource="file" />, <$EmbedTagName type="b" data-resource="file" />, <$EmbedTagName type="c" data-resource="file" /><$EmbedTagName type="d" data-resource="file" /></p></section>"""
       val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=c]").first()
-      embedTagValidator.numDirectEqualSiblings(embed) should be(2)
+      TagValidator.numDirectEqualSiblings(embed) should be(2)
     }
   }
 
@@ -678,43 +680,43 @@ class EmbedTagValidatorTest extends UnitSuite {
           |</p>
           |</section>""".stripMargin
     val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=c]").first()
-    embedTagValidator.numDirectEqualSiblings(embed) should be(3)
+    TagValidator.numDirectEqualSiblings(embed) should be(3)
   }
 
   test("validate should return no errors when data-title is used as a standalone tag in iframe") {
     val attrs = generateAttributes(
       Map(
         // Iframe Required
-        TagAttributes.DataResource.toString -> ResourceType.IframeContent.toString,
-        TagAttributes.DataType.toString     -> ResourceType.IframeContent.toString,
-        TagAttributes.DataUrl.toString      -> "https://google.ndla.no/",
+        TagAttribute.DataResource.toString -> ResourceType.IframeContent.toString,
+        TagAttribute.DataType.toString     -> ResourceType.IframeContent.toString,
+        TagAttribute.DataUrl.toString      -> "https://google.ndla.no/",
         // Iframe Optional-1
-        TagAttributes.DataWidth.toString  -> "700",
-        TagAttributes.DataHeight.toString -> "500",
+        TagAttribute.DataWidth.toString  -> "700",
+        TagAttribute.DataHeight.toString -> "500",
         // Iframe Optional that i want to test
-        TagAttributes.DataTitle.toString -> "Min tittel"
+        TagAttribute.DataTitle.toString -> "Min tittel"
       )
     )
 
-    val res = embedTagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
+    val res = TagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
     res.headOption should be(None)
   }
 
   test("validate should return no errors when data-title is used in a group in iframe") {
     val attrs = generateAttributes(
       Map(
-        TagAttributes.DataResource.toString -> ResourceType.IframeContent.toString,
-        TagAttributes.DataType.toString     -> ResourceType.IframeContent.toString,
-        TagAttributes.DataUrl.toString      -> "https://google.ndla.no/",
-        TagAttributes.DataWidth.toString    -> "700",
-        TagAttributes.DataHeight.toString   -> "500",
-        TagAttributes.DataTitle.toString    -> "Min tittel",
-        TagAttributes.DataCaption.toString  -> "heyho",
-        TagAttributes.DataImageId.toString  -> "123"
+        TagAttribute.DataResource.toString -> ResourceType.IframeContent.toString,
+        TagAttribute.DataType.toString     -> ResourceType.IframeContent.toString,
+        TagAttribute.DataUrl.toString      -> "https://google.ndla.no/",
+        TagAttribute.DataWidth.toString    -> "700",
+        TagAttribute.DataHeight.toString   -> "500",
+        TagAttribute.DataTitle.toString    -> "Min tittel",
+        TagAttribute.DataCaption.toString  -> "heyho",
+        TagAttribute.DataImageId.toString  -> "123"
       )
     )
 
-    val res = embedTagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
+    val res = TagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
     res.headOption should be(None)
   }
 }

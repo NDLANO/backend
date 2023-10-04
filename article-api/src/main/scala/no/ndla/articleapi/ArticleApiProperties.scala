@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi
 
-import no.ndla.common.Environment.prop
+import no.ndla.common.Environment.{booleanPropOrFalse, prop}
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
@@ -103,6 +103,8 @@ class ArticleApiProperties extends BaseProps {
     ResourceType.H5P.toString   -> H5PAddress
   )
 
+  def AllowHtmlInTitle: Boolean = booleanPropOrFalse("ALLOW_HTML_IN_TITLE")
+
   def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",
     Map(
@@ -112,8 +114,8 @@ class ArticleApiProperties extends BaseProps {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  def BrightcoveAccountId: String        = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  private def BrightcovePlayerId: String = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"

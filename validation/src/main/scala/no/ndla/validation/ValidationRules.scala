@@ -1,4 +1,5 @@
 package no.ndla.validation
+import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods.parse
 
 import scala.io.Source
@@ -10,7 +11,7 @@ object ValidationRules {
   def mathMLRulesJson: Map[String, Any]   = convertJsonStr(Source.fromResource("mathml-rules.json").mkString)
 
   private def convertJsonStr(jsonStr: String): Map[String, Any] = {
-    implicit val formats = org.json4s.DefaultFormats
+    implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
     parse(jsonStr).extract[Map[String, Any]]
   }
 

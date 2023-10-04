@@ -9,19 +9,18 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common
-import no.ndla.common.model.{api => commonApi}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.domain.draft.{Comment, DraftCopyright, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, DraftStatus}
+import no.ndla.common.model.{NDLADate, api => commonApi}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{NewComment, UpdatedComment}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.validation.{ResourceType, TagAttributes}
+import no.ndla.validation.{ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
 import org.mockito.invocation.InvocationOnMock
 
@@ -78,11 +77,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content =
-      s"""<h1>hello</h1><$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedContent = s"""<h1>hello</h1><$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" />"""
+      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedContent = s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" />"""
     val visualElement =
-      s"""<$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedVisualElement = s"""<$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" />"""
+      s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedVisualElement = s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" />"""
     val apiArticle            = TestData.newArticle.copy(content = Some(content), visualElement = Some(visualElement))
     val expectedTime          = TestData.today
 

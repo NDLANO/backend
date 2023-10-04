@@ -1,12 +1,12 @@
 /*
- * Part of NDLA mapping.
- * Copyright (C) 2016 NDLA
+ * Part of NDLA validation.
+ * Copyright (C) 2017 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.mapping
+package no.ndla.validation
 
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite

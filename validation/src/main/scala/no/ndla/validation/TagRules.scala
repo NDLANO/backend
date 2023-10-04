@@ -1,34 +1,47 @@
 package no.ndla.validation
 
+import enumeratum.{Json4s, _}
 import org.json4s.Formats
 import org.json4s.JsonAST.JObject
-import org.json4s.ext._
 import org.json4s.native.JsonMethods._
 
 object TagRules {
   case class TagAttributeRules(
-      required: Set[TagAttributes.Value],
-      requiredNonEmpty: Set[TagAttributes.Value],
-      optional: Seq[Set[TagAttributes.Value]],
-      validSrcDomains: Option[Seq[String]],
+      fields: Set[Field],
+      validUrlDomains: Option[Seq[String]],
       mustBeDirectChildOf: Option[ParentTag],
       children: Option[ChildrenRule],
       mustContainAtLeastOneOptionalAttribute: Option[Boolean]
   ) {
-    lazy val all: Set[TagAttributes.Value] = required ++ requiredNonEmpty ++ optional.flatten
+    lazy val all: Set[TagAttribute] = fields.map(f => f.name)
+
+    lazy val optional: Set[Field]         = fields.filter(f => !f.validation.required)
+    lazy val required: Set[Field]         = fields.filter(f => f.validation.required)
+    lazy val requiredNonEmpty: Set[Field] = required.filter(f => !f.validation.allowEmpty)
+
+    def field(tag: TagAttribute): Option[Field] = fields.find(f => f.name == tag)
 
     def mustContainOptionalAttribute: Boolean = this.mustContainAtLeastOneOptionalAttribute.getOrElse(false)
 
     def withOptionalRequired(toBeOptional: Seq[String]): TagAttributeRules = {
-      val toBeOptionalEnums = toBeOptional.flatMap(TagAttributes.valueOf)
-      val newReq            = required.filterNot(toBeOptionalEnums.contains)
-      val newOpt            = optional ++ toBeOptionalEnums.map(o => Set(o))
+      val toBeOptionalEnums = toBeOptional.map(TagAttribute.withName)
+      val otherFields       = fields.filterNot(f => toBeOptionalEnums.contains(f.name))
+      val flipped = fields.diff(otherFields).map(f => f.copy(validation = f.validation.copy(required = false)))
 
       this.copy(
-        required = newReq,
-        optional = newOpt
+        fields = flipped ++ otherFields
       )
     }
+  }
+
+  case class Validation(
+      required: Boolean = false,
+      allowEmpty: Boolean = true,
+      allowedHtml: Set[String] = Set.empty,
+      mustCoexistWith: List[TagAttribute] = List.empty
+  )
+  case class Field(name: TagAttribute, validation: Validation = Validation()) {
+    override def toString: String = name.entryName
   }
 
   case class ParentTag(name: String, requiredAttr: List[(String, String)], conditions: Option[Condition])
@@ -39,11 +52,11 @@ object TagRules {
   case class Condition(childCount: String)
 
   object TagAttributeRules {
-    def empty: TagAttributeRules = TagAttributeRules(Set.empty, Set.empty, Seq.empty, None, None, None, None)
+    def empty: TagAttributeRules = TagAttributeRules(Set.empty, None, None, None, None)
   }
 
   def convertJsonStrToAttributeRules(jsonStr: String): Map[String, TagAttributeRules] = {
-    implicit val formats: Formats = org.json4s.DefaultFormats + new EnumNameSerializer(TagAttributes)
+    implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(TagAttribute)
 
     (parse(jsonStr) \ "attributes")
       .extract[JObject]
@@ -55,94 +68,90 @@ object TagRules {
   }
 }
 
-object TagAttributes extends Enumeration {
-  val DataUrl: TagAttributes.Value                 = Value("data-url")
-  val DataAlt: TagAttributes.Value                 = Value("data-alt")
-  val DataSize: TagAttributes.Value                = Value("data-size")
-  val DataAlign: TagAttributes.Value               = Value("data-align")
-  val DataWidth: TagAttributes.Value               = Value("data-width")
-  val DataHeight: TagAttributes.Value              = Value("data-height")
-  val DataPlayer: TagAttributes.Value              = Value("data-player")
-  val DataMessage: TagAttributes.Value             = Value("data-message")
-  val DataCaption: TagAttributes.Value             = Value("data-caption")
-  val DataAccount: TagAttributes.Value             = Value("data-account")
-  val DataVideoId: TagAttributes.Value             = Value("data-videoid")
-  val DataImageId: TagAttributes.Value             = Value("data-imageid")
-  val DataImage_Id: TagAttributes.Value            = Value("data-image-id")
-  val DataResource: TagAttributes.Value            = Value("data-resource")
-  val DataLanguage: TagAttributes.Value            = Value("data-language")
-  val DataAuthor: TagAttributes.Value              = Value("data-author")
-  val DataLinkText: TagAttributes.Value            = Value("data-link-text")
-  val DataOpenIn: TagAttributes.Value              = Value("data-open-in")
-  val DataContentId: TagAttributes.Value           = Value("data-content-id")
-  val DataContentType: TagAttributes.Value         = Value("data-content-type")
-  val DataNRKVideoId: TagAttributes.Value          = Value("data-nrk-video-id")
-  val DataResource_Id: TagAttributes.Value         = Value("data-resource_id")
-  val DataTitle: TagAttributes.Value               = Value("data-title")
-  val DataType: TagAttributes.Value                = Value("data-type")
-  val DataYear: TagAttributes.Value                = Value("data-year")
-  val DataEdition: TagAttributes.Value             = Value("data-edition")
-  val DataPublisher: TagAttributes.Value           = Value("data-publisher")
-  val DataAuthors: TagAttributes.Value             = Value("data-authors")
-  val DataArticleId: TagAttributes.Value           = Value("data-article-id")
-  val DataPath: TagAttributes.Value                = Value("data-path")
-  val DataFormat: TagAttributes.Value              = Value("data-code-format")
-  val DataContent: TagAttributes.Value             = Value("data-code-content")
-  val DataDisplay: TagAttributes.Value             = Value("data-display")
-  val DataRecursive: TagAttributes.Value           = Value("data-recursive")
-  val DataSubjectId: TagAttributes.Value           = Value("data-subject-id")
-  val DataTag: TagAttributes.Value                 = Value("data-tag")
-  val DataEmail: TagAttributes.Value               = Value("data-email")
-  val DataBlob: TagAttributes.Value                = Value("data-blob")
-  val DataBlobColor: TagAttributes.Value           = Value("data-blob-color")
-  val DataName: TagAttributes.Value                = Value("data-name")
-  val DataDescription: TagAttributes.Value         = Value("data-description")
-  val DataJobTitle: TagAttributes.Value            = Value("data-job-title")
-  val DataUpperLeftY: TagAttributes.Value          = Value("data-upper-left-y")
-  val DataUpperLeftX: TagAttributes.Value          = Value("data-upper-left-x")
-  val DataLowerRightY: TagAttributes.Value         = Value("data-lower-right-y")
-  val DataLowerRightX: TagAttributes.Value         = Value("data-lower-right-x")
-  val DataFocalX: TagAttributes.Value              = Value("data-focal-x")
-  val DataFocalY: TagAttributes.Value              = Value("data-focal-y")
-  val DataIsDecorative: TagAttributes.Value        = Value("data-is-decorative")
-  val DataSubtitle: TagAttributes.Value            = Value("data-subtitle")
-  val DataColumns: TagAttributes.Value             = Value("data-columns")
-  val DataBorder: TagAttributes.Value              = Value("data-border")
-  val DataBackground: TagAttributes.Value          = Value("data-background")
-  val DataTitleLanguage: TagAttributes.Value       = Value("data-title-language")
-  val DataDescriptionLanguage: TagAttributes.Value = Value("data-description-language")
-  val DataHeadingLevel: TagAttributes.Value        = Value("data-heading-level")
-  val DataUrlText: TagAttributes.Value             = Value("data-url-text")
-  val DataImageSide: TagAttributes.Value           = Value("data-image-side")
-  val DataParallaxCell: TagAttributes.Value        = Value("data-parallax-cell")
-  val XMLNsAttribute: TagAttributes.Value          = Value("xmlns")
-  val DataDate: TagAttributes.Value                = Value("data-date")
+sealed abstract class TagAttribute(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
+object TagAttribute extends Enum[TagAttribute] {
+  val values: IndexedSeq[TagAttribute] = findValues
 
-  val Href: TagAttributes.Value    = Value("href")
-  val Title: TagAttributes.Value   = Value("title")
-  val Align: TagAttributes.Value   = Value("align")
-  val Valign: TagAttributes.Value  = Value("valign")
-  val Target: TagAttributes.Value  = Value("target")
-  val Rel: TagAttributes.Value     = Value("rel")
-  val Class: TagAttributes.Value   = Value("class")
-  val Lang: TagAttributes.Value    = Value("lang")
-  val Rowspan: TagAttributes.Value = Value("rowspan")
-  val Colspan: TagAttributes.Value = Value("colspan")
-  val Name: TagAttributes.Value    = Value("name")
-  val Start: TagAttributes.Value   = Value("start")
-  val Style: TagAttributes.Value   = Value("style")
-  val Span: TagAttributes.Value    = Value("span")
-  val Id: TagAttributes.Value      = Value("id")
-  val Scope: TagAttributes.Value   = Value("scope")
-  val Headers: TagAttributes.Value = Value("headers")
+  case object Align          extends TagAttribute("align")
+  case object Class          extends TagAttribute("class")
+  case object Colspan        extends TagAttribute("colspan")
+  case object Dir            extends TagAttribute("dir")
+  case object Headers        extends TagAttribute("headers")
+  case object Href           extends TagAttribute("href")
+  case object Id             extends TagAttribute("id")
+  case object Lang           extends TagAttribute("lang")
+  case object Name           extends TagAttribute("name")
+  case object Rel            extends TagAttribute("rel")
+  case object Rowspan        extends TagAttribute("rowspan")
+  case object Scope          extends TagAttribute("scope")
+  case object Span           extends TagAttribute("span")
+  case object Start          extends TagAttribute("start")
+  case object Style          extends TagAttribute("style")
+  case object Target         extends TagAttribute("target")
+  case object Title          extends TagAttribute("title")
+  case object Valign         extends TagAttribute("valign")
+  case object XMLNsAttribute extends TagAttribute("xmlns")
 
-  private[validation] def getOrCreate(s: String): TagAttributes.Value = {
-    valueOf(s).getOrElse(Value(s))
-  }
-
-  def all: Set[String] = TagAttributes.values.map(_.toString)
-
-  def valueOf(s: String): Option[TagAttributes.Value] = {
-    TagAttributes.values.find(_.toString == s)
-  }
+  case object DataAccount             extends TagAttribute("data-account")
+  case object DataAlign               extends TagAttribute("data-align")
+  case object DataAlt                 extends TagAttribute("data-alt")
+  case object DataArticleId           extends TagAttribute("data-article-id")
+  case object DataAuthor              extends TagAttribute("data-author")
+  case object DataAuthors             extends TagAttribute("data-authors")
+  case object DataBackground          extends TagAttribute("data-background")
+  case object DataBlob                extends TagAttribute("data-blob")
+  case object DataBlobColor           extends TagAttribute("data-blob-color")
+  case object DataBorder              extends TagAttribute("data-border")
+  case object DataCaption             extends TagAttribute("data-caption")
+  case object DataColumns             extends TagAttribute("data-columns")
+  case object DataContent             extends TagAttribute("data-code-content")
+  case object DataContentId           extends TagAttribute("data-content-id")
+  case object DataContentType         extends TagAttribute("data-content-type")
+  case object DataDate                extends TagAttribute("data-date")
+  case object DataDescription         extends TagAttribute("data-description")
+  case object DataDescriptionLanguage extends TagAttribute("data-description-language")
+  case object DataDisplay             extends TagAttribute("data-display")
+  case object DataEdition             extends TagAttribute("data-edition")
+  case object DataEmail               extends TagAttribute("data-email")
+  case object DataFocalX              extends TagAttribute("data-focal-x")
+  case object DataFocalY              extends TagAttribute("data-focal-y")
+  case object DataFormat              extends TagAttribute("data-code-format")
+  case object DataHeadingLevel        extends TagAttribute("data-heading-level")
+  case object DataHeight              extends TagAttribute("data-height")
+  case object DataImageId             extends TagAttribute("data-imageid")
+  case object DataImageSide           extends TagAttribute("data-image-side")
+  case object DataImage_Id            extends TagAttribute("data-image-id")
+  case object DataIsDecorative        extends TagAttribute("data-is-decorative")
+  case object DataJobTitle            extends TagAttribute("data-job-title")
+  case object DataLanguage            extends TagAttribute("data-language")
+  case object DataLinkText            extends TagAttribute("data-link-text")
+  case object DataLowerRightX         extends TagAttribute("data-lower-right-x")
+  case object DataLowerRightY         extends TagAttribute("data-lower-right-y")
+  case object DataMessage             extends TagAttribute("data-message")
+  case object DataNRKVideoId          extends TagAttribute("data-nrk-video-id")
+  case object DataName                extends TagAttribute("data-name")
+  case object DataOpenIn              extends TagAttribute("data-open-in")
+  case object DataParallaxCell        extends TagAttribute("data-parallax-cell")
+  case object DataPath                extends TagAttribute("data-path")
+  case object DataPlayer              extends TagAttribute("data-player")
+  case object DataPublisher           extends TagAttribute("data-publisher")
+  case object DataRecursive           extends TagAttribute("data-recursive")
+  case object DataResource            extends TagAttribute("data-resource")
+  case object DataResource_Id         extends TagAttribute("data-resource_id")
+  case object DataSize                extends TagAttribute("data-size")
+  case object DataSubjectId           extends TagAttribute("data-subject-id")
+  case object DataSubtitle            extends TagAttribute("data-subtitle")
+  case object DataTag                 extends TagAttribute("data-tag")
+  case object DataTitle               extends TagAttribute("data-title")
+  case object DataTitleLanguage       extends TagAttribute("data-title-language")
+  case object DataType                extends TagAttribute("data-type")
+  case object DataUpperLeftX          extends TagAttribute("data-upper-left-x")
+  case object DataUpperLeftY          extends TagAttribute("data-upper-left-y")
+  case object DataUrl                 extends TagAttribute("data-url")
+  case object DataUrlText             extends TagAttribute("data-url-text")
+  case object DataVideoId             extends TagAttribute("data-videoid")
+  case object DataWidth               extends TagAttribute("data-width")
+  case object DataYear                extends TagAttribute("data-year")
 }

@@ -14,12 +14,10 @@ import org.jsoup.safety.Safelist
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
-class TextValidator(allowHtml: Boolean) {
-  private def IllegalContentInBasicText =
-    s"The content contains illegal tags and/or attributes. Allowed HTML tags are: ${HtmlTagRules.allLegalTags.mkString(", ")}"
+object TextValidator {
+  private val IllegalContentInBasicText = "The content contains illegal tags and/or attributes. Allowed HTML tags are:"
   private val IllegalContentInPlainText = "The content contains illegal html-characters. No HTML is allowed"
   private val FieldEmpty                = "Required field is empty"
-  private val TagValidator              = new TagValidator
 
   /** Validates text Will validate legal html tags if html is allowed.
     *
@@ -37,15 +35,20 @@ class TextValidator(allowHtml: Boolean) {
   def validate(
       fieldPath: String,
       text: String,
+      allowedTags: Set[String],
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
-    if (allowHtml) validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
-    else validateNoHtmlTags(fieldPath, text).toList
+    if (allowedTags.isEmpty) {
+      validateNoHtmlTags(fieldPath, text).toList
+    } else {
+      validateAllowedHtmlTags(fieldPath, text, requiredToOptional, allowedTags)
+    }
   }
 
   def validateVisualElement(
       fieldPath: String,
       text: String,
+      allowedTags: Set[String] = HtmlTagRules.allLegalTags,
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
 
@@ -59,20 +62,21 @@ class TextValidator(allowHtml: Boolean) {
         if (onlyElement.tagName() != EmbedTagName) {
           errorWith("The root html element for visual elements needs to be `embed`.")
         } else {
-          validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
+          validateAllowedHtmlTags(fieldPath, text, requiredToOptional, allowedTags)
         }
       case Nil => errorWith("The root html element for visual elements needs to be `embed`.")
       case _   => errorWith("Visual element must be a string containing only a single embed element.")
     }
   }
 
-  private def validateOnlyBasicHtmlTags(
+  private def validateAllowedHtmlTags(
       fieldPath: String,
       text: String,
-      requiredToOptional: Map[String, Seq[String]]
+      requiredToOptional: Map[String, Seq[String]],
+      allowedTags: Set[String]
   ): Seq[ValidationMessage] = {
-    val whiteList = new Safelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
 
+    val whiteList = new Safelist().addTags(allowedTags.toSeq: _*)
     HtmlTagRules.allLegalTags
       .filter(tag => HtmlTagRules.legalAttributesForTag(tag).nonEmpty)
       .foreach(tag => whiteList.addAttributes(tag, HtmlTagRules.legalAttributesForTag(tag).toSeq: _*))
@@ -80,8 +84,9 @@ class TextValidator(allowHtml: Boolean) {
     if (text.isEmpty) {
       ValidationMessage(fieldPath, FieldEmpty) :: Nil
     } else {
-      val whiteListValidationMessage = ValidationMessage(fieldPath, IllegalContentInBasicText)
-      val jsoupValidatorMessages     = Option.when(!Jsoup.isValid(text, whiteList))(whiteListValidationMessage)
+      val whiteListValidationMessage =
+        ValidationMessage(fieldPath, s"$IllegalContentInBasicText ${allowedTags.mkString(",")}")
+      val jsoupValidatorMessages = Option.when(!Jsoup.isValid(text, whiteList))(whiteListValidationMessage)
       TagValidator.validate(fieldPath, text, requiredToOptional) ++ jsoupValidatorMessages.toSeq
     }
   }
