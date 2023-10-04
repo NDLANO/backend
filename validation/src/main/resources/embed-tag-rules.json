@@ -100,7 +100,7 @@
           "name": "data-resource_id",
           "validation": {
             "required": true,
-            "nullable": false
+            "allowEmpty": false
           }
         },
         {
@@ -244,7 +244,7 @@
           "name": "data-resource_id",
           "validation": {
             "required": true,
-            "nullable": false
+            "allowEmpty": false
           }
         },
         {
@@ -359,7 +359,7 @@
           "name": "data-content-id",
           "validation": {
             "required": true,
-            "nullable": false
+            "allowEmpty": false
           }
         },
         {

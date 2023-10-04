@@ -57,7 +57,7 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
-  test("Not nullable fields should not be allowed to be empty-strings") {
+  test("Fields with allowEmpty=false should not be allowed to be empty") {
     val embedString =
       s"""<$EmbedTagName
         | data-resource="image"

@@ -389,7 +389,7 @@ object TagValidator {
       )
 
     val requiredNonEmptyErrors = actualAttributes.flatMap { case (a, b) =>
-      if (requiredAttrs.filter(f => !f.validation.nullable).map(_.name).contains(a) && b.isEmpty) {
+      if (requiredAttrs.filter(f => !f.validation.allowEmpty).map(_.name).contains(a) && b.isEmpty) {
         Some(
           ValidationMessage(
             fieldName,
