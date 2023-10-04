@@ -99,8 +99,8 @@
         {
           "name": "data-resource_id",
           "validation": {
-            "required": true,
-            "allowEmpty": false
+            "dataType": "NUMBER",
+            "required": true
           }
         },
         {
@@ -243,8 +243,8 @@
         {
           "name": "data-resource_id",
           "validation": {
-            "required": true,
-            "allowEmpty": false
+            "dataType": "NUMBER",
+            "required": true
           }
         },
         {
@@ -358,8 +358,8 @@
         {
           "name": "data-content-id",
           "validation": {
-            "required": true,
-            "allowEmpty": false
+            "dataType": "NUMBER",
+            "required": true
           }
         },
         {
@@ -443,7 +443,55 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL",
+            "allowedDomains": [
+              ".*.ndla.no",
+              "vimeo.com",
+              "ndla.filmiundervisning.no",
+              "prezi.com",
+              "commoncraft.com",
+              "embed.kahoot.it",
+              "fast.wistia.com",
+              ".*.khanacademy.org",
+              "khanacademy.org",
+              "elevkanalen.no",
+              ".*.elevkanalen.no",
+              "tv2skole.no",
+              ".*.tv2skole.no",
+              "www.scribd.com",
+              "www.vg.no",
+              "livestream.com",
+              ".*.livestream.com",
+              "tomknudsen.no",
+              "www.tomknudsen.no",
+              "geogebra.org",
+              "www.geogebra.org",
+              "ggbm.at",
+              "www.imdb.com",
+              "imdb.com",
+              "miljoatlas.miljodirektoratet.no",
+              "www.miljostatus.no",
+              "miljostatus.no",
+              "phet.colorado.edu",
+              "static.nrk.no",
+              "lab.concord.org",
+              ".*.worldbank.org",
+              "worldbank.org",
+              "embed.molview.org",
+              "embed.ted.com",
+              "ebok.no",
+              "trinket.io",
+              "codepen.io",
+              "public.flourish.studio",
+              "ourworldindata.org",
+              "3dwarehouse.sketchup.com",
+              "www.gapminder.org",
+              "www.facebook.com",
+              "fb.watch",
+              "sketchfab.com",
+              "jeopardylabs.com"
+            ]
           }
         },
         {
@@ -496,53 +544,6 @@
             ]
           }
         }
-      ],
-      "validUrlDomains": [
-        ".*.ndla.no",
-        "vimeo.com",
-        "ndla.filmiundervisning.no",
-        "prezi.com",
-        "commoncraft.com",
-        "embed.kahoot.it",
-        "fast.wistia.com",
-        ".*.khanacademy.org",
-        "khanacademy.org",
-        "elevkanalen.no",
-        ".*.elevkanalen.no",
-        "tv2skole.no",
-        ".*.tv2skole.no",
-        "www.scribd.com",
-        "www.vg.no",
-        "livestream.com",
-        ".*.livestream.com",
-        "tomknudsen.no",
-        "www.tomknudsen.no",
-        "geogebra.org",
-        "www.geogebra.org",
-        "ggbm.at",
-        "www.imdb.com",
-        "imdb.com",
-        "miljoatlas.miljodirektoratet.no",
-        "www.miljostatus.no",
-        "miljostatus.no",
-        "phet.colorado.edu",
-        "static.nrk.no",
-        "lab.concord.org",
-        ".*.worldbank.org",
-        "worldbank.org",
-        "embed.molview.org",
-        "embed.ted.com",
-        "ebok.no",
-        "trinket.io",
-        "codepen.io",
-        "public.flourish.studio",
-        "ourworldindata.org",
-        "3dwarehouse.sketchup.com",
-        "www.gapminder.org",
-        "www.facebook.com",
-        "fb.watch",
-        "sketchfab.com",
-        "jeopardylabs.com"
       ]
     },
     "footnote": {

@@ -11,6 +11,7 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.validation.AttributeType.{NUMBER, STRING, URL}
 import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
 import org.jsoup.nodes.{Element, Node}
 
@@ -354,7 +355,7 @@ object TagValidator {
 
     verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributes, resourceType) ++
       verifyOptionals(fieldName, attributeRulesForTag, attributes.keySet, partialErrorMessage) ++
-      verifySourceUrl(fieldName, attributeRulesForTag, attributes, resourceType)
+      verifyAttributeFormat(fieldName, attributeRulesForTag, attributes, partialErrorMessage)
   }
 
   private def verifyEmbedTagBasedOnResourceType(
@@ -443,28 +444,49 @@ object TagValidator {
         .distinct
     }
 
-  private def verifySourceUrl(
+  private def verifyAttributeFormat(
       fieldName: String,
-      attrs: TagAttributeRules,
+      tagAttributeRules: TagAttributeRules,
       usedAttributes: Map[TagAttribute, String],
-      resourceType: ResourceType
+      partialErrorMessage: String
   ): Seq[ValidationMessage] = {
-    (usedAttributes.get(TagAttribute.DataUrl), attrs.validUrlDomains) match {
-      case (Some(url), Some(sourceDomains)) =>
-        val urlHost               = url.hostOption.map(_.toString).getOrElse("")
-        val urlMatchesValidDomain = sourceDomains.exists(domain => urlHost.matches(domain))
-
-        if (urlMatchesValidDomain) Seq.empty
-        else
-          Seq(
-            ValidationMessage(
-              fieldName,
-              s"An $EmbedTagName HTML tag with ${TagAttribute.DataResource}=$resourceType can only contain ${TagAttribute.DataUrl} urls from the following domains: ${attrs.validUrlDomains
-                  .mkString(", ")}"
-            )
+    usedAttributes.keys
+      .flatMap(key => {
+        val value = usedAttributes(key)
+        tagAttributeRules
+          .field(key)
+          .map(f =>
+            f.validation.dataType match {
+              case STRING => Seq.empty
+              case URL => {
+                val urlHost               = value.hostOption.map(_.toString).getOrElse("")
+                val urlMatchesValidDomain = f.validation.allowedDomains.exists(domain => urlHost.matches(domain))
+                if (urlMatchesValidDomain) Seq.empty
+                else
+                  Seq(
+                    ValidationMessage(
+                      fieldName,
+                      s"$partialErrorMessage and ${key}=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${f.validation.allowedDomains
+                          .mkString(", ")}"
+                    )
+                  )
+              }
+              case NUMBER =>
+                value.toDoubleOption match {
+                  case Some(_) => Seq.empty
+                  case None =>
+                    Seq(
+                      ValidationMessage(
+                        fieldName,
+                        s"$partialErrorMessage and attribute $key must have a valid numeric value."
+                      )
+                    )
+                }
+            }
           )
-      case _ => Seq.empty
-    }
+          .get
+      })
+      .toSeq
   }
 
   private def getMissingAttributes(

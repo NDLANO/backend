@@ -57,7 +57,7 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
-  test("Fields with allowEmpty=false should not be allowed to be empty") {
+  test("Fields with dataType NUMBER should not be allowed to be empty") {
     val embedString =
       s"""<$EmbedTagName
         | data-resource="image"
@@ -73,7 +73,7 @@ class EmbedTagRulesTest extends UnitSuite {
       Seq(
         ValidationMessage(
           "test",
-          s"An $EmbedTagName HTML tag with data-resource=image must contain non-empty attributes: data-resource_id."
+          s"An $EmbedTagName HTML tag with data-resource=image and attribute data-resource_id must have a valid numeric value."
         )
       )
     )
