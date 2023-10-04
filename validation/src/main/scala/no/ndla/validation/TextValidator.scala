@@ -35,7 +35,7 @@ object TextValidator {
   def validate(
       fieldPath: String,
       text: String,
-      allowedTags: Set[_ <: String],
+      allowedTags: Set[String],
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
     if (allowedTags.isEmpty) {
@@ -48,7 +48,7 @@ object TextValidator {
   def validateVisualElement(
       fieldPath: String,
       text: String,
-      allowedTags: Set[_ <: String] = HtmlTagRules.allLegalTags,
+      allowedTags: Set[String] = HtmlTagRules.allLegalTags,
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
 
@@ -73,7 +73,7 @@ object TextValidator {
       fieldPath: String,
       text: String,
       requiredToOptional: Map[String, Seq[String]],
-      allowedTags: Set[_ <: String]
+      allowedTags: Set[String]
   ): Seq[ValidationMessage] = {
 
     val whiteList = new Safelist().addTags(allowedTags.toSeq: _*)

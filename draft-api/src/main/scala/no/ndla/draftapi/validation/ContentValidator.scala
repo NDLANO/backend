@@ -34,7 +34,7 @@ trait ContentValidator {
 
   class ContentValidator() {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
-    private val allowedTags = if (props.AllowHtmlInTitle) Set("span") else Set.empty
+    private val allowedTags = if (props.AllowHtmlInTitle) Set("span") else Set.empty[String]
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
       NDLADate.fromString(dateString) match {

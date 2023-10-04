@@ -875,12 +875,24 @@
           }
         },
         {
+          "name": "data-title-language",
+          "validation": {
+            "required": false
+          }
+        },
+        {
           "name": "data-description",
           "validation": {
             "required": true,
             "allowedHtml": [
               "span"
             ]
+          }
+        },
+        {
+          "name": "data-description-language",
+          "validation": {
+            "required": false
           }
         },
         {
@@ -940,6 +952,12 @@
         },
         {
           "name": "data-date",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-language",
           "validation": {
             "required": false
           }
