@@ -20,7 +20,7 @@ import scalikejdbc._
 import scala.util.{Failure, Success}
 
 class V8__add_subject_links extends BaseJavaMigration {
-  
+
   implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
   implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
 
@@ -76,5 +76,5 @@ case class V8_SubjectFrontPageData(
     goTo: List[String],
     connectedTo: List[String],
     buildsOn: List[String],
-    leadsTo: List[String],
+    leadsTo: List[String]
 )
