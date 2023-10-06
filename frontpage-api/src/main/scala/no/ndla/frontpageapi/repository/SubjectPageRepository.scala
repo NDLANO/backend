@@ -24,7 +24,6 @@ trait SubjectPageRepository {
 
   class SubjectPageRepository {
     val logger = getLogger
-    import SubjectFrontPageData._
 
     def newSubjectPage(subj: SubjectFrontPageData, externalId: String)(implicit
         session: DBSession = AutoSession
