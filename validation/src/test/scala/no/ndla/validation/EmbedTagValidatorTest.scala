@@ -494,6 +494,23 @@ class EmbedTagValidatorTest extends UnitSuite {
       .contains(s"can only contain ${TagAttribute.DataUrl} urls from the following domains:") should be(true)
   }
 
+  test("validate should fail if source url is not a legal address") {
+    val tag = generateTagWithAttrs(
+      Map(
+        TagAttribute.DataResource -> ResourceType.IframeContent.toString,
+        TagAttribute.DataType     -> ResourceType.IframeContent.toString,
+        TagAttribute.DataUrl      -> "https://notalegaladdress",
+        TagAttribute.DataWidth    -> "1",
+        TagAttribute.DataHeight   -> "1"
+      )
+    )
+
+    val result = TagValidator.validate("content", tag)
+    result.size should be(1)
+    result.head.message
+      .contains(s"must be a valid url address") should be(true)
+  }
+
   test("validate should succeed if source url is from a legal wildcard domain") {
     val tag = generateTagWithAttrs(
       Map(

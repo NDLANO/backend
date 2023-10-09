@@ -79,6 +79,83 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
+  test("Fields with dataType EMAIL should have legal email") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email="batman@gotham.com"
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email="thisisinfactalegal@email-address"
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email=""
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=contact-block and data-email= must be a valid email address."
+          )
+        )
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email="batman_at_gotham_dot_com"
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=contact-block and data-email=batman_at_gotham_dot_com must be a valid email address."
+          )
+        )
+      )
+    }
+  }
+
   test("Optional standalone fields without coExisting is OK") {
     val embedString =
       s"""<$EmbedTagName

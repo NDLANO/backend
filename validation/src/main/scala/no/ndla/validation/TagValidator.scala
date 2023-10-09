@@ -11,7 +11,7 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.validation.AttributeType.{NUMBER, STRING, URL}
+import no.ndla.validation.AttributeType.{EMAIL, NUMBER, STRING, URL}
 import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
 import org.jsoup.nodes.{Element, Node}
 
@@ -457,19 +457,42 @@ object TagValidator {
           .field(key)
           .map(f =>
             f.validation.dataType match {
-              case STRING => Seq.empty
-              case URL => {
-                val urlHost               = value.hostOption.map(_.toString).getOrElse("")
-                val urlMatchesValidDomain = f.validation.allowedDomains.exists(domain => urlHost.matches(domain))
-                if (urlMatchesValidDomain) Seq.empty
+              case STRING => Seq.empty // Anything goes
+              case EMAIL => {
+                val emailRegex =
+                  "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+                if (value.matches(emailRegex)) Seq.empty
                 else
                   Seq(
                     ValidationMessage(
                       fieldName,
-                      s"$partialErrorMessage and ${key}=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${f.validation.allowedDomains
-                          .mkString(", ")}"
+                      s"$partialErrorMessage and ${key}=$value must be a valid email address."
                     )
                   )
+              }
+              case URL => {
+                val domainRegex =
+                  "(http(s)?:\\/\\/.)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)"
+                if (!value.matches(domainRegex))
+                  Seq(
+                    ValidationMessage(
+                      fieldName,
+                      s"$partialErrorMessage and ${key}=$value must be a valid url address."
+                    )
+                  )
+                else {
+                  val urlHost               = value.hostOption.map(_.toString).getOrElse("")
+                  val urlMatchesValidDomain = f.validation.allowedDomains.exists(domain => urlHost.matches(domain))
+                  if (urlMatchesValidDomain) Seq.empty
+                  else
+                    Seq(
+                      ValidationMessage(
+                        fieldName,
+                        s"$partialErrorMessage and ${key}=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${f.validation.allowedDomains
+                            .mkString(", ")}"
+                      )
+                    )
+                }
               }
               case NUMBER =>
                 value.toDoubleOption match {

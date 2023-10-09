@@ -734,6 +734,7 @@
         {
           "name": "data-email",
           "validation": {
+            "dataType": "EMAIL",
             "required": true
           }
         },
