@@ -29,10 +29,10 @@ object TestData {
     ),
     Seq(domain.MetaDescription("meta", "nb")),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
+    List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation")
+    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
   )
   val domainSubjectJson: String = domainSubjectPage.asJson.noSpaces
 
@@ -52,10 +52,10 @@ object TestData {
       domain.MetaDescription("meta", "nb")
     ),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
+    List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation")
+    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
   )
 
   val apiSubjectPage: SubjectPageData = api.SubjectPageData(
