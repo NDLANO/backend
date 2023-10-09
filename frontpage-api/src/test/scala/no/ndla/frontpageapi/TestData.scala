@@ -119,10 +119,10 @@ object TestData {
     ),
     Some(List(api.NewOrUpdatedMetaDescription("meta", "nb"))),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
+    Some(List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-    Some(List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation"))
+    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
   )
 
   val domainFilmFrontPage: FilmFrontPageData = domain.FilmFrontPageData(
