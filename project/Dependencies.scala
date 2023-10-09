@@ -54,6 +54,13 @@ object Dependencies {
       hikari
     )
 
+    lazy val awsS3: Seq[ModuleID] = Seq(
+      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
+      // NOTE: The s3 client uses JAXB for some performance improvements:^)
+      //       A warning is logged when uploading stuff to s3 if not included
+      "javax.xml.bind" % "jaxb-api" % "2.3.1"
+    )
+
     lazy val jsoup = "org.jsoup" % "jsoup" % JsoupV
 
     lazy val melody: Seq[ModuleID] = Seq(
