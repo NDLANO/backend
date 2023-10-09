@@ -73,10 +73,11 @@ object TagRules {
 sealed abstract class AttributeType extends EnumEntry
 object AttributeType extends Enum[AttributeType] {
   val values: IndexedSeq[AttributeType] = findValues
-  case object STRING extends AttributeType
-  case object NUMBER extends AttributeType
-  case object URL    extends AttributeType
-  case object EMAIL  extends AttributeType
+  case object BOOLEAN extends AttributeType
+  case object EMAIL   extends AttributeType
+  case object NUMBER  extends AttributeType
+  case object STRING  extends AttributeType
+  case object URL     extends AttributeType
 }
 
 sealed abstract class TagAttribute(override val entryName: String) extends EnumEntry {

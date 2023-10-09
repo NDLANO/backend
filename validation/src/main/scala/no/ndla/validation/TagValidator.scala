@@ -11,7 +11,7 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.validation.AttributeType.{EMAIL, NUMBER, STRING, URL}
+import no.ndla.validation.AttributeType.{BOOLEAN, EMAIL, NUMBER, STRING, URL, values}
 import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
 import org.jsoup.nodes.{Element, Node}
 
@@ -389,18 +389,7 @@ object TagValidator {
         )
       )
 
-    val requiredNonEmptyErrors = actualAttributes.flatMap { case (a, b) =>
-      if (requiredAttrs.filter(f => !f.validation.allowEmpty).map(_.name).contains(a) && b.isEmpty) {
-        Some(
-          ValidationMessage(
-            fieldName,
-            s"$partialErrorMessage must contain non-empty attributes: ${attrRules.requiredNonEmpty.map(_.name).mkString(", ")}."
-          )
-        )
-      } else { None }
-    }.toList
-
-    missingErrors ++ illegalErrors ++ requiredNonEmptyErrors
+    missingErrors ++ illegalErrors
   }
 
   private def verifyOptionals(
@@ -449,67 +438,119 @@ object TagValidator {
       tagAttributeRules: TagAttributeRules,
       usedAttributes: Map[TagAttribute, String],
       partialErrorMessage: String
-  ): Seq[ValidationMessage] = {
-    usedAttributes.keys
-      .flatMap(key => {
-        val value = usedAttributes(key)
-        tagAttributeRules
-          .field(key)
-          .map(f =>
-            f.validation.dataType match {
-              case STRING => Seq.empty // Anything goes
-              case EMAIL => {
-                val emailRegex =
-                  "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-                if (value.matches(emailRegex)) Seq.empty
-                else
-                  Seq(
-                    ValidationMessage(
-                      fieldName,
-                      s"$partialErrorMessage and ${key}=$value must be a valid email address."
-                    )
-                  )
-              }
-              case URL => {
-                val domainRegex =
-                  "(http(s)?:\\/\\/.)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)"
-                if (!value.matches(domainRegex))
-                  Seq(
-                    ValidationMessage(
-                      fieldName,
-                      s"$partialErrorMessage and ${key}=$value must be a valid url address."
-                    )
-                  )
-                else {
-                  val urlHost               = value.hostOption.map(_.toString).getOrElse("")
-                  val urlMatchesValidDomain = f.validation.allowedDomains.exists(domain => urlHost.matches(domain))
-                  if (urlMatchesValidDomain) Seq.empty
-                  else
-                    Seq(
-                      ValidationMessage(
-                        fieldName,
-                        s"$partialErrorMessage and ${key}=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${f.validation.allowedDomains
-                            .mkString(", ")}"
-                      )
-                    )
-                }
-              }
-              case NUMBER =>
-                value.toDoubleOption match {
-                  case Some(_) => Seq.empty
-                  case None =>
-                    Seq(
-                      ValidationMessage(
-                        fieldName,
-                        s"$partialErrorMessage and attribute $key must have a valid numeric value."
-                      )
-                    )
-                }
-            }
+  ): Seq[ValidationMessage] =
+    usedAttributes.flatMap { case (key, value) =>
+      tagAttributeRules
+        .field(key)
+        .flatMap(f =>
+          f.validation.dataType match {
+            case BOOLEAN => validateBooleanField(fieldName, partialErrorMessage, key, value, f)
+            case EMAIL   => validateEmailField(fieldName, partialErrorMessage, key, value, f)
+            case NUMBER  => validateNumberField(fieldName, partialErrorMessage, key, value, f)
+            case STRING  => None
+            case URL     => validateUrlField(fieldName, partialErrorMessage, key, value, f)
+          }
+        )
+    }.toSeq
+
+  private def validateBooleanField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    value.toBooleanOption match {
+      case Some(_)                                             => None
+      case None if !field.validation.required && value.isEmpty => None
+      case None =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and attribute $key=$value must have a valid boolean value."
           )
-          .get
-      })
-      .toSeq
+        )
+    }
+  }
+
+  private def validateEmailField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    val emailRegex =
+      "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+    value.matches(emailRegex) match {
+      case true                                                 => None
+      case false if !field.validation.required && value.isEmpty => None
+      case false =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and ${key}=$value must be a valid email address."
+          )
+        )
+
+    }
+  }
+
+  private def validateNumberField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    value.toDoubleOption match {
+      case Some(_)                                             => None
+      case None if !field.validation.required && value.isEmpty => None
+      case None =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and attribute $key=$value must have a valid numeric value."
+          )
+        )
+    }
+  }
+
+  private def validateUrlField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    val domainRegex =
+      "(http(s)?:\\/\\/.)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)"
+
+    value.matches(domainRegex) match {
+      case false =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and ${key}=$value must be a valid url address."
+          )
+        )
+      case true =>
+        if (field.validation.allowedDomains.isEmpty) None
+        else {
+          val urlHost               = value.hostOption.map(_.toString).getOrElse("")
+          val urlMatchesValidDomain = field.validation.allowedDomains.exists(domain => urlHost.matches(domain))
+          if (urlMatchesValidDomain) None
+          else
+            Some(
+              ValidationMessage(
+                fieldName,
+                s"$partialErrorMessage and ${key}=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${field.validation.allowedDomains
+                    .mkString(", ")}"
+              )
+            )
+        }
+
+    }
   }
 
   private def getMissingAttributes(

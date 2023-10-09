@@ -23,6 +23,7 @@
         {
           "name": "data-url",
           "validation": {
+            "dataType": "URL",
             "required": false
           }
         }
@@ -39,7 +40,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {
@@ -64,6 +66,7 @@
           "name": "data-imageid",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-caption",
               "data-title"
@@ -99,8 +102,8 @@
         {
           "name": "data-resource_id",
           "validation": {
-            "dataType": "NUMBER",
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -140,7 +143,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         }
       ]
@@ -156,7 +160,8 @@
         {
           "name": "data-content-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -243,8 +248,8 @@
         {
           "name": "data-resource_id",
           "validation": {
-            "dataType": "NUMBER",
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -280,13 +285,15 @@
         {
           "name": "data-is-decorative",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "BOOLEAN"
           }
         },
         {
           "name": "data-focal-x",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-focal-y"
             ]
@@ -296,6 +303,7 @@
           "name": "data-focal-y",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-focal-x"
             ]
@@ -305,6 +313,7 @@
           "name": "data-upper-left-x",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-y",
               "data-lower-right-x",
@@ -316,6 +325,7 @@
           "name": "data-upper-left-y",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-x",
               "data-lower-right-x",
@@ -327,6 +337,7 @@
           "name": "data-lower-right-x",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-x",
               "data-upper-left-y",
@@ -338,6 +349,7 @@
           "name": "data-lower-right-y",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-x",
               "data-upper-left-y",
@@ -358,8 +370,8 @@
         {
           "name": "data-content-id",
           "validation": {
-            "dataType": "NUMBER",
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -425,6 +437,7 @@
           "name": "data-recursive",
           "validation": {
             "required": false,
+            "dataType": "BOOLEAN",
             "mustCoexistWith": [
               "data-resource_id"
             ]
@@ -520,6 +533,7 @@
           "name": "data-imageid",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-title",
               "data-caption"
@@ -530,6 +544,7 @@
           "name": "data-height",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-width"
             ]
@@ -539,6 +554,7 @@
           "name": "data-width",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-height"
             ]
@@ -631,13 +647,15 @@
         {
           "name": "data-article-id",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "NUMBER"
           }
         },
         {
           "name": "data-url",
           "validation": {
             "required": false,
+            "dataType": "URL",
             "mustCoexistWith": [
               "data-title"
             ]
@@ -747,7 +765,8 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -775,7 +794,8 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -796,7 +816,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {
@@ -824,7 +845,8 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -906,7 +928,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {
@@ -918,13 +941,15 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "NUMBER"
           }
         },
         {
           "name": "data-image-side",
           "validation": {
-            "required": true
+            "required": true,
+            "mustCoexistWith": ["data-image-id"]
           }
         }
       ]
@@ -949,7 +974,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {

@@ -57,26 +57,81 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
-  test("Fields with dataType NUMBER should not be allowed to be empty") {
-    val embedString =
-      s"""<$EmbedTagName
-        | data-resource="image"
-        | data-resource_id=""
-        | data-size=""
-        | data-align=""
-        | data-alt=""
-        | data-caption=""
-        |/>""".stripMargin
+  test("Required fields with dataType NUMBER should not be allowed to be empty") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="image"
+           | data-resource_id=""
+           | data-size=""
+           | data-align=""
+           | data-alt=""
+           | data-caption=""
+           |/>""".stripMargin
 
-    val result = TagValidator.validate("test", embedString)
-    result should be(
-      Seq(
-        ValidationMessage(
-          "test",
-          s"An $EmbedTagName HTML tag with data-resource=image and attribute data-resource_id must have a valid numeric value."
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=image and attribute data-resource_id= must have a valid numeric value."
+          )
         )
       )
-    )
+    }
+    {
+      // image-id intentionally left blank. Not really a valid embed.
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="campaign-block"
+           | data-title="Marvellous campaign"
+           | data-description="Water is good for you!"
+           | data-heading-level="h1"
+           | data-url="https://blogg.ndla.no/campaign"
+           | data-url-text="Our blog"
+           | data-image-id=""
+           | data-image-side="left"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+  }
+
+  test("Fields with dataType BOOLEAN should in fact be boolean") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept-list"
+           | data-resource_id="1"
+           | data-recursive="wat"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=concept-list and attribute data-recursive=wat must have a valid boolean value."
+          )
+        )
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept-list"
+           | data-resource_id="1"
+           | data-recursive="true"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
   }
 
   test("Fields with dataType EMAIL should have legal email") {
