@@ -489,7 +489,7 @@ object TagValidator {
         Some(
           ValidationMessage(
             fieldName,
-            s"$partialErrorMessage and ${key}=$value must be a valid email address."
+            s"$partialErrorMessage and $key=$value must be a valid email address."
           )
         )
 
@@ -526,30 +526,28 @@ object TagValidator {
     val domainRegex =
       "(http(s)?:\\/\\/.)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)"
 
-    value.matches(domainRegex) match {
-      case false =>
-        Some(
-          ValidationMessage(
-            fieldName,
-            s"$partialErrorMessage and ${key}=$value must be a valid url address."
-          )
-        )
-      case true =>
-        if (field.validation.allowedDomains.isEmpty) None
-        else {
-          val urlHost               = value.hostOption.map(_.toString).getOrElse("")
-          val urlMatchesValidDomain = field.validation.allowedDomains.exists(domain => urlHost.matches(domain))
-          if (urlMatchesValidDomain) None
-          else
-            Some(
-              ValidationMessage(
-                fieldName,
-                s"$partialErrorMessage and ${key}=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${field.validation.allowedDomains
-                    .mkString(", ")}"
-              )
+    if (value.matches(domainRegex)) {
+      if (field.validation.allowedDomains.isEmpty) None
+      else {
+        val urlHost               = value.hostOption.map(_.toString).getOrElse("")
+        val urlMatchesValidDomain = field.validation.allowedDomains.exists(domain => urlHost.matches(domain))
+        if (urlMatchesValidDomain) None
+        else
+          Some(
+            ValidationMessage(
+              fieldName,
+              s"$partialErrorMessage and $key=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${field.validation.allowedDomains
+                  .mkString(", ")}"
             )
-        }
-
+          )
+      }
+    } else {
+      Some(
+        ValidationMessage(
+          fieldName,
+          s"$partialErrorMessage and $key=$value must be a valid url address."
+        )
+      )
     }
   }
 

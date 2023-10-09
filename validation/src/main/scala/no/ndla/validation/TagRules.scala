@@ -14,9 +14,8 @@ object TagRules {
   ) {
     lazy val all: Set[TagAttribute] = fields.map(f => f.name)
 
-    lazy val optional: Set[Field]         = fields.filter(f => !f.validation.required)
-    lazy val required: Set[Field]         = fields.filter(f => f.validation.required)
-    lazy val requiredNonEmpty: Set[Field] = required.filter(f => !f.validation.allowEmpty)
+    lazy val optional: Set[Field] = fields.filter(f => !f.validation.required)
+    lazy val required: Set[Field] = fields.filter(f => f.validation.required)
 
     def field(tag: TagAttribute): Option[Field] = fields.find(f => f.name == tag)
 
@@ -36,7 +35,6 @@ object TagRules {
   case class Validation(
       dataType: AttributeType = AttributeType.STRING,
       required: Boolean = false,
-      allowEmpty: Boolean = true,
       allowedHtml: Set[String] = Set.empty,
       allowedDomains: Set[String] = Set.empty,
       mustCoexistWith: List[TagAttribute] = List.empty
