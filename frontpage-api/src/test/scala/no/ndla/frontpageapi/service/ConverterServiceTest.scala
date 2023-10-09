@@ -71,7 +71,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None,
       None
     )
 
@@ -95,7 +94,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           )
         )
       ),
-      None,
       None,
       None,
       None,
@@ -135,7 +133,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           NewOrUpdatedMetaDescription("meta description", "en")
         )
       ),
-      None,
       None,
       None,
       None,

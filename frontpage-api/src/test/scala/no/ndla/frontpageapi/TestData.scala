@@ -29,7 +29,6 @@ object TestData {
     ),
     Seq(domain.MetaDescription("meta", "nb")),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
@@ -52,7 +51,6 @@ object TestData {
       domain.MetaDescription("meta", "nb")
     ),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
@@ -76,7 +74,6 @@ object TestData {
     ),
     Some("meta"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation"),
     List("nb"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
@@ -99,8 +96,7 @@ object TestData {
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-    Some(List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation"))
+    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
   )
 
   val apiUpdatedSubjectPage: UpdatedSubjectFrontPageData = api.UpdatedSubjectFrontPageData(
@@ -119,7 +115,6 @@ object TestData {
     ),
     Some(List(api.NewOrUpdatedMetaDescription("meta", "nb"))),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-    Some(List("urn:resourcetype:movieAndClip", "urn:resourcetype:lectureAndPresentation")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))

@@ -83,7 +83,6 @@ trait WriteService {
         about = about,
         metaDescription = metaDescription,
         editorsChoices = updatedSubjectPage.editorsChoices,
-        goTo = updatedSubjectPage.goTo,
         connectedTo = updatedSubjectPage.connectedTo,
         buildsOn = updatedSubjectPage.buildsOn,
         leadsTo = updatedSubjectPage.leadsTo

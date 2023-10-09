@@ -14,7 +14,6 @@ case class UpdatedSubjectFrontPageData(
     about: Option[Seq[NewOrUpdatedAboutSubject]],
     metaDescription: Option[Seq[NewOrUpdatedMetaDescription]],
     editorsChoices: Option[List[String]],
-    goTo: Option[List[String]],
     connectedTo: Option[List[String]],
     buildsOn: Option[List[String]],
     leadsTo: Option[List[String]]

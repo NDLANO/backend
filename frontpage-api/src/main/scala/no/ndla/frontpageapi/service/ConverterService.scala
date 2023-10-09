@@ -86,7 +86,6 @@ trait ConverterService {
                 toApiAboutSubject(findByLanguageOrBestEffort(sub.about, language)),
                 toApiMetaDescription(findByLanguageOrBestEffort(sub.metaDescription, language)),
                 sub.editorsChoices,
-                sub.goTo,
                 sub.supportedLanguages,
                 sub.connectedTo,
                 sub.buildsOn,
@@ -139,7 +138,6 @@ trait ConverterService {
           about = about,
           metaDescription = toDomainMetaDescription(subject.metaDescription),
           editorsChoices = subject.editorsChoices.getOrElse(List()),
-          goTo = subject.goTo.getOrElse(List()),
           connectedTo = subject.connectedTo.getOrElse(List()),
           buildsOn = subject.buildsOn.getOrElse(List()),
           leadsTo = subject.leadsTo.getOrElse(List())
@@ -162,7 +160,6 @@ trait ConverterService {
           about = mergeLanguageFields(toMergeInto.about, aboutSubject.toSeq.flatten),
           metaDescription = mergeLanguageFields(toMergeInto.metaDescription, metaDescription.toSeq.flatten),
           editorsChoices = subject.editorsChoices.getOrElse(toMergeInto.editorsChoices),
-          goTo = subject.goTo.getOrElse(toMergeInto.goTo),
           connectedTo = subject.connectedTo.getOrElse(toMergeInto.connectedTo),
           buildsOn = subject.buildsOn.getOrElse(toMergeInto.buildsOn),
           leadsTo = subject.leadsTo.getOrElse(toMergeInto.leadsTo)

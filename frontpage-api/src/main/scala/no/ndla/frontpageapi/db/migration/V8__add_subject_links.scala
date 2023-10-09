@@ -47,7 +47,6 @@ class V8__add_subject_links extends BaseJavaMigration {
           about = value.about,
           metaDescription = value.metaDescription,
           editorsChoices = value.editorsChoices,
-          goTo = value.goTo,
           connectedTo = List(),
           buildsOn = List(),
           leadsTo = List()
@@ -74,7 +73,6 @@ case class V8_SubjectFrontPageData(
     about: Seq[V4_AboutSubject],
     metaDescription: Seq[V5_MetaDescription],
     editorsChoices: List[String],
-    goTo: List[String],
     connectedTo: List[String],
     buildsOn: List[String],
     leadsTo: List[String]

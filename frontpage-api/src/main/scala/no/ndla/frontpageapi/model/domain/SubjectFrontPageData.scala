@@ -24,7 +24,6 @@ case class SubjectFrontPageData(
     about: Seq[AboutSubject],
     metaDescription: Seq[MetaDescription],
     editorsChoices: List[String],
-    goTo: List[String],
     connectedTo: List[String],
     buildsOn: List[String],
     leadsTo: List[String]

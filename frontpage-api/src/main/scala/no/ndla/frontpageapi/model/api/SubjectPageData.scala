@@ -18,7 +18,6 @@ case class SubjectPageData(
     about: Option[AboutSubject],
     metaDescription: Option[String],
     editorsChoices: List[String],
-    goTo: List[String],
     supportedLanguages: Seq[String],
     connectedTo: List[String],
     buildsOn: List[String],
