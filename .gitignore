@@ -3,6 +3,8 @@ target/
 /.idea
 .env
 .bloop/
+.metals/
+.vscode/
 
 /typescript/node_modules
 /typescript/build
