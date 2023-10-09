@@ -948,8 +948,7 @@
         {
           "name": "data-image-side",
           "validation": {
-            "required": true,
-            "mustCoexistWith": ["data-image-id"]
+            "required": false
           }
         }
       ]

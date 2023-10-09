@@ -80,7 +80,6 @@ class EmbedTagRulesTest extends UnitSuite {
       )
     }
     {
-      // image-id intentionally left blank. Not really a valid embed.
       val embedString =
         s"""<$EmbedTagName
            | data-resource="campaign-block"
