@@ -67,10 +67,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None,
-      None,
-      None,
-      None,
       Some(List(NewOrUpdatedMetaDescription("oppdatert meta", "nb"))),
       None,
       None,
@@ -86,10 +82,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainSubjectPage updates aboutSubject correctly") {
     val updateWith = UpdatedSubjectFrontPageData(
-      None,
-      None,
-      None,
-      None,
       None,
       None,
       None,
@@ -125,10 +117,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainSubjectPage adds new language correctly") {
     val updateWith = UpdatedSubjectFrontPageData(
-      None,
-      None,
-      None,
-      None,
       None,
       None,
       None,

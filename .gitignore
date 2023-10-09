@@ -2,6 +2,7 @@
 target/
 /.idea
 .env
+.bloop/
 
 /typescript/node_modules
 /typescript/build
