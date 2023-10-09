@@ -11,7 +11,7 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.validation.AttributeType.{BOOLEAN, EMAIL, NUMBER, STRING, URL, values}
+import no.ndla.validation.AttributeType._
 import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
 import org.jsoup.nodes.{Element, Node}
 
