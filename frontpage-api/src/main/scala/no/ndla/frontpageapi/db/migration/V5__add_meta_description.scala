@@ -4,6 +4,7 @@
  *
  * See LICENSE
  */
+
 package no.ndla.frontpageapi.db.migration
 
 import io.circe.generic.auto._
