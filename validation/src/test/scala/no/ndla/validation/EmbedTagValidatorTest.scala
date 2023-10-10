@@ -512,17 +512,46 @@ class EmbedTagValidatorTest extends UnitSuite {
   }
 
   test("validate should succeed if source url matches regex") {
-    val tag = generateTagWithAttrs(
-      Map(
-        TagAttribute.DataResource -> ResourceType.BlogPost.toString,
-        TagAttribute.DataUrl      -> "http://vg.no",
-        TagAttribute.DataImage_Id -> "1",
-        TagAttribute.DataTitle    -> "Blogpost"
+    {
+      val tag = generateTagWithAttrs(
+        Map(
+          TagAttribute.DataResource -> ResourceType.BlogPost.toString,
+          TagAttribute.DataUrl      -> "http://vg.no",
+          TagAttribute.DataImage_Id -> "1",
+          TagAttribute.DataTitle    -> "Blogpost"
+        )
       )
-    )
 
-    val result = TagValidator.validate("content", tag)
-    result.size should be(0)
+      val result = TagValidator.validate("content", tag)
+      result.size should be(0)
+    }
+    {
+      val tag = generateTagWithAttrs(
+        Map(
+          TagAttribute.DataResource -> ResourceType.BlogPost.toString,
+          TagAttribute.DataUrl      -> "http://vg.no?this=is&also=valid",
+          TagAttribute.DataImage_Id -> "1",
+          TagAttribute.DataTitle    -> "Blogpost"
+        )
+      )
+
+      val result = TagValidator.validate("content", tag)
+      result.size should be(0)
+    }
+    {
+      val tag = generateTagWithAttrs(
+        Map(
+          TagAttribute.DataResource -> ResourceType.BlogPost.toString,
+          TagAttribute.DataUrl      -> "https://vg.no?t=",
+          TagAttribute.DataImage_Id -> "1",
+          TagAttribute.DataTitle    -> "Blogpost"
+        )
+      )
+
+      val result = TagValidator.validate("content", tag)
+      result.size should be(0)
+    }
+
   }
 
   test("validate should succeed if source url is from a legal wildcard domain") {

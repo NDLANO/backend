@@ -544,7 +544,6 @@
           "name": "data-height",
           "validation": {
             "required": false,
-            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-width"
             ]
@@ -554,7 +553,6 @@
           "name": "data-width",
           "validation": {
             "required": false,
-            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-height"
             ]
