@@ -23,7 +23,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "URL"
           }
         }
       ]
@@ -39,7 +40,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {
@@ -64,6 +66,7 @@
           "name": "data-imageid",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-caption",
               "data-title"
@@ -100,7 +103,7 @@
           "name": "data-resource_id",
           "validation": {
             "required": true,
-            "allowEmpty": false
+            "dataType": "NUMBER"
           }
         },
         {
@@ -140,7 +143,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         }
       ]
@@ -156,7 +160,8 @@
         {
           "name": "data-content-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -244,7 +249,7 @@
           "name": "data-resource_id",
           "validation": {
             "required": true,
-            "allowEmpty": false
+            "dataType": "NUMBER"
           }
         },
         {
@@ -280,13 +285,15 @@
         {
           "name": "data-is-decorative",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "BOOLEAN"
           }
         },
         {
           "name": "data-focal-x",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-focal-y"
             ]
@@ -296,6 +303,7 @@
           "name": "data-focal-y",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-focal-x"
             ]
@@ -305,6 +313,7 @@
           "name": "data-upper-left-x",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-y",
               "data-lower-right-x",
@@ -316,6 +325,7 @@
           "name": "data-upper-left-y",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-x",
               "data-lower-right-x",
@@ -327,6 +337,7 @@
           "name": "data-lower-right-x",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-x",
               "data-upper-left-y",
@@ -338,6 +349,7 @@
           "name": "data-lower-right-y",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-upper-left-x",
               "data-upper-left-y",
@@ -359,7 +371,7 @@
           "name": "data-content-id",
           "validation": {
             "required": true,
-            "allowEmpty": false
+            "dataType": "NUMBER"
           }
         },
         {
@@ -425,6 +437,7 @@
           "name": "data-recursive",
           "validation": {
             "required": false,
+            "dataType": "BOOLEAN",
             "mustCoexistWith": [
               "data-resource_id"
             ]
@@ -443,7 +456,55 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL",
+            "allowedDomains": [
+              ".*.ndla.no",
+              "vimeo.com",
+              "ndla.filmiundervisning.no",
+              "prezi.com",
+              "commoncraft.com",
+              "embed.kahoot.it",
+              "fast.wistia.com",
+              ".*.khanacademy.org",
+              "khanacademy.org",
+              "elevkanalen.no",
+              ".*.elevkanalen.no",
+              "tv2skole.no",
+              ".*.tv2skole.no",
+              "www.scribd.com",
+              "www.vg.no",
+              "livestream.com",
+              ".*.livestream.com",
+              "tomknudsen.no",
+              "www.tomknudsen.no",
+              "geogebra.org",
+              "www.geogebra.org",
+              "ggbm.at",
+              "www.imdb.com",
+              "imdb.com",
+              "miljoatlas.miljodirektoratet.no",
+              "www.miljostatus.no",
+              "miljostatus.no",
+              "phet.colorado.edu",
+              "static.nrk.no",
+              "lab.concord.org",
+              ".*.worldbank.org",
+              "worldbank.org",
+              "embed.molview.org",
+              "embed.ted.com",
+              "ebok.no",
+              "trinket.io",
+              "codepen.io",
+              "public.flourish.studio",
+              "ourworldindata.org",
+              "3dwarehouse.sketchup.com",
+              "www.gapminder.org",
+              "www.facebook.com",
+              "fb.watch",
+              "sketchfab.com",
+              "jeopardylabs.com"
+            ]
           }
         },
         {
@@ -472,6 +533,7 @@
           "name": "data-imageid",
           "validation": {
             "required": false,
+            "dataType": "NUMBER",
             "mustCoexistWith": [
               "data-title",
               "data-caption"
@@ -496,53 +558,6 @@
             ]
           }
         }
-      ],
-      "validUrlDomains": [
-        ".*.ndla.no",
-        "vimeo.com",
-        "ndla.filmiundervisning.no",
-        "prezi.com",
-        "commoncraft.com",
-        "embed.kahoot.it",
-        "fast.wistia.com",
-        ".*.khanacademy.org",
-        "khanacademy.org",
-        "elevkanalen.no",
-        ".*.elevkanalen.no",
-        "tv2skole.no",
-        ".*.tv2skole.no",
-        "www.scribd.com",
-        "www.vg.no",
-        "livestream.com",
-        ".*.livestream.com",
-        "tomknudsen.no",
-        "www.tomknudsen.no",
-        "geogebra.org",
-        "www.geogebra.org",
-        "ggbm.at",
-        "www.imdb.com",
-        "imdb.com",
-        "miljoatlas.miljodirektoratet.no",
-        "www.miljostatus.no",
-        "miljostatus.no",
-        "phet.colorado.edu",
-        "static.nrk.no",
-        "lab.concord.org",
-        ".*.worldbank.org",
-        "worldbank.org",
-        "embed.molview.org",
-        "embed.ted.com",
-        "ebok.no",
-        "trinket.io",
-        "codepen.io",
-        "public.flourish.studio",
-        "ourworldindata.org",
-        "3dwarehouse.sketchup.com",
-        "www.gapminder.org",
-        "www.facebook.com",
-        "fb.watch",
-        "sketchfab.com",
-        "jeopardylabs.com"
       ]
     },
     "footnote": {
@@ -630,13 +645,15 @@
         {
           "name": "data-article-id",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "NUMBER"
           }
         },
         {
           "name": "data-url",
           "validation": {
             "required": false,
+            "dataType": "URL",
             "mustCoexistWith": [
               "data-title"
             ]
@@ -733,6 +750,7 @@
         {
           "name": "data-email",
           "validation": {
+            "dataType": "EMAIL",
             "required": true
           }
         },
@@ -745,7 +763,8 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -773,7 +792,8 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -794,7 +814,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {
@@ -828,7 +849,8 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "NUMBER"
           }
         },
         {
@@ -910,7 +932,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {
@@ -922,13 +945,14 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "NUMBER"
           }
         },
         {
           "name": "data-image-side",
           "validation": {
-            "required": true
+            "required": false
           }
         },
         {
@@ -965,7 +989,8 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "URL"
           }
         },
         {

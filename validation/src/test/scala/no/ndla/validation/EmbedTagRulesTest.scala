@@ -57,26 +57,157 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
-  test("Fields with allowEmpty=false should not be allowed to be empty") {
-    val embedString =
-      s"""<$EmbedTagName
-        | data-resource="image"
-        | data-resource_id=""
-        | data-size=""
-        | data-align=""
-        | data-alt=""
-        | data-caption=""
-        |/>""".stripMargin
+  test("Required fields with dataType NUMBER should not be allowed to be empty") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="image"
+           | data-resource_id=""
+           | data-size=""
+           | data-align=""
+           | data-alt=""
+           | data-caption=""
+           |/>""".stripMargin
 
-    val result = TagValidator.validate("test", embedString)
-    result should be(
-      Seq(
-        ValidationMessage(
-          "test",
-          s"An $EmbedTagName HTML tag with data-resource=image must contain non-empty attributes: data-resource_id."
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=image and attribute data-resource_id= must have a valid numeric value."
+          )
         )
       )
-    )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="campaign-block"
+           | data-title="Marvellous campaign"
+           | data-description="Water is good for you!"
+           | data-heading-level="h1"
+           | data-url="https://blogg.ndla.no/campaign"
+           | data-url-text="Our blog"
+           | data-image-id=""
+           | data-image-side="left"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+  }
+
+  test("Fields with dataType BOOLEAN should in fact be boolean") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept-list"
+           | data-resource_id="1"
+           | data-recursive="wat"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=concept-list and attribute data-recursive=wat must have a valid boolean value."
+          )
+        )
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept-list"
+           | data-resource_id="1"
+           | data-recursive="true"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+  }
+
+  test("Fields with dataType EMAIL should have legal email") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email="batman@gotham.com"
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email="thisisinfactalegal@email-address"
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email=""
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=contact-block and data-email= must be a valid email address."
+          )
+        )
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="contact-block"
+           | data-job-title="Batman"
+           | data-name="Bruce Wayne"
+           | data-email="batman_at_gotham_dot_com"
+           | data-description="The original broody superhero"
+           | data-image-id="1"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=contact-block and data-email=batman_at_gotham_dot_com must be a valid email address."
+          )
+        )
+      )
+    }
   }
 
   test("Optional standalone fields without coExisting is OK") {

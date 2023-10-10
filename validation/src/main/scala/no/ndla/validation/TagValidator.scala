@@ -11,6 +11,7 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.validation.AttributeType._
 import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
 import org.jsoup.nodes.{Element, Node}
 
@@ -354,7 +355,7 @@ object TagValidator {
 
     verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributes, resourceType) ++
       verifyOptionals(fieldName, attributeRulesForTag, attributes.keySet, partialErrorMessage) ++
-      verifySourceUrl(fieldName, attributeRulesForTag, attributes, resourceType)
+      verifyAttributeFormat(fieldName, attributeRulesForTag, attributes, partialErrorMessage)
   }
 
   private def verifyEmbedTagBasedOnResourceType(
@@ -388,18 +389,7 @@ object TagValidator {
         )
       )
 
-    val requiredNonEmptyErrors = actualAttributes.flatMap { case (a, b) =>
-      if (requiredAttrs.filter(f => !f.validation.allowEmpty).map(_.name).contains(a) && b.isEmpty) {
-        Some(
-          ValidationMessage(
-            fieldName,
-            s"$partialErrorMessage must contain non-empty attributes: ${attrRules.requiredNonEmpty.map(_.name).mkString(", ")}."
-          )
-        )
-      } else { None }
-    }.toList
-
-    missingErrors ++ illegalErrors ++ requiredNonEmptyErrors
+    missingErrors ++ illegalErrors
   }
 
   private def verifyOptionals(
@@ -443,27 +433,121 @@ object TagValidator {
         .distinct
     }
 
-  private def verifySourceUrl(
+  private def verifyAttributeFormat(
       fieldName: String,
-      attrs: TagAttributeRules,
+      tagAttributeRules: TagAttributeRules,
       usedAttributes: Map[TagAttribute, String],
-      resourceType: ResourceType
-  ): Seq[ValidationMessage] = {
-    (usedAttributes.get(TagAttribute.DataUrl), attrs.validUrlDomains) match {
-      case (Some(url), Some(sourceDomains)) =>
-        val urlHost               = url.hostOption.map(_.toString).getOrElse("")
-        val urlMatchesValidDomain = sourceDomains.exists(domain => urlHost.matches(domain))
+      partialErrorMessage: String
+  ): Seq[ValidationMessage] =
+    usedAttributes.flatMap { case (key, value) =>
+      tagAttributeRules
+        .field(key)
+        .flatMap(f =>
+          f.validation.dataType match {
+            case BOOLEAN => validateBooleanField(fieldName, partialErrorMessage, key, value, f)
+            case EMAIL   => validateEmailField(fieldName, partialErrorMessage, key, value, f)
+            case NUMBER  => validateNumberField(fieldName, partialErrorMessage, key, value, f)
+            case STRING  => None
+            case URL     => validateUrlField(fieldName, partialErrorMessage, key, value, f)
+          }
+        )
+    }.toSeq
 
-        if (urlMatchesValidDomain) Seq.empty
+  private def validateBooleanField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    value.toBooleanOption match {
+      case Some(_)                                             => None
+      case None if !field.validation.required && value.isEmpty => None
+      case None =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and attribute $key=$value must have a valid boolean value."
+          )
+        )
+    }
+  }
+
+  private def validateEmailField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    val emailRegex =
+      "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+    value.matches(emailRegex) match {
+      case true                                                 => None
+      case false if !field.validation.required && value.isEmpty => None
+      case false =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and $key=$value must be a valid email address."
+          )
+        )
+
+    }
+  }
+
+  private def validateNumberField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    value.toDoubleOption match {
+      case Some(_)                                             => None
+      case None if !field.validation.required && value.isEmpty => None
+      case None =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and attribute $key=$value must have a valid numeric value."
+          )
+        )
+    }
+  }
+
+  private def validateUrlField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    val domainRegex =
+      "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)"
+
+    if (value.matches(domainRegex)) {
+      if (field.validation.allowedDomains.isEmpty) None
+      else {
+        val urlHost               = value.hostOption.map(_.toString).getOrElse("")
+        val urlMatchesValidDomain = field.validation.allowedDomains.exists(domain => urlHost.matches(domain))
+        if (urlMatchesValidDomain) None
         else
-          Seq(
+          Some(
             ValidationMessage(
               fieldName,
-              s"An $EmbedTagName HTML tag with ${TagAttribute.DataResource}=$resourceType can only contain ${TagAttribute.DataUrl} urls from the following domains: ${attrs.validUrlDomains
+              s"$partialErrorMessage and $key=$value can only contain urls from the following domains: ${field.validation.allowedDomains
                   .mkString(", ")}"
             )
           )
-      case _ => Seq.empty
+      }
+    } else {
+      Some(
+        ValidationMessage(
+          fieldName,
+          s"$partialErrorMessage and $key=$value must be a valid url address."
+        )
+      )
     }
   }
 

@@ -8,16 +8,14 @@ import org.json4s.native.JsonMethods._
 object TagRules {
   case class TagAttributeRules(
       fields: Set[Field],
-      validUrlDomains: Option[Seq[String]],
       mustBeDirectChildOf: Option[ParentTag],
       children: Option[ChildrenRule],
       mustContainAtLeastOneOptionalAttribute: Option[Boolean]
   ) {
     lazy val all: Set[TagAttribute] = fields.map(f => f.name)
 
-    lazy val optional: Set[Field]         = fields.filter(f => !f.validation.required)
-    lazy val required: Set[Field]         = fields.filter(f => f.validation.required)
-    lazy val requiredNonEmpty: Set[Field] = required.filter(f => !f.validation.allowEmpty)
+    lazy val optional: Set[Field] = fields.filter(f => !f.validation.required)
+    lazy val required: Set[Field] = fields.filter(f => f.validation.required)
 
     def field(tag: TagAttribute): Option[Field] = fields.find(f => f.name == tag)
 
@@ -35,9 +33,10 @@ object TagRules {
   }
 
   case class Validation(
+      dataType: AttributeType = AttributeType.STRING,
       required: Boolean = false,
-      allowEmpty: Boolean = true,
       allowedHtml: Set[String] = Set.empty,
+      allowedDomains: Set[String] = Set.empty,
       mustCoexistWith: List[TagAttribute] = List.empty
   )
   case class Field(name: TagAttribute, validation: Validation = Validation()) {
@@ -52,11 +51,12 @@ object TagRules {
   case class Condition(childCount: String)
 
   object TagAttributeRules {
-    def empty: TagAttributeRules = TagAttributeRules(Set.empty, None, None, None, None)
+    def empty: TagAttributeRules = TagAttributeRules(Set.empty, None, None, None)
   }
 
   def convertJsonStrToAttributeRules(jsonStr: String): Map[String, TagAttributeRules] = {
-    implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(TagAttribute)
+    implicit val formats: Formats =
+      org.json4s.DefaultFormats + Json4s.serializer(TagAttribute) + Json4s.serializer(AttributeType)
 
     (parse(jsonStr) \ "attributes")
       .extract[JObject]
@@ -66,6 +66,16 @@ object TagRules {
       }
       .toMap
   }
+}
+
+sealed abstract class AttributeType extends EnumEntry
+object AttributeType extends Enum[AttributeType] {
+  val values: IndexedSeq[AttributeType] = findValues
+  case object BOOLEAN extends AttributeType
+  case object EMAIL   extends AttributeType
+  case object NUMBER  extends AttributeType
+  case object STRING  extends AttributeType
+  case object URL     extends AttributeType
 }
 
 sealed abstract class TagAttribute(override val entryName: String) extends EnumEntry {
