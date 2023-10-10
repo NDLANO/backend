@@ -536,7 +536,7 @@ object TagValidator {
           Some(
             ValidationMessage(
               fieldName,
-              s"$partialErrorMessage and $key=$value can only contain ${TagAttribute.DataUrl} urls from the following domains: ${field.validation.allowedDomains
+              s"$partialErrorMessage and $key=$value can only contain urls from the following domains: ${field.validation.allowedDomains
                   .mkString(", ")}"
             )
           )

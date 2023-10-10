@@ -491,7 +491,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val result = TagValidator.validate("content", tag)
     result.size should be(1)
     result.head.message
-      .contains(s"can only contain ${TagAttribute.DataUrl} urls from the following domains:") should be(true)
+      .contains(s"can only contain urls from the following domains:") should be(true)
   }
 
   test("validate should fail if source url is not a legal address") {
