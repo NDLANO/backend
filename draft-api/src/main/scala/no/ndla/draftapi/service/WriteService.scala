@@ -36,7 +36,6 @@ import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem
 import scalikejdbc.{AutoSession, ReadOnlyAutoSession}
 
-import java.io.ByteArrayInputStream
 import java.util.concurrent.Executors
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
@@ -684,7 +683,7 @@ trait WriteService {
           .head
 
         fileStorage
-          .uploadResourceFromStream(new ByteArrayInputStream(file.get()), fileName, contentType, file.size)
+          .uploadResourceFromStream(file.getInputStream, fileName, contentType, file.size)
           .map(uploadPath => domain.UploadedFile(fileName, uploadPath, file.size, contentType, fileExtension))
       })
     }

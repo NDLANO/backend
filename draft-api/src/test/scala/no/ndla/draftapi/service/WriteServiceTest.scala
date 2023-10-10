@@ -420,7 +420,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("uploading file calls fileStorageService as expected") {
     val fileToUpload           = mock[FileItem]
     val fileBytes: Array[Byte] = "these are not the bytes you're looking for".getBytes
-    when(fileToUpload.get()).thenReturn(fileBytes)
+    when(fileToUpload.getInputStream).thenReturn(new ByteArrayInputStream(fileBytes))
     when(fileToUpload.size).thenReturn(fileBytes.length.toLong)
     when(fileToUpload.getContentType).thenReturn(Some("application/pdf"))
     when(fileToUpload.name).thenReturn("myfile.pdf")
