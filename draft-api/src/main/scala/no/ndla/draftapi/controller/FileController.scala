@@ -12,9 +12,8 @@ import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.service.WriteService
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.NoContent
-import org.scalatra.servlet.FileUploadSupport
+import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import scala.util.{Failure, Success}
@@ -24,8 +23,9 @@ trait FileController {
   val fileController: FileController
 
   class FileController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription                 = "API for uploading files to ndla.no."
+    protected val applicationDescription        = "API for uploading files to ndla.no."
+    private val multipartFileSizeThresholdBytes = 1024 * 1024 * 30 // 30MB
+    configureMultipartHandling(MultipartConfig(fileSizeThreshold = Some(multipartFileSizeThresholdBytes)))
 
     // Additional models used in error responses
     registerModel[ValidationError]()
