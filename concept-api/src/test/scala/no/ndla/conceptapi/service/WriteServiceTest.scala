@@ -83,7 +83,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None,
         None,
-        None,
         Some(Seq.empty),
         None,
         None,
@@ -112,7 +111,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None,
         None,
-        None,
         Some(Seq.empty),
         None,
         None,
@@ -135,7 +133,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedCopyright =
       commonApi.DraftCopyright(
         None,
-        Some("c"),
+        Some("https://ndla.no"),
         Seq(commonApi.Author("Opphavsmann", "Katrine")),
         List(),
         List(),
@@ -144,7 +142,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         false
       )
     val updatedMetaImage = api.NewConceptMetaImage("2", "AltTxt")
-    val updatedSource    = "https://www.ndla.no"
 
     val updatedApiConcept = api.UpdatedConcept(
       "en",
@@ -152,7 +149,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(updatedContent),
       Right(Some(updatedMetaImage)),
       Some(updatedCopyright),
-      Some(updatedSource),
       Some(Seq("Nye", "Tags")),
       Some(Seq("urn:subject:900")),
       Some(Seq(69L)),
@@ -170,7 +166,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       copyright = Some(
         commonApi.DraftCopyright(
           None,
-          Some("c"),
+          Some("https://ndla.no"),
           Seq(commonApi.Author("Opphavsmann", "Katrine")),
           List(),
           List(),
@@ -179,7 +175,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           false
         )
       ),
-      source = Some("https://www.ndla.no"),
+      source = Some("https://ndla.no"),
       supportedLanguages = Set("nb", "en"),
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
       subjectIds = Some(Set("urn:subject:900")),
@@ -257,7 +253,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None,
         Right(None),
-        None,
         None,
         None,
         None,

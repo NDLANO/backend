@@ -23,8 +23,8 @@
         {
           "name": "data-url",
           "validation": {
-            "dataType": "URL",
-            "required": false
+            "required": false,
+            "dataType": "URL"
           }
         }
       ]
@@ -829,6 +829,12 @@
           "validation": {
             "required": false
           }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false
+          }
         }
       ]
     },
@@ -945,6 +951,18 @@
         },
         {
           "name": "data-image-side",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-is-decorative",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-alt",
           "validation": {
             "required": false
           }

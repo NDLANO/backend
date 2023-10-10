@@ -30,7 +30,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           false
         )
       ),
-      source = None,
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),
@@ -83,7 +82,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           false
         )
       ),
-      source = None,
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),
@@ -136,7 +134,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           false
         )
       ),
-      source = None,
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),
@@ -188,7 +185,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           false
         )
       ),
-      source = None,
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),

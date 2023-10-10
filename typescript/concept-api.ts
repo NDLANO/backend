@@ -154,7 +154,6 @@ export interface INewConcept {
   title: string
   content?: string
   copyright?: IDraftCopyright
-  source?: string
   metaImage?: INewConceptMetaImage
   tags?: string[]
   subjectIds?: string[]
@@ -195,7 +194,6 @@ export interface IUpdatedConcept {
   content?: string
   metaImage?: (null | INewConceptMetaImage)
   copyright?: IDraftCopyright
-  source?: string
   tags?: string[]
   subjectIds?: string[]
   articleIds?: number[]
