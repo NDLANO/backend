@@ -711,8 +711,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       ),
       responsibleId = None,
       conceptType = ConceptType.CONCEPT.toString,
-      glossData = None,
-      source = None
+      glossData = None
     )
 
     val result = converterService.toDomainConcept(newConcept, TokenUser.SystemUser).get
@@ -743,8 +742,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsibleId = Right(None),
       conceptType = None,
       glossData = None,
-      status = None,
-      source = None
+      status = None
     )
 
     val result = converterService.toDomainConcept(1, updatedConcept, TokenUser.SystemUser)
@@ -774,8 +772,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsibleId = Right(None),
       conceptType = None,
       glossData = None,
-      status = None,
-      source = None
+      status = None
     )
 
     val result = converterService.toDomainConcept(TestData.domainConcept, updatedConcept, TokenUser.SystemUser).get
