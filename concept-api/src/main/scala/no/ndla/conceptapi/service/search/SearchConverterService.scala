@@ -85,7 +85,7 @@ trait SearchConverterService {
         ),
         articleIds = c.articleIds,
         created = c.created,
-        source = c.source,
+        source = c.copyright.flatMap(_.origin),
         responsible = c.responsible
       )
     }
