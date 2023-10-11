@@ -30,16 +30,15 @@ trait FileStorageService {
         contentType: String,
         size: Long
     ): Try[String] = {
-      val metadata = new ObjectMetadata()
+      val uploadPath = s"$resourceDirectory/$storageKey"
+      val metadata   = new ObjectMetadata()
       metadata.setContentType(contentType)
       metadata.setContentLength(size)
 
-      val uploadPath = s"$resourceDirectory/$storageKey"
-
-      Try(
-        amazonClient
-          .putObject(new PutObjectRequest(AttachmentStorageName, uploadPath, stream, metadata))
-      ).map(_ => uploadPath)
+      Try {
+        val request = new PutObjectRequest(AttachmentStorageName, uploadPath, stream, metadata)
+        amazonClient.putObject(request)
+      }.map(_ => uploadPath)
     }
 
     def resourceExists(storageKey: String): Boolean = resourceWithPathExists(s"$resourceDirectory/$storageKey")
