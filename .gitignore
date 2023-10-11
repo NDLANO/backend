@@ -2,6 +2,10 @@
 target/
 /.idea
 .env
+.bloop/
+.metals/
+.vscode/
+metals.sbt
 
 /typescript/node_modules
 /typescript/build

@@ -82,19 +82,14 @@ trait ConverterService {
               api.SubjectPageData(
                 subjectPageId,
                 sub.name,
-                sub.filters,
-                sub.layout.toString,
-                sub.twitter,
-                sub.facebook,
                 toApiBannerImage(sub.bannerImage),
                 toApiAboutSubject(findByLanguageOrBestEffort(sub.about, language)),
                 toApiMetaDescription(findByLanguageOrBestEffort(sub.metaDescription, language)),
-                sub.topical,
-                sub.mostRead,
                 sub.editorsChoices,
-                sub.latestContent,
-                sub.goTo,
-                sub.supportedLanguages
+                sub.supportedLanguages,
+                sub.connectedTo,
+                sub.buildsOn,
+                sub.leadsTo
               )
             )
         }
@@ -135,23 +130,17 @@ trait ConverterService {
 
     def toDomainSubjectPage(subject: api.NewSubjectFrontPageData): Try[domain.SubjectFrontPageData] = {
       for {
-        layout <- toDomainLayout(subject.layout)
-        about  <- toDomainAboutSubject(subject.about)
+        about <- toDomainAboutSubject(subject.about)
         newSubject = domain.SubjectFrontPageData(
           id = None,
           name = subject.name,
-          filters = subject.filters,
-          layout = layout,
-          twitter = subject.twitter,
-          facebook = subject.facebook,
           bannerImage = toDomainBannerImage(subject.banner),
           about = about,
           metaDescription = toDomainMetaDescription(subject.metaDescription),
-          topical = subject.topical,
-          mostRead = subject.mostRead.getOrElse(List()),
           editorsChoices = subject.editorsChoices.getOrElse(List()),
-          latestContent = subject.latestContent,
-          goTo = subject.goTo.getOrElse(List())
+          connectedTo = subject.connectedTo.getOrElse(List()),
+          buildsOn = subject.buildsOn.getOrElse(List()),
+          leadsTo = subject.leadsTo.getOrElse(List())
         )
 
       } yield newSubject
@@ -162,30 +151,20 @@ trait ConverterService {
         subject: api.UpdatedSubjectFrontPageData
     ): Try[domain.SubjectFrontPageData] = {
       for {
-        layout       <- subject.layout.traverse(toDomainLayout)
         aboutSubject <- subject.about.traverse(toDomainAboutSubject)
         metaDescription = subject.metaDescription.map(toDomainMetaDescription)
 
         merged = toMergeInto.copy(
           name = subject.name.getOrElse(toMergeInto.name),
-          filters = subject.filters.orElse(toMergeInto.filters),
-          layout = layout.getOrElse(toMergeInto.layout),
-          twitter = subject.twitter.orElse(toMergeInto.twitter),
-          facebook = subject.facebook.orElse(toMergeInto.facebook),
           bannerImage = subject.banner.map(toDomainBannerImage).getOrElse(toMergeInto.bannerImage),
           about = mergeLanguageFields(toMergeInto.about, aboutSubject.toSeq.flatten),
           metaDescription = mergeLanguageFields(toMergeInto.metaDescription, metaDescription.toSeq.flatten),
-          topical = subject.topical.orElse(toMergeInto.topical),
-          mostRead = subject.mostRead.getOrElse(toMergeInto.mostRead),
           editorsChoices = subject.editorsChoices.getOrElse(toMergeInto.editorsChoices),
-          latestContent = subject.latestContent.orElse(toMergeInto.latestContent),
-          goTo = subject.goTo.getOrElse(toMergeInto.goTo)
+          connectedTo = subject.connectedTo.getOrElse(toMergeInto.connectedTo),
+          buildsOn = subject.buildsOn.getOrElse(toMergeInto.buildsOn),
+          leadsTo = subject.leadsTo.getOrElse(toMergeInto.leadsTo)
         )
       } yield merged
-    }
-
-    private def toDomainLayout(layout: String): Try[domain.LayoutType.Value] = {
-      LayoutType.fromString(layout)
     }
 
     private def toDomainAboutSubject(aboutSeq: Seq[api.NewOrUpdatedAboutSubject]): Try[Seq[domain.AboutSubject]] = {

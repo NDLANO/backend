@@ -20,18 +20,13 @@ import scala.util.Try
 case class SubjectFrontPageData(
     id: Option[Long],
     name: String,
-    filters: Option[List[String]],
-    layout: LayoutType.Value,
-    twitter: Option[String],
-    facebook: Option[String],
     bannerImage: BannerImage,
     about: Seq[AboutSubject],
     metaDescription: Seq[MetaDescription],
-    topical: Option[String],
-    mostRead: List[String],
     editorsChoices: List[String],
-    latestContent: Option[List[String]],
-    goTo: List[String]
+    connectedTo: List[String],
+    buildsOn: List[String],
+    leadsTo: List[String]
 ) {
 
   def supportedLanguages: Seq[String] = getSupportedLanguages(about, metaDescription)

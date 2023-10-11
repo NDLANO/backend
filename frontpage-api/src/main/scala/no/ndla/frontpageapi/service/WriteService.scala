@@ -73,25 +73,19 @@ trait WriteService {
     ): Option[api.NewSubjectFrontPageData] = {
       for {
         name            <- updatedSubjectPage.name
-        layout          <- updatedSubjectPage.layout
         banner          <- updatedSubjectPage.banner
         about           <- updatedSubjectPage.about
         metaDescription <- updatedSubjectPage.metaDescription
       } yield api.NewSubjectFrontPageData(
         name = name,
-        filters = updatedSubjectPage.filters,
         externalId = updatedSubjectPage.externalId,
-        layout = layout,
-        twitter = updatedSubjectPage.twitter,
-        facebook = updatedSubjectPage.facebook,
         banner = banner,
         about = about,
         metaDescription = metaDescription,
-        topical = updatedSubjectPage.topical,
-        mostRead = updatedSubjectPage.mostRead,
         editorsChoices = updatedSubjectPage.editorsChoices,
-        latestContent = updatedSubjectPage.latestContent,
-        goTo = updatedSubjectPage.goTo
+        connectedTo = updatedSubjectPage.connectedTo,
+        buildsOn = updatedSubjectPage.buildsOn,
+        leadsTo = updatedSubjectPage.leadsTo
       )
     }
 
