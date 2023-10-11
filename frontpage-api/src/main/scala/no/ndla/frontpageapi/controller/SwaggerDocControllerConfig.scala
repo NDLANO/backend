@@ -10,6 +10,7 @@ package no.ndla.frontpageapi.controller
 import no.ndla.frontpageapi.Props
 import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
+import sttp.tapir._
 
 trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
   this: Props =>
@@ -18,7 +19,7 @@ trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
     private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("frontpage"))
 
     val swaggerInfo: SwaggerInfo = SwaggerInfo(
-      mountPoint = "/frontpage-api/api-docs",
+      mountPoint = "frontpage-api" / "api-docs",
       description = "Service for fetching frontpage data",
       authUrl = props.Auth0LoginEndpoint,
       scopes = scopes
