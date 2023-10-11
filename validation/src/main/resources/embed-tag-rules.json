@@ -956,12 +956,6 @@
           }
         },
         {
-          "name": "data-is-decorative",
-          "validation": {
-            "required": false
-          }
-        },
-        {
           "name": "data-alt",
           "validation": {
             "required": false
