@@ -98,54 +98,39 @@ export interface INewOrUpdatedVisualElement {
 
 export interface INewSubjectFrontPageData {
   name: string
-  filters?: string[]
   externalId?: string
-  layout: string
-  twitter?: string
-  facebook?: string
   banner: INewOrUpdateBannerImage
   about: INewOrUpdatedAboutSubject[]
   metaDescription: INewOrUpdatedMetaDescription[]
-  topical?: string
-  mostRead?: string[]
   editorsChoices?: string[]
-  latestContent?: string[]
-  goTo?: string[]
+  connectedTo?: string[]
+  buildsOn?: string[]
+  leadsTo?: string[]
 }
 
 export interface ISubjectPageData {
   id: number
   name: string
-  filters?: string[]
-  layout: string
-  twitter?: string
-  facebook?: string
   banner: IBannerImage
   about?: IAboutSubject
   metaDescription?: string
-  topical?: string
-  mostRead: string[]
   editorsChoices: string[]
-  latestContent?: string[]
-  goTo: string[]
   supportedLanguages: string[]
+  connectedTo: string[]
+  buildsOn: string[]
+  leadsTo: string[]
 }
 
 export interface IUpdatedSubjectFrontPageData {
   name?: string
-  filters?: string[]
   externalId?: string
-  layout?: string
-  twitter?: string
-  facebook?: string
   banner?: INewOrUpdateBannerImage
   about?: INewOrUpdatedAboutSubject[]
   metaDescription?: INewOrUpdatedMetaDescription[]
-  topical?: string
-  mostRead?: string[]
   editorsChoices?: string[]
-  latestContent?: string[]
-  goTo?: string[]
+  connectedTo?: string[]
+  buildsOn?: string[]
+  leadsTo?: string[]
 }
 
 export interface IVisualElement {
