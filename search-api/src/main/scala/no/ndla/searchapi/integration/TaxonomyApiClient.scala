@@ -100,7 +100,7 @@ trait TaxonomyApiClient {
       val x = for {
         n <- nodes
         r <- resources
-      } yield TaxonomyBundle((n ++ r).result())
+      } yield TaxonomyBundle(n.addAll(r).result())
 
       Try(Await.result(x, Duration(300, "seconds"))) match {
         case Success(bundle) =>
