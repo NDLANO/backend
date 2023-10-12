@@ -22,6 +22,7 @@ import org.json4s.Formats
 import sttp.client3.quick._
 
 import java.util.concurrent.Executors
+import scala.collection.mutable.ListBuffer
 import scala.concurrent._
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
@@ -36,8 +37,8 @@ trait TaxonomyApiClient {
     implicit val formats: Formats   = SearchableLanguageFormats.JSonFormatsWithMillis + Json4s.serializer(NodeType)
     private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
     private val timeoutSeconds      = 600.seconds
-    private def getNodes(shouldUsePublishedTax: Boolean): Try[List[Node]] =
-      get[List[Node]](
+    private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
+      get[ListBuffer[Node]](
         s"$TaxonomyApiEndpoint/nodes/",
         headers = getVersionHashHeader(shouldUsePublishedTax),
         Seq(
@@ -99,7 +100,7 @@ trait TaxonomyApiClient {
       val x = for {
         n <- nodes
         r <- resources
-      } yield TaxonomyBundle(n :++ r)
+      } yield TaxonomyBundle(n.addAll(r).result())
 
       Try(Await.result(x, Duration(300, "seconds"))) match {
         case Success(bundle) =>
