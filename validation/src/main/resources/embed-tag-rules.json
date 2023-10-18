@@ -882,6 +882,19 @@
           "validation": {
             "required": false
           }
+        },
+        {
+          "name": "data-is-decorative",
+          "validation": {
+            "required": false,
+            "dataType": "BOOLEAN"
+          }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false
+          }
         }
       ]
     },
@@ -958,7 +971,8 @@
         {
           "name": "data-is-decorative",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "BOOLEAN"
           }
         },
         {
