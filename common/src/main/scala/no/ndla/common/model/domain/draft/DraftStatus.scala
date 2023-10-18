@@ -46,4 +46,7 @@ object DraftStatus extends Enum[DraftStatus] {
 
   val thatDoesNotRequireResponsible: Seq[DraftStatus] = Seq(PUBLISHED, UNPUBLISHED, ARCHIVED)
   val thatRequiresResponsible: Seq[DraftStatus]       = this.values.filterNot(thatDoesNotRequireResponsible.contains)
+
+  implicit def ordering[A <: DraftStatus]: Ordering[DraftStatus] =
+    (x: DraftStatus, y: DraftStatus) => indexOf(x) - indexOf(y)
 }
