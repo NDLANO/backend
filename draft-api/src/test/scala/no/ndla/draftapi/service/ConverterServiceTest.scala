@@ -147,9 +147,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
-  test("stateTransitionsToApi should return no entries if user has no roles") {
+  test("stateTransitionsToApi should return only disabled entries if user has no roles") {
     val Success(res) = service.stateTransitionsToApi(TestData.userWithNoRoles, None)
-    res.forall { case (_, to) => to.isEmpty } should be(true)
+    res.forall { case (_, to) => !to.exists(_.enabled) } should be(true)
   }
 
   test("stateTransitionsToApi should allow all users to archive articles that have not been published") {
@@ -158,15 +158,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set()))
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
-    noTrans(PLANNED.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(IN_PROGRESS.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(EXTERNAL_REVIEW.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(INTERNAL_REVIEW.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(END_CONTROL.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(LANGUAGE.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(FOR_APPROVAL.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(UNPUBLISHED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(PLANNED.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
+    noTrans(IN_PROGRESS.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
+    noTrans(EXTERNAL_REVIEW.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
+    noTrans(INTERNAL_REVIEW.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
+    noTrans(END_CONTROL.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
+    noTrans(LANGUAGE.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
+    noTrans(FOR_APPROVAL.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
+    noTrans(PUBLISHED.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(false)
+    noTrans(UNPUBLISHED.toString).find(_.name == DraftStatus.ARCHIVED.toString).exists(_.enabled) should be(true)
   }
 
   test("stateTransitionsToApi should not allow all users to archive articles that are currently published") {
@@ -203,7 +203,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(published))
     val Success(transTwo) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
-    transTwo(IN_PROGRESS.toString) should contain(DraftStatus.LANGUAGE.toString)
+    transTwo(IN_PROGRESS.toString).find(_.name == DraftStatus.LANGUAGE.toString).exists(_.enabled) should be(true)
   }
 
   test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
@@ -234,14 +234,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     // format: off
     writeTrans(PLANNED.toString).length should be(adminTrans(PLANNED.toString).length)
-    writeTrans(IN_PROGRESS.toString).length should be < adminTrans(IN_PROGRESS.toString).length
-    writeTrans(EXTERNAL_REVIEW.toString).length should be < adminTrans(EXTERNAL_REVIEW.toString).length
-    writeTrans(INTERNAL_REVIEW.toString).length should be < adminTrans(INTERNAL_REVIEW.toString).length
-    writeTrans(END_CONTROL.toString).length should be < adminTrans(END_CONTROL.toString).length
-    writeTrans(LANGUAGE.toString).length should be < adminTrans(LANGUAGE.toString).length
-    writeTrans(FOR_APPROVAL.toString).length should be < adminTrans(FOR_APPROVAL.toString).length
-    writeTrans(PUBLISHED.toString).length should be < adminTrans(PUBLISHED.toString).length
-    writeTrans(UNPUBLISHED.toString).length should be < adminTrans(UNPUBLISHED.toString).length
+    writeTrans(IN_PROGRESS.toString).count(_.enabled) should be < adminTrans(IN_PROGRESS.toString).count(_.enabled)
+    writeTrans(EXTERNAL_REVIEW.toString).count(_.enabled) should be < adminTrans(EXTERNAL_REVIEW.toString).count(_.enabled)
+    writeTrans(INTERNAL_REVIEW.toString).count(_.enabled) should be < adminTrans(INTERNAL_REVIEW.toString).count(_.enabled)
+    writeTrans(END_CONTROL.toString).count(_.enabled) should be < adminTrans(END_CONTROL.toString).count(_.enabled)
+    writeTrans(LANGUAGE.toString).count(_.enabled) should be < adminTrans(LANGUAGE.toString).count(_.enabled)
+    writeTrans(FOR_APPROVAL.toString).count(_.enabled) should be < adminTrans(FOR_APPROVAL.toString).count(_.enabled)
+    writeTrans(PUBLISHED.toString).count(_.enabled) should be < adminTrans(PUBLISHED.toString).count(_.enabled)
+    writeTrans(UNPUBLISHED.toString).count(_.enabled) should be < adminTrans(UNPUBLISHED.toString).count(_.enabled)
     // format: on
   }
 
@@ -252,7 +252,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should have transitions in inserted order") {
     val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
-    adminTrans(LANGUAGE.toString) should be(
+    adminTrans(LANGUAGE.toString).filter(_.enabled).map(_.name) should be(
       Seq(
         IN_PROGRESS.toString,
         QUALITY_ASSURANCE.toString,
@@ -262,7 +262,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         ARCHIVED.toString
       )
     )
-    adminTrans(FOR_APPROVAL.toString) should be(
+    adminTrans(FOR_APPROVAL.toString).filter(_.enabled).map(_.name) should be(
       Seq(
         IN_PROGRESS.toString,
         LANGUAGE.toString,
