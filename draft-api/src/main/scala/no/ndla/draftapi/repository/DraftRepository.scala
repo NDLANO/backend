@@ -116,6 +116,7 @@ trait DraftRepository {
                 .toList,
               previousVersionsNotes = article.previousVersionsNotes ++ article.notes,
               responsible = if (keepDraftData) article.responsible else None,
+              prioritized = if (keepDraftData) article.prioritized else false,
               comments = if (keepDraftData) article.comments else Seq.empty
             )
 
