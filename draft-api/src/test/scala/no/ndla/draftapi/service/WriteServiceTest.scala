@@ -548,6 +548,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       published = today,
       updatedBy = userinfo.id,
+      responsible = Some(Responsible(userinfo.id, today)),
       status = Status(DraftStatus.PLANNED, Set.empty),
       notes = article.notes ++
         converterService
@@ -596,6 +597,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       published = today,
       updatedBy = userinfo.id,
+      responsible = Some(Responsible(userinfo.id, today)),
       status = Status(DraftStatus.PLANNED, Set.empty),
       notes = article.notes ++
         converterService
