@@ -388,7 +388,7 @@ trait DraftConceptController {
     get(
       "/status-state-machine/",
       operation(
-        apiOperation[Map[String, List[String]]]("getStatusStateMachine")
+        apiOperation[Map[String, List[StateMachineStatus]]]("getStatusStateMachine")
           .summary("Get status state machine")
           .description("Get status state machine")
           .authorizations("oauth2")

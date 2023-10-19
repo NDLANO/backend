@@ -8,8 +8,8 @@
 package no.ndla.conceptapi.model.domain
 
 case class Status(
-    current: ConceptStatus.Value,
-    other: Set[ConceptStatus.Value]
+    current: ConceptStatus,
+    other: Set[ConceptStatus]
 )
 
 object Status {

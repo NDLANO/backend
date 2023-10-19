@@ -12,26 +12,26 @@ import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 
 case class StateTransition(
-    from: ConceptStatus.Value,
-    to: ConceptStatus.Value,
-    otherStatesToKeepOnTransition: Set[ConceptStatus.Value],
+    from: ConceptStatus,
+    to: ConceptStatus,
+    otherStatesToKeepOnTransition: Set[ConceptStatus],
     sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
     requiredPermissions: Set[Permission],
-    illegalStatuses: Set[ConceptStatus.Value]
+    illegalStatuses: Set[ConceptStatus]
 ) {
 
-  def keepCurrentOnTransition: StateTransition                      = copy(addCurrentStateToOthersOnTransition = true)
-  def keepStates(toKeep: Set[ConceptStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
-  def withSideEffect(sideEffect: SideEffect): StateTransition       = copy(sideEffects = sideEffects :+ sideEffect)
-  def require(permissions: Set[Permission]): StateTransition        = copy(requiredPermissions = permissions)
+  def keepCurrentOnTransition: StateTransition                = copy(addCurrentStateToOthersOnTransition = true)
+  def keepStates(toKeep: Set[ConceptStatus]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
+  def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
+  def require(permissions: Set[Permission]): StateTransition  = copy(requiredPermissions = permissions)
 
-  def illegalStatuses(illegalStatuses: Set[ConceptStatus.Value]): StateTransition =
+  def withIllegalStatuses(illegalStatuses: Set[ConceptStatus]): StateTransition =
     copy(illegalStatuses = illegalStatuses)
 }
 
 object StateTransition {
-  implicit def tupleToStateTransition(fromTo: (ConceptStatus.Value, ConceptStatus.Value)): StateTransition = {
+  implicit def tupleToStateTransition(fromTo: (ConceptStatus, ConceptStatus)): StateTransition = {
     val (from, to) = fromTo
     StateTransition(
       from,

@@ -178,7 +178,7 @@ trait WriteService {
 
     }
 
-    def updateConceptStatus(status: domain.ConceptStatus.Value, id: Long, user: TokenUser): Try[api.Concept] = {
+    def updateConceptStatus(status: domain.ConceptStatus, id: Long, user: TokenUser): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case None => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
