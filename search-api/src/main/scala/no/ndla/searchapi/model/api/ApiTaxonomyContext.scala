@@ -21,6 +21,7 @@ case class ApiTaxonomyContext(
   @(ApiModelProperty @field)(description = "Id of the subject this context is in. Legacy field to be removed.") subjectId: String,
   @(ApiModelProperty @field)(description = "Id of the root node this context is in.") rootId: String,
   @(ApiModelProperty @field)(description = "The relevance for this context.") relevance: String,
+  @(ApiModelProperty @field)(description = "The relevanceId for this context.") relevanceId: String,
   @(ApiModelProperty @field)(description = "Path to the resource in this context.") path: String,
   @(ApiModelProperty @field)(description = "Breadcrumbs of path to the resource in this context.") breadcrumbs: List[String],
   @(ApiModelProperty @field)(description = "Type in this context. Legacy field to be removed.") learningResourceType: String,

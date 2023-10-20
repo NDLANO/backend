@@ -625,6 +625,7 @@ trait SearchConverterService {
         subjectId = context.rootId,
         rootId = context.rootId,
         relevance = relevance,
+        relevanceId = context.relevanceId,
         path = context.path,
         breadcrumbs = breadcrumbs,
         learningResourceType = context.contextType,
