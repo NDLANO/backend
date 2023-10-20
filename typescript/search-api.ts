@@ -8,6 +8,7 @@ export interface IApiTaxonomyContext {
   subjectId: string
   rootId: string
   relevance: string
+  relevanceId: string
   path: string
   breadcrumbs: string[]
   learningResourceType: string
