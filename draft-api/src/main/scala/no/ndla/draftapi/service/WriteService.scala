@@ -17,6 +17,7 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain => common}
@@ -109,6 +110,7 @@ trait WriteService {
               )
               newTitles = if (usePostFix) article.title.map(t => t.copy(title = t.title + " (Kopi)")) else article.title
               newContents <- contentWithClonedFiles(article.content.toList)
+              newResponsible = Some(Responsible(userInfo.id, clock.now()))
               articleToInsert = article.copy(
                 id = Some(newId),
                 title = newTitles,
@@ -118,6 +120,7 @@ trait WriteService {
                 created = clock.now(),
                 published = clock.now(),
                 updatedBy = userInfo.id,
+                responsible = newResponsible,
                 status = status,
                 notes = notes
               )
