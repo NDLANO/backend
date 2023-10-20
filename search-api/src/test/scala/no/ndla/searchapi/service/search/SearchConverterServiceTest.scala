@@ -24,7 +24,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   override val searchConverterService = new SearchConverterService
   val sampleArticle: Article          = TestData.sampleArticleWithPublicDomain.copy()
 
-  val titles = List(
+  val titles: List[Title] = List(
     Title("Bokmål tittel", "nb"),
     Title("Nynorsk tittel", "nn"),
     Title("English title", "en"),
@@ -34,7 +34,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Title("Nekonata titolo", "und")
   )
 
-  val articles = Seq(
+  val articles: Seq[ArticleContent] = Seq(
     ArticleContent("Bokmål artikkel", "nb"),
     ArticleContent("Nynorsk artikkel", "nn"),
     ArticleContent("English article", "en"),
@@ -44,7 +44,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleContent("Nekonata artikolo", "und")
   )
 
-  val articleTags = Seq(
+  val articleTags: Seq[Tag] = Seq(
     Tag(Seq("fugl", "fisk"), "nb"),
     Tag(Seq("fugl", "fisk"), "nn"),
     Tag(Seq("bird", "fish"), "en"),
@@ -57,7 +57,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   val visibleMetadata: Option[Metadata]   = Some(Metadata(Seq.empty, visible = true, Map.empty))
   val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false, Map.empty))
 
-  val nodes = List(
+  val nodes: List[Node] = List(
     Node(
       "urn:resource:1",
       "Resource1",

@@ -135,7 +135,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             path = "/subject:1",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
-            relevanceId = None,
+            relevanceId = core.id,
             relevance = SearchableLanguageValues(Seq.empty),
             resourceTypes = List.empty,
             parentIds = List.empty,
@@ -163,7 +163,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = false,
         isActive = true
@@ -185,7 +185,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         topic_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = false,
         isActive = true
@@ -207,7 +207,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -229,7 +229,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         topic_2,
         List(subjectMaterial),
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = false,
         isActive = true
@@ -251,7 +251,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         topic_3,
         List(subjectMaterial),
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -309,7 +309,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             path = "/subject:1",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
-            relevanceId = None,
+            relevanceId = core.id,
             relevance = SearchableLanguageValues(Seq.empty),
             resourceTypes = List.empty,
             parentIds = List.empty,
@@ -337,7 +337,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = false,
         isActive = true
@@ -359,7 +359,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         topic_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -381,7 +381,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -439,7 +439,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             path = "/subject:1",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
-            relevanceId = None,
+            relevanceId = core.id,
             relevance = SearchableLanguageValues(Seq.empty),
             resourceTypes = List.empty,
             parentIds = List.empty,
@@ -466,7 +466,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             path = "/subject:2",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
-            relevanceId = None,
+            relevanceId = core.id,
             relevance = SearchableLanguageValues(Seq.empty),
             resourceTypes = List.empty,
             parentIds = List.empty,
@@ -493,7 +493,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -514,7 +514,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -535,7 +535,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_1,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -556,7 +556,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_2,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true
@@ -577,7 +577,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         subject_2,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = true,
         isVisible = true,
         isActive = true

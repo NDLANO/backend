@@ -542,7 +542,7 @@ class MultiDraftSearchServiceAtomicTest
           path = "/subject:1",
           breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
           contextType = None,
-          relevanceId = None,
+          relevanceId = core.id,
           relevance = SearchableLanguageValues(Seq.empty),
           resourceTypes = List.empty,
           parentIds = List.empty,
@@ -569,7 +569,7 @@ class MultiDraftSearchServiceAtomicTest
       subject_1,
       List.empty,
       None,
-      Some(core),
+      core,
       isPrimary = true,
       isVisible = true,
       isActive = true
@@ -590,7 +590,7 @@ class MultiDraftSearchServiceAtomicTest
       subject_1,
       List.empty,
       None,
-      Some(core),
+      core,
       isPrimary = true,
       isVisible = true,
       isActive = true
@@ -611,7 +611,7 @@ class MultiDraftSearchServiceAtomicTest
       topic_1,
       List.empty,
       None,
-      Some(core),
+      core,
       isPrimary = true,
       isVisible = true,
       isActive = true
@@ -632,7 +632,7 @@ class MultiDraftSearchServiceAtomicTest
       topic_1,
       List.empty,
       None,
-      Some(core),
+      core,
       isPrimary = true,
       isVisible = true,
       isActive = true
@@ -653,7 +653,7 @@ class MultiDraftSearchServiceAtomicTest
       topic_1,
       List.empty,
       None,
-      Some(core),
+      core,
       isPrimary = true,
       isVisible = true,
       isActive = true
@@ -664,7 +664,7 @@ class MultiDraftSearchServiceAtomicTest
         topic_3,
         List.empty,
         None,
-        Some(core),
+        core,
         isPrimary = false,
         isVisible = true,
         isActive = true
@@ -685,7 +685,7 @@ class MultiDraftSearchServiceAtomicTest
       topic_3,
       List.empty,
       None,
-      Some(core),
+      core,
       isPrimary = true,
       isVisible = true,
       isActive = true
