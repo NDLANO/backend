@@ -12,7 +12,8 @@ import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V11__CreatedByNdlaStatusForOwnersWithRoles,
   V13__StoreNDLAStepsAsIframeTypes,
   V14__ConvertLanguageUnknown,
-  V15__MergeDuplicateLanguageFields
+  V15__MergeDuplicateLanguageFields,
+  V31__ArenaDefaultEnabledOrgs
 }
 import no.ndla.learningpathapi.integration.DataSource
 import org.flywaydb.core.Flyway
@@ -31,7 +32,8 @@ trait DBMigrator {
           new V11__CreatedByNdlaStatusForOwnersWithRoles(props),
           new V13__StoreNDLAStepsAsIframeTypes(props),
           new V14__ConvertLanguageUnknown(props),
-          new V15__MergeDuplicateLanguageFields(props)
+          new V15__MergeDuplicateLanguageFields(props),
+          new V31__ArenaDefaultEnabledOrgs(props)
         )
         .locations("no/ndla/learningpathapi/db/migration")
         .dataSource(dataSource)

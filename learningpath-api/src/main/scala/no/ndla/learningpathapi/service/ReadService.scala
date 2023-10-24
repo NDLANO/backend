@@ -198,18 +198,28 @@ trait ReadService {
     }
 
     def isWriteRestricted: Boolean =
-      Try(
-        configRepository
-          .getConfigWithKey(ConfigKey.LearningpathWriteRestricted)
-          .map(_.value.toBoolean)
-      ).toOption.flatten.getOrElse(false)
+      configRepository
+        .getConfigWithKey(ConfigKey.LearningpathWriteRestricted)
+        .map(_.value)
+        .collectFirst { case domain.config.BooleanValue(value) => value }
+        .getOrElse(false)
 
     def isMyNDLAWriteRestricted: Boolean =
-      Try(
+      configRepository
+        .getConfigWithKey(ConfigKey.MyNDLAWriteRestricted)
+        .map(_.value)
+        .collectFirst { case domain.config.BooleanValue(value) => value }
+        .getOrElse(false)
+
+    def getMyNDLAEnabledOrgs: Try[List[String]] = {
+      Try {
         configRepository
-          .getConfigWithKey(ConfigKey.MyNDLAWriteRestricted)
-          .map(_.value.toBoolean)
-      ).toOption.flatten.getOrElse(false)
+          .getConfigWithKey(ConfigKey.MyNDLAEnabledOrgs)
+          .map(_.value)
+          .collectFirst { case domain.config.StringListValue(value) => value }
+          .getOrElse(List.empty)
+      }
+    }
 
     def getConfig(configKey: ConfigKey): Try[api.config.ConfigMetaRestricted] = {
       configRepository.getConfigWithKey(configKey) match {
