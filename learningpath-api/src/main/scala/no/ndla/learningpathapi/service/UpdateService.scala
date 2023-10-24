@@ -823,6 +823,24 @@ trait UpdateService {
         .flatMap(feideId => updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(AutoSession))
     }
 
+    def adminUpdateMyNDLAUserData(
+        updatedUser: api.UpdatedMyNDLAUser,
+        feideId: Option[String],
+        user: TokenUser
+    ): Try[api.MyNDLAUser] = {
+      feideId match {
+        case None => Failure(ValidationException("feideId", "You need to supply either feideId to update a user."))
+        case Some(id) =>
+          for {
+            existing <- getMyNDLAUserOrFail(id)
+            converted = converterService.mergeUserData(existing, updatedUser, Some(user))
+            updated     <- userRepository.updateUser(id, converted)
+            enabledOrgs <- readService.getMyNDLAEnabledOrgs
+            api = converterService.toApiUserData(updated, enabledOrgs)
+          } yield api
+      }
+    }
+
     private def updateFeideUserDataAuthenticated(
         updatedUser: api.UpdatedMyNDLAUser,
         feideId: FeideID,

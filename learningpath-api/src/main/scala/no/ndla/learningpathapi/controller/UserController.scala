@@ -11,6 +11,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api.{Error, ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
+import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.NoContent
@@ -40,6 +41,7 @@ trait UserController {
     val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
+    private val feideId    = Param[Option[String]]("feide-id", "FeideID of user")
 
     private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
       request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))
@@ -77,6 +79,27 @@ trait UserController {
     ) {
       val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
       updateService.updateMyNDLAUserData(updatedUserData, requestFeideToken)
+    }: Unit
+
+    patch(
+      "/update-other-user/?",
+      operation(
+        apiOperation[MyNDLAUser]("AdminUpdateMyNDLAUser")
+          .summary("Update some one elses user data")
+          .description("Update some one elses user data")
+          .parameters(
+            asQueryParam(feideId),
+            bodyParam[UpdatedMyNDLAUser]
+          )
+          .responseMessages(response403, response404, response500)
+          .authorizations("oauth2")
+      )
+    ) {
+      requirePermissionOrAccessDeniedWithUser(LEARNINGPATH_API_ADMIN) { user =>
+        val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
+        val feideId         = paramOrNone(this.feideId.paramName)
+        updateService.adminUpdateMyNDLAUserData(updatedUserData, feideId, user)
+      }
     }: Unit
 
     delete(
