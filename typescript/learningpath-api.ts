@@ -12,14 +12,14 @@ export interface IBreadcrumb {
 
 export interface IConfigMeta {
   key: string
-  value: string
+  value: (boolean | string[])
   updatedAt: string
   updatedBy: string
 }
 
 export interface IConfigMetaRestricted {
   key: string
-  value: string
+  value: (boolean | string[])
 }
 
 export interface ICopyright {
@@ -179,6 +179,7 @@ export interface IMyNDLAUser {
   favoriteSubjects: string[]
   role: string
   organization: string
+  arenaEnabled: boolean
 }
 
 export interface INewFolder {
