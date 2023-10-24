@@ -402,7 +402,8 @@ trait ReadService {
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1),
             organization = organization,
-            email = feideExtendedUserData.email
+            email = feideExtendedUserData.email,
+            arenaEnabled = false
           )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
@@ -424,7 +425,8 @@ trait ReadService {
         userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
-        email = feideUser.email
+        email = feideUser.email,
+        arenaEnabled = userData.arenaEnabled
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }
@@ -445,15 +447,18 @@ trait ReadService {
     private def getFeideUserDataAuthenticated(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.MyNDLAUser] = {
-      getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession).map(converterService.toApiUserData)
-    }
+    ): Try[api.MyNDLAUser] =
+      for {
+        user <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+        orgs <- readService.getMyNDLAEnabledOrgs
+      } yield converterService.toApiUserData(user, orgs)
 
     def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
         userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
-        api = converterService.toApiUserData(userData)
+        orgs     <- readService.getMyNDLAEnabledOrgs
+        api = converterService.toApiUserData(userData, orgs)
       } yield api
     }
 

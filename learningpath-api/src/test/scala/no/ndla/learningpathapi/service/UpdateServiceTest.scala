@@ -8,14 +8,14 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
+import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
-import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
+import no.ndla.learningpathapi.model.api.config.ConfigMetaValue
 import no.ndla.learningpathapi.model.api.{
   FolderSortRequest,
   NewCopyLearningPathV2,
@@ -2177,9 +2177,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      email = "example@email.com"
+      email = "example@email.com",
+      arenaEnabled = false
     )
-    val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")))
+    val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
     val userAfterMerge = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -2187,12 +2188,20 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      email = "example@email.com"
+      email = "example@email.com",
+      arenaEnabled = false
     )
-    val expected = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
+    val expected = api.MyNDLAUser(
+      id = 42,
+      favoriteSubjects = Seq("r", "e"),
+      role = "student",
+      organization = "oslo",
+      arenaEnabled = false
+    )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
 
@@ -2204,7 +2213,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That updateUserData fails if user does not exist") {
     val feideId         = "feide"
-    val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")))
+    val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))

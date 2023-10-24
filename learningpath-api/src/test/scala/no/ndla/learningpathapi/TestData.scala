@@ -172,7 +172,8 @@ object TestData {
     userRole = domain.UserRole.TEACHER,
     lastUpdated = today,
     organization = "",
-    email = ""
+    email = "",
+    arenaEnabled = false
   )
 
 }

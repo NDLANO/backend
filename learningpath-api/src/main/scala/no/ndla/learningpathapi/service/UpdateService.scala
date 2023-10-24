@@ -831,9 +831,10 @@ trait UpdateService {
       for {
         _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
-        combined = converterService.mergeUserData(existingUserData, updatedUser)
-        updated <- userRepository.updateUser(feideId, combined)
-        api = converterService.toApiUserData(updated)
+        combined = converterService.mergeUserData(existingUserData, updatedUser, None)
+        updated     <- userRepository.updateUser(feideId, combined)
+        enabledOrgs <- readService.getMyNDLAEnabledOrgs
+        api = converterService.toApiUserData(updated, enabledOrgs)
       } yield api
     }
 
@@ -1037,7 +1038,7 @@ trait UpdateService {
       for {
         existingUser <- readService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
-        updatedFeideUser = api.UpdatedMyNDLAUser(favoriteSubjects = Some(newFavorites))
+        updatedFeideUser = api.UpdatedMyNDLAUser(favoriteSubjects = Some(newFavorites), arenaEnabled = None)
         updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
 

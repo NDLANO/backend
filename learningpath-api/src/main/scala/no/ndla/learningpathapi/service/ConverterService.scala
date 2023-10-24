@@ -14,7 +14,7 @@ import no.ndla.common.{Clock, errors}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
-import no.ndla.common.model.{domain => common, api => commonApi}
+import no.ndla.common.model.{api => commonApi, domain => common}
 import no.ndla.language.Language.{
   AllLanguages,
   UnknownLanguage,
@@ -33,6 +33,7 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
+import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
 import java.util.UUID
@@ -828,17 +829,27 @@ trait ConverterService {
       )
     }
 
-    def toApiUserData(domainUserData: domain.MyNDLAUser): api.MyNDLAUser = {
+    def toApiUserData(domainUserData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): api.MyNDLAUser = {
       api.MyNDLAUser(
         id = domainUserData.id,
         favoriteSubjects = domainUserData.favoriteSubjects,
         role = domainUserData.userRole.toString,
-        organization = domainUserData.organization
+        organization = domainUserData.organization,
+        arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization)
       )
     }
 
-    def mergeUserData(domainUserData: domain.MyNDLAUser, updatedUser: api.UpdatedMyNDLAUser): domain.MyNDLAUser = {
+    def mergeUserData(
+        domainUserData: domain.MyNDLAUser,
+        updatedUser: api.UpdatedMyNDLAUser,
+        user: Option[TokenUser]
+    ): domain.MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
+      val arenaEnabled = {
+        if (user.exists(_.hasPermission(LEARNINGPATH_API_ADMIN)))
+          updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
+        else domainUserData.arenaEnabled
+      }
 
       domain.MyNDLAUser(
         id = domainUserData.id,
@@ -847,7 +858,8 @@ trait ConverterService {
         userRole = domainUserData.userRole,
         lastUpdated = domainUserData.lastUpdated,
         organization = domainUserData.organization,
-        email = domainUserData.email
+        email = domainUserData.email,
+        arenaEnabled = arenaEnabled
       )
     }
 
