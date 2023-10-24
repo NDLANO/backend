@@ -23,7 +23,7 @@ import no.ndla.learningpathapi.model.domain.{
   SearchSettings,
   Sort
 }
-import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
+import no.ndla.learningpathapi.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 
 object TestData {
 
@@ -47,7 +47,7 @@ object TestData {
 
   val testConfigMeta: ConfigMeta = domain.config.ConfigMeta(
     ConfigKey.LearningpathWriteRestricted,
-    value = "true",
+    value = BooleanValue(true),
     today,
     "EnKulFyr"
   )

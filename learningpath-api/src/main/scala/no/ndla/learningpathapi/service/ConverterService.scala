@@ -670,14 +670,18 @@ trait ConverterService {
     def asApiConfig(configValue: ConfigMeta): api.config.ConfigMeta = {
       api.config.ConfigMeta(
         configValue.key.entryName,
-        configValue.value,
+        configValue.valueToEither,
         configValue.updatedAt,
         configValue.updatedBy
       )
     }
 
-    def asApiConfigRestricted(configValue: ConfigMeta): api.config.ConfigMetaRestricted =
-      api.config.ConfigMetaRestricted(key = configValue.key.entryName, value = configValue.value)
+    def asApiConfigRestricted(configValue: ConfigMeta): api.config.ConfigMetaRestricted = {
+      api.config.ConfigMetaRestricted(
+        key = configValue.key.entryName,
+        value = configValue.valueToEither
+      )
+    }
 
     def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
       val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))

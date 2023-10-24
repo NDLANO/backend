@@ -1444,7 +1444,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(TestData.testConfigMeta))
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
-      UpdateConfigValue("true"),
+      ConfigMetaValue(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH), None)
     )
     ex.isInstanceOf[AccessDeniedException] should be(true)
@@ -1455,7 +1455,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(TestData.testConfigMeta))
     val Success(_) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
-      UpdateConfigValue("true"),
+      ConfigMetaValue(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
     )
   }
@@ -1465,7 +1465,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(TestData.testConfigMeta))
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
-      UpdateConfigValue("123"),
+      ConfigMetaValue(List("123")),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
     )
 
@@ -1477,7 +1477,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(TestData.testConfigMeta))
     val res = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
-      UpdateConfigValue("true"),
+      ConfigMetaValue(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
     )
     res.isSuccess should be(true)

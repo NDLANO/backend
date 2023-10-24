@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
+import no.ndla.learningpathapi.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.tag.IntegrationTest
@@ -71,7 +71,7 @@ class ConfigRepositoryTest
   test("That updating configKey from empty database inserts config") {
     val newConfig = ConfigMeta(
       key = ConfigKey.LearningpathWriteRestricted,
-      value = "true",
+      value = BooleanValue(true),
       updatedAt = NDLADate.fromUnixTime(0),
       updatedBy = "ndlaUser1"
     )
@@ -85,7 +85,7 @@ class ConfigRepositoryTest
   test("That updating config works as expected") {
     val originalConfig = ConfigMeta(
       key = ConfigKey.LearningpathWriteRestricted,
-      value = "true",
+      value = BooleanValue(true),
       updatedAt = NDLADate.fromUnixTime(0),
       updatedBy = "ndlaUser1"
     )
@@ -96,7 +96,7 @@ class ConfigRepositoryTest
 
     val updatedConfig = ConfigMeta(
       key = ConfigKey.LearningpathWriteRestricted,
-      value = "false",
+      value = BooleanValue(false),
       updatedAt = NDLADate.fromUnixTime(10000),
       updatedBy = "ndlaUser2"
     )

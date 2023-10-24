@@ -15,5 +15,5 @@ import scala.annotation.meta.field
 @ApiModel(description = "Describes configuration value.")
 case class ConfigMetaRestricted(
     @(ApiModelProperty @field)(description = "Configuration key") key: String,
-    @(ApiModelProperty @field)(description = "Configuration value.") value: String
+    @(ApiModelProperty @field)(description = "Configuration value.") value: Either[Boolean, List[String]]
 )

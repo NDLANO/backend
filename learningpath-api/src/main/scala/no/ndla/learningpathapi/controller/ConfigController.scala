@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaRestricted, UpdateConfigValue}
+import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaRestricted, ConfigMetaValue}
 import no.ndla.learningpathapi.model.api.{Error, ValidationError}
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
@@ -56,7 +56,9 @@ trait ConfigController {
       val configKeyString = params("config_key")
       ConfigKey.valueOf(configKeyString) match {
         case None =>
-          BadRequest(s"No such config key was found. Must be one of '${ConfigKey.values.mkString("', '")}'")
+          BadRequest(
+            s"No such config key was found. Must be one of '${ConfigKey.all.mkString("', '")}'"
+          )
         case Some(configKey) => callback(configKey)
       }
     }
@@ -86,7 +88,7 @@ trait ConfigController {
           .parameters(
             asHeaderParam(correlationId),
             asPathParam(configKeyPathParam),
-            bodyParam[UpdateConfigValue]
+            bodyParam[ConfigMetaValue]
           )
           .responseMessages(response400, response404, response403, response500)
           .authorizations("oauth2")
@@ -94,7 +96,8 @@ trait ConfigController {
     ) {
       requireUserId { userInfo =>
         withConfigKey(configKey => {
-          val newConfigValue = extract[UpdateConfigValue](request.body)
+          val inpString      = request.body
+          val newConfigValue = extract[ConfigMetaValue](inpString)
           updateService.updateConfig(configKey, newConfigValue, userInfo) match {
             case Success(c)  => c
             case Failure(ex) => errorHandler(ex)
