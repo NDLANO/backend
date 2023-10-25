@@ -280,9 +280,9 @@ class ArticleRepositoryTest
 
     repository.updateArticleFromDraftApi(article1, List.empty).get
     repository.updateArticleFromDraftApi(article2, List.empty).get
-    repository.updateArticleFromDraftApi(article3, List.empty).get
+    val inserted3 = repository.updateArticleFromDraftApi(article3, List.empty).get
 
-    repository.withSlug("Detti-er-ein-slug").get.article.get should be(article3)
+    repository.withSlug("Detti-er-ein-slug").get.article.get should be(inserted3)
   }
 
 }
