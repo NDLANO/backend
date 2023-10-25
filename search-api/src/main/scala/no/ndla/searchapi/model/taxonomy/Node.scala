@@ -40,7 +40,7 @@ case class TaxonomyContext(
     path: String,
     breadcrumbs: SearchableLanguageList,
     contextType: Option[String],
-    relevanceId: Option[String],
+    relevanceId: String,
     relevance: SearchableLanguageValues,
     resourceTypes: List[SearchableTaxonomyResourceType],
     parentIds: List[String],

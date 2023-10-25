@@ -23,7 +23,8 @@ import no.ndla.common.model.domain.{
   draft
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
+import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
@@ -47,10 +48,11 @@ object TestData {
   val today: NDLADate = NDLADate.now().withNano(0)
 
   val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "nb")
-  val sampleArticleVisualElement          = ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
-  val sampleArticleIntro                  = ArticleApiIntro("intro", "nb")
+  val sampleArticleVisualElement: ArticleApiVisualElement =
+    ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
+  val sampleArticleIntro: ArticleApiIntro = ArticleApiIntro("intro", "nb")
 
-  val sampleArticleSearch = ArticleApiSearchResults(
+  val sampleArticleSearch: ArticleApiSearchResults = ArticleApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -79,7 +81,7 @@ object TestData {
     )
   )
 
-  val sampleImageSearch = ImageApiSearchResults(
+  val sampleImageSearch: ImageApiSearchResults = ImageApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -106,7 +108,7 @@ object TestData {
     )
   )
 
-  val sampleLearningpath = LearningpathApiSearchResults(
+  val sampleLearningpath: LearningpathApiSearchResults = LearningpathApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -143,7 +145,7 @@ object TestData {
     )
   )
 
-  val sampleAudio = AudioApiSearchResults(
+  val sampleAudio: AudioApiSearchResults = AudioApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -156,7 +158,7 @@ object TestData {
 
   val (articleId, externalId) = (1L, "751234")
 
-  val sampleArticleWithPublicDomain = Article(
+  val sampleArticleWithPublicDomain: Article = Article(
     Option(1),
     Option(1),
     Seq(Title("test", "en")),
@@ -181,7 +183,7 @@ object TestData {
     slug = None
   )
 
-  val sampleDomainArticle = Article(
+  val sampleDomainArticle: Article = Article(
     Option(articleId),
     Option(2),
     Seq(Title("title", "nb")),
@@ -206,7 +208,7 @@ object TestData {
     slug = None
   )
 
-  val sampleDomainArticle2 = Article(
+  val sampleDomainArticle2: Article = Article(
     None,
     None,
     Seq(Title("test", "en")),
@@ -546,13 +548,13 @@ object TestData {
     started = false
   )
 
-  val draftStatus         = Status(DraftStatus.PLANNED, Set.empty)
-  val importedDraftStatus = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
+  val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
+  val importedDraftStatus: Status = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
 
   val draftPublicDomainCopyright: draft.DraftCopyright =
     draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
 
-  val draftByNcSaCopyright = draft.DraftCopyright(
+  val draftByNcSaCopyright: DraftCopyright = draft.DraftCopyright(
     Some("by-nc-sa"),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
@@ -563,7 +565,7 @@ object TestData {
     false
   )
 
-  val draftCopyrighted = draft.DraftCopyright(
+  val draftCopyrighted: DraftCopyright = draft.DraftCopyright(
     Some("copyrighted"),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
@@ -574,7 +576,7 @@ object TestData {
     false
   )
 
-  val sampleDraftWithPublicDomain = Draft(
+  val sampleDraftWithPublicDomain: Draft = Draft(
     id = Option(1),
     revision = Option(1),
     status = draftStatus,
@@ -891,13 +893,13 @@ object TestData {
     draft16
   )
 
-  val paul              = Author("author", "Truly Weird Rand Paul")
-  val license           = "publicdomain"
-  val copyright         = common.learningpath.LearningpathCopyright(license, List(paul))
-  val visibleMetadata   = Some(Metadata(Seq.empty, visible = true, Map.empty))
-  val invisibleMetadata = Some(Metadata(Seq.empty, visible = false, Map.empty))
+  val paul: Author                        = Author("author", "Truly Weird Rand Paul")
+  val license                             = "publicdomain"
+  val copyright: LearningpathCopyright    = common.learningpath.LearningpathCopyright(license, List(paul))
+  val visibleMetadata: Option[Metadata]   = Some(Metadata(Seq.empty, visible = true, Map.empty))
+  val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false, Map.empty))
 
-  val DefaultLearningPath = LearningPath(
+  val DefaultLearningPath: LearningPath = LearningPath(
     id = None,
     revision = None,
     externalId = None,
@@ -1019,7 +1021,7 @@ object TestData {
       parent: Node,
       resourceTypes: List[ResourceType],
       contextType: Option[String],
-      relevance: Option[Relevance],
+      relevance: Relevance,
       isPrimary: Boolean,
       isVisible: Boolean,
       isActive: Boolean
@@ -1031,10 +1033,8 @@ object TestData {
         rootId = root.id,
         root = SearchableLanguageValues(Seq(LanguageValue("nb", root.name))),
         breadcrumbs = SearchableLanguageList.addValue(context.breadcrumbs, parent.name),
-        relevanceId = relevance.map(r => r.id),
-        relevance = relevance
-          .map(r => SearchableLanguageValues(Seq(LanguageValue("nb", r.name))))
-          .getOrElse(SearchableLanguageValues(Seq.empty)),
+        relevanceId = relevance.id,
+        relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
         resourceTypes = resourceTypes.map(rt =>
           SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
@@ -1064,7 +1064,7 @@ object TestData {
         path = "/subject:1",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
-        relevanceId = None,
+        relevanceId = core.id,
         relevance = SearchableLanguageValues(Seq.empty),
         resourceTypes = List.empty,
         parentIds = List.empty,
@@ -1091,7 +1091,7 @@ object TestData {
         path = "/subject:2",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
-        relevanceId = None,
+        relevanceId = core.id,
         relevance = SearchableLanguageValues(Seq.empty),
         resourceTypes = List.empty,
         parentIds = List.empty,
@@ -1118,7 +1118,7 @@ object TestData {
         path = "/subject:3",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
-        relevanceId = None,
+        relevanceId = core.id,
         relevance = SearchableLanguageValues(Seq.empty),
         resourceTypes = List.empty,
         parentIds = List.empty,
@@ -1140,7 +1140,7 @@ object TestData {
     List.empty
   )
   topic_1.contexts =
-    generateContexts(topic_1, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true, true)
+    generateContexts(topic_1, subject_1, subject_1, List.empty, Some("topic-article"), core, true, true, true)
   val topic_2: Node = Node(
     "urn:topic:2",
     article9.title.head.title,
@@ -1152,7 +1152,7 @@ object TestData {
     List.empty
   )
   topic_2.contexts =
-    generateContexts(topic_2, subject_1, topic_1, List.empty, Some("topic-article"), Some(core), true, true, true)
+    generateContexts(topic_2, subject_1, topic_1, List.empty, Some("topic-article"), core, true, true, true)
   val topic_3: Node = Node(
     "urn:topic:3",
     article10.title.head.title,
@@ -1164,7 +1164,7 @@ object TestData {
     List.empty
   )
   topic_3.contexts =
-    generateContexts(topic_3, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true, true)
+    generateContexts(topic_3, subject_1, subject_1, List.empty, Some("topic-article"), core, true, true, true)
   val topic_4: Node = Node(
     "urn:topic:4",
     article11.title.head.title,
@@ -1176,7 +1176,7 @@ object TestData {
     List.empty
   )
   topic_4.contexts =
-    generateContexts(topic_4, subject_2, subject_2, List.empty, Some("topic-article"), Some(core), true, true, true)
+    generateContexts(topic_4, subject_2, subject_2, List.empty, Some("topic-article"), core, true, true, true)
   val topic_5: Node = Node(
     "urn:topic:5",
     draft15.title.head.title,
@@ -1188,7 +1188,7 @@ object TestData {
     List.empty
   )
   topic_5.contexts =
-    generateContexts(topic_5, subject_3, subject_3, List.empty, Some("topic-article"), Some(supp), true, true, true)
+    generateContexts(topic_5, subject_3, subject_3, List.empty, Some("topic-article"), supp, true, true, true)
   val resource_1: Node = Node(
     "urn:resource:1",
     article1.title.head.title,
@@ -1205,7 +1205,7 @@ object TestData {
     topic_5,
     List(subjectMaterial),
     Some("standard"),
-    Some(core),
+    core,
     true,
     true,
     true
@@ -1216,7 +1216,7 @@ object TestData {
       topic_1,
       List(subjectMaterial),
       Some("standard"),
-      Some(core),
+      core,
       true,
       true,
       true
@@ -1227,7 +1227,7 @@ object TestData {
       topic_4,
       List(subjectMaterial),
       Some("standard"),
-      Some(core),
+      core,
       true,
       true,
       false
@@ -1248,7 +1248,7 @@ object TestData {
     topic_1,
     List(subjectMaterial, academicArticle),
     Some("standard"),
-    Some(supp),
+    supp,
     true,
     true,
     true
@@ -1269,7 +1269,7 @@ object TestData {
     topic_3,
     List(subjectMaterial),
     Some("standard"),
-    Some(supp),
+    supp,
     true,
     true,
     true
@@ -1290,7 +1290,7 @@ object TestData {
     topic_2,
     List(subjectMaterial),
     Some("standard"),
-    Some(supp),
+    supp,
     true,
     true,
     true
@@ -1311,7 +1311,7 @@ object TestData {
     topic_4,
     List(academicArticle, subjectMaterial),
     Some("standard"),
-    Some(core),
+    core,
     true,
     true,
     false
@@ -1322,7 +1322,7 @@ object TestData {
       topic_3,
       List(academicArticle, subjectMaterial),
       Some("standard"),
-      Some(core),
+      core,
       true,
       true,
       true
@@ -1343,7 +1343,7 @@ object TestData {
     topic_4,
     List(subjectMaterial),
     Some("standard"),
-    Some(core),
+    core,
     true,
     true,
     true
@@ -1364,7 +1364,7 @@ object TestData {
     topic_4,
     List(guidance, subjectMaterial, nested, peerEvaluation, reviewResource),
     Some("standard"),
-    Some(core),
+    core,
     true,
     true,
     false
@@ -1385,7 +1385,7 @@ object TestData {
     topic_1,
     List(rtLearningpath),
     Some("learningpath"),
-    Some(supp),
+    supp,
     true,
     true,
     true
@@ -1406,7 +1406,7 @@ object TestData {
     topic_1,
     List(rtLearningpath),
     Some("learningpath"),
-    Some(core),
+    core,
     true,
     true,
     true
@@ -1427,7 +1427,7 @@ object TestData {
     topic_3,
     List(rtLearningpath),
     Some("learningpath"),
-    Some(core),
+    core,
     true,
     true,
     true
@@ -1448,7 +1448,7 @@ object TestData {
     topic_2,
     List(rtLearningpath),
     Some("learningpath"),
-    Some(supp),
+    supp,
     true,
     true,
     true
@@ -1469,7 +1469,7 @@ object TestData {
     topic_4,
     List(rtLearningpath),
     Some("learningpath"),
-    Some(supp),
+    supp,
     true,
     true,
     true
@@ -1490,7 +1490,7 @@ object TestData {
     topic_1,
     List(subjectMaterial),
     Some("standard"),
-    Some(core),
+    core,
     true,
     true,
     true
@@ -1501,13 +1501,13 @@ object TestData {
       topic_4,
       List(subjectMaterial),
       Some("standard"),
-      Some(supp),
+      supp,
       true,
       true,
       true
     )
 
-  val nodes = List(
+  val nodes: List[Node] = List(
     subject_1,
     subject_2,
     subject_3,
@@ -1531,15 +1531,15 @@ object TestData {
     resource_13
   )
 
-  val taxonomyTestBundle = TaxonomyBundle(nodes = nodes)
+  val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
 
-  val emptyGrepBundle = GrepBundle(
+  val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
     tverrfagligeTemaer = List.empty
   )
 
-  val grepBundle = emptyGrepBundle.copy(
+  val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
       GrepElement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing"))),
       GrepElement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")))
@@ -1612,7 +1612,7 @@ object TestData {
     prioritized = None
   )
 
-  val searchableResourceTypes = List(
+  val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(
     SearchableTaxonomyResourceType(
       "urn:resourcetype:subjectMaterial",
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))
@@ -1623,7 +1623,7 @@ object TestData {
     )
   )
 
-  val singleSearchableTaxonomyContext =
+  val singleSearchableTaxonomyContext: SearchableTaxonomyContext =
     SearchableTaxonomyContext(
       publicId = "urn:resource:101",
       rootId = "urn:subject:1",
@@ -1635,7 +1635,7 @@ object TestData {
         )
       ),
       contextType = LearningResourceType.Article.toString,
-      relevanceId = Some("urn:relevance:core"),
+      relevanceId = "urn:relevance:core",
       relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
       resourceTypes = searchableResourceTypes,
       parentIds = List("urn:topic:1"),
@@ -1643,7 +1643,7 @@ object TestData {
       isActive = true
     )
 
-  val searchableTaxonomyContexts = List(
+  val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(
     singleSearchableTaxonomyContext
   )
 }
