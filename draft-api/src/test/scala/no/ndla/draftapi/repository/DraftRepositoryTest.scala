@@ -417,4 +417,12 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     relatedId should be(2L)
 
   }
+
+  test("That slugs are stored and extracted as lowercase") {
+    val article = sampleArticle.copy(id = Some(1), slug = Some("ApeKaTt"))
+
+    val inserted = repository.insert(article)(AutoSession)
+    val fetched  = repository.withSlug("aPEkAtT")(ReadOnlyAutoSession).get
+    fetched should be(inserted)
+  }
 }

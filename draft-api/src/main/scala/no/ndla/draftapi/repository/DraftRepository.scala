@@ -55,14 +55,15 @@ trait DraftRepository {
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
+      val slug = article.slug.map(_.toLowerCase)
 
       val dbId = sql"""
             insert into ${DBArticle.table} (document, revision, article_id, slug)
-            values ($dataObject, $startRevision, ${article.id}, ${article.slug})
+            values ($dataObject, $startRevision, ${article.id}, $slug)
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new article: ${article.id}, with revision $startRevision (with db id $dbId)")
-      article.copy(revision = Some(startRevision))
+      article.copy(revision = Some(startRevision), slug = slug)
     }
 
     def insertWithExternalIds(
@@ -77,6 +78,7 @@ trait DraftRepository {
       dataObject.setValue(write(article))
 
       val uuid = Try(importId.map(UUID.fromString)).toOption.flatten
+      val slug = article.slug.map(_.toLowerCase)
 
       val dbId: Long =
         sql"""
@@ -87,7 +89,7 @@ trait DraftRepository {
                      $startRevision,
                      $uuid,
                      ${article.id},
-                     ${article.slug})
+                     $slug)
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new article: ${article.id} (with db id $dbId)")
@@ -124,6 +126,7 @@ trait DraftRepository {
             dataObject.setType("jsonb")
             dataObject.setValue(write(copiedArticle))
             val uuid = Try(importId.map(UUID.fromString)).toOption.flatten
+            val slug = article.slug.map(_.toLowerCase)
 
             val dbId: Long =
               sql"""
@@ -134,7 +137,7 @@ trait DraftRepository {
                          $articleRevision,
                          $uuid,
                          ${articleId},
-                         ${article.slug})
+                         $slug)
               """.updateAndReturnGeneratedKey()
 
             logger.info(s"Inserted new article: ${articleId} (with db id $dbId)")
@@ -181,10 +184,11 @@ trait DraftRepository {
 
       val newRevision = if (isImported) 1 else article.revision.getOrElse(0) + 1
       val oldRevision = if (isImported) 1 else article.revision.getOrElse(0)
+      val slug        = article.slug.map(_.toLowerCase)
       val count =
         sql"""
               update ${DBArticle.table}
-              set document=$dataObject, revision=$newRevision, slug=${article.slug}
+              set document=$dataObject, revision=$newRevision, slug=$slug
               where article_id=${article.id}
               and revision=$oldRevision
               and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
@@ -226,6 +230,7 @@ trait DraftRepository {
 
       val uuid        = Try(importId.map(UUID.fromString)).toOption.flatten
       val newRevision = article.revision.getOrElse(0) + 1
+      val slug        = article.slug.map(_.toLowerCase)
 
       val deleteCount = deletePreviousRevisions(article)
       logger.info(s"Deleted $deleteCount revisions of article with id '${article.id}' before import update.")
@@ -240,7 +245,7 @@ trait DraftRepository {
                  external_id=ARRAY[$externalIds]::text[],
                  external_subject_id=ARRAY[$externalSubjectIds]::text[],
                  import_id=$uuid,
-                 slug=${article.slug}
+                 slug=$slug
               """
           )
           .where
@@ -431,14 +436,17 @@ trait DraftRepository {
         .single()
     }
 
-    def withSlug(slug: String)(implicit session: DBSession): Option[Draft] = articleWhere(sqls"ar.slug=$slug")
+    def withSlug(slug: String)(implicit session: DBSession): Option[Draft] = articleWhere(
+      sqls"ar.slug=${slug.toLowerCase}"
+    )
 
     def slugExists(slug: String, articleId: Option[Long])(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Boolean = {
       val sq = articleId match {
-        case None     => sql"select count(*) from ${DBArticle.table} where slug = $slug"
-        case Some(id) => sql"select count(*) from ${DBArticle.table} where slug = $slug and article_id != $id"
+        case None => sql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase}"
+        case Some(id) =>
+          sql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase} and article_id != $id"
       }
       val count = sq.map(rs => rs.long("count")).single().getOrElse(0L)
       count > 0L
