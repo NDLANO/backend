@@ -107,12 +107,6 @@ trait UserRepository {
         .single()
     }
 
-    def numberOfSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(favoriteSubject) from (select distinct jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
-        .map(rs => rs.long("count"))
-        .single()
-    }
-
     def numberOfFavouritedSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
       sql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
         .map(rs => rs.long("count"))
