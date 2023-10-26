@@ -113,6 +113,9 @@
         },
         {
           "name": "class"
+        },
+        {
+          "name": "headers"
         }
       ]
     },
