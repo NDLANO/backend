@@ -33,26 +33,28 @@ trait ArticleRepository {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
+      val slug = article.slug.map(_.toLowerCase)
 
       Try {
         sql"""update ${Article.table}
               set document=$dataObject,
                   external_id=ARRAY[$externalIds]::text[],
-                  slug=${article.slug}
+                  slug=$slug
               where article_id=${article.id} and revision=${article.revision}
           """.update()
       } match {
         case Success(count) if count == 1 =>
           logger.info(s"Updated article ${article.id}")
-          Success(article)
+          Success(article.copy(slug = slug))
         case Success(_) =>
           logger.info(s"No article with id ${article.id} and revision ${article.revision} exists, creating...")
+          val slug = article.slug.map(_.toLowerCase)
           Try {
             sql"""
                   insert into ${Article.table} (article_id, document, external_id, revision, slug)
-                  values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision}, ${article.slug})
+                  values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision}, $slug)
               """.updateAndReturnGeneratedKey()
-          }.map(_ => article)
+          }.map(_ => article.copy(slug = slug))
 
         case Failure(ex) => Failure(ex)
       }
@@ -118,7 +120,9 @@ trait ArticleRepository {
       }
     }
 
-    def withSlug(slug: String): Option[ArticleRow] = articleWhere(sqls"ar.slug=$slug ORDER BY revision DESC LIMIT 1")
+    def withSlug(slug: String): Option[ArticleRow] = articleWhere(
+      sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1"
+    )
 
     def withId(articleId: Long): Option[ArticleRow] =
       articleWhere(
@@ -347,8 +351,9 @@ trait ArticleRepository {
         session: DBSession = ReadOnlyAutoSession
     ): Boolean = {
       val sq = articleId match {
-        case None     => sql"select count(*) from ${Article.table} where slug = $slug"
-        case Some(id) => sql"select count(*) from ${Article.table} where slug = $slug and article_id != $id"
+        case None => sql"select count(*) from ${Article.table} where slug = ${slug.toLowerCase}"
+        case Some(id) =>
+          sql"select count(*) from ${Article.table} where slug = ${slug.toLowerCase} and article_id != $id"
       }
       val count = sq.map(rs => rs.long("count")).single().getOrElse(0L)
       count > 0L
