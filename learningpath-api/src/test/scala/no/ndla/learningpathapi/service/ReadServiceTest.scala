@@ -13,7 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.learningpathapi.TestData._
-import no.ndla.learningpathapi.model.api.{ResourceStats, Stats}
+import no.ndla.learningpathapi.model.api.Stats
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
@@ -703,11 +703,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.numberOfFolders()(any)).thenReturn(Some(10))
     when(folderRepository.numberOfResources()(any)).thenReturn(Some(20))
     when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
-    when(userRepository.numberOfSubjects()(any)).thenReturn(Some(5))
     when(userRepository.numberOfFavouritedSubjects()(any)).thenReturn(Some(15))
     when(folderRepository.numberOfSharedFolders()(any)).thenReturn(Some(5))
     when(folderRepository.numberOfResourcesGrouped()(any)).thenReturn(List.empty)
 
-    service.getStats.get should be(Stats(5, 10, 20, 10, 5, 5, List(ResourceStats("subject", 15))))
+    service.getStats.get should be(Stats(5, 10, 20, 10, 15, 5, List.empty))
   }
 }

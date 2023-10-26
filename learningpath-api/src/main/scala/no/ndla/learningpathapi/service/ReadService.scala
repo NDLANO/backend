@@ -456,8 +456,7 @@ trait ReadService {
         numberOfFolders       <- folderRepository.numberOfFolders()
         numberOfResources     <- folderRepository.numberOfResources()
         numberOfTags          <- folderRepository.numberOfTags()
-        numberOfSubjects      <- userRepository.numberOfSubjects()
-        favouritedSubjects    <- userRepository.numberOfFavouritedSubjects()
+        numberOfSubjects      <- userRepository.numberOfFavouritedSubjects()
         numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
         stats = Stats(
           numberOfUsers,
@@ -466,7 +465,7 @@ trait ReadService {
           numberOfTags,
           numberOfSubjects,
           numberOfSharedFolders,
-          favouritedResources :+ ResourceStats("subject", favouritedSubjects)
+          favouritedResources
         )
       } yield stats
     }
