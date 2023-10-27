@@ -417,7 +417,7 @@ trait WriteService {
 
     private[service] def getFileExtension(fileName: String): Option[String] = {
       fileName.lastIndexOf(".") match {
-        case index: Int if index > -1 => Some(fileName.substring(index))
+        case index: Int if index > -1 => Some(fileName.replace("\"", "").substring(index))
         case _                        => None
       }
     }
