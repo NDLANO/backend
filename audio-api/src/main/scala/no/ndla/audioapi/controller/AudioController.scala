@@ -264,12 +264,12 @@ trait AudioController {
       getSearch,
       postSearch,
       getIds,
+      tagSearch,
       getSingle,
       deleteAudio,
       deleteLanguage,
       postNewAudio,
-      putUpdateAudio,
-      tagSearch
+      putUpdateAudio
     )
 
     def getBytesAndDeleteFile(file: Part[File]): Part[Array[Byte]] = {
