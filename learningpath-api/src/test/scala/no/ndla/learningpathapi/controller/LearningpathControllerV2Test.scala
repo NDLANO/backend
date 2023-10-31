@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.{NDLADate, api => commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
-import no.ndla.learningpathapi.integration.{Resource, Topic}
+import no.ndla.learningpathapi.integration.Node
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
@@ -353,7 +353,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That GET /contains-article returns 200") {
-    reset(taxononyApiClient)
+    reset(taxonomyApiClient)
 
     val result = domain.SearchResult(
       totalCount = 0,
@@ -363,8 +363,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
       results = Seq.empty,
       scrollId = Some("heiheihei")
     )
-    when(taxononyApiClient.queryResource(any[Long])).thenReturn(Success(List[Resource]()))
-    when(taxononyApiClient.queryTopic(any[Long])).thenReturn(Success(List[Topic]()))
+    when(taxonomyApiClient.queryNodes(any[Long])).thenReturn(Success(List[Node]()))
     when(searchService.containsPath(any[List[String]])).thenReturn(Success(result))
 
     get("/contains-article/123") {
@@ -373,7 +372,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That GET /contains-article returns correct errors when id is a string or nothing") {
-    reset(taxononyApiClient)
+    reset(taxonomyApiClient)
 
     get("/contains-article/hallohallo") {
       status should be(400)

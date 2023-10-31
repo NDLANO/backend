@@ -22,13 +22,13 @@ trait LearningpathApiInfo {
 
   object LearningpathApiInfo {
 
-    val contactInfo: ContactInfo = ContactInfo(
+    private val contactInfo: ContactInfo = ContactInfo(
       props.ContactName,
       props.ContactUrl,
       props.ContactEmail
     )
 
-    val licenseInfo: LicenseInfo = LicenseInfo(
+    private val licenseInfo: LicenseInfo = LicenseInfo(
       "GPL v3.0",
       "http://www.gnu.org/licenses/gpl-3.0.en.html"
     )

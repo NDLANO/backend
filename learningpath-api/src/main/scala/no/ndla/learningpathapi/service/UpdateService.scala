@@ -68,7 +68,7 @@ trait UpdateService {
         readService.withIdAndAccessGranted(pathId, userInfo) match {
           case Failure(ex) => Failure(ex)
           case Success(lp) =>
-            taxononyApiClient
+            taxonomyApiClient
               .updateTaxonomyForLearningPath(lp, createResourceIfMissing, Some(userInfo))
               .flatMap(l => converterService.asApiLearningpathV2(l, language, fallback, userInfo))
         }
@@ -161,7 +161,7 @@ trait UpdateService {
         deleteIsBasedOnReference(learningPath): Unit
       }
 
-      sRes.flatMap(lp => taxononyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false, user))
+      sRes.flatMap(lp => taxonomyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false, user))
     }
 
     def updateLearningPathStatusV2(
@@ -415,7 +415,7 @@ trait UpdateService {
         }
       }
 
-    def rangeToUpdate(from: Int, to: Int): Range = if (from > to) to until from else from + 1 to to
+    private def rangeToUpdate(from: Int, to: Int): Range = if (from > to) to until from else from + 1 to to
 
     private def withId(learningPathId: Long, includeDeleted: Boolean = false): Try[domain.LearningPath] = {
       val lpOpt = if (includeDeleted) {
@@ -430,7 +430,8 @@ trait UpdateService {
       }
     }
 
-    def optimisticLockRetries[T](n: Int)(fn: => T): T = {
+    @tailrec
+    private def optimisticLockRetries[T](n: Int)(fn: => T): T = {
       try {
         fn
       } catch {

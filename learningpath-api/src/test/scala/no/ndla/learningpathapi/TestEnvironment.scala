@@ -107,7 +107,7 @@ trait TestEnvironment
   val searchIndexService: SearchIndexService                           = mock[SearchIndexService]
   val converterService: ConverterService                               = org.mockito.Mockito.spy(new ConverterService)
   val clock: SystemClock                                               = mock[SystemClock]
-  val taxononyApiClient: TaxonomyApiClient                             = mock[TaxonomyApiClient]
+  val taxonomyApiClient: TaxonomyApiClient                             = mock[TaxonomyApiClient]
   val ndlaClient: NdlaClient                                           = mock[NdlaClient]
   val imageApiClient: ImageApiClient                                   = mock[ImageApiClient]
   val languageValidator: LanguageValidator                             = mock[LanguageValidator]

@@ -18,7 +18,8 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
 
   override val imageApiClient = new ImageApiClient
 
-  val DefaultImage = ImageMetaInformation("1", "http://api.test.ndla.no/images/1", "full", 1000, "contentType")
+  val DefaultImage: ImageMetaInformation =
+    ImageMetaInformation("1", "http://api.test.ndla.no/images/1", "full", 1000, "contentType")
 
   test("That some metaInfo is returned when images is found") {
     when(

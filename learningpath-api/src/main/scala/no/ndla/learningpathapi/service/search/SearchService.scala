@@ -156,12 +156,12 @@ trait SearchService extends StrictLogging {
 
     private def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult] = {
       val (languageFilter, searchLanguage) = settings.language match {
-        case Some(lang) if (settings.fallback) => (None, lang)
-        case Some(lang)                        => (Some(existsQuery(s"titles.$lang")), lang)
-        case _                                 => (None, "*")
+        case Some(lang) if settings.fallback => (None, lang)
+        case Some(lang)                      => (Some(existsQuery(s"titles.$lang")), lang)
+        case _                               => (None, "*")
       }
 
-      val tagFilter: Option[Query] = settings.taggedWith.map(tag => termQuery(s"tags.${searchLanguage}.raw", tag))
+      val tagFilter: Option[Query] = settings.taggedWith.map(tag => termQuery(s"tags.$searchLanguage.raw", tag))
       val idFilter                 = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
       val pathFilter               = pathsFilterQuery(settings.withPaths)
 

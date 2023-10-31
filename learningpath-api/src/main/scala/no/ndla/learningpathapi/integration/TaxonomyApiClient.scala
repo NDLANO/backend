@@ -19,6 +19,7 @@ import no.ndla.language.Language
 import no.ndla.learningpathapi.Props
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.tapir.auth.TokenUser
+import org.json4s.DefaultFormats
 import sttp.client3.Response
 
 import scala.concurrent.duration.DurationInt
@@ -26,14 +27,14 @@ import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
   this: NdlaClient with Props =>
-  val taxononyApiClient: TaxonomyApiClient
+  val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
     import props.{TaxonomyUrl, DefaultLanguage}
-    implicit val formats                   = org.json4s.DefaultFormats
-    private val taxonomyTimeout            = 20.seconds
-    private val TaxonomyApiEndpoint        = s"$TaxonomyUrl/v1"
-    private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"
+    implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+    private val taxonomyTimeout               = 20.seconds
+    private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
+    private val LearningPathResourceTypeId    = "urn:resourcetype:learningPath"
 
     def updateTaxonomyForLearningPath(
         learningPath: LearningPath,
@@ -50,12 +51,12 @@ trait TaxonomyApiClient {
             case None =>
               Failure(TaxonomyUpdateException("Can't update taxonomy resource when learningpath is missing titles."))
             case Some(mainTitle) =>
-              queryResource(contentUri, user) match {
+              queryNodes(contentUri, user) match {
                 case Failure(ex) => Failure(ex)
                 case Success(resources) if resources.isEmpty && createResourceIfMissing =>
                   createAndUpdateResource(learningPath, contentUri, mainTitle, user)
                 case Success(resources) =>
-                  updateExistingResources(resources, contentUri, learningPath.title, mainTitle, user)
+                  updateExistingNode(resources, contentUri, learningPath.title, mainTitle, user)
               }
           }
       }
@@ -68,11 +69,12 @@ trait TaxonomyApiClient {
         mainTitle: Title,
         user: Option[TokenUser]
     ) = {
-      val newResource = NewOrUpdateTaxonomyResource(
+      val newResource = NewOrUpdatedNode(
+        nodeType = "RESOURCE",
         name = mainTitle.title,
         contentUri = contentUri
       )
-      createResource(newResource, user) match {
+      createNode(newResource, user) match {
         case Failure(ex) => Failure(ex)
         case Success(newLocation) =>
           newLocation.split('/').lastOption match {
@@ -81,14 +83,14 @@ trait TaxonomyApiClient {
               logger.error(msg)
               Failure(TaxonomyUpdateException(msg))
             case Some(resourceId) =>
-              val newResource = TaxonomyResource(
+              val newResource = Node(
                 id = resourceId,
                 name = mainTitle.title,
                 contentUri = Some(contentUri),
-                path = None
+                paths = List(newLocation)
               )
               addLearningPathResourceType(resourceId, user).flatMap(_ =>
-                updateExistingResources(List(newResource), contentUri, learningPath.title, mainTitle, user)
+                updateExistingNode(List(newResource), contentUri, learningPath.title, mainTitle, user)
               )
           }
       }
@@ -106,27 +108,27 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def updateTaxonomyResource(
+    private def updateNode(
         taxonomyId: String,
-        resource: NewOrUpdateTaxonomyResource,
+        node: NewOrUpdatedNode,
         user: Option[TokenUser]
     ) = {
-      putRaw[NewOrUpdateTaxonomyResource](s"$TaxonomyApiEndpoint/resources/${taxonomyId}", resource, user) match {
+      putRaw[NewOrUpdatedNode](s"$TaxonomyApiEndpoint/nodes/$taxonomyId", node, user) match {
         case Failure(ex) =>
           logger.error(s"Failed updating taxonomy resource $taxonomyId with name.")
           Failure(ex)
         case Success(res) =>
-          logger.info(s"Successfully updated $taxonomyId with name: '${resource.name}'...")
+          logger.info(s"Successfully updated $taxonomyId with name: '${node.name}'...")
           Success(res)
       }
     }
 
-    private def createResource(resource: NewOrUpdateTaxonomyResource, user: Option[TokenUser]) = {
-      postRaw[NewOrUpdateTaxonomyResource](s"$TaxonomyApiEndpoint/resources", resource, user) match {
+    private def createNode(resource: NewOrUpdatedNode, user: Option[TokenUser]) = {
+      postRaw[NewOrUpdatedNode](s"$TaxonomyApiEndpoint/nodes", resource, user) match {
         case Success(resp) =>
           resp.header("location") match {
             case Some(locationHeader) if locationHeader.nonEmpty => Success(locationHeader)
-            case _ => Failure(new TaxonomyUpdateException("Could not get location after inserting resource"))
+            case _ => Failure(TaxonomyUpdateException("Could not get location after inserting resource"))
           }
 
         case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) =>
@@ -138,8 +140,8 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def updateExistingResources(
-        existingResources: List[TaxonomyResource],
+    private def updateExistingNode(
+        existingResources: List[Node],
         contentUri: String,
         titles: Seq[Title],
         mainTitle: Title,
@@ -147,19 +149,20 @@ trait TaxonomyApiClient {
     ) = {
       existingResources
         .traverse(r => {
-          val resourceToPut = NewOrUpdateTaxonomyResource(
+          val resourceToPut = NewOrUpdatedNode(
+            nodeType = "RESOURCE",
             name = mainTitle.title,
             contentUri = r.contentUri.getOrElse(contentUri)
           )
 
-          updateTaxonomyResource(r.id, resourceToPut, user)
+          updateNode(r.id, resourceToPut, user)
             .flatMap(_ => updateResourceTranslations(r.id, titles, user))
         })
     }
 
     private def titleIsEqualToTranslation(title: Title, translation: Translation) =
       translation.name == title.title &&
-        translation.language.exists(_ == title.language)
+        translation.language.contains(title.language)
 
     private def updateResourceTranslations(
         resourceId: String,
@@ -168,18 +171,18 @@ trait TaxonomyApiClient {
     ): Try[List[Translation]] = {
       // Since 'unknown' language is known as 'unk' in taxonomy we do a conversion
       val titlesWithConvertedLang = titles.map(t => t.copy(language = t.language.replace("unknown", "unk")))
-      getResourceTranslations(resourceId, user) match {
+      getTranslations(resourceId, user) match {
         case Failure(ex) =>
           logger.error(s"Failed to get translations for $resourceId when updating taxonomy...")
           Failure(ex)
         case Success(existingTranslations) =>
           val toDelete =
             existingTranslations.filterNot(_.language.exists(titlesWithConvertedLang.map(_.language).contains))
-          val deleted = toDelete.map(deleteResourceTranslation(resourceId, _, user))
+          val deleted = toDelete.map(deleteTranslation(resourceId, _, user))
           val updated = titlesWithConvertedLang.toList.traverse(title =>
             existingTranslations.find(titleIsEqualToTranslation(title, _)) match {
               case Some(existingTranslation) => Success(existingTranslation)
-              case None                      => updateResourceTranslation(resourceId, title.language, title.title, user)
+              case None                      => updateTranslation(resourceId, title.language, title.title, user)
             }
           )
 
@@ -190,42 +193,42 @@ trait TaxonomyApiClient {
       }
     }
 
-    private[integration] def updateResourceTranslation(
-        resourceId: String,
+    private[integration] def updateTranslation(
+        nodeId: String,
         lang: String,
         name: String,
         user: Option[TokenUser]
     ) =
-      putRaw(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$lang", Translation(name), user)
+      putRaw(s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$lang", Translation(name), user)
 
-    private[integration] def deleteResourceTranslation(
-        resourceId: String,
+    private[integration] def deleteTranslation(
+        nodeId: String,
         translation: Translation,
         user: Option[TokenUser]
     ) = {
       translation.language
         .map(language => {
-          delete(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$language", user)
+          delete(s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$language", user)
         })
         .getOrElse({
-          logger.info(s"Cannot delete translation without language for $resourceId")
+          logger.info(s"Cannot delete translation without language for $nodeId")
           Success(())
         })
     }
 
-    private[integration] def getResourceTranslations(resourceId: String, user: Option[TokenUser]) =
-      get[List[Translation]](s"$TaxonomyApiEndpoint/resources/$resourceId/translations", user)
+    private[integration] def getTranslations(nodeId: String, user: Option[TokenUser]) =
+      get[List[Translation]](s"$TaxonomyApiEndpoint/nodes/$nodeId/translations", user)
 
-    private def queryResource(contentUri: String, user: Option[TokenUser]): Try[List[TaxonomyResource]] = {
-      get[List[TaxonomyResource]](s"$TaxonomyApiEndpoint/queries/resources", user, "contentURI" -> contentUri) match {
+    private def queryNodes(contentUri: String, user: Option[TokenUser]): Try[List[Node]] = {
+      get[List[Node]](s"$TaxonomyApiEndpoint/nodes", user, "contentURI" -> contentUri) match {
         case Success(resources) => Success(resources)
         case Failure(ex)        => Failure(ex)
       }
     }
 
-    def getResource(nodeId: String, user: Option[TokenUser]): Try[TaxonomyResource] = {
+    def getNode(nodeId: String, user: Option[TokenUser]): Try[Node] = {
       val resourceId = s"urn:resource:1:$nodeId"
-      get[TaxonomyResource](s"$TaxonomyApiEndpoint/resources/$resourceId", user) match {
+      get[Node](s"$TaxonomyApiEndpoint/nodes/$resourceId", user) match {
         case Failure(ex) =>
           Failure(ex)
         case Success(a) =>
@@ -233,20 +236,17 @@ trait TaxonomyApiClient {
       }
     }
 
-    def updateResource(resource: TaxonomyResource, user: Option[TokenUser]): Try[TaxonomyResource] = {
-      put[String, TaxonomyResource](s"$TaxonomyApiEndpoint/resources/${resource.id}", resource, user) match {
-        case Success(_) => Success(resource)
+    def updateNode(node: Node, user: Option[TokenUser]): Try[Node] = {
+      put[String, Node](s"$TaxonomyApiEndpoint/nodes/${node.id}", node, user) match {
+        case Success(_) => Success(node)
         case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) =>
-          Success(resource)
+          Success(node)
         case Failure(ex) => Failure(ex)
       }
     }
 
-    def queryResource(articleId: Long): Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/queries/resources", None, "contentURI" -> s"urn:article:$articleId")
-
-    def queryTopic(articleId: Long): Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", None, "contentURI" -> s"urn:article:$articleId")
+    def queryNodes(articleId: Long): Try[List[Node]] =
+      get[List[Node]](s"$TaxonomyApiEndpoint/nodes", None, "contentURI" -> s"urn:article:$articleId")
 
     private def get[A](url: String, user: Option[TokenUser], params: (String, String)*)(implicit
         mf: Manifest[A]
@@ -325,16 +325,10 @@ trait TaxonomyApiClient {
 
 case class Translation(name: String, language: Option[String] = None)
 
-case class NewOrUpdateTaxonomyResource(
+case class NewOrUpdatedNode(
+    nodeType: String,
     name: String,
     contentUri: String
-)
-
-case class TaxonomyResource(
-    id: String,
-    name: String,
-    contentUri: Option[String],
-    path: Option[String]
 )
 
 case class ResourceResourceType(
@@ -342,16 +336,6 @@ case class ResourceResourceType(
     resourceTypeId: String
 )
 
-trait Taxonomy[E <: Taxonomy[E]] {
-  val id: String
-  def name: String
-  def withName(name: String): E
-}
-
-case class Resource(id: String, name: String, contentUri: Option[String], paths: List[String])
-    extends Taxonomy[Resource] {
-  def withName(name: String): Resource = this.copy(name = name)
-}
-case class Topic(id: String, name: String, contentUri: Option[String], paths: List[String]) extends Taxonomy[Topic] {
-  def withName(name: String): Topic = this.copy(name = name)
+case class Node(id: String, name: String, contentUri: Option[String], paths: List[String]) {
+  def withName(name: String): Node = this.copy(name = name)
 }
