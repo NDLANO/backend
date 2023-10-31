@@ -40,7 +40,7 @@ case class StateTransition(
     val hasRequiredStatuses =
       maybeArticle match {
         case Some(article) => requiredStatuses.forall(draftStatus => article.status.other.contains(draftStatus))
-        case None          => false
+        case None          => requiredStatuses.isEmpty
       }
     (ignore || user.hasPermissions(this.requiredPermissions)) && hasRequiredStatuses
   }
