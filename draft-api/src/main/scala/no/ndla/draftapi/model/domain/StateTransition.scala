@@ -20,22 +20,29 @@ case class StateTransition(
     addCurrentStateToOthersOnTransition: Boolean,
     requiredPermissions: Set[Permission],
     illegalStatuses: Set[DraftStatus],
-    private val ignorePermissionsIf: Option[(Set[Permission], IgnoreFunction)]
+    private val ignorePermissionsIf: Option[(Set[Permission], IgnoreFunction)],
+    requiredStatuses: Set[DraftStatus]
 ) {
 
   def keepCurrentOnTransition: StateTransition                = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[DraftStatus]): StateTransition   = copy(otherStatesToKeepOnTransition = toKeep)
   def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
+  def requireStatusesForTransition(required: Set[DraftStatus]): StateTransition = copy(requiredStatuses = required)
 
   def require(permissions: Set[Permission], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
     copy(requiredPermissions = permissions, ignorePermissionsIf = ignoreRoleRequirementIf.map(requiredPermissions -> _))
 
-  def hasRequiredRoles(user: TokenUser, article: Option[Draft]): Boolean = {
+  def hasRequiredProperties(user: TokenUser, maybeArticle: Option[Draft]): Boolean = {
     val ignore = ignorePermissionsIf match {
-      case Some((oldRoles, ignoreFunc)) => ignoreFunc(article, this) && user.hasPermissions(oldRoles)
+      case Some((oldRoles, ignoreFunc)) => ignoreFunc(maybeArticle, this) && user.hasPermissions(oldRoles)
       case None                         => false
     }
-    ignore || user.hasPermissions(this.requiredPermissions)
+    val hasRequiredStatuses =
+      maybeArticle match {
+        case Some(article) => requiredStatuses.forall(draftStatus => article.status.other.contains(draftStatus))
+        case None          => false
+      }
+    (ignore || user.hasPermissions(this.requiredPermissions)) && hasRequiredStatuses
   }
 
   def withIllegalStatuses(illegalStatuses: Set[DraftStatus]): StateTransition =
@@ -53,7 +60,8 @@ object StateTransition {
       addCurrentStateToOthersOnTransition = false,
       Set(DRAFT_API_WRITE),
       Set(),
-      None
+      None,
+      Set()
     )
   }
 }
