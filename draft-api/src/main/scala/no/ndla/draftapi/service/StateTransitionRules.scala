@@ -143,6 +143,7 @@ trait StateTransitionRules {
       (IN_PROGRESS           -> LANGUAGE)              .require(PublishRoles, articleHasBeenPublished) keepStates Set(PUBLISHED),
       (IN_PROGRESS           -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation withSideEffect resetResponsible,
       (IN_PROGRESS           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (IN_PROGRESS           -> REPUBLISH)             .require(PublishRoles, articleHasBeenPublished) keepStates Set(PUBLISHED) requireStatusesForTransition Set(PUBLISHED),
        EXTERNAL_REVIEW       -> IN_PROGRESS            keepStates Set(PUBLISHED),
       (EXTERNAL_REVIEW       -> EXTERNAL_REVIEW)       keepStates Set(IN_PROGRESS, PUBLISHED),
       (EXTERNAL_REVIEW       -> INTERNAL_REVIEW)       keepStates Set(PUBLISHED) keepCurrentOnTransition,
@@ -185,7 +186,10 @@ trait StateTransitionRules {
       (PUBLISHED             -> IN_PROGRESS)           keepStates Set(PUBLISHED) withSideEffect addResponsible keepCurrentOnTransition,
       (PUBLISHED             -> UNPUBLISHED)           keepStates Set.empty require DirectPublishRoles withSideEffect unpublishArticle withSideEffect resetResponsible,
       (PUBLISHED             -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect unpublishArticle withSideEffect resetResponsible,
-       UNPUBLISHED           -> UNPUBLISHED            withSideEffect resetResponsible,
+      REPUBLISH              -> REPUBLISH,
+      REPUBLISH              -> IN_PROGRESS            keepStates Set(PUBLISHED),
+      (REPUBLISH             -> PUBLISHED)             require PublishRoles withSideEffect publishArticle withSideEffect resetResponsible,
+      UNPUBLISHED            -> UNPUBLISHED            withSideEffect resetResponsible,
       (UNPUBLISHED           -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation withSideEffect resetResponsible,
        UNPUBLISHED           -> IN_PROGRESS,
       (UNPUBLISHED           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
@@ -200,7 +204,7 @@ trait StateTransitionRules {
     ): Option[StateTransition] = {
       StateTransitions
         .find(transition => transition.from == from && transition.to == to)
-        .filter(_.hasRequiredRoles(user, Some(current)))
+        .filter(_.hasRequiredProperties(user, Some(current)))
     }
 
     private def validateTransition(draft: Draft, transition: StateTransition): Try[Unit] = {
