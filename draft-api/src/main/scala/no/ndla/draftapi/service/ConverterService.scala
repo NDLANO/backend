@@ -838,7 +838,7 @@ trait ConverterService {
     ): Map[String, Seq[String]] = {
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to
-          .filter(_.hasRequiredRoles(user, article))
+          .filter(_.hasRequiredProperties(user, article))
           .map(_.to.toString)
           .toSeq
       }

@@ -26,6 +26,7 @@ object DraftStatus extends Enum[DraftStatus] {
   case object END_CONTROL       extends DraftStatus
   case object PUBLISH_DELAYED   extends DraftStatus
   case object PUBLISHED         extends DraftStatus
+  case object REPUBLISH         extends DraftStatus
   case object UNPUBLISHED       extends DraftStatus
   case object ARCHIVED          extends DraftStatus
 
