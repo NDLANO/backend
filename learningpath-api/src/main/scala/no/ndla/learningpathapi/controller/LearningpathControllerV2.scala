@@ -63,11 +63,11 @@ trait LearningpathControllerV2 {
     registerModel[ValidationError]()
     registerModel[Error]()
 
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access not granted", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
-    val response502 = ResponseMessage(502, "Remote error", Some("Error"))
+    val response400: ResponseMessage = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403: ResponseMessage = ResponseMessage(403, "Access not granted", Some("Error"))
+    val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
+    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response502: ResponseMessage = ResponseMessage(502, "Remote error", Some("Error"))
 
     private val articleId =
       Param[String]("article_id", "Id of the article to search with")
@@ -921,8 +921,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val articleId = long(this.articleId.paramName)
-      val resources = taxononyApiClient.queryResource(articleId).getOrElse(List.empty).flatMap(_.paths)
-      val topics    = taxononyApiClient.queryTopic(articleId).getOrElse(List.empty).flatMap(_.paths)
+      val nodes     = taxonomyApiClient.queryNodes(articleId).getOrElse(List.empty).flatMap(_.paths)
       val plainPaths = List(
         s"/article-iframe/*/$articleId",
         s"/article-iframe/*/$articleId/",
@@ -930,7 +929,7 @@ trait LearningpathControllerV2 {
         s"/article-iframe/*/$articleId\\?*",
         s"/article/$articleId"
       )
-      val paths = resources ++ topics ++ plainPaths
+      val paths = nodes ++ plainPaths
 
       searchService.containsPath(paths) match {
         case Success(result) => result.results

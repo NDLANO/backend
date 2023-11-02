@@ -80,11 +80,11 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
 
   def UsernameHeader = "X-Consumer-Username"
 
-  def ElasticSearchIndexMaxResultWindow = 10000
-  def ElasticSearchScrollKeepAlive      = "1m"
-  def InitialScrollContextKeywords      = List("0", "initial", "start", "first")
+  def ElasticSearchIndexMaxResultWindow          = 10000
+  def ElasticSearchScrollKeepAlive               = "1m"
+  def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
-  def BasicHtmlTags = List(
+  def BasicHtmlTags: List[String] = List(
     "b",
     "blockquote",
     "br",
@@ -109,13 +109,13 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
     "ul"
   )
 
-  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def SearchServer: String =
     propOrElse("SEARCH_SERVER", "http://search-learningpath-api.ndla-local")

@@ -128,7 +128,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val statsController          = new StatsController
   lazy val userController           = new UserController
   lazy val resourcesApp             = new ResourcesApp
-  lazy val taxononyApiClient        = new TaxonomyApiClient
+  lazy val taxonomyApiClient        = new TaxonomyApiClient
   lazy val ndlaClient               = new NdlaClient
   lazy val imageApiClient           = new ImageApiClient
   lazy val feideApiClient           = new FeideApiClient

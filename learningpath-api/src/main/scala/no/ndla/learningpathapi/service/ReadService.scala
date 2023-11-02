@@ -297,7 +297,7 @@ trait ReadService {
       } yield combined
     }
 
-    def withResources(folderId: UUID, shouldIncludeResources: Boolean)(implicit
+    private def withResources(folderId: UUID, shouldIncludeResources: Boolean)(implicit
         session: DBSession
     ): Try[domain.Folder] = folderRepository
       .folderWithId(folderId)
@@ -339,7 +339,7 @@ trait ReadService {
       folders
         .traverse(f => getSingleFolderWithContent(f.id, includeSubfolders, includeResources))
 
-    def withFeideId[T](maybeToken: Option[FeideAccessToken])(func: FeideID => Try[T]): Try[T] =
+    private def withFeideId[T](maybeToken: Option[FeideAccessToken])(func: FeideID => Try[T]): Try[T] =
       feideApiClient.getFeideID(maybeToken).flatMap(feideId => func(feideId))
 
     def getFolders(
@@ -350,7 +350,7 @@ trait ReadService {
       withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, _))
     }
 
-    def getFoldersAuthenticated(
+    private def getFoldersAuthenticated(
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideId: FeideID
