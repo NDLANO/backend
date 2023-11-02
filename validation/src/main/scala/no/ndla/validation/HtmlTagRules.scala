@@ -7,27 +7,17 @@
 
 package no.ndla.validation
 
-import enumeratum.Json4s
 import no.ndla.common.configuration.Constants.EmbedTagName
-import org.json4s.Formats
-import org.json4s.native.JsonMethods._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.io.Source
 import scala.jdk.CollectionConverters._
-import scala.language.postfixOps
 
 object HtmlTagRules {
 
-  case class HtmlThings(attrsForResource: Map[String, TagRules.TagAttributeRules])
-
   private[validation] lazy val attributeRules: Map[String, TagRules.TagAttributeRules] = tagRulesToJson
-
-  lazy val allHtmlTagAttributes: Set[TagAttribute] = attributeRules.flatMap { case (_, attrRules) =>
-    attrRules.all
-  } toSet
 
   private def tagRulesToJson: Map[String, TagRules.TagAttributeRules] = {
     val attrs = TagRules
@@ -52,35 +42,25 @@ object HtmlTagRules {
     val tags: Set[String]                         = readTags
     lazy val attributes: Map[String, Seq[String]] = readAttributes
 
-    private def convertJsonStr(jsonStr: String): Map[String, Any] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(TagAttribute)
-
-      parse(jsonStr).extract[Map[String, Any]]
-    }
-
-    private def htmlRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("html-rules.json").mkString)
-
-    private def mathMLRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("mathml-rules.json").mkString)
-
     private def readTags: Set[String] = {
-      val htmlJson: Map[String, Any]   = htmlRulesJson
-      val mathMlJson: Map[String, Any] = mathMLRulesJson
+      val htmlJson   = ValidationRules.htmlRulesJson
+      val mathMlJson = ValidationRules.mathMLRulesJson
 
-      val htmlTags   = htmlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
-      val mathMlTags = mathMlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
+      val htmlTags   = htmlJson.tags
+      val mathMlTags = mathMlJson.attributes.keys
 
-      htmlTags.getOrElse(Set.empty) ++ mathMlTags.getOrElse(Set.empty) ++ attributes.keys
+      htmlTags.toSet ++ mathMlTags ++ attributes.keys
     }
 
     private def readAttributes: Map[String, Seq[String]] = {
-      val mathMlJson: Map[String, Any] = mathMLRulesJson
+      val mathMlJson = ValidationRules.mathMLRulesJson
 
       val htmlAttrs = HtmlTagRules.attributeRules.map { case (tagType, attrs) =>
         tagType -> attrs.all.map(_.toString).toSeq
       }
-      val mathMlAttrs = mathMlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
+      val mathMlAttrs = mathMlJson.attributes.map { case (k, v) => k -> v.map(_.toString) }
       val embedAttrs  = EmbedTagRules.allEmbedTagAttributes.map(_.toString).toSeq
-      htmlAttrs ++ mathMlAttrs.getOrElse(Map.empty) ++ Map(EmbedTagName -> embedAttrs)
+      htmlAttrs ++ mathMlAttrs ++ Map(EmbedTagName -> embedAttrs)
     }
   }
 
