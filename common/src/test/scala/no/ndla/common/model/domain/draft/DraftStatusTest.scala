@@ -24,6 +24,7 @@ class DraftStatusTest extends UnitTestSuite {
       END_CONTROL,
       PUBLISH_DELAYED,
       PUBLISHED,
+      REPUBLISH,
       UNPUBLISHED,
       ARCHIVED
     )
