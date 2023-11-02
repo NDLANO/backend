@@ -16,7 +16,7 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{api => commonApi, domain => commonDomain}
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.api.{NotFoundException, StateMachineStatus}
+import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordClass}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
@@ -379,25 +379,13 @@ trait ConverterService {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
     }
 
-    def stateTransitionsToApi(user: TokenUser): Map[String, Seq[StateMachineStatus]] = {
-      ConceptStatus.values
-        .filter(StateTransitionRules.StateTransitions.map(_.from).contains)
-        .map(from => {
-          val toStatuses = ConceptStatus.values
-            .filter(StateTransitionRules.StateTransitions.map(_.to).contains)
-            .sorted
-            .map(to => {
-              val enabled = StateTransitionRules.StateTransitions
-                .find(transition => transition.from == from && transition.to == to)
-                .exists(t => user.hasPermissions(t.requiredPermissions))
-
-              StateMachineStatus(name = to.toString, enabled = enabled)
-            })
-
-          from.toString -> toStatuses
-        })
-        .toMap
-    }
+    def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] =
+      StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
+        from.toString -> to
+          .filter(t => user.hasPermissions(t.requiredPermissions))
+          .map(_.to.toString)
+          .toList
+      }
 
     def addUrlOnVisualElement(concept: Concept): Concept = {
       val visualElementWithUrls =
