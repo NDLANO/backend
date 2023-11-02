@@ -38,29 +38,22 @@ class V31__ArenaDefaultEnabledOrgs(properties: LearningpathApiProperties) extend
     val inserted = sql"""
          INSERT INTO configtable(configkey, value)
          VALUES (
-             'MY_NDLA_ENABLED_ORGS',
+             'ARENA_ENABLED_ORGS',
              $dataObject
          )
          """.update.apply()
 
-    if (inserted != 1) throw new RuntimeException("Failed to insert MY_NDLA_ENABLED_ORGS")
+    if (inserted != 1) throw new RuntimeException("Failed to insert ARENA_ENABLED_ORGS")
   }
 
   private def orgs: List[String] = properties.Environment match {
     case "local" | "test" =>
       List(
         "Agder fylkeskommune",
-        "Nordland fylkeskommune",
-        "Rogaland fylkeskommune",
-        "Universitetet i Rogn"
-      )
-    case _ =>
-      List(
-        "Agder fylkeskommune",
-        "Nordland fylkeskommune",
-        "Rogaland fylkeskommune",
         "Innlandet fylkeskommune",
         "Møre og Romsdal fylkeskommune",
+        "Nordland fylkeskommune",
+        "Rogaland fylkeskommune",
         "Troms og Finnmark fylkeskommune",
         "Trøndelag fylkeskommune",
         "Vestfold og Telemark fylkeskommune",
@@ -68,6 +61,7 @@ class V31__ArenaDefaultEnabledOrgs(properties: LearningpathApiProperties) extend
         "Viken fylkeskommune",
         "Universitetet i Rogn"
       )
+    case _ => List.empty
   }
 
 }
