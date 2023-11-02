@@ -20,7 +20,7 @@ import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi, dom
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewComment, NotFoundException, StateMachineStatus, UpdatedComment}
+import no.ndla.draftapi.model.api.{NewComment, NotFoundException, UpdatedComment}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -832,19 +832,15 @@ trait ConverterService {
         )
     }
 
-    private[service] def buildTransitionsMap(
-        user: TokenUser,
-        article: Option[Draft]
-    ): Map[String, Seq[String]] = {
+    private[service] def buildTransitionsMap(user: TokenUser, article: Option[Draft]): Map[String, List[String]] =
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to
           .filter(_.hasRequiredProperties(user, article))
           .map(_.to.toString)
-          .toSeq
+          .toList
       }
-    }
 
-    def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, Seq[String]]] =
+    def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, List[String]]] =
       articleId match {
         case Some(id) =>
           draftRepository.withId(id)(ReadOnlyAutoSession) match {
