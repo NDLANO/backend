@@ -1,6 +1,6 @@
 /*
  * Part of NDLA learningpath-api.
- * Copyright (C) 2019 NDLA
+ * Copyright (C) 2023 NDLA
  *
  * See LICENSE
  */
