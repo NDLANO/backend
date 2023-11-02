@@ -214,7 +214,7 @@ trait ReadService {
     def getMyNDLAEnabledOrgs: Try[List[String]] = {
       Try {
         configRepository
-          .getConfigWithKey(ConfigKey.MyNDLAEnabledOrgs)
+          .getConfigWithKey(ConfigKey.ArenaEnabledOrgs)
           .map(_.value)
           .collectFirst { case domain.config.StringListValue(value) => value }
           .getOrElse(List.empty)

@@ -25,7 +25,7 @@ class V31__ArenaDefaultEnabledOrgs(properties: LearningpathApiProperties) extend
 
   def insertConfig(implicit session: DBSession): Unit = {
     val document = Json.obj(
-      "key"       -> Json.fromString("MY_NDLA_ENABLED_ORGS"),
+      "key"       -> Json.fromString("ARENA_ENABLED_ORGS"),
       "value"     -> Json.obj("value" -> Json.fromValues(orgs.map(Json.fromString))),
       "updatedAt" -> NDLADate.now().asJson,
       "updatedBy" -> Json.fromString("System")

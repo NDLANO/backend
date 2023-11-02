@@ -829,7 +829,7 @@ trait UpdateService {
         user: TokenUser
     ): Try[api.MyNDLAUser] = {
       feideId match {
-        case None => Failure(ValidationException("feideId", "You need to supply either feideId to update a user."))
+        case None => Failure(ValidationException("feideId", "You need to supply a feideId to update a user."))
         case Some(id) =>
           for {
             existing <- getMyNDLAUserOrFail(id)
