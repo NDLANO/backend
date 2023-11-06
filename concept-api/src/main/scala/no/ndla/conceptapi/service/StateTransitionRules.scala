@@ -60,7 +60,7 @@ trait StateTransitionRules {
     // format: off
     val StateTransitions: Set[StateTransition] = Set(
        IN_PROGRESS        -> IN_PROGRESS,
-      (IN_PROGRESS        -> ARCHIVED)            require WritePermission illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (IN_PROGRESS        -> ARCHIVED)            require WritePermission withIllegalStatuses  Set(PUBLISHED) withSideEffect resetResponsible,
       (IN_PROGRESS        -> EXTERNAL_REVIEW)     keepStates Set(PUBLISHED),
       (IN_PROGRESS        -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
       (IN_PROGRESS        -> PUBLISHED)           keepStates Set() require PublishPermission withSideEffect publishConcept withSideEffect resetResponsible,
@@ -84,7 +84,7 @@ trait StateTransitionRules {
        UNPUBLISHED        -> UNPUBLISHED          withSideEffect resetResponsible,
       (UNPUBLISHED        -> PUBLISHED)           keepStates Set() require PublishPermission withSideEffect publishConcept withSideEffect resetResponsible,
       (UNPUBLISHED        -> IN_PROGRESS),
-      (UNPUBLISHED        -> ARCHIVED)            require WritePermission illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (UNPUBLISHED        -> ARCHIVED)            require WritePermission withIllegalStatuses  Set(PUBLISHED) withSideEffect resetResponsible,
        LANGUAGE           -> LANGUAGE,
       (LANGUAGE           -> FOR_APPROVAL)        keepStates Set(PUBLISHED) require PublishPermission,
       (LANGUAGE           -> IN_PROGRESS)         keepStates Set(PUBLISHED),
@@ -104,8 +104,8 @@ trait StateTransitionRules {
     // format: on
 
     private def getTransition(
-        from: ConceptStatus.Value,
-        to: ConceptStatus.Value,
+        from: ConceptStatus,
+        to: ConceptStatus,
         user: TokenUser
     ): Option[StateTransition] =
       StateTransitions
@@ -137,7 +137,7 @@ trait StateTransitionRules {
 
     private[service] def doTransitionWithoutSideEffect(
         current: domain.Concept,
-        to: ConceptStatus.Value,
+        to: ConceptStatus,
         user: TokenUser
     ): (Try[domain.Concept], Seq[SideEffect]) = {
       getTransition(current.status.current, to, user) match {
@@ -163,7 +163,7 @@ trait StateTransitionRules {
 
     def doTransition(
         current: domain.Concept,
-        to: ConceptStatus.Value,
+        to: ConceptStatus,
         user: TokenUser
     ): IO[Try[domain.Concept]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user)

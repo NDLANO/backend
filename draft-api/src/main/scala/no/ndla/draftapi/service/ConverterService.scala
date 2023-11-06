@@ -832,26 +832,22 @@ trait ConverterService {
         )
     }
 
-    private[service] def _stateTransitionsToApi(
-        user: TokenUser,
-        article: Option[Draft]
-    ): Map[String, Seq[String]] = {
+    private[service] def buildTransitionsMap(user: TokenUser, article: Option[Draft]): Map[String, List[String]] =
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to
           .filter(_.hasRequiredProperties(user, article))
           .map(_.to.toString)
-          .toSeq
+          .toList
       }
-    }
 
-    def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, Seq[String]]] =
+    def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, List[String]]] =
       articleId match {
         case Some(id) =>
           draftRepository.withId(id)(ReadOnlyAutoSession) match {
-            case Some(article) => Success(_stateTransitionsToApi(user, Some(article)))
+            case Some(article) => Success(buildTransitionsMap(user, Some(article)))
             case None          => Failure(NotFoundException("The article does not exist"))
           }
-        case None => Success(_stateTransitionsToApi(user, None))
+        case None => Success(buildTransitionsMap(user, None))
       }
 
     def toApiArticleGrepCodes(result: domain.LanguagelessSearchResult[String]): api.GrepCodesSearchResult = {

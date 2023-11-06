@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.model.domain
 
+import enumeratum._
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.NDLADate
@@ -85,7 +86,7 @@ trait DBConcept {
     }
 
     val jsonEncoder: Formats = DefaultFormats +
-      new EnumNameSerializer(ConceptStatus) +
+      Json4s.serializer(ConceptStatus) +
       new EnumNameSerializer(ConceptType) +
       new EnumNameSerializer(WordClass) ++
       JavaTimeSerializers.all +
@@ -104,11 +105,22 @@ trait DBConcept {
   }
 }
 
-object ConceptStatus extends Enumeration {
-  val IN_PROGRESS, EXTERNAL_REVIEW, INTERNAL_REVIEW, QUALITY_ASSURANCE, LANGUAGE, FOR_APPROVAL, END_CONTROL, PUBLISHED,
-      UNPUBLISHED, ARCHIVED = Value
+sealed trait ConceptStatus extends EnumEntry {}
+object ConceptStatus extends Enum[ConceptStatus] {
+  case object IN_PROGRESS       extends ConceptStatus
+  case object EXTERNAL_REVIEW   extends ConceptStatus
+  case object INTERNAL_REVIEW   extends ConceptStatus
+  case object QUALITY_ASSURANCE extends ConceptStatus
+  case object LANGUAGE          extends ConceptStatus
+  case object FOR_APPROVAL      extends ConceptStatus
+  case object END_CONTROL       extends ConceptStatus
+  case object PUBLISHED         extends ConceptStatus
+  case object UNPUBLISHED       extends ConceptStatus
+  case object ARCHIVED          extends ConceptStatus
 
-  def valueOfOrError(s: String): Try[ConceptStatus.Value] =
+  val values: IndexedSeq[ConceptStatus] = findValues
+
+  def valueOfOrError(s: String): Try[ConceptStatus] =
     valueOf(s) match {
       case Some(st) => Success(st)
       case None =>
@@ -121,8 +133,11 @@ object ConceptStatus extends Enumeration {
         )
     }
 
-  def valueOf(s: String): Option[ConceptStatus.Value] = values.find(_.toString == s.toUpperCase)
+  def valueOf(s: String): Option[ConceptStatus] = values.find(_.toString == s.toUpperCase)
 
-  val thatDoesNotRequireResponsible: Seq[ConceptStatus.Value] = Seq(PUBLISHED, UNPUBLISHED, ARCHIVED)
-  val thatRequiresResponsible: ConceptStatus.ValueSet = this.values.filterNot(thatDoesNotRequireResponsible.contains)
+  val thatDoesNotRequireResponsible: Seq[ConceptStatus] = Seq(PUBLISHED, UNPUBLISHED, ARCHIVED)
+  val thatRequiresResponsible: Set[ConceptStatus] = this.values.filterNot(thatDoesNotRequireResponsible.contains).toSet
+
+  implicit def ordering[A <: ConceptStatus]: Ordering[ConceptStatus] =
+    (x: ConceptStatus, y: ConceptStatus) => indexOf(x) - indexOf(y)
 }

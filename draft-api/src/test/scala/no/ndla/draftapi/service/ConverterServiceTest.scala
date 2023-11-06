@@ -147,7 +147,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
-  test("stateTransitionsToApi should return no entries if user has no roles") {
+  test("stateTransitionsToApi should return only disabled entries if user has no roles") {
     val Success(res) = service.stateTransitionsToApi(TestData.userWithNoRoles, None)
     res.forall { case (_, to) => to.isEmpty } should be(true)
   }

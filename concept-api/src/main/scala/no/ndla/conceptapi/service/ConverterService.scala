@@ -14,7 +14,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.{domain => commonDomain, api => commonApi}
+import no.ndla.common.model.{api => commonApi, domain => commonDomain}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordClass}
@@ -306,7 +306,7 @@ trait ConverterService {
       )
     }
 
-    def updateStatus(status: ConceptStatus.Value, concept: domain.Concept, user: TokenUser): IO[Try[domain.Concept]] =
+    def updateStatus(status: ConceptStatus, concept: domain.Concept, user: TokenUser): IO[Try[domain.Concept]] =
       StateTransitionRules.doTransition(concept, status, user)
 
     def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: TokenUser): domain.Concept = {
@@ -379,14 +379,13 @@ trait ConverterService {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
     }
 
-    def stateTransitionsToApi(user: TokenUser): Map[String, Seq[String]] = {
+    def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] =
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to
           .filter(t => user.hasPermissions(t.requiredPermissions))
           .map(_.to.toString)
-          .toSeq
+          .toList
       }
-    }
 
     def addUrlOnVisualElement(concept: Concept): Concept = {
       val visualElementWithUrls =

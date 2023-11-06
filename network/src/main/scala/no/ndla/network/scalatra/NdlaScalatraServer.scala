@@ -58,12 +58,14 @@ class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[Prop
   }
 
   private def warmup(): Unit = {
-    val warmupStart = System.currentTimeMillis()
-    logger.info("Starting warmup procedure...")
-    warmupFunction((path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params))
-    val warmupTime = System.currentTimeMillis() - warmupStart
-    logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
-    componentRegistry.healthController.setWarmedUp()
+    if (!props.disableWarmup) {
+      val warmupStart = System.currentTimeMillis()
+      logger.info("Starting warmup procedure...")
+      warmupFunction((path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params))
+      val warmupTime = System.currentTimeMillis() - warmupStart
+      logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
+      componentRegistry.healthController.setWarmedUp()
+    }
   }
 
   logCopyrightHeader()
