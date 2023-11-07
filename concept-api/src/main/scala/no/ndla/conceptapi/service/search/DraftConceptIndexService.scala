@@ -15,7 +15,7 @@ import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateR
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
-import no.ndla.conceptapi.model.domain.Concept
+import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
@@ -24,11 +24,11 @@ import org.json4s.native.Serialization.write
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptIndexService {
-  this: IndexService with DraftConceptRepository with SearchConverterService with Props =>
+  this: IndexService with DraftConceptRepository with SearchConverterService with Props with DBConcept =>
   val draftConceptIndexService: DraftConceptIndexService
 
   class DraftConceptIndexService extends StrictLogging with IndexService[Concept] {
-    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats ++ Concept.serializers
     override val documentType: String            = props.ConceptSearchDocument
     override val searchIndex: String             = props.DraftConceptSearchIndex
     override val repository: Repository[Concept] = draftConceptRepository
@@ -90,7 +90,9 @@ trait DraftConceptIndexService {
             keywordField("responsibleId"),
             dateField("lastUpdated")
           )
-        )
+        ),
+        textField("gloss"),
+        ObjectField("domainObject", enabled = Some(false))
       )
       val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("content") ++

@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{api => commonApi}
 import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
-import no.ndla.conceptapi.model.domain.{Concept, SearchResult}
+import no.ndla.conceptapi.model.domain.{Concept, DBConcept, SearchResult}
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService
@@ -27,12 +27,10 @@ import org.json4s._
 import org.json4s.native.Serialization.read
 
 trait SearchConverterService {
-  this: ConverterService =>
+  this: ConverterService with DBConcept =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-
     private def getEmbedResourcesAndIdsToIndex(
         visualElement: Seq[domain.VisualElement],
         metaImage: Seq[domain.ConceptMetaImage]
@@ -86,14 +84,16 @@ trait SearchConverterService {
         articleIds = c.articleIds,
         created = c.created,
         source = c.copyright.flatMap(_.origin),
-        responsible = c.responsible
+        responsible = c.responsible,
+        gloss = c.glossData.map(_.gloss),
+        domainObject = c
       )
     }
 
     def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummary = {
-
-      val searchableConcept = read[SearchableConcept](hitString)
-      val titles            = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ Concept.serializers
+      val searchableConcept         = read[SearchableConcept](hitString)
+      val titles                    = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
       val tags     = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
       val visualElements =
@@ -129,6 +129,7 @@ trait SearchConverterService {
       })
 
       val responsible = searchableConcept.responsible.map(r => ConceptResponsible(r.responsibleId, r.lastUpdated))
+      val glossData   = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
 
       api.ConceptSummary(
         id = searchableConcept.id,
@@ -148,7 +149,8 @@ trait SearchConverterService {
         created = searchableConcept.created,
         source = searchableConcept.source,
         responsible = responsible,
-        conceptType = searchableConcept.conceptType
+        conceptType = searchableConcept.conceptType,
+        glossData = glossData
       )
     }
 

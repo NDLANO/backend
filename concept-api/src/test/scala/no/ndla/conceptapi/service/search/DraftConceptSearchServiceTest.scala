@@ -203,7 +203,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     conceptType = ConceptType.GLOSS,
     glossData = Some(
       GlossData(
-        gloss = "gloss",
+        gloss = "glossorama",
         wordClass = WordClass.NOUN,
         originalLanguage = "de",
         transcriptions = Map.empty,
@@ -859,5 +859,11 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       val Success(search) = draftConceptSearchService.all(searchSettings.copy(conceptType = Some("gloss")))
       search.totalCount should be(1)
     }
+  }
+
+  test("That searching for gloss data matches") {
+    val Success(search) = draftConceptSearchService.matchingQuery("glossorama", searchSettings)
+    search.totalCount should be(1)
+    search.results.head.id should be(13)
   }
 }

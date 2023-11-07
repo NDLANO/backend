@@ -17,7 +17,7 @@ import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
+import org.json4s.{DefaultFormats, FieldSerializer, Formats, Serializer}
 import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
@@ -84,13 +84,14 @@ trait DBConcept {
         meta.glossData
       )
     }
-
-    val jsonEncoder: Formats = DefaultFormats +
-      Json4s.serializer(ConceptStatus) +
-      new EnumNameSerializer(ConceptType) +
-      new EnumNameSerializer(WordClass) ++
-      JavaTimeSerializers.all +
+    val serializers: List[Serializer[_]] = List(
+      Json4s.serializer(ConceptStatus),
+      new EnumNameSerializer(ConceptType),
+      new EnumNameSerializer(WordClass),
       NDLADate.Json4sSerializer
+    ) ++ JavaTimeSerializers.all
+
+    val jsonEncoder: Formats = DefaultFormats ++ serializers
 
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Concept](

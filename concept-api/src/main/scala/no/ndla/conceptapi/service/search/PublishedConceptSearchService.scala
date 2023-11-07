@@ -121,6 +121,7 @@ trait PublishedConceptSearchService {
                 List(
                   simpleStringQuery(query).field(s"title.$language", 2),
                   simpleStringQuery(query).field(s"content.$language", 1),
+                  simpleStringQuery(query).field(s"gloss", 1),
                   idsQuery(query)
                 ) ++
                   buildNestedEmbedField(Some(query), None, settings.searchLanguage, settings.fallback) ++
