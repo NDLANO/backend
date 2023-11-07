@@ -30,8 +30,7 @@
         {
           "name": "data-alt",
           "validation": {
-            "required": false,
-            "dataType": "STRING"
+            "required": false
           }
         }
       ]
