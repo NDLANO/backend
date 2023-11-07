@@ -26,6 +26,12 @@
             "required": false,
             "dataType": "URL"
           }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false
+          }
         }
       ]
     },
