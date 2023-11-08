@@ -611,15 +611,23 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      email = "example@email.com"
+      email = "example@email.com",
+      arenaEnabled = false
     )
-    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
+    val apiUserData = api.MyNDLAUser(
+      id = 42,
+      favoriteSubjects = Seq("r", "e"),
+      role = "student",
+      organization = "oslo",
+      arenaEnabled = false
+    )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student"),
       eduPersonPrincipalName = "example@email.com"
     )
 
+    when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
@@ -648,10 +656,18 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1),
       organization = "oslo",
-      email = "example@email.com"
+      email = "example@email.com",
+      arenaEnabled = false
     )
-    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
+    val apiUserData = api.MyNDLAUser(
+      id = 42,
+      favoriteSubjects = Seq("r", "e"),
+      role = "student",
+      organization = "oslo",
+      arenaEnabled = false
+    )
 
+    when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
 
@@ -674,15 +690,23 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1),
       organization = "oslo",
-      email = "example@email.com"
+      email = "example@email.com",
+      arenaEnabled = false
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
       eduPersonAffiliation = Seq.empty,
       eduPersonPrincipalName = "example@email.com"
     )
-    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
+    val apiUserData = api.MyNDLAUser(
+      id = 42,
+      favoriteSubjects = Seq("r", "e"),
+      role = "student",
+      organization = "oslo",
+      arenaEnabled = false
+    )
 
+    when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
     when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success("oslo"))

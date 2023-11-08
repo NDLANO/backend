@@ -8,12 +8,9 @@
 package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.NDLADate
+import io.circe.syntax._
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta, DBConfigMeta}
-import org.json4s.Formats
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc._
 import sqls.count
@@ -24,14 +21,15 @@ trait ConfigRepository {
   this: DataSource with DBConfigMeta =>
   val configRepository: ConfigRepository
 
+  import DBConfigMeta._
+
   class ConfigRepository extends StrictLogging {
-    implicit val formats: Formats = DBConfigMeta.formats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
     implicit val configValueParameterBinderFactory: ParameterBinderFactory[ConfigMeta] =
       ParameterBinderFactory[ConfigMeta] { value => (stmt, idx) =>
         {
           val dataObject = new PGobject()
           dataObject.setType("jsonb")
-          dataObject.setValue(write(value))
+          dataObject.setValue(value.asJson.noSpaces)
           stmt.setObject(idx, dataObject)
         }
       }

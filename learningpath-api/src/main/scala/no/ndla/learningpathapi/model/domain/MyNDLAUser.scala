@@ -21,7 +21,8 @@ case class MyNDLAUserDocument(
     userRole: UserRole.Value,
     lastUpdated: NDLADate,
     organization: String,
-    email: String
+    email: String,
+    arenaEnabled: Boolean
 ) {
   def toFullUser(
       id: Long,
@@ -34,7 +35,8 @@ case class MyNDLAUserDocument(
       userRole = userRole,
       lastUpdated = lastUpdated,
       organization = organization,
-      email = email
+      email = email,
+      arenaEnabled = arenaEnabled
     )
   }
 }
@@ -46,16 +48,9 @@ case class MyNDLAUser(
     userRole: UserRole.Value,
     lastUpdated: NDLADate,
     organization: String,
-    email: String
+    email: String,
+    arenaEnabled: Boolean
 ) {
-  def toDocument: MyNDLAUserDocument = MyNDLAUserDocument(
-    favoriteSubjects = favoriteSubjects,
-    userRole = userRole,
-    lastUpdated = lastUpdated,
-    organization = organization,
-    email = email
-  )
-
   // Keeping FEIDE and our data in sync
   def wasUpdatedLast24h: Boolean = NDLADate.now().isBefore(lastUpdated.minusSeconds(10))
 

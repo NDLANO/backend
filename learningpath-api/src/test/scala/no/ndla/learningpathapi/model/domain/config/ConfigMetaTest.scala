@@ -16,7 +16,7 @@ class ConfigMetaTest extends UnitSuite with UnitTestEnvironment {
       try {
         ConfigMeta(
           key = key,
-          value = "",
+          value = BooleanValue(true),
           updatedAt = TestData.today,
           updatedBy = "OneCoolKid"
         ).validate

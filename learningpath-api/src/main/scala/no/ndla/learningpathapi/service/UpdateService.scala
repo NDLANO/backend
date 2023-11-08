@@ -14,7 +14,6 @@ import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.implicits._
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
-import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
 import no.ndla.learningpathapi.model.api.{config, _}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
@@ -371,12 +370,17 @@ trait UpdateService {
         }
       }
 
-    def updateConfig(configKey: ConfigKey, value: UpdateConfigValue, userInfo: TokenUser): Try[config.ConfigMeta] = {
-
+    def updateConfig(
+        configKey: ConfigKey,
+        value: api.config.ConfigMetaValue,
+        userInfo: TokenUser
+    ): Try[config.ConfigMeta] = {
       writeOrAccessDenied(userInfo.isAdmin, "Only administrators can edit configuration.") {
-        ConfigMeta(configKey, value.value, clock.now(), userInfo.id).validate.flatMap(newConfigValue => {
-          configRepository.updateConfigParam(newConfigValue).map(converterService.asApiConfig)
-        })
+        val config = ConfigMeta(configKey, domain.config.ConfigMetaValue.from(value), clock.now(), userInfo.id)
+        for {
+          validated <- config.validate
+          stored    <- configRepository.updateConfigParam(validated)
+        } yield converterService.asApiConfig(stored)
       }
     }
 
@@ -820,6 +824,24 @@ trait UpdateService {
         .flatMap(feideId => updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(AutoSession))
     }
 
+    def adminUpdateMyNDLAUserData(
+        updatedUser: api.UpdatedMyNDLAUser,
+        feideId: Option[String],
+        user: TokenUser
+    ): Try[api.MyNDLAUser] = {
+      feideId match {
+        case None => Failure(ValidationException("feideId", "You need to supply a feideId to update a user."))
+        case Some(id) =>
+          for {
+            existing <- getMyNDLAUserOrFail(id)
+            converted = converterService.mergeUserData(existing, updatedUser, Some(user))
+            updated     <- userRepository.updateUser(id, converted)
+            enabledOrgs <- readService.getMyNDLAEnabledOrgs
+            api = converterService.toApiUserData(updated, enabledOrgs)
+          } yield api
+      }
+    }
+
     private def updateFeideUserDataAuthenticated(
         updatedUser: api.UpdatedMyNDLAUser,
         feideId: FeideID,
@@ -828,9 +850,10 @@ trait UpdateService {
       for {
         _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
-        combined = converterService.mergeUserData(existingUserData, updatedUser)
-        updated <- userRepository.updateUser(feideId, combined)
-        api = converterService.toApiUserData(updated)
+        combined = converterService.mergeUserData(existingUserData, updatedUser, None)
+        updated     <- userRepository.updateUser(feideId, combined)
+        enabledOrgs <- readService.getMyNDLAEnabledOrgs
+        api = converterService.toApiUserData(updated, enabledOrgs)
       } yield api
     }
 
@@ -1034,7 +1057,7 @@ trait UpdateService {
       for {
         existingUser <- readService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
-        updatedFeideUser = api.UpdatedMyNDLAUser(favoriteSubjects = Some(newFavorites))
+        updatedFeideUser = api.UpdatedMyNDLAUser(favoriteSubjects = Some(newFavorites), arenaEnabled = None)
         updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
 
