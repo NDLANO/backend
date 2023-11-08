@@ -33,5 +33,7 @@ case class SearchableConcept(
     articleIds: Seq[Long],
     created: NDLADate,
     source: Option[String],
-    responsible: Option[Responsible]
+    responsible: Option[Responsible],
+    gloss: Option[String],
+    domainObject: domain.Concept
 )

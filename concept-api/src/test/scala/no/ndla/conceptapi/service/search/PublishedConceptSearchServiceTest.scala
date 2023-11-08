@@ -181,7 +181,7 @@ class PublishedConceptSearchServiceTest
     conceptType = ConceptType.GLOSS,
     glossData = Some(
       GlossData(
-        gloss = "gloss",
+        gloss = "glossorama",
         wordClass = WordClass.NOUN,
         originalLanguage = "de",
         transcriptions = Map.empty,
@@ -781,6 +781,12 @@ class PublishedConceptSearchServiceTest
       val Success(search) = publishedConceptSearchService.all(searchSettings.copy(conceptType = Some("gloss")))
       search.totalCount should be(1)
     }
+  }
+
+  test("That searching for gloss data matches") {
+    val Success(search) = publishedConceptSearchService.matchingQuery("glossorama", searchSettings)
+    search.totalCount should be(1)
+    search.results.head.id should be(12)
   }
 
 }
