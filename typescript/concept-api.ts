@@ -87,6 +87,7 @@ export interface IConceptSummary {
   source?: string
   responsible?: IConceptResponsible
   conceptType: string
+  glossData?: IGlossData
 }
 
 export interface IConceptTags {
