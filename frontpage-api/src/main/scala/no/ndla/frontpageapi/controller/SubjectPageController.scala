@@ -38,8 +38,8 @@ trait SubjectPageController {
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       endpoint.get
         .summary("Fetch all subjectpages")
-        .in(query[Int]("page").default(1))
-        .in(query[Int]("page-size").default(props.DefaultPageSize))
+        .in(query[Int]("page").default(1).validate(Validator.min(1)))
+        .in(query[Int]("page-size").default(props.DefaultPageSize).validate(Validator.min(1)))
         .in(query[String]("language").default(props.DefaultLanguage))
         .in(query[Boolean]("fallback").default(false))
         .errorOut(errorOutputsFor(400, 404))
