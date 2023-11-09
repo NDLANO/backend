@@ -24,6 +24,16 @@ object VisualElementType extends Enum[VisualElementType] with CirceEnum[VisualEl
 
   val all: Seq[String] = values.map(_.entryName)
 
+  def validateVisualElement(visualElement: VisualElement): Try[VisualElement] =
+    visualElement.`type` match {
+      case Image =>
+        visualElement.id.toLongOption match {
+          case None => Failure(ValidationException("Image of visual element should be numeric"))
+          case _    => Success(visualElement)
+        }
+      case Brightcove => Success(visualElement)
+    }
+
   def fromString(str: String): Try[VisualElementType] =
     VisualElementType.values.find(_.entryName == str) match {
       case Some(v) => Success(v)
