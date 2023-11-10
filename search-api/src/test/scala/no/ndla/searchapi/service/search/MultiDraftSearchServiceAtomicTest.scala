@@ -797,7 +797,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(4)
     )
     val draft5 = TestData.draft1.copy(
-      id = Some(4),
+      id = Some(5),
       priority = Priority.OnHold
     )
     draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
@@ -836,6 +836,16 @@ class MultiDraftSearchServiceAtomicTest
       .get
       .results
       .map(_.id) should be(Seq(5))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          priority = List.empty
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 2, 3, 4, 5))
   }
 
   test("That search on embed id supports video embed with timestamp resources") {
