@@ -13,7 +13,7 @@ import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.EmbedType
-import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.model.domain.{ArticleType, Availability, Priority}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
@@ -107,7 +107,8 @@ trait SearchApiClient {
           JavaTypesSerializers.all +
           Json4s.serializer(ArticleType) +
           Json4s.serializer(DraftStatus) +
-          Json4s.serializer(RevisionStatus)
+          Json4s.serializer(RevisionStatus) +
+          Json4s.serializer(Priority)
       val url     = s"$baseUrl/$path"
       val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)
       ndlaClient.fetchWithForwardedAuth[T](request, None)
