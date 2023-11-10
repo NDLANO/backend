@@ -15,7 +15,7 @@ import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, VisualElement}
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Priority, VisualElement}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
@@ -372,7 +372,7 @@ trait SearchConverterService {
           nextRevision = nextRevision,
           responsible = draft.responsible,
           domainObject = draft,
-          prioritized = Some(draft.prioritized)
+          priority = draft.priority
         )
       )
 
@@ -488,7 +488,7 @@ trait SearchConverterService {
         revisions = Seq.empty,
         responsible = None,
         comments = None,
-        prioritized = None
+        priority = Priority.Unspecified
       )
     }
 
@@ -544,7 +544,7 @@ trait SearchConverterService {
         revisions = revisions,
         responsible = responsible,
         comments = Some(comments),
-        prioritized = searchableDraft.prioritized
+        priority = searchableDraft.priority
       )
     }
 
@@ -595,7 +595,7 @@ trait SearchConverterService {
         revisions = Seq.empty,
         responsible = None,
         comments = None,
-        prioritized = Some(false)
+        priority = Priority.Unspecified
       )
     }
 

@@ -43,7 +43,7 @@ case class Draft(
     responsible: Option[Responsible],
     slug: Option[String],
     comments: Seq[Comment],
-    prioritized: Boolean,
+    priority: Priority,
     started: Boolean
 ) extends Content {
 

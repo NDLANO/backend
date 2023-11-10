@@ -10,7 +10,7 @@ package no.ndla.searchapi.controller
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.model.domain.{ArticleType, Availability, Priority}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.scalatra.NdlaSwaggerSupport
@@ -159,6 +159,7 @@ trait SearchController {
           |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
           |""".stripMargin
     )
+
     private val statusFilter = Param[Option[Seq[String]]](
       "draft-status",
       s"""List of statuses to filter by.
@@ -208,8 +209,13 @@ trait SearchController {
       "responsible-ids",
       "List of responsible ids to filter by (OR filter)."
     )
-    private val prioritizedFilter =
-      Param[Option[Boolean]]("prioritized", "Set to true to only return prioritized articles")
+
+    private val priorityFilter =
+      Param[Option[Seq[String]]](
+        "priority",
+        s"""List of priority-levels to filter by.
+           |Supported values are ${Priority.values.mkString(", ")}.""".stripMargin
+      )
 
     private val filterInactive = Param[Option[Boolean]]("filter-inactive", "Filter out inactive taxonomy contexts.")
 
@@ -480,7 +486,7 @@ trait SearchController {
       val excludeRevisionHistory   = booleanOrDefault(this.excludeRevisionLog.paramName, default = false)
       val responsibleIds           = paramAsListOfString(this.responsibleIdFilter.paramName)
       val filterInactive           = booleanOrDefault(this.filterInactive.paramName, default = false)
-      val prioritized              = booleanOrNone(this.prioritizedFilter.paramName)
+      val priority                 = paramAsListOfString(this.priorityFilter.paramName)
 
       MultiDraftSearchSettings(
         query = query,
@@ -513,7 +519,7 @@ trait SearchController {
         responsibleIdFilter = responsibleIds,
         articleTypes = articleTypes,
         filterInactive = filterInactive,
-        prioritized = prioritized
+        priority = priority
       )
     }
 
@@ -631,7 +637,7 @@ trait SearchController {
             asQueryParam(excludeRevisionLog),
             asQueryParam(responsibleIdFilter),
             asQueryParam(filterInactive),
-            asQueryParam(prioritizedFilter)
+            asQueryParam(priorityFilter)
           )
           .authorizations("oauth2")
           .responseMessages(response403)

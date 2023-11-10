@@ -9,6 +9,7 @@ package no.ndla.integrationtests.draftapi.articleapi
 
 import cats.effect.unsafe
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.draftapi.model.api.ContentId
@@ -124,7 +125,7 @@ class ArticleApiClientTest
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    prioritized = false,
+    priority = Priority.Unspecified,
     started = false
   )
 

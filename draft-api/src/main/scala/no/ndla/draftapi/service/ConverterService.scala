@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.api.{DraftCopyright, draft}
-import no.ndla.common.model.domain.Responsible
+import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi, domain => common}
@@ -116,7 +116,9 @@ trait ConverterService {
           responsible = responsible,
           slug = newArticle.slug,
           comments = newCommentToDomain(newArticle.comments),
-          prioritized = newArticle.prioritized.getOrElse(false),
+          priority = common.Priority
+            .valueOfOrError(newArticle.priority.getOrElse(Priority.Unspecified.entryName))
+            .getOrElse(common.Priority.Unspecified),
           started = false
         )
       )
@@ -388,7 +390,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug,
             comments = article.comments.map(toApiComment),
-            prioritized = article.prioritized,
+            priority = article.priority.entryName,
             started = article.started
           )
         )
@@ -686,6 +688,10 @@ trait ConverterService {
 
       val copyright = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
 
+      val priority = article.priority
+        .map(v => common.Priority.valueOfOrError(v).getOrElse(toMergeInto.priority))
+        .getOrElse(toMergeInto.priority)
+
       failableFields match {
         case Failure(ex) => Failure(ex)
         case Success((allNotes, newContent)) =>
@@ -708,7 +714,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug.orElse(toMergeInto.slug),
             comments = updatedComments,
-            prioritized = article.prioritized.getOrElse(toMergeInto.prioritized)
+            priority = priority
           )
 
           val articleWithNewContent = article.copy(content = newContent)
@@ -795,6 +801,10 @@ trait ConverterService {
           .map(common.ArticleType.valueOfOrError)
           .getOrElse(common.ArticleType.Standard)
 
+        val priority = common.Priority
+          .valueOfOrError(article.priority.getOrElse(Priority.Unspecified.entryName))
+          .getOrElse(common.Priority.Unspecified)
+
         for {
           comments <- updatedCommentToDomainNullDocument(article.comments.getOrElse(List.empty))
           notes    <- mergedNotes
@@ -827,7 +837,7 @@ trait ConverterService {
           responsible = responsible,
           slug = article.slug,
           comments = comments,
-          prioritized = article.prioritized.getOrElse(false),
+          priority = priority,
           started = false
         )
     }

@@ -8,20 +8,7 @@
 package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  EditorNote,
-  Introduction,
-  Status,
-  Tag,
-  Title,
-  VisualElement,
-  draft
-}
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ArticleType, Author, Availability, EditorNote, Introduction, Priority, Status, Tag, Title, VisualElement, draft}
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
@@ -544,7 +531,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    prioritized = false,
+    priority = Priority.Unspecified,
     started = false
   )
 
@@ -605,7 +592,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    prioritized = false,
+    priority = Priority.Unspecified,
     started = false
   )
 
@@ -1609,7 +1596,7 @@ object TestData {
     responsibleIdFilter = List.empty,
     articleTypes = List.empty,
     filterInactive = false,
-    prioritized = None
+    priority = Priority.Unspecified,
   )
 
   val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(

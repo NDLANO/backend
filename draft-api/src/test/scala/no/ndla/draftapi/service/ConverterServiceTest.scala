@@ -311,7 +311,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsible = None,
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
 
@@ -354,7 +354,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsible = None,
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
 
@@ -387,7 +387,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsible = None,
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
 
@@ -448,7 +448,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsible = None,
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
 
@@ -481,7 +481,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsible = None,
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
 
@@ -1080,7 +1080,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       responsible = None,
       slug = Some("kjempe-slug"),
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
     val article = common.model.domain.article.Article(

@@ -10,6 +10,7 @@ package no.ndla.draftapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.api.DraftCopyright
+import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
@@ -107,8 +108,8 @@ object TestData {
     responsible = None,
     None,
     Seq.empty,
-    false,
-    false
+    priority = Priority.Unspecified.entryName,
+    started = false
   )
 
   val blankUpdatedArticle: UpdatedArticle = api.UpdatedArticle(
@@ -222,7 +223,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified.entryName,
     false
   )
 
@@ -273,7 +274,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified.entryName,
     false
   )
 
@@ -306,7 +307,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified,
     false
   )
 
@@ -339,7 +340,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified,
     false
   )
 
@@ -374,7 +375,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified,
     false
   )
 
@@ -460,7 +461,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified,
     false
   )
 
@@ -514,7 +515,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified.entryName,
     false
   )
 

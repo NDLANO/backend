@@ -9,7 +9,7 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.Responsible
+import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.{NDLADate, domain => common}
@@ -357,7 +357,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = Some(Responsible("hei", clock.now())),
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
     val article = common.article.Article(
@@ -478,7 +478,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = Some(beforeResponsible),
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
     val status            = common.Status(PLANNED, Set.empty)
@@ -534,7 +534,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = Some(beforeResponsible),
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
     val status            = common.Status(PLANNED, Set.empty)
@@ -595,7 +595,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = Some(beforeResponsible),
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
     val status            = common.Status(PLANNED, Set.empty)
@@ -658,7 +658,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = None,
       slug = None,
       comments = Seq.empty,
-      prioritized = false,
+      priority = Priority.Unspecified,
       started = false
     )
     val status                            = common.Status(PUBLISHED, Set.empty)

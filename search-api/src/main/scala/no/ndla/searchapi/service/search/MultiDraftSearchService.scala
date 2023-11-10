@@ -180,9 +180,9 @@ trait MultiDraftSearchService {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
       }
 
-      val prioritizedFilter = settings.prioritized.map { prioritized =>
-        termQuery("prioritized", prioritized)
-      }
+      val priorityFilter = Option.when(settings.priority.nonEmpty)(
+        boolQuery().should(settings.priority.map(termQuery("priority", _)))
+      )
 
       val articleTypeFilter = Some(
         boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
@@ -212,7 +212,7 @@ trait MultiDraftSearchService {
         embedResourceAndIdFilter,
         dateFilter,
         responsibleIdFilter,
-        prioritizedFilter
+        priorityFilter
       ).flatten
     }
 

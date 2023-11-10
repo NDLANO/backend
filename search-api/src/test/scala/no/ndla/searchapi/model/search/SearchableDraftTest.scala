@@ -9,7 +9,7 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.{EditorNote, Responsible, Status => CommonStatus}
+import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, Status => CommonStatus}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
@@ -123,7 +123,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
           )
         )
       ),
-      prioritized = Some(false)
+      priority = Priority.Unspecified
     )
 
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
