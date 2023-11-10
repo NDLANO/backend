@@ -7,12 +7,19 @@
 
 package no.ndla.searchapi.model.taxonomy
 
-case class TaxonomyBundle(
-    nodes: List[Node]
-) {
+import scala.collection.mutable
 
-  val nodeByContentUri: Map[String, List[Node]] = {
-    val contentUriToNodes = nodes.flatMap(t => t.contentUri.map(cu => cu -> t))
-    contentUriToNodes.groupMap(_._1)(_._2)
+case class TaxonomyBundle(nodeByContentUri: Map[String, List[Node]]) {}
+
+object TaxonomyBundle {
+  def apply(nodes: List[Node]): TaxonomyBundle = {
+    val map = mutable.Map.empty[String, List[Node]]
+    for (n <- nodes) {
+      n.contentUri.foreach(cu => {
+        val existing = map.getOrElseUpdate(cu, List.empty)
+        map.update(cu, existing :+ n)
+      })
+    }
+    new TaxonomyBundle(map.toMap)
   }
 }

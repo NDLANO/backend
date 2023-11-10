@@ -256,7 +256,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That invisible contexts are not indexed") {
-    val taxonomyBundleInvisibleMetadata = TestData.taxonomyTestBundle.copy(nodes =
+    val taxonomyBundleInvisibleMetadata = TaxonomyBundle(
       nodes
         .filter(node => node.nodeType == NodeType.RESOURCE)
         .map(resource => resource.copy(metadata = invisibleMetadata))
@@ -287,7 +287,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That invisible subjects are not indexed") {
     val taxonomyBundleInvisibleMetadata =
-      TestData.taxonomyTestBundle.copy(nodes =
+      TaxonomyBundle(
         nodes
           .filter(node => node.nodeType == NodeType.SUBJECT)
           .map(subject => subject.copy(metadata = invisibleMetadata))

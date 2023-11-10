@@ -79,10 +79,10 @@ class MultiSearchServiceTest
   }
 
   def hasTaxonomy(lp: LearningPath): Boolean =
-    taxonomyTestBundle.nodes.map(_.contentUri.get).contains(s"urn:learningpath:${lp.id.get}")
+    taxonomyTestBundle.nodeByContentUri.contains(s"urn:learningpath:${lp.id.get}")
 
   def hasTaxonomy(ar: Article): Boolean =
-    taxonomyTestBundle.nodes.map(_.contentUri.get).contains(s"urn:article:${ar.id.get}")
+    taxonomyTestBundle.nodeByContentUri.contains(s"urn:article:${ar.id.get}")
 
   private def expectedAllPublicArticles(language: String) = {
     val x = if (language == "*") { TestData.articlesToIndex.filter(_.availability == Availability.everyone) }
