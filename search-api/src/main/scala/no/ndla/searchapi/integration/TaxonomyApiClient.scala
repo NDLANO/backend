@@ -19,8 +19,10 @@ import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.TaxonomyException
 import no.ndla.searchapi.model.taxonomy._
 import org.json4s.Formats
+import org.json4s.native.Serialization
 import sttp.client3.quick._
 
+import java.io.{File, FileOutputStream}
 import java.util.concurrent.Executors
 import scala.collection.mutable.ListBuffer
 import scala.concurrent._
@@ -37,27 +39,22 @@ trait TaxonomyApiClient {
     implicit val formats: Formats   = SearchableLanguageFormats.JSonFormatsWithMillis + Json4s.serializer(NodeType)
     private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
     private val timeoutSeconds      = 600.seconds
-    private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
-      get[ListBuffer[Node]](
-        s"$TaxonomyApiEndpoint/nodes/",
-        headers = getVersionHashHeader(shouldUsePublishedTax),
-        Seq(
-          "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
-          "includeContexts" -> "true"
-        )
-      )
 
-    private def getResources(shouldUsePublishedTax: Boolean): Try[List[Node]] =
-      getPaginated[Node](
+    private def getResources(shouldUsePublishedTax: Boolean): Try[File] = {
+      val tmpDir = java.nio.file.Files.createTempDirectory("taxonomy-bundle").toFile
+      getPaginated(
         s"$TaxonomyApiEndpoint/nodes/search",
         headers = getVersionHashHeader(shouldUsePublishedTax),
         Seq(
-          "pageSize"         -> "500",
-          "nodeType"         -> NodeType.RESOURCE.toString,
+          "pageSize" -> "500",
+          "nodeType" -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC, NodeType.RESOURCE.toString).mkString(","),
           "includeContexts"  -> "true",
           "filterProgrammes" -> "true"
-        )
-      )
+        ),
+        shouldUsePublishedTax,
+        tmpDir
+      ).map(_ => tmpDir)
+    }
 
     def getTaxonomyContext(
         contentUri: String,
@@ -77,34 +74,14 @@ trait TaxonomyApiClient {
       if (shouldUsePublishedTax) Map.empty else Map(TAXONOMY_VERSION_HEADER -> defaultVersion)
     }
 
-    val getTaxonomyBundle: Memoize[Boolean, Try[TaxonomyBundle]] =
-      new Memoize(1000 * 60, shouldUsePublishedTax => getTaxonomyBundleUncached(shouldUsePublishedTax))
-
-    /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
-    private def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
+    def getTaxonomyBundle(shouldUsePublishedTax: Boolean) = {
       logger.info(s"Fetching ${if (shouldUsePublishedTax) "published" else "draft"} taxonomy in bulk...")
-      val startFetch                            = System.currentTimeMillis()
-      implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+      val startFetch = System.currentTimeMillis()
 
-      val requestInfo = RequestInfo.fromThreadContext()
-
-      /** Calls function in separate thread and converts Try to Future */
-      def tryToFuture[T](x: Boolean => Try[T]) = Future {
-        requestInfo.setRequestInfo(): Unit
-        x(shouldUsePublishedTax)
-      }.flatMap(Future.fromTry)
-
-      val nodes     = tryToFuture(shouldUsePublishedTax => getNodes(shouldUsePublishedTax))
-      val resources = tryToFuture(shouldUsePublishedTax => getResources(shouldUsePublishedTax))
-
-      val x = for {
-        n <- nodes
-        r <- resources
-      } yield TaxonomyBundle(n.addAll(r).result())
-
-      Try(Await.result(x, Duration(300, "seconds"))) match {
-        case Success(bundle) =>
+      getResources(shouldUsePublishedTax) match {
+        case Success(tmpDir) =>
           logger.info(s"Fetched taxonomy in ${System.currentTimeMillis() - startFetch}ms...")
+          val bundle = TaxonomyBundle(tmpDir.getAbsolutePath, shouldUsePublishedTax)
           Success(bundle)
         case Failure(ex) =>
           logger.error(s"Could not fetch taxonomy bundle (${ex.getMessage})", ex)
@@ -122,12 +99,15 @@ trait TaxonomyApiClient {
       )
     }
 
-    private def getPaginated[T](url: String, headers: Map[String, String], params: Seq[(String, String)])(implicit
-        mf: Manifest[T],
-        formats: Formats
-    ): Try[List[T]] = {
-      def fetchPage(p: Seq[(String, String)]): Try[PaginationPage[T]] =
-        get[PaginationPage[T]](url, headers, p)
+    private def getPaginated(
+        url: String,
+        headers: Map[String, String],
+        params: Seq[(String, String)],
+        published: Boolean,
+        tmpDir: File
+    ): Try[Unit] = {
+      def fetchPage(p: Seq[(String, String)]): Try[PaginationPage] =
+        get[PaginationPage](url, headers, p)
 
       val pageSize   = params.toMap.get("pageSize").get.toInt
       val pageParams = params :+ ("page" -> "1")
@@ -139,13 +119,29 @@ trait TaxonomyApiClient {
         implicit val executionContext: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
 
-        val pages        = pageRange.map(pageNum => Future(fetchPage(params :+ ("page" -> s"$pageNum"))))
+        val pages = pageRange.map(pageNum =>
+          Future {
+            fetchPage(params :+ ("page" -> s"$pageNum")).map(page =>
+              page.results.foreach(n =>
+                n.contentUri.foreach(uri => {
+                  val pub         = if (published) "published" else "draft"
+                  val path        = s"$tmpDir/${uri}_$pub.json"
+                  val f           = new java.io.File(path)
+                  lazy val stream = new FileOutputStream(f)
+                  if (f.exists())
+                    stream.write('\n')
+                  val json = Serialization.write(n)
+                  stream.write(json.getBytes)
+                })
+              )
+            )
+          }
+        )
         val mergedFuture = Future.sequence(pages)
         val awaited      = Await.result(mergedFuture, timeoutSeconds)
-
-        awaited.toList.sequence.map(_.flatMap(_.results))
+        awaited.toList.sequence.map(_ => ())
       })
     }
   }
 }
-case class PaginationPage[T](totalCount: Long, results: List[T])
+case class PaginationPage(totalCount: Long, results: List[Node])

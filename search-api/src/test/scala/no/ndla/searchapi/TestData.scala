@@ -1532,7 +1532,7 @@ object TestData {
     resource_13
   )
 
-  val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
+  val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes)
 
   val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
