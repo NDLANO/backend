@@ -14,7 +14,7 @@ import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft._
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api => commonApi}
-import no.ndla.draftapi.integration.{Resource, Topic}
+import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -780,10 +780,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    result1.status.current should not be (existing.status.current.toString)
+    result1.status.current should not be existing.status.current.toString
     result1.status.current should be(DraftStatus.IN_PROGRESS.toString)
-    result1.status.other.sorted should not be (existing.status.other.map(_.toString).toSeq.sorted)
-    result1.notes.head.note should not be ("Artikkelen har blitt delpublisert")
+    result1.status.other.sorted should not be existing.status.other.map(_.toString).toSeq.sorted
+    result1.notes.head.note should not be "Artikkelen har blitt delpublisert"
   }
 
   test("article status should change if both the PartialArticleFields and other fields changes") {
@@ -840,9 +840,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    result1.status.current should not be (existing.status.current.toString)
+    result1.status.current should not be existing.status.current.toString
     result1.status.current should be(DraftStatus.IN_PROGRESS.toString)
-    result1.status.other.sorted should not be (existing.status.other.map(_.toString).toSeq.sorted)
+    result1.status.other.sorted should not be existing.status.other.map(_.toString).toSeq.sorted
 
     result1.availability should be(Availability.teacher.toString)
     result1.grepCodes should be(Seq("a", "b", "c"))
@@ -1345,9 +1345,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("copyRevisionDates updates articles") {
     val nodeId   = "urn:topic:1"
-    val node     = Topic(nodeId, "Topic", Some("urn:article:1"), List.empty)
-    val child    = Topic("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
-    val resource = Resource("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
+    val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)
+    val child    = Node("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
+    val resource = Node("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
 
     val revisionMeta =
       RevisionMeta(UUID.randomUUID(), NDLADate.now(), "Test revision", RevisionStatus.NeedsRevision)
@@ -1360,7 +1360,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
     when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
     when(draftRepository.withId(eqTo(1))(any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2))(any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3))(any)).thenReturn(Some(article3))
@@ -1370,9 +1370,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("copyRevisionDates does nothing if revisionMeta is empty") {
     val nodeId   = "urn:topic:1"
-    val node     = Topic(nodeId, "Topic", Some("urn:article:1"), List.empty)
-    val child    = Topic("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
-    val resource = Resource("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
+    val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)
+    val child    = Node("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
+    val resource = Node("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
 
     val article1 = TestData.sampleDomainArticle.copy(id = Some(1))
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
@@ -1390,9 +1390,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("copyRevisionDates skips empty contentUris") {
     val nodeId   = "urn:topic:1"
-    val node     = Topic(nodeId, "Topic", Some("urn:article:1"), List.empty)
-    val child    = Topic("urn:topic:2", "Topic", None, List.empty)
-    val resource = Resource("urn:resource:1", "Resource", Some("urn:article:2"), List.empty)
+    val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)
+    val child    = Node("urn:topic:2", "Topic", None, List.empty)
+    val resource = Node("urn:resource:1", "Resource", Some("urn:article:2"), List.empty)
 
     val revisionMeta =
       RevisionMeta(UUID.randomUUID(), NDLADate.now(), "Test revision", RevisionStatus.NeedsRevision)
@@ -1404,7 +1404,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
     when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
     when(draftRepository.withId(eqTo(1))(any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2))(any)).thenReturn(Some(article2))
     service.copyRevisionDates(nodeId) should be(Success(()))

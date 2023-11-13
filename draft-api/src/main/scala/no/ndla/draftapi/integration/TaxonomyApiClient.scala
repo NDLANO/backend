@@ -35,36 +35,26 @@ trait TaxonomyApiClient {
 
     def updateTaxonomyIfExists(articleId: Long, article: Draft, user: TokenUser): Try[Long] = {
       for {
-        resources <- queryResource(articleId)
-        _         <- updateTaxonomy[Resource](resources, article.title, updateResourceTitleAndTranslations, user)
-        topics    <- queryTopic(articleId)
-        _         <- updateTaxonomy[Topic](topics, article.title, updateTopicTitleAndTranslations, user)
+        nodes <- queryNodes(articleId)
+        _     <- updateTaxonomy(nodes, article.title, user)
       } yield articleId
     }
 
     /** Updates the taxonomy for an article
       *
-      * @param resource
+      * @param nodes
       *   Resources or Topics of article
       * @param titles
       *   Titles that are to be updated as translations
-      * @param updateFunc
-      *   Function that updates taxonomy and translations ([[updateResourceTitleAndTranslations]] or
-      *   [[updateTopicTitleAndTranslations]])
-      * @tparam T
-      *   Taxonomy resource type ([[Resource]] or [[Topic]])
+      * @param user
+      *   The logged in user
       * @return
       *   List of Resources or Topics that were updated if none failed.
       */
-    private def updateTaxonomy[T](
-        resource: Seq[T],
-        titles: Seq[Title],
-        updateFunc: (T, Title, Seq[Title], TokenUser) => Try[T],
-        user: TokenUser
-    ): Try[List[T]] = {
+    private def updateTaxonomy(nodes: Seq[Node], titles: Seq[Title], user: TokenUser): Try[List[Node]] = {
       Language.findByLanguageOrBestEffort(titles, DefaultLanguage) match {
         case Some(title) =>
-          val updated = resource.map(updateFunc(_, title, titles, user))
+          val updated = nodes.map(updateTitleAndTranslations(_, title, titles, user))
           updated
             .collect { case Failure(ex) => ex }
             .foreach(ex => logger.warn(s"Taxonomy update failed with: ${ex.getMessage}"))
@@ -73,28 +63,24 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def updateTitleAndTranslations[T <: Taxonomy[T]](
-        res: T,
+    private def updateTitleAndTranslations(
+        node: Node,
         defaultTitle: Title,
         titles: Seq[Title],
-        updateFunc: (T, TokenUser) => Try[T],
-        updateTranslationsFunc: Seq[Title] => Try[List[Translation]],
-        getTranslationsFunc: String => Try[List[Translation]],
-        deleteTranslationFunc: Translation => Try[Unit],
         user: TokenUser
     ) = {
-      val resourceResult    = updateFunc(res.withName(defaultTitle.title), user)
-      val translationResult = updateTranslationsFunc(titles)
+      val nodeResult        = updateNode(node.withName(defaultTitle.title), user)
+      val translationResult = updateTranslations(node.id, titles, user)
 
-      val deleteResult = getTranslationsFunc(res.id).flatMap(translations => {
+      val deleteResult = getTranslations(node.id).flatMap(translations => {
         val translationsToDelete = translations.filterNot(trans => {
           titles.exists(title => trans.language.contains(title.language))
         })
 
-        translationsToDelete.traverse(deleteTranslationFunc)
+        translationsToDelete.traverse(deleteTranslation(node.id, _, user))
       })
 
-      (resourceResult, translationResult, deleteResult) match {
+      (nodeResult, translationResult, deleteResult) match {
         case (Success(s1), Success(_), Success(_)) => Success(s1)
         case (Failure(ex), _, _)                   => Failure(ex)
         case (_, Failure(ex), _)                   => Failure(ex)
@@ -105,138 +91,52 @@ trait TaxonomyApiClient {
     private def updateTranslations(
         id: String,
         titles: Seq[Title],
-        user: TokenUser,
-        updateTranslationFunc: (String, String, String, TokenUser) => Try[Translation]
+        user: TokenUser
     ) = {
-      val tries = titles.map(t => updateTranslationFunc(id, t.language, t.title, user))
+      val tries = titles.map(t => updateNodeTranslation(id, t.language, t.title, user))
       Traverse[List].sequence(tries.toList)
     }
 
-    private def updateResourceTitleAndTranslations(
-        res: Resource,
-        defaultTitle: Title,
-        titles: Seq[Title],
-        user: TokenUser
-    ) = {
-      val updateTranslationsFunc = updateTranslations(res.id, _: Seq[Title], user, updateResourceTranslation)
-      updateTitleAndTranslations(
-        res,
-        defaultTitle,
-        titles,
-        updateResource,
-        updateTranslationsFunc,
-        getResourceTranslations,
-        (t: Translation) => deleteResourceTranslation(res.id, t, user),
-        user
-      )
-    }
+    private[integration] def updateNodeTranslation(nodeId: String, lang: String, name: String, user: TokenUser) =
+      putRaw(s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$lang", Translation(name), user)
 
-    private def updateTopicTitleAndTranslations(
-        top: Topic,
-        defaultTitle: Title,
-        titles: Seq[Title],
-        user: TokenUser
-    ) = {
-      val updateTranslationsFunc = updateTranslations(top.id, _: Seq[Title], user, updateTopicTranslation)
-      updateTitleAndTranslations(
-        top,
-        defaultTitle,
-        titles,
-        updateTopic,
-        updateTranslationsFunc,
-        getTopicTranslations,
-        (t: Translation) => deleteTopicTranslation(top.id, t, user),
-        user
-      )
-    }
+    private[integration] def updateNode(node: Node, user: TokenUser)(implicit formats: Formats) =
+      putRaw[Node](s"$TaxonomyApiEndpoint/nodes/${node.id}", node, user)
 
-    private[integration] def updateResourceTranslation(
-        resourceId: String,
-        lang: String,
-        name: String,
-        user: TokenUser
-    ) =
-      putRaw(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$lang", Translation(name), user)
+    private[integration] def getTranslations(nodeId: String) =
+      get[List[Translation]](s"$TaxonomyApiEndpoint/nodes/$nodeId/translations")
 
-    private[integration] def updateTopicTranslation(topicId: String, lang: String, name: String, user: TokenUser) =
-      putRaw(s"$TaxonomyApiEndpoint/topics/$topicId/translations/$lang", Translation(name), user)
-
-    private[integration] def updateResource(resource: Resource, user: TokenUser)(implicit formats: Formats) =
-      putRaw[Resource](s"$TaxonomyApiEndpoint/resources/${resource.id}", resource, user)
-
-    private[integration] def updateTopic(topic: Topic, user: TokenUser)(implicit formats: Formats) =
-      putRaw[Topic](s"$TaxonomyApiEndpoint/topics/${topic.id}", topic, user)
-
-    private[integration] def getTopicTranslations(topicId: String) =
-      get[List[Translation]](s"$TaxonomyApiEndpoint/topics/$topicId/translations")
-
-    private def deleteTopicTranslation(topicId: String, translation: Translation, user: TokenUser) = {
+    private def deleteTranslation(nodeId: String, translation: Translation, user: TokenUser) = {
       translation.language
         .map(language => {
-          delete(s"$TaxonomyApiEndpoint/topics/$topicId/translations/$language", user)
+          delete(s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$language", user)
         })
         .getOrElse({
-          logger.info(s"Cannot delete translation without language for $topicId")
+          logger.info(s"Cannot delete translation without language for $nodeId")
           Success(())
         })
     }
 
-    private[integration] def getResourceTranslations(resourceId: String) =
-      get[List[Translation]](s"$TaxonomyApiEndpoint/resources/$resourceId/translations")
-
-    private[integration] def deleteResourceTranslation(
-        resourceId: String,
-        translation: Translation,
-        user: TokenUser
-    ) = {
-      translation.language
-        .map(language => {
-          delete(s"$TaxonomyApiEndpoint/resources/$resourceId/translations/$language", user)
-        })
-        .getOrElse({
-          logger.info(s"Cannot delete translation without language for $resourceId")
-          Success(())
-        })
-    }
-
-    def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean, user: TokenUser) = {
+    def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean, user: TokenUser): Try[Long] = {
       for {
-        resources                      <- queryResource(articleId)
-        existingResourceMetadataWithId <- resources.traverse(res => getResourceMetadata(res.id).map((res.id, _)))
-        _ <- existingResourceMetadataWithId.traverse { case (resId, existingMeta) =>
-          updateResourceMetadata(resId, existingMeta.copy(visible = visible), user)
-        }
-
-        topics                      <- queryTopic(articleId)
-        existingTopicMetadataWithId <- topics.traverse(top => getTopicMetadata(top.id).map((top.id, _)))
-        _ <- existingTopicMetadataWithId.traverse { case (topId, existingMeta) =>
-          updateTopicMetadata(topId, existingMeta.copy(visible = visible), user)
+        nodes                      <- queryNodes(articleId)
+        existingNodeMetadataWithId <- nodes.traverse(res => getMetadata(res.id).map((res.id, _)))
+        _ <- existingNodeMetadataWithId.traverse { case (resId, existingMeta) =>
+          updateMetadata(resId, existingMeta.copy(visible = visible), user)
         }
       } yield articleId
     }
 
-    private def getResourceMetadata(resourceId: String): Try[TaxonomyMetadata] = {
-      get[TaxonomyMetadata](s"$TaxonomyApiEndpoint/resources/$resourceId/metadata")
+    private def getMetadata(nodeId: String): Try[TaxonomyMetadata] = {
+      get[TaxonomyMetadata](s"$TaxonomyApiEndpoint/nodes/$nodeId/metadata")
     }
 
-    private def getTopicMetadata(resourceId: String): Try[TaxonomyMetadata] = {
-      get[TaxonomyMetadata](s"$TaxonomyApiEndpoint/topics/$resourceId/metadata")
-    }
-
-    private def updateResourceMetadata(
-        resourceId: String,
+    private def updateMetadata(
+        nodeId: String,
         body: TaxonomyMetadata,
         user: TokenUser
     ): Try[TaxonomyMetadata] = {
-      putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/resources/$resourceId/metadata", body, user)
-    }
-
-    private def updateTopicMetadata(
-        resourceId: String,
-        body: TaxonomyMetadata,
-        user: TokenUser
-    ): Try[TaxonomyMetadata] = {
-      putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/topics/$resourceId/metadata", body, user)
+      putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/nodes/$nodeId/metadata", body, user)
     }
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
@@ -249,19 +149,16 @@ trait TaxonomyApiClient {
       )
     }
 
-    def queryResource(articleId: Long): Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/resources", "contentURI" -> s"urn:article:$articleId")
+    def queryNodes(articleId: Long): Try[List[Node]] =
+      get[List[Node]](s"$TaxonomyApiEndpoint/nodes", "contentURI" -> s"urn:article:$articleId")
 
-    def queryTopic(articleId: Long): Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/topics", "contentURI" -> s"urn:article:$articleId")
+    def getNode(uri: String): Try[Node] = get[Node](s"$TaxonomyApiEndpoint/nodes/$uri")
 
-    def getNode(uri: String): Try[Topic] = get[Topic](s"$TaxonomyApiEndpoint/nodes/${uri}")
+    def getChildNodes(uri: String): Try[List[Node]] =
+      get[List[Node]](s"$TaxonomyApiEndpoint/nodes/$uri/nodes", "recursive" -> "true")
 
-    def getChildNodes(uri: String): Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/nodes/${uri}/nodes", "recursive" -> "true")
-
-    def getChildResources(uri: String): Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/nodes/${uri}/resources")
+    def getChildResources(uri: String): Try[List[Node]] =
+      get[List[Node]](s"$TaxonomyApiEndpoint/nodes/$uri/resources")
 
     private[integration] def delete(url: String, user: TokenUser, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
@@ -293,18 +190,8 @@ trait TaxonomyApiClient {
   }
 }
 
-trait Taxonomy[E <: Taxonomy[E]] {
-  val id: String
-  def name: String
-  def contentUri: Option[String]
-  def withName(name: String): E
-}
-case class Resource(id: String, name: String, contentUri: Option[String], paths: List[String])
-    extends Taxonomy[Resource] {
-  def withName(name: String): Resource = this.copy(name = name)
-}
-case class Topic(id: String, name: String, contentUri: Option[String], paths: List[String]) extends Taxonomy[Topic] {
-  def withName(name: String): Topic = this.copy(name = name)
+case class Node(id: String, name: String, contentUri: Option[String], paths: List[String]) {
+  def withName(name: String): Node = this.copy(name = name)
 }
 
 case class TaxonomyMetadata(grepCodes: Seq[String], visible: Boolean)

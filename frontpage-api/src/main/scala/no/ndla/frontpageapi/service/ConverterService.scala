@@ -168,14 +168,10 @@ trait ConverterService {
     }
 
     private def toDomainAboutSubject(aboutSeq: Seq[api.NewOrUpdatedAboutSubject]): Try[Seq[domain.AboutSubject]] = {
-      val seq = aboutSeq.map(about =>
+      aboutSeq.traverse(about =>
         toDomainVisualElement(about.visualElement)
-          .map(
-            domain
-              .AboutSubject(about.title, about.description, about.language, _)
-          )
+          .map(domain.AboutSubject(about.title, about.description, about.language, _))
       )
-      Try(seq.map(_.get))
     }
 
     private def toDomainMetaDescription(metaSeq: Seq[api.NewOrUpdatedMetaDescription]): Seq[domain.MetaDescription] = {
@@ -183,9 +179,11 @@ trait ConverterService {
     }
 
     private def toDomainVisualElement(visual: api.NewOrUpdatedVisualElement): Try[domain.VisualElement] =
-      VisualElementType
-        .fromString(visual.`type`)
-        .map(domain.VisualElement(_, visual.id, visual.alt))
+      for {
+        t <- VisualElementType.fromString(visual.`type`)
+        ve = domain.VisualElement(t, visual.id, visual.alt)
+        validated <- VisualElementType.validateVisualElement(ve)
+      } yield validated
 
     private def toDomainMenu(menu: api.Menu): domain.Menu = {
       val apiMenu = menu.menu.map { case x: api.Menu => toDomainMenu(x) }
