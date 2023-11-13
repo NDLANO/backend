@@ -134,7 +134,7 @@ trait WriteService {
     }
 
     def contentWithClonedFiles(contents: List[common.ArticleContent]): Try[List[common.ArticleContent]] = {
-      contents.toList.traverse(content => {
+      contents.traverse(content => {
         val doc    = HtmlTagRules.stringToJsoupDocument(content.content)
         val embeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala
 
@@ -158,7 +158,7 @@ trait WriteService {
       }
     }
 
-    def cloneFileAndGetNewPath(oldPath: String): Try[String] = {
+    private def cloneFileAndGetNewPath(oldPath: String): Try[String] = {
       val ext           = getFileExtension(oldPath).getOrElse("")
       val newFileName   = randomFilename(ext)
       val withoutPrefix = Path.parse(oldPath).parts.dropWhile(_ == "files").mkString("/")
@@ -292,7 +292,7 @@ trait WriteService {
         }
       }
 
-    def addRevisionDateNotes(
+    private def addRevisionDateNotes(
         user: TokenUser,
         updatedArticle: Draft,
         oldArticle: Option[Draft]
@@ -693,7 +693,7 @@ trait WriteService {
 
     private[service] def randomFilename(extension: String, length: Int = 20): String = {
       val extensionWithDot =
-        if (!extension.headOption.contains('.') && extension.length > 0) s".$extension" else extension
+        if (!extension.headOption.contains('.') && extension.nonEmpty) s".$extension" else extension
       val randomString = Random.alphanumeric.take(max(length - extensionWithDot.length, 1)).mkString
       s"$randomString$extensionWithDot"
     }
@@ -780,7 +780,7 @@ trait WriteService {
         user: TokenUser
     ): (Long, Try[Draft]) =
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
-        case None => id -> Failure(api.NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
+        case None => id -> Failure(api.NotFoundException(s"Could not find draft with id of $id to partial publish"))
         case Some(article) =>
           partialPublish(article, articleFieldsToUpdate, language, user): Unit
           id -> Success(article)
@@ -837,7 +837,8 @@ trait WriteService {
         partialBulk: api.PartialBulkArticles,
         user: TokenUser
     ): Try[api.MultiPartialPublishResult] = {
-      implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
+      implicit val ec: ExecutionContextExecutorService =
+        ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
       val requestInfo = RequestInfo.fromThreadContext()
 
       val futures = partialBulk.articleIds.map(id =>
@@ -857,11 +858,9 @@ trait WriteService {
 
         case Success(res) =>
           val successes = res.collect { case (id, Success(_)) => id }
-          val failures = res.collect {
-            case (id, Failure(ex)) => {
-              logger.error(s"Partial publishing ${id} failed with ${ex.getMessage}", ex)
-              api.PartialPublishFailure(id, ex.getMessage)
-            }
+          val failures = res.collect { case (id, Failure(ex)) =>
+            logger.error(s"Partial publishing $id failed with ${ex.getMessage}", ex)
+            api.PartialPublishFailure(id, ex.getMessage)
           }
 
           Success(
@@ -873,8 +872,8 @@ trait WriteService {
       }
     }
 
-    private def getRevisionMetaForUrn(topic: Topic): Seq[common.draft.RevisionMeta] = {
-      topic.contentUri match {
+    private def getRevisionMetaForUrn(node: Node): Seq[common.draft.RevisionMeta] = {
+      node.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
             case (Success(articleId), _) =>
@@ -890,7 +889,7 @@ trait WriteService {
 
     def copyRevisionDates(publicId: String): Try[Unit] = {
       taxonomyApiClient.getNode(publicId) match {
-        case Failure(_) => Failure(api.NotFoundException(s"No topics with id ${publicId}"))
+        case Failure(_) => Failure(api.NotFoundException(s"No topics with id $publicId"))
         case Success(topic) =>
           val revisionMeta = getRevisionMetaForUrn(topic)
           if (revisionMeta.nonEmpty) {
@@ -904,7 +903,7 @@ trait WriteService {
       }
     }
 
-    def setRevisions(entity: Taxonomy[_], revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
+    private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
       val updateResult = entity.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -915,7 +914,7 @@ trait WriteService {
       }
       updateResult.map(_ => {
         entity match {
-          case Topic(id, _, _, _) =>
+          case Node(id, _, _, _) =>
             taxonomyApiClient
               .getChildResources(id)
               .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
@@ -924,7 +923,7 @@ trait WriteService {
       })
     }
 
-    def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
+    private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
       draftRepository
         .withId(articleId)(ReadOnlyAutoSession)
         .traverse(article => {
