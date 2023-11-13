@@ -12,10 +12,8 @@ import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.network.NdlaClient
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
-import no.ndla.network.model.RequestInfo
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.TaxonomyException
 import no.ndla.searchapi.model.taxonomy._
 import org.json4s.Formats
@@ -24,9 +22,8 @@ import sttp.client3.quick._
 
 import java.io.{File, FileOutputStream}
 import java.util.concurrent.Executors
-import scala.collection.mutable.ListBuffer
 import scala.concurrent._
-import scala.concurrent.duration.{Duration, DurationInt}
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
@@ -128,8 +125,8 @@ trait TaxonomyApiClient {
                   val path        = s"$tmpDir/${uri}_$pub.json"
                   val f           = new java.io.File(path)
                   lazy val stream = new FileOutputStream(f)
-                  if (f.exists())
-                    stream.write('\n')
+
+                  if (f.exists()) stream.write('\n')
                   val json = Serialization.write(n)
                   stream.write(json.getBytes)
                 })

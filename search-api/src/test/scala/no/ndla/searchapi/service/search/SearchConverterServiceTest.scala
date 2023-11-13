@@ -11,13 +11,12 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 

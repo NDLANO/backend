@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.taxonomy
 
+import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
@@ -27,7 +28,7 @@ case class TaxonomyBundle(nodeByContentUri: NodeStorage) extends AutoCloseable {
   }
 }
 
-case class TmpNodes(tmpDir: String, isPublished: Boolean) extends NodeStorage with AutoCloseable {
+case class TmpNodes(tmpDir: String, isPublished: Boolean) extends NodeStorage with AutoCloseable with StrictLogging {
   override def contains(contentUri: String): Boolean = getOrElse(contentUri, Nil).nonEmpty
   override def getOrElse(contentUri: String, default: => List[Node]): List[Node] = {
     val pub  = if (isPublished) "published" else "draft"
@@ -45,11 +46,11 @@ case class TmpNodes(tmpDir: String, isPublished: Boolean) extends NodeStorage wi
   }
 
   override def close(): Unit = {
-    println("CLEANING UP TAXONOMYBUNDLE FILES YOLO")
+    logger.info(s"Cleaning up TaxonomyBundle tmp files in '$tmpDir'")
     val dir = new java.io.File(tmpDir)
     if (dir.exists()) {
       dir.listFiles().foreach(_.delete())
-      dir.delete(): Boolean
+      dir.delete(): Unit
     }
   }
 }
