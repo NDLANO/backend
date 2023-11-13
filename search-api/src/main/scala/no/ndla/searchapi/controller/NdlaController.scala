@@ -13,7 +13,7 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.EmbedType
-import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.model.domain.{ArticleType, Availability, Priority}
 import no.ndla.network.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
@@ -44,6 +44,7 @@ trait NdlaController {
         Json4s.serializer(ArticleType) +
         Json4s.serializer(RevisionStatus) +
         Json4s.serializer(DraftStatus) +
+        Json4s.serializer(Priority) +
         NDLADate.Json4sSerializer
 
     before() {

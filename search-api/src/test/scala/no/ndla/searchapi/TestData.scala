@@ -1610,6 +1610,7 @@ object TestData {
     responsibleIdFilter = List.empty,
     articleTypes = List.empty,
     filterInactive = false,
+    prioritized = None,
     priority = List.empty
   )
 

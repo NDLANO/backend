@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.model.domain.{ArticleType, Availability, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
@@ -41,6 +41,7 @@ trait SearchApiClient {
         new EnumNameSerializer(Availability) +
         Json4s.serializer(DraftStatus) +
         Json4s.serializer(ArticleType) +
+        Json4s.serializer(Priority) +
         Json4s.serializer(RevisionStatus) ++
         JavaTimeSerializers.all ++
         JavaTypesSerializers.all +

@@ -41,6 +41,7 @@ case class MultiSearchSummary(
     @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta],
     @(ApiModelProperty @field)(description = "Responsible field") responsible: Option[DraftResponsible],
     @(ApiModelProperty @field)(description = "Information about comments attached to the article") comments: Option[Seq[Comment]],
+    @(ApiModelProperty @field)(description ="If the article should be prioritized" ) prioritized: Option[Boolean],
     @(ApiModelProperty @field)(description ="If the article should be prioritized" ) priority: Option[Priority]
 )
 // format: on

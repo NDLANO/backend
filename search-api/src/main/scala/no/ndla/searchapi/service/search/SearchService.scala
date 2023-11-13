@@ -379,7 +379,8 @@ trait SearchService {
           fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
         case Sort.ByResponsibleLastUpdatedDesc =>
           fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
-
+        case Sort.ByPrioritizedAsc  => fieldSort("prioritized").order(SortOrder.Asc).missing("_last")
+        case Sort.ByPrioritizedDesc => fieldSort("prioritized").order(SortOrder.Desc).missing("_last")
       }
     }
 

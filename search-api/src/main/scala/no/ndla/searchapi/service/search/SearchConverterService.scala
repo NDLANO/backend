@@ -488,6 +488,7 @@ trait SearchConverterService {
         revisions = Seq.empty,
         responsible = None,
         comments = None,
+        prioritized = None,
         priority = Some(Priority.Unspecified)
       )
     }
@@ -544,7 +545,8 @@ trait SearchConverterService {
         revisions = revisions,
         responsible = responsible,
         comments = Some(comments),
-        priority = Some(searchableDraft.priority)
+        priority = Some(searchableDraft.priority),
+        prioritized = Some(searchableDraft.priority == Priority.Prioritized)
       )
     }
 
@@ -595,6 +597,7 @@ trait SearchConverterService {
         revisions = Seq.empty,
         responsible = None,
         comments = None,
+        prioritized = None,
         priority = Some(Priority.Unspecified)
       )
     }

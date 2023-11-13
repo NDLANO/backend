@@ -176,7 +176,8 @@ export interface IMultiSearchSummary {
   revisions: IRevisionMeta[]
   responsible?: IDraftResponsible
   comments?: IComment[]
-  priority?: boolean
+  prioritized?: boolean
+  priority?: string
 }
 
 export interface IMultiSearchTermsAggregation {

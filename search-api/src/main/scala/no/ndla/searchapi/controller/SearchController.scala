@@ -8,6 +8,7 @@
 
 package no.ndla.searchapi.controller
 
+import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{ArticleType, Availability, Priority}
@@ -59,6 +60,7 @@ trait SearchController {
     protected implicit override val jsonFormats: Formats =
       DefaultFormats ++
         JavaTimeSerializers.all +
+        Json4s.serializer(Priority) +
         NDLADate.Json4sSerializer
 
     protected val applicationDescription = "API for searching across NDLA APIs"
@@ -209,6 +211,9 @@ trait SearchController {
       "responsible-ids",
       "List of responsible ids to filter by (OR filter)."
     )
+
+    private val prioritizedFilter =
+      Param[Option[Boolean]]("prioritized", "Set to true to only return prioritized articles")
 
     private val priorityFilter =
       Param[Option[Seq[String]]](
@@ -486,6 +491,7 @@ trait SearchController {
       val excludeRevisionHistory   = booleanOrDefault(this.excludeRevisionLog.paramName, default = false)
       val responsibleIds           = paramAsListOfString(this.responsibleIdFilter.paramName)
       val filterInactive           = booleanOrDefault(this.filterInactive.paramName, default = false)
+      val prioritized              = booleanOrNone(this.prioritizedFilter.paramName)
       val priority                 = paramAsListOfString(this.priorityFilter.paramName)
 
       MultiDraftSearchSettings(
@@ -519,6 +525,7 @@ trait SearchController {
         responsibleIdFilter = responsibleIds,
         articleTypes = articleTypes,
         filterInactive = filterInactive,
+        prioritized = prioritized,
         priority = priority
       )
     }
@@ -637,6 +644,7 @@ trait SearchController {
             asQueryParam(excludeRevisionLog),
             asQueryParam(responsibleIdFilter),
             asQueryParam(filterInactive),
+            asQueryParam(prioritizedFilter),
             asQueryParam(priorityFilter)
           )
           .authorizations("oauth2")

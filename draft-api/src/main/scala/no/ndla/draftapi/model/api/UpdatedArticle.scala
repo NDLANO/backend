@@ -41,5 +41,6 @@ case class UpdatedArticle(
     @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Deletable[String],
     @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
     @(ApiModelProperty @field)(description = "Information about a comment attached to an article") comments: Option[List[UpdatedComment]],
+    @(ApiModelProperty @field)(description = "If the article should be prioritized") prioritized: Option[Boolean],
     @(ApiModelProperty @field)(description = "If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String]
 )

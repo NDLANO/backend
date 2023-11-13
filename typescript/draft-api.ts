@@ -32,6 +32,7 @@ export interface IArticle {
   responsible?: IDraftResponsible
   slug?: string
   comments: IComment[]
+  prioritized: boolean
   priority: string
   started: boolean
 }
@@ -156,7 +157,8 @@ export interface INewArticle {
   responsibleId?: string
   slug?: string
   comments: INewComment[]
-  priority?: boolean
+  prioritized?: boolean;
+  priority?: string
 }
 
 export interface INewArticleMetaImage {
@@ -234,7 +236,8 @@ export interface IUpdatedArticle {
   responsibleId?: (null | string)
   slug?: string
   comments?: IUpdatedComment[]
-  priority?: boolean
+  prioritized?: boolean
+  priority?: string
 }
 
 export interface IUpdatedComment {
