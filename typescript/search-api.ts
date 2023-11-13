@@ -177,7 +177,7 @@ export interface IMultiSearchSummary {
   responsible?: IDraftResponsible
   comments?: IComment[]
   prioritized?: boolean
-  priority?: string
+  priority?: Priority
 }
 
 export interface IMultiSearchTermsAggregation {
@@ -185,6 +185,14 @@ export interface IMultiSearchTermsAggregation {
   sumOtherDocCount: number
   docCountErrorUpperBound: number
   values: ITermValue[]
+}
+
+export interface IOnHold {
+  type: "OnHold"
+}
+
+export interface IPrioritized {
+  type: "Prioritized"
 }
 
 export interface IRevisionMeta {
@@ -231,6 +239,10 @@ export interface ITitle {
   language: string
 }
 
+export interface IUnspecified {
+  type: "Unspecified"
+}
+
 export interface IValidationError {
   code: string
   description: string
@@ -242,3 +254,5 @@ export interface IValidationMessage {
   field: string
   message: string
 }
+
+export type Priority = (IOnHold | IPrioritized | IUnspecified)

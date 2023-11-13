@@ -95,7 +95,6 @@ trait DraftIndexService {
         keywordField("nextRevision.status"),
         textField("nextRevision.note"),
         dateField("nextRevision.revisionDate"),
-        booleanField("prioritized"),
         keywordField("priority")
       )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++

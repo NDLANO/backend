@@ -489,7 +489,7 @@ trait SearchConverterService {
         responsible = None,
         comments = None,
         prioritized = None,
-        priority = Some(Priority.Unspecified)
+        priority = None
       )
     }
 
@@ -598,7 +598,7 @@ trait SearchConverterService {
         responsible = None,
         comments = None,
         prioritized = None,
-        priority = Some(Priority.Unspecified)
+        priority = None
       )
     }
 

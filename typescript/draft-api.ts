@@ -157,7 +157,7 @@ export interface INewArticle {
   responsibleId?: string
   slug?: string
   comments: INewComment[]
-  prioritized?: boolean;
+  prioritized?: boolean
   priority?: string
 }
 
