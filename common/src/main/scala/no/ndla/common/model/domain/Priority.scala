@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA common.
+ * Copyright (C) 2023 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.common.model.domain
 import enumeratum._
 import no.ndla.common.errors.ValidationException
