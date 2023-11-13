@@ -545,7 +545,7 @@ trait SearchConverterService {
         revisions = revisions,
         responsible = responsible,
         comments = Some(comments),
-        priority = Some(searchableDraft.priority),
+        priority = Some(searchableDraft.priority.entryName),
         prioritized = Some(searchableDraft.priority == Priority.Prioritized)
       )
     }

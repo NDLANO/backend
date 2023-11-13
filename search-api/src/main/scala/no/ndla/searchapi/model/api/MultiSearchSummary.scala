@@ -9,7 +9,6 @@ package no.ndla.searchapi.model.api
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.Comment
-import no.ndla.common.model.domain.Priority
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -41,7 +40,7 @@ case class MultiSearchSummary(
     @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta],
     @(ApiModelProperty @field)(description = "Responsible field") responsible: Option[DraftResponsible],
     @(ApiModelProperty @field)(description = "Information about comments attached to the article") comments: Option[Seq[Comment]],
-    @(ApiModelProperty @field)(description ="If the article should be prioritized" ) prioritized: Option[Boolean],
-    @(ApiModelProperty @field)(description ="If the article should be prioritized" ) priority: Option[Priority]
+    @(ApiModelProperty @field)(description = "If the article should be prioritized" ) prioritized: Option[Boolean],
+    @(ApiModelProperty @field)(description = "If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String]
 )
 // format: on
