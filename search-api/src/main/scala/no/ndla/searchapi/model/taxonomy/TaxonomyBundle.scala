@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.taxonomy
 
+import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.search.model.SearchableLanguageFormats
@@ -36,10 +37,13 @@ case class TmpNodes(tmpDir: String, isPublished: Boolean) extends NodeStorage wi
     val f    = new java.io.File(path)
     if (f.exists()) {
       val stream = new FileInputStream(f)
-      val str    = new String(stream.readAllBytes())
-      Try(Serialization.read[List[Node]](str)(TaxonomyBundle.formats, implicitly[Manifest[List[Node]]])) match {
+      val strs   = new String(stream.readAllBytes()).split("\n").toList
+      val nodes = strs.traverse(str => {
+        Try(Serialization.read[Node](str)(TaxonomyBundle.formats, implicitly[Manifest[Node]]))
+      })
+      nodes match {
         case Success(value) => return value
-        case Failure(_)     =>
+        case Failure(ex)    => logger.error(s"Failed to deserialize taxonomy node: '$path'", ex)
       }
     }
     default

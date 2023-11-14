@@ -121,14 +121,17 @@ trait TaxonomyApiClient {
             fetchPage(params :+ ("page" -> s"$pageNum")).map(page =>
               page.results.foreach(n =>
                 n.contentUri.foreach(uri => {
-                  val pub         = if (published) "published" else "draft"
-                  val path        = s"$tmpDir/${uri}_$pub.json"
-                  val f           = new java.io.File(path)
-                  lazy val stream = new FileOutputStream(f)
+                  val pub        = if (published) "published" else "draft"
+                  val path       = s"$tmpDir/${uri}_$pub.json"
+                  val f          = new java.io.File(path)
+                  val fileExists = f.exists()
+                  val stream     = new FileOutputStream(f, true)
 
-                  if (f.exists()) stream.write('\n')
+                  if (fileExists) stream.write('\n')
                   val json = Serialization.write(n)
                   stream.write(json.getBytes)
+                  stream.flush()
+                  stream.close()
                 })
               )
             )
