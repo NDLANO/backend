@@ -43,7 +43,7 @@ case class Draft(
     responsible: Option[Responsible],
     slug: Option[String],
     comments: Seq[Comment],
-    prioritized: Boolean,
+    priority: Priority,
     started: Boolean
 ) extends Content {
 
@@ -57,6 +57,7 @@ object Draft {
     Json4s.serializer(DraftStatus),
     Json4s.serializer(ArticleType),
     Json4s.serializer(RevisionStatus),
+    Json4s.serializer(Priority),
     NDLADate.Json4sSerializer
   ) ++
     JavaTimeSerializers.all ++

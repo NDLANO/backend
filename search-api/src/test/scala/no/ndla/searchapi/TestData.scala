@@ -16,6 +16,7 @@ import no.ndla.common.model.domain.{
   Availability,
   EditorNote,
   Introduction,
+  Priority,
   Status,
   Tag,
   Title,
@@ -544,7 +545,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    prioritized = false,
+    priority = Priority.Unspecified,
     started = false
   )
 
@@ -605,7 +606,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    prioritized = false,
+    priority = Priority.Unspecified,
     started = false
   )
 
@@ -1609,7 +1610,8 @@ object TestData {
     responsibleIdFilter = List.empty,
     articleTypes = List.empty,
     filterInactive = false,
-    prioritized = None
+    prioritized = None,
+    priority = List.empty
   )
 
   val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(

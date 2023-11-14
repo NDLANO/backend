@@ -17,7 +17,7 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.domain.Responsible
+import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain => common}
@@ -333,6 +333,19 @@ trait WriteService {
       updatedArticle.copy(notes = updatedArticle.notes ++ notes ++ deleted)
     }
 
+    private def hasResponsibleBeenUpdated(
+        draft: Draft,
+        oldDraft: Option[Draft]
+    ): Boolean = {
+      draft.responsible match {
+        case None => false
+        case Some(responsible) =>
+          val oldResponsibleId  = oldDraft.flatMap(_.responsible).map(_.responsibleId)
+          val hasNewResponsible = !oldResponsibleId.contains(responsible.responsibleId)
+          hasNewResponsible
+      }
+    }
+
     private def updateStartedField(
         draft: Draft,
         oldDraft: Option[Draft],
@@ -349,17 +362,25 @@ trait WriteService {
       } else if (isAutomaticOnEditTransition && statusWasUpdated) {
         draft.copy(started = true)
       } else {
-        val responsibleIdWasUpdated = draft.responsible match {
-          case None => false
-          case Some(responsible) =>
-            val oldResponsibleId  = oldDraft.flatMap(_.responsible).map(_.responsibleId)
-            val hasNewResponsible = !oldResponsibleId.contains(responsible.responsibleId)
-            hasNewResponsible
-        }
+        val responsibleIdWasUpdated = hasResponsibleBeenUpdated(draft, oldDraft)
 
         val shouldReset = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
         draft.copy(started = !shouldReset)
       }
+    }
+
+    private def updatePriorityField(
+        draft: Draft,
+        oldDraft: Option[Draft],
+        statusWasUpdated: Boolean
+    ): Draft = {
+      if (draft.priority == Priority.OnHold) {
+        val responsibleIdWasUpdated = hasResponsibleBeenUpdated(draft, oldDraft)
+        if (responsibleIdWasUpdated || statusWasUpdated) {
+          draft.copy(priority = Priority.Unspecified)
+        } else draft
+      } else draft
+
     }
 
     private def addPartialPublishNote(
@@ -395,11 +416,13 @@ trait WriteService {
         updatedApiArticle,
         shouldNotAutoUpdateStatus
       )
+      val withPriority =
+        updatePriorityField(withStarted, oldArticle, statusWasUpdated)
 
       for {
         _ <- contentValidator.validateArticleOnLanguage(toUpdate, language)
         domainArticle <- performArticleUpdate(
-          withStarted,
+          withPriority,
           externalIds,
           externalSubjectIds,
           isImported,
@@ -448,7 +471,7 @@ trait WriteService {
             tags = Seq.empty,
             revisionMeta = Seq.empty,
             comments = List.empty,
-            prioritized = false,
+            priority = Priority.Unspecified,
             started = false,
             // LanguageField ordering shouldn't matter:
             visualElement = article.visualElement.sorted,

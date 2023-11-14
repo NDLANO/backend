@@ -8,7 +8,7 @@
 package no.ndla.searchapi.model.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Responsible
+import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
@@ -40,5 +40,5 @@ case class SearchableDraft(
     nextRevision: Option[RevisionMeta],
     responsible: Option[Responsible],
     domainObject: Draft,
-    prioritized: Option[Boolean]
+    priority: Priority
 )

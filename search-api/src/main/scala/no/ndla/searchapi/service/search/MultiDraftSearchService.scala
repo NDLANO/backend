@@ -12,6 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
@@ -180,9 +181,13 @@ trait MultiDraftSearchService {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
       }
 
-      val prioritizedFilter = settings.prioritized.map { prioritized =>
-        termQuery("prioritized", prioritized)
+      val prioritizedFilter = settings.prioritized.map { priority =>
+        termQuery("priority", if (priority) Priority.Prioritized.entryName else Priority.Unspecified.entryName)
       }
+
+      val priorityFilter = Option.when(settings.priority.nonEmpty)(
+        boolQuery().should(settings.priority.map(termQuery("priority", _)))
+      )
 
       val articleTypeFilter = Some(
         boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
@@ -212,7 +217,8 @@ trait MultiDraftSearchService {
         embedResourceAndIdFilter,
         dateFilter,
         responsibleIdFilter,
-        prioritizedFilter
+        prioritizedFilter,
+        priorityFilter
       ).flatten
     }
 

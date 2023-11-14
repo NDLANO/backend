@@ -10,6 +10,7 @@ package no.ndla.draftapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.api.DraftCopyright
+import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
@@ -107,37 +108,39 @@ object TestData {
     responsible = None,
     None,
     Seq.empty,
-    false,
-    false
+    priority = Priority.Unspecified.entryName,
+    started = false,
+    prioritized = false
   )
 
   val blankUpdatedArticle: UpdatedArticle = api.UpdatedArticle(
-    1,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    Right(None),
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    Right(None),
-    None,
-    None,
-    None
+    revision = 1,
+    language = None,
+    title = None,
+    status = None,
+    published = None,
+    content = None,
+    tags = None,
+    introduction = None,
+    metaDescription = None,
+    metaImage = Right(None),
+    visualElement = None,
+    copyright = None,
+    requiredLibraries = None,
+    articleType = None,
+    notes = None,
+    editorLabels = None,
+    grepCodes = None,
+    conceptIds = None,
+    createNewVersion = None,
+    availability = None,
+    relatedContent = None,
+    revisionMeta = None,
+    responsibleId = Right(None),
+    slug = None,
+    comments = None,
+    prioritized = None,
+    priority = None
   )
 
   val sampleApiUpdateArticle: UpdatedArticle = blankUpdatedArticle.copy(
@@ -223,6 +226,7 @@ object TestData {
     None,
     Seq.empty,
     false,
+    Priority.Unspecified.entryName,
     false
   )
 
@@ -274,6 +278,7 @@ object TestData {
     None,
     Seq.empty,
     false,
+    Priority.Unspecified.entryName,
     false
   )
 
@@ -306,7 +311,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified,
     false
   )
 
@@ -339,7 +344,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified,
     false
   )
 
@@ -374,7 +379,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
+    Priority.Unspecified,
     false
   )
 
@@ -412,6 +417,7 @@ object TestData {
     None,
     None,
     List.empty,
+    None,
     None
   )
 
@@ -421,66 +427,66 @@ object TestData {
     sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
 
   val sampleDomainArticleWithHtmlFault: Draft = Draft(
-    Option(articleId),
-    Option(2),
-    common.Status(PLANNED, Set.empty),
-    Seq(common.Title("test", "en")),
-    Seq(
+    id = Option(articleId),
+    revision = Option(2),
+    status = common.Status(PLANNED, Set.empty),
+    title = Seq(common.Title("test", "en")),
+    content = Seq(
       common.ArticleContent(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
-      |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
-      |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
-      |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
+          |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
+          |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
+          |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
     """.stripMargin,
         "en"
       )
     ),
-    Some(
+    copyright = Some(
       common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
     ),
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq(common.Description("meta description", "nb")),
-    Seq.empty,
-    today,
-    today,
-    "ndalId54321",
-    today,
-    common.ArticleType.Standard,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    common.Availability.everyone,
-    Seq.empty,
-    Seq.empty,
-    None,
-    None,
-    Seq.empty,
-    false,
-    false
+    tags = Seq.empty,
+    requiredLibraries = Seq.empty,
+    visualElement = Seq.empty,
+    introduction = Seq.empty,
+    metaDescription = Seq(common.Description("meta description", "nb")),
+    metaImage = Seq.empty,
+    created = today,
+    updated = today,
+    updatedBy = "ndalId54321",
+    published = today,
+    articleType = common.ArticleType.Standard,
+    notes = Seq.empty,
+    previousVersionsNotes = Seq.empty,
+    editorLabels = Seq.empty,
+    grepCodes = Seq.empty,
+    conceptIds = Seq.empty,
+    availability = common.Availability.everyone,
+    relatedContent = Seq.empty,
+    revisionMeta = Seq.empty,
+    responsible = None,
+    slug = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified,
+    started = false
   )
 
   val apiArticleWithHtmlFaultV2: api.Article = api.Article(
-    1,
-    None,
-    1,
-    api.Status(PLANNED.toString, Seq.empty),
-    Some(api.ArticleTitle("test", "en")),
-    Some(
+    id = 1,
+    oldNdlaUrl = None,
+    revision = 1,
+    status = api.Status(PLANNED.toString, Seq.empty),
+    title = Some(api.ArticleTitle("test", "en")),
+    content = Some(
       api.ArticleContent(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
-        |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
-        |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
-        |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
+          |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
+          |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
+          |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin,
         "en"
       )
     ),
-    Some(
+    copyright = Some(
       model.api.DraftCopyright(
         Some(commonApi.License("publicdomain", None, None)),
         Some(""),
@@ -492,30 +498,31 @@ object TestData {
         false
       )
     ),
-    Some(api.ArticleTag(Seq.empty, "en")),
-    Seq.empty,
-    None,
-    None,
-    Some(api.ArticleMetaDescription("so meta", "en")),
-    None,
-    NDLADate.now().minusDays(4),
-    NDLADate.now().minusDays(2),
-    "ndalId54321",
-    NDLADate.now().minusDays(2),
-    "standard",
-    Seq("en"),
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
+    tags = Some(api.ArticleTag(Seq.empty, "en")),
+    requiredLibraries = Seq.empty,
+    visualElement = None,
+    introduction = None,
+    metaDescription = Some(api.ArticleMetaDescription("so meta", "en")),
+    metaImage = None,
+    created = NDLADate.now().minusDays(4),
+    updated = NDLADate.now().minusDays(2),
+    updatedBy = "ndalId54321",
+    published = NDLADate.now().minusDays(2),
+    articleType = "standard",
+    supportedLanguages = Seq("en"),
+    notes = Seq.empty,
+    editorLabels = Seq.empty,
+    grepCodes = Seq.empty,
+    conceptIds = Seq.empty,
     availability = "everyone",
-    Seq.empty,
-    Seq.empty,
-    None,
-    None,
-    Seq.empty,
-    false,
-    false
+    relatedContent = Seq.empty,
+    revisions = Seq.empty,
+    responsible = None,
+    slug = None,
+    comments = Seq.empty,
+    prioritized = false,
+    priority = Priority.Unspecified.entryName,
+    started = false
   )
 
   val (nodeId, nodeId2)         = ("1234", "4321")

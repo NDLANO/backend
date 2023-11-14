@@ -778,79 +778,40 @@ class MultiDraftSearchServiceAtomicTest
       .results
       .map(_.id) should be(Seq(2, 1, 3, 4))
   }
-  test("That sorting by prioritized works as expected") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      prioritized = false
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      prioritized = true
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      prioritized = true
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      prioritized = false
-    )
 
-    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
-
-    blockUntil(() => draftIndexService.countDocuments == 4)
-
-    multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          sort = Sort.ByPrioritizedAsc
-        )
-      )
-      .get
-      .results
-      .map(_.id) should be(Seq(1, 4, 2, 3))
-
-    multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          sort = Sort.ByPrioritizedDesc
-        )
-      )
-      .get
-      .results
-      .map(_.id) should be(Seq(2, 3, 1, 4))
-  }
   test("Test that filtering prioritized works as expected") {
 
     val draft1 = TestData.draft1.copy(
       id = Some(1),
-      prioritized = false
+      priority = Priority.Unspecified
     )
     val draft2 = TestData.draft1.copy(
       id = Some(2),
-      prioritized = true
+      priority = Priority.Prioritized
     )
     val draft3 = TestData.draft1.copy(
       id = Some(3),
-      prioritized = true
+      priority = Priority.Prioritized
     )
     val draft4 = TestData.draft1.copy(
       id = Some(4)
+    )
+    val draft5 = TestData.draft1.copy(
+      id = Some(5),
+      priority = Priority.OnHold
     )
     draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
     draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
     draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
     draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft5, Some(taxonomyTestBundle), Some(grepBundle)).get
 
-    blockUntil(() => draftIndexService.countDocuments == 4)
+    blockUntil(() => draftIndexService.countDocuments == 5)
 
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          prioritized = Some(true)
+          priority = List(Priority.Prioritized.entryName)
         )
       )
       .get
@@ -860,7 +821,7 @@ class MultiDraftSearchServiceAtomicTest
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          prioritized = Some(false)
+          priority = List(Priority.Unspecified.entryName)
         )
       )
       .get
@@ -869,12 +830,22 @@ class MultiDraftSearchServiceAtomicTest
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          prioritized = None
+          priority = List(Priority.OnHold.entryName)
         )
       )
       .get
       .results
-      .map(_.id) should be(Seq(1, 2, 3, 4))
+      .map(_.id) should be(Seq(5))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          priority = List.empty
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 2, 3, 4, 5))
   }
 
   test("That search on embed id supports video embed with timestamp resources") {
