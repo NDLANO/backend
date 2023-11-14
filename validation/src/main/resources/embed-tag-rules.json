@@ -563,6 +563,15 @@
               "data-height"
             ]
           }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-imageid"
+            ]
+          }
         }
       ]
     },
