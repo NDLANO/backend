@@ -37,7 +37,7 @@ case class TmpNodes(tmpDir: String, isPublished: Boolean) extends NodeStorage wi
     val f    = new java.io.File(path)
     if (f.exists()) {
       val stream = new FileInputStream(f)
-      val strs   = new String(stream.readAllBytes()).split("\n").toList
+      val strs   = new String(stream.readAllBytes()).split("\n").filter(_.nonEmpty).toList
       val nodes = strs.traverse(str => {
         Try(Serialization.read[Node](str)(TaxonomyBundle.formats, implicitly[Manifest[Node]]))
       })
