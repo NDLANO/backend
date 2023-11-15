@@ -128,25 +128,20 @@ trait Module {
     "--add-opens=java.desktop/java.awt=ALL-UNNAMED"
   )
 
-  def dockerSettings(extraJavaOpts: String*): Seq[Def.Setting[_]] = {
+  def dockerSettings(): Seq[Def.Setting[_]] = {
     Seq(
       docker := (docker dependsOn assembly).value,
       docker / dockerfile := {
         val artifact           = (assembly / assemblyOutputPath).value
         val artifactTargetPath = s"/app/${artifact.name}"
 
-        val entry = Seq(
-          "java",
-          "-Dorg.scalatra.environment=production"
-        ) ++
-          reflectiveAccessOptions ++
-          extraJavaOpts ++
-          Seq("-jar", artifactTargetPath)
+        val entry =
+          s"java -Dorg.scalatra.environment=production $$JAVA_OPTS ${reflectiveAccessOptions.mkString(" ")} -jar $artifactTargetPath"
 
         new Dockerfile {
           from("eclipse-temurin:20-jdk")
           add(artifact, artifactTargetPath)
-          entryPoint(entry: _*)
+          entryPointRaw(entry)
         }
       },
       docker / imageNames := Seq(

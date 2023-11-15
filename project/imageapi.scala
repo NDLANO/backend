@@ -64,7 +64,7 @@ object imageapi extends Module {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
-    dockerSettings("-Xmx6G") ++
+    dockerSettings() ++
     tsSettings ++
     assemblySettings()
 
