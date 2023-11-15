@@ -117,29 +117,28 @@ trait TaxonomyApiClient {
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
 
         val pages = pageRange.map(pageNum =>
-          Future {
-            fetchPage(params :+ ("page" -> s"$pageNum")).map(page =>
-              page.results.foreach(n =>
-                n.contentUri.foreach(uri => {
-                  val pub        = if (published) "published" else "draft"
-                  val path       = s"$tmpDir/${uri}_$pub.json"
-                  val f          = new java.io.File(path)
-                  val fileExists = f.exists()
-                  val stream     = new FileOutputStream(f, true)
+          fetchPage(params :+ ("page" -> s"$pageNum")).map(page =>
+            page.results.foreach(n =>
+              n.contentUri.foreach(uri => {
+                val pub        = if (published) "published" else "draft"
+                val path       = s"$tmpDir/${uri}_$pub.json"
+                val f          = new java.io.File(path)
+                val fileExists = f.exists()
+                val stream     = new FileOutputStream(f, true)
 
-                  if (fileExists) stream.write('\n')
-                  val json = Serialization.write(n)
-                  stream.write(json.getBytes)
-                  stream.flush()
-                  stream.close()
-                })
-              )
+                if (fileExists) stream.write('\n')
+                val json = Serialization.write(n)
+                stream.write(json.getBytes)
+                stream.flush()
+                stream.close()
+              })
             )
-          }
+          )
         )
-        val mergedFuture = Future.sequence(pages)
-        val awaited      = Await.result(mergedFuture, timeoutSeconds)
-        awaited.toList.sequence.map(_ => ())
+        pages.toList.sequence.map(_ => ())
+//        val mergedFuture = Future.sequence(pages)
+//        val awaited      = Await.result(mergedFuture, timeoutSeconds)
+//        awaited.toList.sequence.map(_ => ())
       })
     }
   }
