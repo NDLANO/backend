@@ -39,7 +39,8 @@ trait ConverterService {
         page.name,
         toApiAboutFilmSubject(page.about, language),
         toApiMovieThemes(page.movieThemes, language),
-        page.slideShow
+        page.slideShow,
+        page.article
       )
     }
 
@@ -196,7 +197,7 @@ trait ConverterService {
 
     def toDomainFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageData): Try[domain.FilmFrontPageData] = {
       val withoutAboutSubject =
-        domain.FilmFrontPageData(page.name, Seq(), toDomainMovieThemes(page.movieThemes), page.slideShow)
+        domain.FilmFrontPageData(page.name, Seq(), toDomainMovieThemes(page.movieThemes), page.slideShow, page.article)
 
       toDomainAboutSubject(page.about) match {
         case Failure(ex)    => Failure(ex)

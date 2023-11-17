@@ -11,5 +11,6 @@ case class NewOrUpdatedFilmFrontPageData(
     name: String,
     about: Seq[NewOrUpdatedAboutSubject],
     movieThemes: Seq[NewOrUpdatedMovieTheme],
-    slideShow: Seq[String]
+    slideShow: Seq[String],
+    article: Option[String]
 )

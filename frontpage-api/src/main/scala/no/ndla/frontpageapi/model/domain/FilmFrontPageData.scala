@@ -21,7 +21,8 @@ case class FilmFrontPageData(
     name: String,
     about: Seq[AboutSubject],
     movieThemes: Seq[MovieTheme],
-    slideShow: Seq[String]
+    slideShow: Seq[String],
+    article: Option[String]
 )
 
 object FilmFrontPageData {
