@@ -269,7 +269,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-resource="concept"
            | data-content-id="1"
            | data-type="gloss"
-           | data-example-langs="['nb','nn']"
+           | data-example-langs="[nb-NO]"
            |/>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
@@ -277,7 +277,34 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq.empty
       )
     }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept"
+           | data-content-id="1"
+           | data-type="gloss"
+           | data-example-langs="[nb,nn,en-UK]"
+           |/>""".stripMargin
 
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept"
+           | data-content-id="1"
+           | data-type="gloss"
+           | data-example-ids="[0,2]"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
   }
 
   test("Optional standalone fields without coExisting is OK") {
