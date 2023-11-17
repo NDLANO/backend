@@ -391,6 +391,18 @@
           "validation": {
             "required": false
           }
+        },
+        {
+          "name": "data-example-ids",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-example-langs",
+          "validation": {
+            "required": false
+          }
         }
       ]
     },
