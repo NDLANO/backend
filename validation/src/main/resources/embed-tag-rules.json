@@ -395,13 +395,15 @@
         {
           "name": "data-example-ids",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "LIST"
           }
         },
         {
           "name": "data-example-langs",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "LIST"
           }
         }
       ]

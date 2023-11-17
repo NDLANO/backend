@@ -210,6 +210,76 @@ class EmbedTagRulesTest extends UnitSuite {
     }
   }
 
+  test("Fields with dataType LIST should in fact be a list") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept"
+           | data-content-id="1"
+           | data-type="gloss"
+           | data-example-langs="nb"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs=nb must be a list of strings."
+          )
+        )
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept"
+           | data-content-id="1"
+           | data-type="gloss"
+           | data-example-langs="{nb}"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs={nb} must be a list of strings."
+          )
+        )
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept"
+           | data-content-id="1"
+           | data-type="gloss"
+           | data-example-langs="[nb]"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="concept"
+           | data-content-id="1"
+           | data-type="gloss"
+           | data-example-langs="['nb','nn']"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+
+  }
+
   test("Optional standalone fields without coExisting is OK") {
     val embedString =
       s"""<$EmbedTagName

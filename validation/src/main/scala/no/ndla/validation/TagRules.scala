@@ -76,6 +76,7 @@ object AttributeType extends Enum[AttributeType] {
   case object NUMBER  extends AttributeType
   case object STRING  extends AttributeType
   case object URL     extends AttributeType
+  case object LIST    extends AttributeType
 }
 
 sealed abstract class TagAttribute(override val entryName: String) extends EnumEntry {
