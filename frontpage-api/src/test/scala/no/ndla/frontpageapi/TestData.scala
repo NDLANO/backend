@@ -145,8 +145,9 @@ object TestData {
         Seq("movieref1", "movieref2")
       )
     ),
-    Seq()
+    Seq(),
+    None
   )
 
-  val apiFilmFrontPage: api.FilmFrontPageData = api.FilmFrontPageData("", Seq(), Seq(), Seq())
+  val apiFilmFrontPage: api.FilmFrontPageData = api.FilmFrontPageData("", Seq(), Seq(), Seq(), None)
 }
