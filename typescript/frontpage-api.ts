@@ -32,6 +32,7 @@ export interface IFilmFrontPageData {
   about: IAboutFilmSubject[]
   movieThemes: IMovieTheme[]
   slideShow: string[]
+  article?: string
 }
 
 export interface IFrontPage {
@@ -73,6 +74,7 @@ export interface INewOrUpdatedFilmFrontPageData {
   about: INewOrUpdatedAboutSubject[]
   movieThemes: INewOrUpdatedMovieTheme[]
   slideShow: string[]
+  article?: string
 }
 
 export interface INewOrUpdatedMetaDescription {
