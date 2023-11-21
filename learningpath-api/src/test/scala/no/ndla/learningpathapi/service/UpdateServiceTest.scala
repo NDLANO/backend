@@ -2187,7 +2187,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       shareName = false
     )
     val updatedUserData =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = None)
+      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = Some(true))
     val userAfterMerge = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -2198,7 +2198,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = true
     )
     val expected = api.MyNDLAUser(
       id = 42,
@@ -2206,7 +2206,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       role = "student",
       organization = "oslo",
       arenaEnabled = false,
-      shareName = false
+      shareName = true
     )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))

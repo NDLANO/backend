@@ -423,7 +423,7 @@ trait ReadService {
     ): Try[domain.MyNDLAUser] = {
       val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization = feideApiClient.getOrganization(feideAccessToken).?
-      val displayName = if(userData.shareName) feideUser.displayName else ""
+      val displayName  = if (userData.shareName) feideUser.displayName else ""
       val updatedMyNDLAUser = domain.MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,

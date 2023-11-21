@@ -13,7 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.learningpathapi.TestData._
-import no.ndla.learningpathapi.model.api.Stats
+import no.ndla.learningpathapi.model.api.{Owner, Stats}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
@@ -22,6 +22,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
 import java.util.UUID
+import scala.collection.immutable.Seq
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
@@ -590,6 +591,39 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
       .thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
+
+    service.getSharedFolder(folderUUID) should be(Success(apiFolder))
+  }
+
+  test("That getSharedFolder returns a folder with owner info if the owner wants to") {
+    val feideId = "feide"
+    val domainUserData = domain.MyNDLAUser(
+      id = 42,
+      feideId = feideId,
+      favoriteSubjects = Seq.empty,
+      userRole = UserRole.TEACHER,
+      lastUpdated = clock.now(),
+      organization = "oslo",
+      email = "example@email.com",
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = true
+    )
+
+    val folderUUID   = UUID.randomUUID()
+    val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
+    val apiFolder =
+      emptyApiFolder.copy(
+        id = folderUUID.toString,
+        name = "",
+        status = "shared",
+        breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = "")),
+        owner = Some(Owner("Feide"))
+      )
+
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
+      .thenReturn(Success(Some(folderWithId)))
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(Some(domainUserData)))
 
     service.getSharedFolder(folderUUID) should be(Success(apiFolder))
   }
