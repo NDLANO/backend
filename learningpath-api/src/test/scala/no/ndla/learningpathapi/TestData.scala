@@ -162,7 +162,8 @@ object TestData {
     created = today,
     updated = today,
     shared = None,
-    description = None
+    description = None,
+    owner = None
   )
 
   val emptyMyNDLAUser: domain.MyNDLAUser = domain.MyNDLAUser(
@@ -173,7 +174,9 @@ object TestData {
     lastUpdated = today,
     organization = "",
     email = "",
-    arenaEnabled = false
+    arenaEnabled = false,
+    displayName = "",
+    shareName = false
   )
 
 }

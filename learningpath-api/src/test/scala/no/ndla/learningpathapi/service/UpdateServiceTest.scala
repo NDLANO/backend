@@ -43,8 +43,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_ID: Long = 1
   val PRIVATE_ID: Long   = 2
 
-  val PUBLISHED_OWNER = TokenUser("eier1", Set.empty, None)
-  val PRIVATE_OWNER   = TokenUser("eier2", Set.empty, None)
+  val PUBLISHED_OWNER: TokenUser = TokenUser("eier1", Set.empty, None)
+  val PRIVATE_OWNER: TokenUser   = TokenUser("eier2", Set.empty, None)
 
   val STEP1 = domain.LearningStep(
     Some(1),
@@ -1941,7 +1941,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      owner = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1958,6 +1959,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
       .thenReturn(Success(List.empty))
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     service.newFolder(newFolder, Some(feideId)) should be(Success(apiFolder))
 
@@ -2130,7 +2132,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      owner = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2147,6 +2150,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(List(siblingFolder)))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(existingFolder))
     when(folderRepository.updateFolder(any, any, any)(any)).thenReturn(Success(mergedFolder))
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     service.updateFolder(folderId, updateFolder, Some(feideId)) should be(Success(expectedFolder))
 
@@ -2178,9 +2182,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
-    val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
+    val updatedUserData =
+      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = None)
     val userAfterMerge = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -2189,14 +2196,17 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
     val expected = api.MyNDLAUser(
       id = 42,
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      arenaEnabled = false
+      arenaEnabled = false,
+      shareName = false
     )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
@@ -2212,8 +2222,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That updateUserData fails if user does not exist") {
-    val feideId         = "feide"
-    val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
+    val feideId = "feide"
+    val updatedUserData =
+      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = None)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))

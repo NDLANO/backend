@@ -451,7 +451,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           created = created,
           updated = created,
           shared = None,
-          description = None
+          description = None,
+          owner = None
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -468,14 +469,16 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           created = created,
           updated = created,
           shared = None,
-          description = None
+          description = None,
+          owner = None
         )
       ),
       rank = None,
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      owner = None
     )
 
     val whgaterh = mainFolder.copy(
@@ -498,6 +501,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFolderResources(eqTo(subFolder1UUID))(any)).thenReturn(Success(List.empty))
     when(folderRepository.getFolderResources(eqTo(subFolder2UUID))(any)).thenReturn(Success(List.empty))
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any)(any)).thenReturn(Success(Some(whgaterh)))
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     val result = service.getSingleFolder(mainFolderUUID, includeSubfolders = true, includeResources = true, None)
     result should be(Success(expected))
@@ -532,6 +536,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.insertFolder(any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token"))
     result.get.length should be(1)
@@ -558,11 +563,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderWithId, folderWithId)))
-
     when(folderRepository.folderWithId(eqTo(folderWithId.id))(any)).thenReturn(Success(folderWithId))
-
     when(folderRepository.getFolderResources(any)(any))
       .thenReturn(folderResourcesResponse1, folderResourcesResponse2, folderResourcesResponse3)
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = true, Some("token"))
     result.get.length should be(2)
@@ -585,6 +589,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
       .thenReturn(Success(Some(folderWithId)))
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     service.getSharedFolder(folderUUID) should be(Success(apiFolder))
   }
@@ -612,14 +617,17 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      arenaEnabled = false
+      arenaEnabled = false,
+      shareName = false
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -657,14 +665,17 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now().plusDays(1),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      arenaEnabled = false
+      arenaEnabled = false,
+      shareName = false
     )
 
     when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
@@ -691,7 +702,9 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now().minusDays(1),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
@@ -703,7 +716,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      arenaEnabled = false
+      arenaEnabled = false,
+      shareName = false
     )
 
     when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
