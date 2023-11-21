@@ -423,7 +423,6 @@ trait ReadService {
     ): Try[domain.MyNDLAUser] = {
       val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization = feideApiClient.getOrganization(feideAccessToken).?
-      val displayName  = if (userData.shareName) feideUser.displayName else ""
       val updatedMyNDLAUser = domain.MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,
@@ -434,7 +433,7 @@ trait ReadService {
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled,
         shareName = userData.shareName,
-        displayName = displayName
+        displayName = feideUser.displayName
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }
