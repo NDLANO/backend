@@ -217,25 +217,6 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-resource="concept"
            | data-content-id="1"
            | data-type="gloss"
-           | data-example-langs="nb"
-           |/>""".stripMargin
-
-      val result = TagValidator.validate("test", embedString)
-      result should be(
-        Seq(
-          ValidationMessage(
-            "test",
-            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs=nb must be a list of strings."
-          )
-        )
-      )
-    }
-    {
-      val embedString =
-        s"""<$EmbedTagName
-           | data-resource="concept"
-           | data-content-id="1"
-           | data-type="gloss"
            | data-example-langs="{nb}"
            |/>""".stripMargin
 
@@ -244,7 +225,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs={nb} must be a list of strings."
+            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs={nb} must be a string or list of strings."
           )
         )
       )
@@ -260,7 +241,12 @@ class EmbedTagRulesTest extends UnitSuite {
 
       val result = TagValidator.validate("test", embedString)
       result should be(
-        Seq.empty
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs=[nb] must be a string or list of strings."
+          )
+        )
       )
     }
     {
@@ -269,7 +255,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-resource="concept"
            | data-content-id="1"
            | data-type="gloss"
-           | data-example-langs="[nb-NO]"
+           | data-example-langs="nb-NO"
            |/>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
@@ -283,7 +269,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-resource="concept"
            | data-content-id="1"
            | data-type="gloss"
-           | data-example-langs="[nb,nn,en-UK]"
+           | data-example-langs="nb,nn,en-UK"
            |/>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
@@ -297,7 +283,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-resource="concept"
            | data-content-id="1"
            | data-type="gloss"
-           | data-example-ids="[0,2]"
+           | data-example-ids="0,2"
            |/>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)

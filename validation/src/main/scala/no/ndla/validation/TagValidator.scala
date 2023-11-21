@@ -504,7 +504,7 @@ object TagValidator {
       value: String,
       field: TagRules.Field
   ): Option[ValidationMessage] = {
-    val listRegex = "^\\[[a-zA-Z0-9-,]*\\]$"
+    val listRegex = "^[a-zA-Z0-9-,]*$"
     value.matches(listRegex) match {
       case true                                                 => None
       case false if !field.validation.required && value.isEmpty => None
@@ -512,7 +512,7 @@ object TagValidator {
         Some(
           ValidationMessage(
             fieldName,
-            s"$partialErrorMessage and attribute $key=$value must be a list of strings."
+            s"$partialErrorMessage and attribute $key=$value must be a string or list of strings."
           )
         )
 
