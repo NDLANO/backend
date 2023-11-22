@@ -28,7 +28,10 @@ import scala.util.{Failure, Success, Try}
 
 class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
   val serverPort: Int = findFreePort
-  val controller      = new AudioController
+  val controller = new AudioController {
+    // NOTE: Small max file size when testing to test the failure in the controller without using a bunch of memory
+    override val maxAudioFileSizeBytes: Int = 10
+  }
 
   override val services: List[Service[Eff]] = List(controller)
 
@@ -383,5 +386,37 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
     val argumentCaptor: ArgumentCaptor[SearchSettings] = ArgumentCaptor.forClass(classOf[SearchSettings])
     verify(audioSearchService, times(1)).matchingQuery(argumentCaptor.capture())
     argumentCaptor.getValue.query should be(None)
+  }
+
+  test("That uploading a file bigger than max filesize returns 413", Retryable) {
+    val sampleAudioMeta =
+      api.AudioMetaInformation(
+        1,
+        1,
+        Title("title", "nb"),
+        Audio("", "", -1, "nb"),
+        Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+        Tag(Seq(), "nb"),
+        Seq("nb"),
+        "podcast",
+        None,
+        None,
+        None,
+        TestData.yesterday,
+        TestData.today
+      )
+    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any, any)).thenReturn(Success(sampleAudioMeta))
+
+    val tooBigFile =
+      multipart("file", Array[Byte](0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21))
+    val metadata = multipart("metadata", sampleNewAudioMeta)
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+        .multipartBody[Any](metadata, tooBigFile)
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+    )
+    response.code.code should be(413)
   }
 }

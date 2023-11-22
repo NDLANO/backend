@@ -27,7 +27,7 @@ import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
 import sttp.tapir.server.interceptor.RequestInterceptor.RequestResultEffectTransform
 import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
-import sttp.tapir.server.interceptor.reject.RejectHandler
+import sttp.tapir.server.interceptor.reject.{RejectContext, RejectHandler}
 import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
 import sttp.tapir.server.jdkhttp.{Id, JdkHttpServer, JdkHttpServerOptions}
 import sttp.tapir.server.model.ValuedEndpointOutput
@@ -52,8 +52,8 @@ trait Routes[F[_]] {
       ValuedEndpointOutput(jsonBody[AllErrors], ErrorHelpers.generic)
     }
 
-    private val decodeFailureHandler: DefaultDecodeFailureHandler =
-      DefaultDecodeFailureHandler.default
+    private def decodeFailureHandler[T[_]]: DefaultDecodeFailureHandler[T] =
+      DefaultDecodeFailureHandler[T]
         .response(failureMsg => {
           ValuedEndpointOutput(
             jsonBody[AllErrors],
@@ -77,10 +77,9 @@ trait Routes[F[_]] {
     }
 
     case class NdlaRejectHandler[A[_]]() extends RejectHandler[A] {
-      override def apply(
-          failure: RequestResult.Failure
-      )(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[_]]] = {
-        val statusCodeAndBody = if (hasMethodMismatch(failure)) {
+
+      override def apply(ctx: RejectContext)(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[_]]] = {
+        val statusCodeAndBody = if (hasMethodMismatch(ctx.failure)) {
           ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.methodNotAllowed)
             .prepend(statusCode, StatusCode.MethodNotAllowed)
         } else {
@@ -89,7 +88,6 @@ trait Routes[F[_]] {
         }
         monad.unit(Some(statusCodeAndBody))
       }
-
     }
 
     private def swaggerServicesToRoutes(services: List[Service[IO]]): HttpRoutes[IO] = {
@@ -99,7 +97,7 @@ trait Routes[F[_]] {
         .defaultHandlers(err => failureResponse(err, None))
         .rejectHandler(NdlaRejectHandler[IO]())
         .exceptionHandler(NdlaExceptionHandler[IO]())
-        .decodeFailureHandler(decodeFailureHandler)
+        .decodeFailureHandler(decodeFailureHandler[IO])
         .serverLog(None)
         .options
       Http4sServerInterpreter[IO](options).toRoutes(swaggerEndpoints)
@@ -186,7 +184,7 @@ trait Routes[F[_]] {
         .defaultHandlers(err => failureResponse(err, None))
         .rejectHandler(NdlaRejectHandler[Id]())
         .exceptionHandler(NdlaExceptionHandler[Id]())
-        .decodeFailureHandler(decodeFailureHandler)
+        .decodeFailureHandler(decodeFailureHandler[Id])
         .serverLog(None)
         .prependInterceptor(RequestInterceptor.transformServerRequest[Id](JDKMiddleware.before))
         .prependInterceptor(RequestInterceptor.transformResultEffect(new JDKMiddleware.after))

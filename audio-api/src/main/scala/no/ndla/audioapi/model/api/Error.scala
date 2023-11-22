@@ -16,7 +16,6 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
 import no.ndla.search.NdlaSearchException
 import org.postgresql.util.PSQLException
-import org.scalatra.servlet.SizeConstraintExceededException
 
 trait ErrorHelpers extends TapirErrorHelpers {
   this: Props with Clock with DataSource =>
@@ -43,12 +42,12 @@ trait ErrorHelpers extends TapirErrorHelpers {
     case a: AccessDeniedException => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
     case v: ValidationException =>
       new ValidationErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400)
-    case hre: HttpRequestException          => ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
-    case rw: ResultWindowTooLargeException  => ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
-    case i: ImportException                 => ErrorBody(IMPORT_FAILED, i.getMessage, clock.now(), 422)
-    case nfe: NotFoundException             => notFoundWithMsg(nfe.getMessage)
-    case o: OptimisticLockException         => ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409)
-    case _: SizeConstraintExceededException => ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413)
+    case hre: HttpRequestException         => ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
+    case rw: ResultWindowTooLargeException => ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
+    case i: ImportException                => ErrorBody(IMPORT_FAILED, i.getMessage, clock.now(), 422)
+    case nfe: NotFoundException            => notFoundWithMsg(nfe.getMessage)
+    case o: OptimisticLockException        => ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409)
+    case _: FileTooBigException            => ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413)
     case _: PSQLException =>
       DataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
@@ -67,3 +66,4 @@ class AudioStorageException(message: String)                         extends Run
 class LanguageMappingException(message: String)                      extends RuntimeException(message)
 class ImportException(message: String)                               extends RuntimeException(message)
 case class ElasticIndexingException(message: String)                 extends RuntimeException(message)
+case class FileTooBigException()                                     extends RuntimeException()
