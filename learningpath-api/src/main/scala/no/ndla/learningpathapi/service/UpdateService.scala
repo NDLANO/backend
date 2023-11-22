@@ -630,11 +630,12 @@ trait UpdateService {
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId  <- feideApiClient.getFeideID(feideAccessToken)
-        _        <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-        inserted <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
-        crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
-        api      <- converterService.toApiFolder(inserted, crumbs)
+        feideId   <- feideApiClient.getFeideID(feideAccessToken)
+        _         <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        inserted  <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
+        crumbs    <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
+        feideUser <- userRepository.userWithFeideId(feideId)
+        api       <- converterService.toApiFolder(inserted, crumbs, feideUser)
       } yield api
     }
 
@@ -723,7 +724,8 @@ trait UpdateService {
         _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
         updated        <- folderRepository.updateFolder(id, feideId, converted)
         crumbs         <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
-        api            <- converterService.toApiFolder(updated, crumbs)
+        feideUser      <- userRepository.userWithFeideId(feideId)
+        api            <- converterService.toApiFolder(updated, crumbs, feideUser)
       } yield api
     }
 
@@ -1039,7 +1041,8 @@ trait UpdateService {
           _            <- sourceFolder.isClonable
           clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some)(session)
           breadcrumbs  <- readService.getBreadcrumbs(clonedFolder)
-          converted    <- converterService.toApiFolder(clonedFolder, breadcrumbs)
+          feideUser    <- userRepository.userWithFeideId(feideId)
+          converted    <- converterService.toApiFolder(clonedFolder, breadcrumbs, feideUser)
         } yield converted
       }
     }
@@ -1056,8 +1059,12 @@ trait UpdateService {
     ): Try[api.MyNDLAUser] =
       for {
         existingUser <- readService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
-        newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
-        updatedFeideUser = api.UpdatedMyNDLAUser(favoriteSubjects = Some(newFavorites), arenaEnabled = None)
+        newFavorites = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
+        updatedFeideUser = api.UpdatedMyNDLAUser(
+          favoriteSubjects = Some(newFavorites),
+          arenaEnabled = None,
+          shareName = Some(existingUser.shareName)
+        )
         updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
 

@@ -173,7 +173,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 1")
+      description = Some("samling 1"),
+      owner = None
     )
 
     val parentChild2 = api.Folder(
@@ -189,7 +190,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 2")
+      description = Some("samling 2"),
+      owner = None
     )
 
     val parentChild3 = api.Resource(
@@ -214,7 +216,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 0")
+      description = Some("samling 0"),
+      owner = None
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -281,7 +284,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 1")
+      description = Some("samling 1"),
+      owner = None
     )
 
     val parentChild2 = api.Folder(
@@ -297,7 +301,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 2")
+      description = Some("samling 2"),
+      owner = None
     )
 
     val parentChild3 = api.Resource(
@@ -322,7 +327,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 0")
+      description = Some("samling 0"),
+      owner = None
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -378,7 +384,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 1")
+      description = Some("samling 1"),
+      owner = None
     )
 
     val parentChild2 = api.Folder(
@@ -397,7 +404,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 2")
+      description = Some("samling 2"),
+      owner = None
     )
 
     val parentChild3 = api.Resource(
@@ -425,7 +433,8 @@ class CloneFolderTest
       created = testClock.now(),
       updated = testClock.now(),
       shared = None,
-      description = Some("samling 0")
+      description = Some("samling 0"),
+      owner = None
     )
 
     val response = simpleHttpClient.send(

@@ -16,6 +16,10 @@ import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 import scala.annotation.meta.field
 import scala.annotation.unused
 
+case class Owner(
+    @(ApiModelProperty @field)(description = "Name of the owner") name: String
+)
+
 // format: off
 case class Folder(
     @(ApiModelProperty @field)(description = "UUID of the folder") id: String,
@@ -29,7 +33,8 @@ case class Folder(
     @(ApiModelProperty @field)(description = "When the folder was created") created: NDLADate,
     @(ApiModelProperty @field)(description = "When the folder was updated") updated: NDLADate,
     @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[NDLADate],
-    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String]
+    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String],
+    @(ApiModelProperty @field)(description = "Owner of the folder, if the owner have opted in to share their name") owner: Option[Owner],
 ) extends FolderData with CopyableFolder
 // format: on
 
@@ -59,7 +64,8 @@ object FolderData {
       created: NDLADate,
       updated: NDLADate,
       shared: Option[NDLADate],
-      description: Option[String]
+      description: Option[String],
+      username: Option[String]
   ): FolderData = {
     Folder(
       id,
@@ -73,7 +79,8 @@ object FolderData {
       created,
       updated,
       shared,
-      description
+      description,
+      username.map(name => Owner(name))
     )
   }
 

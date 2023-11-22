@@ -77,7 +77,7 @@ trait ConverterService {
       common.Tag(tags.tags, tags.language)
     }
 
-    def asApiLearningPathTags(tags: common.Tag): api.LearningPathTags = {
+    private def asApiLearningPathTags(tags: common.Tag): api.LearningPathTags = {
       api.LearningPathTags(tags.tags, tags.language)
     }
 
@@ -601,15 +601,15 @@ trait ConverterService {
         None
     }
 
-    def asApiTitle(title: common.Title): api.Title = {
+    private def asApiTitle(title: common.Title): api.Title = {
       api.Title(title.title, title.language)
     }
 
-    def asApiDescription(description: domain.Description): api.Description = {
+    private def asApiDescription(description: domain.Description): api.Description = {
       api.Description(description.description, description.language)
     }
 
-    def asApiEmbedUrlV2(embedUrl: EmbedUrl): api.EmbedUrlV2 = {
+    private def asApiEmbedUrlV2(embedUrl: EmbedUrl): api.EmbedUrlV2 = {
       api.EmbedUrlV2(embedUrl.url, embedUrl.embedType.toString)
     }
 
@@ -640,11 +640,11 @@ trait ConverterService {
       }
     }
 
-    def createUrlToLearningStep(ls: domain.LearningStep, lp: domain.LearningPath): String = {
+    private def createUrlToLearningStep(ls: domain.LearningStep, lp: domain.LearningPath): String = {
       s"${createUrlToLearningSteps(lp)}/${ls.id.get}"
     }
 
-    def createUrlToLearningSteps(lp: domain.LearningPath): String = {
+    private def createUrlToLearningSteps(lp: domain.LearningPath): String = {
       s"${createUrlToLearningPath(lp)}/learningsteps"
     }
 
@@ -656,7 +656,7 @@ trait ConverterService {
       s"${ApplicationUrl.get}${lp.id}"
     }
 
-    def createUrlToImageApi(imageId: String): String = {
+    private def createUrlToImageApi(imageId: String): String = {
       s"http://$InternalImageApiUrl/$imageId"
     }
 
@@ -716,15 +716,23 @@ trait ConverterService {
       )
     }
 
-    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[api.Breadcrumb]): Try[api.Folder] = {
-      def loop(folder: domain.Folder, crumbs: List[api.Breadcrumb]): Try[api.Folder] = folder.subfolders
+    def toApiFolder(
+        domainFolder: domain.Folder,
+        breadcrumbs: List[api.Breadcrumb],
+        feideUser: Option[domain.MyNDLAUser]
+    ): Try[api.Folder] = {
+      def loop(
+          folder: domain.Folder,
+          crumbs: List[api.Breadcrumb],
+          feideUser: Option[domain.MyNDLAUser]
+      ): Try[api.Folder] = folder.subfolders
         .traverse(folder => {
           val newCrumb = api.Breadcrumb(
             id = folder.id.toString,
             name = folder.name
           )
           val newCrumbs = crumbs :+ newCrumb
-          loop(folder, newCrumbs)
+          loop(folder, newCrumbs, feideUser)
         })
         .flatMap(subFolders =>
           folder.resources
@@ -742,12 +750,13 @@ trait ConverterService {
                 created = folder.created,
                 updated = folder.updated,
                 shared = folder.shared,
-                description = folder.description
+                description = folder.description,
+                owner = feideUser.flatMap(user => if (user.shareName) Some(Owner(user.displayName)) else None)
               )
             })
         )
 
-      loop(domainFolder, breadcrumbs)
+      loop(domainFolder, breadcrumbs, feideUser)
     }
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
@@ -835,7 +844,8 @@ trait ConverterService {
         favoriteSubjects = domainUserData.favoriteSubjects,
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,
-        arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization)
+        arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization),
+        shareName = domainUserData.shareName
       )
     }
 
@@ -845,6 +855,7 @@ trait ConverterService {
         user: Option[TokenUser]
     ): domain.MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
+      val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
         if (user.exists(_.hasPermission(LEARNINGPATH_API_ADMIN)))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
@@ -859,7 +870,9 @@ trait ConverterService {
         lastUpdated = domainUserData.lastUpdated,
         organization = domainUserData.organization,
         email = domainUserData.email,
-        arenaEnabled = arenaEnabled
+        arenaEnabled = arenaEnabled,
+        shareName = shareName,
+        displayName = domainUserData.displayName
       )
     }
 

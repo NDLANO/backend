@@ -642,7 +642,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("folderData1")
+      description = Some("folderData1"),
+      owner = None
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
@@ -659,7 +660,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("folderData2")
+      description = Some("folderData2"),
+      owner = None
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
@@ -676,7 +678,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("folderData3")
+      description = Some("folderData3"),
+      owner = None
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
@@ -692,11 +695,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("mainFolder")
+      description = Some("mainFolder"),
+      owner = None
     )
 
     val Success(result) =
-      service.toApiFolder(mainFolder, List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")))
+      service.toApiFolder(mainFolder, List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")), None)
     result should be(expected)
   }
 
@@ -851,7 +855,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       TestData.emptyDomainFolder.copy(id = folder3UUID)
     )
 
-    val result = service.domainToApiModel(folderDomainList, f => converterService.toApiFolder(f, List.empty))
+    val result = service.domainToApiModel(folderDomainList, f => converterService.toApiFolder(f, List.empty, None))
     result.get.length should be(3)
     result should be(
       Success(
@@ -874,7 +878,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         lastUpdated = clock.now(),
         organization = "oslo",
         email = "example@email.com",
-        arenaEnabled = false
+        arenaEnabled = false,
+        displayName = "Feide",
+        shareName = false
       )
     val expectedUserData =
       api.MyNDLAUser(
@@ -882,7 +888,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         favoriteSubjects = Seq("a", "b"),
         role = "student",
         organization = "oslo",
-        arenaEnabled = false
+        arenaEnabled = false,
+        shareName = false
       )
 
     service.toApiUserData(domainUserData, List.empty) should be(expectedUserData)
@@ -897,11 +904,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
-    val updatedUserData1 = api.UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None)
-    val updatedUserData2 = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty), arenaEnabled = None)
-    val updatedUserData3 = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("x", "y", "z")), arenaEnabled = None)
+    val updatedUserData1 = api.UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None)
+    val updatedUserData2 =
+      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty), arenaEnabled = None, shareName = None)
+    val updatedUserData3 =
+      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("x", "y", "z")), arenaEnabled = None, shareName = None)
 
     val expectedUserData1 = domain.MyNDLAUser(
       id = 42,
@@ -911,7 +922,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
     val expectedUserData2 = domain.MyNDLAUser(
       id = 42,
@@ -921,7 +934,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
     val expectedUserData3 = domain.MyNDLAUser(
       id = 42,
@@ -931,7 +946,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
+      displayName = "Feide",
+      shareName = false
     )
 
     service.mergeUserData(domainUserData, updatedUserData1, None) should be(expectedUserData1)

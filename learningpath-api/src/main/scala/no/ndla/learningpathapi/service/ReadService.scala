@@ -295,8 +295,9 @@ trait ReadService {
         feideId           <- feideApiClient.getFeideID(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
         _                 <- folderWithContent.isOwner(feideId)
+        feideUser         <- userRepository.userWithFeideId(folderWithContent.feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
-        converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs)
+        converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs, feideUser)
       } yield converted
     }
 
@@ -370,9 +371,10 @@ trait ReadService {
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
+        feideUser    <- userRepository.userWithFeideId(feideId)
         apiFolders <- converterService.domainToApiModel(
           withData,
-          v => converterService.toApiFolder(v, List(api.Breadcrumb(id = v.id.toString, name = v.name)))
+          v => converterService.toApiFolder(v, List(api.Breadcrumb(id = v.id.toString, name = v.name)), feideUser)
         )
         sorted = apiFolders.sortBy(_.rank)
       } yield sorted
@@ -386,7 +388,8 @@ trait ReadService {
         _ <- if (folderWithContent.isShared) Success(()) else Failure(NotFoundException("Folder does not exist"))
         folderAsTopFolder = folderWithContent.copy(parentId = None)
         breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
-        converted   <- converterService.toApiFolder(folderAsTopFolder, breadcrumbs)
+        feideUser   <- userRepository.userWithFeideId(folderWithContent.feideId)
+        converted   <- converterService.toApiFolder(folderAsTopFolder, breadcrumbs, feideUser)
       } yield converted
     }
 
@@ -403,7 +406,9 @@ trait ReadService {
             lastUpdated = clock.now().plusDays(1),
             organization = organization,
             email = feideExtendedUserData.email,
-            arenaEnabled = false
+            arenaEnabled = false,
+            shareName = false,
+            displayName = feideExtendedUserData.displayName
           )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
@@ -426,7 +431,9 @@ trait ReadService {
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
         email = feideUser.email,
-        arenaEnabled = userData.arenaEnabled
+        arenaEnabled = userData.arenaEnabled,
+        shareName = userData.shareName,
+        displayName = feideUser.displayName
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }
