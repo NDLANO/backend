@@ -446,6 +446,7 @@ object TagValidator {
           f.validation.dataType match {
             case BOOLEAN => validateBooleanField(fieldName, partialErrorMessage, key, value, f)
             case EMAIL   => validateEmailField(fieldName, partialErrorMessage, key, value, f)
+            case LIST    => validateListField(fieldName, partialErrorMessage, key, value, f)
             case NUMBER  => validateNumberField(fieldName, partialErrorMessage, key, value, f)
             case STRING  => None
             case URL     => validateUrlField(fieldName, partialErrorMessage, key, value, f)
@@ -490,6 +491,28 @@ object TagValidator {
           ValidationMessage(
             fieldName,
             s"$partialErrorMessage and $key=$value must be a valid email address."
+          )
+        )
+
+    }
+  }
+
+  private def validateListField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    val listRegex = "^[a-zA-Z0-9-,]*$"
+    value.matches(listRegex) match {
+      case true                                                 => None
+      case false if !field.validation.required && value.isEmpty => None
+      case false =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and attribute $key=$value must be a string or list of strings."
           )
         )
 

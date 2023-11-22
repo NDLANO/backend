@@ -76,6 +76,7 @@ object AttributeType extends Enum[AttributeType] {
   case object NUMBER  extends AttributeType
   case object STRING  extends AttributeType
   case object URL     extends AttributeType
+  case object LIST    extends AttributeType
 }
 
 sealed abstract class TagAttribute(override val entryName: String) extends EnumEntry {
@@ -215,6 +216,8 @@ object TagAttribute extends Enum[TagAttribute] {
   case object DataDisplay             extends TagAttribute("data-display")
   case object DataEdition             extends TagAttribute("data-edition")
   case object DataEmail               extends TagAttribute("data-email")
+  case object DataExampleIds          extends TagAttribute("data-example-ids")
+  case object DataExampleLangs        extends TagAttribute("data-example-langs")
   case object DataFocalX              extends TagAttribute("data-focal-x")
   case object DataFocalY              extends TagAttribute("data-focal-y")
   case object DataFormat              extends TagAttribute("data-code-format")
