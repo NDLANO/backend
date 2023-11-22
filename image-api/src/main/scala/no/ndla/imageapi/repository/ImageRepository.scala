@@ -214,6 +214,7 @@ trait ImageRepository {
            select ${im.result.*}
            from ${ImageMetaInformation.as(im)}
            where metadata is not null
+           order by ${im.id}
            offset $offset
            limit $pageSize
       """

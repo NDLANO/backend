@@ -139,6 +139,7 @@ trait PublishedConceptRepository {
            select ${co.result.*}
            from ${PublishedConcept.as(co)}
            where document is not null
+           order by ${co.id}
            offset $offset
            limit $pageSize
       """
