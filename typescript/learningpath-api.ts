@@ -61,6 +61,7 @@ export interface IFolder {
   updated: string
   shared?: string
   description?: string
+  owner?: IOwner
 }
 
 export type IFolderData = IFolder
@@ -180,6 +181,7 @@ export interface IMyNDLAUser {
   role: string
   organization: string
   arenaEnabled: boolean
+  shareName: boolean
 }
 
 export interface INewFolder {
@@ -194,6 +196,10 @@ export interface INewResource {
   path: string
   tags?: string[]
   resourceId: string
+}
+
+export interface IOwner {
+  name: string
 }
 
 export interface IResource {
