@@ -295,7 +295,7 @@ trait ReadService {
         feideId           <- feideApiClient.getFeideID(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
         _                 <- folderWithContent.isOwner(feideId)
-        feideUser         <- userRepository.userWithFeideId(feideId)
+        feideUser         <- userRepository.userWithFeideId(folderWithContent.feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
         converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs, feideUser)
       } yield converted
@@ -408,7 +408,7 @@ trait ReadService {
             email = feideExtendedUserData.email,
             arenaEnabled = false,
             shareName = false,
-            displayName = ""
+            displayName = feideExtendedUserData.displayName
           )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted

@@ -1063,7 +1063,7 @@ trait UpdateService {
         updatedFeideUser = api.UpdatedMyNDLAUser(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
-          shareName = None
+          shareName = Some(existingUser.shareName)
         )
         updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
