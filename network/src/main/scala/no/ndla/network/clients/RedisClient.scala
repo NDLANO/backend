@@ -23,10 +23,11 @@ trait RedisClient {
       // default to 8 hours cache time
       cacheTimeSeconds: Long = 60 * 60 * 8
   ) extends StrictLogging {
-    val jedis           = new ScalaJedis(host, port)
-    val feideIdField    = "feideId"
-    val feideUserField  = "feideUser"
-    val feideGroupField = "feideGroup"
+    val jedis                    = new ScalaJedis(host, port)
+    private val feideIdField     = "feideId"
+    private val feideUserField   = "feideUser"
+    private val feideGroupField  = "feideGroup"
+    private val feideGroupsField = "feideGroups"
 
     private def getKeyExpireTime(key: String): Try[Long] = {
       val existingExpireTime = jedis.ttl(key).?
@@ -76,6 +77,28 @@ trait RedisClient {
 
     def updateCacheAndReturnOrganization(accessToken: FeideAccessToken, feideOrganization: String): Try[String] = {
       updateCache(accessToken, feideGroupField, feideOrganization).map(_ => feideOrganization)
+    }
+
+    def getGroupsFromCache(accessToken: FeideAccessToken): Try[Option[Seq[FeideGroup]]] = {
+      implicit val formats: DefaultFormats.type = DefaultFormats
+      jedis.hget(accessToken, feideGroupsField).map {
+        case Some(feideGroups) =>
+          Try(read[Seq[FeideGroup]](feideGroups)) match {
+            case Success(value) => Some(value)
+            case Failure(ex) =>
+              logger.warn(s"Failed to deserialize cached value from field $feideGroupsField. Updating cache.", ex)
+              None
+          }
+        case None => None
+      }
+    }
+
+    def updateCacheAndReturnGroups(
+        accessToken: FeideAccessToken,
+        feideGroups: Seq[FeideGroup]
+    ): Try[Seq[FeideGroup]] = {
+      implicit val formats: DefaultFormats.type = DefaultFormats
+      updateCache(accessToken, feideGroupsField, write(feideGroups)).map(_ => feideGroups)
     }
 
   }

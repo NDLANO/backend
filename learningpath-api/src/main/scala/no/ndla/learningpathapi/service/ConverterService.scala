@@ -33,6 +33,7 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
+import no.ndla.network.clients.FeideGroup
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -108,7 +109,7 @@ trait ConverterService {
         })
     }
 
-    def asCopyright(copyright: api.Copyright): learningpath.LearningpathCopyright = {
+    private def asCopyright(copyright: api.Copyright): learningpath.LearningpathCopyright = {
       learningpath.LearningpathCopyright(copyright.license.license, copyright.contributors.map(_.toDomain))
     }
 
@@ -473,7 +474,7 @@ trait ConverterService {
       )
     }
 
-    def languageIsSupported(supportedLangs: Seq[String], language: String): Boolean = {
+    private def languageIsSupported(supportedLangs: Seq[String], language: String): Boolean = {
       val isLanguageNeutral = supportedLangs.contains(UnknownLanguage.toString) && supportedLangs.length == 1
 
       supportedLangs.contains(language) || language == AllLanguages || isLanguageNeutral
@@ -660,7 +661,7 @@ trait ConverterService {
       s"http://$InternalImageApiUrl/$imageId"
     }
 
-    def createEmbedUrl(embedUrlOrPath: EmbedUrlV2): EmbedUrlV2 = {
+    private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2): EmbedUrlV2 = {
       embedUrlOrPath.url.hostOption match {
         case Some(_) => embedUrlOrPath
         case None =>
@@ -841,11 +842,22 @@ trait ConverterService {
     def toApiUserData(domainUserData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): api.MyNDLAUser = {
       api.MyNDLAUser(
         id = domainUserData.id,
+        username = domainUserData.email,
         favoriteSubjects = domainUserData.favoriteSubjects,
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,
+        groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization),
         shareName = domainUserData.shareName
+      )
+    }
+
+    private def toApiGroup(group: FeideGroup): api.MyNDLAGroup = {
+      api.MyNDLAGroup(
+        id = group.id,
+        displayName = group.displayName,
+        isPrimarySchool = group.membership.primarySchool.getOrElse(false),
+        parent = group.parent
       )
     }
 
@@ -869,6 +881,7 @@ trait ConverterService {
         userRole = domainUserData.userRole,
         lastUpdated = domainUserData.lastUpdated,
         organization = domainUserData.organization,
+        groups = domainUserData.groups,
         email = domainUserData.email,
         arenaEnabled = arenaEnabled,
         shareName = shareName,

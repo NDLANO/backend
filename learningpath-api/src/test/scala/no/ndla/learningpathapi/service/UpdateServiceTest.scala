@@ -18,6 +18,7 @@ import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.config.ConfigMetaValue
 import no.ndla.learningpathapi.model.api.{
   FolderSortRequest,
+  MyNDLAGroup,
   NewCopyLearningPathV2,
   NewLearningPathV2,
   NewLearningStepV2,
@@ -29,6 +30,7 @@ import no.ndla.learningpathapi.model.api.{
 import no.ndla.learningpathapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
+import no.ndla.network.clients.{FeideGroup, Membership}
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
@@ -2181,6 +2183,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups =
+        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -2195,6 +2199,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups =
+        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -2202,9 +2208,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     val expected = api.MyNDLAUser(
       id = 42,
+      username = "example@email.com",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parent = None)),
       arenaEnabled = false,
       shareName = true
     )

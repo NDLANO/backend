@@ -399,12 +399,14 @@ trait ReadService {
       for {
         feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
         organization          <- feideApiClient.getOrganization(feideAccessToken)
+        groups                <- feideApiClient.getFeideGroups(feideAccessToken)
         newUser = domain
           .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1),
             organization = organization,
+            groups = groups,
             email = feideExtendedUserData.email,
             arenaEnabled = false,
             shareName = false,
@@ -423,6 +425,7 @@ trait ReadService {
     ): Try[domain.MyNDLAUser] = {
       val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization = feideApiClient.getOrganization(feideAccessToken).?
+      val groups       = feideApiClient.getFeideGroups(feideAccessToken).?
       val updatedMyNDLAUser = domain.MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,
@@ -430,6 +433,7 @@ trait ReadService {
         userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
+        groups = groups,
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled,
         shareName = userData.shareName,

@@ -154,6 +154,7 @@ class CloneFolderTest
 
   test("that cloning a folder without destination works as expected") {
     when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
     val folderRepository = learningpathApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()

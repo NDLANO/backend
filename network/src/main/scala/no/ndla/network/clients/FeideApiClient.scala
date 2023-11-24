@@ -180,6 +180,16 @@ trait FeideApiClient {
       redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
     }
 
+    def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = {
+      val accessToken      = getFeideAccessTokenOrFail(feideAccessToken).?
+      val maybeFeideGroups = redisClient.getGroupsFromCache(accessToken).?
+      val feideGroups = (maybeFeideGroups match {
+        case Some(groups) => Success(groups)
+        case None         => getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken))
+      }).?
+      redisClient.updateCacheAndReturnGroups(accessToken, feideGroups)
+    }
+
     def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = {
       val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?

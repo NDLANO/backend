@@ -173,6 +173,7 @@ object TestData {
     userRole = domain.UserRole.TEACHER,
     lastUpdated = today,
     organization = "",
+    groups = Seq.empty,
     email = "",
     arenaEnabled = false,
     displayName = "",

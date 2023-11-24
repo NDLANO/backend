@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.model.domain
 
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.Props
+import no.ndla.network.clients.FeideGroup
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
@@ -21,6 +22,7 @@ case class MyNDLAUserDocument(
     userRole: UserRole.Value,
     lastUpdated: NDLADate,
     organization: String,
+    groups: Seq[FeideGroup],
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
@@ -37,6 +39,7 @@ case class MyNDLAUserDocument(
       userRole = userRole,
       lastUpdated = lastUpdated,
       organization = organization,
+      groups = groups,
       displayName = displayName,
       email = email,
       arenaEnabled = arenaEnabled,
@@ -52,6 +55,7 @@ case class MyNDLAUser(
     userRole: UserRole.Value,
     lastUpdated: NDLADate,
     organization: String,
+    groups: Seq[FeideGroup],
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
