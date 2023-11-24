@@ -666,7 +666,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parent = None)),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )
@@ -720,7 +720,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parent = None)),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )
@@ -768,7 +768,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parent = None)),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )

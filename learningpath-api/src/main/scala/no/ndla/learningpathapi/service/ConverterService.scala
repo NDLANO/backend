@@ -857,7 +857,7 @@ trait ConverterService {
         id = group.id,
         displayName = group.displayName,
         isPrimarySchool = group.membership.primarySchool.getOrElse(false),
-        parent = group.parent
+        parentId = group.parent
       )
     }
 

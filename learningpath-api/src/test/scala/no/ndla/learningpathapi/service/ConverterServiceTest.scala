@@ -899,7 +899,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         favoriteSubjects = Seq("a", "b"),
         role = "student",
         organization = "oslo",
-        groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parent = None)),
+        groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
         arenaEnabled = false,
         shareName = false
       )

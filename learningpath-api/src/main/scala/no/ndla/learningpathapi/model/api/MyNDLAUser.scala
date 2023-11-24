@@ -15,7 +15,7 @@ case class MyNDLAGroup(
     @(ApiModelProperty @field)(description = "ID of the group") id: String,
     @(ApiModelProperty @field)(description = "Name of the group") displayName: String,
     @(ApiModelProperty @field)(description = "Is this the primary school") isPrimarySchool: Boolean,
-    @(ApiModelProperty @field)(description = "Parent group") parent: Option[String]
+    @(ApiModelProperty @field)(description = "ID of parent group") parentId: Option[String]
 )
 
 case class MyNDLAUser(
