@@ -896,6 +896,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       api.MyNDLAUser(
         id = 42,
         username = "example@email.com",
+        displayName = "Feide",
         favoriteSubjects = Seq("a", "b"),
         role = "student",
         organization = "oslo",

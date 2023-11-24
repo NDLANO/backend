@@ -843,6 +843,7 @@ trait ConverterService {
       api.MyNDLAUser(
         id = domainUserData.id,
         username = domainUserData.email,
+        displayName = domainUserData.displayName,
         favoriteSubjects = domainUserData.favoriteSubjects,
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,

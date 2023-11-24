@@ -2209,6 +2209,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val expected = api.MyNDLAUser(
       id = 42,
       username = "example@email.com",
+      displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
