@@ -24,7 +24,7 @@ import no.ndla.learningpathapi.repository.{
   LearningPathRepositoryComponent,
   UserRepository
 }
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, FeideGroup, RedisClient}
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession}
 
@@ -433,7 +433,7 @@ trait ReadService {
         userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
-        groups = groups,
+        groups = groups.filter(g => g.`type` == FeideGroup.FC_ORG),
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled,
         shareName = userData.shareName,

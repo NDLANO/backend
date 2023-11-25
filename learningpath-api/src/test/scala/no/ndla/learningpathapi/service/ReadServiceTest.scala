@@ -604,8 +604,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.TEACHER,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = None),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -646,7 +653,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val feideId = "feide"
     val groups =
-      Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None))
+      Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = Some(true)),
+          parent = None
+        )
+      )
     val domainUserData = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -667,7 +682,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )
@@ -708,8 +723,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = Some(true)),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -722,7 +744,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )
@@ -745,7 +767,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val feideId = "feide"
     val groups =
-      Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None))
+      Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = Some(true)),
+          parent = None
+        )
+      )
     val domainUserData = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -771,7 +801,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )

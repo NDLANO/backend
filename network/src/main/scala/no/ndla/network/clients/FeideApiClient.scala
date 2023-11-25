@@ -22,7 +22,10 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class Membership(primarySchool: Option[Boolean])
-case class FeideGroup(id: String, displayName: String, membership: Membership, parent: Option[String])
+case class FeideGroup(id: String, `type`: String, displayName: String, membership: Membership, parent: Option[String])
+object FeideGroup {
+  val FC_ORG = "fc:org"
+}
 
 case class FeideOpenIdUserInfo(sub: String)
 

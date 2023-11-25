@@ -2183,8 +2183,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = None),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -2199,8 +2206,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = None),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",

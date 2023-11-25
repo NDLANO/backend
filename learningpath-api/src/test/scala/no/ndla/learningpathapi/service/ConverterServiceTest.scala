@@ -885,7 +885,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         lastUpdated = clock.now(),
         organization = "oslo",
         groups = Seq(
-          FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)
+          FeideGroup(
+            id = "id",
+            `type` = FeideGroup.FC_ORG,
+            displayName = "oslo",
+            membership = Membership(primarySchool = Some(true)),
+            parent = None
+          )
         ),
         email = "example@email.com",
         arenaEnabled = false,
@@ -900,7 +906,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         favoriteSubjects = Seq("a", "b"),
         role = "student",
         organization = "oslo",
-        groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
+        groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
         shareName = false
       )
@@ -916,8 +922,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = None),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -936,8 +949,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = None),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -950,8 +970,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = None),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -964,8 +991,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups =
-        Seq(FeideGroup(id = "id", displayName = "oslo", membership = Membership(primarySchool = None), parent = None)),
+      groups = Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = None),
+          parent = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",

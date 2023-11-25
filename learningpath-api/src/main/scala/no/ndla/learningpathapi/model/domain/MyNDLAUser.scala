@@ -39,7 +39,7 @@ case class MyNDLAUserDocument(
       userRole = userRole,
       lastUpdated = lastUpdated,
       organization = organization,
-      groups = groups,
+      groups = groups.filter(g => g.`type` == FeideGroup.FC_ORG),
       displayName = displayName,
       email = email,
       arenaEnabled = arenaEnabled,
