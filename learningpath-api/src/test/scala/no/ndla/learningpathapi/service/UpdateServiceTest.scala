@@ -2221,7 +2221,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       shareName = true
     )
     val expected = api.MyNDLAUser(
-      id = feideId,
+      id = 42,
+      feideId = "feide",
       username = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),

@@ -676,7 +676,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       shareName = false
     )
     val apiUserData = api.MyNDLAUser(
-      id = feideId,
+      id = 42,
+      feideId = "feide",
       username = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
@@ -738,7 +739,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       shareName = false
     )
     val apiUserData = api.MyNDLAUser(
-      id = feideId,
+      id = 42,
+      feideId = "feide",
       username = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
@@ -795,7 +797,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       eduPersonPrincipalName = "example@email.com"
     )
     val apiUserData = api.MyNDLAUser(
-      id = feideId,
+      id = 42,
+      feideId = "feide",
       username = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
