@@ -428,7 +428,7 @@ trait ReadService {
       val groups       = feideApiClient.getFeideGroups(feideAccessToken).?
       val updatedMyNDLAUser = domain.MyNDLAUser(
         id = userData.id,
-        feideId = userData.feideId,
+        feideId = feideId,
         favoriteSubjects = userData.favoriteSubjects,
         userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
