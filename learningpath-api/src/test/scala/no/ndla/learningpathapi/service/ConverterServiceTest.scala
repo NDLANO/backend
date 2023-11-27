@@ -900,7 +900,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     val expectedUserData =
       api.MyNDLAUser(
-        id = 42,
+        id = "feide",
         username = "example@email.com",
         displayName = "Feide",
         favoriteSubjects = Seq("a", "b"),

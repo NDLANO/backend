@@ -841,7 +841,7 @@ trait ConverterService {
 
     def toApiUserData(domainUserData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): api.MyNDLAUser = {
       api.MyNDLAUser(
-        id = domainUserData.id,
+        id = domainUserData.feideId,
         username = domainUserData.email,
         displayName = domainUserData.displayName,
         favoriteSubjects = domainUserData.favoriteSubjects,

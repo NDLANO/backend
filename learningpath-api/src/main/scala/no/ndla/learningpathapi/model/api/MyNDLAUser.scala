@@ -19,7 +19,7 @@ case class MyNDLAGroup(
 )
 
 case class MyNDLAUser(
-    @(ApiModelProperty @field)(description = "ID of the user") id: Long,
+    @(ApiModelProperty @field)(description = "ID of the user") id: String,
     @(ApiModelProperty @field)(description = "Username of the user") username: String,
     @(ApiModelProperty @field)(description = "Name of the user") displayName: String,
     @(ApiModelProperty @field)(description = "Favorite subjects of the user") favoriteSubjects: Seq[String],
