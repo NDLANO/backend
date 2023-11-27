@@ -601,7 +601,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq.empty,
-      userRole = UserRole.TEACHER,
+      userRole = UserRole.EMPLOYEE,
       lastUpdated = clock.now(),
       organization = "oslo",
       groups = Seq(

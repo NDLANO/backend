@@ -65,7 +65,7 @@ case class MyNDLAUser(
   def wasUpdatedLast24h: Boolean = NDLADate.now().isBefore(lastUpdated.minusSeconds(10))
 
   def isStudent: Boolean = userRole == UserRole.STUDENT
-  def isTeacher: Boolean = userRole == UserRole.TEACHER
+  def isTeacher: Boolean = userRole == UserRole.EMPLOYEE
 }
 
 trait DBMyNDLAUser {

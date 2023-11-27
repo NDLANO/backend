@@ -403,7 +403,7 @@ trait ReadService {
         newUser = domain
           .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
-            userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
+            userRole = if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1),
             organization = organization,
             groups = groups,
@@ -430,7 +430,7 @@ trait ReadService {
         id = userData.id,
         feideId = userData.feideId,
         favoriteSubjects = userData.favoriteSubjects,
-        userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
+        userRole = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
         groups = groups.filter(g => g.`type` == FeideGroup.FC_ORG),

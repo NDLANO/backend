@@ -2317,7 +2317,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "that canWriteDuringWriteRestrictionsOrAccessDenied returns Success if user is a Teacher during write restriction"
   ) {
-    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.TEACHER)
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
 
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isWriteRestricted).thenReturn(true)
@@ -2384,7 +2384,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "that isOperationAllowedOrAccessDenied allows teacher to cut the cake and eat it too"
   ) {
-    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.TEACHER)
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isMyNDLAWriteRestricted).thenReturn(true)
 

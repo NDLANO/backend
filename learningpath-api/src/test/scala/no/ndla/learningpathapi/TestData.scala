@@ -170,7 +170,7 @@ object TestData {
     id = 1,
     feideId = "",
     favoriteSubjects = Seq.empty,
-    userRole = domain.UserRole.TEACHER,
+    userRole = domain.UserRole.EMPLOYEE,
     lastUpdated = today,
     organization = "",
     groups = Seq.empty,
