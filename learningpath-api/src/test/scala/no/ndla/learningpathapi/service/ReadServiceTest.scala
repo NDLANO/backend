@@ -605,12 +605,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       groups = Seq(
-        FeideGroup(
+        domain.MyNDLAGroup(
           id = "id",
-          `type` = FeideGroup.FC_ORG,
           displayName = "oslo",
-          membership = Membership(primarySchool = None),
-          parent = None
+          isPrimarySchool = false,
+          parentId = None
         )
       ),
       email = "example@email.com",
@@ -652,7 +651,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(NDLADate.now())
 
     val feideId = "feide"
-    val groups =
+    val feideGroups =
       Seq(
         FeideGroup(
           id = "id",
@@ -669,7 +668,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups = groups,
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = true,
+          parentId = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -697,7 +703,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
-    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(groups))
+    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
     when(feideApiClient.getOrganization(any)).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[domain.MyNDLAUserDocument])(any))
@@ -725,12 +731,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now().plusDays(1),
       organization = "oslo",
       groups = Seq(
-        FeideGroup(
+        domain.MyNDLAGroup(
           id = "id",
-          `type` = FeideGroup.FC_ORG,
           displayName = "oslo",
-          membership = Membership(primarySchool = Some(true)),
-          parent = None
+          isPrimarySchool = true,
+          parentId = None
         )
       ),
       email = "example@email.com",
@@ -768,7 +773,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(NDLADate.now())
 
     val feideId = "feide"
-    val groups =
+    val feideGroups =
       Seq(
         FeideGroup(
           id = "id",
@@ -785,7 +790,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1),
       organization = "oslo",
-      groups = groups,
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = true,
+          parentId = None
+        )
+      ),
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -812,7 +824,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
-    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(groups))
+    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
     when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))

@@ -33,7 +33,6 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
-import no.ndla.network.clients.FeideGroup
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -854,12 +853,12 @@ trait ConverterService {
       )
     }
 
-    private def toApiGroup(group: FeideGroup): api.MyNDLAGroup = {
+    private def toApiGroup(group: domain.MyNDLAGroup): api.MyNDLAGroup = {
       api.MyNDLAGroup(
         id = group.id,
         displayName = group.displayName,
-        isPrimarySchool = group.membership.primarySchool.getOrElse(false),
-        parentId = group.parent
+        isPrimarySchool = group.isPrimarySchool,
+        parentId = group.parentId
       )
     }
 

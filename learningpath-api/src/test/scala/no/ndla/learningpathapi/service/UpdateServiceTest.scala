@@ -30,7 +30,6 @@ import no.ndla.learningpathapi.model.api.{
 import no.ndla.learningpathapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
-import no.ndla.network.clients.{FeideGroup, Membership}
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
@@ -2184,12 +2183,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       groups = Seq(
-        FeideGroup(
+        domain.MyNDLAGroup(
           id = "id",
-          `type` = FeideGroup.FC_ORG,
           displayName = "oslo",
-          membership = Membership(primarySchool = None),
-          parent = None
+          isPrimarySchool = false,
+          parentId = None
         )
       ),
       email = "example@email.com",
@@ -2207,12 +2205,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       lastUpdated = clock.now(),
       organization = "oslo",
       groups = Seq(
-        FeideGroup(
+        domain.MyNDLAGroup(
           id = "id",
-          `type` = FeideGroup.FC_ORG,
           displayName = "oslo",
-          membership = Membership(primarySchool = None),
-          parent = None
+          isPrimarySchool = false,
+          parentId = None
         )
       ),
       email = "example@email.com",
