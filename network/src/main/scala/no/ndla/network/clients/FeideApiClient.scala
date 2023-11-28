@@ -60,7 +60,7 @@ case class FeideExtendedUserInfo(
     }
   }
 
-  def email: String = this.mail.headOption.getOrElse(this.eduPersonPrincipalName)
+  def email: String    = this.mail.headOption.getOrElse(this.eduPersonPrincipalName)
   def username: String = this.eduPersonPrincipalName
 }
 
