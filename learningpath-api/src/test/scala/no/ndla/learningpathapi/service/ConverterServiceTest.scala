@@ -891,6 +891,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
             parentId = None
           )
         ),
+        username = "example@email.com",
         email = "example@email.com",
         arenaEnabled = false,
         displayName = "Feide",
@@ -901,6 +902,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         id = 42,
         feideId = "feide",
         username = "example@email.com",
+        email = "example@email.com",
         displayName = "Feide",
         favoriteSubjects = Seq("a", "b"),
         role = "student",
@@ -929,6 +931,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -955,6 +958,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -975,6 +979,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -995,6 +1000,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",

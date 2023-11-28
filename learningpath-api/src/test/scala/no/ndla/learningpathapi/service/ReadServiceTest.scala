@@ -612,6 +612,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -676,6 +677,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -685,6 +687,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       id = 42,
       feideId = "feide",
       username = "example@email.com",
+      email = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
@@ -696,7 +699,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student"),
-      eduPersonPrincipalName = "example@email.com"
+      eduPersonPrincipalName = "example@email.com",
+      mail = Seq("example@email.com")
     )
 
     when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
@@ -738,6 +742,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -747,6 +752,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       id = 42,
       feideId = "feide",
       username = "example@email.com",
+      email = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
@@ -798,6 +804,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -806,12 +813,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
       eduPersonAffiliation = Seq.empty,
-      eduPersonPrincipalName = "example@email.com"
+      eduPersonPrincipalName = "example@email.com",
+      mail = Seq("example@email.com")
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
       feideId = "feide",
       username = "example@email.com",
+      email = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",

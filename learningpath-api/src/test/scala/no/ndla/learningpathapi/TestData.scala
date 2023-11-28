@@ -174,6 +174,7 @@ object TestData {
     lastUpdated = today,
     organization = "",
     groups = Seq.empty,
+    username = "",
     email = "",
     arenaEnabled = false,
     displayName = "",

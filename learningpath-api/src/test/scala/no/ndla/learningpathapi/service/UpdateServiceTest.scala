@@ -2190,6 +2190,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -2212,6 +2213,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
           parentId = None
         )
       ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -2221,6 +2223,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       id = 42,
       feideId = "feide",
       username = "example@email.com",
+      email = "example@email.com",
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",

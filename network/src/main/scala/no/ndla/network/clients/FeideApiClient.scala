@@ -32,7 +32,8 @@ case class FeideOpenIdUserInfo(sub: String)
 case class FeideExtendedUserInfo(
     displayName: String,
     eduPersonAffiliation: Seq[String],
-    eduPersonPrincipalName: String
+    eduPersonPrincipalName: String,
+    mail: Seq[String]
 ) {
 
   private def isStudentAffiliation: Boolean = this.eduPersonAffiliation.contains("student")
@@ -59,7 +60,8 @@ case class FeideExtendedUserInfo(
     }
   }
 
-  def email: String = this.eduPersonPrincipalName
+  def email: String = this.mail.headOption.getOrElse(this.eduPersonPrincipalName)
+  def username: String = this.eduPersonPrincipalName
 }
 
 trait FeideApiClient {

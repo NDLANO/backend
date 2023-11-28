@@ -217,7 +217,8 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val teacheruser = FeideExtendedUserInfo(
       displayName = "Johnny Bravo",
       eduPersonAffiliation = Seq("employee", "staff"),
-      eduPersonPrincipalName = "email"
+      eduPersonPrincipalName = "example@email.com",
+      mail = Seq("example@email.com")
     )
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacheruser))
