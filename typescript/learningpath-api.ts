@@ -175,11 +175,23 @@ export interface IMessage {
   date: string
 }
 
+export interface IMyNDLAGroup {
+  id: string
+  displayName: string
+  isPrimarySchool: boolean
+  parentId?: string
+}
+
 export interface IMyNDLAUser {
   id: number
+  feideId: string
+  username: string
+  email: string
+  displayName: string
   favoriteSubjects: string[]
   role: string
   organization: string
+  groups: IMyNDLAGroup[]
   arenaEnabled: boolean
   shareName: boolean
 }
