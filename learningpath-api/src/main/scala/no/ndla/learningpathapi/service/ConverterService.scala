@@ -108,7 +108,7 @@ trait ConverterService {
         })
     }
 
-    def asCopyright(copyright: api.Copyright): learningpath.LearningpathCopyright = {
+    private def asCopyright(copyright: api.Copyright): learningpath.LearningpathCopyright = {
       learningpath.LearningpathCopyright(copyright.license.license, copyright.contributors.map(_.toDomain))
     }
 
@@ -473,7 +473,7 @@ trait ConverterService {
       )
     }
 
-    def languageIsSupported(supportedLangs: Seq[String], language: String): Boolean = {
+    private def languageIsSupported(supportedLangs: Seq[String], language: String): Boolean = {
       val isLanguageNeutral = supportedLangs.contains(UnknownLanguage.toString) && supportedLangs.length == 1
 
       supportedLangs.contains(language) || language == AllLanguages || isLanguageNeutral
@@ -660,7 +660,7 @@ trait ConverterService {
       s"http://$InternalImageApiUrl/$imageId"
     }
 
-    def createEmbedUrl(embedUrlOrPath: EmbedUrlV2): EmbedUrlV2 = {
+    private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2): EmbedUrlV2 = {
       embedUrlOrPath.url.hostOption match {
         case Some(_) => embedUrlOrPath
         case None =>
@@ -841,11 +841,25 @@ trait ConverterService {
     def toApiUserData(domainUserData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): api.MyNDLAUser = {
       api.MyNDLAUser(
         id = domainUserData.id,
+        feideId = domainUserData.feideId,
+        username = domainUserData.username,
+        email = domainUserData.email,
+        displayName = domainUserData.displayName,
         favoriteSubjects = domainUserData.favoriteSubjects,
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,
+        groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization),
         shareName = domainUserData.shareName
+      )
+    }
+
+    private def toApiGroup(group: domain.MyNDLAGroup): api.MyNDLAGroup = {
+      api.MyNDLAGroup(
+        id = group.id,
+        displayName = group.displayName,
+        isPrimarySchool = group.isPrimarySchool,
+        parentId = group.parentId
       )
     }
 
@@ -869,6 +883,8 @@ trait ConverterService {
         userRole = domainUserData.userRole,
         lastUpdated = domainUserData.lastUpdated,
         organization = domainUserData.organization,
+        groups = domainUserData.groups,
+        username = domainUserData.username,
         email = domainUserData.email,
         arenaEnabled = arenaEnabled,
         shareName = shareName,

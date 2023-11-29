@@ -10,10 +10,16 @@ package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.{NDLADate, api => commonApi}
-import no.ndla.common.model.domain.learningpath.{LearningpathCopyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.learningpathapi.integration.ImageMetaInformation
-import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
+import no.ndla.learningpathapi.model.api.{
+  CoverPhoto,
+  MyNDLAGroup,
+  NewCopyLearningPathV2,
+  NewLearningPathV2,
+  NewLearningStepV2
+}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
@@ -877,6 +883,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         userRole = UserRole.STUDENT,
         lastUpdated = clock.now(),
         organization = "oslo",
+        groups = Seq(
+          domain.MyNDLAGroup(
+            id = "id",
+            displayName = "oslo",
+            isPrimarySchool = true,
+            parentId = None
+          )
+        ),
+        username = "example@email.com",
         email = "example@email.com",
         arenaEnabled = false,
         displayName = "Feide",
@@ -885,9 +900,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val expectedUserData =
       api.MyNDLAUser(
         id = 42,
+        feideId = "feide",
+        username = "example@email.com",
+        email = "example@email.com",
+        displayName = "Feide",
         favoriteSubjects = Seq("a", "b"),
         role = "student",
         organization = "oslo",
+        groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
         shareName = false
       )
@@ -903,6 +923,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = false,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -921,6 +950,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = false,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -933,6 +971,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = false,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -945,6 +992,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = false,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",

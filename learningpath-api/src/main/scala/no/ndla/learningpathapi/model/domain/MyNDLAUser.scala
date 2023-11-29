@@ -16,11 +16,14 @@ import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
+case class MyNDLAGroup(id: String, displayName: String, isPrimarySchool: Boolean, parentId: Option[String])
 case class MyNDLAUserDocument(
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
     lastUpdated: NDLADate,
     organization: String,
+    groups: Seq[MyNDLAGroup],
+    username: String,
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
@@ -37,6 +40,8 @@ case class MyNDLAUserDocument(
       userRole = userRole,
       lastUpdated = lastUpdated,
       organization = organization,
+      groups = groups,
+      username = username,
       displayName = displayName,
       email = email,
       arenaEnabled = arenaEnabled,
@@ -52,6 +57,8 @@ case class MyNDLAUser(
     userRole: UserRole.Value,
     lastUpdated: NDLADate,
     organization: String,
+    groups: Seq[MyNDLAGroup],
+    username: String,
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
@@ -61,7 +68,7 @@ case class MyNDLAUser(
   def wasUpdatedLast24h: Boolean = NDLADate.now().isBefore(lastUpdated.minusSeconds(10))
 
   def isStudent: Boolean = userRole == UserRole.STUDENT
-  def isTeacher: Boolean = userRole == UserRole.TEACHER
+  def isTeacher: Boolean = userRole == UserRole.EMPLOYEE
 }
 
 trait DBMyNDLAUser {

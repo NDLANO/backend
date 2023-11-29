@@ -18,6 +18,7 @@ import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.config.ConfigMetaValue
 import no.ndla.learningpathapi.model.api.{
   FolderSortRequest,
+  MyNDLAGroup,
   NewCopyLearningPathV2,
   NewLearningPathV2,
   NewLearningStepV2,
@@ -2181,6 +2182,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = false,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -2195,6 +2205,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = false,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -2202,9 +2221,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     val expected = api.MyNDLAUser(
       id = 42,
+      feideId = "feide",
+      username = "example@email.com",
+      email = "example@email.com",
+      displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
       shareName = true
     )
@@ -2293,7 +2317,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "that canWriteDuringWriteRestrictionsOrAccessDenied returns Success if user is a Teacher during write restriction"
   ) {
-    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.TEACHER)
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
 
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isWriteRestricted).thenReturn(true)
@@ -2360,7 +2384,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "that isOperationAllowedOrAccessDenied allows teacher to cut the cake and eat it too"
   ) {
-    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.TEACHER)
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isMyNDLAWriteRestricted).thenReturn(true)
 

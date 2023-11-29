@@ -13,11 +13,11 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.learningpathapi.TestData._
-import no.ndla.learningpathapi.model.api.{Owner, Stats}
+import no.ndla.learningpathapi.model.api.{MyNDLAGroup, Owner, Stats}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
-import no.ndla.network.clients.FeideExtendedUserInfo
+import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
@@ -601,9 +601,18 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq.empty,
-      userRole = UserRole.TEACHER,
+      userRole = UserRole.EMPLOYEE,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = false,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -643,6 +652,16 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(NDLADate.now())
 
     val feideId = "feide"
+    val feideGroups =
+      Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = Some(true)),
+          parent = None
+        )
+      )
     val domainUserData = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -650,6 +669,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = true,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -657,22 +685,29 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
+      feideId = "feide",
+      username = "example@email.com",
+      email = "example@email.com",
+      displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student"),
-      eduPersonPrincipalName = "example@email.com"
+      eduPersonPrincipalName = "example@email.com",
+      mail = Seq("example@email.com")
     )
 
     when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
+    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
     when(feideApiClient.getOrganization(any)).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[domain.MyNDLAUserDocument])(any))
@@ -681,6 +716,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
+    verify(feideApiClient, times(1)).getFeideGroups(any)
     verify(feideApiClient, times(1)).getOrganization(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(1)).insertUser(any, any)(any)
@@ -698,6 +734,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = true,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -705,9 +750,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
+      feideId = "feide",
+      username = "example@email.com",
+      email = "example@email.com",
+      displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )
@@ -719,6 +769,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(0)).getFeideExtendedUser(any)
+    verify(feideApiClient, times(0)).getFeideGroups(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)
     verify(userRepository, times(0)).updateUser(any, any)(any)
@@ -728,6 +779,16 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(NDLADate.now())
 
     val feideId = "feide"
+    val feideGroups =
+      Seq(
+        FeideGroup(
+          id = "id",
+          `type` = FeideGroup.FC_ORG,
+          displayName = "oslo",
+          membership = Membership(primarySchool = Some(true)),
+          parent = None
+        )
+      )
     val domainUserData = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -735,6 +796,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1),
       organization = "oslo",
+      groups = Seq(
+        domain.MyNDLAGroup(
+          id = "id",
+          displayName = "oslo",
+          isPrimarySchool = true,
+          parentId = None
+        )
+      ),
+      username = "example@email.com",
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
@@ -743,13 +813,19 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
       eduPersonAffiliation = Seq.empty,
-      eduPersonPrincipalName = "example@email.com"
+      eduPersonPrincipalName = "example@email.com",
+      mail = Seq("example@email.com")
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
+      feideId = "feide",
+      username = "example@email.com",
+      email = "example@email.com",
+      displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false
     )
@@ -757,6 +833,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(readService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
+    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
     when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
@@ -764,6 +841,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
+    verify(feideApiClient, times(1)).getFeideGroups(any)
     verify(feideApiClient, times(1)).getOrganization(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)

@@ -24,7 +24,7 @@ import no.ndla.learningpathapi.repository.{
   LearningPathRepositoryComponent,
   UserRepository
 }
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, FeideGroup, RedisClient}
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession}
 
@@ -393,18 +393,34 @@ trait ReadService {
       } yield converted
     }
 
+    private def toDomainGroups(feideGroups: Seq[FeideGroup]): Seq[domain.MyNDLAGroup] = {
+      feideGroups
+        .filter(group => group.`type` == FeideGroup.FC_ORG)
+        .map(feideGroup =>
+          domain.MyNDLAGroup(
+            id = feideGroup.id,
+            displayName = feideGroup.displayName,
+            isPrimarySchool = feideGroup.membership.primarySchool.getOrElse(false),
+            parentId = feideGroup.parent
+          )
+        )
+    }
+
     private def createMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
         session: DBSession
     ): Try[domain.MyNDLAUser] = {
       for {
         feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
         organization          <- feideApiClient.getOrganization(feideAccessToken)
+        feideGroups           <- feideApiClient.getFeideGroups(feideAccessToken)
         newUser = domain
           .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
-            userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
+            userRole = if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1),
             organization = organization,
+            groups = toDomainGroups(feideGroups),
+            username = feideExtendedUserData.username,
             email = feideExtendedUserData.email,
             arenaEnabled = false,
             shareName = false,
@@ -423,13 +439,16 @@ trait ReadService {
     ): Try[domain.MyNDLAUser] = {
       val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization = feideApiClient.getOrganization(feideAccessToken).?
+      val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
       val updatedMyNDLAUser = domain.MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,
         favoriteSubjects = userData.favoriteSubjects,
-        userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
+        userRole = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
+        groups = toDomainGroups(feideGroups),
+        username = feideUser.username,
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled,
         shareName = userData.shareName,

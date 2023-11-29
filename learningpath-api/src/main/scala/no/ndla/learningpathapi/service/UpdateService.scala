@@ -1060,10 +1060,11 @@ trait UpdateService {
       for {
         existingUser <- readService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         newFavorites = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
+        shareName    = existingUser.shareName || userData.shareName
         updatedFeideUser = api.UpdatedMyNDLAUser(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
-          shareName = Some(existingUser.shareName)
+          shareName = Some(shareName)
         )
         updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated

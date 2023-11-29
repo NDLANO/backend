@@ -22,14 +22,18 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class Membership(primarySchool: Option[Boolean])
-case class FeideGroup(id: String, displayName: String, membership: Membership, parent: Option[String])
+case class FeideGroup(id: String, `type`: String, displayName: String, membership: Membership, parent: Option[String])
+object FeideGroup {
+  val FC_ORG = "fc:org"
+}
 
 case class FeideOpenIdUserInfo(sub: String)
 
 case class FeideExtendedUserInfo(
     displayName: String,
     eduPersonAffiliation: Seq[String],
-    eduPersonPrincipalName: String
+    eduPersonPrincipalName: String,
+    mail: Seq[String]
 ) {
 
   private def isStudentAffiliation: Boolean = this.eduPersonAffiliation.contains("student")
@@ -56,7 +60,8 @@ case class FeideExtendedUserInfo(
     }
   }
 
-  def email: String = this.eduPersonPrincipalName
+  def email: String    = this.mail.headOption.getOrElse(this.eduPersonPrincipalName)
+  def username: String = this.eduPersonPrincipalName
 }
 
 trait FeideApiClient {
@@ -178,6 +183,16 @@ trait FeideApiClient {
         case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
       }).?
       redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
+    }
+
+    def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = {
+      val accessToken      = getFeideAccessTokenOrFail(feideAccessToken).?
+      val maybeFeideGroups = redisClient.getGroupsFromCache(accessToken).?
+      val feideGroups = (maybeFeideGroups match {
+        case Some(groups) => Success(groups)
+        case None         => getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken))
+      }).?
+      redisClient.updateCacheAndReturnGroups(accessToken, feideGroups)
     }
 
     def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = {
