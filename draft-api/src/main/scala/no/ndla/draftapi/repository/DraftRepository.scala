@@ -378,11 +378,13 @@ trait DraftRepository {
            select *
            from (select
                    ${ar.result.*},
+                   ${ar.id} as row_id,
                    ${ar.revision} as revision,
                    max(revision) over (partition by article_id) as max_revision
                  from ${DBArticle.as(ar)}
                  where document is not NULL) _
            where revision = max_revision
+           order by row_id
            offset $offset
            limit $pageSize
       """

@@ -203,6 +203,7 @@ trait AudioRepository {
            select ${au.result.*}
            from ${AudioMetaInformation.as(au)}
            where document is not null
+           order by id
            offset $offset
            limit $pageSize
       """

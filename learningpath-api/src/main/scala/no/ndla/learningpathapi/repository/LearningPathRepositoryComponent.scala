@@ -374,11 +374,12 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
       val lps      = SubQuery.syntax("lps").include(lp)
       sql"""
-            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}
+            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
                                                            from ${DBLearningPath.as(lp)}
                                                            limit $pageSize
                                                            offset $offset) lps
             left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+            order by row_id
       """
         .one(DBLearningPath.fromResultSet(lps(lp).resultName))
         .toMany(DBLearningStep.opt(ls.resultName))
@@ -394,12 +395,13 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
       val lps      = SubQuery.syntax("lps").include(lp)
       sql"""
-            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}
+            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
                                                            from ${DBLearningPath.as(lp)}
                                                            where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}
                                                            limit $pageSize
                                                            offset $offset) lps
             left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+            order by row_id
       """
         .one(DBLearningPath.fromResultSet(lps(lp).resultName))
         .toMany(DBLearningStep.opt(ls.resultName))

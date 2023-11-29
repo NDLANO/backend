@@ -287,6 +287,7 @@ trait DraftConceptRepository {
            select ${co.result.*}, ${co.revision} as revision
            from ${Concept.as(co)}
            where document is not null
+           order by ${co.id}
            offset $offset
            limit $pageSize
       """
