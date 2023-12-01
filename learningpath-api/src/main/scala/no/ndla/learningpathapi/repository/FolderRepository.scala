@@ -377,6 +377,15 @@ trait FolderRepository {
       getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"")
     }
 
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value)(implicit
+        session: DBSession
+    ): Try[Option[Folder]] = {
+      getFolderAndChildrenSubfoldersWithResourcesWhere(
+        id,
+        sqls"AND child.status = ${status.toString}"
+      )
+    }
+
     def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value, feideId: FeideID)(implicit
         session: DBSession
     ): Try[Option[Folder]] = {

@@ -592,7 +592,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
-    service.getSharedFolder(folderUUID) should be(Success(apiFolder))
+    service.getSharedFolder(folderUUID, feideId) should be(Success(apiFolder))
   }
 
   test("That getSharedFolder returns a folder with owner info if the owner wants to") {
@@ -634,7 +634,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(Some(domainUserData)))
 
-    service.getSharedFolder(folderUUID) should be(Success(apiFolder))
+    service.getSharedFolder(folderUUID, feideId) should be(Success(apiFolder))
   }
 
   test("That getSharedFolder returns a Failure Not Found if the status is not shared") {
