@@ -288,7 +288,7 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id))
+      uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id, requestFeideToken))
     }: Unit
 
     patch(
