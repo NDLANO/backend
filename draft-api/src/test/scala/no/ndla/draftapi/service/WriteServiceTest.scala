@@ -1360,7 +1360,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
     when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
+    when(taxonomyApiClient.getChildResources(anyString()))
+      .thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
     when(draftRepository.withId(eqTo(1))(any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2))(any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3))(any)).thenReturn(Some(article3))
@@ -1404,7 +1405,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
     when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
+    when(taxonomyApiClient.getChildResources(anyString()))
+      .thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
     when(draftRepository.withId(eqTo(1))(any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2))(any)).thenReturn(Some(article2))
     service.copyRevisionDates(nodeId) should be(Success(()))
@@ -1548,6 +1550,38 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         List.empty,
         Seq.empty,
         TestData.userWithWriteAccess,
+        None,
+        None,
+        None
+      )
+      .get
+
+    result.status.current should be(PUBLISHED.toString)
+    result.started should be(false)
+  }
+
+  test("That started is reset when published via PUBLISHED field") {
+    when(articleApiClient.updateArticle(any, any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[Draft](1))
+    })
+    val existing = TestData.sampleDomainArticle.copy(
+      started = true,
+      status = TestData.statusWithInProcess,
+      responsible = None
+    )
+    val updatedArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      status = Some("PUBLISHED"),
+      language = Some("nb")
+    )
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    val result = service
+      .updateArticle(
+        existing.id.get,
+        updatedArticle,
+        List.empty,
+        Seq.empty,
+        TestData.userWithAdminAccess,
         None,
         None,
         None
