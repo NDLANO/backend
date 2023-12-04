@@ -384,7 +384,7 @@ trait ReadService {
       implicit val session: DBSession = folderRepository.getSession(true)
       val feide_id = withFeideId(maybeFeideToken)(feideId => exportUserDataAuthenticated(maybeFeideToken, feideId))
       val folderWithResources =
-        folderRepository.getFolderAndChildrenSubfoldersWithResources(id, FolderStatus.SHARED, feide_id.toString())
+        folderRepository.getFolderAndChildrenSubfoldersWithResources(id, FolderStatus.SHARED, feide_id)
       for {
         folderWithContent <- getWith404IfNone(id, folderWithResources)
         _ <- if (folderWithContent.isShared) Success(()) else Failure(NotFoundException("Folder does not exist"))
