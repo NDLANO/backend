@@ -588,7 +588,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
       )
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED), None)(any))
       .thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
@@ -630,7 +630,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         owner = Some(Owner("Feide"))
       )
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED), Some(feideId))(any))
       .thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(Some(domainUserData)))
 
@@ -641,7 +641,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE)
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED), None)(any))
       .thenReturn(Success(Some(folderWithId)))
 
     val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID, None)

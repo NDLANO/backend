@@ -590,7 +590,7 @@ class FolderRepositoryTest
     resultNormal should be(Success(Some(expectedResultNormal)))
 
     val resultFiltered =
-      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED)(ReadOnlyAutoSession)
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(ReadOnlyAutoSession)
     resultFiltered should be(Success(Some(expectedResultFiltered)))
   }
 

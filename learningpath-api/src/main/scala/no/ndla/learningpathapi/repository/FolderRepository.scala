@@ -377,22 +377,13 @@ trait FolderRepository {
       getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"")
     }
 
-    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value)(implicit
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value, feideId: Option[FeideID])(implicit
         session: DBSession
     ): Try[Option[Folder]] = {
-      getFolderAndChildrenSubfoldersWithResourcesWhere(
-        id,
-        sqls"AND child.status = ${status.toString}"
-      )
-    }
-
-    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value, feideId: FeideID)(implicit
-        session: DBSession
-    ): Try[Option[Folder]] = {
-      getFolderAndChildrenSubfoldersWithResourcesWhere(
-        id,
-        sqls"AND (child.status = ${status.toString} OR child.feide_id = ${feideId.toString})"
-      )
+      feideId match {
+        case None => getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"AND child.status = ${status.toString}" )
+        case Some(value) => getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"AND (child.status = ${status.toString} OR child.feide_id = ${value})")
+      }
     }
 
     /** A flat list of the folder with `id` as well as its children folders. The folders in the list comes with
