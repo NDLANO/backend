@@ -382,10 +382,14 @@ trait ReadService {
 
     def getSharedFolder(id: UUID, maybeFeideToken: Option[FeideAccessToken]): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(true)
-    
+
       for {
         feideId <- maybeFeideToken.traverse(token => feideApiClient.getFeideID(Some(token)))
-        folderWithResources <- folderRepository.getFolderAndChildrenSubfoldersWithResources(id, FolderStatus.SHARED, feideId)
+        folderWithResources <- folderRepository.getFolderAndChildrenSubfoldersWithResources(
+          id,
+          FolderStatus.SHARED,
+          feideId
+        )
         folderWithContent <- getWith404IfNone(id, Success(folderWithResources))
         _ <- if (folderWithContent.isShared) Success(()) else Failure(NotFoundException("Folder does not exist"))
         folderAsTopFolder = folderWithContent.copy(parentId = None)

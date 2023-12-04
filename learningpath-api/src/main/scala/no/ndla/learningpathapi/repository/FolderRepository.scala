@@ -377,12 +377,16 @@ trait FolderRepository {
       getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"")
     }
 
-    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value, feideId: Option[FeideID])(implicit
-        session: DBSession
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value, feideId: Option[FeideID])(
+        implicit session: DBSession
     ): Try[Option[Folder]] = {
       feideId match {
-        case None => getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"AND child.status = ${status.toString}" )
-        case Some(value) => getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"AND (child.status = ${status.toString} OR child.feide_id = ${value})")
+        case None => getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"AND child.status = ${status.toString}")
+        case Some(value) =>
+          getFolderAndChildrenSubfoldersWithResourcesWhere(
+            id,
+            sqls"AND (child.status = ${status.toString} OR child.feide_id = ${value})"
+          )
       }
     }
 
