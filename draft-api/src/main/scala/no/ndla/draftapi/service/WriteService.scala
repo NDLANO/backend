@@ -357,7 +357,9 @@ trait WriteService {
       val isAutomaticStatusChange      = updatedApiArticle.status.isEmpty
       val isAutomaticOnEditTransition  = isAutomaticResponsibleChange && isAutomaticStatusChange
 
-      if (shouldNotAutoUpdateStatus) {
+      if (shouldNotAutoUpdateStatus && draft.status.current == PUBLISHED) {
+        draft.copy(started = false)
+      } else if (shouldNotAutoUpdateStatus) {
         draft
       } else if (isAutomaticOnEditTransition && statusWasUpdated) {
         draft.copy(started = true)
