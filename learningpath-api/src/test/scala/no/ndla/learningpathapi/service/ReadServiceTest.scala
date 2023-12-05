@@ -630,7 +630,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         owner = Some(Owner("Feide"))
       )
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED), eqTo(Some(feideId.toString())))(any))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED), eqTo(None))(any))
       .thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(Some(domainUserData)))
 
