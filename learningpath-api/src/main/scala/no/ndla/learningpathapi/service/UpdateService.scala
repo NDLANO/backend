@@ -1039,7 +1039,7 @@ trait UpdateService {
           maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(
             sourceId,
             FolderStatus.SHARED,
-            Some(feideId)
+            None
           )
           sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
           _            <- sourceFolder.isClonable
