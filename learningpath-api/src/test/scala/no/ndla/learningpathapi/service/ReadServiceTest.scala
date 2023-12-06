@@ -595,6 +595,26 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     service.getSharedFolder(folderUUID, None) should be(Success(apiFolder))
   }
 
+  test("That getSharedFolder returns an unshared folder if requested by the owner") {
+    val feideId = "feide"
+    val folderUUID   = UUID.randomUUID()
+    val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE, feideId = feideId)
+    val apiFolder =
+      emptyApiFolder.copy(
+        id = folderUUID.toString,
+        name = "",
+        status = "private",
+        breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
+      )
+    
+    when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED), eqTo(Some(feideId)))(any))
+      .thenReturn(Success(Some(folderWithId)))
+    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
+
+    service.getSharedFolder(folderUUID, Some(feideId)) should be(Success(apiFolder))
+  }
+
   test("That getSharedFolder returns a folder with owner info if the owner wants to") {
     val feideId = "feide"
     val domainUserData = domain.MyNDLAUser(
@@ -637,7 +657,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     service.getSharedFolder(folderUUID, None) should be(Success(apiFolder))
   }
 
-  test("That getSharedFolder returns a Failure Not Found if the status is not shared") {
+  test("That getSharedFolder returns a Failure Not Found if the status is not shared, and it's requested by someone other than the owner") {
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE)
 
