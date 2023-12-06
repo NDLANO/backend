@@ -1036,7 +1036,11 @@ trait UpdateService {
         for {
           feideId <- feideApiClient.getFeideID(feideAccessToken)
           _       <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-          maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
+          maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(
+            sourceId,
+            FolderStatus.SHARED,
+            None
+          )
           sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
           _            <- sourceFolder.isClonable
           clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some)(session)
