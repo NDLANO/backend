@@ -391,7 +391,9 @@ trait ReadService {
           feideId
         )
         folderWithContent <- getWith404IfNone(id, Success(folderWithResources))
-        _ <- if (folderWithContent.isShared || folderWithContent.feideId == feideId.getOrElse(None)) Success(()) else Failure(NotFoundException("Folder does not exist"))
+        _ <-
+          if (folderWithContent.isShared || folderWithContent.feideId == feideId.getOrElse(None)) Success(())
+          else Failure(NotFoundException("Folder does not exist"))
         folderAsTopFolder = folderWithContent.copy(parentId = None)
         breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
         feideUser   <- userRepository.userWithFeideId(folderWithContent.feideId)
