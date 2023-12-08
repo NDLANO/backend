@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import io.circe.parser
 import no.ndla.audioapi.model.api._
@@ -36,7 +37,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
   override val services: List[Service[Eff]] = List(controller)
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer("AudioControllerTest", serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer("AudioControllerTest", serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

@@ -8,6 +8,7 @@
 
 package no.ndla.oembedproxy.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.OEmbed
@@ -24,7 +25,7 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment {
   val serverPort: Int = findFreePort
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

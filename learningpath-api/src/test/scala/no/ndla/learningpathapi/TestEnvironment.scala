@@ -25,8 +25,6 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation._
-import no.ndla.myndla.model.domain.{DBFolder, DBFolderResource, DBMyNDLAUser, DBResource}
-import no.ndla.myndla.model.domain.config.DBConfigMeta
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndla.service.{
   ConfigService,

@@ -18,6 +18,8 @@ on:
       - project/common*.scala
       - search/**
       - project/search*.scala
+      - myndla/**
+      - project/myndla*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - project/Dependencies.scala
@@ -36,6 +38,8 @@ on:
       - project/common*.scala
       - search/**
       - project/search*.scala
+      - myndla/**
+      - project/myndla*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - project/Dependencies.scala

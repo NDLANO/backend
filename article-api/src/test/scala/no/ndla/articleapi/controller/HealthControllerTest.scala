@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.articleapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.Service
@@ -21,7 +22,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
   override val services: List[Service[Eff]] = List(healthController)
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

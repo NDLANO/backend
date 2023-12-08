@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.search.SearchResult
@@ -49,7 +50,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
   override val services = List(controller)
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

@@ -35,8 +35,6 @@ import no.ndla.learningpathapi.validation.{
   TitleValidator,
   UrlValidator
 }
-import no.ndla.myndla.model.domain.config.DBConfigMeta
-import no.ndla.myndla.model.domain.{DBFolder, DBFolderResource, DBMyNDLAUser, DBResource}
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndla.service.{
   ConfigService,

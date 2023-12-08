@@ -8,11 +8,10 @@
 
 package no.ndla.articleapi
 
-import cats.effect.{ExitCode, IO, IOApp}
 import no.ndla.common.Environment.setPropsFromEnv
 
-object Main extends IOApp {
-  def run(args: List[String]): IO[ExitCode] = {
+object Main {
+  def main(args: Array[String]): Unit = {
     setPropsFromEnv()
     val props     = new ArticleApiProperties
     val mainClass = new MainClass(props)

@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi
 
-import cats.effect.IO
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
@@ -34,6 +33,6 @@ class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain[
     logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
   }
 
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] =
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
     componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

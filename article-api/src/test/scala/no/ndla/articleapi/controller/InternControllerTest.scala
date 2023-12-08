@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import enumeratum.Json4s
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
@@ -39,7 +40,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
   override val services = List(controller)
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

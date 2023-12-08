@@ -7,6 +7,7 @@
 
 package no.ndla.frontpageapi
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
@@ -20,7 +21,7 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
   override val services              = List(subjectPageController)
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

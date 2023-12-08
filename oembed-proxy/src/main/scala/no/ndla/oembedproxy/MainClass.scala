@@ -8,7 +8,6 @@
 
 package no.ndla.oembedproxy
 
-import cats.effect.IO
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
@@ -26,6 +25,6 @@ class MainClass(override val props: OEmbedProxyProperties) extends NdlaTapirMain
   override def beforeStart(): Unit =
     componentRegistry.providerService.loadProviders(): Unit
 
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] =
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
     componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

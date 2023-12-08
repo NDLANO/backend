@@ -7,7 +7,6 @@
 
 package no.ndla.network.tapir
 
-import cats.effect.{ExitCode, IO}
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.configuration.BaseProps
 import org.log4s.{Logger, getLogger}
@@ -18,7 +17,7 @@ trait NdlaTapirMain[F[_]] {
   val logger: Logger = getLogger
 
   val props: BaseProps
-  def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit]
+  def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit
   def warmup(): Unit
   def beforeStart(): Unit
 
@@ -41,12 +40,11 @@ trait NdlaTapirMain[F[_]] {
     }: Unit
   }
 
-  def run(): IO[ExitCode] = {
+  def run(): Unit = {
     setPropsFromEnv()
 
     logCopyrightHeader()
     beforeStart()
     startServer(props.ApplicationName, props.ApplicationPort) { performWarmup() }
-      .as(ExitCode.Success)
   }
 }

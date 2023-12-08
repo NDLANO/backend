@@ -11,7 +11,15 @@ import cats.implicits._
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
-import no.ndla.myndla.model.domain.{DBFolder, DBFolderResource, DBResource, Folder, FolderStatus, NewFolderData, ResourceDocument}
+import no.ndla.myndla.model.domain.{
+  DBFolder,
+  DBFolderResource,
+  DBResource,
+  Folder,
+  FolderStatus,
+  NewFolderData,
+  ResourceDocument
+}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 import scalikejdbc._

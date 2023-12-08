@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.audioapi.TestData._
 import no.ndla.audioapi.model.domain
@@ -27,7 +28,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
   override val services: List[InternController] = List(controller)
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer("InternControllerTest", serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer("InternControllerTest", serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

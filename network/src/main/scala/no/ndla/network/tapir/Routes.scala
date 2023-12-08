@@ -176,7 +176,7 @@ trait Routes[F[_]] {
       server.as(())
     }
 
-    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
+    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
       // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
       val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
 
@@ -192,20 +192,19 @@ trait Routes[F[_]] {
 
       val endpoints = services.asInstanceOf[List[Service[Id]]].flatMap(_.builtEndpoints)
 
-      val serv = JdkHttpServer()
+      JdkHttpServer()
         .options(options)
         .executor(executor)
         .addEndpoints(endpoints)
         .port(port)
-        .start()
+        .start(): Unit
 
       logger.info(s"Starting $name on port $port")
 
       warmupFunc
 
-      IO.never.onCancel {
-        IO(serv.stop(10))
-      }
+      // NOTE: Since JdkHttpServer does not block, we need to block the main thread to keep the application alive
+      synchronized { wait() }
     }
   }
 }

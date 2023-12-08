@@ -10,16 +10,17 @@ package no.ndla.articleapi.controller
 
 import cats.implicits._
 import io.circe.generic.auto._
-import no.ndla.articleapi.{Eff, Props}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{DynamicHeaders, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.articleapi.{Eff, Props}
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
@@ -96,11 +97,6 @@ trait ArticleControllerV2 {
         "A comma separated list of codes from GREP API the resources should be filtered by."
       )
       .default(Delimited[",", String](List.empty))
-
-    private val feideHeader = sttp.tapir
-      .header[Option[String]]("FeideAuthorization")
-      .description("Header containing FEIDE access token.")
-      .mapDecode(mbHeader => DecodeResult.Value(mbHeader.map(_.replaceFirst("Bearer ", ""))))(x => x)
 
     private case class SummaryWithHeader(
         @jsonbody
