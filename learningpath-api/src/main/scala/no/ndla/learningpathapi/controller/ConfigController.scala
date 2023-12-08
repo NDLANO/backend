@@ -9,10 +9,11 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaRestricted, ConfigMetaValue}
 import no.ndla.learningpathapi.model.api.{Error, ValidationError}
-import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
+import no.ndla.myndla.model.api.config.{ConfigMeta, ConfigMetaRestricted, ConfigMetaValue}
+import no.ndla.myndla.model.domain.config.ConfigKey
+import no.ndla.myndla.service.ConfigService
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -24,7 +25,7 @@ import scala.util.{Failure, Success}
 
 trait ConfigController {
 
-  this: ReadService with UpdateService with NdlaController with Props with NdlaSwaggerSupport =>
+  this: ReadService with UpdateService with NdlaController with Props with NdlaSwaggerSupport with ConfigService =>
   val configController: ConfigController
 
   class ConfigController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
@@ -76,7 +77,7 @@ trait ConfigController {
           .authorizations("oauth2")
       )
     ) {
-      withConfigKey(readService.getConfig)
+      withConfigKey(configService.getConfig)
     }: Unit
 
     post(
@@ -98,7 +99,7 @@ trait ConfigController {
         withConfigKey(configKey => {
           val inpString      = request.body
           val newConfigValue = extract[ConfigMetaValue](inpString)
-          updateService.updateConfig(configKey, newConfigValue, userInfo) match {
+          configService.updateConfig(configKey, newConfigValue, userInfo) match {
             case Success(c)  => c
             case Failure(ex) => errorHandler(ex)
           }

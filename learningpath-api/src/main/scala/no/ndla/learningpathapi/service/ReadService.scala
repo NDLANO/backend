@@ -10,26 +10,19 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits._
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.{api => commonApi}
 import no.ndla.learningpathapi.model.api._
+import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
-import no.ndla.learningpathapi.model.domain.config.ConfigKey
-import no.ndla.learningpathapi.model.domain.{StepStatus, LearningPathStatus => _, _}
-import no.ndla.learningpathapi.model.{api, domain}
-import no.ndla.learningpathapi.repository.{
-  ConfigRepository,
-  FolderRepository,
-  LearningPathRepositoryComponent,
-  UserRepository
-}
-import no.ndla.network.clients.{FeideApiClient, FeideGroup, RedisClient}
+import no.ndla.learningpathapi.model.domain.{StepStatus, LearningPathStatus => _}
+import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
+import no.ndla.myndla.model.domain.InvalidStatusException
+import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndla.service.ConfigService
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.auth.TokenUser
-import scalikejdbc.{AutoSession, DBSession}
 
-import java.util.UUID
-import scala.annotation.tailrec
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
@@ -41,26 +34,11 @@ trait ReadService {
     with UserRepository
     with FolderRepository
     with Clock
-    with RedisClient =>
+    with RedisClient
+    with ConfigService =>
   val readService: ReadService
 
   class ReadService {
-
-    def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[api.ExportedUserData] = {
-      withFeideId(maybeFeideToken)(feideId => exportUserDataAuthenticated(maybeFeideToken, feideId))
-    }
-
-    private def exportUserDataAuthenticated(
-        maybeFeideAccessToken: Option[FeideAccessToken],
-        feideId: FeideID
-    ): Try[api.ExportedUserData] =
-      for {
-        folders   <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, feideId)
-        feideUser <- getFeideUserDataAuthenticated(feideId, maybeFeideAccessToken)
-      } yield ExportedUserData(
-        userData = feideUser,
-        folders = folders
-      )
 
     def tags: List[LearningPathTags] = {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
@@ -197,326 +175,8 @@ trait ReadService {
       } else { Failure(AccessDeniedException("You do not have access to this resource.")) }
     }
 
-    def isWriteRestricted: Boolean =
-      configRepository
-        .getConfigWithKey(ConfigKey.LearningpathWriteRestricted)
-        .map(_.value)
-        .collectFirst { case domain.config.BooleanValue(value) => value }
-        .getOrElse(false)
-
-    def isMyNDLAWriteRestricted: Boolean =
-      configRepository
-        .getConfigWithKey(ConfigKey.MyNDLAWriteRestricted)
-        .map(_.value)
-        .collectFirst { case domain.config.BooleanValue(value) => value }
-        .getOrElse(false)
-
-    def getMyNDLAEnabledOrgs: Try[List[String]] = {
-      Try {
-        configRepository
-          .getConfigWithKey(ConfigKey.ArenaEnabledOrgs)
-          .map(_.value)
-          .collectFirst { case domain.config.StringListValue(value) => value }
-          .getOrElse(List.empty)
-      }
-    }
-
-    def getConfig(configKey: ConfigKey): Try[api.config.ConfigMetaRestricted] = {
-      configRepository.getConfigWithKey(configKey) match {
-        case None      => Failure(NotFoundException(s"Configuration with key $configKey does not exist"))
-        case Some(key) => Success(converterService.asApiConfigRestricted(key))
-      }
-    }
-
     def canWriteNow(userInfo: TokenUser): Boolean =
-      userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
+      userInfo.canWriteDuringWriteRestriction || !configService.isWriteRestricted
 
-    def getAllResources(
-        size: Int,
-        feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[List[api.Resource]] = {
-      for {
-        feideId            <- feideApiClient.getFeideID(feideAccessToken)
-        resources          <- folderRepository.resourcesWithFeideId(feideId, size)
-        convertedResources <- converterService.domainToApiModel(resources, converterService.toApiResource)
-      } yield convertedResources
-    }
-
-    private def createFavorite(
-        feideId: domain.FeideID
-    ): Try[domain.Folder] = {
-      val favoriteFolder = domain.NewFolderData(
-        parentId = None,
-        name = FavoriteFolderDefaultName,
-        status = domain.FolderStatus.PRIVATE,
-        rank = 1.some,
-        description = None
-      )
-      folderRepository.insertFolder(feideId, favoriteFolder)
-    }
-
-    def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.Breadcrumb]] = {
-      @tailrec
-      def getParentRecursively(folder: domain.Folder, crumbs: List[api.Breadcrumb]): Try[List[api.Breadcrumb]] = {
-        folder.parentId match {
-          case None => Success(crumbs)
-          case Some(parentId) =>
-            folderRepository.folderWithId(parentId) match {
-              case Failure(ex) => Failure(ex)
-              case Success(p) =>
-                val newCrumb = api.Breadcrumb(
-                  id = p.id.toString,
-                  name = p.name
-                )
-                getParentRecursively(p, newCrumb +: crumbs)
-            }
-        }
-      }
-
-      getParentRecursively(folder, List.empty) match {
-        case Failure(ex) => Failure(ex)
-        case Success(value) =>
-          val newCrumb = api.Breadcrumb(
-            id = folder.id.toString,
-            name = folder.name
-          )
-          Success(value :+ newCrumb)
-      }
-    }
-
-    def getSingleFolder(
-        id: UUID,
-        includeSubfolders: Boolean,
-        includeResources: Boolean,
-        feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.Folder] = {
-      implicit val session: DBSession = folderRepository.getSession(true)
-      for {
-        feideId           <- feideApiClient.getFeideID(feideAccessToken)
-        folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
-        _                 <- folderWithContent.isOwner(feideId)
-        feideUser         <- userRepository.userWithFeideId(folderWithContent.feideId)
-        breadcrumbs       <- getBreadcrumbs(folderWithContent)
-        converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs, feideUser)
-      } yield converted
-    }
-
-    private[service] def mergeWithFavorite(folders: List[domain.Folder], feideId: FeideID): Try[List[domain.Folder]] = {
-      for {
-        favorite <- if (folders.isEmpty) createFavorite(feideId).map(_.some) else Success(None)
-        combined = favorite.toList ++ folders
-      } yield combined
-    }
-
-    private def withResources(folderId: UUID, shouldIncludeResources: Boolean)(implicit
-        session: DBSession
-    ): Try[domain.Folder] = folderRepository
-      .folderWithId(folderId)
-      .flatMap(folder => {
-        val folderResources =
-          if (shouldIncludeResources) folderRepository.getFolderResources(folderId)
-          else Success(List.empty)
-
-        folderResources.map(res => folder.copy(resources = res))
-      })
-
-    def getSingleFolderWithContent(
-        folderId: UUID,
-        includeSubfolders: Boolean,
-        includeResources: Boolean
-    )(implicit session: DBSession): Try[domain.Folder] = {
-      val folderWithContent = (includeSubfolders, includeResources) match {
-        case (true, true)                    => folderRepository.getFolderAndChildrenSubfoldersWithResources(folderId)
-        case (true, false)                   => folderRepository.getFolderAndChildrenSubfolders(folderId)
-        case (false, shouldIncludeResources) => withResources(folderId, shouldIncludeResources).map(_.some)
-      }
-
-      getWith404IfNone(folderId, folderWithContent)
-    }
-
-    def getWith404IfNone(folderId: UUID, maybeFolder: Try[Option[domain.Folder]]): Try[domain.Folder] = {
-      maybeFolder match {
-        case Failure(ex)           => Failure(ex)
-        case Success(Some(folder)) => Success(folder)
-        case Success(None)         => Failure(NotFoundException(s"Folder with id $folderId does not exist"))
-      }
-    }
-
-    private def getSubfolders(
-        folders: List[domain.Folder],
-        includeSubfolders: Boolean,
-        includeResources: Boolean
-    )(implicit session: DBSession): Try[List[domain.Folder]] =
-      folders
-        .traverse(f => getSingleFolderWithContent(f.id, includeSubfolders, includeResources))
-
-    private def withFeideId[T](maybeToken: Option[FeideAccessToken])(func: FeideID => Try[T]): Try[T] =
-      feideApiClient.getFeideID(maybeToken).flatMap(feideId => func(feideId))
-
-    def getFolders(
-        includeSubfolders: Boolean,
-        includeResources: Boolean,
-        feideAccessToken: Option[FeideAccessToken]
-    ): Try[List[api.Folder]] = {
-      withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, _))
-    }
-
-    private def getFoldersAuthenticated(
-        includeSubfolders: Boolean,
-        includeResources: Boolean,
-        feideId: FeideID
-    ): Try[List[api.Folder]] = {
-      implicit val session: DBSession = folderRepository.getSession(true)
-      for {
-        topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
-        withFavorite <- mergeWithFavorite(topFolders, feideId)
-        withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
-        feideUser    <- userRepository.userWithFeideId(feideId)
-        apiFolders <- converterService.domainToApiModel(
-          withData,
-          v => converterService.toApiFolder(v, List(api.Breadcrumb(id = v.id.toString, name = v.name)), feideUser)
-        )
-        sorted = apiFolders.sortBy(_.rank)
-      } yield sorted
-    }
-
-    def getSharedFolder(id: UUID, maybeFeideToken: Option[FeideAccessToken]): Try[api.Folder] = {
-      implicit val session: DBSession = folderRepository.getSession(true)
-
-      for {
-        feideId <- maybeFeideToken.traverse(token => feideApiClient.getFeideID(Some(token)))
-        folderWithResources <- folderRepository.getFolderAndChildrenSubfoldersWithResources(
-          id,
-          FolderStatus.SHARED,
-          feideId
-        )
-        folderWithContent <- getWith404IfNone(id, Success(folderWithResources))
-        _ <-
-          if (folderWithContent.isShared || folderWithContent.feideId == feideId.getOrElse(None)) Success(())
-          else Failure(NotFoundException("Folder does not exist"))
-        folderAsTopFolder = folderWithContent.copy(parentId = None)
-        breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
-        feideUser   <- userRepository.userWithFeideId(folderWithContent.feideId)
-        converted   <- converterService.toApiFolder(folderAsTopFolder, breadcrumbs, feideUser)
-      } yield converted
-    }
-
-    private def toDomainGroups(feideGroups: Seq[FeideGroup]): Seq[domain.MyNDLAGroup] = {
-      feideGroups
-        .filter(group => group.`type` == FeideGroup.FC_ORG)
-        .map(feideGroup =>
-          domain.MyNDLAGroup(
-            id = feideGroup.id,
-            displayName = feideGroup.displayName,
-            isPrimarySchool = feideGroup.membership.primarySchool.getOrElse(false),
-            parentId = feideGroup.parent
-          )
-        )
-    }
-
-    private def createMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
-        session: DBSession
-    ): Try[domain.MyNDLAUser] = {
-      for {
-        feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
-        organization          <- feideApiClient.getOrganization(feideAccessToken)
-        feideGroups           <- feideApiClient.getFeideGroups(feideAccessToken)
-        newUser = domain
-          .MyNDLAUserDocument(
-            favoriteSubjects = Seq.empty,
-            userRole = if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
-            lastUpdated = clock.now().plusDays(1),
-            organization = organization,
-            groups = toDomainGroups(feideGroups),
-            username = feideExtendedUserData.username,
-            email = feideExtendedUserData.email,
-            arenaEnabled = false,
-            shareName = false,
-            displayName = feideExtendedUserData.displayName
-          )
-        inserted <- userRepository.insertUser(feideId, newUser)(session)
-      } yield inserted
-    }
-
-    private def fetchDataAndUpdateMyNDLAUser(
-        feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken],
-        userData: domain.MyNDLAUser
-    )(implicit
-        session: DBSession
-    ): Try[domain.MyNDLAUser] = {
-      val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
-      val organization = feideApiClient.getOrganization(feideAccessToken).?
-      val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
-      val updatedMyNDLAUser = domain.MyNDLAUser(
-        id = userData.id,
-        feideId = userData.feideId,
-        favoriteSubjects = userData.favoriteSubjects,
-        userRole = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
-        lastUpdated = clock.now().plusDays(1),
-        organization = organization,
-        groups = toDomainGroups(feideGroups),
-        username = feideUser.username,
-        email = feideUser.email,
-        arenaEnabled = userData.arenaEnabled,
-        shareName = userData.shareName,
-        displayName = feideUser.displayName
-      )
-      userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
-    }
-
-    def getOrCreateMyNDLAUserIfNotExist(
-        feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken]
-    )(implicit session: DBSession): Try[domain.MyNDLAUser] = {
-      userRepository.userWithFeideId(feideId)(session).flatMap {
-        case None =>
-          createMyNDLAUser(feideId, feideAccessToken)(session)
-        case Some(userData) =>
-          if (userData.wasUpdatedLast24h) Success(userData)
-          else fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
-      }
-    }
-
-    private def getFeideUserDataAuthenticated(
-        feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.MyNDLAUser] =
-      for {
-        user <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
-        orgs <- readService.getMyNDLAEnabledOrgs
-      } yield converterService.toApiUserData(user, orgs)
-
-    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
-      for {
-        feideId  <- feideApiClient.getFeideID(feideAccessToken)
-        userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
-        orgs     <- readService.getMyNDLAEnabledOrgs
-        api = converterService.toApiUserData(userData, orgs)
-      } yield api
-    }
-
-    def getStats: Option[Stats] = {
-      implicit val session: DBSession = folderRepository.getSession(true)
-      val groupedResources            = folderRepository.numberOfResourcesGrouped()
-      val favouritedResources         = groupedResources.map(gr => ResourceStats(gr._2, gr._1))
-      for {
-        numberOfUsers         <- userRepository.numberOfUsers()
-        numberOfFolders       <- folderRepository.numberOfFolders()
-        numberOfResources     <- folderRepository.numberOfResources()
-        numberOfTags          <- folderRepository.numberOfTags()
-        numberOfSubjects      <- userRepository.numberOfFavouritedSubjects()
-        numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
-        stats = Stats(
-          numberOfUsers,
-          numberOfFolders,
-          numberOfResources,
-          numberOfTags,
-          numberOfSubjects,
-          numberOfSharedFolders,
-          favouritedResources
-        )
-      } yield stats
-    }
   }
 }

@@ -9,11 +9,13 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits._
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.learningpathapi.integration.DataSource
-import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport, ValidationError}
+import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ValidationError}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.service.ConverterService
+import no.ndla.myndla.model.domain.{FolderStatus, InvalidStatusException}
+import no.ndla.myndla.service.FolderConverterService
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -26,7 +28,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 trait NdlaController {
-  this: DataSource with ErrorHelpers with ConverterService with NdlaSwaggerSupport =>
+  this: DataSource with ErrorHelpers with ConverterService with FolderConverterService with NdlaSwaggerSupport =>
 
   abstract class NdlaController extends NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
@@ -55,8 +57,6 @@ trait NdlaController {
         BadRequest(body = ValidationError(VALIDATION, VALIDATION_DESCRIPTION, messages = v.errors))
       case a: AccessDeniedException =>
         Forbidden(body = Error(ACCESS_DENIED, a.getMessage))
-      case dfe: DeleteFavoriteException =>
-        BadRequest(body = Error(DELETE_FAVORITE, dfe.getMessage))
       case _: OptimisticLockException =>
         Conflict(body = Error(RESOURCE_OUTDATED, RESOURCE_OUTDATED_DESCRIPTION))
       case nfe: NotFoundException =>
@@ -71,7 +71,6 @@ trait NdlaController {
         InternalServerError(body = IndexMissingError)
       case i: ElasticIndexingException =>
         InternalServerError(body = Error(GENERIC, i.getMessage))
-      case ir: ImportReport => UnprocessableEntity(body = ir)
       case _: PSQLException =>
         DataSource.connectToDatabase()
         InternalServerError(DatabaseUnavailableError)
@@ -88,12 +87,12 @@ trait NdlaController {
 
     def uuidParam(paramName: String)(implicit request: HttpServletRequest): Try[UUID] = {
       val maybeParam = paramOrNone(paramName)(request)
-      converterService.toUUIDValidated(maybeParam, paramName)
+      folderConverterService.toUUIDValidated(maybeParam, paramName)
     }
 
     def uuidParamOrNone(paramName: String)(implicit request: HttpServletRequest): Try[Option[UUID]] = {
       paramOrNone(paramName)(request) match {
-        case Some(param) => converterService.toUUIDValidated(Some(param), paramName).map(_.some)
+        case Some(param) => folderConverterService.toUUIDValidated(Some(param), paramName).map(_.some)
         case None        => Success(None)
       }
     }

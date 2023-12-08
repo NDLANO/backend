@@ -8,15 +8,17 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.{Error, Stats}
+import no.ndla.learningpathapi.model.api.Error
 import no.ndla.learningpathapi.service.ReadService
+import no.ndla.myndla.model.api.Stats
+import no.ndla.myndla.service.FolderReadService
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 import org.scalatra.{NotFound, Ok}
 
 trait StatsController {
-  this: ReadService with NdlaController with Props with NdlaSwaggerSupport =>
+  this: ReadService with NdlaController with Props with NdlaSwaggerSupport with FolderReadService =>
   val statsController: StatsController
 
   class StatsController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
@@ -40,7 +42,7 @@ trait StatsController {
           .responseMessages(response404, response500, response502)
       )
     ) {
-      readService.getStats match {
+      folderReadService.getStats match {
         case Some(c) => Ok(c)
         case None    => NotFound("No stats found")
       }

@@ -9,8 +9,10 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.api.{Error, ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
+import no.ndla.learningpathapi.model.api.{Error, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
+import no.ndla.myndla.model.api.{ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser}
+import no.ndla.myndla.service.{FolderReadService, FolderWriteService, UserService}
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -20,7 +22,13 @@ import org.scalatra.swagger._
 import javax.servlet.http.HttpServletRequest
 
 trait UserController {
-  this: ReadService with UpdateService with ConverterService with NdlaController =>
+  this: ReadService
+    with UpdateService
+    with ConverterService
+    with NdlaController
+    with UserService
+    with FolderWriteService
+    with FolderReadService =>
   val userController: UserController
 
   class UserController(implicit val swagger: Swagger) extends NdlaController {
@@ -60,7 +68,7 @@ trait UserController {
           .authorizations("oauth2")
       )
     ) {
-      readService.getMyNDLAUserData(requestFeideToken)
+      userService.getMyNDLAUserData(requestFeideToken)
     }: Unit
 
     patch(
@@ -78,7 +86,7 @@ trait UserController {
       )
     ) {
       val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
-      updateService.updateMyNDLAUserData(updatedUserData, requestFeideToken)
+      userService.updateMyNDLAUserData(updatedUserData, requestFeideToken)
     }: Unit
 
     patch(
@@ -98,7 +106,7 @@ trait UserController {
       requirePermissionOrAccessDeniedWithUser(LEARNINGPATH_API_ADMIN) { user =>
         val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
         val feideId         = paramOrNone(this.feideId.paramName)
-        updateService.adminUpdateMyNDLAUserData(updatedUserData, feideId, user)
+        userService.adminUpdateMyNDLAUserData(updatedUserData, feideId, user)
       }
     }: Unit
 
@@ -115,7 +123,7 @@ trait UserController {
           .authorizations("oauth2")
       )
     ) {
-      updateService.deleteAllUserData(requestFeideToken).map(_ => NoContent())
+      folderWriteService.deleteAllUserData(requestFeideToken).map(_ => NoContent())
     }: Unit
 
     get(
@@ -127,7 +135,7 @@ trait UserController {
           .parameters(asHeaderParam(feideToken))
       )
     ) {
-      readService.exportUserData(requestFeideToken)
+      folderReadService.exportUserData(requestFeideToken)
     }: Unit
 
     post(
@@ -143,7 +151,7 @@ trait UserController {
       )
     ) {
       val importBody = tryExtract[ExportedUserData](request.body)
-      importBody.flatMap(importBody => updateService.importUserData(importBody, requestFeideToken))
+      importBody.flatMap(importBody => folderWriteService.importUserData(importBody, requestFeideToken))
     }: Unit
   }
 }

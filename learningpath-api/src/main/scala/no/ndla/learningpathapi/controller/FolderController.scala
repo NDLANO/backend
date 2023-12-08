@@ -9,19 +9,19 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.api.{
-  Error,
+import no.ndla.learningpathapi.model.api.{Error, ValidationError}
+import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
+import no.ndla.myndla.model.api.{
   Folder,
   FolderSortRequest,
   NewFolder,
   NewResource,
   Resource,
   UpdatedFolder,
-  UpdatedResource,
-  ValidationError
+  UpdatedResource
 }
-import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
-import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
+import no.ndla.myndla.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
+import no.ndla.myndla.service.{FolderReadService, FolderWriteService}
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{DefaultFormats, Formats}
@@ -33,7 +33,13 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 trait FolderController {
-  this: ReadService with UpdateService with ConverterService with NdlaController with NdlaSwaggerSupport =>
+  this: ReadService
+    with UpdateService
+    with ConverterService
+    with NdlaController
+    with NdlaSwaggerSupport
+    with FolderReadService
+    with FolderWriteService =>
   val folderController: FolderController
 
   class FolderController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
@@ -92,7 +98,7 @@ trait FolderController {
     ) {
       val includeSubfolders = booleanOrDefault(this.includeSubfolders.paramName, default = false)
       val includeResources  = booleanOrDefault(this.includeResources.paramName, default = false)
-      readService.getFolders(includeSubfolders, includeResources, requestFeideToken) match {
+      folderReadService.getFolders(includeSubfolders, includeResources, requestFeideToken) match {
         case Failure(ex)      => errorHandler(ex)
         case Success(folders) => folders
       }
@@ -117,7 +123,7 @@ trait FolderController {
       uuidParam(this.folderId.paramName).flatMap(id => {
         val includeResources  = booleanOrDefault(this.includeResources.paramName, default = false)
         val includeSubfolders = booleanOrDefault(this.includeSubfolders.paramName, default = false)
-        readService.getSingleFolder(id, includeSubfolders, includeResources, requestFeideToken)
+        folderReadService.getSingleFolder(id, includeSubfolders, includeResources, requestFeideToken)
       })
     }: Unit
 
@@ -136,7 +142,7 @@ trait FolderController {
       )
     ) {
       val newFolder = extract[NewFolder](request.body)
-      updateService.newFolder(newFolder, requestFeideToken) match {
+      folderWriteService.newFolder(newFolder, requestFeideToken) match {
         case Failure(ex)     => errorHandler(ex)
         case Success(folder) => folder
       }
@@ -159,7 +165,7 @@ trait FolderController {
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => {
         val updatedFolder = extract[UpdatedFolder](request.body)
-        updateService.updateFolder(id, updatedFolder, requestFeideToken)
+        folderWriteService.updateFolder(id, updatedFolder, requestFeideToken)
       })
     }: Unit
 
@@ -179,7 +185,7 @@ trait FolderController {
     ) {
       uuidParam(this.folderId.paramName)
         .flatMap(id => {
-          updateService.deleteFolder(id, requestFeideToken)
+          folderWriteService.deleteFolder(id, requestFeideToken)
         })
         .map(_ => NoContent())
     }: Unit
@@ -203,7 +209,7 @@ trait FolderController {
         case tooSmall if tooSmall < 1 => defaultSize
         case x                        => x
       }
-      readService.getAllResources(size, requestFeideToken) match {
+      folderReadService.getAllResources(size, requestFeideToken) match {
         case Failure(ex)      => errorHandler(ex)
         case Success(folders) => folders
       }
@@ -226,7 +232,7 @@ trait FolderController {
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => {
         val newResource = extract[NewResource](request.body)
-        updateService.newFolderResourceConnection(id, newResource, requestFeideToken)
+        folderWriteService.newFolderResourceConnection(id, newResource, requestFeideToken)
       })
     }: Unit
 
@@ -247,7 +253,7 @@ trait FolderController {
     ) {
       uuidParam(this.resourceId.paramName).flatMap(id => {
         val updatedResource = extract[UpdatedResource](request.body)
-        updateService.updateResource(id, updatedResource, requestFeideToken)
+        folderWriteService.updateResource(id, updatedResource, requestFeideToken)
       })
     }: Unit
 
@@ -269,7 +275,7 @@ trait FolderController {
       uuidParam(this.folderId.paramName)
         .flatMap(folderId => {
           uuidParam(this.resourceId.paramName).flatMap(resourceId => {
-            updateService.deleteConnection(folderId, resourceId, requestFeideToken)
+            folderWriteService.deleteConnection(folderId, resourceId, requestFeideToken)
           })
         })
         .map(_ => NoContent())
@@ -288,7 +294,7 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id, requestFeideToken))
+      uuidParam(this.folderId.paramName).flatMap(id => folderReadService.getSharedFolder(id, requestFeideToken))
     }: Unit
 
     patch(
@@ -309,7 +315,7 @@ trait FolderController {
       for {
         folderId   <- uuidParam(this.folderId.paramName)
         status     <- folderStatusParam(this.folderStatus.paramName)
-        updatedIds <- updateService.changeStatusOfFolderAndItsSubfolders(folderId, status, requestFeideToken)
+        updatedIds <- folderWriteService.changeStatusOfFolderAndItsSubfolders(folderId, status, requestFeideToken)
       } yield updatedIds
     }: Unit
 
@@ -331,7 +337,7 @@ trait FolderController {
       for {
         source      <- uuidParam(this.sourceId.paramName)
         destination <- uuidParamOrNone(this.destinationId.paramName)
-        cloned      <- updateService.cloneFolder(source, destination, requestFeideToken)
+        cloned      <- folderWriteService.cloneFolder(source, destination, requestFeideToken)
       } yield cloned
     }: Unit
 
@@ -351,7 +357,7 @@ trait FolderController {
         folderId    <- uuidParam(this.folderId.paramName)
         sortRequest <- tryExtract[FolderSortRequest](request.body)
         sortObject = ResourceSorting(folderId)
-        sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
+        sorted <- folderWriteService.sortFolder(sortObject, sortRequest, requestFeideToken)
       } yield sorted
     }: Unit
 
@@ -372,7 +378,7 @@ trait FolderController {
         folderId    <- uuidParamOrNone(this.folderIdQuery.paramName)
         sortRequest <- tryExtract[FolderSortRequest](request.body)
         sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
-        sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
+        sorted <- folderWriteService.sortFolder(sortObject, sortRequest, requestFeideToken)
       } yield sorted
     }: Unit
   }

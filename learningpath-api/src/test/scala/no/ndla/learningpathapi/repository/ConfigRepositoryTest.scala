@@ -9,12 +9,12 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.myndla.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.tag.IntegrationTest
 import org.scalatest.Outcome
-import scalikejdbc.{DB, _}
+import scalikejdbc._
 
 import scala.util.{Failure, Try}
 

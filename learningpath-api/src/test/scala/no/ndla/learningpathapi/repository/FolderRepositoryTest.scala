@@ -10,9 +10,8 @@ package no.ndla.learningpathapi.repository
 import cats.implicits._
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.{DBFolderResource, Folder, FolderStatus, NewFolderData, ResourceDocument}
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
+import no.ndla.myndla.model.domain.{DBFolder, DBFolderResource, DBResource, Folder, FolderStatus, NewFolderData, ResourceDocument}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 import scalikejdbc._
@@ -21,10 +20,7 @@ import java.net.Socket
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-class FolderRepositoryTest
-    extends IntegrationSuite(EnablePostgresContainer = true)
-    with TestEnvironment
-    with DBFolderResource {
+class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
   var repository: FolderRepository          = _
@@ -299,7 +295,7 @@ class FolderRepositoryTest
 
   test("Building tree-structure of folders works as expected") {
     val base =
-      domain.Folder(
+      Folder(
         id = UUID.randomUUID(),
         feideId = "feide",
         parentId = None,
@@ -356,7 +352,7 @@ class FolderRepositoryTest
     when(clock.now()).thenReturn(created)
 
     val base =
-      domain.Folder(
+      Folder(
         id = UUID.randomUUID(),
         feideId = "feide",
         parentId = None,
@@ -371,7 +367,7 @@ class FolderRepositoryTest
         description = Some("desc")
       )
 
-    val baseNewFolderData = domain.NewFolderData(
+    val baseNewFolderData = NewFolderData(
       parentId = base.parentId,
       name = base.name,
       status = base.status,
@@ -523,7 +519,7 @@ class FolderRepositoryTest
     when(clock.now()).thenReturn(created)
 
     val base =
-      domain.Folder(
+      Folder(
         id = UUID.randomUUID(),
         feideId = "feide",
         parentId = None,
@@ -538,7 +534,7 @@ class FolderRepositoryTest
         description = None
       )
 
-    val baseNewFolderData = domain.NewFolderData(
+    val baseNewFolderData = NewFolderData(
       parentId = base.parentId,
       name = base.name,
       status = base.status,
@@ -590,7 +586,9 @@ class FolderRepositoryTest
     resultNormal should be(Success(Some(expectedResultNormal)))
 
     val resultFiltered =
-      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(ReadOnlyAutoSession)
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(
+        ReadOnlyAutoSession
+      )
     resultFiltered should be(Success(Some(expectedResultFiltered)))
   }
 

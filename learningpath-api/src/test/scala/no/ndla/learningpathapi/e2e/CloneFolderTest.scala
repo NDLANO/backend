@@ -9,9 +9,11 @@
 package no.ndla.learningpathapi.e2e
 
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.api
-import no.ndla.learningpathapi.model.domain.{Folder, FolderStatus, NewFolderData, ResourceDocument, UserRole}
+import no.ndla.learningpathapi.model.api.{Error => apiError}
+import no.ndla.myndla.model.api
 import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, UnitSuite}
+import no.ndla.myndla.model.api.Breadcrumb
+import no.ndla.myndla.model.domain.{Folder, FolderStatus, NewFolderData, ResourceDocument, UserRole}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.eclipse.jetty.server.Server
@@ -69,6 +71,7 @@ class CloneFolderTest
 
       when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
+      when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any))
         .thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"), "email@ndla.no", Seq("email@ndla.no"))))
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
@@ -166,8 +169,7 @@ class CloneFolderTest
       name = "p_child1",
       status = "private",
       parentId = parentId,
-      breadcrumbs =
-        List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child1")),
+      breadcrumbs = List(Breadcrumb(id = customId, name = "parent"), Breadcrumb(id = customId, name = "p_child1")),
       subfolders = List.empty,
       resources = List.empty,
       rank = Some(1),
@@ -183,8 +185,7 @@ class CloneFolderTest
       name = "p_child2",
       status = "private",
       parentId = parentId,
-      breadcrumbs =
-        List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child2")),
+      breadcrumbs = List(Breadcrumb(id = customId, name = "parent"), Breadcrumb(id = customId, name = "p_child2")),
       subfolders = List.empty,
       resources = List.empty,
       rank = Some(2),
@@ -210,7 +211,7 @@ class CloneFolderTest
       name = "parent",
       status = "private",
       parentId = None,
-      breadcrumbs = List(api.Breadcrumb(id = customId, name = "parent")),
+      breadcrumbs = List(Breadcrumb(id = customId, name = "parent")),
       subfolders = List(parentChild1, parentChild2),
       resources = List(parentChild3),
       rank = Some(1),
@@ -277,8 +278,7 @@ class CloneFolderTest
       name = "p_child1",
       status = "private",
       parentId = parentId,
-      breadcrumbs =
-        List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child1")),
+      breadcrumbs = List(Breadcrumb(id = customId, name = "parent"), Breadcrumb(id = customId, name = "p_child1")),
       subfolders = List.empty,
       resources = List.empty,
       rank = Some(1),
@@ -294,8 +294,7 @@ class CloneFolderTest
       name = "p_child2",
       status = "private",
       parentId = parentId,
-      breadcrumbs =
-        List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child2")),
+      breadcrumbs = List(Breadcrumb(id = customId, name = "parent"), Breadcrumb(id = customId, name = "p_child2")),
       subfolders = List.empty,
       resources = List.empty,
       rank = Some(2),
@@ -321,7 +320,7 @@ class CloneFolderTest
       name = "parent",
       status = "private",
       parentId = None,
-      breadcrumbs = List(api.Breadcrumb(id = customId, name = "parent")),
+      breadcrumbs = List(Breadcrumb(id = customId, name = "parent")),
       subfolders = List(parentChild1, parentChild2),
       resources = List(parentChild3),
       rank = Some(1),
@@ -375,9 +374,9 @@ class CloneFolderTest
       status = "private",
       parentId = parentId,
       breadcrumbs = List(
-        api.Breadcrumb(id = customId, name = destinationFolder.name),
-        api.Breadcrumb(id = customId, name = "parent"),
-        api.Breadcrumb(id = customId, name = "p_child1")
+        Breadcrumb(id = customId, name = destinationFolder.name),
+        Breadcrumb(id = customId, name = "parent"),
+        Breadcrumb(id = customId, name = "p_child1")
       ),
       subfolders = List.empty,
       resources = List.empty,
@@ -395,9 +394,9 @@ class CloneFolderTest
       status = "private",
       parentId = parentId,
       breadcrumbs = List(
-        api.Breadcrumb(id = customId, name = destinationFolder.name),
-        api.Breadcrumb(id = customId, name = "parent"),
-        api.Breadcrumb(id = customId, name = "p_child2")
+        Breadcrumb(id = customId, name = destinationFolder.name),
+        Breadcrumb(id = customId, name = "parent"),
+        Breadcrumb(id = customId, name = "p_child2")
       ),
       subfolders = List.empty,
       resources = List.empty,
@@ -425,8 +424,8 @@ class CloneFolderTest
       status = "private",
       parentId = parentId,
       breadcrumbs = List(
-        api.Breadcrumb(id = customId, name = destinationFolder.name),
-        api.Breadcrumb(id = customId, name = "parent")
+        Breadcrumb(id = customId, name = destinationFolder.name),
+        Breadcrumb(id = customId, name = "parent")
       ),
       subfolders = List(parentChild1, parentChild2),
       resources = List(parentChild3),
@@ -469,7 +468,7 @@ class CloneFolderTest
           .readTimeout(10.seconds)
       )
 
-    val error = read[api.Error](response.body)
+    val error = read[apiError](response.body)
     error.code should be("NOT_FOUND")
     error.description should be(s"Folder with id ${wrongId.toString} does not exist")
   }
@@ -703,7 +702,7 @@ class CloneFolderTest
     )
     response.code.code should be(200)
 
-    val allFolders = learningpathApi.componentRegistry.readService
+    val allFolders = learningpathApi.componentRegistry.folderReadService
       .getFolders(
         includeSubfolders = true,
         includeResources = true,

@@ -17,6 +17,7 @@ import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
+import no.ndla.myndla.model.domain.InvalidStatusException
 import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
