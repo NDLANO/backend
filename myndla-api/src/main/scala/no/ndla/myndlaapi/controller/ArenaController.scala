@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto._
 import no.ndla.myndlaapi.Eff
-import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, Topic}
+import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewTopic, Topic}
 import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
@@ -29,6 +29,7 @@ trait ArenaController {
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "arena"
 
     import ErrorHelpers._
+    val pathCategoryId = path[Long]("categoryId").description("The category id")
 
     def getCategories: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories")
@@ -42,7 +43,7 @@ trait ArenaController {
       }
 
     def getCategory: ServerEndpoint[Any, Eff] = endpoint.get
-      .in("categories" / path[Long]("categoryId"))
+      .in("categories" / pathCategoryId)
       .summary("Get single arena category")
       .description("Get single arena category")
       .in(feideHeader)
@@ -63,10 +64,23 @@ trait ArenaController {
         arenaReadService.getTopic(topicId).handleErrorsOrOk
       }
 
+    def postTopic: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("categories" / pathCategoryId / "topics")
+      .summary("Post arena topic")
+      .description("Post arena topic")
+      .in(jsonBody[NewTopic])
+      .in(feideHeader)
+      .out(jsonBody[Topic])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .serverLogicPure { case (categoryId, newTopic, feideHeader) =>
+        arenaReadService.postTopic(categoryId, newTopic, feideHeader).handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
-      getTopic
+      getTopic,
+      postTopic
     )
   }
 
