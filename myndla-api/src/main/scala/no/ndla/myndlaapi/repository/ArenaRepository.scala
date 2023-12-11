@@ -13,6 +13,7 @@ import scala.util.Try
 import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits._
 import no.ndla.common.implicits._
+import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser}
 
 trait ArenaRepository {
@@ -20,6 +21,60 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository {
+
+    def postTopic(categoryId: Long, title: String, ownerId: Long, created: NDLADate)(implicit
+        session: DBSession
+    ): Try[domain.Topic] = Try {
+      val column = domain.Topic.column.c _
+      val inserted = withSQL {
+        insert
+          .into(domain.Topic)
+          .namedValues(
+            column("title")       -> title,
+            column("category_id") -> categoryId,
+            column("owner_id")    -> ownerId,
+            column("created")     -> created,
+            column("updated")     -> created
+          )
+      }.updateAndReturnGeneratedKey
+        .apply()
+
+      domain.Topic(
+        id = inserted,
+        ownerId = ownerId,
+        title = title,
+        category_id = categoryId,
+        created = created,
+        updated = created
+      )
+
+    }
+
+    def postPost(topicId: Long, content: String, ownerId: Long)(implicit session: DBSession): Try[domain.Post] = Try {
+      val created = NDLADate.now()
+      val column  = domain.Post.column.c _
+      val inserted = withSQL {
+        insert
+          .into(domain.Post)
+          .namedValues(
+            column("topic_id") -> topicId,
+            column("owner_id") -> ownerId,
+            column("content")  -> content,
+            column("created")  -> created,
+            column("updated")  -> created
+          )
+      }.updateAndReturnGeneratedKey
+        .apply()
+
+      domain.Post(
+        id = inserted,
+        content = content,
+        topic_id = topicId,
+        created = created,
+        updated = created,
+        ownerId = ownerId
+      )
+    }
 
     def withSession[T](func: DBSession => T): T = {
       DB.localTx { session =>
@@ -52,7 +107,7 @@ trait ArenaRepository {
         sql"""
              select ${t.resultAll}, ${p.resultAll}, ${u.resultAll}
              from ${domain.Topic.as(t)}
-             left join ${domain.Post.as(p)} ON ${p.topicId} = ${t.id}
+             left join ${domain.Post.as(p)} ON ${p.topic_id} = ${t.id}
              left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
              where ${t.id} = $topicId
            """
@@ -94,7 +149,7 @@ trait ArenaRepository {
         sql"""
              select ${t.resultAll}, ${p.resultAll}, ${u.resultAll}
              from ${domain.Topic.as(t)}
-             left join ${domain.Post.as(p)} on ${p.topicId} = ${t.id}
+             left join ${domain.Post.as(p)} on ${p.topic_id} = ${t.id}
              left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
              where ${t.category_id} = $categoryId
            """

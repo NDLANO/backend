@@ -15,7 +15,6 @@ CREATE TABLE topics (
 
 CREATE TABLE posts (
     id BIGSERIAL PRIMARY KEY,
-    title text,
     content text,
     topic_id BIGINT REFERENCES topics(id),
     owner_id BIGINT REFERENCES my_ndla_users(id),
