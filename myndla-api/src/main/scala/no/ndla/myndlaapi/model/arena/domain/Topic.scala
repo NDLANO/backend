@@ -14,8 +14,8 @@ import scala.util.Try
 
 case class Topic(
     id: Long,
+    ownerId: Int,
     title: String,
-    content: String,
     category_id: Long,
     created: NDLADate,
     updated: NDLADate
@@ -31,10 +31,10 @@ object Topic extends SQLSyntaxSupport[Topic] {
     Topic(
       id = rs.long(rn.c("id")),
       title = rs.string(rn.c("title")),
-      content = rs.string(rn.c("content")),
       category_id = rs.long(rn.c("category_id")),
       created = NDLADate.fromUtcDate(rs.localDateTime(rn.c("created"))),
-      updated = NDLADate.fromUtcDate(rs.localDateTime(rn.c("updated")))
+      updated = NDLADate.fromUtcDate(rs.localDateTime(rn.c("updated"))),
+      ownerId = rs.int(rn.c("owner_id"))
     )
   }
 }

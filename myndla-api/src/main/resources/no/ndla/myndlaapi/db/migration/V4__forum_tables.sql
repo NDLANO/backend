@@ -7,8 +7,8 @@ CREATE TABLE categories (
 CREATE TABLE topics (
     id BIGSERIAL PRIMARY KEY,
     title text,
-    content text,
     category_id BIGINT REFERENCES categories(id),
+    owner_id BIGINT REFERENCES my_ndla_users(id),
     created timestamp NOT NULL DEFAULT now(),
     updated timestamp NOT NULL DEFAULT now()
 );
@@ -18,6 +18,7 @@ CREATE TABLE posts (
     title text,
     content text,
     topic_id BIGINT REFERENCES topics(id),
+    owner_id BIGINT REFERENCES my_ndla_users(id),
     created timestamp NOT NULL DEFAULT now(),
     updated timestamp NOT NULL DEFAULT now()
 );
