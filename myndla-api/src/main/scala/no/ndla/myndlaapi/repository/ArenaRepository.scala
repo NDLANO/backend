@@ -25,7 +25,43 @@ trait ArenaRepository {
       }
     }
 
-    def getCategories(implicit session: DBSession = ReadOnlyAutoSession): Try[List[domain.Category]] = {
+    def getCategory(id: Long)(implicit session: DBSession): Try[Option[domain.Category]] = {
+      val ca = domain.Category.syntax("ca")
+      Try {
+        sql"""
+             select ${ca.resultAll}
+             from ${domain.Category.as(ca)}
+             where ${ca.id} = $id
+             """
+          .map(rs => domain.Category.fromResultSet(ca)(rs))
+          .single
+          .apply()
+          .sequence
+      }.flatten
+    }
+
+    def getTopicsForCategory(
+        categoryId: Long
+    )(implicit session: DBSession): Try[List[(domain.Topic, List[domain.Post])]] = {
+      val t = domain.Topic.syntax("t")
+      val p = domain.Post.syntax("p")
+      Try {
+        sql"""
+                 select ${t.resultAll}, ${p.resultAll}
+                 from ${domain.Topic.as(t)}
+                 left join ${domain.Post.as(p)} ON ${p.topicId} = ${t.id}
+                 where ${t.category_id} = $categoryId
+                 """
+          .one(rs => domain.Topic.fromResultSet(t.resultName)(rs))
+          .toMany(rs => domain.Post.fromResultSet(p.resultName)(rs).toOption)
+          .map((topic, posts) => topic.map(t => (t, posts.toList)))
+          .list
+          .apply()
+          .sequence
+      }.flatten
+    }
+
+    def getCategories(implicit session: DBSession): Try[List[domain.Category]] = {
       val ca = domain.Category.syntax("ca")
       Try {
         sql"""
@@ -72,7 +108,7 @@ trait ArenaRepository {
 
     def insertCategory(
         category: domain.InsertCategory
-    )(implicit session: DBSession = AutoSession): Try[domain.Category] = Try {
+    )(implicit session: DBSession): Try[domain.Category] = Try {
       val id =
         sql"""
             insert into ${domain.Category.table}
