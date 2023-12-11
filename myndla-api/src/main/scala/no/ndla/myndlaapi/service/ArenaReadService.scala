@@ -12,9 +12,7 @@ import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.api
-import no.ndla.myndlaapi.model.arena.api.CategoryWithTopics
 import no.ndla.myndlaapi.repository.ArenaRepository
-import no.ndla.network.tapir.AllErrors
 
 import scala.util.{Failure, Success, Try}
 
@@ -40,6 +38,15 @@ trait ArenaReadService {
           postCount = postsCount,
           topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) }
         )
+      }
+    }
+
+    def getTopic(topicId: Long): Try[api.Topic] = {
+      arenaRepository.withSession { session =>
+        for {
+          maybeTopic     <- arenaRepository.getTopic(topicId)(session)
+          (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+        } yield converterService.toApiTopic(topic, posts)
       }
     }
 
