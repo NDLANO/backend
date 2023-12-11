@@ -8,17 +8,41 @@
 package no.ndla.myndlaapi.service
 
 import cats.implicits._
+import no.ndla.common.errors.NotFoundException
+import no.ndla.common.implicits.OptionImplicit
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.api
+import no.ndla.myndlaapi.model.arena.api.CategoryWithTopics
 import no.ndla.myndlaapi.repository.ArenaRepository
+import no.ndla.network.tapir.AllErrors
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait ArenaReadService {
   this: FeideApiClient with ArenaRepository with ConverterService =>
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+
+    def getCategory(categoryId: Long): Try[api.CategoryWithTopics] = {
+      arenaRepository.withSession { session =>
+        for {
+          maybeCategory <- arenaRepository.getCategory(categoryId)(session)
+          category      <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
+          topics        <- arenaRepository.getTopicsForCategory(categoryId)(session)
+          topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
+          postsCount    <- arenaRepository.getPostCountForCategory(categoryId)(session)
+        } yield api.CategoryWithTopics(
+          id = categoryId,
+          title = category.title,
+          description = category.description,
+          topicCount = topicsCount,
+          postCount = postsCount,
+          topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) }
+        )
+      }
+    }
+
     def getCategories: Try[List[api.Category]] = {
       arenaRepository.withSession(session => {
         arenaRepository
