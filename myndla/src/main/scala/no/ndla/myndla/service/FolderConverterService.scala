@@ -176,10 +176,14 @@ trait FolderConverterService {
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
-        arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization),
+        arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs),
         shareName = domainUserData.shareName
       )
     }
+
+    def getArenaEnabled(userData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
+      userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization)
+
     def domainToApiModel[Domain, Api](
         domainObjects: List[Domain],
         f: Domain => Try[Api]

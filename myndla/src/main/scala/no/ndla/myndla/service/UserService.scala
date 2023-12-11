@@ -30,14 +30,22 @@ trait UserService {
   val userService: UserService
 
   class UserService {
-    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
+
+    def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
         userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+      } yield userData
+    }
+
+    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
+      for {
+        userData <- getMyNdlaUserDataDomain(feideAccessToken)
         orgs     <- configService.getMyNDLAEnabledOrgs
         api = folderConverterService.toApiUserData(userData, orgs)
       } yield api
     }
+
 
     def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,
