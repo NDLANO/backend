@@ -40,6 +40,25 @@ trait ArenaRepository {
       }.flatten
     }
 
+    def getTopic(topicId: Long)(implicit session: DBSession): Try[Option[(domain.Topic, List[domain.Post])]] = {
+      val t = domain.Topic.syntax("t")
+      val p = domain.Post.syntax("p")
+      Try {
+        sql"""
+             select ${t.resultAll}, ${p.resultAll}
+             from ${domain.Topic.as(t)}
+             left join ${domain.Post.as(p)} ON ${p.topicId} = ${t.id}
+             where ${t.id} = $topicId
+           """
+          .one(rs => domain.Topic.fromResultSet(t.resultName)(rs))
+          .toMany(rs => domain.Post.fromResultSet(p.resultName)(rs).toOption)
+          .map((topic, posts) => topic.map(t => (t, posts.toList)))
+          .single
+          .apply()
+          .sequence
+      }.flatten
+    }
+
     def getTopicsForCategory(
         categoryId: Long
     )(implicit session: DBSession): Try[List[(domain.Topic, List[domain.Post])]] = {
