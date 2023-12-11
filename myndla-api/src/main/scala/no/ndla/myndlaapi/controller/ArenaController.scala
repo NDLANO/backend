@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto._
 import no.ndla.myndlaapi.Eff
-import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics}
+import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, Topic}
 import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
@@ -52,9 +52,21 @@ trait ArenaController {
         arenaReadService.getCategory(categoryId).handleErrorsOrOk
       }
 
+    def getTopic: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("topics" / path[Long]("topicId"))
+      .summary("Get single arena topic")
+      .description("Get single arena topic")
+      .in(feideHeader)
+      .out(jsonBody[Topic])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .serverLogicPure { case (topicId, feideHeader) =>
+        arenaReadService.getTopic(topicId).handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
-      getCategory
+      getCategory,
+      getTopic
     )
   }
 
