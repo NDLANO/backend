@@ -86,6 +86,8 @@ trait UserRepository {
     def userWithFeideId(feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[MyNDLAUser]] =
       userWhere(sqls"u.feide_id=$feideId")
 
+    def userWithId(userId: Long)(implicit session: DBSession): Try[Option[MyNDLAUser]] = userWhere(sqls"u.id=$userId")
+
     private def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = Try {
       val u = DBMyNDLAUser.syntax("u")
       sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"

@@ -12,6 +12,8 @@ import scalikejdbc._
 import scala.util.Try
 import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits._
+import no.ndla.common.implicits._
+import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser}
 
 trait ArenaRepository {
 
@@ -40,40 +42,68 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getTopic(topicId: Long)(implicit session: DBSession): Try[Option[(domain.Topic, List[domain.Post])]] = {
+    def getTopic(
+        topicId: Long
+    )(implicit session: DBSession): Try[Option[(domain.Topic, List[(domain.Post, MyNDLAUser)])]] = {
       val t = domain.Topic.syntax("t")
       val p = domain.Post.syntax("p")
+      val u = DBMyNDLAUser.syntax("u")
       Try {
         sql"""
-             select ${t.resultAll}, ${p.resultAll}
+             select ${t.resultAll}, ${p.resultAll}, ${u.resultAll}
              from ${domain.Topic.as(t)}
              left join ${domain.Post.as(p)} ON ${p.topicId} = ${t.id}
+             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
              where ${t.id} = $topicId
            """
           .one(rs => domain.Topic.fromResultSet(t.resultName)(rs))
-          .toMany(rs => domain.Post.fromResultSet(p.resultName)(rs).toOption)
-          .map((topic, posts) => topic.map(t => (t, posts.toList)))
+          .toManies(
+            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
+            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption
+          )
+          .map((topic, posts, owners) => combine(topic, posts.toSeq, owners.toSeq))
           .single
           .apply()
           .sequence
       }.flatten
     }
 
+    def combine(
+        topic: Try[domain.Topic],
+        posts: Seq[domain.Post],
+        owners: Seq[MyNDLAUser]
+    ): Try[(domain.Topic, List[(domain.Post, MyNDLAUser)])] = {
+      for {
+        t <- topic
+        postsWithOwners <- posts.toList.traverse(post =>
+          owners
+            .find(_.id == post.ownerId)
+            .toTry(new RuntimeException(s"Post id ${post.id} with no owner, this seems like a data inconsistency bug."))
+            .map(owner => (post, owner))
+        )
+      } yield (t, postsWithOwners)
+    }
+
     def getTopicsForCategory(
         categoryId: Long
-    )(implicit session: DBSession): Try[List[(domain.Topic, List[domain.Post])]] = {
+    )(implicit session: DBSession): Try[List[(domain.Topic, List[(domain.Post, MyNDLAUser)])]] = {
       val t = domain.Topic.syntax("t")
       val p = domain.Post.syntax("p")
+      val u = DBMyNDLAUser.syntax("u")
       Try {
         sql"""
-                 select ${t.resultAll}, ${p.resultAll}
-                 from ${domain.Topic.as(t)}
-                 left join ${domain.Post.as(p)} ON ${p.topicId} = ${t.id}
-                 where ${t.category_id} = $categoryId
-                 """
+             select ${t.resultAll}, ${p.resultAll}, ${u.resultAll}
+             from ${domain.Topic.as(t)}
+             left join ${domain.Post.as(p)} on ${p.topicId} = ${t.id}
+             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
+             where ${t.category_id} = $categoryId
+           """
           .one(rs => domain.Topic.fromResultSet(t.resultName)(rs))
-          .toMany(rs => domain.Post.fromResultSet(p.resultName)(rs).toOption)
-          .map((topic, posts) => topic.map(t => (t, posts.toList)))
+          .toManies(
+            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
+            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption
+          )
+          .map((topic, posts, owners) => combine(topic, posts.toSeq, owners.toSeq))
           .list
           .apply()
           .sequence
@@ -86,7 +116,7 @@ trait ArenaRepository {
         sql"""
              select ${ca.resultAll}
              from ${domain.Category.as(ca)}
-             """
+           """
           .map(rs => domain.Category.fromResultSet(ca)(rs))
           .list
           .apply()
@@ -99,9 +129,9 @@ trait ArenaRepository {
         sql"""
              select count(*) from posts p
              where p.topic_id in (
-              select id
-              from topics t
-              where t.category_id = $categoryId
+               select id
+               from topics t
+               where t.category_id = $categoryId
              )
              """
           .map(rs => rs.long("count"))

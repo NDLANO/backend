@@ -14,7 +14,6 @@ import sttp.tapir.Schema.annotations.description
 case class Topic(
     @description("The topics id") id: Long,
     @description("The topics title") title: String,
-    @description("The topics content") content: String,
     @description("Count of posts in the topic") postCount: Long,
     @description("The posts in the topic") posts: List[Post],
     @description("The post creation date") created: NDLADate,

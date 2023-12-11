@@ -15,5 +15,6 @@ case class Post(
     @description("The post id") id: Long,
     @description("The post content") content: String,
     @description("The post creation date") created: NDLADate,
-    @description("The post edit date") updated: NDLADate
+    @description("The post edit date") updated: NDLADate,
+    @description("The post owner") owner: Owner
 )

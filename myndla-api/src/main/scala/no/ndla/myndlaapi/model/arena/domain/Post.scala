@@ -18,7 +18,8 @@ case class Post(
     content: String,
     topicId: Long,
     created: NDLADate,
-    updated: NDLADate
+    updated: NDLADate,
+    ownerId: Int
 )
 
 object Post extends SQLSyntaxSupport[Post] {
@@ -34,7 +35,8 @@ object Post extends SQLSyntaxSupport[Post] {
       content = rs.string(rn.c("content")),
       topicId = rs.long(rn.c("topic_id")),
       created = NDLADate.fromUtcDate(rs.localDateTime(rn.c("created"))),
-      updated = NDLADate.fromUtcDate(rs.localDateTime(rn.c("updated")))
+      updated = NDLADate.fromUtcDate(rs.localDateTime(rn.c("updated"))),
+      ownerId = rs.int(rn.c("owner_id"))
     )
   }
 }
