@@ -7,10 +7,8 @@
 
 package no.ndla.myndlaapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 class MainClass(override val props: MyNdlaApiProperties) extends NdlaTapirMain[Eff] {
   val componentRegistry = new ComponentRegistry(props)
@@ -24,23 +22,15 @@ class MainClass(override val props: MyNdlaApiProperties) extends NdlaTapirMain[E
     componentRegistry.healthController.setWarmedUp()
   }
 
-  def connectToDatabase(): Unit = {}
-
   override def beforeStart(): Unit = {
     logger.info("Starting the db migration...")
     val startDBMillis = System.currentTimeMillis()
 
-    val dataSource: Option[HikariDataSource] =
-      Option.when(props.migrateToLocalDB)(componentRegistry.DataSource.getHikariDataSource)
-    val lpDs: HikariDataSource = componentRegistry.DataSource.getLpDs
-    val ds = if (props.migrateToLocalDB) { dataSource.get }
-    else { lpDs }
-
-    ConnectionPool.singleton(new DataSourceConnectionPool(ds))
+    componentRegistry.DataSource.connectToDatabase()
 
     if (props.migrateToLocalDB) {
-      componentRegistry.migrator.migrate(dataSource.get)
-      LpMigration(props, dataSource.get, lpDs).start()
+      componentRegistry.migrator.migrate(componentRegistry.dataSource.get)
+      LpMigration(props, componentRegistry.dataSource.get, componentRegistry.lpDs).start()
       logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
     } else {
       logger.info(

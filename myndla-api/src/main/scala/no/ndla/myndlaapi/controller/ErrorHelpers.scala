@@ -32,7 +32,7 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
     case mse: InvalidStatusException =>
       ErrorBody(MISSING_STATUS, mse.getMessage, clock.now(), 400)
     case _: PSQLException =>
-//      DataSource.connectToDatabase()
+      DataSource.connectToDatabase()
       ErrorHelpers.generic
     case v: ValidationException =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), Some(v.errors), 400)

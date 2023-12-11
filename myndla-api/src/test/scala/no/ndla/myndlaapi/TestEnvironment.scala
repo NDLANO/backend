@@ -7,6 +7,7 @@
 
 package no.ndla.myndlaapi
 
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndla.service.{
@@ -82,6 +83,9 @@ trait TestEnvironment
   val folderController: FolderController             = mock[FolderController]
   val userController: UserController                 = mock[UserController]
   val statsController: StatsController               = mock[StatsController]
+
+  val dataSource = mock[Option[HikariDataSource]]
+  val lpDs       = mock[HikariDataSource]
 
   val services: List[Service[Eff]] = List.empty
 

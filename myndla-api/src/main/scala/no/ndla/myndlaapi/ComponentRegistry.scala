@@ -7,6 +7,7 @@
 
 package no.ndla.myndlaapi
 
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
@@ -85,6 +86,10 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val configService: ConfigService                   = new ConfigService
   lazy val configController: ConfigController             = new ConfigController
   lazy val statsController: StatsController               = new StatsController
+
+  override val dataSource: Option[HikariDataSource] =
+    Option.when(props.migrateToLocalDB)(DataSource.getHikariDataSource)
+  override val lpDs: HikariDataSource = DataSource.getLpDs
 
   private val swagger = new SwaggerController[Eff](
     List(
