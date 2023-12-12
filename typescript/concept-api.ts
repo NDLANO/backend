@@ -1,7 +1,5 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-import {IEditorNote} from "./image-api";
-
 export interface IAuthor {
   type: string
   name: string
@@ -131,6 +129,13 @@ export interface IDraftCopyright {
   validFrom?: string
   validTo?: string
   processed: boolean
+}
+
+export interface IEditorNote {
+  note: string
+  user: string
+  status: IStatus
+  timestamp: string
 }
 
 export interface IGlossData {
