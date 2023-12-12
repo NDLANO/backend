@@ -19,7 +19,7 @@ case class Post(
     created: NDLADate,
     updated: NDLADate,
     ownerId: Long
-)
+) extends Owned
 
 object Post extends SQLSyntaxSupport[Post] {
   override val tableName: String = "posts"

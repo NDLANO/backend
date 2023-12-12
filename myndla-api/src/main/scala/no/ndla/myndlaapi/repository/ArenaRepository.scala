@@ -21,6 +21,20 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository {
+    def getPost(postId: Long)(implicit session: DBSession): Try[Option[domain.Post]] = {
+      val p = domain.Post.syntax("p")
+      Try {
+        sql"""
+                 select ${p.resultAll}
+                 from ${domain.Post.as(p)}
+                 where ${p.id} = $postId
+             """
+          .map(rs => domain.Post.fromResultSet(p.resultName)(rs))
+          .single
+          .apply()
+          .sequence
+      }.flatten
+    }
 
     def insertTopic(categoryId: Long, title: String, ownerId: Long, created: NDLADate)(implicit
         session: DBSession
