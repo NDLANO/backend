@@ -162,6 +162,7 @@ trait UserService {
           username = feideExtendedUserData.username,
           email = feideExtendedUserData.email,
           arenaEnabled = false,
+          arenaAdmin = Some(false),
           shareName = false,
           displayName = feideExtendedUserData.displayName
         )
@@ -191,7 +192,8 @@ trait UserService {
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled,
         shareName = userData.shareName,
-        displayName = feideUser.displayName
+        displayName = feideUser.displayName,
+        arenaAdmin = userData.arenaAdmin
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }

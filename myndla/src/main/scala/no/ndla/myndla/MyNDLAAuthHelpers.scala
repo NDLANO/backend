@@ -52,10 +52,19 @@ trait MyNDLAAuthHelpers {
     implicit class authlessEndpointFeideExtension[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
       type MaybeFeideToken            = Option[FeideAccessToken]
       type PartialFeideEndpoint[F[_]] = PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
-      def requireMyNDLAUser[F[_]](requireArena: Boolean): PartialFeideEndpoint[F] = {
+      def requireMyNDLAUser[F[_]](
+          requireArena: Boolean = false,
+          requireArenaAdmin: Boolean = false
+      ): PartialFeideEndpoint[F] = {
         val newEndpoint = self.securityIn(feideOauth())
         val authFunc: Option[FeideAccessToken] => Either[AllErrors, MyNDLAUser] = { maybeToken =>
-          if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
+          if (requireArenaAdmin) {
+            userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk match {
+              case Right(user) if user.arenaAdmin.contains(true) => Right(user)
+              case Right(_)                                      => Left(ErrorHelpers.forbidden)
+              case Left(err)                                     => Left(err)
+            }
+          } else if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
           else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk
         }
         val securityLogic = (m: MonadError[F]) => (a: Option[FeideAccessToken]) => m.unit(authFunc(a))

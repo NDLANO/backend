@@ -91,7 +91,8 @@ object TestData {
     email = "",
     arenaEnabled = false,
     displayName = "",
-    shareName = false
+    shareName = false,
+    arenaAdmin = Some(false)
   )
 
 }

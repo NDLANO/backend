@@ -237,7 +237,8 @@ trait FolderConverterService {
         email = domainUserData.email,
         arenaEnabled = arenaEnabled,
         shareName = shareName,
-        displayName = domainUserData.displayName
+        displayName = domainUserData.displayName,
+        arenaAdmin = domainUserData.arenaAdmin
       )
     }
 
