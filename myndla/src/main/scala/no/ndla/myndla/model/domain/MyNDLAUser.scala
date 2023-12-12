@@ -26,6 +26,7 @@ case class MyNDLAUserDocument(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
+    arenaAdmin: Option[Boolean],
     shareName: Boolean
 ) {
   def toFullUser(
@@ -44,7 +45,8 @@ case class MyNDLAUserDocument(
       displayName = displayName,
       email = email,
       arenaEnabled = arenaEnabled,
-      shareName = shareName
+      shareName = shareName,
+      arenaAdmin = arenaAdmin
     )
   }
 }
@@ -61,6 +63,7 @@ case class MyNDLAUser(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
+    arenaAdmin: Option[Boolean],
     shareName: Boolean
 ) {
   // Keeping FEIDE and our data in sync

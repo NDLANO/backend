@@ -416,7 +416,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         email = "example@email.com",
         arenaEnabled = false,
         displayName = "Feide",
-        shareName = false
+        shareName = false,
+        arenaAdmin = Some(false)
       )
     val expectedUserData =
       api.MyNDLAUser(
@@ -456,7 +457,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
     val updatedUserData1 = api.UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None)
     val updatedUserData2 =
@@ -483,7 +485,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
     val expectedUserData2 = MyNDLAUser(
       id = 42,
@@ -504,7 +507,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
     val expectedUserData3 = MyNDLAUser(
       id = 42,
@@ -525,7 +529,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
 
     service.mergeUserData(domainUserData, updatedUserData1, None) should be(expectedUserData1)
