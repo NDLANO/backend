@@ -27,14 +27,16 @@ object Topic extends SQLSyntaxSupport[Topic] {
   def fromResultSet(sp: SyntaxProvider[Topic])(rs: WrappedResultSet): Try[Topic] =
     fromResultSet(sp.resultName)(rs)
 
-  def fromResultSet(rn: ResultName[Topic])(rs: WrappedResultSet): Try[Topic] = Try {
+  def fromResultSet(rn: ResultName[Topic])(rs: WrappedResultSet): Try[Topic] = fromResultSet(rn.c _)(rs)
+
+  def fromResultSet(colFunc: String => SQLSyntax)(rs: WrappedResultSet): Try[Topic] = Try {
     Topic(
-      id = rs.long(rn.c("id")),
-      title = rs.string(rn.c("title")),
-      category_id = rs.long(rn.c("category_id")),
-      created = NDLADate.fromUtcDate(rs.localDateTime(rn.c("created"))),
-      updated = NDLADate.fromUtcDate(rs.localDateTime(rn.c("updated"))),
-      ownerId = rs.long(rn.c("owner_id"))
+      id = rs.long(colFunc("id")),
+      title = rs.string(colFunc("title")),
+      category_id = rs.long(colFunc("category_id")),
+      created = NDLADate.fromUtcDate(rs.localDateTime(colFunc("created"))),
+      updated = NDLADate.fromUtcDate(rs.localDateTime(colFunc("updated"))),
+      ownerId = rs.long(colFunc("owner_id"))
     )
   }
 }

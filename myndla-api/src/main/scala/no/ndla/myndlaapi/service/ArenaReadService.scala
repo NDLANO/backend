@@ -16,6 +16,7 @@ import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
 import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic}
+import no.ndla.myndlaapi.model.arena.domain.MissingPostException
 import no.ndla.myndlaapi.repository.ArenaRepository
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
@@ -26,6 +27,18 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def updateTopic(topicId: Long, newTopic: NewTopic, user: MyNDLAUser)(
+        session: DBSession = AutoSession
+    ): Try[api.Topic] = {
+      val updatedTime = clock.now()
+      for {
+        maybeTopic   <- arenaRepository.getTopic(topicId)(session)
+        (_, posts)   <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+        updatedTopic <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
+        mainPostId   <- posts.headOption.map(_._1.id).toTry(MissingPostException("Could not find main post for topic"))
+        updatedPost  <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
+      } yield converterService.toApiTopic(updatedTopic, (updatedPost, user) +: posts.tail)
+    }
 
     def newCategory(newCategory: NewCategory, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
@@ -48,7 +61,7 @@ trait ArenaReadService {
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
-          topic <- arenaRepository.postTopic(categoryId, newTopic.title, user.id, created)(session)
+          topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
         } yield converterService.toApiTopic(topic, List((post, user)))
       }

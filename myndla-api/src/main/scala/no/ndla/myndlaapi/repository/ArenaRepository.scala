@@ -22,7 +22,7 @@ trait ArenaRepository {
 
   class ArenaRepository {
 
-    def postTopic(categoryId: Long, title: String, ownerId: Long, created: NDLADate)(implicit
+    def insertTopic(categoryId: Long, title: String, ownerId: Long, created: NDLADate)(implicit
         session: DBSession
     ): Try[domain.Topic] = Try {
       val column = domain.Topic.column.c _
@@ -47,7 +47,49 @@ trait ArenaRepository {
         created = created,
         updated = created
       )
+    }
 
+    def updateTopic(topicId: Long, title: String, updated: NDLADate)(implicit session: DBSession): Try[domain.Topic] =
+      Try {
+        val column = domain.Topic.column.c _
+        withSQL {
+          update(domain.Topic)
+            .set(
+              column("title")   -> title,
+              column("updated") -> updated
+            )
+            .where
+            .eq(domain.Topic.column.id, topicId)
+            .append(sqls"returning ${sqls.csv(domain.Topic.column.*)}")
+        }
+          .map(rs => domain.Topic.fromResultSet(column)(rs))
+          .single
+          .apply() match {
+          case Some(topic) => topic
+          case None        => Failure(NDLASQLException(s"This is a Bug! Updating a topic resulted in no returned row"))
+        }
+      }.flatten
+
+    def updatePost(postId: Long, content: String, updated: NDLADate)(implicit session: DBSession): Try[domain.Post] = {
+      Try {
+        val column = domain.Post.column.c _
+        withSQL {
+          update(domain.Post)
+            .set(
+              column("content") -> content,
+              column("updated") -> updated
+            )
+            .where
+            .eq(domain.Post.column.id, postId)
+            .append(sqls"returning ${sqls.csv(domain.Post.column.*)}")
+        }
+          .map(rs => domain.Post.fromResultSet(column)(rs))
+          .single
+          .apply() match {
+          case Some(post) => post
+          case None       => Failure(NDLASQLException(s"This is a Bug! Updating a post resulted in no returned row"))
+        }
+      }.flatten
     }
 
     def postPost(topicId: Long, content: String, ownerId: Long)(implicit session: DBSession): Try[domain.Post] = Try {
@@ -136,7 +178,7 @@ trait ArenaRepository {
             .toTry(new RuntimeException(s"Post id ${post.id} with no owner, this seems like a data inconsistency bug."))
             .map(owner => (post, owner))
         )
-      } yield (t, postsWithOwners)
+      } yield (t, postsWithOwners.sortBy(x => x._1.created))
     }
 
     def getTopicsForCategory(
