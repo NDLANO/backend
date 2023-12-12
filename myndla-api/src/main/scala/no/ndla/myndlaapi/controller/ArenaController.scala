@@ -77,6 +77,21 @@ trait ArenaController {
         }
       }
 
+    def getCategoryTopics: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("categories" / pathCategoryId / "topics")
+      .summary("Get single category")
+      .description("Get single category")
+      .out(jsonBody[Paginated[Topic]])
+      .in(queryPage)
+      .in(queryPageSize)
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { _ =>
+        { case (categoryId, page, pageSize) =>
+          arenaReadService.getTopicsForCategory(categoryId, page, pageSize)().handleErrorsOrOk
+        }
+      }
+
     def getTopic: ServerEndpoint[Any, Eff] = endpoint.get
       .in("topics" / pathTopicId)
       .summary("Get single topic")
@@ -190,6 +205,7 @@ trait ArenaController {
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
+      getCategoryTopics,
       getRecentTopics,
       getTopic,
       postTopic,
