@@ -32,6 +32,7 @@ trait ArenaController {
 
   class ArenaController extends Service[Eff] {
     import MyNDLAAuthHelpers.authlessEndpointFeideExtension
+    override val serviceName: String                   = "Arena"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "arena"
 
     val pathCategoryId = path[Long]("categoryId").description("The category id")
