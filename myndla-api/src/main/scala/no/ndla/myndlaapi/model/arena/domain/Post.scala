@@ -27,14 +27,17 @@ object Post extends SQLSyntaxSupport[Post] {
   def fromResultSet(sp: SyntaxProvider[Post])(rs: WrappedResultSet): Try[Post] =
     fromResultSet(sp.resultName)(rs)
 
-  def fromResultSet(rn: ResultName[Post])(rs: WrappedResultSet): Try[Post] = Try {
+  def fromResultSet(rn: ResultName[Post])(rs: WrappedResultSet): Try[Post] =
+    fromResultSet(rn.c _)(rs)
+
+  def fromResultSet(colFunc: String => SQLSyntax)(rs: WrappedResultSet): Try[Post] = Try {
     Post(
-      id = rs.long(rn.c("id")),
-      content = rs.string(rn.c("content")),
-      topic_id = rs.long(rn.c("topic_id")),
-      created = NDLADate.fromUtcDate(rs.localDateTime(rn.c("created"))),
-      updated = NDLADate.fromUtcDate(rs.localDateTime(rn.c("updated"))),
-      ownerId = rs.int(rn.c("owner_id"))
+      id = rs.long(colFunc("id")),
+      content = rs.string(colFunc("content")),
+      topic_id = rs.long(colFunc("topic_id")),
+      created = NDLADate.fromUtcDate(rs.localDateTime(colFunc("created"))),
+      updated = NDLADate.fromUtcDate(rs.localDateTime(colFunc("updated"))),
+      ownerId = rs.long(colFunc("owner_id"))
     )
   }
 }
