@@ -33,6 +33,7 @@ trait TapirErrorHelpers extends StrictLogging {
     val UNAUTHORIZED           = "UNAUTHORIZED"
     val FORBIDDEN              = "FORBIDDEN"
     val ACCESS_DENIED          = "ACCESS DENIED"
+    val MISSING_STATUS         = "INVALID_STATUS"
     val IMPORT_FAILED          = "IMPORT_FAILED"
     val FILE_TOO_BIG           = "FILE TOO BIG"
     val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"

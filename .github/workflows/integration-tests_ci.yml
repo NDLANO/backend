@@ -8,6 +8,8 @@ on:
     paths:
       - integration-tests/**
       - project/integrationtests*.scala
+      - validation/**
+      - project/validation*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - article-api/**
@@ -24,6 +26,8 @@ on:
     paths:
       - integration-tests/**
       - project/integrationtests*.scala
+      - validation/**
+      - project/validation*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - article-api/**

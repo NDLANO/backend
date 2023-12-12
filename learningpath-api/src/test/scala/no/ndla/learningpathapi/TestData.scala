@@ -13,17 +13,19 @@ import no.ndla.language.Language.DefaultLanguage
 import java.util.UUID
 import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.mapping.License.CC_BY
-import no.ndla.learningpathapi.model.{api, domain}
-import no.ndla.learningpathapi.model.domain.{
+import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep, SearchSettings, Sort}
+import no.ndla.myndla.model.domain.{
+  Folder,
   FolderStatus,
-  LearningPath,
-  LearningStep,
+  MyNDLAUser,
   NewFolderData,
+  Resource,
   ResourceDocument,
-  SearchSettings,
-  Sort
+  UserRole
 }
-import no.ndla.learningpathapi.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
+import no.ndla.myndla.model.{api => myndlaapi}
+import no.ndla.myndla.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 
 object TestData {
 
@@ -45,7 +47,7 @@ object TestData {
   val writeScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $writeScopeClientToken")
   val adminScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $adminScopeClientToken")
 
-  val testConfigMeta: ConfigMeta = domain.config.ConfigMeta(
+  val testConfigMeta: ConfigMeta = ConfigMeta(
     ConfigKey.LearningpathWriteRestricted,
     value = BooleanValue(true),
     today,
@@ -111,7 +113,7 @@ object TestData {
     status = List(domain.LearningPathStatus.PUBLISHED)
   )
 
-  val emptyDomainResource: domain.Resource = domain.Resource(
+  val emptyDomainResource: Resource = Resource(
     id = UUID.randomUUID(),
     feideId = "",
     resourceType = "",
@@ -122,12 +124,12 @@ object TestData {
     connection = None
   )
 
-  val emptyDomainFolder: domain.Folder = domain.Folder(
+  val emptyDomainFolder: Folder = Folder(
     id = UUID.randomUUID(),
     feideId = "",
     parentId = None,
     name = "",
-    status = domain.FolderStatus.PRIVATE,
+    status = FolderStatus.PRIVATE,
     subfolders = List.empty,
     resources = List.empty,
     rank = None,
@@ -150,7 +152,7 @@ object TestData {
     resourceId = "1"
   )
 
-  val emptyApiFolder: api.Folder = api.Folder(
+  val emptyApiFolder: myndlaapi.Folder = myndlaapi.Folder(
     id = "",
     name = "",
     status = "",
@@ -166,11 +168,11 @@ object TestData {
     owner = None
   )
 
-  val emptyMyNDLAUser: domain.MyNDLAUser = domain.MyNDLAUser(
+  val emptyMyNDLAUser: MyNDLAUser = MyNDLAUser(
     id = 1,
     feideId = "",
     favoriteSubjects = Seq.empty,
-    userRole = domain.UserRole.EMPLOYEE,
+    userRole = UserRole.EMPLOYEE,
     lastUpdated = today,
     organization = "",
     groups = Seq.empty,

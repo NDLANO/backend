@@ -9,9 +9,9 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.TestData._
-import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaValue}
-import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.myndla.model.api.config.{ConfigMeta, ConfigMetaValue}
+import no.ndla.myndla.model.domain.config.ConfigKey
 import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.scalatra.test.scalatest.ScalatraFunSuite
@@ -32,7 +32,7 @@ class ConfigControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("That updating config returns 200 if all is good") {
-    when(updateService.updateConfig(any[ConfigKey], any[ConfigMetaValue], any[TokenUser]))
+    when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValue], any[TokenUser]))
       .thenReturn(
         Success(
           ConfigMeta(

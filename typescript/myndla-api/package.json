@@ -1,0 +1,5 @@
+{
+  "name": "@ndla/types-backend/myndla-api",
+  "private": true,
+  "types": "../build/myndla-api.d.ts"
+}

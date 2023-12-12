@@ -7,8 +7,8 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.model.api.Stats
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.myndla.model.api.Stats
 import org.json4s.DefaultFormats
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
@@ -25,7 +25,7 @@ class StatsControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test("That getting stats returns in fact stats") {
-    when(readService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty)))
+    when(folderReadService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty)))
     get("/") {
       status should be(200)
     }

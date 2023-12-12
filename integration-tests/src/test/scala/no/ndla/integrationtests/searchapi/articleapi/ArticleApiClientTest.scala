@@ -7,7 +7,7 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
-import cats.effect.unsafe
+import cats.effect.{IO, unsafe}
 import enumeratum.Json4s
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.NDLADate
@@ -26,8 +26,7 @@ import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
@@ -71,7 +70,7 @@ class ArticleApiClientTest
 
   override def beforeAll(): Unit = {
     articleApi = new articleapi.MainClass(articleApiProperties)
-    cancelFunc = articleApi.run().unsafeRunCancelable()(unsafe.IORuntime.global)
+    cancelFunc = IO { articleApi.run() }.unsafeRunCancelable()(unsafe.IORuntime.global)
 
     blockUntil(() => {
       import sttp.client3.quick._
@@ -83,7 +82,6 @@ class ArticleApiClientTest
 
   override def afterAll(): Unit = {
     super.afterAll()
-    Await.result(cancelFunc(), 1.minutes)
   }
 
   val exampleToken =

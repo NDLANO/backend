@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.db.migration
 
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.domain.UserRole
+import no.ndla.myndla.model.domain.UserRole
 import no.ndla.network.model.FeideID
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer.ignore
@@ -17,7 +17,7 @@ import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 import java.time.LocalDateTime
 

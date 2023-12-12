@@ -7,7 +7,6 @@
 
 package no.ndla.frontpageapi
 
-import cats.effect.IO
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
@@ -30,6 +29,6 @@ class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMai
     componentRegistry.healthController.setWarmedUp()
   }
 
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] =
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
     componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

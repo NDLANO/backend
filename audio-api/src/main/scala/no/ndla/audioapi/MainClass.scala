@@ -8,7 +8,6 @@
 
 package no.ndla.audioapi
 
-import cats.effect.IO
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
@@ -33,6 +32,6 @@ class MainClass(val props: AudioApiProperties) extends NdlaTapirMain[Eff] {
     logger.info(s"Done DB Migration took ${System.currentTimeMillis() - dBstartMillis} ms")
   }
 
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] =
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
     componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

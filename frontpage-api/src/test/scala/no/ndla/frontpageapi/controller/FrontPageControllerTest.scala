@@ -7,6 +7,7 @@
 
 package no.ndla.frontpageapi.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.{errors => common}
 import no.ndla.frontpageapi.model.api
@@ -24,7 +25,7 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment {
   override val services = List(controller)
 
   override def beforeAll(): Unit = {
-    Routes.startJdkServer("FrontPageControllerTest", serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer("FrontPageControllerTest", serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 

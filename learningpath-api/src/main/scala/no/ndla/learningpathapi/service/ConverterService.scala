@@ -10,34 +10,24 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.common.{Clock, errors}
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.common.model.{api => commonApi, domain => common}
-import no.ndla.language.Language.{
-  AllLanguages,
-  UnknownLanguage,
-  findByLanguageOrBestEffort,
-  getSearchLanguage,
-  mergeLanguageFields
-}
+import no.ndla.common.{Clock, errors}
+import no.ndla.language.Language._
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.{LearningPathStatus => _, _}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.model.domain.config.ConfigMeta
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
-import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
-import java.util.UUID
-import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -52,14 +42,7 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService {
-    import props.{
-      DefaultLanguage,
-      Domain,
-      InternalImageApiUrl,
-      NdlaFrontendHost,
-      NdlaFrontendHostNames,
-      NdlaFrontendProtocol
-    }
+    import props._
 
     def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): EmbedUrl = {
       learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
@@ -668,255 +651,5 @@ trait ConverterService {
       }
     }
 
-    def asApiConfig(configValue: ConfigMeta): api.config.ConfigMeta = {
-      api.config.ConfigMeta(
-        configValue.key.entryName,
-        configValue.valueToEither,
-        configValue.updatedAt,
-        configValue.updatedBy
-      )
-    }
-
-    def asApiConfigRestricted(configValue: ConfigMeta): api.config.ConfigMetaRestricted = {
-      api.config.ConfigMetaRestricted(
-        key = configValue.key.entryName,
-        value = configValue.valueToEither
-      )
-    }
-
-    def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
-      val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
-      maybeUUID match {
-        case Some(Success(uuid)) => Success(uuid)
-        case _ =>
-          Failure(
-            ValidationException(
-              paramName,
-              s"Invalid value for $paramName. Only UUID's allowed."
-            )
-          )
-      }
-    }
-
-    def toNewFolderData(
-        newFolder: api.NewFolder,
-        parentId: Option[UUID],
-        newRank: Option[Int]
-    ): Try[domain.NewFolderData] = {
-      val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
-
-      Success(
-        NewFolderData(
-          parentId = parentId,
-          name = newFolder.name,
-          status = newStatus,
-          rank = newRank,
-          description = newFolder.description
-        )
-      )
-    }
-
-    def toApiFolder(
-        domainFolder: domain.Folder,
-        breadcrumbs: List[api.Breadcrumb],
-        feideUser: Option[domain.MyNDLAUser]
-    ): Try[api.Folder] = {
-      def loop(
-          folder: domain.Folder,
-          crumbs: List[api.Breadcrumb],
-          feideUser: Option[domain.MyNDLAUser]
-      ): Try[api.Folder] = folder.subfolders
-        .traverse(folder => {
-          val newCrumb = api.Breadcrumb(
-            id = folder.id.toString,
-            name = folder.name
-          )
-          val newCrumbs = crumbs :+ newCrumb
-          loop(folder, newCrumbs, feideUser)
-        })
-        .flatMap(subFolders =>
-          folder.resources
-            .traverse(toApiResource)
-            .map(resources => {
-              api.Folder(
-                id = folder.id.toString,
-                name = folder.name,
-                status = folder.status.toString,
-                subfolders = subFolders.sortBy(_.rank),
-                resources = resources.sortBy(_.rank),
-                breadcrumbs = crumbs,
-                parentId = folder.parentId.map(_.toString),
-                rank = folder.rank,
-                created = folder.created,
-                updated = folder.updated,
-                shared = folder.shared,
-                description = folder.description,
-                owner = feideUser.flatMap(user => if (user.shareName) Some(Owner(user.displayName)) else None)
-              )
-            })
-        )
-
-      loop(domainFolder, breadcrumbs, feideUser)
-    }
-
-    def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
-      val name        = updated.name.getOrElse(existing.name)
-      val status      = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
-      val description = updated.description.orElse(existing.description)
-
-      val shared = (existing.status, status) match {
-        case (FolderStatus.PRIVATE, FolderStatus.SHARED) => Some(clock.now())
-        case (FolderStatus.SHARED, FolderStatus.SHARED)  => existing.shared
-        case (FolderStatus.SHARED, FolderStatus.PRIVATE) => None
-        case _                                           => None
-      }
-
-      domain.Folder(
-        id = existing.id,
-        resources = existing.resources,
-        subfolders = existing.subfolders,
-        feideId = existing.feideId,
-        parentId = existing.parentId,
-        name = name,
-        status = status,
-        rank = existing.rank,
-        created = existing.created,
-        updated = clock.now(),
-        shared = shared,
-        description = description
-      )
-    }
-
-    def mergeResource(existing: domain.Resource, updated: api.UpdatedResource): domain.Resource = {
-      val tags       = updated.tags.getOrElse(existing.tags)
-      val resourceId = updated.resourceId.getOrElse(existing.resourceId)
-
-      domain.Resource(
-        id = existing.id,
-        feideId = existing.feideId,
-        resourceType = existing.resourceType,
-        path = existing.path,
-        created = existing.created,
-        tags = tags,
-        resourceId = resourceId,
-        connection = None
-      )
-    }
-
-    def mergeResource(existing: domain.Resource, newResource: api.NewResource): domain.Resource = {
-      val tags = newResource.tags.getOrElse(existing.tags)
-
-      domain.Resource(
-        id = existing.id,
-        feideId = existing.feideId,
-        resourceType = existing.resourceType,
-        path = existing.path,
-        created = existing.created,
-        tags = tags,
-        resourceId = newResource.resourceId,
-        connection = existing.connection
-      )
-    }
-
-    def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
-      val resourceType = domainResource.resourceType
-      val path         = domainResource.path
-      val created      = domainResource.created
-      val tags         = domainResource.tags
-      val resourceId   = domainResource.resourceId
-
-      Success(
-        api.Resource(
-          id = domainResource.id.toString,
-          resourceType = resourceType,
-          path = path,
-          created = created,
-          tags = tags,
-          resourceId = resourceId,
-          rank = domainResource.connection.map(_.rank)
-        )
-      )
-    }
-
-    def toApiUserData(domainUserData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): api.MyNDLAUser = {
-      api.MyNDLAUser(
-        id = domainUserData.id,
-        feideId = domainUserData.feideId,
-        username = domainUserData.username,
-        email = domainUserData.email,
-        displayName = domainUserData.displayName,
-        favoriteSubjects = domainUserData.favoriteSubjects,
-        role = domainUserData.userRole.toString,
-        organization = domainUserData.organization,
-        groups = domainUserData.groups.map(toApiGroup),
-        arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization),
-        shareName = domainUserData.shareName
-      )
-    }
-
-    private def toApiGroup(group: domain.MyNDLAGroup): api.MyNDLAGroup = {
-      api.MyNDLAGroup(
-        id = group.id,
-        displayName = group.displayName,
-        isPrimarySchool = group.isPrimarySchool,
-        parentId = group.parentId
-      )
-    }
-
-    def mergeUserData(
-        domainUserData: domain.MyNDLAUser,
-        updatedUser: api.UpdatedMyNDLAUser,
-        user: Option[TokenUser]
-    ): domain.MyNDLAUser = {
-      val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
-      val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
-      val arenaEnabled = {
-        if (user.exists(_.hasPermission(LEARNINGPATH_API_ADMIN)))
-          updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
-        else domainUserData.arenaEnabled
-      }
-
-      domain.MyNDLAUser(
-        id = domainUserData.id,
-        feideId = domainUserData.feideId,
-        favoriteSubjects = favoriteSubjects,
-        userRole = domainUserData.userRole,
-        lastUpdated = domainUserData.lastUpdated,
-        organization = domainUserData.organization,
-        groups = domainUserData.groups,
-        username = domainUserData.username,
-        email = domainUserData.email,
-        arenaEnabled = arenaEnabled,
-        shareName = shareName,
-        displayName = domainUserData.displayName
-      )
-    }
-
-    def toDomainResource(newResource: api.NewResource): ResourceDocument = {
-      val tags = newResource.tags.getOrElse(List.empty)
-      ResourceDocument(
-        tags = tags,
-        resourceId = newResource.resourceId
-      )
-    }
-
-    def domainToApiModel[Domain, Api](
-        domainObjects: List[Domain],
-        f: Domain => Try[Api]
-    ): Try[List[Api]] = {
-
-      @tailrec
-      def loop(domainObjects: List[Domain], acc: List[Api]): Try[List[Api]] = {
-        domainObjects match {
-          case ::(head, next) =>
-            f(head) match {
-              case Failure(exception) => Failure(exception)
-              case Success(apiObject) => loop(next, acc :+ apiObject)
-            }
-          case Nil => Success(acc)
-        }
-      }
-      loop(domainObjects, List())
-    }
   }
 }

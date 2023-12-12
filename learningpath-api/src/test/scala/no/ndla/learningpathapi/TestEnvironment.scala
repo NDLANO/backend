@@ -20,24 +20,19 @@ import no.ndla.learningpathapi.controller.{
 }
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.ErrorHelpers
-import no.ndla.learningpathapi.model.domain.config.DBConfigMeta
-import no.ndla.learningpathapi.model.domain.{
-  DBFolder,
-  DBFolderResource,
-  DBLearningPath,
-  DBLearningStep,
-  DBMyNDLAUser,
-  DBResource
-}
-import no.ndla.learningpathapi.repository.{
-  ConfigRepository,
-  FolderRepository,
-  LearningPathRepositoryComponent,
-  UserRepository
-}
+import no.ndla.learningpathapi.model.domain.{DBLearningPath, DBLearningStep}
+import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation._
+import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndla.service.{
+  ConfigService,
+  FolderConverterService,
+  FolderReadService,
+  FolderWriteService,
+  UserService
+}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
@@ -48,6 +43,11 @@ trait TestEnvironment
     extends LearningpathControllerV2
     with StatsController
     with ConfigController
+    with UserService
+    with FolderConverterService
+    with FolderReadService
+    with FolderWriteService
+    with ConfigService
     with NdlaControllerBase
     with NdlaSwaggerSupport
     with LearningPathRepositoryComponent
@@ -80,11 +80,6 @@ trait TestEnvironment
     with UrlValidator
     with DBLearningPath
     with DBLearningStep
-    with DBConfigMeta
-    with DBFolder
-    with DBResource
-    with DBFolderResource
-    with DBMyNDLAUser
     with NdlaController
     with ErrorHelpers
     with Props
@@ -126,6 +121,11 @@ trait TestEnvironment
   val folderRepository: FolderRepository                               = mock[FolderRepository]
   val userRepository: UserRepository                                   = mock[UserRepository]
   val redisClient: RedisClient                                         = mock[RedisClient]
+  val userService: UserService                                         = mock[UserService]
+  val folderReadService: FolderReadService                             = mock[FolderReadService]
+  val folderWriteService: FolderWriteService                           = mock[FolderWriteService]
+  val configService: ConfigService                                     = mock[ConfigService]
+  val folderConverterService: FolderConverterService                   = mock[FolderConverterService]
 
   def resetMocks(): Unit = {
     reset(

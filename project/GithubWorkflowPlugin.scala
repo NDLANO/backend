@@ -19,7 +19,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
       taskKey[Unit]("Generate workflow yay")
 
   }
-  val workflowJavaVersion = "17"
+  val workflowJavaVersion = "20"
 
   def getSafeName(name: String): String = name.replaceAll("-", "")
 

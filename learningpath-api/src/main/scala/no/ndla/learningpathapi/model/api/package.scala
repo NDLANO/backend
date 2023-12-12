@@ -10,5 +10,4 @@ package no.ndla.learningpathapi.model
 
 package object api {
   type FeideID = String
-  val FavoriteFolderDefaultName: String = "Favoritter"
 }

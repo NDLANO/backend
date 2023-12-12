@@ -8,6 +8,7 @@
 
 package no.ndla.oembedproxy.controller
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.oembedproxy.{Eff, TestEnvironment, UnitSuite}
 import sttp.client3.quick._
@@ -20,7 +21,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
   override val services = List(controller)
   controller.setWarmedUp()
   override def beforeAll(): Unit = {
-    Routes.startJdkServer(this.getClass.getName, serverPort) {}.unsafeRunAndForget()
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
     Thread.sleep(1000)
   }
 
