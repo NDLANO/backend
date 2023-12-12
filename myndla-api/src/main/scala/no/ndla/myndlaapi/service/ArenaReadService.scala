@@ -15,7 +15,7 @@ import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.api
-import no.ndla.myndlaapi.model.arena.api.NewTopic
+import no.ndla.myndlaapi.model.arena.api.{NewPost, NewTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
 
 import scala.util.{Failure, Success, Try}
@@ -32,9 +32,17 @@ trait ArenaReadService {
           topic <- arenaRepository.postTopic(categoryId, newTopic.title, user.id, created)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
         } yield converterService.toApiTopic(topic, List((post, user)))
-
       }
     }
+
+    def postPost(topicId: Long, newPost: NewPost, user: MyNDLAUser): Try[api.Topic] =
+      arenaRepository.withSession { session =>
+        for {
+          _              <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
+          maybeTopic     <- arenaRepository.getTopic(topicId)(session)
+          (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+        } yield converterService.toApiTopic(topic, posts)
+      }
 
     def getCategory(categoryId: Long): Try[api.CategoryWithTopics] = {
       arenaRepository.withSession { session =>
@@ -55,14 +63,13 @@ trait ArenaReadService {
       }
     }
 
-    def getTopic(topicId: Long): Try[api.Topic] = {
+    def getTopic(topicId: Long): Try[api.Topic] =
       arenaRepository.withSession { session =>
         for {
           maybeTopic     <- arenaRepository.getTopic(topicId)(session)
           (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
         } yield converterService.toApiTopic(topic, posts)
       }
-    }
 
     def getCategories: Try[List[api.Category]] = {
       arenaRepository.withSession(session => {

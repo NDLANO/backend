@@ -11,7 +11,7 @@ import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
-import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewTopic, Topic}
+import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewPost, NewTopic, Topic}
 import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -35,6 +35,7 @@ trait ArenaController {
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "arena"
 
     val pathCategoryId = path[Long]("categoryId").description("The category id")
+    val pathTopicId    = path[Long]("topicId").description("The topic id")
 
     def getCategories: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories")
@@ -59,7 +60,7 @@ trait ArenaController {
       }
 
     def getTopic: ServerEndpoint[Any, Eff] = endpoint.get
-      .in("topics" / path[Long]("topicId"))
+      .in("topics" / pathTopicId)
       .summary("Get single arena topic")
       .description("Get single arena topic")
       .out(jsonBody[Topic])
@@ -83,11 +84,26 @@ trait ArenaController {
         }
       }
 
+    def postPostToTopic: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("topics" / pathTopicId / "posts")
+      .summary("Post arena post to topic")
+      .description("Post arena post to topic")
+      .in(jsonBody[NewPost])
+      .out(jsonBody[Topic])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (topicId, newPost) =>
+          arenaReadService.postPost(topicId, newPost, user).handleErrorsOrOk
+        }
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
       getTopic,
-      postTopic
+      postTopic,
+      postPostToTopic
     )
   }
 
