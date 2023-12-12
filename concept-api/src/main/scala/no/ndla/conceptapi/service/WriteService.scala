@@ -9,7 +9,6 @@ package no.ndla.conceptapi.service
 
 import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.errors.ValidationException
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
