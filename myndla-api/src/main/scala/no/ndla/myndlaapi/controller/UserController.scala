@@ -20,6 +20,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import io.circe.generic.auto._
+import no.ndla.network.model.FeideID
 
 trait UserController {
   this: ErrorHelpers with UserService with TapirErrorHelpers with FolderWriteService with FolderReadService =>
@@ -55,7 +56,7 @@ trait UserController {
       .summary("Update some one elses user data")
       .description("Update some one elses user data")
       .in("update-other-user")
-      .in(feideHeader)
+      .in(query[Option[FeideID]]("feide-id").description("FeideID of user"))
       .in(jsonBody[UpdatedMyNDLAUser])
       .out(jsonBody[MyNDLAUser])
       .errorOut(errorOutputsFor(401, 403, 404))
