@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+import {IEditorNote} from "./image-api";
+
 export interface IAuthor {
   type: string
   name: string
@@ -25,6 +27,7 @@ export interface IConcept {
   responsible?: IConceptResponsible
   conceptType: string
   glossData?: IGlossData
+  editorNotes?: IEditorNote[]
 }
 
 export interface IConceptContent {

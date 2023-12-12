@@ -9,6 +9,7 @@ package no.ndla.conceptapi.service
 
 import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.errors.ValidationException
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
@@ -119,6 +120,31 @@ trait WriteService {
       }
     }
 
+    private def updateNotes(
+        old: domain.Concept,
+        updated: api.UpdatedConcept,
+        changed: domain.Concept,
+        user: TokenUser
+    ): domain.Concept = {
+      val isNewLanguage =
+        !old.supportedLanguages.contains(updated.language) && changed.supportedLanguages.contains(updated.language)
+      val newLanguageEditorNote =
+        if (isNewLanguage) Seq(s"New language '${updated.language}' added.")
+        else Seq.empty
+
+      val changedResponsibleNote =
+        updated.responsibleId match {
+          case Right(Some(newId)) if !old.responsible.map(_.responsibleId).contains(newId) =>
+            Seq("Responsible changed")
+          case _ => Seq.empty
+        }
+      val allNewNotes = newLanguageEditorNote ++ changedResponsibleNote
+
+      changed.copy(editorNote =
+        changed.editorNote ++ allNewNotes.map(domain.EditorNote(_, user.id, changed.status, NDLADate.now()))
+      )
+    }
+
     private def updateConcept(toUpdate: domain.Concept): Try[domain.Concept] = {
       for {
         _             <- contentValidator.validateConcept(toUpdate)
@@ -133,8 +159,13 @@ trait WriteService {
           for {
             domainConcept <- converterService.toDomainConcept(existingConcept, updatedConcept, userInfo)
             withStatus    <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, userInfo)
-            updated       <- updateConcept(withStatus)
-            converted     <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
+            withNotes = updateNotes(existingConcept, updatedConcept, withStatus, userInfo)
+            updated <- updateConcept(withNotes)
+            converted <- converterService.toApiConcept(
+              updated,
+              updatedConcept.language,
+              fallback = true
+            )
           } yield converted
 
         case None if draftConceptRepository.exists(id) =>
@@ -159,6 +190,7 @@ trait WriteService {
               val tags          = existingConcept.tags.filter(_.language != language)
               val metaImage     = existingConcept.metaImage.filter(_.language != language)
               val visualElement = existingConcept.visualElement.filter(_.language != language)
+
               val newConcept = existingConcept.copy(
                 title = title,
                 content = content,
@@ -169,8 +201,18 @@ trait WriteService {
 
               for {
                 withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
-                updated    <- updateConcept(withStatus)
-                converted  <- converterService.toApiConcept(updated, Language.AllLanguages, fallback = false)
+                conceptWithUpdatedNotes = withStatus.copy(editorNote =
+                  withStatus.editorNote ++ Seq(
+                    domain.EditorNote(
+                      s"Deleted language '$language'.",
+                      userInfo.id,
+                      withStatus.status,
+                      NDLADate.now()
+                    )
+                  )
+                )
+                updated   <- updateConcept(conceptWithUpdatedNotes)
+                converted <- converterService.toApiConcept(updated, Language.AllLanguages, fallback = false)
               } yield converted
           }
         case None => Failure(NotFoundException("Concept does not exist"))
