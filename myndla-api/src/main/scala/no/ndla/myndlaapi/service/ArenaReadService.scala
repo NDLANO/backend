@@ -14,8 +14,8 @@ import no.ndla.common.implicits.OptionImplicit
 import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
-import no.ndla.myndlaapi.model.arena.api
-import no.ndla.myndlaapi.model.arena.api.{NewPost, NewTopic}
+import no.ndla.myndlaapi.model.arena.{api, domain}
+import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
 
 import scala.util.{Failure, Success, Try}
@@ -25,6 +25,15 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def newCategory(newCategory: NewCategory, user: MyNDLAUser): Try[Category] = {
+      arenaRepository.withSession { session =>
+        val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
+        arenaRepository.insertCategory(toInsert)(session).map { inserted =>
+          converterService.toApiCategory(inserted, 0, 0)
+        }
+      }
+    }
+
     def postTopic(categoryId: Long, newTopic: NewTopic, user: MyNDLAUser): Try[api.Topic] = {
       arenaRepository.withSession { session =>
         val created = clock.now()

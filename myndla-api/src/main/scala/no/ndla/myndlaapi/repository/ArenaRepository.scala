@@ -219,7 +219,7 @@ trait ArenaRepository {
               (title, description)
             values (
               ${category.title},
-              ${category.description},
+              ${category.description}
             )
            """.updateAndReturnGeneratedKey
           .apply()
