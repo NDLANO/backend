@@ -27,6 +27,7 @@ trait UserController {
   val userController: UserController
 
   class UserController extends Service[Eff] {
+    override val serviceName: String                   = "User"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "users"
 
     import ErrorHelpers._

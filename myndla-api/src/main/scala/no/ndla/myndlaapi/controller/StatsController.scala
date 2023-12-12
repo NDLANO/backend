@@ -22,6 +22,7 @@ import sttp.tapir.generic.auto._
 trait StatsController {
   this: FolderReadService with TapirErrorHelpers =>
   class StatsController extends Service[Eff] {
+    override val serviceName: String                   = "Stats"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "stats"
 
     def getStats: ServerEndpoint[Any, Eff] = endpoint.get
