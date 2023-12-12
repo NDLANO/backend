@@ -84,6 +84,20 @@ trait ArenaController {
         }
       }
 
+    def editTopic: ServerEndpoint[Any, Eff] = endpoint.put
+      .in("topics" / pathTopicId)
+      .summary("Edit a topic")
+      .description("Edit a topic")
+      .in(jsonBody[NewTopic])
+      .out(jsonBody[Topic])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (topicId, newTopic) =>
+          arenaReadService.updateTopic(topicId, newTopic, user)().handleErrorsOrOk
+        }
+      }
+
     def postPostToTopic: ServerEndpoint[Any, Eff] = endpoint.post
       .in("topics" / pathTopicId / "posts")
       .summary("Add post to topic")
@@ -131,6 +145,7 @@ trait ArenaController {
       getCategory,
       getTopic,
       postTopic,
+      editTopic,
       postPostToTopic,
       postCategory,
       updateCategory
