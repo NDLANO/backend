@@ -8,7 +8,7 @@
 package no.ndla.myndla.service
 
 import no.ndla.common.Clock
-import no.ndla.common.errors.{NotFoundException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.UserRepository
@@ -38,6 +38,15 @@ trait UserService {
       } yield userData
     }
 
+    def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
+      for {
+        userData <- getMyNdlaUserDataDomain(feideAccessToken)
+        orgs     <- configService.getMyNDLAEnabledOrgs
+        arenaEnabled = folderConverterService.getArenaEnabled(userData, orgs)
+        user <- if (arenaEnabled) Success(userData) else Failure(AccessDeniedException("User is not arena enabled"))
+      } yield user
+    }
+
     def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
       for {
         userData <- getMyNdlaUserDataDomain(feideAccessToken)
@@ -45,7 +54,6 @@ trait UserService {
         api = folderConverterService.toApiUserData(userData, orgs)
       } yield api
     }
-
 
     def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,

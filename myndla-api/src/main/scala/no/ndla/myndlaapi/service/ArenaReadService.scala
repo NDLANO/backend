@@ -11,6 +11,7 @@ import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.OptionImplicit
+import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.api
@@ -24,12 +25,10 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
-    def postTopic(categoryId: Long, newTopic: NewTopic, feideHeader: Option[String]): Try[api.Topic] = {
-      // TODO: arena enabled user?
+    def postTopic(categoryId: Long, newTopic: NewTopic, user: MyNDLAUser): Try[api.Topic] = {
       arenaRepository.withSession { session =>
+        val created = clock.now()
         for {
-          user <- userService.getMyNdlaUserDataDomain(feideHeader)
-          created = clock.now()
           topic <- arenaRepository.postTopic(categoryId, newTopic.title, user.id, created)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
         } yield converterService.toApiTopic(topic, List((post, user)))
