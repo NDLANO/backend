@@ -27,6 +27,23 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long)(
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[Paginated[api.Topic]] = {
+      val offset = (page - 1) * pageSize
+      for {
+        maybeCategory <- arenaRepository.getCategory(categoryId)(session)
+        _             <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
+        topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize)(session)
+        topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
+      } yield Paginated[api.Topic](
+        items = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) },
+        totalCount = topicsCount,
+        pageSize = pageSize,
+        page = page
+      )
+    }
+
     def getRecentTopics(page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.Topic]] = {
