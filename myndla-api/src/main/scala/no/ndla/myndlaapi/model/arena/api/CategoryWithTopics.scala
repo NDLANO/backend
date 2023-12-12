@@ -16,5 +16,7 @@ case class CategoryWithTopics(
     @description("The category's description") description: String,
     @description("Count of topics in the category") topicCount: Long,
     @description("Count of posts in the category") postCount: Long,
+    @description("Which page of topics") topicPage: Long,
+    @description("Page size of topics") topicPageSize: Long,
     @description("Topics in the category") topics: List[Topic]
 )

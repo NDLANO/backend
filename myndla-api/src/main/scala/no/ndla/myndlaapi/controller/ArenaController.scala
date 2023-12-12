@@ -48,6 +48,9 @@ trait ArenaController {
     private val pathTopicId    = path[Long]("topicId").description("The topic id")
     private val pathPostId     = path[Long]("postId").description("The post id")
 
+    private val queryPage     = query[Long]("page").default(1).validate(Validator.min(1))
+    private val queryPageSize = query[Long]("page-size").default(10).validate(Validator.inRange(1, 100))
+
     def getCategories: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories")
       .summary("Get all categories")
@@ -56,7 +59,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { _ => _ =>
-        arenaReadService.getCategories.handleErrorsOrOk
+        arenaReadService.getCategories().handleErrorsOrOk
       }
 
     def getCategory: ServerEndpoint[Any, Eff] = endpoint.get
@@ -64,10 +67,14 @@ trait ArenaController {
       .summary("Get single category")
       .description("Get single category")
       .out(jsonBody[CategoryWithTopics])
+      .in(queryPage)
+      .in(queryPageSize)
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { _ => categoryId =>
-        arenaReadService.getCategory(categoryId)().handleErrorsOrOk
+      .serverLogicPure { _ =>
+        { case (categoryId, page, pageSize) =>
+          arenaReadService.getCategory(categoryId, page, pageSize)().handleErrorsOrOk
+        }
       }
 
     def getTopic: ServerEndpoint[Any, Eff] = endpoint.get
@@ -85,8 +92,8 @@ trait ArenaController {
       .in("topics" / "recent")
       .summary("Get recent topics")
       .description("Get recent topics")
-      .in(query[Long]("page").default(1).validate(Validator.min(1)))
-      .in(query[Long]("page-size").default(10).validate(Validator.inRange(1, 100)))
+      .in(queryPage)
+      .in(queryPageSize)
       .out(jsonBody[Paginated[Topic]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)

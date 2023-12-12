@@ -241,21 +241,29 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getTopicsForCategory(
-        categoryId: Long
-    )(implicit session: DBSession): Try[List[(domain.Topic, List[(domain.Post, MyNDLAUser)])]] = {
-      val t = domain.Topic.syntax("t")
-      val p = domain.Post.syntax("p")
-      val u = DBMyNDLAUser.syntax("u")
+    def getTopicsForCategory(categoryId: Long, offset: Long, limit: Long)(implicit
+        session: DBSession
+    ): Try[List[(domain.Topic, List[(domain.Post, MyNDLAUser)])]] = {
+      val t  = domain.Topic.syntax("t")
+      val ts = SubQuery.syntax("ts").include(t)
+      val p  = domain.Post.syntax("p")
+      val u  = DBMyNDLAUser.syntax("u")
       Try {
         sql"""
-             select ${t.resultAll}, ${p.resultAll}, ${u.resultAll}
-             from ${domain.Topic.as(t)}
-             left join ${domain.Post.as(p)} on ${p.topic_id} = ${t.id}
-             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
-             where ${t.category_id} = $categoryId
+              select ${ts.resultAll}, ${p.resultAll}, ${u.resultAll}
+              from (
+                  select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
+                  from ${domain.Topic.as(t)}
+                  where ${t.category_id} = $categoryId
+                  order by newest_post_date desc nulls last
+                  limit $limit
+                  offset $offset
+                ) ts
+               left join ${domain.Post.as(p)} on ${p.topic_id} = ${ts(t).id}
+               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
+               order by newest_post_date desc nulls last
            """
-          .one(rs => domain.Topic.fromResultSet(t.resultName)(rs))
+          .one(rs => domain.Topic.fromResultSet(ts(t).resultName)(rs))
           .toManies(
             rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
             rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption
