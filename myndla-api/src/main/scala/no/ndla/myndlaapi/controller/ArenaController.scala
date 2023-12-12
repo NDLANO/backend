@@ -56,7 +56,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { _ => categoryId =>
-        arenaReadService.getCategory(categoryId).handleErrorsOrOk
+        arenaReadService.getCategory(categoryId)().handleErrorsOrOk
       }
 
     def getTopic: ServerEndpoint[Any, Eff] = endpoint.get
@@ -101,13 +101,28 @@ trait ArenaController {
     def postCategory: ServerEndpoint[Any, Eff] = endpoint.post
       .in("categories")
       .summary("Create new arena category")
+      .description("Create new arena category")
       .in(jsonBody[NewCategory])
       .out(jsonBody[Category])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (newCategory) =>
-          arenaReadService.newCategory(newCategory, user).handleErrorsOrOk
+          arenaReadService.newCategory(newCategory, user)().handleErrorsOrOk
+        }
+      }
+
+    def updateCategory: ServerEndpoint[Any, Eff] = endpoint.put
+      .in("categories" / pathCategoryId)
+      .summary("Update arena category")
+      .description("Update arena category")
+      .in(jsonBody[NewCategory])
+      .out(jsonBody[Category])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (categoryId, newCategory) =>
+          arenaReadService.updateCategory(categoryId, newCategory, user)().handleErrorsOrOk
         }
       }
 
@@ -117,7 +132,8 @@ trait ArenaController {
       getTopic,
       postTopic,
       postPostToTopic,
-      postCategory
+      postCategory,
+      updateCategory
     )
   }
 
