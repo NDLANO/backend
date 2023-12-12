@@ -11,7 +11,7 @@ import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
-import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewPost, NewTopic, Topic}
+import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewCategory, NewPost, NewTopic, Topic}
 import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -39,8 +39,8 @@ trait ArenaController {
 
     def getCategories: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories")
-      .summary("Get all arena categories")
-      .description("Get db configuration by key")
+      .summary("Get all categories")
+      .description("Get all categories")
       .out(jsonBody[List[Category]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
@@ -50,8 +50,8 @@ trait ArenaController {
 
     def getCategory: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories" / pathCategoryId)
-      .summary("Get single arena category")
-      .description("Get single arena category")
+      .summary("Get single category")
+      .description("Get single category")
       .out(jsonBody[CategoryWithTopics])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
@@ -61,8 +61,8 @@ trait ArenaController {
 
     def getTopic: ServerEndpoint[Any, Eff] = endpoint.get
       .in("topics" / pathTopicId)
-      .summary("Get single arena topic")
-      .description("Get single arena topic")
+      .summary("Get single topic")
+      .description("Get single topic")
       .out(jsonBody[Topic])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
@@ -72,8 +72,8 @@ trait ArenaController {
 
     def postTopic: ServerEndpoint[Any, Eff] = endpoint.post
       .in("categories" / pathCategoryId / "topics")
-      .summary("Post arena topic")
-      .description("Post arena topic")
+      .summary("Create new topic")
+      .description("Create new topic")
       .in(jsonBody[NewTopic])
       .out(jsonBody[Topic])
       .errorOut(errorOutputsFor(401, 403, 404))
@@ -86,8 +86,8 @@ trait ArenaController {
 
     def postPostToTopic: ServerEndpoint[Any, Eff] = endpoint.post
       .in("topics" / pathTopicId / "posts")
-      .summary("Post arena post to topic")
-      .description("Post arena post to topic")
+      .summary("Add post to topic")
+      .description("Add post to topic")
       .in(jsonBody[NewPost])
       .out(jsonBody[Topic])
       .errorOut(errorOutputsFor(401, 403, 404))
@@ -98,12 +98,26 @@ trait ArenaController {
         }
       }
 
+    def postCategory: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("categories")
+      .summary("Create new arena category")
+      .in(jsonBody[NewCategory])
+      .out(jsonBody[Category])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (newCategory) =>
+          arenaReadService.newCategory(newCategory, user).handleErrorsOrOk
+        }
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
       getTopic,
       postTopic,
-      postPostToTopic
+      postPostToTopic,
+      postCategory
     )
   }
 
