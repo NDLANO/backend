@@ -20,34 +20,52 @@ import no.ndla.myndlaapi.model.arena.domain.MissingPostException
 import no.ndla.myndlaapi.repository.ArenaRepository
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait ArenaReadService {
   this: FeideApiClient with ArenaRepository with ConverterService with UserService with Clock with ConfigService =>
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+
     def updateTopic(topicId: Long, newTopic: NewTopic, user: MyNDLAUser)(
         session: DBSession = AutoSession
     ): Try[api.Topic] = {
       val updatedTime = clock.now()
       for {
-        maybeTopic   <- arenaRepository.getTopic(topicId)(session)
-        (_, posts)   <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-        updatedTopic <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
-        mainPostId   <- posts.headOption.map(_._1.id).toTry(MissingPostException("Could not find main post for topic"))
-        updatedPost  <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
+        maybeTopic     <- arenaRepository.getTopic(topicId)(session)
+        (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+        _              <- failIfEditDisallowed(topic, user)
+        updatedTopic   <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
+        mainPostId  <- posts.headOption.map(_._1.id).toTry(MissingPostException("Could not find main post for topic"))
+        updatedPost <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
       } yield converterService.toApiTopic(updatedTopic, (updatedPost, user) +: posts.tail)
     }
 
-    def newCategory(newCategory: NewCategory, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Category] = {
+    def updatePost(postId: Long, newPost: NewPost, user: MyNDLAUser)(
+        session: DBSession = AutoSession
+    ): Try[api.Post] = {
+      val updatedTime = clock.now()
+      for {
+        maybePost   <- arenaRepository.getPost(postId)(session)
+        post        <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+        _           <- failIfEditDisallowed(post, user)
+        updatedPost <- arenaRepository.updatePost(postId, newPost.content, updatedTime)(session)
+      } yield converterService.toApiPost(updatedPost, user)
+    }
+
+    private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] =
+      if (owned.ownerId == user.id || user.arenaAdmin.contains(true)) Success(())
+      else Failure(NotFoundException("Could not find topic with id"))
+
+    def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
       arenaRepository.insertCategory(toInsert)(session).map { inserted =>
         converterService.toApiCategory(inserted, 0, 0)
       }
     }
 
-    def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
+    def updateCategory(categoryId: Long, newCategory: NewCategory)(
         session: DBSession = AutoSession
     ): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)

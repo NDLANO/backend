@@ -11,7 +11,7 @@ import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
-import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewCategory, NewPost, NewTopic, Topic}
+import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewCategory, NewPost, NewTopic, Post, Topic}
 import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -36,6 +36,7 @@ trait ArenaController {
 
     val pathCategoryId = path[Long]("categoryId").description("The category id")
     val pathTopicId    = path[Long]("topicId").description("The topic id")
+    val pathPostId     = path[Long]("postId").description("The post id")
 
     def getCategories: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories")
@@ -120,9 +121,9 @@ trait ArenaController {
       .out(jsonBody[Category])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
-      .serverLogicPure { user =>
-        { case (newCategory) =>
-          arenaReadService.newCategory(newCategory, user)().handleErrorsOrOk
+      .serverLogicPure { _ =>
+        { case newCategory =>
+          arenaReadService.newCategory(newCategory)().handleErrorsOrOk
         }
       }
 
@@ -134,9 +135,23 @@ trait ArenaController {
       .out(jsonBody[Category])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
-      .serverLogicPure { user =>
+      .serverLogicPure { _ =>
         { case (categoryId, newCategory) =>
-          arenaReadService.updateCategory(categoryId, newCategory, user)().handleErrorsOrOk
+          arenaReadService.updateCategory(categoryId, newCategory)().handleErrorsOrOk
+        }
+      }
+
+    def editPost: ServerEndpoint[Any, Eff] = endpoint.put
+      .in("posts" / pathPostId)
+      .summary("Update arena post")
+      .description("Update arena post")
+      .in(jsonBody[NewPost])
+      .out(jsonBody[Post])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (postId, newPost) =>
+          arenaReadService.updatePost(postId, newPost, user)().handleErrorsOrOk
         }
       }
 
@@ -147,6 +162,7 @@ trait ArenaController {
       postTopic,
       editTopic,
       postPostToTopic,
+      editPost,
       postCategory,
       updateCategory
     )

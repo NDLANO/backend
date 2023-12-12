@@ -19,7 +19,7 @@ case class Topic(
     category_id: Long,
     created: NDLADate,
     updated: NDLADate
-)
+) extends Owned
 
 object Topic extends SQLSyntaxSupport[Topic] {
   override val tableName: String = "topics"

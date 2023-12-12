@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.network.model.FeideAccessToken
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.model.StatusCode
