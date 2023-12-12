@@ -85,7 +85,7 @@ trait ArenaReadService {
     ): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
       for {
-        existing <- getCategory(categoryId)(session)
+        existing <- getCategory(categoryId, 0, 0)(session)
         updated  <- arenaRepository.updateCategory(categoryId, toInsert)(session)
       } yield converterService.toApiCategory(updated, existing.topicCount, existing.postCount)
     }
@@ -109,11 +109,14 @@ trait ArenaReadService {
         } yield converterService.toApiTopic(topic, posts)
       }
 
-    def getCategory(categoryId: Long)(session: DBSession = ReadOnlyAutoSession): Try[api.CategoryWithTopics] = {
+    def getCategory(categoryId: Long, page: Long, pageSize: Long)(
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[api.CategoryWithTopics] = {
+      val offset = (page - 1) * pageSize
       for {
         maybeCategory <- arenaRepository.getCategory(categoryId)(session)
         category      <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
-        topics        <- arenaRepository.getTopicsForCategory(categoryId)(session)
+        topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
         postsCount    <- arenaRepository.getPostCountForCategory(categoryId)(session)
       } yield api.CategoryWithTopics(
@@ -122,7 +125,9 @@ trait ArenaReadService {
         description = category.description,
         topicCount = topicsCount,
         postCount = postsCount,
-        topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) }
+        topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) },
+        topicPageSize = pageSize,
+        topicPage = page
       )
     }
 
@@ -134,20 +139,17 @@ trait ArenaReadService {
         } yield converterService.toApiTopic(topic, posts)
       }
 
-    def getCategories: Try[List[api.Category]] = {
-      arenaRepository.withSession(session => {
-        arenaRepository
-          .getCategories(session)
-          .flatMap(categories => {
-            categories.traverse(category => {
-              for {
-                postCount  <- arenaRepository.getPostCountForCategory(category.id)(session)
-                topicCount <- arenaRepository.getTopicCountForCategory(category.id)(session)
-              } yield converterService.toApiCategory(category, topicCount, postCount)
-            })
+    def getCategories(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
+      arenaRepository
+        .getCategories(session)
+        .flatMap(categories => {
+          categories.traverse(category => {
+            for {
+              postCount  <- arenaRepository.getPostCountForCategory(category.id)(session)
+              topicCount <- arenaRepository.getTopicCountForCategory(category.id)(session)
+            } yield converterService.toApiCategory(category, topicCount, postCount)
           })
-      })
-    }
+        })
 
   }
 }
