@@ -15,6 +15,7 @@ import cats.implicits._
 import no.ndla.common.implicits._
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
+import no.ndla.myndlaapi.model.arena.domain.{Post, Topic}
 
 trait ArenaRepository {
 
@@ -193,6 +194,51 @@ trait ArenaRepository {
             .map(owner => (post, owner))
         )
       } yield (t, postsWithOwners.sortBy(x => x._1.created))
+    }
+
+    def topicCount(implicit session: DBSession): Try[Long] = Try {
+      sql"""
+           select count(*) as count
+           from ${domain.Topic.table}
+         """
+        .map(rs => rs.long("count"))
+        .single
+        .apply()
+        .getOrElse(0L)
+    }
+
+    def getTopicsPaginated(offset: Long, limit: Long)(implicit
+        session: DBSession
+    ): Try[List[(Topic, List[(Post, MyNDLAUser)])]] = {
+
+      val t  = domain.Topic.syntax("t")
+      val ts = SubQuery.syntax("ts").include(t)
+      val p  = domain.Post.syntax("p")
+      val u  = DBMyNDLAUser.syntax("u")
+      Try {
+        sql"""
+              select ${ts.resultAll}, ${p.resultAll}, ${u.resultAll}
+              from (
+                  select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
+                  from ${domain.Topic.as(t)}
+                  order by newest_post_date desc nulls last
+                  limit $limit
+                  offset $offset
+                ) ts
+               left join ${domain.Post.as(p)} on ${p.topic_id} = ${ts(t).id}
+               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
+               order by newest_post_date desc nulls last
+           """
+          .one(rs => domain.Topic.fromResultSet(ts(t).resultName)(rs))
+          .toManies(
+            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
+            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption
+          )
+          .map((topic, posts, owners) => combine(topic, posts.toSeq, owners.toSeq))
+          .list
+          .apply()
+          .sequence
+      }.flatten
     }
 
     def getTopicsForCategory(
