@@ -10,6 +10,7 @@ package no.ndla.myndlaapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndla.service.{
   ConfigService,
@@ -70,6 +71,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with UserController
     with StatsController
     with ArenaController
+    with MyNDLAAuthHelpers
     with ArenaRepository {
   override val props: MyNdlaApiProperties = properties
 

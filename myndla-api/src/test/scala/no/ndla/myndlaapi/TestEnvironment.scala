@@ -9,6 +9,7 @@ package no.ndla.myndlaapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndla.service.{
   ConfigService,
@@ -51,6 +52,7 @@ trait TestEnvironment
     with ArenaReadService
     with ArenaRepository
     with ArenaController
+    with MyNDLAAuthHelpers
     with ConverterService
     with FolderRepository
     with FolderReadService
