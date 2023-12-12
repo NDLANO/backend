@@ -17,21 +17,31 @@ import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
 import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
+import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait ArenaReadService {
   this: FeideApiClient with ArenaRepository with ConverterService with UserService with Clock with ConfigService =>
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
-    def newCategory(newCategory: NewCategory, user: MyNDLAUser): Try[Category] = {
-      arenaRepository.withSession { session =>
-        val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
-        arenaRepository.insertCategory(toInsert)(session).map { inserted =>
-          converterService.toApiCategory(inserted, 0, 0)
-        }
+
+    def newCategory(newCategory: NewCategory, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Category] = {
+      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
+      arenaRepository.insertCategory(toInsert)(session).map { inserted =>
+        converterService.toApiCategory(inserted, 0, 0)
       }
+    }
+
+    def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
+        session: DBSession = AutoSession
+    ): Try[Category] = {
+      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
+      for {
+        existing <- getCategory(categoryId)(session)
+        updated  <- arenaRepository.updateCategory(categoryId, toInsert)(session)
+      } yield converterService.toApiCategory(updated, existing.topicCount, existing.postCount)
     }
 
     def postTopic(categoryId: Long, newTopic: NewTopic, user: MyNDLAUser): Try[api.Topic] = {
@@ -53,23 +63,21 @@ trait ArenaReadService {
         } yield converterService.toApiTopic(topic, posts)
       }
 
-    def getCategory(categoryId: Long): Try[api.CategoryWithTopics] = {
-      arenaRepository.withSession { session =>
-        for {
-          maybeCategory <- arenaRepository.getCategory(categoryId)(session)
-          category      <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
-          topics        <- arenaRepository.getTopicsForCategory(categoryId)(session)
-          topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
-          postsCount    <- arenaRepository.getPostCountForCategory(categoryId)(session)
-        } yield api.CategoryWithTopics(
-          id = categoryId,
-          title = category.title,
-          description = category.description,
-          topicCount = topicsCount,
-          postCount = postsCount,
-          topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) }
-        )
-      }
+    def getCategory(categoryId: Long)(session: DBSession = ReadOnlyAutoSession): Try[api.CategoryWithTopics] = {
+      for {
+        maybeCategory <- arenaRepository.getCategory(categoryId)(session)
+        category      <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
+        topics        <- arenaRepository.getTopicsForCategory(categoryId)(session)
+        topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
+        postsCount    <- arenaRepository.getPostCountForCategory(categoryId)(session)
+      } yield api.CategoryWithTopics(
+        id = categoryId,
+        title = category.title,
+        description = category.description,
+        topicCount = topicsCount,
+        postCount = postsCount,
+        topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) }
+      )
     }
 
     def getTopic(topicId: Long): Try[api.Topic] =

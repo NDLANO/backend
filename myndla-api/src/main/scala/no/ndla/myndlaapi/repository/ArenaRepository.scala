@@ -9,12 +9,12 @@ package no.ndla.myndlaapi.repository
 
 import scalikejdbc._
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits._
 import no.ndla.common.implicits._
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser}
+import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
 
 trait ArenaRepository {
 
@@ -224,6 +224,26 @@ trait ArenaRepository {
            """.updateAndReturnGeneratedKey
           .apply()
       category.toFull(id)
+    }
+
+    def updateCategory(categoryId: Long, category: domain.InsertCategory)(implicit
+        session: DBSession
+    ): Try[domain.Category] = Try {
+      withSQL {
+        update(domain.Category)
+          .set(
+            domain.Category.column.title       -> category.title,
+            domain.Category.column.description -> category.description
+          )
+          .where
+          .eq(domain.Category.column.id, categoryId)
+
+      }.update()
+    } match {
+      case Failure(ex)                  => Failure(ex)
+      case Success(count) if count == 1 => Success(category.toFull(categoryId))
+      case Success(count) =>
+        Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
   }
