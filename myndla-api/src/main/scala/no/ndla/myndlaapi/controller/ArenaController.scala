@@ -11,7 +11,16 @@ import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
-import no.ndla.myndlaapi.model.arena.api.{Category, CategoryWithTopics, NewCategory, NewPost, NewTopic, Post, Topic}
+import no.ndla.myndlaapi.model.arena.api.{
+  Category,
+  CategoryWithTopics,
+  NewCategory,
+  NewPost,
+  NewTopic,
+  Paginated,
+  Post,
+  Topic
+}
 import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -35,9 +44,9 @@ trait ArenaController {
     override val serviceName: String                   = "Arena"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "arena"
 
-    val pathCategoryId = path[Long]("categoryId").description("The category id")
-    val pathTopicId    = path[Long]("topicId").description("The topic id")
-    val pathPostId     = path[Long]("postId").description("The post id")
+    private val pathCategoryId = path[Long]("categoryId").description("The category id")
+    private val pathTopicId    = path[Long]("topicId").description("The topic id")
+    private val pathPostId     = path[Long]("postId").description("The post id")
 
     def getCategories: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories")
@@ -70,6 +79,21 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { _ => topicId =>
         arenaReadService.getTopic(topicId).handleErrorsOrOk
+      }
+
+    def getRecentTopics: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("topics" / "recent")
+      .summary("Get recent topics")
+      .description("Get recent topics")
+      .in(query[Long]("page").default(1).validate(Validator.min(1)))
+      .in(query[Long]("page-size").default(10).validate(Validator.inRange(1, 100)))
+      .out(jsonBody[Paginated[Topic]])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { _ =>
+        { case (page, pageSize) =>
+          arenaReadService.getRecentTopics(page, pageSize)().handleErrorsOrOk
+        }
       }
 
     def postTopic: ServerEndpoint[Any, Eff] = endpoint.post
@@ -159,6 +183,7 @@ trait ArenaController {
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
+      getRecentTopics,
       getTopic,
       postTopic,
       editTopic,
