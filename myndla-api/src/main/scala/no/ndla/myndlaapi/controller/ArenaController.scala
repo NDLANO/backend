@@ -105,7 +105,7 @@ trait ArenaController {
       .in(jsonBody[NewCategory])
       .out(jsonBody[Category])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .requireMyNDLAUser(requireArena = true)
+      .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
         { case (newCategory) =>
           arenaReadService.newCategory(newCategory, user)().handleErrorsOrOk
@@ -119,7 +119,7 @@ trait ArenaController {
       .in(jsonBody[NewCategory])
       .out(jsonBody[Category])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .requireMyNDLAUser(requireArena = true)
+      .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
         { case (categoryId, newCategory) =>
           arenaReadService.updateCategory(categoryId, newCategory, user)().handleErrorsOrOk

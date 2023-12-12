@@ -48,7 +48,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
     val updatedUserData =
       api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = Some(true))
@@ -71,7 +72,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = true
+      shareName = true,
+      arenaAdmin = Some(false)
     )
     val expected = api.MyNDLAUser(
       id = 42,
@@ -155,7 +157,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
@@ -220,7 +223,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
@@ -282,7 +286,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaAdmin = Some(false)
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
