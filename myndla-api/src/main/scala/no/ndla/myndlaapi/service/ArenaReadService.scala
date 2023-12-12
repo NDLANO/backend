@@ -15,7 +15,7 @@ import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
-import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic}
+import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic, Paginated}
 import no.ndla.myndlaapi.model.arena.domain.MissingPostException
 import no.ndla.myndlaapi.repository.ArenaRepository
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
@@ -27,6 +27,21 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def getRecentTopics(page: Long, pageSize: Long)(
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[Paginated[api.Topic]] = {
+      val offset = (page - 1) * pageSize
+      for {
+        topics      <- arenaRepository.getTopicsPaginated(offset, pageSize)(session)
+        topicsCount <- arenaRepository.topicCount(session)
+        apiTopics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) }
+      } yield Paginated[api.Topic](
+        items = apiTopics,
+        totalCount = topicsCount,
+        pageSize = pageSize,
+        page = page
+      )
+    }
 
     def updateTopic(topicId: Long, newTopic: NewTopic, user: MyNDLAUser)(
         session: DBSession = AutoSession
