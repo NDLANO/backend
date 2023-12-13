@@ -124,7 +124,6 @@ trait ConverterService {
         status = toApiStatus(editorNote.status),
         timestamp = editorNote.timestamp
       )
-
     }
 
     def toApiTags(tags: Tag) = {

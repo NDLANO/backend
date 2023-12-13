@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA concept-api.
+ * Copyright (C) 2023 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.conceptapi.model.api
 
 import no.ndla.common.model.NDLADate
