@@ -27,6 +27,13 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlag)(session: DBSession = AutoSession) = for {
+      maybePost <- arenaRepository.getPost(postId)(session)
+      _         <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+      created = clock.now()
+      _ <- arenaRepository.flagPost(user, postId, newFlag.reason, created)(session)
+    } yield ()
+
     def deleteCategory(categoryId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
       _          <- if (user.arenaAdmin.contains(true)) Success(()) else Failure(AccessDeniedException.forbidden)
       maybeTopic <- arenaRepository.getCategory(categoryId)(session)

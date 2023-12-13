@@ -15,6 +15,7 @@ import no.ndla.myndlaapi.model.arena.api.{
   Category,
   CategoryWithTopics,
   NewCategory,
+  NewFlag,
   NewPost,
   NewTopic,
   Paginated,
@@ -235,6 +236,20 @@ trait ArenaController {
         arenaReadService.deleteCategory(categoryId, user)().handleErrorsOrOk
       }
 
+    def flagPost: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("posts" / pathPostId / "flag")
+      .summary("Flag arena post")
+      .description("Flag arena post")
+      .out(emptyOutput)
+      .in(jsonBody[NewFlag])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (postId, newFlag) =>
+          arenaReadService.flagPost(postId, user, newFlag)().handleErrorsOrOk
+        }
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -247,6 +262,7 @@ trait ArenaController {
       postPostToTopic,
       editPost,
       deletePost,
+      flagPost,
       postCategory,
       updateCategory,
       deleteCategory
