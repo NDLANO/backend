@@ -22,6 +22,32 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository {
+    def resolveFlag(flagId: Long, resolveTime: NDLADate)(implicit session: DBSession): Try[Unit] = Try {
+      val count = withSQL {
+        update(domain.Flag)
+          .set(domain.Flag.column.resolved -> resolveTime)
+          .where
+          .eq(domain.Flag.column.id, flagId)
+      }.update()
+      if (count < 1) Failure(NDLASQLException(s"Resolving a flag with id '$flagId' resulted in no affected row"))
+      else Success(count)
+    }
+
+    def getFlag(flagId: Long)(implicit session: DBSession) = {
+      val f = domain.Flag.syntax("f")
+      Try {
+        sql"""
+                 select ${f.resultAll}
+                 from ${domain.Flag.as(f)}
+                 where ${f.id} = $flagId
+                 """
+          .map(rs => domain.Flag.fromResultSet(f.resultName)(rs))
+          .single
+          .apply()
+          .sequence
+      }.flatten
+    }
+
     def flagPost(flagger: MyNDLAUser, postId: Long, reason: String, created: NDLADate)(implicit
         session: DBSession
     ): Try[domain.Flag] = Try {
