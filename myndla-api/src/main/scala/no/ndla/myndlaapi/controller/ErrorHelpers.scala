@@ -14,7 +14,6 @@ import no.ndla.common.errors.{AccessDeniedException, NotFoundException, Validati
 import no.ndla.myndla.model.domain.InvalidStatusException
 import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.DataSource
-import no.ndla.myndlaapi.model.arena.domain.FlagException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
 import org.postgresql.util.PSQLException
 
@@ -24,8 +23,6 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
   import ErrorHelpers._
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
-    case fe: FlagException =>
-      ErrorBody(VALIDATION, fe.getMessage, clock.now(), 400)
     case nfe: NotFoundException =>
       ErrorBody(NOT_FOUND, nfe.getMessage, clock.now(), 404)
     case a: AccessDeniedException if a.unauthorized =>
