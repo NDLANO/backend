@@ -83,6 +83,14 @@ trait UserRepository {
       }
     }
 
+    def deleteAllUsers(implicit session: DBSession): Try[Unit] = Try {
+      sql"delete from ${DBMyNDLAUser.table}".execute(): Unit
+    }
+
+    def resetSequences(implicit session: DBSession): Try[Unit] = Try {
+      sql"alter sequence my_ndla_users_id_seq restart with 1".execute(): Unit
+    }
+
     def userWithFeideId(feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[MyNDLAUser]] =
       userWhere(sqls"u.feide_id=$feideId")
 
