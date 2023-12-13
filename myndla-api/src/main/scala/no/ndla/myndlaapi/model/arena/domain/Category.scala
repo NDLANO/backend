@@ -14,18 +14,18 @@ import scala.util.Try
 case class Category(
     id: Long,
     title: String,
-    description: String,
+    description: String
 )
 
 case class InsertCategory(
     title: String,
-    description: String,
+    description: String
 ) {
   def toFull(id: Long): Category = {
     Category(
       id = id,
       title = title,
-      description = description,
+      description = description
     )
   }
 }
@@ -40,7 +40,7 @@ object Category extends SQLSyntaxSupport[Category] {
     Category(
       id = rs.long(rn.c("id")),
       title = rs.string(rn.c("title")),
-      description = rs.string(rn.c("description")),
+      description = rs.string(rn.c("description"))
     )
   }
 

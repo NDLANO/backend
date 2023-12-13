@@ -29,19 +29,19 @@ trait ArenaReadService {
   class ArenaReadService {
 
     def resolveFlag(flagId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
-        maybeFlag <- arenaRepository.getFlag(flagId)(session)
-        _         <- maybeFlag.toTry(NotFoundException(s"Could not find flag with id $flagId"))
-        resolveTime = clock.now()
-        _         <- arenaRepository.resolveFlag(flagId, resolveTime)(session)
-
+      maybeFlag <- arenaRepository.getFlag(flagId)(session)
+      _         <- maybeFlag.toTry(NotFoundException(s"Could not find flag with id $flagId"))
+      resolveTime = clock.now()
+      _ <- arenaRepository.resolveFlag(flagId, resolveTime)(session)
     } yield ()
 
-    def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlag)(session: DBSession = AutoSession): Try[Unit] = for {
-      maybePost <- arenaRepository.getPost(postId)(session)
-      _         <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
-      created = clock.now()
-      _ <- arenaRepository.flagPost(user, postId, newFlag.reason, created)(session)
-    } yield ()
+    def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlag)(session: DBSession = AutoSession): Try[Unit] =
+      for {
+        maybePost <- arenaRepository.getPost(postId)(session)
+        _         <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+        created = clock.now()
+        _ <- arenaRepository.flagPost(user, postId, newFlag.reason, created)(session)
+      } yield ()
 
     def deleteCategory(categoryId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
       _          <- if (user.arenaAdmin.contains(true)) Success(()) else Failure(AccessDeniedException.forbidden)
@@ -59,12 +59,12 @@ trait ArenaReadService {
 
     def deletePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
       maybePost <- arenaRepository.getPost(postId)(session)
-      post      <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+      (post, _) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
       _         <- failIfEditDisallowed(post, user)
       _         <- arenaRepository.deletePost(postId)(session)
     } yield ()
 
-    def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long)(
+    def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long, user: MyNDLAUser)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.Topic]] = {
       val offset = (page - 1) * pageSize
@@ -74,21 +74,21 @@ trait ArenaReadService {
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
       } yield Paginated[api.Topic](
-        items = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) },
+        items = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts, user) },
         totalCount = topicsCount,
         pageSize = pageSize,
         page = page
       )
     }
 
-    def getRecentTopics(page: Long, pageSize: Long)(
+    def getRecentTopics(page: Long, pageSize: Long, user: MyNDLAUser)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.Topic]] = {
       val offset = (page - 1) * pageSize
       for {
         topics      <- arenaRepository.getTopicsPaginated(offset, pageSize)(session)
         topicsCount <- arenaRepository.topicCount(session)
-        apiTopics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) }
+        apiTopics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts, user) }
       } yield Paginated[api.Topic](
         items = apiTopics,
         totalCount = topicsCount,
@@ -108,7 +108,7 @@ trait ArenaReadService {
         updatedTopic   <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
         mainPostId  <- posts.headOption.map(_._1.id).toTry(MissingPostException("Could not find main post for topic"))
         updatedPost <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
-      } yield converterService.toApiTopic(updatedTopic, (updatedPost, user) +: posts.tail)
+      } yield converterService.toApiTopic(updatedTopic, (updatedPost, user, List.empty) +: posts.tail, user)
     }
 
     def updatePost(postId: Long, newPost: NewPost, user: MyNDLAUser)(
@@ -116,11 +116,12 @@ trait ArenaReadService {
     ): Try[api.Post] = {
       val updatedTime = clock.now()
       for {
-        maybePost   <- arenaRepository.getPost(postId)(session)
-        post        <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
-        _           <- failIfEditDisallowed(post, user)
-        updatedPost <- arenaRepository.updatePost(postId, newPost.content, updatedTime)(session)
-      } yield converterService.toApiPost(updatedPost, user)
+        maybePost     <- arenaRepository.getPost(postId)(session)
+        (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+        _             <- failIfEditDisallowed(post, user)
+        updatedPost   <- arenaRepository.updatePost(postId, newPost.content, updatedTime)(session)
+        flags         <- arenaRepository.getFlagsForPost(postId)(session)
+      } yield converterService.toApiPost(updatedPost, flags, owner, user)
     }
 
     private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] =
@@ -134,12 +135,12 @@ trait ArenaReadService {
       }
     }
 
-    def updateCategory(categoryId: Long, newCategory: NewCategory)(
+    def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
         session: DBSession = AutoSession
     ): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
       for {
-        existing <- getCategory(categoryId, 0, 0)(session)
+        existing <- getCategory(categoryId, 0, 0, user)(session)
         updated  <- arenaRepository.updateCategory(categoryId, toInsert)(session)
       } yield converterService.toApiCategory(updated, existing.topicCount, existing.postCount)
     }
@@ -150,7 +151,7 @@ trait ArenaReadService {
         for {
           topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
-        } yield converterService.toApiTopic(topic, List((post, user)))
+        } yield converterService.toApiTopic(topic, List((post, user, List.empty)), user)
       }
     }
 
@@ -160,10 +161,10 @@ trait ArenaReadService {
           _              <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
           maybeTopic     <- arenaRepository.getTopic(topicId)(session)
           (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-        } yield converterService.toApiTopic(topic, posts)
+        } yield converterService.toApiTopic(topic, posts, user)
       }
 
-    def getCategory(categoryId: Long, page: Long, pageSize: Long)(
+    def getCategory(categoryId: Long, page: Long, pageSize: Long, user: MyNDLAUser)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[api.CategoryWithTopics] = {
       val offset = (page - 1) * pageSize
@@ -179,18 +180,18 @@ trait ArenaReadService {
         description = category.description,
         topicCount = topicsCount,
         postCount = postsCount,
-        topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts) },
+        topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts, user) },
         topicPageSize = pageSize,
         topicPage = page
       )
     }
 
-    def getTopic(topicId: Long): Try[api.Topic] =
+    def getTopic(topicId: Long, user: MyNDLAUser): Try[api.Topic] =
       arenaRepository.withSession { session =>
         for {
           maybeTopic     <- arenaRepository.getTopic(topicId)(session)
           (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-        } yield converterService.toApiTopic(topic, posts)
+        } yield converterService.toApiTopic(topic, posts, user)
       }
 
     def getCategories(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
