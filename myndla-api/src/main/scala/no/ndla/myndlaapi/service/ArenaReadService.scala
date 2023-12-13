@@ -27,6 +27,16 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def deletePost(postId: Long, user: MyNDLAUser)(session: DBSession= AutoSession): Try[Unit] = {
+        for {
+            maybePost <- arenaRepository.getPost(postId)(session)
+            post      <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+            _         <- failIfEditDisallowed(post, user)
+            _         <- arenaRepository.deletePost(postId)(session)
+        } yield ()
+
+    }
+
     def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.Topic]] = {
