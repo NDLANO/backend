@@ -28,7 +28,7 @@ trait ArenaReadService {
 
   class ArenaReadService {
 
-    def resolveFlag(flagId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
+    def resolveFlag(flagId: Long)(session: DBSession = AutoSession): Try[Unit] = for {
       maybeFlag <- arenaRepository.getFlag(flagId)(session)
       _         <- maybeFlag.toTry(NotFoundException(s"Could not find flag with id $flagId"))
       resolveTime = clock.now()
