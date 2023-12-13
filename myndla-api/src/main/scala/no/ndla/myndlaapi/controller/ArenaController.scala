@@ -48,6 +48,7 @@ trait ArenaController {
     private val pathCategoryId = path[Long]("categoryId").description("The category id")
     private val pathTopicId    = path[Long]("topicId").description("The topic id")
     private val pathPostId     = path[Long]("postId").description("The post id")
+    private val pathFlagId     = path[Long]("flagId").description("The flag id")
 
     private val queryPage     = query[Long]("page").default(1).validate(Validator.min(1))
     private val queryPageSize = query[Long]("page-size").default(10).validate(Validator.inRange(1, 100))
@@ -250,6 +251,17 @@ trait ArenaController {
         }
       }
 
+    def resolveFlag: ServerEndpoint[Any, Eff] = endpoint.put
+      .in("flags" / pathFlagId)
+      .summary("Resolve arena flag")
+      .description("Resolve arena flag")
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArenaAdmin = true)
+      .serverLogicPure { user => flagId =>
+        arenaReadService.resolveFlag(flagId, user)().handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -263,6 +275,7 @@ trait ArenaController {
       editPost,
       deletePost,
       flagPost,
+      resolveFlag,
       postCategory,
       updateCategory,
       deleteCategory
