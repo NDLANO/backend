@@ -25,8 +25,12 @@ trait ConverterService {
       )
     }
 
-    def toApiTopic(topic: domain.Topic, posts: List[(domain.Post, MyNDLAUser)]): api.Topic = {
-      val apiPosts = posts.map{case (post, owner) => toApiPost(post, owner)}
+    def toApiTopic(
+        topic: domain.Topic,
+        posts: List[(domain.Post, MyNDLAUser, List[(domain.Flag, MyNDLAUser)])],
+        requester: MyNDLAUser
+    ): api.Topic = {
+      val apiPosts = posts.map { case (post, owner, flags) => toApiPost(post, flags, owner, requester) }
       api.Topic(
         id = topic.id,
         title = topic.title,
@@ -37,16 +41,40 @@ trait ConverterService {
       )
     }
 
-    def toApiPost(post: domain.Post, owner: MyNDLAUser): api.Post = {
+    def toOwner(user: MyNDLAUser): api.Owner = {
+      api.Owner(
+        id = user.id,
+        name = user.displayName
+      )
+    }
+
+    def toApiFlag(flag: domain.Flag, flagger: MyNDLAUser): api.Flag = {
+      api.Flag(
+        id = flag.id,
+        reason = flag.reason,
+        created = flag.created,
+        flagger = toOwner(flagger)
+      )
+    }
+
+    def toApiPost(
+        post: domain.Post,
+        flags: List[(domain.Flag, MyNDLAUser)],
+        owner: MyNDLAUser,
+        requester: MyNDLAUser
+    ): api.Post = {
+      val maybeFlags = {
+        if (requester.arenaAdmin.contains(true)) {
+          Some(flags.map { case (flag, flagger) => toApiFlag(flag, flagger) })
+        } else None
+      }
       api.Post(
         id = post.id,
         content = post.content,
         created = post.created,
         updated = post.updated,
-        owner = api.Owner(
-          id = owner.id,
-          name = owner.displayName
-        )
+        owner = toOwner(owner),
+        flags = maybeFlags
       )
     }
 

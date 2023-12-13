@@ -18,7 +18,7 @@ case class Topic(
     title: String,
     category_id: Long,
     created: NDLADate,
-    updated: NDLADate,
+    updated: NDLADate
 ) extends Owned
 
 object Topic extends SQLSyntaxSupport[Topic] {
