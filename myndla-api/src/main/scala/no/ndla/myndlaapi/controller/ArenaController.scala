@@ -213,6 +213,17 @@ trait ArenaController {
         arenaReadService.deletePost(postId, user)().handleErrorsOrOk
       }
 
+    def deleteTopic: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("topics" / pathTopicId)
+      .summary("Delete arena topic")
+      .description("Delete arena topic")
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => topicId =>
+        arenaReadService.deleteTopic(topicId, user)().handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -221,6 +232,7 @@ trait ArenaController {
       getTopic,
       postTopic,
       editTopic,
+      deleteTopic,
       postPostToTopic,
       editPost,
       deletePost,

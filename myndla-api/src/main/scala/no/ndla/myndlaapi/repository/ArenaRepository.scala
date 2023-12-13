@@ -22,6 +22,18 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository {
+    def deleteTopic(topicId: Long)(implicit session: DBSession): Try[Int] = Try {
+      val t = domain.Topic.syntax("t")
+      val count = withSQL {
+        delete
+          .from(Topic as t)
+          .where
+          .eq(t.id, topicId)
+      }.update()
+      if (count < 1) Failure(NDLASQLException(s"Deleting a topic with id '$topicId' resulted in no affected row"))
+      else Success(count)
+    }.flatten
+
     def deletePost(postId: Long)(implicit session: DBSession): Try[Int] = Try {
       val p = domain.Post.syntax("p")
       val count = withSQL {
@@ -30,7 +42,7 @@ trait ArenaRepository {
           .where
           .eq(p.id, postId)
       }.update()
-      if (count < 1) Failure(NDLASQLException(s"Deleting a post resulted in no affected row"))
+      if (count < 1) Failure(NDLASQLException(s"Deleting a post with id '$postId' resulted in no affected row"))
       else Success(count)
     }.flatten
 
