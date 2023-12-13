@@ -12,10 +12,10 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits._
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
-import no.ndla.myndlaapi.model.arena.domain.{Post, Topic}
+import no.ndla.myndlaapi.model.arena.domain.{Flag, Post, Topic}
 
 trait ArenaRepository {
 
@@ -47,9 +47,10 @@ trait ArenaRepository {
           .where
           .eq(domain.Flag.column.id, flagId)
       }.update()
+
       if (count < 1) Failure(NDLASQLException(s"Resolving a flag with id '$flagId' resulted in no affected row"))
       else Success(())
-    }
+    }.flatten
 
     def getFlag(flagId: Long)(implicit session: DBSession) = {
       val f = domain.Flag.syntax("f")
@@ -278,7 +279,7 @@ trait ArenaRepository {
              from ${domain.Topic.as(t)}
              left join ${domain.Post.as(p)} ON ${p.topic_id} = ${t.id}
              left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
-             left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
+             left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
              where ${t.id} = $topicId
            """
           .one(rs => domain.Topic.fromResultSet(t.resultName)(rs))
@@ -287,29 +288,42 @@ trait ArenaRepository {
             rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toSeq, flags.toSeq, owners.toSeq))
+          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toList, flags.toList, owners.toList))
           .single
           .apply()
           .sequence
       }.flatten
     }
 
+    def compilePost(
+        post: domain.Post,
+        owners: Seq[MyNDLAUser],
+        flags: Seq[domain.Flag]
+    ): Try[(Post, MyNDLAUser, List[(Flag, MyNDLAUser)])] = for {
+      postOwner <- owners
+        .find(_.id == post.ownerId)
+        .toTry(NDLASQLException(s"Post with id ${post.id} has no owner in result."))
+      postFlags = flags.filter(f => f.post_id == post.id)
+      flagsWithFlaggers <- postFlags.traverse(f => {
+        owners
+          .find(_.id == f.user_id)
+          .toTry(NDLASQLException(s"Flag with id ${f.id} has no flagger in result."))
+          .map(flagger => {
+            f -> flagger
+          })
+      })
+    } yield (post, postOwner, flagsWithFlaggers.toList)
+
     def compileTopic(
         topic: Try[domain.Topic],
-        posts: Seq[domain.Post],
-        flags: Seq[domain.Flag],
-        owners: Seq[MyNDLAUser]
+        posts: List[domain.Post],
+        flags: List[domain.Flag],
+        owners: List[MyNDLAUser]
     ): Try[(domain.Topic, List[(domain.Post, MyNDLAUser, List[(domain.Flag, MyNDLAUser)])])] = {
       for {
-        t <- topic
-        postsWithOwners <- posts.toList.traverse { post =>
-          // TODO: error handling would be cool
-          val owner     = owners.find(_.id == post.ownerId).get
-          val postFlags = flags.filter(_.post_id == post.id)
-          val ff        = postFlags.map(f => f -> owners.find(_.id == f.user_id).get)
-          Try((post, owner, ff.toList))
-        }
-      } yield (t, postsWithOwners.sortBy(x => x._1.created))
+        t               <- topic
+        postsWithOwners <- posts.traverse(post => compilePost(post, owners, flags))
+      } yield (t, postsWithOwners.sortBy { case (post, _, _) => post.created })
     }
 
     def topicCount(implicit session: DBSession): Try[Long] = Try {
@@ -344,7 +358,7 @@ trait ArenaRepository {
                 ) ts
                left join ${domain.Post.as(p)} on ${p.topic_id} = ${ts(t).id}
                left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
-               left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
+               left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
                order by newest_post_date desc nulls last
            """
           .one(rs => domain.Topic.fromResultSet(ts(t).resultName)(rs))
@@ -353,7 +367,7 @@ trait ArenaRepository {
             rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toSeq, flags.toSeq, owners.toSeq))
+          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toList, flags.toList, owners.toList))
           .list
           .apply()
           .sequence
@@ -380,7 +394,7 @@ trait ArenaRepository {
                   offset $offset
                 ) ts
                left join ${domain.Post.as(p)} on ${p.topic_id} = ${ts(t).id}
-               left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
+               left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
                left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} OR ${u.id} = ${f.user_id}
                order by newest_post_date desc nulls last
            """
@@ -390,7 +404,7 @@ trait ArenaRepository {
             rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toSeq, flags.toSeq, owners.toSeq))
+          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toList, flags.toList, owners.toList))
           .list
           .apply()
           .sequence
