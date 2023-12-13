@@ -258,8 +258,8 @@ trait ArenaController {
       .out(emptyOutput)
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
-      .serverLogicPure { user => flagId =>
-        arenaReadService.resolveFlag(flagId, user)().handleErrorsOrOk
+      .serverLogicPure { _ => flagId =>
+        arenaReadService.resolveFlag(flagId)().handleErrorsOrOk
       }
 
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
