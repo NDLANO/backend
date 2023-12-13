@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.service
 
 import cats.implicits._
 import no.ndla.common.Clock
-import no.ndla.common.errors.NotFoundException
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
@@ -27,15 +27,19 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
-    def deletePost(postId: Long, user: MyNDLAUser)(session: DBSession= AutoSession): Try[Unit] = {
-        for {
-            maybePost <- arenaRepository.getPost(postId)(session)
-            post      <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
-            _         <- failIfEditDisallowed(post, user)
-            _         <- arenaRepository.deletePost(postId)(session)
-        } yield ()
+    def deleteTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
+      maybeTopic <- arenaRepository.getTopic(topicId)(session)
+      (topic, _) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+      _          <- failIfEditDisallowed(topic, user)
+      _          <- arenaRepository.deleteTopic(topicId)(session)
+    } yield ()
 
-    }
+    def deletePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
+      maybePost <- arenaRepository.getPost(postId)(session)
+      post      <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+      _         <- failIfEditDisallowed(post, user)
+      _         <- arenaRepository.deletePost(postId)(session)
+    } yield ()
 
     def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
@@ -98,7 +102,7 @@ trait ArenaReadService {
 
     private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] =
       if (owned.ownerId == user.id || user.arenaAdmin.contains(true)) Success(())
-      else Failure(NotFoundException("Could not find topic with id"))
+      else Failure(AccessDeniedException.forbidden)
 
     def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
