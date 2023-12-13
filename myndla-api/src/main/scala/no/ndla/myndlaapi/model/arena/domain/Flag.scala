@@ -34,7 +34,7 @@ object Flag extends SQLSyntaxSupport[Flag] {
       post_id = rs.long(colFunc("post_id")),
       reason = rs.string(colFunc("reason")),
       created = NDLADate.fromUtcDate(rs.localDateTime(colFunc("created"))),
-      resolved = rs.localDateTimeOpt(colFunc("updated")).map(NDLADate.fromUtcDate)
+      resolved = rs.localDateTimeOpt(colFunc("resolved")).map(NDLADate.fromUtcDate)
     )
   }
 }

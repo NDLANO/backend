@@ -27,7 +27,16 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
-    def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlag)(session: DBSession = AutoSession) = for {
+
+    def resolveFlag(flagId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
+        maybeFlag <- arenaRepository.getFlag(flagId)(session)
+        _         <- maybeFlag.toTry(NotFoundException(s"Could not find flag with id $flagId"))
+        resolveTime = clock.now()
+        _         <- arenaRepository.resolveFlag(flagId, resolveTime)(session)
+
+    } yield ()
+
+    def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlag)(session: DBSession = AutoSession): Try[Unit] = for {
       maybePost <- arenaRepository.getPost(postId)(session)
       _         <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
       created = clock.now()
