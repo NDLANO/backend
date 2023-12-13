@@ -120,7 +120,7 @@ trait ConverterService {
     def toApiEditorNote(editorNote: domain.EditorNote) = {
       api.EditorNote(
         note = editorNote.note,
-        user = editorNote.user,
+        updatedBy = editorNote.user,
         status = toApiStatus(editorNote.status),
         timestamp = editorNote.timestamp
       )

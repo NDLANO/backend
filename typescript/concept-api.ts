@@ -133,7 +133,7 @@ export interface IDraftCopyright {
 
 export interface IEditorNote {
   note: string
-  user: string
+  updatedBy: string
   status: IStatus
   timestamp: string
 }
