@@ -12,16 +12,19 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits._
+import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.Clock
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
 import no.ndla.myndlaapi.model.arena.domain.{Flag, Post, Topic}
 
 trait ArenaRepository {
+  this: Clock =>
 
   val arenaRepository: ArenaRepository
 
-  class ArenaRepository {
+  class ArenaRepository extends StrictLogging {
 
     def getFlagsForPost(postId: Long)(implicit session: DBSession): Try[List[(domain.Flag, MyNDLAUser)]] = Try {
       val f = domain.Flag.syntax("f")
@@ -220,7 +223,7 @@ trait ArenaRepository {
     }
 
     def postPost(topicId: Long, content: String, ownerId: Long)(implicit session: DBSession): Try[domain.Post] = Try {
-      val created = NDLADate.now()
+      val created = clock.now()
       val column  = domain.Post.column.c _
       val inserted = withSQL {
         insert
@@ -492,5 +495,28 @@ trait ArenaRepository {
         Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
+    def deleteAllPosts(implicit session: DBSession): Try[Unit] = Try {
+      val numRows = sql"delete from ${domain.Post.table}".update()
+      logger.info(s"Deleted $numRows posts")
+    }
+
+    def deleteAllTopics(implicit session: DBSession): Try[Unit] = Try {
+      val numRows = sql"delete from ${domain.Topic.table}".update()
+      logger.info(s"Deleted $numRows topics")
+    }
+
+    def deleteAllCategories(implicit session: DBSession): Try[Unit] = Try {
+      val numRows = sql"delete from ${domain.Category.table}".update()
+      logger.info(s"Deleted $numRows categories")
+    }
+
+    def resetSequences(implicit session: DBSession): Try[Unit] = Try {
+      sql"""
+           alter sequence categories_id_seq restart with 1;
+           alter sequence topics_id_seq restart with 1;
+           alter sequence posts_id_seq restart with 1;
+           alter sequence flags_id_seq restart with 1;
+         """.execute(): Unit
+    }
   }
 }

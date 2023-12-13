@@ -17,6 +17,7 @@ import no.ndla.network.model.{FeideAccessToken, FeideID}
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession}
 
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 trait UserService {
@@ -60,11 +61,9 @@ trait UserService {
         feideAccessToken: Option[FeideAccessToken]
     )(implicit session: DBSession): Try[domain.MyNDLAUser] = {
       userRepository.userWithFeideId(feideId)(session).flatMap {
-        case None =>
-          createMyNDLAUser(feideId, feideAccessToken)(session)
-        case Some(userData) =>
-          if (userData.wasUpdatedLast24h) Success(userData)
-          else fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
+        case None                                         => createMyNDLAUser(feideId, feideAccessToken)(session)
+        case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
+        case Some(userData) => fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
       }
     }
 
@@ -146,6 +145,11 @@ trait UserService {
         )
     }
 
+    def getInitialIsArenaAdmin(@unused feideId: FeideID): Option[Boolean] = {
+      // NOTE: This exists to simplify mocking in tests until we have api user management
+      Some(false)
+    }
+
     private def createMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
         session: DBSession
     ): Try[domain.MyNDLAUser] = {
@@ -162,7 +166,7 @@ trait UserService {
           username = feideExtendedUserData.username,
           email = feideExtendedUserData.email,
           arenaEnabled = false,
-          arenaAdmin = Some(false),
+          arenaAdmin = getInitialIsArenaAdmin(feideId),
           shareName = false,
           displayName = feideExtendedUserData.displayName
         )
