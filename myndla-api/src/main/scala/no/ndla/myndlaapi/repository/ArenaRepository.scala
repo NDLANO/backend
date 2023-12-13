@@ -22,6 +22,33 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository {
+    def flagPost(flagger: MyNDLAUser, postId: Long, reason: String, created: NDLADate)(implicit
+        session: DBSession
+    ): Try[domain.Flag] = Try {
+      val column = domain.Flag.column.c _
+
+      val inserted = withSQL {
+        insert
+          .into(domain.Flag)
+          .namedValues(
+            column("user_id")  -> flagger.id,
+            column("post_id")  -> postId,
+            column("reason")   -> reason,
+            column("created")  -> created,
+            column("resolved") -> None
+          )
+      }.updateAndReturnGeneratedKey.apply()
+
+      domain.Flag(
+        id = inserted,
+        user_id = flagger.id,
+        post_id = postId,
+        reason = reason,
+        created = created,
+        resolved = None
+      )
+    }
+
     def deleteCategory(categoryId: Long)(implicit session: DBSession): Try[Int] = Try {
       val c = domain.Category.syntax("c")
       val count = withSQL {
