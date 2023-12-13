@@ -54,7 +54,7 @@ class V18__AddEditorNote extends BaseJavaMigration {
 
   private[migration] def convertToNewConcept(document: String): String = {
     val oldConcept  = parse(document)
-    val toMergeWith = JObject("editorNote" -> JArray(List.empty))
+    val toMergeWith = JObject("editorNotes" -> JArray(List.empty))
     compact(render(oldConcept.merge(toMergeWith)))
 
   }

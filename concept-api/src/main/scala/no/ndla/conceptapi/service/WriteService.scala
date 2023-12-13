@@ -141,8 +141,8 @@ trait WriteService {
         }
       val allNewNotes = newLanguageEditorNote ++ changedResponsibleNote
 
-      changed.copy(editorNote =
-        changed.editorNote ++ allNewNotes.map(domain.EditorNote(_, user.id, changed.status, clock.now()))
+      changed.copy(editorNotes =
+        changed.editorNotes ++ allNewNotes.map(domain.EditorNote(_, user.id, changed.status, clock.now()))
       )
     }
 
@@ -202,8 +202,8 @@ trait WriteService {
 
               for {
                 withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
-                conceptWithUpdatedNotes = withStatus.copy(editorNote =
-                  withStatus.editorNote ++ Seq(
+                conceptWithUpdatedNotes = withStatus.copy(editorNotes =
+                  withStatus.editorNotes ++ Seq(
                     domain.EditorNote(
                       s"Deleted language '$language'.",
                       userInfo.id,

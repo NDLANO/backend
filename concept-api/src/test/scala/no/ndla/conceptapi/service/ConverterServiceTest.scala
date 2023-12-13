@@ -262,7 +262,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       articleIds = Seq(15),
       created = today,
       updated = today,
-      editorNote = Seq(
+      editorNotes = Seq(
         domain.EditorNote(
           "Created concept",
           "",
@@ -285,7 +285,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       created = today,
       updated = today,
-      editorNote = Seq(
+      editorNotes = Seq(
         domain.EditorNote(
           "Created concept",
           "",
@@ -362,7 +362,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Seq(domain.ConceptMetaImage("1", "Hola", "nb")),
       created = today,
       updated = today,
-      editorNote = Seq(
+      editorNotes = Seq(
         domain.EditorNote(
           "Created concept",
           "",
@@ -388,7 +388,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Seq.empty,
       created = today,
       updated = today,
-      editorNote = Seq(
+      editorNotes = Seq(
         domain.EditorNote(
           "Created concept",
           "",
@@ -447,7 +447,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("test"),
       created = today,
       updated = today,
-      editorNote = Seq(
+      editorNotes = Seq(
         domain.EditorNote(
           "Created concept",
           "test",
@@ -471,7 +471,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("test"),
       created = today,
       updated = today,
-      editorNote = Seq(
+      editorNotes = Seq(
         domain.EditorNote(
           "Created concept",
           "test",

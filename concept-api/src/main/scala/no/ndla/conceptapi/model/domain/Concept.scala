@@ -40,7 +40,7 @@ case class Concept(
     responsible: Option[Responsible],
     conceptType: ConceptType.Value,
     glossData: Option[GlossData],
-    editorNote: Seq[EditorNote]
+    editorNotes: Seq[EditorNote]
 ) {
 
   lazy val supportedLanguages: Set[String] =
@@ -83,7 +83,7 @@ trait DBConcept {
         meta.responsible,
         meta.conceptType,
         meta.glossData,
-        meta.editorNote
+        meta.editorNotes
       )
     }
     val serializers: List[Serializer[_]] = List(

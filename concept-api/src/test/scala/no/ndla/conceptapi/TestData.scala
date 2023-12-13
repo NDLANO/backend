@@ -86,7 +86,7 @@ object TestData {
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
     glossData = None,
-    editorNote = Seq.empty
+    editorNotes = Seq.empty
   )
 
   val sampleConcept = domain.Concept(
@@ -109,7 +109,7 @@ object TestData {
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
     glossData = None,
-    editorNote = Seq.empty
+    editorNotes = Seq.empty
   )
 
   val domainConcept = domain.Concept(
@@ -130,7 +130,7 @@ object TestData {
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
     glossData = None,
-    editorNote = Seq.empty
+    editorNotes = Seq.empty
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
@@ -151,7 +151,7 @@ object TestData {
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
     glossData = None,
-    editorNote = Seq.empty
+    editorNotes = Seq.empty
   )
 
   val sampleNnApiConcept = api.Concept(

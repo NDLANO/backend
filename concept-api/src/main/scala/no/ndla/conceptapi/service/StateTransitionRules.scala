@@ -141,13 +141,13 @@ trait StateTransitionRules {
         user: TokenUser
     ) = {
       if (current.status.current != to)
-        current.editorNote :+ domain.EditorNote(
+        current.editorNotes :+ domain.EditorNote(
           "Status changed",
           user.id,
           newStatus,
           clock.now()
         )
-      else current.editorNote
+      else current.editorNotes
     }
     private[service] def doTransitionWithoutSideEffect(
         current: domain.Concept,
@@ -165,7 +165,7 @@ trait StateTransitionRules {
               val other            = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
               val newStatus        = domain.Status(to, other)
               val newEditorNotes   = newEditorNotesForTransition(current, to, newStatus, user)
-              val convertedArticle = current.copy(status = newStatus, editorNote = newEditorNotes)
+              val convertedArticle = current.copy(status = newStatus, editorNotes = newEditorNotes)
               (Success(convertedArticle), t.sideEffects)
           }
         case None =>

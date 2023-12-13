@@ -61,7 +61,7 @@ trait ConverterService {
 
         val responsible = concept.responsible.map(toApiConceptResponsible)
         val status      = toApiStatus(concept.status);
-        val editorNotes = concept.editorNote.map(toApiEditorNote)
+        val editorNotes = concept.editorNotes.map(toApiEditorNote)
 
         Success(
           api.Concept(
@@ -232,7 +232,7 @@ trait ConverterService {
         responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
         conceptType = conceptType,
         glossData = glossData,
-        editorNote = Seq(domain.EditorNote(s"Created concept", userInfo.id, Status.default, now))
+        editorNotes = Seq(domain.EditorNote(s"Created $conceptType", userInfo.id, Status.default, now))
       )
     }
 
@@ -320,7 +320,7 @@ trait ConverterService {
           responsible = responsible,
           conceptType = ConceptType.valueOf(updateConcept.conceptType).getOrElse(toMergeInto.conceptType),
           glossData = glossData,
-          editorNote = toMergeInto.editorNote
+          editorNotes = toMergeInto.editorNotes
         )
       )
     }
@@ -355,6 +355,8 @@ trait ConverterService {
       )
       // format: on
 
+      val conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT)
+
       domain.Concept(
         id = Some(id),
         revision = None,
@@ -371,9 +373,9 @@ trait ConverterService {
         status = Status.default,
         visualElement = concept.visualElement.map(ve => toDomainVisualElement(ve, lang)).toSeq,
         responsible = responsible,
-        conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT),
+        conceptType = conceptType,
         glossData = glossData,
-        editorNote = Seq(domain.EditorNote(s"Created concept", userInfo.id, Status.default, clock.now()))
+        editorNotes = Seq(domain.EditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now()))
       )
     }
 
