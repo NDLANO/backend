@@ -22,6 +22,7 @@ import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribute}
@@ -40,7 +41,8 @@ trait ConverterService {
     def toApiConcept(
         concept: domain.Concept,
         language: String,
-        fallback: Boolean
+        fallback: Boolean,
+        user: Option[TokenUser]
     ): Try[api.Concept] = {
       val isLanguageNeutral =
         concept.supportedLanguages.contains(UnknownLanguage.toString) && concept.supportedLanguages.size == 1
@@ -61,7 +63,7 @@ trait ConverterService {
 
         val responsible = concept.responsible.map(toApiConceptResponsible)
         val status      = toApiStatus(concept.status);
-        val editorNotes = concept.editorNotes.map(toApiEditorNote)
+        val editorNotes = Option.when(user.hasPermission(CONCEPT_API_WRITE))(concept.editorNotes.map(toApiEditorNote))
 
         Success(
           api.Concept(
@@ -84,7 +86,7 @@ trait ConverterService {
             responsible = responsible,
             conceptType = concept.conceptType.toString,
             glossData = toApiGlossData(concept.glossData),
-            editorNotes = Some(editorNotes)
+            editorNotes = editorNotes
           )
         )
       } else {

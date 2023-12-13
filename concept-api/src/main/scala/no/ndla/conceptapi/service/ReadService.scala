@@ -11,6 +11,7 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.language.Language
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
@@ -20,18 +21,23 @@ trait ReadService {
 
   class ReadService {
 
-    def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
+    def conceptWithId(id: Long, language: String, fallback: Boolean, user: Option[TokenUser]): Try[api.Concept] =
       draftConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
         case Some(concept) =>
-          converterService.toApiConcept(concept, language, fallback)
+          converterService.toApiConcept(concept, language, fallback, user)
         case None =>
           Failure(NotFoundException(s"Concept with id $id was not found with language '$language' in database."))
       }
 
-    def publishedConceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
+    def publishedConceptWithId(
+        id: Long,
+        language: String,
+        fallback: Boolean,
+        user: Option[TokenUser]
+    ): Try[api.Concept] =
       publishedConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
         case Some(concept) =>
-          converterService.toApiConcept(concept, language, fallback)
+          converterService.toApiConcept(concept, language, fallback, user)
         case None =>
           Failure(NotFoundException(s"A concept with id $id was not found with language '$language'."))
       }

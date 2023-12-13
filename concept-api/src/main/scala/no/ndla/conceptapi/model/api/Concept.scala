@@ -35,6 +35,6 @@ case class Concept(
     @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this concept") responsible: Option[ConceptResponsible],
     @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'gloss'") conceptType: String,
     @(ApiModelProperty @field)(description = "Information about the gloss") glossData: Option[GlossData],
-    @(ApiModelProperty @field)(description = "Describes the changes made to the concept") editorNotes: Option[Seq[EditorNote]],
+    @(ApiModelProperty @field)(description = "Describes the changes made to the concept, only visible to editors") editorNotes: Option[Seq[EditorNote]],
     // format: on
 )

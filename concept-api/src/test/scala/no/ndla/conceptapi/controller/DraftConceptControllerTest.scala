@@ -33,7 +33,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   override def beforeEach(): Unit = {}
 
   test("/<concept_id> should return 200 if the concept was found") {
-    when(readService.conceptWithId(conceptId, lang, fallback = false))
+    when(readService.conceptWithId(conceptId, lang, fallback = false, None))
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     get(s"/test/$conceptId?language=$lang") {
@@ -42,7 +42,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   }
 
   test("/<concept_id> should return 404 if the concept was not found") {
-    when(readService.conceptWithId(conceptId, lang, fallback = false))
+    when(readService.conceptWithId(conceptId, lang, fallback = false, None))
       .thenReturn(Failure(NotFoundException("Not found, yolo")))
 
     get(s"/test/$conceptId?language=$lang") {

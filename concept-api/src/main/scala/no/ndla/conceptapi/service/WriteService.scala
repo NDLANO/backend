@@ -83,7 +83,7 @@ trait WriteService {
         _                <- contentValidator.validateConcept(concept)
         persistedConcept <- Try(draftConceptRepository.insert(concept))
         _                <- draftConceptIndexService.indexDocument(persistedConcept)
-        apiC             <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true)
+        apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true, Some(userInfo))
       } yield apiC
     }
 
@@ -165,15 +165,21 @@ trait WriteService {
             converted <- converterService.toApiConcept(
               updated,
               updatedConcept.language,
-              fallback = true
+              fallback = true,
+              Some(userInfo)
             )
           } yield converted
 
         case None if draftConceptRepository.exists(id) =>
           val concept = converterService.toDomainConcept(id, updatedConcept, userInfo)
           for {
-            updated   <- updateConcept(concept)
-            converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
+            updated <- updateConcept(concept)
+            converted <- converterService.toApiConcept(
+              updated,
+              updatedConcept.language,
+              fallback = true,
+              Some(userInfo)
+            )
           } yield converted
         case None =>
           Failure(NotFoundException(s"Concept with id $id does not exist"))
@@ -212,8 +218,13 @@ trait WriteService {
                     )
                   )
                 )
-                updated   <- updateConcept(conceptWithUpdatedNotes)
-                converted <- converterService.toApiConcept(updated, Language.AllLanguages, fallback = false)
+                updated <- updateConcept(conceptWithUpdatedNotes)
+                converted <- converterService.toApiConcept(
+                  updated,
+                  Language.AllLanguages,
+                  fallback = false,
+                  Some(userInfo)
+                )
               } yield converted
           }
         case None => Failure(NotFoundException("Concept does not exist"))
@@ -234,7 +245,12 @@ trait WriteService {
             convertedConcept <- convertedConceptT
             updatedConcept   <- updateConcept(convertedConcept)
             _                <- draftConceptIndexService.indexDocument(updatedConcept)
-            apiConcept       <- converterService.toApiConcept(updatedConcept, Language.AllLanguages, fallback = true)
+            apiConcept <- converterService.toApiConcept(
+              updatedConcept,
+              Language.AllLanguages,
+              fallback = true,
+              Some(user)
+            )
           } yield apiConcept
       }
     }

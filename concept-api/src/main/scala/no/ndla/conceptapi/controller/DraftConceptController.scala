@@ -20,6 +20,7 @@ import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{Created, Ok}
@@ -144,8 +145,9 @@ trait DraftConceptController {
       val language =
         paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, false)
+      val user     = TokenUser.fromScalatraRequest(request).toOption
 
-      readService.conceptWithId(conceptId, language, fallback) match {
+      readService.conceptWithId(conceptId, language, fallback, user) match {
         case Success(concept) => Ok(concept)
         case Failure(ex)      => errorHandler(ex)
       }
