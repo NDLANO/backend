@@ -94,7 +94,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       content = Option(api.ConceptContent(newContent, "en")),
       updated = today,
       supportedLanguages = Set("nb", "en"),
-      articleIds = Seq.empty
+      articleIds = Seq.empty,
+      editorNotes = Some(
+        Seq(
+          api.EditorNote("New language 'en' added.", "", api.Status("IN_PROGRESS", Seq.empty), today)
+        )
+      )
     )
     val result = service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get
     result should equal(expectedConcept)
@@ -122,7 +127,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       title = api.ConceptTitle(newTitle, "nn"),
       updated = today,
       supportedLanguages = Set("nb", "nn"),
-      articleIds = Seq.empty
+      articleIds = Seq.empty,
+      editorNotes = Some(
+        Seq(
+          api.EditorNote("New language 'nn' added.", "", api.Status("IN_PROGRESS", Seq.empty), today)
+        )
+      )
     )
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get should equal(expectedConcept)
   }
@@ -180,7 +190,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
       subjectIds = Some(Set("urn:subject:900")),
       articleIds = Seq(69L),
-      responsible = Some(api.ConceptResponsible("123", today))
+      responsible = Some(api.ConceptResponsible("123", today)),
+      editorNotes = Some(
+        Seq(
+          api.EditorNote("New language 'en' added.", "", api.Status("IN_PROGRESS", Seq.empty), today),
+          api.EditorNote("Responsible changed", "", api.Status("IN_PROGRESS", Seq.empty), today)
+        )
+      )
     )
 
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")) should equal(Success(expectedConcept))
@@ -267,7 +283,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today,
       supportedLanguages = Set("nb"),
       articleIds = Seq.empty,
-      responsible = Some(api.ConceptResponsible(responsibleId, today))
+      responsible = Some(api.ConceptResponsible(responsibleId, today)),
+      editorNotes = Some(
+        Seq(
+          api.EditorNote("Responsible changed", "", api.Status("IN_PROGRESS", Seq.empty), today)
+        )
+      )
     )
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get should equal(expectedConcept)
   }

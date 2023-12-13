@@ -261,7 +261,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       articleIds = Seq(15),
       created = today,
-      updated = today
+      updated = today,
+      editorNote = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq(15)))
 
@@ -276,7 +284,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       articleIds = Seq.empty,
       created = today,
-      updated = today
+      updated = today,
+      editorNote = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = None)
 
@@ -345,7 +361,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       metaImage = Seq(domain.ConceptMetaImage("1", "Hola", "nb")),
       created = today,
-      updated = today
+      updated = today,
+      editorNote = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(
       language = "nb",
@@ -363,7 +387,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       metaImage = Seq.empty,
       created = today,
-      updated = today
+      updated = today,
+      editorNote = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
@@ -414,7 +446,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       updatedBy = Seq("test"),
       created = today,
-      updated = today
+      updated = today,
+      editorNote = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "test",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TokenUser.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiUpdatedConcept
@@ -430,7 +470,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(common.Title("", "")),
       updatedBy = Seq("test"),
       created = today,
-      updated = today
+      updated = today,
+      editorNote = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "test",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TokenUser.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiNewConcept

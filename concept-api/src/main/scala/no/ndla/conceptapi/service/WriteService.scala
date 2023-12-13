@@ -9,6 +9,7 @@ package no.ndla.conceptapi.service
 
 import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.Clock
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
@@ -30,7 +31,8 @@ trait WriteService {
     with ContentValidator
     with DraftConceptIndexService
     with PublishedConceptIndexService
-    with StrictLogging =>
+    with StrictLogging
+    with Clock =>
   val writeService: WriteService
 
   class WriteService {
@@ -140,7 +142,7 @@ trait WriteService {
       val allNewNotes = newLanguageEditorNote ++ changedResponsibleNote
 
       changed.copy(editorNote =
-        changed.editorNote ++ allNewNotes.map(domain.EditorNote(_, user.id, changed.status, NDLADate.now()))
+        changed.editorNote ++ allNewNotes.map(domain.EditorNote(_, user.id, changed.status, clock.now()))
       )
     }
 
@@ -206,7 +208,7 @@ trait WriteService {
                       s"Deleted language '$language'.",
                       userInfo.id,
                       withStatus.status,
-                      NDLADate.now()
+                      clock.now()
                     )
                   )
                 )
