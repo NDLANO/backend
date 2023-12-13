@@ -27,6 +27,13 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def deleteCategory(categoryId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
+      _          <- if (user.arenaAdmin.contains(true)) Success(()) else Failure(AccessDeniedException.forbidden)
+      maybeTopic <- arenaRepository.getCategory(categoryId)(session)
+      _          <- maybeTopic.toTry(NotFoundException(s"Could not find category with id $categoryId"))
+      _          <- arenaRepository.deleteCategory(categoryId)(session)
+    } yield ()
+
     def deleteTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
       maybeTopic <- arenaRepository.getTopic(topicId)(session)
       (topic, _) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))

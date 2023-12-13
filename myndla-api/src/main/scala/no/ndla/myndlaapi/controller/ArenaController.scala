@@ -224,6 +224,17 @@ trait ArenaController {
         arenaReadService.deleteTopic(topicId, user)().handleErrorsOrOk
       }
 
+    def deleteCategory: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("categories" / pathCategoryId)
+      .summary("Delete arena category")
+      .description("Delete arena category")
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArenaAdmin = true)
+      .serverLogicPure { user => categoryId =>
+        arenaReadService.deleteCategory(categoryId, user)().handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -237,7 +248,8 @@ trait ArenaController {
       editPost,
       deletePost,
       postCategory,
-      updateCategory
+      updateCategory,
+      deleteCategory
     )
   }
 
