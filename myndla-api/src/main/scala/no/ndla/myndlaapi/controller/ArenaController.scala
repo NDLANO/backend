@@ -27,6 +27,7 @@ import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.{Service, TapirErrorHelpers}
+import sttp.model.StatusCode
 import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, _}
@@ -125,7 +126,7 @@ trait ArenaController {
       .summary("Create new topic")
       .description("Create new topic")
       .in(jsonBody[NewTopic])
-      .out(jsonBody[Topic])
+      .out(statusCode(StatusCode.Created).and(jsonBody[Topic]))
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -153,7 +154,7 @@ trait ArenaController {
       .summary("Add post to topic")
       .description("Add post to topic")
       .in(jsonBody[NewPost])
-      .out(jsonBody[Topic])
+      .out(statusCode(StatusCode.Created).and(jsonBody[Topic]))
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -167,13 +168,11 @@ trait ArenaController {
       .summary("Create new arena category")
       .description("Create new arena category")
       .in(jsonBody[NewCategory])
-      .out(jsonBody[Category])
+      .out(statusCode(StatusCode.Created).and(jsonBody[Category]))
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
-      .serverLogicPure { _ =>
-        { case newCategory =>
-          arenaReadService.newCategory(newCategory)().handleErrorsOrOk
-        }
+      .serverLogicPure { _ => newCategory =>
+        arenaReadService.newCategory(newCategory)().handleErrorsOrOk
       }
 
     def updateCategory: ServerEndpoint[Any, Eff] = endpoint.put
