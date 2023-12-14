@@ -43,6 +43,25 @@ trait ArenaRepository {
       )
     }
 
+    def unfollowTopic(topicId: Long, userId: Long)(implicit session: DBSession): Try[Int] = Try {
+      val tf = domain.TopicFollow.syntax("tf")
+      val count = withSQL {
+        delete
+          .from(domain.TopicFollow as tf)
+          .where
+          .eq(tf.user_id, userId)
+          .and
+          .eq(tf.topic_id, topicId)
+      }.update()
+      if (count < 1)
+        Failure(
+          NDLASQLException(
+            s"Deleting a topicfollow with user_id '$userId' and topic_id $topicId resulted in no affected row"
+          )
+        )
+      else Success(count)
+    }.flatten
+
     def getTopicFollowing(topicId: Long, userId: Long)(implicit session: DBSession): Try[Option[domain.TopicFollow]] = {
       val tf = domain.TopicFollow.syntax("tf")
       Try {
