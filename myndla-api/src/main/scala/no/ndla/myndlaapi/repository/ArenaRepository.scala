@@ -25,6 +25,38 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository extends StrictLogging {
+    def followTopic(topicId: Long, userId: Long)(implicit session: DBSession): Try[domain.TopicFollow] = Try {
+      val column = domain.TopicFollow.column.c _
+      val inserted = withSQL {
+        insert
+          .into(domain.TopicFollow)
+          .namedValues(
+            column("user_id")  -> userId,
+            column("topic_id") -> topicId
+          )
+      }.updateAndReturnGeneratedKey.apply()
+
+      domain.TopicFollow(
+        id = inserted,
+        user_id = userId,
+        topic_id = topicId
+      )
+    }
+
+    def getTopicFollowing(topicId: Long, userId: Long)(implicit session: DBSession): Try[Option[domain.TopicFollow]] = {
+      val tf = domain.TopicFollow.syntax("tf")
+      Try {
+        sql"""
+             select ${tf.resultAll}
+             from ${domain.TopicFollow.as(tf)}
+             where ${tf.topic_id} = $topicId and ${tf.user_id} = $userId
+           """
+          .map(rs => domain.TopicFollow.fromResultSet(tf)(rs))
+          .single
+          .apply()
+          .sequence
+      }.flatten
+    }
 
     def getFlagsForPost(postId: Long)(implicit session: DBSession): Try[List[(domain.Flag, MyNDLAUser)]] = Try {
       val f = domain.Flag.syntax("f")
