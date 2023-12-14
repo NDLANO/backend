@@ -150,6 +150,7 @@ trait ArenaReadService {
         val created = clock.now()
         for {
           topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
+          _     <- followTopic(topic.id, user)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
         } yield converterService.toApiTopic(topic, List((post, user, List.empty)), user)
       }
