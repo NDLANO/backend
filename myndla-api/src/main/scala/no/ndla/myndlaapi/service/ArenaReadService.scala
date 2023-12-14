@@ -200,6 +200,14 @@ trait ArenaReadService {
       } yield apiTopic
     }
 
+    def unfollowTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Topic] = {
+      for {
+        apiTopic  <- getTopic(topicId, user)(session)
+        following <- arenaRepository.getTopicFollowing(topicId, user.id)(session)
+        _         <- if (following.isDefined) arenaRepository.unfollowTopic(topicId, user.id)(session) else Success(())
+      } yield apiTopic
+    }
+
     def getCategories(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
       arenaRepository
         .getCategories(session)
