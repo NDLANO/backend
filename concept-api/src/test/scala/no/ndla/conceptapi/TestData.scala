@@ -64,7 +64,8 @@ object TestData {
     Some(api.VisualElement(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
-    glossData = None
+    glossData = None,
+    editorNotes = Some(Seq.empty)
   )
 
   val sampleNbDomainConcept = domain.Concept(
@@ -84,7 +85,8 @@ object TestData {
     visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    glossData = None
+    glossData = None,
+    editorNotes = Seq.empty
   )
 
   val sampleConcept = domain.Concept(
@@ -106,7 +108,8 @@ object TestData {
     visualElement = Seq(domain.VisualElement("VisualElement for begrep", "nb")),
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    glossData = None
+    glossData = None,
+    editorNotes = Seq.empty
   )
 
   val domainConcept = domain.Concept(
@@ -126,7 +129,8 @@ object TestData {
     visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    glossData = None
+    glossData = None,
+    editorNotes = Seq.empty
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
@@ -146,7 +150,8 @@ object TestData {
     visualElement = Seq.empty,
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    glossData = None
+    glossData = None,
+    editorNotes = Seq.empty
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -171,7 +176,8 @@ object TestData {
     Some(api.VisualElement(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
-    glossData = None
+    glossData = None,
+    editorNotes = Some(Seq.empty)
   )
 
   val emptyApiUpdatedConcept = api.UpdatedConcept(

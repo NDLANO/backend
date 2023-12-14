@@ -2,6 +2,7 @@
 target/
 /.idea
 .env
+.env.*
 .bloop/
 .metals/
 .vscode/

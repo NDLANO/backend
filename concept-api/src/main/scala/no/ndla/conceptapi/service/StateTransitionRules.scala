@@ -134,7 +134,21 @@ trait StateTransitionRules {
 
       Success(())
     }
-
+    private def newEditorNotesForTransition(
+        current: domain.Concept,
+        to: ConceptStatus,
+        newStatus: domain.Status,
+        user: TokenUser
+    ) = {
+      if (current.status.current != to)
+        current.editorNotes :+ domain.EditorNote(
+          "Status changed",
+          user.id,
+          newStatus,
+          clock.now()
+        )
+      else current.editorNotes
+    }
     private[service] def doTransitionWithoutSideEffect(
         current: domain.Concept,
         to: ConceptStatus,
@@ -150,7 +164,8 @@ trait StateTransitionRules {
                 else Set.empty
               val other            = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
               val newStatus        = domain.Status(to, other)
-              val convertedArticle = current.copy(status = newStatus)
+              val newEditorNotes   = newEditorNotesForTransition(current, to, newStatus, user)
+              val convertedArticle = current.copy(status = newStatus, editorNotes = newEditorNotes)
               (Success(convertedArticle), t.sideEffects)
           }
         case None =>

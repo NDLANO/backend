@@ -25,16 +25,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val userInfo: TokenUser       = TokenUser("", Set(CONCEPT_API_WRITE, CONCEPT_API_ADMIN), None)
 
   test("toApiConcept converts a domain.Concept to an api.Concept with defined language") {
-    converterService.toApiConcept(TestData.domainConcept, "nn", fallback = false) should be(
+    converterService.toApiConcept(TestData.domainConcept, "nn", fallback = false, Some(userInfo)) should be(
       Success(TestData.sampleNnApiConcept)
     )
-    converterService.toApiConcept(TestData.domainConcept, "nb", fallback = false) should be(
+    converterService.toApiConcept(TestData.domainConcept, "nb", fallback = false, Some(userInfo)) should be(
       Success(TestData.sampleNbApiConcept)
     )
   }
 
   test("toApiConcept failure if concept not found in specified language without fallback") {
-    converterService.toApiConcept(TestData.domainConcept, "hei", fallback = false) should be(
+    converterService.toApiConcept(TestData.domainConcept, "hei", fallback = false, Some(userInfo)) should be(
       Failure(
         NotFoundException(
           s"The concept with id ${TestData.domainConcept.id.get} and language 'hei' was not found.",
@@ -45,7 +45,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiConcept success if concept not found in specified language, but with fallback") {
-    converterService.toApiConcept(TestData.domainConcept, "hei", fallback = true) should be(
+    converterService.toApiConcept(TestData.domainConcept, "hei", fallback = true, Some(userInfo)) should be(
       Success(TestData.sampleNbApiConcept)
     )
   }
@@ -261,7 +261,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       articleIds = Seq(15),
       created = today,
-      updated = today
+      updated = today,
+      editorNotes = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq(15)))
 
@@ -276,7 +284,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       articleIds = Seq.empty,
       created = today,
-      updated = today
+      updated = today,
+      editorNotes = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = None)
 
@@ -345,7 +361,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       metaImage = Seq(domain.ConceptMetaImage("1", "Hola", "nb")),
       created = today,
-      updated = today
+      updated = today,
+      editorNotes = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(
       language = "nb",
@@ -363,7 +387,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       metaImage = Seq.empty,
       created = today,
-      updated = today
+      updated = today,
+      editorNotes = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
@@ -414,7 +446,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       updatedBy = Seq("test"),
       created = today,
-      updated = today
+      updated = today,
+      editorNotes = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "test",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TokenUser.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiUpdatedConcept
@@ -430,7 +470,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(common.Title("", "")),
       updatedBy = Seq("test"),
       created = today,
-      updated = today
+      updated = today,
+      editorNotes = Seq(
+        domain.EditorNote(
+          "Created concept",
+          "test",
+          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          today
+        )
+      )
     )
     val updateWith = TokenUser.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiNewConcept
@@ -643,7 +691,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       examples = List(expectedGlossExamples1, expectedGlossExamples2),
       transcriptions = Map("zh" -> "a", "pinyin" -> "b")
     )
-    val result = converterService.toApiConcept(existingConcept, "nb", false).get
+    val result = converterService.toApiConcept(existingConcept, "nb", false, Some(userInfo)).get
     result.conceptType should be("gloss")
     result.glossData should be(Some(expectedGlossData))
   }

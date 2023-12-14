@@ -25,6 +25,7 @@ export interface IConcept {
   responsible?: IConceptResponsible
   conceptType: string
   glossData?: IGlossData
+  editorNotes?: IEditorNote[]
 }
 
 export interface IConceptContent {
@@ -128,6 +129,13 @@ export interface IDraftCopyright {
   validFrom?: string
   validTo?: string
   processed: boolean
+}
+
+export interface IEditorNote {
+  note: string
+  updatedBy: string
+  status: IStatus
+  timestamp: string
 }
 
 export interface IGlossData {

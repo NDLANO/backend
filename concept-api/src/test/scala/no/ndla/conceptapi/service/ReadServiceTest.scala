@@ -11,11 +11,14 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.model.domain.VisualElement
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
-  val service = new ReadService()
+  val service             = new ReadService()
+  val userInfo: TokenUser = TokenUser("", Set(CONCEPT_API_WRITE), None)
 
   test("Checks that filter by language works as it should") {
 
@@ -59,11 +62,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     )
     when(publishedConceptRepository.withId(anyLong))
       .thenReturn(Some(TestData.sampleConcept.copy(visualElement = visualElements)))
-    val concept = service.publishedConceptWithId(id = 1L, language = "nb", fallback = true)
+    val concept = service.publishedConceptWithId(id = 1L, language = "nb", fallback = true, Some(userInfo))
     concept.get.visualElement.get.visualElement should equal(
       s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" data-url=\"http://api-gateway.ndla-local/image-api/v2/images/1\" />"
     )
-    val concept2 = service.publishedConceptWithId(id = 1L, language = "nn", fallback = true)
+    val concept2 = service.publishedConceptWithId(id = 1L, language = "nn", fallback = true, Some(userInfo))
     concept2.get.visualElement.get.visualElement should equal(
       s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p.ndla.no/resource/uuid\" />"
     )

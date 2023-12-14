@@ -22,6 +22,7 @@ import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribute}
@@ -37,7 +38,12 @@ trait ConverterService {
   class ConverterService extends StrictLogging {
     import props.externalApiUrls
 
-    def toApiConcept(concept: domain.Concept, language: String, fallback: Boolean): Try[api.Concept] = {
+    def toApiConcept(
+        concept: domain.Concept,
+        language: String,
+        fallback: Boolean,
+        user: Option[TokenUser]
+    ): Try[api.Concept] = {
       val isLanguageNeutral =
         concept.supportedLanguages.contains(UnknownLanguage.toString) && concept.supportedLanguages.size == 1
       if (concept.supportedLanguages.contains(language) || fallback || isLanguageNeutral || language == AllLanguages) {
@@ -56,6 +62,8 @@ trait ConverterService {
         val visualElement = findByLanguageOrBestEffort(concept.visualElement, language).map(toApiVisualElement)
 
         val responsible = concept.responsible.map(toApiConceptResponsible)
+        val status      = toApiStatus(concept.status);
+        val editorNotes = Option.when(user.hasPermission(CONCEPT_API_WRITE))(concept.editorNotes.map(toApiEditorNote))
 
         Success(
           api.Concept(
@@ -73,11 +81,12 @@ trait ConverterService {
             updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
             supportedLanguages = concept.supportedLanguages,
             articleIds = concept.articleIds,
-            status = toApiStatus(concept.status),
+            status = status,
             visualElement = visualElement,
             responsible = responsible,
             conceptType = concept.conceptType.toString,
-            glossData = toApiGlossData(concept.glossData)
+            glossData = toApiGlossData(concept.glossData),
+            editorNotes = editorNotes
           )
         )
       } else {
@@ -108,6 +117,14 @@ trait ConverterService {
       api.Status(
         current = status.current.toString,
         other = status.other.map(_.toString).toSeq
+      )
+    }
+    def toApiEditorNote(editorNote: domain.EditorNote) = {
+      api.EditorNote(
+        note = editorNote.note,
+        updatedBy = editorNote.user,
+        status = toApiStatus(editorNote.status),
+        timestamp = editorNote.timestamp
       )
     }
 
@@ -194,6 +211,7 @@ trait ConverterService {
         .filterNot(_.isEmpty)
         .map(ve => toDomainVisualElement(ve, concept.language))
         .toSeq
+      val now = clock.now()
 
       for {
         glossData <- toDomainGlossData(concept.glossData)
@@ -203,8 +221,8 @@ trait ConverterService {
         title = Seq(Title(concept.title, concept.language)),
         content = content,
         copyright = concept.copyright.map(toDomainCopyright),
-        created = clock.now(),
-        updated = clock.now(),
+        created = now,
+        updated = now,
         updatedBy = Seq(userInfo.id),
         metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
@@ -214,7 +232,8 @@ trait ConverterService {
         visualElement = visualElement,
         responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
         conceptType = conceptType,
-        glossData = glossData
+        glossData = glossData,
+        editorNotes = Seq(domain.EditorNote(s"Created $conceptType", userInfo.id, Status.default, now))
       )
     }
 
@@ -301,7 +320,8 @@ trait ConverterService {
           visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
           responsible = responsible,
           conceptType = ConceptType.valueOf(updateConcept.conceptType).getOrElse(toMergeInto.conceptType),
-          glossData = glossData
+          glossData = glossData,
+          editorNotes = toMergeInto.editorNotes
         )
       )
     }
@@ -336,6 +356,8 @@ trait ConverterService {
       )
       // format: on
 
+      val conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT)
+
       domain.Concept(
         id = Some(id),
         revision = None,
@@ -352,8 +374,9 @@ trait ConverterService {
         status = Status.default,
         visualElement = concept.visualElement.map(ve => toDomainVisualElement(ve, lang)).toSeq,
         responsible = responsible,
-        conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT),
-        glossData = glossData
+        conceptType = conceptType,
+        glossData = glossData,
+        editorNotes = Seq(domain.EditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now()))
       )
     }
 

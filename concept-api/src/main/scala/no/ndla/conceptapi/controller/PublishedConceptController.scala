@@ -18,6 +18,7 @@ import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchC
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.network.scalatra.NdlaSwaggerSupport
+import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
@@ -124,8 +125,9 @@ trait PublishedConceptController {
       val language =
         paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, false)
+      val user     = TokenUser.fromScalatraRequest(request).toOption
 
-      readService.publishedConceptWithId(conceptId, language, fallback) match {
+      readService.publishedConceptWithId(conceptId, language, fallback, user) match {
         case Success(concept) => Ok(concept)
         case Failure(ex)      => errorHandler(ex)
       }

@@ -29,7 +29,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
   override def beforeEach(): Unit = {}
 
   test("/<concept_id> should return 200 if the concept was found") {
-    when(readService.publishedConceptWithId(conceptId, lang, fallback = false))
+    when(readService.publishedConceptWithId(conceptId, lang, fallback = false, None))
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     get(s"/test/$conceptId?language=$lang") {
@@ -38,7 +38,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
   }
 
   test("/<concept_id> should return 404 if the concept was not found") {
-    when(readService.publishedConceptWithId(conceptId, lang, fallback = false))
+    when(readService.publishedConceptWithId(conceptId, lang, fallback = false, None))
       .thenReturn(Failure(NotFoundException("Not found, yolo")))
 
     get(s"/test/$conceptId?language=$lang") {
