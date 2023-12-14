@@ -103,7 +103,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
-        arenaReadService.getTopic(topicId, user).handleErrorsOrOk
+        arenaReadService.getTopic(topicId, user)().handleErrorsOrOk
       }
 
     def getRecentTopics: ServerEndpoint[Any, Eff] = endpoint.get
@@ -119,6 +119,17 @@ trait ArenaController {
         { case (page, pageSize) =>
           arenaReadService.getRecentTopics(page, pageSize, user)().handleErrorsOrOk
         }
+      }
+
+    def followTopic: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("topics" / pathTopicId / "follow")
+      .summary("Follow topic")
+      .description("Follow topic")
+      .out(jsonBody[Topic])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => topicId =>
+        arenaReadService.followTopic(topicId, user)().handleErrorsOrOk
       }
 
     def postTopic: ServerEndpoint[Any, Eff] = endpoint.post
@@ -266,6 +277,7 @@ trait ArenaController {
       getCategory,
       getCategoryTopics,
       getRecentTopics,
+      followTopic,
       getTopic,
       postTopic,
       editTopic,
