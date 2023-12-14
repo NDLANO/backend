@@ -186,13 +186,19 @@ trait ArenaReadService {
       )
     }
 
-    def getTopic(topicId: Long, user: MyNDLAUser): Try[api.Topic] =
-      arenaRepository.withSession { session =>
-        for {
-          maybeTopic     <- arenaRepository.getTopic(topicId)(session)
-          (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-        } yield converterService.toApiTopic(topic, posts, user)
-      }
+    def getTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = ReadOnlyAutoSession): Try[api.Topic] =
+      for {
+        maybeTopic     <- arenaRepository.getTopic(topicId)(session)
+        (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+      } yield converterService.toApiTopic(topic, posts, user)
+
+    def followTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Topic] = {
+      for {
+        apiTopic  <- getTopic(topicId, user)(session)
+        following <- arenaRepository.getTopicFollowing(topicId, user.id)(session)
+        _         <- if (following.isEmpty) arenaRepository.followTopic(topicId, user.id)(session) else Success(())
+      } yield apiTopic
+    }
 
     def getCategories(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
       arenaRepository
