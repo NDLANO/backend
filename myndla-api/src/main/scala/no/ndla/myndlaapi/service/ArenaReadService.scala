@@ -161,6 +161,7 @@ trait ArenaReadService {
         for {
           _              <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
           maybeTopic     <- arenaRepository.getTopic(topicId)(session)
+          _              <- followTopic(topicId, user)(session)
           (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
         } yield converterService.toApiTopic(topic, posts, user)
       }
