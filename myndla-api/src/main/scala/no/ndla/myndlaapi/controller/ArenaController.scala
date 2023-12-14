@@ -132,6 +132,17 @@ trait ArenaController {
         arenaReadService.followTopic(topicId, user)().handleErrorsOrOk
       }
 
+    def unfollowTopic: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("topics" / pathTopicId / "unfollow")
+      .summary("Unfollow topic")
+      .description("Unfollow topic")
+      .out(jsonBody[Topic])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => topicId =>
+        arenaReadService.unfollowTopic(topicId, user)().handleErrorsOrOk
+      }
+
     def postTopic: ServerEndpoint[Any, Eff] = endpoint.post
       .in("categories" / pathCategoryId / "topics")
       .summary("Create new topic")
@@ -278,6 +289,7 @@ trait ArenaController {
       getCategoryTopics,
       getRecentTopics,
       followTopic,
+      unfollowTopic,
       getTopic,
       postTopic,
       editTopic,
