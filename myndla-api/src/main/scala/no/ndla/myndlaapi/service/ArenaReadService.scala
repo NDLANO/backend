@@ -176,15 +176,16 @@ trait ArenaReadService {
       getFollowers(topic.id)(session)
         .flatMap { followers =>
           followers.traverse { follower =>
-            // TODO: dont notify the poster
-            arenaRepository
-              .insertNotification(
-                follower.id,
-                newPost.id,
-                topic.id,
-                notificationTime
-              )(session)
-              .map(Some(_))
+            if (follower.id == newPost.ownerId) Success(None)
+            else
+              arenaRepository
+                .insertNotification(
+                  follower.id,
+                  newPost.id,
+                  topic.id,
+                  notificationTime
+                )(session)
+                .map(Some(_))
           }
         }
         .map(_.flatten)
