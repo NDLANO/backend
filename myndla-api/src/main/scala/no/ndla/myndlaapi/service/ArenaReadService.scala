@@ -15,8 +15,9 @@ import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
-import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic, Paginated}
+import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic, Notifications, Paginated}
 import no.ndla.myndlaapi.model.arena.domain.MissingPostException
+import no.ndla.myndlaapi.model.arena.domain.database.{CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
@@ -27,6 +28,29 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def getNotifications(user: MyNDLAUser, page: Long, pageSize: Long)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[Paginated[api.NewPostNotification]] = {
+      val offset = (page - 1) * pageSize
+      for {
+        compiledNotifications <- arenaRepository.getNotifications(user, offset, pageSize)(session)
+        notificationsCount <- arenaRepository.notificationsCount(user.id)(session)
+        apiNotifications = compiledNotifications.map { notification =>
+          api.NewPostNotification(
+            id = notification.notification.id,
+            topicTitle = notification.topic.topic.title,
+            topicId = notification.topic.topic.id,
+            post = converterService.toApiPost(notification.post, user),
+            notificationTime = notification.notification.notification_time
+          )
+        }
+      } yield api.Paginated[api.NewPostNotification](
+        items = apiNotifications,
+        totalCount = notificationsCount,
+        pageSize = pageSize,
+        page = page
+      )
+    }
 
     def resolveFlag(flagId: Long)(session: DBSession = AutoSession): Try[Unit] = for {
       maybeFlag <- arenaRepository.getFlag(flagId)(session)
@@ -52,8 +76,8 @@ trait ArenaReadService {
 
     def deleteTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
       maybeTopic <- arenaRepository.getTopic(topicId)(session)
-      (topic, _) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-      _          <- failIfEditDisallowed(topic, user)
+      topic      <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+      _          <- failIfEditDisallowed(topic.topic, user)
       _          <- arenaRepository.deleteTopic(topicId)(session)
     } yield ()
 
@@ -74,7 +98,7 @@ trait ArenaReadService {
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
       } yield Paginated[api.Topic](
-        items = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts, user) },
+        items = topics.map(topic => converterService.toApiTopic(topic, user)),
         totalCount = topicsCount,
         pageSize = pageSize,
         page = page
@@ -88,7 +112,7 @@ trait ArenaReadService {
       for {
         topics      <- arenaRepository.getTopicsPaginated(offset, pageSize)(session)
         topicsCount <- arenaRepository.topicCount(session)
-        apiTopics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts, user) }
+        apiTopics = topics.map { case topic => converterService.toApiTopic(topic, user) }
       } yield Paginated[api.Topic](
         items = apiTopics,
         totalCount = topicsCount,
@@ -102,13 +126,17 @@ trait ArenaReadService {
     ): Try[api.Topic] = {
       val updatedTime = clock.now()
       for {
-        maybeTopic     <- arenaRepository.getTopic(topicId)(session)
-        (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-        _              <- failIfEditDisallowed(topic, user)
-        updatedTopic   <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
-        mainPostId  <- posts.headOption.map(_._1.id).toTry(MissingPostException("Could not find main post for topic"))
+        maybeTopic   <- arenaRepository.getTopic(topicId)(session)
+        topic        <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+        _            <- failIfEditDisallowed(topic.topic, user)
+        updatedTopic <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
+        mainPostId <- topic.posts.headOption
+          .map(_.post.id)
+          .toTry(MissingPostException("Could not find main post for topic"))
         updatedPost <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
-      } yield converterService.toApiTopic(updatedTopic, (updatedPost, user, List.empty) +: posts.tail, user)
+        compiledNewPost = CompiledPost(updatedPost, user, List.empty)
+        compiledTopic   = topic.copy(topic = updatedTopic, posts = compiledNewPost +: topic.posts.tail)
+      } yield converterService.toApiTopic(compiledTopic, user)
     }
 
     def updatePost(postId: Long, newPost: NewPost, user: MyNDLAUser)(
@@ -121,7 +149,8 @@ trait ArenaReadService {
         _             <- failIfEditDisallowed(post, user)
         updatedPost   <- arenaRepository.updatePost(postId, newPost.content, updatedTime)(session)
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
-      } yield converterService.toApiPost(updatedPost, flags, owner, user)
+        compiledPost = CompiledPost(updatedPost, owner, flags)
+      } yield converterService.toApiPost(compiledPost, user)
     }
 
     private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] =
@@ -153,7 +182,9 @@ trait ArenaReadService {
           topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
           _     <- followTopic(topic.id, user)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
-        } yield converterService.toApiTopic(topic, List((post, user, List.empty)), user)
+          compiledPost  = CompiledPost(post, user, List.empty)
+          compiledTopic = CompiledTopic(topic, List(compiledPost))
+        } yield converterService.toApiTopic(compiledTopic, user)
       }
     }
 
@@ -161,19 +192,21 @@ trait ArenaReadService {
       arenaRepository.withSession { session =>
         for {
           maybeBeforeTopic <- arenaRepository.getTopic(topicId)(session)
-          (topic, posts)   <- maybeBeforeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+          topic            <- maybeBeforeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
           newPost          <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
           _                <- generateNewPostNotifications(topic, newPost)(session)
           _                <- followTopic(topicId, user)(session)
-          newPosts = posts :+ (newPost, user, List.empty)
-        } yield converterService.toApiTopic(topic, newPosts, user)
+          newCompiledPost  = CompiledPost(newPost, user, List.empty)
+          newPosts         = topic.posts :+ newCompiledPost
+          newCompiledTopic = topic.copy(posts = newPosts)
+        } yield converterService.toApiTopic(newCompiledTopic, user)
       }
 
-    def generateNewPostNotifications(topic: domain.Topic, newPost: domain.Post)(
+    def generateNewPostNotifications(topic: CompiledTopic, newPost: domain.Post)(
         session: DBSession
     ): Try[List[domain.Notification]] = {
       val notificationTime = clock.now()
-      getFollowers(topic.id)(session)
+      getFollowers(topic.topic.id)(session)
         .flatMap { followers =>
           followers.traverse { follower =>
             if (follower.id == newPost.ownerId) Success(None)
@@ -182,7 +215,7 @@ trait ArenaReadService {
                 .insertNotification(
                   follower.id,
                   newPost.id,
-                  topic.id,
+                  topic.topic.id,
                   notificationTime
                 )(session)
                 .map(Some(_))
@@ -211,7 +244,7 @@ trait ArenaReadService {
         description = category.description,
         topicCount = topicsCount,
         postCount = postsCount,
-        topics = topics.map { case (topic, posts) => converterService.toApiTopic(topic, posts, user) },
+        topics = topics.map(topic => converterService.toApiTopic(topic, user)),
         topicPageSize = pageSize,
         topicPage = page
       )
@@ -219,9 +252,9 @@ trait ArenaReadService {
 
     def getTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = ReadOnlyAutoSession): Try[api.Topic] =
       for {
-        maybeTopic     <- arenaRepository.getTopic(topicId)(session)
-        (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-      } yield converterService.toApiTopic(topic, posts, user)
+        maybeTopic <- arenaRepository.getTopic(topicId)(session)
+        topic      <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+      } yield converterService.toApiTopic(topic, user)
 
     def followTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Topic] = {
       for {
