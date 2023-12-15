@@ -51,5 +51,6 @@ CREATE TABLE notifications (
     user_id BIGINT REFERENCES my_ndla_users(id),
     post_id BIGINT REFERENCES posts(id),
     topic_id BIGINT REFERENCES topics(id),
-    is_read BOOLEAN DEFAULT FALSE
+    is_read BOOLEAN DEFAULT FALSE,
+    notification_time timestamp NOT NULL DEFAULT now()
 );
