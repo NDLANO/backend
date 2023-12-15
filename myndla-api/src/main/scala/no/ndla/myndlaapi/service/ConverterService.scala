@@ -26,15 +26,39 @@ trait ConverterService {
       )
     }
 
-    def toApiTopic(compiledTopic: CompiledTopic, requester: MyNDLAUser): api.Topic = {
-      val apiPosts = compiledTopic.posts.map(post => toApiPost(post, requester))
+    def toApiTopic(compiledTopic: CompiledTopic, postCount: Long, requester: MyNDLAUser): api.Topic = {
       api.Topic(
         id = compiledTopic.topic.id,
         title = compiledTopic.topic.title,
         created = compiledTopic.topic.created,
         updated = compiledTopic.topic.updated,
-        posts = apiPosts,
-        postCount = apiPosts.size.toLong
+        postCount = postCount
+      )
+    }
+
+    def toApiTopicWithPosts(
+        compiledTopic: CompiledTopic,
+        page: Long,
+        pageSize: Long,
+        postCount: Long,
+        posts: List[CompiledPost],
+        requester: MyNDLAUser
+    ): api.TopicWithPosts = {
+      val apiPosts = posts.map(post => toApiPost(post, requester))
+      val pagination = api.Paginated(
+        page = page,
+        pageSize = pageSize,
+        totalCount = postCount,
+        items = apiPosts
+      )
+
+      api.TopicWithPosts(
+        id = compiledTopic.topic.id,
+        title = compiledTopic.topic.title,
+        created = compiledTopic.topic.created,
+        updated = compiledTopic.topic.updated,
+        postCount = apiPosts.size.toLong,
+        posts = pagination
       )
     }
 

@@ -23,7 +23,7 @@ case class CompiledPost(
 
 case class CompiledTopic(
     topic: domain.Topic,
-    posts: List[CompiledPost]
+    owner: MyNDLAUser
 )
 
 case class CompiledNotification(

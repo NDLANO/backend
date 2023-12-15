@@ -112,8 +112,11 @@ trait ArenaReadService {
         _             <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
+        topicsWithCount <- topics.traverse(t => {
+          arenaRepository.postCount(t.topic.id)(session).map(postCount => (t, postCount))
+        })
       } yield Paginated[api.Topic](
-        items = topics.map(topic => converterService.toApiTopic(topic, user)),
+        items = topicsWithCount.map { case (topic, postCount) => converterService.toApiTopic(topic, postCount, user) },
         totalCount = topicsCount,
         pageSize = pageSize,
         page = page
@@ -127,7 +130,11 @@ trait ArenaReadService {
       for {
         topics      <- arenaRepository.getTopicsPaginated(offset, pageSize)(session)
         topicsCount <- arenaRepository.topicCount(session)
-        apiTopics = topics.map { case topic => converterService.toApiTopic(topic, user) }
+        apiTopics <- topics.traverse { topic =>
+          arenaRepository
+            .postCount(topic.topic.id)(session)
+            .map(postCount => { converterService.toApiTopic(topic, postCount, user) })
+        }
       } yield Paginated[api.Topic](
         items = apiTopics,
         totalCount = topicsCount,
@@ -143,15 +150,16 @@ trait ArenaReadService {
       for {
         maybeTopic   <- arenaRepository.getTopic(topicId)(session)
         topic        <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+        posts        <- arenaRepository.getPostsForTopic(topicId, 0, 10)(session)
         _            <- failIfEditDisallowed(topic.topic, user)
         updatedTopic <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
-        mainPostId <- topic.posts.headOption
+        mainPostId <- posts.headOption
           .map(_.post.id)
           .toTry(MissingPostException("Could not find main post for topic"))
         updatedPost <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
-        compiledNewPost = CompiledPost(updatedPost, user, List.empty)
-        compiledTopic   = topic.copy(topic = updatedTopic, posts = compiledNewPost +: topic.posts.tail)
-      } yield converterService.toApiTopic(compiledTopic, user)
+        postCount   <- arenaRepository.postCount(topicId)(session)
+        compiledTopic = topic.copy(topic = updatedTopic)
+      } yield converterService.toApiTopic(compiledTopic, postCount, user)
     }
 
     def updatePost(postId: Long, newPost: NewPost, user: MyNDLAUser)(
@@ -197,9 +205,8 @@ trait ArenaReadService {
           topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
           _     <- followTopic(topic.id, user)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
-          compiledPost  = CompiledPost(post, user, List.empty)
-          compiledTopic = CompiledTopic(topic, List(compiledPost))
-        } yield converterService.toApiTopic(compiledTopic, user)
+          compiledTopic = CompiledTopic(topic, user)
+        } yield converterService.toApiTopic(compiledTopic, 1, user)
       }
     }
 
@@ -211,10 +218,8 @@ trait ArenaReadService {
           newPost          <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
           _                <- generateNewPostNotifications(topic, newPost)(session)
           _                <- followTopic(topicId, user)(session)
-          newCompiledPost  = CompiledPost(newPost, user, List.empty)
-          newPosts         = topic.posts :+ newCompiledPost
-          newCompiledTopic = topic.copy(posts = newPosts)
-        } yield converterService.toApiTopic(newCompiledTopic, user)
+          postCount        <- arenaRepository.postCount(topicId)(session)
+        } yield converterService.toApiTopic(topic, postCount, user)
       }
 
     def generateNewPostNotifications(topic: CompiledTopic, newPost: domain.Post)(
@@ -253,35 +258,53 @@ trait ArenaReadService {
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
         postsCount    <- arenaRepository.getPostCountForCategory(categoryId)(session)
+        tt <- topics.traverse(topic =>
+          arenaRepository
+            .postCount(topic.topic.id)(session)
+            .map(postCount => converterService.toApiTopic(topic, postCount, user))
+        )
       } yield api.CategoryWithTopics(
         id = categoryId,
         title = category.title,
         description = category.description,
         topicCount = topicsCount,
         postCount = postsCount,
-        topics = topics.map(topic => converterService.toApiTopic(topic, user)),
+        topics = tt,
         topicPageSize = pageSize,
         topicPage = page
       )
     }
 
-    def getTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = ReadOnlyAutoSession): Try[api.Topic] =
+    def getTopic(topicId: Long, user: MyNDLAUser, page: Long, pageSize: Long)(
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[api.TopicWithPosts] = {
+      val offset = (page - 1) * pageSize
       for {
         maybeTopic <- arenaRepository.getTopic(topicId)(session)
         topic      <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-      } yield converterService.toApiTopic(topic, user)
+        posts      <- arenaRepository.getPostsForTopic(topicId, offset, pageSize)(session)
+        postCount  <- arenaRepository.postCount(topicId)(session)
+      } yield converterService.toApiTopicWithPosts(
+        compiledTopic = topic,
+        page = page,
+        pageSize = pageSize,
+        postCount = postCount,
+        posts = posts,
+        requester = user
+      )
+    }
 
-    def followTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Topic] = {
+    def followTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
       for {
-        apiTopic  <- getTopic(topicId, user)(session)
+        apiTopic  <- getTopic(topicId, user, 1, 10)(session)
         following <- arenaRepository.getTopicFollowing(topicId, user.id)(session)
         _         <- if (following.isEmpty) arenaRepository.followTopic(topicId, user.id)(session) else Success(())
       } yield apiTopic
     }
 
-    def unfollowTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Topic] = {
+    def unfollowTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
       for {
-        apiTopic  <- getTopic(topicId, user)(session)
+        apiTopic  <- getTopic(topicId, user, 0, 0)(session)
         following <- arenaRepository.getTopicFollowing(topicId, user.id)(session)
         _         <- if (following.isDefined) arenaRepository.unfollowTopic(topicId, user.id)(session) else Success(())
       } yield apiTopic

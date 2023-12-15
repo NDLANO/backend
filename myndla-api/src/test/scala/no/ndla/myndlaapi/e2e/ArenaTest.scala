@@ -247,51 +247,51 @@ class ArenaTest
           id = 1,
           title = "title1",
           postCount = 5,
-          posts = List(
-            api.Post(
-              id = 1,
-              content = "description1",
-              created = someDate,
-              updated = someDate,
-              owner = owner,
-              flags = Some(List.empty)
-            ),
-            api
-              .Post(
-                id = 4,
-                content = "post1",
-                created = someDate,
-                updated = someDate,
-                owner = owner,
-                flags = Some(List.empty)
-              ),
-            api
-              .Post(
-                id = 5,
-                content = "post2",
-                created = someDate,
-                updated = someDate,
-                owner = owner,
-                flags = Some(List.empty)
-              ),
-            api
-              .Post(
-                id = 6,
-                content = "post3",
-                created = someDate,
-                updated = someDate,
-                owner = owner,
-                flags = Some(List.empty)
-              ),
-            api.Post(
-              id = 7,
-              content = "post4",
-              created = someDate,
-              updated = someDate,
-              owner = owner,
-              flags = Some(List.empty)
-            )
-          ),
+//          posts = List(
+//            api.Post(
+//              id = 1,
+//              content = "description1",
+//              created = someDate,
+//              updated = someDate,
+//              owner = owner,
+//              flags = Some(List.empty)
+//            ),
+//            api
+//              .Post(
+//                id = 4,
+//                content = "post1",
+//                created = someDate,
+//                updated = someDate,
+//                owner = owner,
+//                flags = Some(List.empty)
+//              ),
+//            api
+//              .Post(
+//                id = 5,
+//                content = "post2",
+//                created = someDate,
+//                updated = someDate,
+//                owner = owner,
+//                flags = Some(List.empty)
+//              ),
+//            api
+//              .Post(
+//                id = 6,
+//                content = "post3",
+//                created = someDate,
+//                updated = someDate,
+//                owner = owner,
+//                flags = Some(List.empty)
+//              ),
+//            api.Post(
+//              id = 7,
+//              content = "post4",
+//              created = someDate,
+//              updated = someDate,
+//              owner = owner,
+//              flags = Some(List.empty)
+//            )
+//          ),
           created = someDate,
           updated = someDate
         ),
@@ -299,16 +299,16 @@ class ArenaTest
           id = 2,
           title = "title2",
           postCount = 1,
-          posts = List(
-            api.Post(
-              id = 2,
-              content = "description2",
-              created = someDate,
-              updated = someDate,
-              owner = owner,
-              flags = Some(List.empty)
-            )
-          ),
+//          posts = List(
+//            api.Post(
+//              id = 2,
+//              content = "description2",
+//              created = someDate,
+//              updated = someDate,
+//              owner = owner,
+//              flags = Some(List.empty)
+//            )
+//          ),
           created = someDate,
           updated = someDate
         ),
@@ -316,16 +316,16 @@ class ArenaTest
           id = 3,
           title = "title3",
           postCount = 1,
-          posts = List(
-            api.Post(
-              id = 3,
-              content = "description3",
-              created = someDate,
-              updated = someDate,
-              owner = owner,
-              flags = Some(List.empty)
-            )
-          ),
+//          posts = List(
+//            api.Post(
+//              id = 3,
+//              content = "description3",
+//              created = someDate,
+//              updated = someDate,
+//              owner = owner,
+//              flags = Some(List.empty)
+//            )
+//          ),
           created = someDate,
           updated = someDate
         )

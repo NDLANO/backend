@@ -46,7 +46,10 @@ trait ArenaRepository {
           notificationTopic <- topics
             .find(_.id == not.topic_id)
             .toTry(NDLASQLException(s"Notification with id ${not.id} has no topic ${not.topic_id} in result."))
-          compiledTopic <- compileTopic(Success(notificationTopic), posts, flags, owners)
+          topicOwner <- owners
+            .find(_.id == notificationTopic.ownerId)
+            .toTry(NDLASQLException(s"Topic with id ${notificationTopic.id} has no owner in result."))
+          compiledTopic = CompiledTopic(notificationTopic, topicOwner)
         } yield CompiledNotification(
           notification = not,
           post = compiledPost,
@@ -501,33 +504,35 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getTopic(topicId: Long)(implicit
-        session: DBSession
-    ): Try[Option[CompiledTopic]] = {
+    def getTopic(topicId: Long)(implicit session: DBSession): Try[Option[CompiledTopic]] = {
       val t = domain.Topic.syntax("t")
-      val p = domain.Post.syntax("p")
       val u = DBMyNDLAUser.syntax("u")
-      val f = domain.Flag.syntax("f")
       Try {
         sql"""
-             select ${t.resultAll}, ${p.resultAll}, ${u.resultAll}, ${f.resultAll}
+             select ${t.resultAll}, ${u.resultAll}
              from ${domain.Topic.as(t)}
-             left join ${domain.Post.as(p)} ON ${p.topic_id} = ${t.id}
-             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
-             left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
+             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${t.ownerId}
              where ${t.id} = $topicId
            """
           .one(rs => domain.Topic.fromResultSet(t.resultName)(rs))
-          .toManies(
-            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
-            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
-            rs => domain.Flag.fromResultSet(f)(rs).toOption
-          )
-          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toList, flags.toList, owners.toList))
+          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
+          .map { (topic, owner) => compileTopic(topic, owner.toList) }
           .single
           .apply()
           .sequence
       }.flatten
+    }
+
+    def compileTopic(topic: Try[domain.Topic], owners: Seq[MyNDLAUser]): Try[CompiledTopic] = {
+      for {
+        t <- topic
+        owner <- owners
+          .find(_.id == t.ownerId)
+          .toTry(NDLASQLException(s"Topic with id ${t.id} has no owner in result."))
+      } yield CompiledTopic(
+        topic = t,
+        owner = owner
+      )
     }
 
     def compilePost(
@@ -549,22 +554,23 @@ trait ArenaRepository {
       })
     } yield CompiledPost(post = post, owner = postOwner, flagsWithFlaggers.toList)
 
-    def compileTopic(
-        topic: Try[domain.Topic],
-        posts: List[domain.Post],
-        flags: List[domain.Flag],
-        owners: List[MyNDLAUser]
-    ): Try[CompiledTopic] = {
-      for {
-        t               <- topic
-        postsWithOwners <- posts.traverse(post => compilePost(post, owners, flags))
-      } yield CompiledTopic(t, postsWithOwners.sortBy { _.post.created })
-    }
-
     def topicCount(implicit session: DBSession): Try[Long] = Try {
       sql"""
            select count(*) as count
            from ${domain.Topic.table}
+         """
+        .map(rs => rs.long("count"))
+        .single
+        .apply()
+        .getOrElse(0L)
+    }
+
+    def postCount(topicId: Long)(implicit session: DBSession): Try[Long] = Try {
+      val p = domain.Post.syntax("p")
+      sql"""
+           select count(*) as count
+           from ${domain.Post.as(p)}
+           where ${p.topic_id} = $topicId
          """
         .map(rs => rs.long("count"))
         .single
@@ -585,18 +591,13 @@ trait ArenaRepository {
         .getOrElse(0L)
     }
 
-    def getTopicsPaginated(offset: Long, limit: Long)(implicit
-        session: DBSession
-    ): Try[List[CompiledTopic]] = {
-
+    def getTopicsPaginated(offset: Long, limit: Long)(implicit session: DBSession): Try[List[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
-      val p  = domain.Post.syntax("p")
       val u  = DBMyNDLAUser.syntax("u")
-      val f  = domain.Flag.syntax("f")
       Try {
         sql"""
-              select ${ts.resultAll}, ${p.resultAll}, ${u.resultAll}, ${f.resultAll}
+              select ${ts.resultAll}, ${u.resultAll}
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
@@ -604,18 +605,46 @@ trait ArenaRepository {
                   limit $limit
                   offset $offset
                 ) ts
-               left join ${domain.Post.as(p)} on ${p.topic_id} = ${ts(t).id}
-               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
-               left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
+               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
                order by newest_post_date desc nulls last
            """
           .one(rs => domain.Topic.fromResultSet(ts(t).resultName)(rs))
+          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
+          .map { (topic, owners) => compileTopic(topic, owners.toList) }
+          .list
+          .apply()
+          .sequence
+      }.flatten
+    }
+
+    def getPostsForTopic(topicId: Long, offset: Long, limit: Long)(implicit
+        session: DBSession
+    ): Try[List[CompiledPost]] = {
+      val p  = domain.Post.syntax("p")
+      val ps = SubQuery.syntax("ps").include(p)
+      val u  = DBMyNDLAUser.syntax("u")
+      val f  = domain.Flag.syntax("f")
+      Try {
+        sql"""
+              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}
+              from (
+                  select ${p.resultAll}
+                  from ${domain.Post.as(p)}
+                  where ${p.topic_id} = $topicId
+                  order by ${p.created} asc nulls last
+                  limit $limit
+                  offset $offset
+                ) ps
+               left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id} and ${f.resolved} is null
+               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
+               order by ${ps(p).created} asc nulls last
+           """
+          .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
           .toManies(
-            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
             rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toList, flags.toList, owners.toList))
+          .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
           .list
           .apply()
           .sequence
@@ -627,12 +656,10 @@ trait ArenaRepository {
     ): Try[List[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
-      val p  = domain.Post.syntax("p")
       val u  = DBMyNDLAUser.syntax("u")
-      val f  = domain.Flag.syntax("f")
       Try {
         sql"""
-              select ${ts.resultAll}, ${p.resultAll}, ${u.resultAll}, ${f.resultAll}
+              select ${ts.resultAll}, ${u.resultAll}
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
@@ -641,18 +668,12 @@ trait ArenaRepository {
                   limit $limit
                   offset $offset
                 ) ts
-               left join ${domain.Post.as(p)} on ${p.topic_id} = ${ts(t).id}
-               left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
-               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} OR ${u.id} = ${f.user_id}
+               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
                order by newest_post_date desc nulls last
            """
           .one(rs => domain.Topic.fromResultSet(ts(t).resultName)(rs))
-          .toManies(
-            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
-            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
-            rs => domain.Flag.fromResultSet(f)(rs).toOption
-          )
-          .map((topic, posts, owners, flags) => compileTopic(topic, posts.toList, flags.toList, owners.toList))
+          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
+          .map { (topic, owner) => compileTopic(topic, owner.toList) }
           .list
           .apply()
           .sequence
