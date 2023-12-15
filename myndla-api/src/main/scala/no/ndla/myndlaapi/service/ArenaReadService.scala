@@ -159,12 +159,39 @@ trait ArenaReadService {
     def postPost(topicId: Long, newPost: NewPost, user: MyNDLAUser): Try[api.Topic] =
       arenaRepository.withSession { session =>
         for {
-          _              <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
-          maybeTopic     <- arenaRepository.getTopic(topicId)(session)
-          _              <- followTopic(topicId, user)(session)
-          (topic, posts) <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-        } yield converterService.toApiTopic(topic, posts, user)
+          maybeBeforeTopic <- arenaRepository.getTopic(topicId)(session)
+          (topic, posts)   <- maybeBeforeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+          newPost          <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
+          _                <- generateNewPostNotifications(topic, newPost)(session)
+          _                <- followTopic(topicId, user)(session)
+          newPosts = posts :+ (newPost, user, List.empty)
+        } yield converterService.toApiTopic(topic, newPosts, user)
       }
+
+    def generateNewPostNotifications(topic: domain.Topic, newPost: domain.Post)(
+        session: DBSession
+    ): Try[List[domain.Notification]] = {
+      val notificationTime = clock.now()
+      getFollowers(topic.id)(session)
+        .flatMap { followers =>
+          followers.traverse { follower =>
+            // TODO: dont notify the poster
+            arenaRepository
+              .insertNotification(
+                follower.id,
+                newPost.id,
+                topic.id,
+                notificationTime
+              )(session)
+              .map(Some(_))
+          }
+        }
+        .map(_.flatten)
+    }
+
+    def getFollowers(topicId: Long)(session: DBSession): Try[List[MyNDLAUser]] = {
+      arenaRepository.getTopicFollowers(topicId)(session)
+    }
 
     def getCategory(categoryId: Long, page: Long, pageSize: Long, user: MyNDLAUser)(
         session: DBSession = ReadOnlyAutoSession
