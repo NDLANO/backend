@@ -17,7 +17,8 @@ import no.ndla.common.Clock
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
-import no.ndla.myndlaapi.model.arena.domain.{Flag, Notification, Post, Topic}
+import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
+import no.ndla.myndlaapi.model.arena.domain.{Notification, Post, Topic}
 
 trait ArenaRepository {
   this: Clock =>
@@ -25,6 +26,77 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository extends StrictLogging {
+
+    def compileNotification(
+        notification: Try[domain.Notification],
+        posts: List[domain.Post],
+        topics: List[domain.Topic],
+        owners: List[MyNDLAUser],
+        flags: List[domain.Flag]
+    ): Try[CompiledNotification] = {
+      notification.flatMap(not => {
+        for {
+          owner <- owners
+            .find(_.id == not.user_id)
+            .toTry(NDLASQLException(s"Notification with id ${not.id} has no user ${not.user_id} in result."))
+          notificationPost <- posts
+            .find(_.id == not.post_id)
+            .toTry(NDLASQLException(s"Notification with id ${not.id} has no post ${not.post_id} in result."))
+          compiledPost <- compilePost(notificationPost, owners, flags)
+          notificationTopic <- topics
+            .find(_.id == not.topic_id)
+            .toTry(NDLASQLException(s"Notification with id ${not.id} has no topic ${not.topic_id} in result."))
+          compiledTopic <- compileTopic(Success(notificationTopic), posts, flags, owners)
+        } yield CompiledNotification(
+          notification = not,
+          post = compiledPost,
+          topic = compiledTopic,
+          notifiedUser = owner
+        )
+      })
+    }
+
+    def getNotifications(user: MyNDLAUser, offset: Long, limit: Long)(implicit session: DBSession) = {
+      val n  = domain.Notification.syntax("n")
+      val ns = SubQuery.syntax("ns").include(n)
+      val p  = domain.Post.syntax("p")
+      val t  = domain.Topic.syntax("t")
+      val u  = DBMyNDLAUser.syntax("u")
+      val f  = domain.Flag.syntax("f")
+      Try {
+        sql"""
+             select ${ns.resultAll}, ${p.resultAll}, ${t.resultAll}, ${u.resultAll}, ${f.resultAll}
+             from (
+              select ${n.resultAll}
+              from ${domain.Notification.as(n)}
+              where ${n.user_id} = ${user.id}
+              order by ${n.notification_time} desc
+              limit $limit
+              offset $offset
+             ) ns
+             left join ${domain.Post.as(p)} on ${p.id} = ${ns(n).post_id}
+             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
+             left join ${domain.Topic.as(t)} on ${t.id} = ${ns(n).topic_id}
+             left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
+             order by ${ns(n).notification_time} desc
+           """
+          .one(rs => domain.Notification.fromResultSet(ns(n).resultName)(rs))
+          .toManies(
+            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
+            rs => domain.Topic.fromResultSet(t.resultName)(rs).toOption,
+            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => domain.Flag.fromResultSet(f)(rs).toOption
+          )
+          .map { (notification, post, topic, owner, flag) =>
+            compileNotification(notification, post.toList, topic.toList, owner.toList, flag.toList)
+          }
+          .list
+          .apply()
+          .sequence
+      }.flatten
+
+    }
+
     def insertNotification(userId: Long, postId: Long, topicId: Long, notificationTime: NDLADate)(implicit
         session: DBSession
     ): Try[Notification] = Try {
@@ -91,7 +163,7 @@ trait ArenaRepository {
 
     def getTopicFollowers(topicId: Long)(implicit session: DBSession): Try[List[MyNDLAUser]] = Try {
       val tf = domain.TopicFollow.syntax("tf")
-      val u = DBMyNDLAUser.syntax("u")
+      val u  = DBMyNDLAUser.syntax("u")
       sql"""
            select ${tf.resultAll}, ${u.resultAll}
            from ${domain.TopicFollow.as(tf)}
@@ -118,7 +190,7 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getFlagsForPost(postId: Long)(implicit session: DBSession): Try[List[(domain.Flag, MyNDLAUser)]] = Try {
+    def getFlagsForPost(postId: Long)(implicit session: DBSession): Try[List[CompiledFlag]] = Try {
       val f = domain.Flag.syntax("f")
       val u = DBMyNDLAUser.syntax("u")
       sql"""
@@ -129,7 +201,7 @@ trait ArenaRepository {
          """
         .one(rs => domain.Flag.fromResultSet(f.resultName)(rs))
         .toOne(rs => DBMyNDLAUser.fromResultSet(u)(rs))
-        .map { (flag, user) => flag.map(_ -> user) }
+        .map { (flag, user) => flag.map(CompiledFlag(_, user)) }
         .list
         .apply()
         .sequence
@@ -363,7 +435,7 @@ trait ArenaRepository {
 
     def getTopic(topicId: Long)(implicit
         session: DBSession
-    ): Try[Option[(domain.Topic, List[(domain.Post, MyNDLAUser, List[(domain.Flag, MyNDLAUser)])])]] = {
+    ): Try[Option[CompiledTopic]] = {
       val t = domain.Topic.syntax("t")
       val p = domain.Post.syntax("p")
       val u = DBMyNDLAUser.syntax("u")
@@ -394,7 +466,7 @@ trait ArenaRepository {
         post: domain.Post,
         owners: Seq[MyNDLAUser],
         flags: Seq[domain.Flag]
-    ): Try[(Post, MyNDLAUser, List[(Flag, MyNDLAUser)])] = for {
+    ): Try[CompiledPost] = for {
       postOwner <- owners
         .find(_.id == post.ownerId)
         .toTry(NDLASQLException(s"Post with id ${post.id} has no owner in result."))
@@ -404,21 +476,21 @@ trait ArenaRepository {
           .find(_.id == f.user_id)
           .toTry(NDLASQLException(s"Flag with id ${f.id} has no flagger in result."))
           .map(flagger => {
-            f -> flagger
+            CompiledFlag(flag = f, flagger = flagger)
           })
       })
-    } yield (post, postOwner, flagsWithFlaggers.toList)
+    } yield CompiledPost(post = post, owner = postOwner, flagsWithFlaggers.toList)
 
     def compileTopic(
         topic: Try[domain.Topic],
         posts: List[domain.Post],
         flags: List[domain.Flag],
         owners: List[MyNDLAUser]
-    ): Try[(domain.Topic, List[(domain.Post, MyNDLAUser, List[(domain.Flag, MyNDLAUser)])])] = {
+    ): Try[CompiledTopic] = {
       for {
         t               <- topic
         postsWithOwners <- posts.traverse(post => compilePost(post, owners, flags))
-      } yield (t, postsWithOwners.sortBy { case (post, _, _) => post.created })
+      } yield CompiledTopic(t, postsWithOwners.sortBy { _.post.created })
     }
 
     def topicCount(implicit session: DBSession): Try[Long] = Try {
@@ -432,9 +504,22 @@ trait ArenaRepository {
         .getOrElse(0L)
     }
 
+    def notificationsCount(userId: Long)(implicit session: DBSession): Try[Long] = Try {
+      val n = domain.Notification.syntax("n")
+      sql"""
+           select count(*) as count
+           from ${domain.Notification.as(n)}
+           where ${n.user_id} = $userId
+         """
+        .map(rs => rs.long("count"))
+        .single
+        .apply()
+        .getOrElse(0L)
+    }
+
     def getTopicsPaginated(offset: Long, limit: Long)(implicit
         session: DBSession
-    ): Try[List[(Topic, List[(Post, MyNDLAUser, List[(domain.Flag, MyNDLAUser)])])]] = {
+    ): Try[List[CompiledTopic]] = {
 
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
@@ -471,7 +556,7 @@ trait ArenaRepository {
 
     def getTopicsForCategory(categoryId: Long, offset: Long, limit: Long)(implicit
         session: DBSession
-    ): Try[List[(domain.Topic, List[(domain.Post, MyNDLAUser, List[(domain.Flag, MyNDLAUser)])])]] = {
+    ): Try[List[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
       val p  = domain.Post.syntax("p")
