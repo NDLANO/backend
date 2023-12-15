@@ -21,7 +21,8 @@ import no.ndla.myndlaapi.model.arena.api.{
   NewTopic,
   Paginated,
   Post,
-  Topic
+  Topic,
+  TopicWithPosts
 }
 import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.clients.FeideApiClient
@@ -101,11 +102,15 @@ trait ArenaController {
       .in("topics" / pathTopicId)
       .summary("Get single topic")
       .description("Get single topic")
-      .out(jsonBody[Topic])
+      .out(jsonBody[TopicWithPosts])
       .errorOut(errorOutputsFor(401, 403, 404))
+      .in(queryPage)
+      .in(queryPageSize)
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { user => topicId =>
-        arenaReadService.getTopic(topicId, user)().handleErrorsOrOk
+      .serverLogicPure { user =>
+        { case (topicId, page, pageSize) =>
+          arenaReadService.getTopic(topicId, user, page, pageSize)().handleErrorsOrOk
+        }
       }
 
     def getRecentTopics: ServerEndpoint[Any, Eff] = endpoint.get
@@ -127,7 +132,7 @@ trait ArenaController {
       .in("topics" / pathTopicId / "follow")
       .summary("Follow topic")
       .description("Follow topic")
-      .out(jsonBody[Topic])
+      .out(jsonBody[TopicWithPosts])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
@@ -138,7 +143,7 @@ trait ArenaController {
       .in("topics" / pathTopicId / "unfollow")
       .summary("Unfollow topic")
       .description("Unfollow topic")
-      .out(jsonBody[Topic])
+      .out(jsonBody[TopicWithPosts])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
