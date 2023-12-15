@@ -299,6 +299,17 @@ trait ArenaController {
         }
       }
 
+    def markNotificationsAsRead: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("notifications")
+      .summary("Mark your notifications as read")
+      .description("Mark your notifications as read")
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => _ =>
+        arenaReadService.readNotification(user)().handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -318,7 +329,8 @@ trait ArenaController {
       postCategory,
       updateCategory,
       deleteCategory,
-      getNotifications
+      getNotifications,
+      markNotificationsAsRead
     )
   }
 
