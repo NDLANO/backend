@@ -47,10 +47,11 @@ trait ArenaController {
     override val serviceName: String                   = "Arena"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "arena"
 
-    private val pathCategoryId = path[Long]("categoryId").description("The category id")
-    private val pathTopicId    = path[Long]("topicId").description("The topic id")
-    private val pathPostId     = path[Long]("postId").description("The post id")
-    private val pathFlagId     = path[Long]("flagId").description("The flag id")
+    private val pathCategoryId     = path[Long]("categoryId").description("The category id")
+    private val pathTopicId        = path[Long]("topicId").description("The topic id")
+    private val pathPostId         = path[Long]("postId").description("The post id")
+    private val pathFlagId         = path[Long]("flagId").description("The flag id")
+    private val pathNotificationId = path[Long]("notificationId").description("The notification id")
 
     private val queryPage     = query[Long]("page").default(1).validate(Validator.min(1))
     private val queryPageSize = query[Long]("page-size").default(10).validate(Validator.inRange(1, 100))
@@ -299,6 +300,17 @@ trait ArenaController {
         }
       }
 
+    def markSingleNotificationAsRead: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("notifications" / pathNotificationId)
+      .summary("Mark single notification as read")
+      .description("Mark single notification as read")
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => notificationId =>
+        arenaReadService.readNotification(notificationId, user)().handleErrorsOrOk
+      }
+
     def markNotificationsAsRead: ServerEndpoint[Any, Eff] = endpoint.post
       .in("notifications")
       .summary("Mark your notifications as read")
@@ -307,7 +319,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => _ =>
-        arenaReadService.readNotification(user)().handleErrorsOrOk
+        arenaReadService.readNotifications(user)().handleErrorsOrOk
       }
 
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
@@ -330,7 +342,8 @@ trait ArenaController {
       updateCategory,
       deleteCategory,
       getNotifications,
-      markNotificationsAsRead
+      markNotificationsAsRead,
+      markSingleNotificationAsRead
     )
   }
 
