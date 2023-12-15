@@ -17,6 +17,7 @@ import no.ndla.myndlaapi.model.arena.api.{
   NewCategory,
   NewFlag,
   NewPost,
+  NewPostNotification,
   NewTopic,
   Paginated,
   Post,
@@ -283,6 +284,21 @@ trait ArenaController {
         arenaReadService.resolveFlag(flagId)().handleErrorsOrOk
       }
 
+    def getNotifications: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("notifications")
+      .summary("Get your notifications")
+      .description("Get your notifications")
+      .in(queryPage)
+      .in(queryPageSize)
+      .out(jsonBody[Paginated[NewPostNotification]])
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (page, pageSize) =>
+          arenaReadService.getNotifications(user, page, pageSize)().handleErrorsOrOk
+        }
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -301,7 +317,8 @@ trait ArenaController {
       resolveFlag,
       postCategory,
       updateCategory,
-      deleteCategory
+      deleteCategory,
+      getNotifications
     )
   }
 
