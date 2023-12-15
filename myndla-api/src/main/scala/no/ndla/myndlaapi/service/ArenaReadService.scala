@@ -28,9 +28,11 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
-    def readNotification(user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] = {
+    def readNotifications(user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] =
       arenaRepository.readNotifications(user.id)(session)
-    }
+
+    def readNotification(notificationId: Long, user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] =
+      arenaRepository.readNotification(notificationId, user.id)(session)
 
     def getNotifications(user: MyNDLAUser, page: Long, pageSize: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
