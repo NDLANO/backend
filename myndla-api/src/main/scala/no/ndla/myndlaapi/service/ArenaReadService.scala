@@ -15,9 +15,9 @@ import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
-import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic, Notifications, Paginated}
+import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic, Paginated}
 import no.ndla.myndlaapi.model.arena.domain.MissingPostException
-import no.ndla.myndlaapi.model.arena.domain.database.{CompiledNotification, CompiledPost, CompiledTopic}
+import no.ndla.myndlaapi.model.arena.domain.database.{CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
@@ -28,13 +28,17 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def readNotification(user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] = {
+      arenaRepository.readNotifications(user.id)(session)
+    }
+
     def getNotifications(user: MyNDLAUser, page: Long, pageSize: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.NewPostNotification]] = {
       val offset = (page - 1) * pageSize
       for {
         compiledNotifications <- arenaRepository.getNotifications(user, offset, pageSize)(session)
-        notificationsCount <- arenaRepository.notificationsCount(user.id)(session)
+        notificationsCount    <- arenaRepository.notificationsCount(user.id)(session)
         apiNotifications = compiledNotifications.map { notification =>
           api.NewPostNotification(
             id = notification.notification.id,
