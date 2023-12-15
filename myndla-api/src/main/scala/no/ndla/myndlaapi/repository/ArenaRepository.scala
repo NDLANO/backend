@@ -124,6 +124,19 @@ trait ArenaRepository {
       )
     }
 
+    def readNotifications(userId: Long)(implicit session: DBSession): Try[Unit] = Try {
+      val count = withSQL {
+        update(domain.Notification)
+          .set(domain.Notification.column.is_read -> true)
+          .where
+          .eq(domain.Notification.column.user_id, userId)
+      }.update()
+
+      if (count < 1)
+        Failure(NDLASQLException(s"Updating a notification with user_id '$userId' resulted in no affected row"))
+      else Success(())
+    }.flatten
+
     def followTopic(topicId: Long, userId: Long)(implicit session: DBSession): Try[domain.TopicFollow] = Try {
       val column = domain.TopicFollow.column.c _
       val inserted = withSQL {
