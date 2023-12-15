@@ -31,6 +31,14 @@ trait ArenaReadService {
     def readNotifications(user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] =
       arenaRepository.readNotifications(user.id)(session)
 
+    def deleteNotification(notificationId: Long, user: MyNDLAUser)(implicit
+        session: DBSession = AutoSession
+    ): Try[Unit] =
+      arenaRepository.deleteNotification(notificationId, user.id)(session)
+
+    def deleteNotifications(user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] =
+      arenaRepository.deleteNotifications(user.id)(session)
+
     def readNotification(notificationId: Long, user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] =
       arenaRepository.readNotification(notificationId, user.id)(session)
 
@@ -44,6 +52,7 @@ trait ArenaReadService {
         apiNotifications = compiledNotifications.map { notification =>
           api.NewPostNotification(
             id = notification.notification.id,
+            isRead = notification.notification.is_read,
             topicTitle = notification.topic.topic.title,
             topicId = notification.topic.topic.id,
             post = converterService.toApiPost(notification.post, user),

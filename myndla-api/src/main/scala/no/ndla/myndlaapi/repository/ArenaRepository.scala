@@ -148,7 +148,47 @@ trait ArenaRepository {
       }.update()
 
       if (count < 1)
-        Failure(NDLASQLException(s"Updating a notification with user_id '$userId' resulted in no affected row"))
+        Failure(
+          NDLASQLException(
+            s"Updating a notification with user_id '$userId' and notification_id '$notificationId' resulted in no affected row"
+          )
+        )
+      else Success(())
+    }.flatten
+
+    def deleteNotification(notificationId: Long, userId: Long)(implicit session: DBSession): Try[Unit] = Try {
+      val count = withSQL {
+        delete
+          .from(domain.Notification)
+          .where
+          .eq(domain.Notification.column.id, notificationId)
+          .and
+          .eq(domain.Notification.column.user_id, userId)
+      }.update()
+
+      if (count < 1)
+        Failure(
+          NDLASQLException(
+            s"Deleting a notification with user_id '$userId' and notification_id '$notificationId' resulted in no affected row"
+          )
+        )
+      else Success(())
+    }.flatten
+
+    def deleteNotifications(userId: Long)(implicit session: DBSession): Try[Unit] = Try {
+      val count = withSQL {
+        delete
+          .from(domain.Notification)
+          .where
+          .eq(domain.Notification.column.user_id, userId)
+      }.update()
+
+      if (count < 1)
+        Failure(
+          NDLASQLException(
+            s"Deleting a notification with user_id '$userId' resulted in no affected row"
+          )
+        )
       else Success(())
     }.flatten
 
