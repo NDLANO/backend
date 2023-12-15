@@ -17,7 +17,7 @@ import no.ndla.common.Clock
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
-import no.ndla.myndlaapi.model.arena.domain.{Flag, Post, Topic}
+import no.ndla.myndlaapi.model.arena.domain.{Flag, Notification, Post, Topic}
 
 trait ArenaRepository {
   this: Clock =>
@@ -25,6 +25,33 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository extends StrictLogging {
+    def insertNotification(userId: Long, postId: Long, topicId: Long, notificationTime: NDLADate)(implicit
+        session: DBSession
+    ): Try[Notification] = Try {
+      val column = domain.Notification.column.c _
+
+      val inserted = withSQL {
+        insert
+          .into(domain.Notification)
+          .namedValues(
+            column("user_id")           -> userId,
+            column("post_id")           -> postId,
+            column("topic_id")          -> topicId,
+            column("is_read")           -> false,
+            column("notification_time") -> notificationTime
+          )
+      }.updateAndReturnGeneratedKey.apply()
+
+      domain.Notification(
+        id = inserted,
+        user_id = userId,
+        post_id = postId,
+        topic_id = topicId,
+        is_read = false,
+        notification_time = notificationTime
+      )
+    }
+
     def followTopic(topicId: Long, userId: Long)(implicit session: DBSession): Try[domain.TopicFollow] = Try {
       val column = domain.TopicFollow.column.c _
       val inserted = withSQL {
@@ -61,6 +88,20 @@ trait ArenaRepository {
         )
       else Success(count)
     }.flatten
+
+    def getTopicFollowers(topicId: Long)(implicit session: DBSession): Try[List[MyNDLAUser]] = Try {
+      val tf = domain.TopicFollow.syntax("tf")
+      val u = DBMyNDLAUser.syntax("u")
+      sql"""
+           select ${tf.resultAll}, ${u.resultAll}
+           from ${domain.TopicFollow.as(tf)}
+           left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${tf.user_id}
+           where ${tf.topic_id} = $topicId
+         """
+        .map(rs => DBMyNDLAUser.fromResultSet(u)(rs))
+        .list
+        .apply()
+    }
 
     def getTopicFollowing(topicId: Long, userId: Long)(implicit session: DBSession): Try[Option[domain.TopicFollow]] = {
       val tf = domain.TopicFollow.syntax("tf")
