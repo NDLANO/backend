@@ -8,6 +8,7 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.myndla.model.domain.MyNDLAUser
+import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.{api, domain}
 
 trait ConverterService {
@@ -25,17 +26,13 @@ trait ConverterService {
       )
     }
 
-    def toApiTopic(
-        topic: domain.Topic,
-        posts: List[(domain.Post, MyNDLAUser, List[(domain.Flag, MyNDLAUser)])],
-        requester: MyNDLAUser
-    ): api.Topic = {
-      val apiPosts = posts.map { case (post, owner, flags) => toApiPost(post, flags, owner, requester) }
+    def toApiTopic(compiledTopic: CompiledTopic, requester: MyNDLAUser): api.Topic = {
+      val apiPosts = compiledTopic.posts.map(post => toApiPost(post, requester))
       api.Topic(
-        id = topic.id,
-        title = topic.title,
-        created = topic.created,
-        updated = topic.updated,
+        id = compiledTopic.topic.id,
+        title = compiledTopic.topic.title,
+        created = compiledTopic.topic.created,
+        updated = compiledTopic.topic.updated,
         posts = apiPosts,
         postCount = apiPosts.size.toLong
       )
@@ -48,32 +45,26 @@ trait ConverterService {
       )
     }
 
-    def toApiFlag(flag: domain.Flag, flagger: MyNDLAUser): api.Flag = {
+    def toApiFlag(flag: CompiledFlag): api.Flag = {
       api.Flag(
-        id = flag.id,
-        reason = flag.reason,
-        created = flag.created,
-        flagger = toOwner(flagger)
+        id = flag.flag.id,
+        reason = flag.flag.reason,
+        created = flag.flag.created,
+        flagger = toOwner(flag.flagger)
       )
     }
 
     def toApiPost(
-        post: domain.Post,
-        flags: List[(domain.Flag, MyNDLAUser)],
-        owner: MyNDLAUser,
+        compiledPost: CompiledPost,
         requester: MyNDLAUser
     ): api.Post = {
-      val maybeFlags = {
-        if (requester.arenaAdmin.contains(true)) {
-          Some(flags.map { case (flag, flagger) => toApiFlag(flag, flagger) })
-        } else None
-      }
+      val maybeFlags = Option.when(requester.arenaAdmin.contains(true))(compiledPost.flags.map(toApiFlag))
       api.Post(
-        id = post.id,
-        content = post.content,
-        created = post.created,
-        updated = post.updated,
-        owner = toOwner(owner),
+        id = compiledPost.post.id,
+        content = compiledPost.post.content,
+        created = compiledPost.post.created,
+        updated = compiledPost.post.updated,
+        owner = toOwner(compiledPost.owner),
         flags = maybeFlags
       )
     }
