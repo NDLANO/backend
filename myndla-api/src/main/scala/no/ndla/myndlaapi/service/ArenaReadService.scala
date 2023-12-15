@@ -149,6 +149,7 @@ trait ArenaReadService {
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
+          _     <- getCategory(categoryId, 0, 0, user)(session)
           topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
           _     <- followTopic(topic.id, user)(session)
           post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
