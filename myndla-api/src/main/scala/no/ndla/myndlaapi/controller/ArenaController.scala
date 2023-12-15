@@ -322,6 +322,28 @@ trait ArenaController {
         arenaReadService.readNotifications(user)().handleErrorsOrOk
       }
 
+    def deleteSingleNotification: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("notifications" / pathNotificationId)
+      .summary("Delete single notification")
+      .description("Delete single notification")
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => notificationId =>
+        arenaReadService.deleteNotification(notificationId, user)().handleErrorsOrOk
+      }
+
+    def deleteAllNotifications: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("notifications")
+      .summary("Delete all your notifications")
+      .description("Delete all your notifications")
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => _ =>
+        arenaReadService.deleteNotifications(user)().handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -343,7 +365,9 @@ trait ArenaController {
       deleteCategory,
       getNotifications,
       markNotificationsAsRead,
-      markSingleNotificationAsRead
+      markSingleNotificationAsRead,
+      deleteSingleNotification,
+      deleteAllNotifications
     )
   }
 
