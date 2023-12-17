@@ -123,13 +123,22 @@ trait ArenaReadService {
       )
     }
 
-    def getRecentTopics(page: Long, pageSize: Long, user: MyNDLAUser)(
+    def getRecentTopics(page: Long, pageSize: Long, user: MyNDLAUser, ownerId: Option[Long])(
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.Topic]] = {
       val offset = (page - 1) * pageSize
+
+      val topicsT = ownerId
+        .map(id => arenaRepository.getUserTopicsPaginated(id, offset, pageSize)(session))
+        .getOrElse(arenaRepository.getTopicsPaginated(offset, pageSize)(session))
+
+      val count = ownerId
+        .map(id => arenaRepository.userTopicCount(id)(session))
+        .getOrElse(arenaRepository.topicCount(session))
+
       for {
-        topics      <- arenaRepository.getTopicsPaginated(offset, pageSize)(session)
-        topicsCount <- arenaRepository.topicCount(session)
+        topics      <- topicsT
+        topicsCount <- count
         apiTopics <- topics.traverse { topic =>
           arenaRepository
             .postCount(topic.topic.id)(session)

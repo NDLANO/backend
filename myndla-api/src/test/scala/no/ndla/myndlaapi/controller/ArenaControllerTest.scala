@@ -56,7 +56,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
 
   test("That feide token parsing works if token present") {
     when(userService.getArenaEnabledUser(eqTo(Some(feideToken)))).thenReturn(Success(testUser))
-    when(arenaReadService.getRecentTopics(any, any, any)(any)).thenReturn(
+    when(arenaReadService.getRecentTopics(any, any, any, any)(any)).thenReturn(
       Success(
         Paginated[Topic](
           items = List.empty,
@@ -71,13 +71,13 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
       .header("FeideAuthorization", s"Bearer $feideToken")
     val response = simpleHttpClient.send(request)
 
-    verify(arenaReadService, times(1)).getRecentTopics(any, any, eqTo(testUser))(any)
+    verify(arenaReadService, times(1)).getRecentTopics(any, any, eqTo(testUser), any)(any)
     response.code.code should be(200)
   }
 
   test("That feide token parsing returns forbidden if token present, but no user") {
     when(userService.getArenaEnabledUser(eqTo(Some(feideToken)))).thenReturn(Failure(AccessDeniedException.forbidden))
-    when(arenaReadService.getRecentTopics(any, any, any)(any)).thenReturn(
+    when(arenaReadService.getRecentTopics(any, any, any, any)(any)).thenReturn(
       Success(
         Paginated[Topic](
           items = List.empty,
@@ -92,13 +92,13 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
       .header("FeideAuthorization", s"Bearer $feideToken")
     val response = simpleHttpClient.send(request)
 
-    verify(arenaReadService, times(0)).getRecentTopics(any, any, eqTo(testUser))(any)
+    verify(arenaReadService, times(0)).getRecentTopics(any, any, eqTo(testUser), any)(any)
     response.code.code should be(403)
   }
 
   test("That feide token parsing returns unauthorized if no token present") {
     when(userService.getArenaEnabledUser(eqTo(None))).thenReturn(Failure(AccessDeniedException.unauthorized))
-    when(arenaReadService.getRecentTopics(any, any, any)(any)).thenReturn(
+    when(arenaReadService.getRecentTopics(any, any, any, any)(any)).thenReturn(
       Success(
         Paginated[Topic](
           items = List.empty,
@@ -111,7 +111,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
     val request  = quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/arena/topics/recent")
     val response = simpleHttpClient.send(request)
 
-    verify(arenaReadService, times(0)).getRecentTopics(any, any, eqTo(testUser))(any)
+    verify(arenaReadService, times(0)).getRecentTopics(any, any, eqTo(testUser), any)(any)
     response.code.code should be(401)
   }
 
