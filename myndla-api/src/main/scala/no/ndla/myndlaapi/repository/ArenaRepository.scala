@@ -565,6 +565,18 @@ trait ArenaRepository {
         .getOrElse(0L)
     }
 
+    def userTopicCount(userId: Long)(implicit session: DBSession): Try[Long] = Try {
+      sql"""
+           select count(*) as count
+           from ${domain.Topic.table}
+           where owner_id = $userId
+         """
+        .map(rs => rs.long("count"))
+        .single
+        .apply()
+        .getOrElse(0L)
+    }
+
     def postCount(topicId: Long)(implicit session: DBSession): Try[Long] = Try {
       val p = domain.Post.syntax("p")
       sql"""
@@ -601,6 +613,33 @@ trait ArenaRepository {
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
+                  order by newest_post_date desc nulls last
+                  limit $limit
+                  offset $offset
+                ) ts
+               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
+               order by newest_post_date desc nulls last
+           """
+          .one(rs => domain.Topic.fromResultSet(ts(t).resultName)(rs))
+          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
+          .map { (topic, owners) => compileTopic(topic, owners.toList) }
+          .list
+          .apply()
+          .sequence
+      }.flatten
+    }
+
+    def getUserTopicsPaginated(userId: Long, offset: Long, limit: Long)(implicit session: DBSession): Try[List[CompiledTopic]] = {
+      val t  = domain.Topic.syntax("t")
+      val ts = SubQuery.syntax("ts").include(t)
+      val u  = DBMyNDLAUser.syntax("u")
+      Try {
+        sql"""
+              select ${ts.resultAll}, ${u.resultAll}
+              from (
+                  select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
+                  from ${domain.Topic.as(t)}
+                  where ${t.ownerId} = $userId
                   order by newest_post_date desc nulls last
                   limit $limit
                   offset $offset
