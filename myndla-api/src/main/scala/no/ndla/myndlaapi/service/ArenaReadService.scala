@@ -28,6 +28,23 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def getTopicByPostId(
+        postId: Long,
+        requester: MyNDLAUser,
+        pageSize: Long
+    )(session: DBSession = ReadOnlyAutoSession): Try[api.TopicWithPosts] = {
+      for {
+        maybePost <- arenaRepository.getPost(postId)(session)
+        (post, _) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+        topicPage <- arenaRepository.getTopicPageByPostId(post.topic_id, postId, pageSize)(session)
+        topic <- getTopic(
+          topicId = post.topic_id,
+          user = requester,
+          page = topicPage,
+          pageSize = pageSize
+        )(session)
+      } yield topic
+    }
 
     def getFlaggedPosts(
         page: Long,

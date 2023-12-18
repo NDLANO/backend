@@ -57,7 +57,7 @@ trait ConverterService {
         title = compiledTopic.topic.title,
         created = compiledTopic.topic.created,
         updated = compiledTopic.topic.updated,
-        postCount = apiPosts.size.toLong,
+        postCount = postCount,
         posts = pagination
       )
     }
