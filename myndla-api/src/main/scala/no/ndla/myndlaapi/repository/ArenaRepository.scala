@@ -554,22 +554,11 @@ trait ArenaRepository {
       })
     } yield CompiledPost(post = post, owner = postOwner, flagsWithFlaggers.toList)
 
-    def topicCount(implicit session: DBSession): Try[Long] = Try {
+    def topicCountWhere(extra: SQLSyntax)(implicit session: DBSession): Try[Long] = Try {
       sql"""
            select count(*) as count
            from ${domain.Topic.table}
-         """
-        .map(rs => rs.long("count"))
-        .single
-        .apply()
-        .getOrElse(0L)
-    }
-
-    def userTopicCount(userId: Long)(implicit session: DBSession): Try[Long] = Try {
-      sql"""
-           select count(*) as count
-           from ${domain.Topic.table}
-           where owner_id = $userId
+           $extra
          """
         .map(rs => rs.long("count"))
         .single
@@ -603,33 +592,25 @@ trait ArenaRepository {
         .getOrElse(0L)
     }
 
-    def getTopicsPaginated(offset: Long, limit: Long)(implicit session: DBSession): Try[List[CompiledTopic]] = {
-      val t  = domain.Topic.syntax("t")
-      val ts = SubQuery.syntax("ts").include(t)
-      val u  = DBMyNDLAUser.syntax("u")
-      Try {
-        sql"""
-              select ${ts.resultAll}, ${u.resultAll}
-              from (
-                  select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
-                  from ${domain.Topic.as(t)}
-                  order by newest_post_date desc nulls last
-                  limit $limit
-                  offset $offset
-                ) ts
-               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
-               order by newest_post_date desc nulls last
-           """
-          .one(rs => domain.Topic.fromResultSet(ts(t).resultName)(rs))
-          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
-          .map { (topic, owners) => compileTopic(topic, owners.toList) }
-          .list
-          .apply()
-          .sequence
-      }.flatten
+    def getTopicsPaginated(offset: Long, limit: Long)(implicit session: DBSession): Try[(List[CompiledTopic], Long)] = {
+      for {
+        topics <- getTopicsPaginatedWhere(sqls"", offset, limit)
+        count  <- topicCountWhere(sqls"")
+      } yield (topics, count)
     }
 
-    def getUserTopicsPaginated(userId: Long, offset: Long, limit: Long)(implicit session: DBSession): Try[List[CompiledTopic]] = {
+    def getUserTopicsPaginated(userId: Long, offset: Long, limit: Long)(implicit
+        session: DBSession
+    ): Try[(List[CompiledTopic], Long)] = {
+      for {
+        topics <- getTopicsPaginatedWhere(sqls"where owner_id = $userId", offset, limit)
+        count  <- topicCountWhere(sqls"where owner_id = $userId")
+      } yield (topics, count)
+    }
+
+    def getTopicsPaginatedWhere(where: SQLSyntax, offset: Long, limit: Long)(implicit
+        session: DBSession
+    ): Try[List[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
       val u  = DBMyNDLAUser.syntax("u")
@@ -639,7 +620,7 @@ trait ArenaRepository {
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
-                  where ${t.ownerId} = $userId
+                  $where
                   order by newest_post_date desc nulls last
                   limit $limit
                   offset $offset
