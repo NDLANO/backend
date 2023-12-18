@@ -232,9 +232,7 @@ class ArenaTest
     createPost("post3", top1Id)
     createPost("post4", top1Id)
 
-    val owner = api.Owner(1, "")
-
-    val expectedResult = api.CategoryWithTopics(
+    val expectedCategoryResult = api.CategoryWithTopics(
       id = 1,
       title = "title",
       description = "description",
@@ -244,54 +242,9 @@ class ArenaTest
       topicPageSize = 10,
       topics = List(
         api.Topic(
-          id = 1,
-          title = "title1",
-          postCount = 5,
-//          posts = List(
-//            api.Post(
-//              id = 1,
-//              content = "description1",
-//              created = someDate,
-//              updated = someDate,
-//              owner = owner,
-//              flags = Some(List.empty)
-//            ),
-//            api
-//              .Post(
-//                id = 4,
-//                content = "post1",
-//                created = someDate,
-//                updated = someDate,
-//                owner = owner,
-//                flags = Some(List.empty)
-//              ),
-//            api
-//              .Post(
-//                id = 5,
-//                content = "post2",
-//                created = someDate,
-//                updated = someDate,
-//                owner = owner,
-//                flags = Some(List.empty)
-//              ),
-//            api
-//              .Post(
-//                id = 6,
-//                content = "post3",
-//                created = someDate,
-//                updated = someDate,
-//                owner = owner,
-//                flags = Some(List.empty)
-//              ),
-//            api.Post(
-//              id = 7,
-//              content = "post4",
-//              created = someDate,
-//              updated = someDate,
-//              owner = owner,
-//              flags = Some(List.empty)
-//            )
-//          ),
+          id = 3,
+          title = "title3",
+          postCount = 1,
           created = someDate,
           updated = someDate
         ),
@@ -299,33 +252,13 @@ class ArenaTest
           id = 2,
           title = "title2",
           postCount = 1,
-//          posts = List(
-//            api.Post(
-//              id = 2,
-//              content = "description2",
-//              created = someDate,
-//              updated = someDate,
-//              owner = owner,
-//              flags = Some(List.empty)
-//            )
-//          ),
           created = someDate,
           updated = someDate
         ),
         api.Topic(
-          id = 3,
-          title = "title3",
-          postCount = 1,
-//          posts = List(
-//            api.Post(
-//              id = 3,
-//              content = "description3",
-//              created = someDate,
-//              updated = someDate,
-//              owner = owner,
-//              flags = Some(List.empty)
-//            )
-//          ),
+          id = 1,
+          title = "title1",
+          postCount = 5,
           created = someDate,
           updated = someDate
         )
@@ -342,7 +275,87 @@ class ArenaTest
     categoryResp.code.code should be(200)
 
     val resultTry = io.circe.parser.parse(categoryResp.body).flatMap(_.as[api.CategoryWithTopics]).toTry
-    resultTry should be(Success(expectedResult))
+    resultTry should be(Success(expectedCategoryResult))
+
+    val expectedTopic1Result = api.TopicWithPosts(
+      id = 1,
+      title = "title1",
+      postCount = 5,
+      posts = api.Paginated[api.Post](
+        totalCount = 5,
+        page = 1,
+        pageSize = 10,
+        items = List(
+          api.Post(
+            id = 1,
+            content = "description1",
+            created = someDate,
+            updated = someDate,
+            owner = api.Owner(
+              id = 1,
+              name = ""
+            ),
+            flags = Some(List())
+          ),
+          api.Post(
+            id = 4,
+            content = "post1",
+            created = someDate,
+            updated = someDate,
+            owner = api.Owner(
+              id = 1,
+              name = ""
+            ),
+            flags = Some(List())
+          ),
+          api.Post(
+            id = 5,
+            content = "post2",
+            created = someDate,
+            updated = someDate,
+            owner = api.Owner(
+              id = 1,
+              name = ""
+            ),
+            flags = Some(List())
+          ),
+          api.Post(
+            id = 6,
+            content = "post3",
+            created = someDate,
+            updated = someDate,
+            owner = api.Owner(
+              id = 1,
+              name = ""
+            ),
+            flags = Some(List())
+          ),
+          api.Post(
+            id = 7,
+            content = "post4",
+            created = someDate,
+            updated = someDate,
+            owner = api.Owner(
+              id = 1,
+              name = ""
+            ),
+            flags = Some(List())
+          )
+        )
+      ),
+      created = someDate,
+      updated = someDate
+    )
+
+    val topic1Resp = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiArenaUrl/topics/1")
+        .header("FeideAuthorization", s"Bearer asd")
+        .readTimeout(10.seconds)
+    )
+    val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPosts]).toTry
+    topic1ResultTry should be(Success(expectedTopic1Result))
+    topic1Resp.code.code should be(200)
   }
 
 }
