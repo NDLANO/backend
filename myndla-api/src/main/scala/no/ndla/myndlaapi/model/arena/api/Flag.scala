@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.model.arena.api
 import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
 
-@description("Arena post flag data")
+@description("Arena flag data")
 case class Flag(
     @description("The flag id") id: Long,
     @description("The flag reason") reason: String,
