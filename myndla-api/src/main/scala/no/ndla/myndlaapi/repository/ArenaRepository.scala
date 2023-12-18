@@ -26,6 +26,24 @@ trait ArenaRepository {
   val arenaRepository: ArenaRepository
 
   class ArenaRepository extends StrictLogging {
+    def getTopicPageByPostId(topicId: Long, postId: Long, pageSize: Long)(implicit session: DBSession): Try[Long] =
+      Try {
+        sql"""
+           WITH post_positions AS (
+             SELECT id,
+             ROW_NUMBER() OVER (ORDER BY created, id) AS position
+             FROM posts
+             WHERE topic_id = $topicId
+           )
+           SELECT CEIL(position::NUMERIC / $pageSize) AS page_number
+           FROM post_positions
+           WHERE id = $postId;
+         """
+          .map(rs => rs.long("page_number"))
+          .single
+          .apply()
+          .toTry(NDLASQLException(s"Could not find page for post with id $postId in topic with id $topicId"))
+      }.flatten
 
     def compileNotification(
         notification: Try[domain.Notification],
