@@ -132,13 +132,8 @@ trait ArenaReadService {
         .map(id => arenaRepository.getUserTopicsPaginated(id, offset, pageSize)(session))
         .getOrElse(arenaRepository.getTopicsPaginated(offset, pageSize)(session))
 
-      val count = ownerId
-        .map(id => arenaRepository.userTopicCount(id)(session))
-        .getOrElse(arenaRepository.topicCount(session))
-
       for {
-        topics      <- topicsT
-        topicsCount <- count
+        (topics, topicsCount)      <- topicsT
         apiTopics <- topics.traverse { topic =>
           arenaRepository
             .postCount(topic.topic.id)(session)
