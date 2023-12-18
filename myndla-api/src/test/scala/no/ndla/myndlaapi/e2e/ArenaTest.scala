@@ -294,7 +294,9 @@ class ArenaTest
             updated = someDate,
             owner = api.Owner(
               id = 1,
-              name = ""
+              displayName = "",
+              username = "email@ndla.no",
+              location = "zxc"
             ),
             flags = Some(List())
           ),
@@ -305,7 +307,9 @@ class ArenaTest
             updated = someDate,
             owner = api.Owner(
               id = 1,
-              name = ""
+              displayName = "",
+              username = "email@ndla.no",
+              location = "zxc"
             ),
             flags = Some(List())
           ),
@@ -316,7 +320,9 @@ class ArenaTest
             updated = someDate,
             owner = api.Owner(
               id = 1,
-              name = ""
+              displayName = "",
+              username = "email@ndla.no",
+              location = "zxc"
             ),
             flags = Some(List())
           ),
@@ -327,7 +333,9 @@ class ArenaTest
             updated = someDate,
             owner = api.Owner(
               id = 1,
-              name = ""
+              displayName = "",
+              username = "email@ndla.no",
+              location = "zxc"
             ),
             flags = Some(List())
           ),
@@ -338,7 +346,9 @@ class ArenaTest
             updated = someDate,
             owner = api.Owner(
               id = 1,
-              name = ""
+              displayName = "",
+              username = "email@ndla.no",
+              location = "zxc"
             ),
             flags = Some(List())
           )
@@ -403,7 +413,9 @@ class ArenaTest
         updated = someDate,
         owner = api.Owner(
           id = 1,
-          name = ""
+          displayName = "",
+          username = "email@ndla.no",
+          location = "zxc"
         ),
         flags = Some(List())
       )
