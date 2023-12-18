@@ -26,7 +26,7 @@ trait ConverterService {
       )
     }
 
-    def toApiTopic(compiledTopic: CompiledTopic, postCount: Long, requester: MyNDLAUser): api.Topic = {
+    def toApiTopic(compiledTopic: CompiledTopic, postCount: Long): api.Topic = {
       api.Topic(
         id = compiledTopic.topic.id,
         title = compiledTopic.topic.title,
