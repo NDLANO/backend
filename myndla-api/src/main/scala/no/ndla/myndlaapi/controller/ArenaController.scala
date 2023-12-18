@@ -119,7 +119,7 @@ trait ArenaController {
       .description("Get recent topics")
       .in(queryPage)
       .in(queryPageSize)
-      .in(query[Option[Long]]("userId").description("A users id to filter on"))
+      .in(query[Option[Long]]("user-id").description("A users id to filter on"))
       .out(jsonBody[Paginated[Topic]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
