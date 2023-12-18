@@ -98,6 +98,7 @@ class ArenaTest
     reset(myndlaApi.componentRegistry.userRepository)
 
     myndlaApi.componentRegistry.arenaRepository.withSession(implicit session => {
+      myndlaApi.componentRegistry.arenaRepository.deleteAllFollows.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllPosts.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllTopics.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllCategories.get
@@ -356,6 +357,124 @@ class ArenaTest
     val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPosts]).toTry
     topic1ResultTry should be(Success(expectedTopic1Result))
     topic1Resp.code.code should be(200)
+  }
+
+  test("that fetching a post in a topic context returns correct page") {
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaAdmin(any)).thenReturn(Some(true))
+    when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
+
+    val createCategoryRes = createCategory("title", "description")
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryId        = categoryIdT.get.id
+
+    val top1 = createTopic("title1", "description1", categoryId)
+
+    val top1T  = io.circe.parser.parse(top1.body).flatMap(_.as[api.Topic]).toTry
+    val top1Id = top1T.get.id
+
+    createPost("post1", top1Id)
+    createPost("post2", top1Id)
+    createPost("post3", top1Id)
+    createPost("post4", top1Id)
+    createPost("post5", top1Id)
+    createPost("post6", top1Id)
+    createPost("post7", top1Id)
+    createPost("post8", top1Id)
+    createPost("post9", top1Id)
+    createPost("post10", top1Id)
+    createPost("post11", top1Id)
+    createPost("post12", top1Id)
+    createPost("post13", top1Id)
+    createPost("post14", top1Id)
+    createPost("post15", top1Id)
+    createPost("post16", top1Id)
+    createPost("post17", top1Id)
+    createPost("post18", top1Id)
+    createPost("post19", top1Id)
+    createPost("post20", top1Id)
+    createPost("post21", top1Id)
+
+    def post(num: Long): api.Post = {
+      api.Post(
+        id = num + 1,
+        content = s"post$num",
+        created = someDate,
+        updated = someDate,
+        owner = api.Owner(
+          id = 1,
+          name = ""
+        ),
+        flags = Some(List())
+      )
+    }
+
+    {
+      val expectedTopic1Result = api.TopicWithPosts(
+        id = 1,
+        title = "title1",
+        postCount = 22,
+        posts = api.Paginated[api.Post](
+          totalCount = 22,
+          page = 2,
+          pageSize = 10,
+          items = List(
+            post(10),
+            post(11),
+            post(12),
+            post(13),
+            post(14),
+            post(15),
+            post(16),
+            post(17),
+            post(18),
+            post(19)
+          )
+        ),
+        created = someDate,
+        updated = someDate
+      )
+
+      val topic1Resp = simpleHttpClient.send(
+        quickRequest
+          .get(uri"$myndlaApiArenaUrl/posts/14/topic")
+          .header("FeideAuthorization", s"Bearer asd")
+          .readTimeout(10.seconds)
+      )
+      val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPosts]).toTry
+      topic1ResultTry should be(Success(expectedTopic1Result))
+      topic1Resp.code.code should be(200)
+    }
+
+    {
+      val expectedTopic1Result = api.TopicWithPosts(
+        id = 1,
+        title = "title1",
+        postCount = 22,
+        posts = api.Paginated[api.Post](
+          totalCount = 22,
+          page = 5,
+          pageSize = 3,
+          items = List(
+            post(12),
+            post(13),
+            post(14)
+          )
+        ),
+        created = someDate,
+        updated = someDate
+      )
+
+      val topic1Resp = simpleHttpClient.send(
+        quickRequest
+          .get(uri"$myndlaApiArenaUrl/posts/13/topic?page-size=3")
+          .header("FeideAuthorization", s"Bearer asd")
+          .readTimeout(10.seconds)
+      )
+      val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPosts]).toTry
+      topic1ResultTry should be(Success(expectedTopic1Result))
+      topic1Resp.code.code should be(200)
+    }
   }
 
 }

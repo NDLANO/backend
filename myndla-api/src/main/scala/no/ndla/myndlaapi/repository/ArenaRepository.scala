@@ -848,6 +848,11 @@ trait ArenaRepository {
       logger.info(s"Deleted $numRows posts")
     }
 
+    def deleteAllFollows(implicit session: DBSession): Try[Unit] = Try {
+      val numRows = sql"delete from ${domain.TopicFollow.table}".update()
+      logger.info(s"Deleted $numRows topic follows")
+    }
+
     def deleteAllTopics(implicit session: DBSession): Try[Unit] = Try {
       val numRows = sql"delete from ${domain.Topic.table}".update()
       logger.info(s"Deleted $numRows topics")
