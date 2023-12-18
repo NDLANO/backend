@@ -291,6 +291,21 @@ trait ArenaController {
         arenaReadService.resolveFlag(flagId)().handleErrorsOrOk
       }
 
+    def getFlags: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("flags")
+      .summary("List flagged posts")
+      .description("List flagged posts")
+      .in(queryPage)
+      .in(queryPageSize)
+      .out(jsonBody[Paginated[Post]])
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArenaAdmin = true)
+      .serverLogicPure { user =>
+        { case (page, pageSize) =>
+          arenaReadService.getFlaggedPosts(page, pageSize, user)().handleErrorsOrOk
+        }
+      }
+
     def getNotifications: ServerEndpoint[Any, Eff] = endpoint.get
       .in("notifications")
       .summary("Get your notifications")
@@ -364,6 +379,7 @@ trait ArenaController {
       postPostToTopic,
       editPost,
       deletePost,
+      getFlags,
       flagPost,
       resolveFlag,
       postCategory,

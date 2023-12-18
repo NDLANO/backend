@@ -599,6 +599,50 @@ trait ArenaRepository {
       } yield (topics, count)
     }
 
+    def getFlaggedPostsCount(implicit session: DBSession): Try[Long] = Try {
+      sql"""
+           select count(*) as count
+           from ${domain.Flag.table}
+           where ${domain.Flag.column.resolved} is null
+         """
+        .map(rs => rs.long("count"))
+        .single
+        .apply()
+        .getOrElse(0L)
+    }
+
+    def getFlaggedPosts(offset: Long, limit: Long)(implicit session: DBSession): Try[List[CompiledPost]] = {
+      val p  = domain.Post.syntax("p")
+      val ps = SubQuery.syntax("ps").include(p)
+      val u  = DBMyNDLAUser.syntax("u")
+      val f  = domain.Flag.syntax("f")
+      Try {
+        sql"""
+              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}
+              from (
+                  select ${p.resultAll}
+                  from ${domain.Post.as(p)}
+                  where (select count(*) from flags f where f.post_id = ${p.id} and f.resolved is null) > 0
+                  order by ${p.created} asc nulls last, ${p.id} asc
+                  limit $limit
+                  offset $offset
+                ) ps
+               left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id} and ${f.resolved} is null
+               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
+               order by ${ps(p).created} asc nulls last
+           """
+          .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
+          .toManies(
+            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => domain.Flag.fromResultSet(f)(rs).toOption
+          )
+          .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
+          .list
+          .apply()
+          .sequence
+      }.flatten
+    }
+
     def getUserTopicsPaginated(userId: Long, offset: Long, limit: Long)(implicit
         session: DBSession
     ): Try[(List[CompiledTopic], Long)] = {

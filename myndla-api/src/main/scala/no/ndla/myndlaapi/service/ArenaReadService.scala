@@ -28,6 +28,25 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+
+    def getFlaggedPosts(
+        page: Long,
+        pageSize: Long,
+        requester: MyNDLAUser
+    )(session: DBSession = ReadOnlyAutoSession): Try[Paginated[api.Post]] = {
+      val offset = (page - 1) * pageSize
+      for {
+        posts     <- arenaRepository.getFlaggedPosts(offset, pageSize)(session)
+        postCount <- arenaRepository.getFlaggedPostsCount(session)
+        apiPosts = posts.map(compiledPost => converterService.toApiPost(compiledPost, requester))
+      } yield Paginated[api.Post](
+        items = apiPosts,
+        totalCount = postCount,
+        pageSize = pageSize,
+        page = page
+      )
+    }
+
     def readNotifications(user: MyNDLAUser)(implicit session: DBSession = AutoSession): Try[Unit] =
       arenaRepository.readNotifications(user.id)(session)
 
