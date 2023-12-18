@@ -146,4 +146,5 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
     verify(arenaReadService, times(1)).deleteCategory(any, eqTo(adminUser))(any)
     response.code.code should be(200)
   }
+
 }
