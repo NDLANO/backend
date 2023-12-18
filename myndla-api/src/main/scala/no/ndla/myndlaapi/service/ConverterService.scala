@@ -63,9 +63,16 @@ trait ConverterService {
     }
 
     def toOwner(user: MyNDLAUser): api.Owner = {
+      val location = user.groups
+        .find(_.isPrimarySchool)
+        .map(_.displayName)
+        .getOrElse(user.organization)
+
       api.Owner(
         id = user.id,
-        name = user.displayName
+        displayName = user.displayName,
+        username = user.username,
+        location = location
       )
     }
 

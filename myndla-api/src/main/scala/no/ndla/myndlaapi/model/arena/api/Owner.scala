@@ -12,5 +12,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Arena owner data")
 case class Owner(
     @description("The owners id") id: Long,
-    @description("The name") name: String
+    @description("The name") displayName: String,
+    @description("The username") username: String,
+    @description("The location") location: String
 )
