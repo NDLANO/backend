@@ -651,7 +651,7 @@ trait ArenaRepository {
                   select ${p.resultAll}
                   from ${domain.Post.as(p)}
                   where ${p.topic_id} = $topicId
-                  order by ${p.created} asc nulls last
+                  order by ${p.created} asc nulls last, ${p.id} asc
                   limit $limit
                   offset $offset
                 ) ps
