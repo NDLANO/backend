@@ -7,8 +7,6 @@
 
 package no.ndla.myndlaapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.api.config.{ConfigMeta, ConfigMetaValue}
 import no.ndla.myndla.model.domain.config.ConfigKey
@@ -19,6 +17,8 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.UnitTestSuite
 import sttp.client3.quick._
 
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
 class ConfigControllerTest extends UnitTestSuite with TestEnvironment {
@@ -28,11 +28,13 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment {
   override val services: List[Service[Eff]] = List(controller)
 
   override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
+    implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
+    Future { Routes.startJdkServer(this.getClass.getName, serverPort) {} }
+    Thread.sleep(10000)
   }
 
   test("That updating config returns 200 if all is good") {
+    Thread.sleep(10000)
     when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValue], any[TokenUser]))
       .thenReturn(
         Success(
