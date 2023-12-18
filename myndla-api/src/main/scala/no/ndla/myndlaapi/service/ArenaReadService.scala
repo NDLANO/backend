@@ -103,7 +103,7 @@ trait ArenaReadService {
       _         <- arenaRepository.deletePost(postId)(session)
     } yield ()
 
-    def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long, user: MyNDLAUser)(
+    def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.Topic]] = {
       val offset = (page - 1) * pageSize
@@ -116,14 +116,14 @@ trait ArenaReadService {
           arenaRepository.postCount(t.topic.id)(session).map(postCount => (t, postCount))
         })
       } yield Paginated[api.Topic](
-        items = topicsWithCount.map { case (topic, postCount) => converterService.toApiTopic(topic, postCount, user) },
+        items = topicsWithCount.map { case (topic, postCount) => converterService.toApiTopic(topic, postCount) },
         totalCount = topicsCount,
         pageSize = pageSize,
         page = page
       )
     }
 
-    def getRecentTopics(page: Long, pageSize: Long, user: MyNDLAUser, ownerId: Option[Long])(
+    def getRecentTopics(page: Long, pageSize: Long, ownerId: Option[Long])(
         session: DBSession = ReadOnlyAutoSession
     ): Try[Paginated[api.Topic]] = {
       val offset = (page - 1) * pageSize
@@ -133,11 +133,11 @@ trait ArenaReadService {
         .getOrElse(arenaRepository.getTopicsPaginated(offset, pageSize)(session))
 
       for {
-        (topics, topicsCount)      <- topicsT
+        (topics, topicsCount) <- topicsT
         apiTopics <- topics.traverse { topic =>
           arenaRepository
             .postCount(topic.topic.id)(session)
-            .map(postCount => { converterService.toApiTopic(topic, postCount, user) })
+            .map(postCount => { converterService.toApiTopic(topic, postCount) })
         }
       } yield Paginated[api.Topic](
         items = apiTopics,
@@ -160,10 +160,10 @@ trait ArenaReadService {
         mainPostId <- posts.headOption
           .map(_.post.id)
           .toTry(MissingPostException("Could not find main post for topic"))
-        updatedPost <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
-        postCount   <- arenaRepository.postCount(topicId)(session)
+        _         <- arenaRepository.updatePost(mainPostId, newTopic.initialPost.content, updatedTime)(session)
+        postCount <- arenaRepository.postCount(topicId)(session)
         compiledTopic = topic.copy(topic = updatedTopic)
-      } yield converterService.toApiTopic(compiledTopic, postCount, user)
+      } yield converterService.toApiTopic(compiledTopic, postCount)
     }
 
     def updatePost(postId: Long, newPost: NewPost, user: MyNDLAUser)(
@@ -191,12 +191,10 @@ trait ArenaReadService {
       }
     }
 
-    def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
-        session: DBSession = AutoSession
-    ): Try[Category] = {
+    def updateCategory(categoryId: Long, newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
       for {
-        existing <- getCategory(categoryId, 0, 0, user)(session)
+        existing <- getCategory(categoryId, 0, 0)(session)
         updated  <- arenaRepository.updateCategory(categoryId, toInsert)(session)
       } yield converterService.toApiCategory(updated, existing.topicCount, existing.postCount)
     }
@@ -205,12 +203,12 @@ trait ArenaReadService {
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
-          _     <- getCategory(categoryId, 0, 0, user)(session)
+          _     <- getCategory(categoryId, 0, 0)(session)
           topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
           _     <- followTopic(topic.id, user)(session)
-          post  <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
+          _     <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
           compiledTopic = CompiledTopic(topic, user)
-        } yield converterService.toApiTopic(compiledTopic, 1, user)
+        } yield converterService.toApiTopic(compiledTopic, 1)
       }
     }
 
@@ -223,7 +221,7 @@ trait ArenaReadService {
           _                <- generateNewPostNotifications(topic, newPost)(session)
           _                <- followTopic(topicId, user)(session)
           postCount        <- arenaRepository.postCount(topicId)(session)
-        } yield converterService.toApiTopic(topic, postCount, user)
+        } yield converterService.toApiTopic(topic, postCount)
       }
 
     def generateNewPostNotifications(topic: CompiledTopic, newPost: domain.Post)(
@@ -252,7 +250,7 @@ trait ArenaReadService {
       arenaRepository.getTopicFollowers(topicId)(session)
     }
 
-    def getCategory(categoryId: Long, page: Long, pageSize: Long, user: MyNDLAUser)(
+    def getCategory(categoryId: Long, page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[api.CategoryWithTopics] = {
       val offset = (page - 1) * pageSize
@@ -265,7 +263,7 @@ trait ArenaReadService {
         tt <- topics.traverse(topic =>
           arenaRepository
             .postCount(topic.topic.id)(session)
-            .map(postCount => converterService.toApiTopic(topic, postCount, user))
+            .map(postCount => converterService.toApiTopic(topic, postCount))
         )
       } yield api.CategoryWithTopics(
         id = categoryId,
