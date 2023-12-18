@@ -11,5 +11,5 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Flag data")
 case class NewFlag(
-    @description("The reason for flagging post") reason: String
+    @description("The reason for flagging") reason: String
 )
