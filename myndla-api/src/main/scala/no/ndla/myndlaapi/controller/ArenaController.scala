@@ -365,6 +365,20 @@ trait ArenaController {
         arenaReadService.deleteNotifications(user)().handleErrorsOrOk
       }
 
+    def getPostInContext: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("posts" / pathPostId / "topic")
+      .summary("Get a topic on the page where the post is")
+      .description("Get a topic on the page where the post is")
+      .out(jsonBody[TopicWithPosts])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .in(queryPageSize)
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user =>
+        { case (postId, pageSize) =>
+          arenaReadService.getTopicByPostId(postId, user, pageSize)().handleErrorsOrOk
+        }
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -377,6 +391,7 @@ trait ArenaController {
       editTopic,
       deleteTopic,
       postPostToTopic,
+      getPostInContext,
       editPost,
       deletePost,
       getFlags,
