@@ -21,6 +21,7 @@
         "frontpage-api",
         "image-api",
         "learningpath-api",
+        "myndla-api",
         "search-api"
     ],
     "devDependencies": {
