@@ -85,8 +85,8 @@ trait ArenaController {
 
     def getCategoryTopics: ServerEndpoint[Any, Eff] = endpoint.get
       .in("categories" / pathCategoryId / "topics")
-      .summary("Get single category")
-      .description("Get single category")
+      .summary("Get topics for a category")
+      .description("Get topics for a category")
       .out(jsonBody[Paginated[Topic]])
       .in(queryPage)
       .in(queryPageSize)
