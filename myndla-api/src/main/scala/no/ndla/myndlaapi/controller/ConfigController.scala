@@ -28,7 +28,9 @@ trait ConfigController {
   val configController: ConfigController
 
   class ConfigController extends Service[Eff] {
-    override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "config"
+    override val serviceName: String = "config"
+
+    override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
     import ErrorHelpers._
 
