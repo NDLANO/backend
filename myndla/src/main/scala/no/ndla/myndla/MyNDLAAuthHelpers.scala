@@ -7,7 +7,7 @@
 
 package no.ndla.myndla
 
-import no.ndla.myndla.model.domain.MyNDLAUser
+import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.service.UserService
 import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
 import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
@@ -26,7 +26,7 @@ trait MyNDLAAuthHelpers {
     private val authScheme                           = AuthenticationScheme.Bearer.name
     private def filterHeaders(headers: List[String]) = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
     private def stringPrefixWithSpace                = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
-    private val feideTokenAuthCodec: Codec[List[String], Option[FeideAccessToken], TextPlain] = {
+    val feideTokenAuthCodec: Codec[List[String], Option[FeideAccessToken], TextPlain] = {
       val codec = implicitly[Codec[List[String], Option[FeideAccessToken], CodecFormat.TextPlain]]
       Codec
         .id[List[String], CodecFormat.TextPlain](codec.format, Schema.binary)
@@ -36,7 +36,7 @@ trait MyNDLAAuthHelpers {
         .schema(codec.schema)
     }
 
-    private def feideOauth() = {
+    def feideOauth() = {
       val authType: AuthType.ScopedOAuth2 = EndpointInput.AuthType
         .OAuth2(None, None, ListMap.empty, None)
         .requiredScopes(Seq.empty)
@@ -60,9 +60,9 @@ trait MyNDLAAuthHelpers {
         val authFunc: Option[FeideAccessToken] => Either[AllErrors, MyNDLAUser] = { maybeToken =>
           if (requireArenaAdmin) {
             userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk match {
-              case Right(user) if user.arenaAdmin.contains(true) => Right(user)
-              case Right(_)                                      => Left(ErrorHelpers.forbidden)
-              case Left(err)                                     => Left(err)
+              case Right(user) if user.arenaGroups.contains(ArenaGroup.ADMIN) => Right(user)
+              case Right(_)                                                   => Left(ErrorHelpers.forbidden)
+              case Left(err)                                                  => Left(err)
             }
           } else if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
           else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk

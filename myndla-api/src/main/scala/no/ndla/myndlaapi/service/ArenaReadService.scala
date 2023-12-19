@@ -119,7 +119,7 @@ trait ArenaReadService {
       } yield ()
 
     def deleteCategory(categoryId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
-      _          <- if (user.arenaAdmin.contains(true)) Success(()) else Failure(AccessDeniedException.forbidden)
+      _          <- if (user.isAdmin) Success(()) else Failure(AccessDeniedException.forbidden)
       maybeTopic <- arenaRepository.getCategory(categoryId)(session)
       _          <- maybeTopic.toTry(NotFoundException(s"Could not find category with id $categoryId"))
       _          <- arenaRepository.deleteCategory(categoryId)(session)
@@ -217,7 +217,7 @@ trait ArenaReadService {
     }
 
     private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] =
-      if (owned.ownerId == user.id || user.arenaAdmin.contains(true)) Success(())
+      if (owned.ownerId == user.id || user.isAdmin) Success(())
       else Failure(AccessDeniedException.forbidden)
 
     def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
