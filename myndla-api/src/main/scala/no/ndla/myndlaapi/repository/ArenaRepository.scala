@@ -768,6 +768,7 @@ trait ArenaRepository {
         sql"""
              select ${ca.resultAll}
              from ${domain.Category.as(ca)}
+             order by ${ca.title}
            """
           .map(rs => domain.Category.fromResultSet(ca)(rs))
           .list
