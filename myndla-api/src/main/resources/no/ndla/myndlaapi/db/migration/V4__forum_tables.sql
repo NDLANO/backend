@@ -28,11 +28,23 @@ CREATE TABLE posts (
 CREATE INDEX posts_topic_id_idx ON posts(topic_id);
 CREATE INDEX posts_owner_id_idx ON posts(owner_id);
 
+CREATE TABLE category_follows (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES my_ndla_users(id),
+    category_id BIGINT REFERENCES categories(id)
+);
+
+CREATE INDEX category_follows_user_id_idx ON category_follows(user_id);
+CREATE INDEX category_follows_category_id_idx ON category_follows(category_id);
+
 CREATE TABLE topic_follows (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES my_ndla_users(id),
     topic_id BIGINT REFERENCES topics(id)
 );
+
+CREATE INDEX topic_follows_user_id_idx ON topic_follows(user_id);
+CREATE INDEX topic_follows_topic_id_idx ON topic_follows(topic_id);
 
 CREATE TABLE flags (
     id BIGSERIAL PRIMARY KEY,

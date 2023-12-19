@@ -348,9 +348,31 @@ trait ArenaReadService {
       } yield apiTopic
     }
 
-    def getCategories(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
+    def followCategory(categoryId: Long, user: MyNDLAUser)(
+        session: DBSession = AutoSession
+    ): Try[api.CategoryWithTopics] = {
+      for {
+        apiCategory <- getCategory(categoryId, 1, 10)(session)
+        following   <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
+        _ <- if (following.isEmpty) arenaRepository.followCategory(categoryId, user.id)(session) else Success(())
+      } yield apiCategory
+    }
+
+    def unfollowCategory(categoryId: Long, user: MyNDLAUser)(
+        session: DBSession = AutoSession
+    ): Try[api.CategoryWithTopics] = {
+      for {
+        apiTopic  <- getCategory(categoryId, 1, 10)(session)
+        following <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
+        _ <- if (following.isDefined) arenaRepository.unfollowCategory(categoryId, user.id)(session) else Success(())
+      } yield apiTopic
+    }
+
+    def getCategories(requester: MyNDLAUser, filterFollowed: Boolean)(
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[List[api.Category]] =
       arenaRepository
-        .getCategories(session)
+        .getCategories(requester, filterFollowed)(session)
         .flatMap(categories => {
           categories.traverse(category => {
             for {
