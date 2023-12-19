@@ -96,7 +96,7 @@ trait UserRepository {
 
     def userWithId(userId: Long)(implicit session: DBSession): Try[Option[MyNDLAUser]] = userWhere(sqls"u.id=$userId")
 
-    private def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = Try {
+    def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = Try {
       val u = DBMyNDLAUser.syntax("u")
       sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"
         .map(DBMyNDLAUser.fromResultSet(u))

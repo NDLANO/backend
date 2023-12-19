@@ -35,6 +35,8 @@ class MyNdlaApiProperties extends BaseProps {
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
+  def nodeBBUrl: String = prop("NODEBB_URL")
+
   // NOTE: These props are for migrating the learningpath-api data to this api
   //       and should be removed when the migration is done.
   def LpMetaUserName: String    = prop("LP_" + PropertyKeys.MetaUserNameKey)
