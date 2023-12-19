@@ -28,8 +28,9 @@ import no.ndla.myndlaapi.controller.{
   UserController
 }
 import no.ndla.myndlaapi.integration.DataSource
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.ArenaRepository
-import no.ndla.myndlaapi.service.{ArenaReadService, ConverterService}
+import no.ndla.myndlaapi.service.{ArenaReadService, ConverterService, ImportService}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
@@ -71,7 +72,9 @@ trait TestEnvironment
     with ErrorHelpers
     with Routes[Eff]
     with NdlaMiddleware
-    with TapirErrorHelpers {
+    with TapirErrorHelpers
+    with ImportService
+    with NodeBBClient {
   val props                                          = new MyNdlaApiProperties
   lazy val clock: SystemClock                        = mock[SystemClock]
   val migrator: DBMigrator                           = mock[DBMigrator]
@@ -93,6 +96,8 @@ trait TestEnvironment
   val arenaController: ArenaController               = mock[ArenaController]
   val arenaRepository: ArenaRepository               = mock[ArenaRepository]
   val converterService: ConverterService             = mock[ConverterService]
+  val importService: ImportService                   = mock[ImportService]
+  val nodebb: NodeBBClient                           = mock[NodeBBClient]
 
   val dataSource = mock[Option[HikariDataSource]]
   val lpDs       = mock[HikariDataSource]
