@@ -89,7 +89,7 @@ trait ConverterService {
         compiledPost: CompiledPost,
         requester: MyNDLAUser
     ): api.Post = {
-      val maybeFlags = Option.when(requester.arenaAdmin.contains(true))(compiledPost.flags.map(toApiFlag))
+      val maybeFlags = Option.when(requester.isAdmin)(compiledPost.flags.map(toApiFlag))
       api.Post(
         id = compiledPost.post.id,
         content = compiledPost.post.content,

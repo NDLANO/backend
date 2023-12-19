@@ -106,7 +106,7 @@ trait UserController {
       requirePermissionOrAccessDeniedWithUser(LEARNINGPATH_API_ADMIN) { user =>
         val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
         val feideId         = paramOrNone(this.feideId.paramName)
-        userService.adminUpdateMyNDLAUserData(updatedUserData, feideId, user)
+        userService.adminUpdateMyNDLAUserData(updatedUserData, feideId, Some(user), None)
       }
     }: Unit
 

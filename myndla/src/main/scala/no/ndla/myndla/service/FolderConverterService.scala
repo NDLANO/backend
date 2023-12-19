@@ -215,15 +215,20 @@ trait FolderConverterService {
     def mergeUserData(
         domainUserData: domain.MyNDLAUser,
         updatedUser: api.UpdatedMyNDLAUser,
-        user: Option[TokenUser]
+        updaterToken: Option[TokenUser],
+        updaterUser: Option[domain.MyNDLAUser]
     ): domain.MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
-        if (user.exists(_.hasPermission(LEARNINGPATH_API_ADMIN)))
+        if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN) || updaterUser.exists(_.isAdmin))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
         else domainUserData.arenaEnabled
       }
+
+      val arenaGroups =
+        if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
+        else domainUserData.arenaGroups
 
       domain.MyNDLAUser(
         id = domainUserData.id,
@@ -238,7 +243,7 @@ trait FolderConverterService {
         arenaEnabled = arenaEnabled,
         shareName = shareName,
         displayName = domainUserData.displayName,
-        arenaAdmin = domainUserData.arenaAdmin
+        arenaGroups = arenaGroups
       )
     }
 

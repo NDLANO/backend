@@ -13,7 +13,7 @@ import cats.effect.unsafe.implicits.global
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.{MyNDLAUser, UserRole}
+import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi._
 import no.ndla.network.clients.FeideExtendedUserInfo
@@ -124,7 +124,7 @@ class ArenaTest
     displayName = "displayName",
     email = "some@example.com",
     arenaEnabled = true,
-    arenaAdmin = Some(false),
+    arenaGroups = List.empty,
     shareName = false
   )
 
@@ -140,7 +140,7 @@ class ArenaTest
     displayName = "displayName",
     email = "some@example.com",
     arenaEnabled = true,
-    arenaAdmin = Some(true),
+    arenaGroups = List(ArenaGroup.ADMIN),
     shareName = false
   )
 
@@ -214,7 +214,7 @@ class ArenaTest
 
   test("that creating a category with a bunch of topics and posts works as expected") {
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(myndlaApi.componentRegistry.userService.getInitialIsArenaAdmin(any)).thenReturn(Some(true))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val createCategoryRes = createCategory("title", "description")
@@ -371,7 +371,7 @@ class ArenaTest
 
   test("that fetching a post in a topic context returns correct page") {
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(myndlaApi.componentRegistry.userService.getInitialIsArenaAdmin(any)).thenReturn(Some(true))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val createCategoryRes = createCategory("title", "description")

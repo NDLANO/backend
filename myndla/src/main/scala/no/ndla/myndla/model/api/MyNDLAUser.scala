@@ -9,6 +9,7 @@ package no.ndla.myndla.model.api
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.myndla.model.domain.ArenaGroup
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import scala.annotation.meta.field
@@ -48,7 +49,8 @@ object MyNDLAUser {
 case class UpdatedMyNDLAUser(
     @(ApiModelProperty @field)(description = "Favorite subjects of the user") favoriteSubjects: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "Whether arena should explicitly be enabled for the user") arenaEnabled: Option[Boolean],
-    @(ApiModelProperty @field)(description = "Whether users name should be shared with folder or not") shareName: Option[Boolean]
+    @(ApiModelProperty @field)(description = "Whether users name should be shared with folder or not") shareName: Option[Boolean],
+    @(ApiModelProperty @field)(description = "Which arena groups the user should be in, only modifiable by admins") arenaGroups: Option[List[ArenaGroup]]
 )
 
 object UpdatedMyNDLAUser {
