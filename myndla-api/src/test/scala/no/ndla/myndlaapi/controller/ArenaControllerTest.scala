@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.controller
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.myndla.model.domain.{MyNDLAUser, UserRole}
+import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api.{Paginated, Topic}
 import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
 import no.ndla.network.tapir.Service
@@ -50,7 +50,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
     displayName = "displayName",
     email = "some@example.com",
     arenaEnabled = true,
-    arenaAdmin = Some(false),
+    arenaGroups = List.empty,
     shareName = false
   )
 
@@ -117,7 +117,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
 
   test("That admin feide token parsing returns 403 if no admin") {
     when(userService.getArenaEnabledUser(eqTo(Some(feideToken))))
-      .thenReturn(Success(testUser.copy(arenaAdmin = Some(false))))
+      .thenReturn(Success(testUser.copy(arenaGroups = List.empty)))
     when(arenaReadService.deleteCategory(eqTo(1L), eqTo(testUser))(any)).thenReturn(Success(()))
 
     val request = quickRequest
@@ -131,7 +131,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That admin feide token parsing returns 200 if admin") {
-    val adminUser = testUser.copy(arenaAdmin = Some(true))
+    val adminUser = testUser.copy(arenaGroups = List(ArenaGroup.ADMIN))
     when(userService.getArenaEnabledUser(eqTo(Some(feideToken))))
       .thenReturn(Success(adminUser))
 

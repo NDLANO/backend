@@ -181,7 +181,7 @@ object TestData {
     arenaEnabled = false,
     displayName = "",
     shareName = false,
-    arenaAdmin = Some(false)
+    arenaGroups = List.empty
   )
 
 }

@@ -10,6 +10,7 @@ package no.ndla.myndla.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
@@ -86,7 +87,8 @@ trait UserService {
         updatedFeideUser = api.UpdatedMyNDLAUser(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
-          shareName = Some(shareName)
+          shareName = Some(shareName),
+          arenaGroups = None
         )
         updated <- userService.updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
@@ -99,7 +101,7 @@ trait UserService {
       for {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
-        combined = folderConverterService.mergeUserData(existingUserData, updatedUser, None)
+        combined = folderConverterService.mergeUserData(existingUserData, updatedUser, None, Some(existingUserData))
         updated     <- userRepository.updateUser(feideId, combined)
         enabledOrgs <- configService.getMyNDLAEnabledOrgs
         api = folderConverterService.toApiUserData(updated, enabledOrgs)
@@ -109,14 +111,15 @@ trait UserService {
     def adminUpdateMyNDLAUserData(
         updatedUser: api.UpdatedMyNDLAUser,
         feideId: Option[String],
-        user: TokenUser
+        updaterToken: Option[TokenUser],
+        updaterMyNdla: Option[MyNDLAUser]
     ): Try[api.MyNDLAUser] = {
       feideId match {
         case None => Failure(ValidationException("feideId", "You need to supply a feideId to update a user."))
         case Some(id) =>
           for {
             existing <- userService.getMyNDLAUserOrFail(id)
-            converted = folderConverterService.mergeUserData(existing, updatedUser, Some(user))
+            converted = folderConverterService.mergeUserData(existing, updatedUser, updaterToken, updaterMyNdla)
             updated     <- userRepository.updateUser(id, converted)
             enabledOrgs <- configService.getMyNDLAEnabledOrgs
             api = folderConverterService.toApiUserData(updated, enabledOrgs)
@@ -145,9 +148,9 @@ trait UserService {
         )
     }
 
-    def getInitialIsArenaAdmin(@unused feideId: FeideID): Option[Boolean] = {
+    def getInitialIsArenaGroups(@unused feideId: FeideID): List[ArenaGroup] = {
       // NOTE: This exists to simplify mocking in tests until we have api user management
-      Some(false)
+      List.empty
     }
 
     private def createMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
@@ -166,7 +169,7 @@ trait UserService {
           username = feideExtendedUserData.username,
           email = feideExtendedUserData.email,
           arenaEnabled = false,
-          arenaAdmin = getInitialIsArenaAdmin(feideId),
+          arenaGroups = getInitialIsArenaGroups(feideId),
           shareName = false,
           displayName = feideExtendedUserData.displayName
         )
@@ -197,7 +200,7 @@ trait UserService {
         arenaEnabled = userData.arenaEnabled,
         shareName = userData.shareName,
         displayName = feideUser.displayName,
-        arenaAdmin = userData.arenaAdmin
+        arenaGroups = userData.arenaGroups
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }

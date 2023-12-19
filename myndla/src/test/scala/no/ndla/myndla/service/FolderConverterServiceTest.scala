@@ -417,7 +417,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         arenaEnabled = false,
         displayName = "Feide",
         shareName = false,
-        arenaAdmin = Some(false)
+        arenaGroups = List.empty
       )
     val expectedUserData =
       api.MyNDLAUser(
@@ -458,13 +458,19 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaAdmin = Some(false)
+      arenaGroups = List.empty
     )
-    val updatedUserData1 = api.UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None)
+    val updatedUserData1 =
+      api.UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None, arenaGroups = None)
     val updatedUserData2 =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty), arenaEnabled = None, shareName = None)
+      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty), arenaEnabled = None, shareName = None, arenaGroups = None)
     val updatedUserData3 =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("x", "y", "z")), arenaEnabled = None, shareName = None)
+      api.UpdatedMyNDLAUser(
+        favoriteSubjects = Some(Seq("x", "y", "z")),
+        arenaEnabled = None,
+        shareName = None,
+        arenaGroups = None
+      )
 
     val expectedUserData1 = MyNDLAUser(
       id = 42,
@@ -486,7 +492,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaAdmin = Some(false)
+      arenaGroups = List.empty
     )
     val expectedUserData2 = MyNDLAUser(
       id = 42,
@@ -508,7 +514,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaAdmin = Some(false)
+      arenaGroups = List.empty
     )
     val expectedUserData3 = MyNDLAUser(
       id = 42,
@@ -530,12 +536,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaAdmin = Some(false)
+      arenaGroups = List.empty
     )
 
-    service.mergeUserData(domainUserData, updatedUserData1, None) should be(expectedUserData1)
-    service.mergeUserData(domainUserData, updatedUserData2, None) should be(expectedUserData2)
-    service.mergeUserData(domainUserData, updatedUserData3, None) should be(expectedUserData3)
+    service.mergeUserData(domainUserData, updatedUserData1, None, None) should be(expectedUserData1)
+    service.mergeUserData(domainUserData, updatedUserData2, None, None) should be(expectedUserData2)
+    service.mergeUserData(domainUserData, updatedUserData3, None, None) should be(expectedUserData3)
   }
 
 }

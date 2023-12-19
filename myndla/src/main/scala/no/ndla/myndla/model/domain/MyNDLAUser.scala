@@ -7,6 +7,7 @@
 
 package no.ndla.myndla.model.domain
 
+import enumeratum._
 import no.ndla.common.model.NDLADate
 import no.ndla.network.model.FeideID
 import org.json4s.FieldSerializer._
@@ -26,13 +27,10 @@ case class MyNDLAUserDocument(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
-    arenaAdmin: Option[Boolean],
+    arenaGroups: List[ArenaGroup],
     shareName: Boolean
 ) {
-  def toFullUser(
-      id: Long,
-      feideId: FeideID
-  ): MyNDLAUser = {
+  def toFullUser(id: Long, feideId: FeideID): MyNDLAUser = {
     MyNDLAUser(
       id = id,
       feideId = feideId,
@@ -46,9 +44,15 @@ case class MyNDLAUserDocument(
       email = email,
       arenaEnabled = arenaEnabled,
       shareName = shareName,
-      arenaAdmin = arenaAdmin
+      arenaGroups = arenaGroups
     )
   }
+}
+
+sealed trait ArenaGroup extends EnumEntry
+object ArenaGroup extends Enum[ArenaGroup] with CirceEnum[ArenaGroup] {
+  case object ADMIN extends ArenaGroup
+  override def values: IndexedSeq[ArenaGroup] = findValues
 }
 
 case class MyNDLAUser(
@@ -63,7 +67,7 @@ case class MyNDLAUser(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
-    arenaAdmin: Option[Boolean],
+    arenaGroups: List[ArenaGroup],
     shareName: Boolean
 ) {
   // Keeping FEIDE and our data in sync
@@ -71,6 +75,7 @@ case class MyNDLAUser(
 
   def isStudent: Boolean = userRole == UserRole.STUDENT
   def isTeacher: Boolean = userRole == UserRole.EMPLOYEE
+  def isAdmin: Boolean   = arenaGroups.contains(ArenaGroup.ADMIN)
 }
 
 object DBMyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
@@ -78,7 +83,8 @@ object DBMyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
     DefaultFormats +
       new EnumNameSerializer(UserRole) ++
       JavaTimeSerializers.all +
-      NDLADate.Json4sSerializer
+      NDLADate.Json4sSerializer +
+      Json4s.serializer(ArenaGroup)
 
   override val tableName = "my_ndla_users"
 

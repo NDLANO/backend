@@ -7,6 +7,7 @@
 
 package no.ndla.myndlaapi.controller
 
+import cats.implicits._
 import no.ndla.myndla.model.api.{ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser}
 import no.ndla.myndla.service.{FolderReadService, FolderWriteService, UserService}
 import no.ndla.myndlaapi.Eff
@@ -20,18 +21,23 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import io.circe.generic.auto._
+import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.network.model.FeideID
+import no.ndla.network.tapir.auth.TokenUser
 
 trait UserController {
-  this: ErrorHelpers with UserService with TapirErrorHelpers with FolderWriteService with FolderReadService =>
+  this: ErrorHelpers
+    with UserService
+    with MyNDLAAuthHelpers
+    with TapirErrorHelpers
+    with FolderWriteService
+    with FolderReadService =>
   val userController: UserController
 
   class UserController extends Service[Eff] {
     override val serviceName: String = "users"
 
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
-
-    import ErrorHelpers._
 
     def getMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get user data")
@@ -62,10 +68,19 @@ trait UserController {
       .in(jsonBody[UpdatedMyNDLAUser])
       .out(jsonBody[MyNDLAUser])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .requirePermission(LEARNINGPATH_API_ADMIN)
-      .serverLogicPure { user =>
-        { case (feideHeader, updatedMyNdlaUser) =>
-          userService.adminUpdateMyNDLAUserData(updatedMyNdlaUser, feideHeader, user).handleErrorsOrOk
+      .securityIn(TokenUser.oauth2Input(Seq.empty))
+      .securityIn(MyNDLAAuthHelpers.feideOauth())
+      .serverSecurityLogicPure { case (tokenUser, feideToken) =>
+        val arenaUser = feideToken.traverse(token => userService.getArenaEnabledUser(Some(token))).toOption.flatten
+        if (tokenUser.hasPermission(LEARNINGPATH_API_ADMIN) || arenaUser.exists(_.isAdmin)) {
+          Right((tokenUser, arenaUser))
+        } else Left(ErrorHelpers.forbidden)
+      }
+      .serverLogicPure {
+        case (tokenUser, myndlaUser) => { case (feideId, updatedMyNdlaUser) =>
+          userService
+            .adminUpdateMyNDLAUserData(updatedMyNdlaUser, feideId, tokenUser, myndlaUser)
+            .handleErrorsOrOk
         }
       }
 

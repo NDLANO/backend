@@ -30,7 +30,7 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment {
   override def beforeAll(): Unit = {
     implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
     Future { Routes.startJdkServer(this.getClass.getName, serverPort) {} }
-    Thread.sleep(10000)
+    Thread.sleep(1000)
   }
 
   test("That updating config returns 200 if all is good") {

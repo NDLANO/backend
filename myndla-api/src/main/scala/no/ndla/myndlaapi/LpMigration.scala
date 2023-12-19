@@ -47,7 +47,7 @@ case class LpMigration(props: MyNdlaApiProperties, localDataSource: HikariDataSo
           email = x.email,
           arenaEnabled = x.arenaEnabled,
           shareName = x.shareName,
-          arenaAdmin = Some(false)
+          arenaGroups = List.empty
         )
       )(myndlaSession)
     )
