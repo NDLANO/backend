@@ -250,6 +250,60 @@ trait ArenaRepository {
       else Success(count)
     }.flatten
 
+    def followCategory(categoryId: Long, userId: Long)(implicit session: DBSession): Try[domain.CategoryFollow] = Try {
+      val column = domain.CategoryFollow.column.c _
+      val inserted = withSQL {
+        insert
+          .into(domain.CategoryFollow)
+          .namedValues(
+            column("user_id")     -> userId,
+            column("category_id") -> categoryId
+          )
+      }.updateAndReturnGeneratedKey.apply()
+
+      domain.CategoryFollow(
+        id = inserted,
+        user_id = userId,
+        category_id = categoryId
+      )
+    }
+
+    def unfollowCategory(categoryId: Long, userId: Long)(implicit session: DBSession): Try[Int] = Try {
+      val cf = domain.CategoryFollow.syntax("cf")
+      val count = withSQL {
+        delete
+          .from(domain.CategoryFollow as cf)
+          .where
+          .eq(cf.user_id, userId)
+          .and
+          .eq(cf.category_id, categoryId)
+      }.update()
+      if (count < 1)
+        Failure(
+          NDLASQLException(
+            s"Deleting a categoryfollow with user_id '$userId' and category_id $categoryId resulted in no affected row"
+          )
+        )
+      else Success(count)
+    }.flatten
+
+    def getCategoryFollowing(categoryId: Long, userId: Long)(implicit
+        session: DBSession
+    ): Try[Option[domain.CategoryFollow]] = {
+      val cf = domain.CategoryFollow.syntax("cf")
+      Try {
+        sql"""
+             select ${cf.resultAll}
+             from ${domain.CategoryFollow.as(cf)}
+             where ${cf.category_id} = $categoryId and ${cf.user_id} = $userId
+           """
+          .map(rs => domain.CategoryFollow.fromResultSet(cf)(rs))
+          .single
+          .apply()
+          .sequence
+      }.flatten
+    }
+
     def getTopicFollowers(topicId: Long)(implicit session: DBSession): Try[List[MyNDLAUser]] = Try {
       val tf = domain.TopicFollow.syntax("tf")
       val u  = DBMyNDLAUser.syntax("u")
@@ -762,12 +816,26 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getCategories(implicit session: DBSession): Try[List[domain.Category]] = {
+    def getCategories(user: MyNDLAUser, filterFollowed: Boolean)(implicit
+        session: DBSession
+    ): Try[List[domain.Category]] = {
       val ca = domain.Category.syntax("ca")
+
+      val where = if (filterFollowed) {
+        sqls"""
+            where ${ca.id} in (
+                select ${domain.CategoryFollow.column.category_id}
+                from ${domain.CategoryFollow.table}
+                where ${domain.CategoryFollow.column.user_id} = ${user.id}
+            )
+            """
+      } else sqls""
+
       Try {
         sql"""
              select ${ca.resultAll}
              from ${domain.Category.as(ca)}
+             $where
              order by ${ca.title}
            """
           .map(rs => domain.Category.fromResultSet(ca)(rs))

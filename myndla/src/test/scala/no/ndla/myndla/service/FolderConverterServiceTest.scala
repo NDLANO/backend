@@ -463,7 +463,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     val updatedUserData1 =
       api.UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None, arenaGroups = None)
     val updatedUserData2 =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty), arenaEnabled = None, shareName = None, arenaGroups = None)
+      api.UpdatedMyNDLAUser(
+        favoriteSubjects = Some(Seq.empty),
+        arenaEnabled = None,
+        shareName = None,
+        arenaGroups = None
+      )
     val updatedUserData3 =
       api.UpdatedMyNDLAUser(
         favoriteSubjects = Some(Seq("x", "y", "z")),

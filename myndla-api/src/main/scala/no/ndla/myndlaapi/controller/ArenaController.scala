@@ -61,11 +61,12 @@ trait ArenaController {
       .in("categories")
       .summary("Get all categories")
       .description("Get all categories")
+      .in(query[Boolean]("followed").description("Filter on followed categories").default(false))
       .out(jsonBody[List[Category]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { _ => _ =>
-        arenaReadService.getCategories().handleErrorsOrOk
+      .serverLogicPure { user => followed =>
+        arenaReadService.getCategories(user, followed)().handleErrorsOrOk
       }
 
     def getCategory: ServerEndpoint[Any, Eff] = endpoint.get
@@ -127,6 +128,28 @@ trait ArenaController {
         { case (page, pageSize, ownerId) =>
           arenaReadService.getRecentTopics(page, pageSize, ownerId)().handleErrorsOrOk
         }
+      }
+
+    def followCategory: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("categories" / pathCategoryId / "follow")
+      .summary("Follow category")
+      .description("Follow category")
+      .out(jsonBody[CategoryWithTopics])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => categoryId =>
+        arenaReadService.followCategory(categoryId, user)().handleErrorsOrOk
+      }
+
+    def unfollowCategory: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("categories" / pathCategoryId / "unfollow")
+      .summary("Unfollow category")
+      .description("Unfollow category")
+      .out(jsonBody[CategoryWithTopics])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => categoryId =>
+        arenaReadService.unfollowCategory(categoryId, user)().handleErrorsOrOk
       }
 
     def followTopic: ServerEndpoint[Any, Eff] = endpoint.post
@@ -383,6 +406,8 @@ trait ArenaController {
       getCategories,
       getCategory,
       getCategoryTopics,
+      followCategory,
+      unfollowCategory,
       getRecentTopics,
       followTopic,
       unfollowTopic,
