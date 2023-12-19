@@ -47,6 +47,7 @@ trait ImageIndexService {
         keywordField("defaultTitle"),
         keywordField("modelReleased"),
         textField("editorNotes"),
+        keywordField("podcastFriendly"),
         nestedField("imageFiles").fields(
           intField("imageSize"),
           textField("previewUrl"),

@@ -104,6 +104,11 @@ trait BaseImageController {
       "ids",
       "Return only images that have one of the provided ids. To provide multiple ids, separate by comma (,)."
     )
+    protected val podcastFriendly: Param[Option[Boolean]] =
+      Param[Option[Boolean]](
+        "podcast-friendly",
+        "Filter images that are podcast friendly. Width==heigth and between 1400 and 3000."
+      )
 
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxImageFileSizeBytes.toLong)))
   }

@@ -16,6 +16,7 @@ case class SearchSettings(
     sort: Sort,
     page: Option[Int],
     pageSize: Option[Int],
+    podcastFriendly: Option[Boolean],
     includeCopyrighted: Boolean,
     shouldScroll: Boolean,
     modelReleased: Seq[ModelReleasedStatus.Value]

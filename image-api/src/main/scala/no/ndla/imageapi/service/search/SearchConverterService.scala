@@ -50,7 +50,7 @@ trait SearchConverterService {
         )
       )
 
-    def asSearchableImageFiles(images: Seq[ImageFileData]): Seq[SearchableImageFile] = {
+    private def asSearchableImageFiles(images: Seq[ImageFileData]): Seq[SearchableImageFile] = {
       images.map(i => {
         SearchableImageFile(
           imageSize = i.size,
@@ -89,6 +89,9 @@ trait SearchConverterService {
         modelReleased = Some(image.modelReleased.toString),
         editorNotes = image.editorNotes.map(_.note),
         imageFiles = asSearchableImageFiles(image.images),
+        podcastFriendly = image.images.exists(i =>
+          i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400)
+        ),
         domainObject = image
       )
     }

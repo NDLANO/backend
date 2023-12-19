@@ -81,6 +81,7 @@ trait ImageControllerV2 {
         sort: Option[Sort],
         pageSize: Option[Int],
         page: Option[Int],
+        podcastFriendly: Option[Boolean],
         includeCopyrighted: Boolean,
         shouldScroll: Boolean,
         modelReleasedStatus: Seq[ModelReleasedStatus.Value],
@@ -97,6 +98,7 @@ trait ImageControllerV2 {
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
             page = page,
             pageSize = pageSize,
+            podcastFriendly = podcastFriendly,
             includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus
@@ -111,6 +113,7 @@ trait ImageControllerV2 {
             sort = sort.getOrElse(Sort.ByTitleAsc),
             page = page,
             pageSize = pageSize,
+            podcastFriendly = podcastFriendly,
             includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus
@@ -142,6 +145,7 @@ trait ImageControllerV2 {
             asQueryParam(sort),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
+            asQueryParam(podcastFriendly),
             asQueryParam(scrollId),
             asQueryParam(modelReleased)
           )
@@ -159,6 +163,7 @@ trait ImageControllerV2 {
         val license            = params.get(this.license.paramName)
         val pageSize           = intOrNone(this.pageSize.paramName)
         val page               = intOrNone(this.pageNo.paramName)
+        val podcastFriendly    = booleanOrNone(this.podcastFriendly.paramName)
         val sort               = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
         val includeCopyrighted = booleanOrDefault(this.includeCopyrighted.paramName, default = false)
         val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
@@ -174,6 +179,7 @@ trait ImageControllerV2 {
           sort,
           pageSize,
           page,
+          podcastFriendly,
           includeCopyrighted,
           shouldScroll,
           modelReleasedStatus,
@@ -207,6 +213,7 @@ trait ImageControllerV2 {
         val license            = searchParams.license
         val pageSize           = searchParams.pageSize
         val page               = searchParams.page
+        val podcastFriendly    = searchParams.podcastFriendly
         val sort               = Sort.valueOf(searchParams.sort)
         val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
         val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
@@ -222,6 +229,7 @@ trait ImageControllerV2 {
           sort,
           pageSize,
           page,
+          podcastFriendly,
           includeCopyrighted,
           shouldScroll,
           modelReleasedStatus,

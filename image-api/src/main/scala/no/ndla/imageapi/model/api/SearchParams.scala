@@ -23,6 +23,7 @@ case class SearchParams(
     @(ApiModelProperty @field)(description = """The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""") sort: Option[String],
     @(ApiModelProperty @field)(description = "The page number of the search hits to display.") page: Option[Int],
     @(ApiModelProperty @field)(description = "The number of search hits to display for each page.") pageSize: Option[Int],
+    @(ApiModelProperty @field)(description = "Only show podcast friendly images.") podcastFriendly: Option[Boolean],
     @(ApiModelProperty @field)(description = "A search context retrieved from the response header of a previous search.") scrollId: Option[String],
     @(ApiModelProperty @field)(description = "Return only images with one of the provided values for modelReleased.") modelReleased: Option[Seq[String]]
 )
