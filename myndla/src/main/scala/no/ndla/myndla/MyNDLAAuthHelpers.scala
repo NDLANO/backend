@@ -7,7 +7,7 @@
 
 package no.ndla.myndla
 
-import no.ndla.myndla.model.domain.MyNDLAUser
+import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.service.UserService
 import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
 import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
@@ -60,9 +60,9 @@ trait MyNDLAAuthHelpers {
         val authFunc: Option[FeideAccessToken] => Either[AllErrors, MyNDLAUser] = { maybeToken =>
           if (requireArenaAdmin) {
             userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk match {
-              case Right(user) if user.arenaAdmin.contains(true) => Right(user)
-              case Right(_)                                      => Left(ErrorHelpers.forbidden)
-              case Left(err)                                     => Left(err)
+              case Right(user) if user.arenaGroups.contains(ArenaGroup.ADMIN) => Right(user)
+              case Right(_)                                                   => Left(ErrorHelpers.forbidden)
+              case Left(err)                                                  => Left(err)
             }
           } else if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
           else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk

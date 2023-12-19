@@ -11,6 +11,7 @@ package no.ndla.myndla.service
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
+import no.ndla.myndla.model.domain.ArenaGroup
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
@@ -215,15 +216,21 @@ trait FolderConverterService {
     def mergeUserData(
         domainUserData: domain.MyNDLAUser,
         updatedUser: api.UpdatedMyNDLAUser,
-        user: Option[TokenUser]
+        updaterToken: Option[TokenUser],
+        updaterUser: domain.MyNDLAUser
     ): domain.MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
-        if (user.exists(_.hasPermission(LEARNINGPATH_API_ADMIN)))
+        if (updaterToken.exists(_.hasPermission(LEARNINGPATH_API_ADMIN)) || updaterUser.isAdmin)
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
         else domainUserData.arenaEnabled
       }
+
+      val arenaGroups =
+        if (updaterUser.isAdmin)
+          updatedUser.groups.getOrElse(domainUserData.arenaGroups)
+        else domainUserData.arenaGroups
 
       domain.MyNDLAUser(
         id = domainUserData.id,
@@ -238,7 +245,7 @@ trait FolderConverterService {
         arenaEnabled = arenaEnabled,
         shareName = shareName,
         displayName = domainUserData.displayName,
-        arenaAdmin = domainUserData.arenaAdmin
+        arenaGroups = arenaGroups
       )
     }
 
