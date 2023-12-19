@@ -14,6 +14,7 @@ import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.common.errors.RollbackException
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
@@ -459,7 +460,7 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def insertTopic(categoryId: Long, title: String, ownerId: Long, created: NDLADate)(implicit
+    def insertTopic(categoryId: Long, title: String, ownerId: Long, created: NDLADate, updated: NDLADate)(implicit
         session: DBSession
     ): Try[domain.Topic] = Try {
       val column = domain.Topic.column.c _
@@ -471,7 +472,7 @@ trait ArenaRepository {
             column("category_id") -> categoryId,
             column("owner_id")    -> ownerId,
             column("created")     -> created,
-            column("updated")     -> created
+            column("updated")     -> updated
           )
       }.updateAndReturnGeneratedKey
         .apply()
@@ -529,8 +530,7 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def postPost(topicId: Long, content: String, ownerId: Long)(implicit session: DBSession): Try[domain.Post] = Try {
-      val created = clock.now()
+    def postPost(topicId: Long, content: String, ownerId: Long, created: NDLADate, updated: NDLADate)(implicit session: DBSession): Try[domain.Post] = Try {
       val column  = domain.Post.column.c _
       val inserted = withSQL {
         insert
@@ -540,7 +540,7 @@ trait ArenaRepository {
             column("owner_id") -> ownerId,
             column("content")  -> content,
             column("created")  -> created,
-            column("updated")  -> created
+            column("updated")  -> updated
           )
       }.updateAndReturnGeneratedKey
         .apply()
@@ -550,7 +550,7 @@ trait ArenaRepository {
         content = content,
         topic_id = topicId,
         created = created,
-        updated = created,
+        updated = updated,
         ownerId = ownerId
       )
     }
@@ -558,6 +558,19 @@ trait ArenaRepository {
     def withSession[T](func: DBSession => T): T = {
       DB.localTx { session =>
         func(session)
+      }
+    }
+
+    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
+      try {
+        DB.localTx { session =>
+          func(session) match {
+            case Failure(ex)    => throw RollbackException(ex)
+            case Success(value) => Success(value)
+          }
+        }
+      } catch {
+        case RollbackException(ex) => Failure(ex)
       }
     }
 
@@ -876,9 +889,7 @@ trait ArenaRepository {
       }
     }
 
-    def insertCategory(
-        category: domain.InsertCategory
-    )(implicit session: DBSession): Try[domain.Category] = Try {
+    def insertCategory(category: domain.InsertCategory)(implicit session: DBSession): Try[domain.Category] = Try {
       val id =
         sql"""
             insert into ${domain.Category.table}

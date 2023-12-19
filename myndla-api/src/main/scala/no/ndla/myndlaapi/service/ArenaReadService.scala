@@ -240,9 +240,9 @@ trait ArenaReadService {
         val created = clock.now()
         for {
           _     <- getCategory(categoryId, 0, 0)(session)
-          topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created)(session)
+          topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created, created)(session)
           _     <- followTopic(topic.id, user)(session)
-          _     <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id)(session)
+          _     <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created)(session)
           compiledTopic = CompiledTopic(topic, user)
         } yield converterService.toApiTopic(compiledTopic, 1)
       }
@@ -250,10 +250,11 @@ trait ArenaReadService {
 
     def postPost(topicId: Long, newPost: NewPost, user: MyNDLAUser): Try[api.Topic] =
       arenaRepository.withSession { session =>
+        val created = clock.now()
         for {
           maybeBeforeTopic <- arenaRepository.getTopic(topicId)(session)
           topic            <- maybeBeforeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-          newPost          <- arenaRepository.postPost(topicId, newPost.content, user.id)(session)
+          newPost          <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created)(session)
           _                <- generateNewPostNotifications(topic, newPost)(session)
           _                <- followTopic(topicId, user)(session)
           postCount        <- arenaRepository.postCount(topicId)(session)

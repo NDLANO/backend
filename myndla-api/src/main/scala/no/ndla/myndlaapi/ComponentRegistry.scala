@@ -24,13 +24,15 @@ import no.ndla.myndlaapi.controller.{
   ConfigController,
   ErrorHelpers,
   FolderController,
+  InternController,
   StatsController,
   SwaggerDocControllerConfig,
   UserController
 }
 import no.ndla.myndlaapi.integration.DataSource
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.ArenaRepository
-import no.ndla.myndlaapi.service.{ArenaReadService, ConverterService}
+import no.ndla.myndlaapi.service.{ArenaReadService, ConverterService, ImportService}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
@@ -72,7 +74,10 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with StatsController
     with ArenaController
     with MyNDLAAuthHelpers
-    with ArenaRepository {
+    with ArenaRepository
+    with ImportService
+    with NodeBBClient
+    with InternController {
   override val props: MyNdlaApiProperties = properties
 
   lazy val healthController                               = new TapirHealthController[Eff]
@@ -96,6 +101,9 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val arenaReadService: ArenaReadService             = new ArenaReadService
   lazy val arenaController: ArenaController               = new ArenaController
   lazy val converterService: ConverterService             = new ConverterService
+  lazy val importService: ImportService                   = new ImportService
+  lazy val nodebb: NodeBBClient                           = new NodeBBClient
+  lazy val internController: InternController             = new InternController
 
   override val dataSource: Option[HikariDataSource] =
     Option.when(props.migrateToLocalDB)(DataSource.getHikariDataSource)
@@ -108,7 +116,8 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
       userController,
       configController,
       statsController,
-      arenaController
+      arenaController,
+      internController
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )
