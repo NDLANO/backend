@@ -164,7 +164,11 @@ trait ImageSearchService {
         boolQuery().should(settings.modelReleased.map(mrs => termQuery("modelReleased", mrs.toString)))
       )
 
-      val filters        = List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter)
+      val podcastFilter = Option.when(settings.podcastFriendly.nonEmpty)(
+        boolQuery().should(settings.podcastFriendly.map(pf => termQuery("podcastFriendly", pf.toString)))
+      )
+
+      val filters        = List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter, podcastFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

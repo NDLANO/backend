@@ -50,6 +50,8 @@ class ImageSearchServiceTest
 
   val largeImage: ImageFileData = ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
   val smallImage: ImageFileData = ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
+  val podcastImage: ImageFileData =
+    ImageFileData(3, "podcast-full-url", 100, "jpg", Some(ImageDimensions(width = 1400, height = 1400)), "und", 6)
 
   val byNcSa: Copyright = Copyright(
     CC_BY_NC_SA.toString,
@@ -157,7 +159,7 @@ class ImageSearchServiceTest
       ImageTitle("Nynoreg", "nn")
     ),
     alttexts = Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
-    images = Seq(smallImage),
+    images = Seq(podcastImage),
     copyright = byNcSa,
     tags = Seq(),
     captions = Seq(),
@@ -627,5 +629,17 @@ class ImageSearchServiceTest
     searchResult2.results.head.id should be("5")
     searchResult2.results.head.title.title should equal("This is a unrelated photo")
     searchResult2.results.head.title.language should equal("en")
+  }
+
+  test("That filtering for podcast-friendly works as expected") {
+    val Success(searchResult1) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        language = "*",
+        podcastFriendly = Some(true)
+      ),
+      None
+    )
+
+    searchResult1.results.map(_.id) should be(Seq("5"))
   }
 }

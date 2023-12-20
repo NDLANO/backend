@@ -31,7 +31,7 @@ trait TestData {
 
     def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-    val ByNcSa = mapping.License.CC_BY_NC_SA.toString
+    val ByNcSa: String = mapping.License.CC_BY_NC_SA.toString
 
     val elg = new ImageMetaInformation(
       id = Some(1),
@@ -68,7 +68,7 @@ trait TestData {
       editorNotes = Seq.empty
     )
 
-    val apiElg = api.ImageMetaInformationV2(
+    val apiElg: ImageMetaInformationV2 = api.ImageMetaInformationV2(
       "1",
       "Elg.jpg",
       api.ImageTitle("Elg i busk", "nb"),
@@ -100,7 +100,7 @@ trait TestData {
       None
     )
 
-    val apiBjorn = ImageMetaInformationV2(
+    val apiBjorn: ImageMetaInformationV2 = ImageMetaInformationV2(
       id = "2",
       metaUrl = "",
       title = api.ImageTitle("Bjørn i busk", "nb"),
@@ -167,7 +167,7 @@ trait TestData {
       editorNotes = Seq.empty
     )
 
-    val jerv = new ImageMetaInformation(
+    val jerv: ImageMetaInformation = new ImageMetaInformation(
       id = Some(3),
       titles = List(ImageTitle("Jerv på stein", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
@@ -272,7 +272,7 @@ trait TestData {
       editorNotes = Seq.empty
     )
 
-    val nonexisting = new ImageMetaInformation(
+    val nonexisting: ImageMetaInformation = new ImageMetaInformation(
       id = Some(6),
       titles = List(ImageTitle("Krokodille på krok", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
@@ -342,7 +342,7 @@ trait TestData {
       editorNotes = Seq.empty
     )
 
-    val testdata = List(elg, bjorn, jerv, mink, rein)
+    val testdata: List[ImageMetaInformation] = List(elg, bjorn, jerv, mink, rein)
 
     case class DiskImage(filename: String) extends ImageStream {
       override def contentType: String = s"image/$format"
@@ -351,18 +351,18 @@ trait TestData {
       override def fileName: String    = filename
 
       override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
-      lazy val rawBytes                            = scala.io.Source.fromInputStream(stream).mkString
+      lazy val rawBytes: String                    = scala.io.Source.fromInputStream(stream).mkString
     }
 
-    val NdlaLogoImage    = DiskImage("ndla_logo.jpg")
-    val NdlaLogoGIFImage = DiskImage("ndla_logo.gif")
-    val CCLogoSvgImage   = DiskImage("cc.svg")
+    val NdlaLogoImage: DiskImage    = DiskImage("ndla_logo.jpg")
+    val NdlaLogoGIFImage: DiskImage = DiskImage("ndla_logo.gif")
+    val CCLogoSvgImage: DiskImage   = DiskImage("cc.svg")
 
-    val ChildrensImage = DiskImage(
+    val ChildrensImage: DiskImage = DiskImage(
       "children-drawing-582306_640.jpg"
     ) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
 
-    val searchSettings = SearchSettings(
+    val searchSettings: SearchSettings = SearchSettings(
       query = None,
       minimumSize = None,
       language = "*",
@@ -371,6 +371,7 @@ trait TestData {
       sort = Sort.ByIdAsc,
       page = None,
       pageSize = None,
+      podcastFriendly = None,
       includeCopyrighted = false,
       shouldScroll = false,
       modelReleased = Seq.empty

@@ -25,6 +25,7 @@ case class SearchableImage(
     modelReleased: Option[String],
     editorNotes: Seq[String],
     imageFiles: Seq[SearchableImageFile],
+    podcastFriendly: Boolean,
     domainObject: ImageMetaInformation
 )
 
