@@ -141,6 +141,7 @@ export interface ISearchParams {
   sort?: string
   page?: number
   pageSize?: number
+  podcastFriendly?: boolean
   scrollId?: string
   modelReleased?: string[]
 }
