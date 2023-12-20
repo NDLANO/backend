@@ -980,14 +980,14 @@
         {
           "name": "data-url",
           "validation": {
-            "required": true,
+            "required": false,
             "dataType": "URL"
           }
         },
         {
           "name": "data-url-text",
           "validation": {
-            "required": true
+            "required": false
           }
         },
         {
