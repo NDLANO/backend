@@ -477,6 +477,31 @@ class EmbedTagValidatorTest extends UnitSuite {
     TagValidator.validate("content", tag2).size should be(0)
   }
 
+  test("validate should succeed if source url is not required and empty") {
+    val tag = generateTagWithAttrs(
+      Map(
+        TagAttribute.DataResource     -> ResourceType.CampaignBlock.toString,
+        TagAttribute.DataTitle        -> "Title",
+        TagAttribute.DataDescription  -> "Description",
+        TagAttribute.DataHeadingLevel -> "h3"
+      )
+    )
+    TagValidator.validate("content", tag).size should be(0)
+
+    val tag2 = generateTagWithAttrs(
+      Map(
+        TagAttribute.DataResource     -> ResourceType.CampaignBlock.toString,
+        TagAttribute.DataTitle        -> "Title",
+        TagAttribute.DataDescription  -> "Description",
+        TagAttribute.DataHeadingLevel -> "h3",
+        TagAttribute.DataUrl          -> "",
+        TagAttribute.DataUrlText      -> ""
+      )
+    )
+    TagValidator.validate("content", tag2).size should be(0)
+
+  }
+
   test("validate should fail if source url is from an illlegal domain") {
     val tag = generateTagWithAttrs(
       Map(
