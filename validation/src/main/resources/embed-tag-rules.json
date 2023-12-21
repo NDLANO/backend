@@ -40,7 +40,7 @@
           }
         },
         {
-          "name": "data-article-id",
+          "name": "data-disclaimer-article-id",
           "validation": {
             "required": false,
             "dataType": "NUMBER"
@@ -99,7 +99,7 @@
           }
         },
         {
-          "name": "data-article-id",
+          "name": "data-disclaimer-article-id",
           "validation": {
             "required": false,
             "dataType": "NUMBER"
@@ -274,13 +274,12 @@
           }
         },
         {
-          "name": "data-article-id",
+          "name": "data-disclaimer-article-id",
           "validation": {
             "required": false,
             "dataType": "NUMBER"
           }
         }
-
       ]
     },
     "image": {
@@ -634,7 +633,7 @@
           }
         },
         {
-          "name": "data-article-id",
+          "name": "data-disclaimer-article-id",
           "validation": {
             "required": false,
             "dataType": "NUMBER"
