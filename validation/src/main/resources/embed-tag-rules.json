@@ -32,6 +32,19 @@
           "validation": {
             "required": false
           }
+        },
+        {
+          "name": "data-disclaimer",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-disclaimer-article-id",
+          "validation": {
+            "required": false,
+            "dataType": "NUMBER"
+          }
         }
       ]
     },
@@ -77,6 +90,19 @@
               "data-caption",
               "data-title"
             ]
+          }
+        },
+        {
+          "name": "data-disclaimer",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-disclaimer-article-id",
+          "validation": {
+            "required": false,
+            "dataType": "NUMBER"
           }
         }
       ]
@@ -239,6 +265,19 @@
           "name": "data-alt",
           "validation": {
             "required": false
+          }
+        },
+        {
+          "name": "data-disclaimer",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-disclaimer-article-id",
+          "validation": {
+            "required": false,
+            "dataType": "NUMBER"
           }
         }
       ]
@@ -585,6 +624,19 @@
             "mustCoexistWith": [
               "data-imageid"
             ]
+          }
+        },
+        {
+          "name": "data-disclaimer",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-disclaimer-article-id",
+          "validation": {
+            "required": false,
+            "dataType": "NUMBER"
           }
         }
       ]
