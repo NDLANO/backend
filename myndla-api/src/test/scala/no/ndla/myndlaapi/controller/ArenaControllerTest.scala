@@ -11,7 +11,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
-import no.ndla.myndlaapi.model.arena.api.{Paginated, Topic}
+import no.ndla.myndlaapi.model.arena.api.PaginatedTopics
 import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
 import no.ndla.network.tapir.Service
 import no.ndla.scalatestsuite.UnitTestSuite
@@ -58,7 +58,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
     when(userService.getArenaEnabledUser(eqTo(Some(feideToken)))).thenReturn(Success(testUser))
     when(arenaReadService.getRecentTopics(any, any, any)(any)).thenReturn(
       Success(
-        Paginated[Topic](
+        PaginatedTopics(
           items = List.empty,
           page = 1,
           pageSize = 10,
@@ -79,7 +79,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
     when(userService.getArenaEnabledUser(eqTo(Some(feideToken)))).thenReturn(Failure(AccessDeniedException.forbidden))
     when(arenaReadService.getRecentTopics(any, any, any)(any)).thenReturn(
       Success(
-        Paginated[Topic](
+        PaginatedTopics(
           items = List.empty,
           page = 1,
           pageSize = 10,
@@ -100,7 +100,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment {
     when(userService.getArenaEnabledUser(eqTo(None))).thenReturn(Failure(AccessDeniedException.unauthorized))
     when(arenaReadService.getRecentTopics(any, any, any)(any)).thenReturn(
       Success(
-        Paginated[Topic](
+        PaginatedTopics(
           items = List.empty,
           page = 1,
           pageSize = 10,

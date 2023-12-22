@@ -17,9 +17,10 @@ import no.ndla.myndlaapi.model.arena.api.{
   NewCategory,
   NewFlag,
   NewPost,
-  NewPostNotification,
   NewTopic,
-  Paginated,
+  PaginatedNewPostNotifications,
+  PaginatedPosts,
+  PaginatedTopics,
   Post,
   Topic,
   TopicWithPosts
@@ -88,7 +89,7 @@ trait ArenaController {
       .in("categories" / pathCategoryId / "topics")
       .summary("Get topics for a category")
       .description("Get topics for a category")
-      .out(jsonBody[Paginated[Topic]])
+      .out(jsonBody[PaginatedTopics])
       .in(queryPage)
       .in(queryPageSize)
       .errorOut(errorOutputsFor(401, 403, 404))
@@ -121,7 +122,7 @@ trait ArenaController {
       .in(queryPage)
       .in(queryPageSize)
       .in(query[Option[Long]]("user-id").description("A users id to filter on"))
-      .out(jsonBody[Paginated[Topic]])
+      .out(jsonBody[PaginatedTopics])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { _ =>
@@ -320,7 +321,7 @@ trait ArenaController {
       .description("List flagged posts")
       .in(queryPage)
       .in(queryPageSize)
-      .out(jsonBody[Paginated[Post]])
+      .out(jsonBody[PaginatedPosts])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
@@ -335,7 +336,7 @@ trait ArenaController {
       .description("Get your notifications")
       .in(queryPage)
       .in(queryPageSize)
-      .out(jsonBody[Paginated[NewPostNotification]])
+      .out(jsonBody[PaginatedNewPostNotifications])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>

@@ -282,7 +282,7 @@ class ArenaTest
       id = 1,
       title = "title1",
       postCount = 5,
-      posts = api.Paginated[api.Post](
+      posts = api.PaginatedPosts(
         totalCount = 5,
         page = 1,
         pageSize = 10,
@@ -426,7 +426,7 @@ class ArenaTest
         id = 1,
         title = "title1",
         postCount = 22,
-        posts = api.Paginated[api.Post](
+        posts = api.PaginatedPosts(
           totalCount = 22,
           page = 2,
           pageSize = 10,
@@ -463,7 +463,7 @@ class ArenaTest
         id = 1,
         title = "title1",
         postCount = 22,
-        posts = api.Paginated[api.Post](
+        posts = api.PaginatedPosts(
           totalCount = 22,
           page = 5,
           pageSize = 3,

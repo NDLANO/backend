@@ -530,8 +530,10 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def postPost(topicId: Long, content: String, ownerId: Long, created: NDLADate, updated: NDLADate)(implicit session: DBSession): Try[domain.Post] = Try {
-      val column  = domain.Post.column.c _
+    def postPost(topicId: Long, content: String, ownerId: Long, created: NDLADate, updated: NDLADate)(implicit
+        session: DBSession
+    ): Try[domain.Post] = Try {
+      val column = domain.Post.column.c _
       val inserted = withSQL {
         insert
           .into(domain.Post)
