@@ -48,6 +48,7 @@ object myndlaapi extends Module {
       "NewCategory",
       "NewPost",
       "NewPostNotification",
+      "NewFlag",
       "NewTopic",
       "Topic",
       "TopicWithPosts",
