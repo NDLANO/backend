@@ -87,6 +87,10 @@ export interface INewCategory {
   description: string
 }
 
+export interface INewFlag {
+  reason: string
+}
+
 export interface INewFolder {
   name: string
   parentId?: string
