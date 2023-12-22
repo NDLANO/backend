@@ -350,7 +350,7 @@ trait ArenaController {
       .summary("Mark single notification as read")
       .description("Mark single notification as read")
       .out(emptyOutput)
-      .errorOut(errorOutputsFor(401, 403))
+      .errorOut(errorOutputsFor(401, 404, 403))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => notificationId =>
         arenaReadService.readNotification(notificationId, user)().handleErrorsOrOk
@@ -372,7 +372,7 @@ trait ArenaController {
       .summary("Delete single notification")
       .description("Delete single notification")
       .out(emptyOutput)
-      .errorOut(errorOutputsFor(401, 403))
+      .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => notificationId =>
         arenaReadService.deleteNotification(notificationId, user)().handleErrorsOrOk
