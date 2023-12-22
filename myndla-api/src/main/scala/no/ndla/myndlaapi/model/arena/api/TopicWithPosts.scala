@@ -15,7 +15,7 @@ case class TopicWithPosts(
     @description("The topics id") id: Long,
     @description("The topics title") title: String,
     @description("Count of posts in the topic") postCount: Long,
-    @description("The posts in the topic") posts: Paginated[Post],
+    @description("The posts in the topic") posts: PaginatedPosts,
     @description("The post creation date") created: NDLADate,
     @description("The post edit date") updated: NDLADate
 )

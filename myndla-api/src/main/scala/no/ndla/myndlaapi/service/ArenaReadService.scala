@@ -15,7 +15,7 @@ import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
-import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic, Paginated}
+import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic}
 import no.ndla.myndlaapi.model.arena.domain.MissingPostException
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
@@ -50,13 +50,13 @@ trait ArenaReadService {
         page: Long,
         pageSize: Long,
         requester: MyNDLAUser
-    )(session: DBSession = ReadOnlyAutoSession): Try[Paginated[api.Post]] = {
+    )(session: DBSession = ReadOnlyAutoSession): Try[api.PaginatedPosts] = {
       val offset = (page - 1) * pageSize
       for {
         posts     <- arenaRepository.getFlaggedPosts(offset, pageSize)(session)
         postCount <- arenaRepository.getFlaggedPostsCount(session)
         apiPosts = posts.map(compiledPost => converterService.toApiPost(compiledPost, requester))
-      } yield Paginated[api.Post](
+      } yield api.PaginatedPosts(
         items = apiPosts,
         totalCount = postCount,
         pageSize = pageSize,
@@ -80,7 +80,7 @@ trait ArenaReadService {
 
     def getNotifications(user: MyNDLAUser, page: Long, pageSize: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
-    ): Try[Paginated[api.NewPostNotification]] = {
+    ): Try[api.PaginatedNewPostNotifications] = {
       val offset = (page - 1) * pageSize
       for {
         compiledNotifications <- arenaRepository.getNotifications(user, offset, pageSize)(session)
@@ -95,7 +95,7 @@ trait ArenaReadService {
             notificationTime = notification.notification.notification_time
           )
         }
-      } yield api.Paginated[api.NewPostNotification](
+      } yield api.PaginatedNewPostNotifications(
         items = apiNotifications,
         totalCount = notificationsCount,
         pageSize = pageSize,
@@ -141,7 +141,7 @@ trait ArenaReadService {
 
     def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
-    ): Try[Paginated[api.Topic]] = {
+    ): Try[api.PaginatedTopics] = {
       val offset = (page - 1) * pageSize
       for {
         maybeCategory <- arenaRepository.getCategory(categoryId)(session)
@@ -151,7 +151,7 @@ trait ArenaReadService {
         topicsWithCount <- topics.traverse(t => {
           arenaRepository.postCount(t.topic.id)(session).map(postCount => (t, postCount))
         })
-      } yield Paginated[api.Topic](
+      } yield api.PaginatedTopics(
         items = topicsWithCount.map { case (topic, postCount) => converterService.toApiTopic(topic, postCount) },
         totalCount = topicsCount,
         pageSize = pageSize,
@@ -161,7 +161,7 @@ trait ArenaReadService {
 
     def getRecentTopics(page: Long, pageSize: Long, ownerId: Option[Long])(
         session: DBSession = ReadOnlyAutoSession
-    ): Try[Paginated[api.Topic]] = {
+    ): Try[api.PaginatedTopics] = {
       val offset = (page - 1) * pageSize
 
       val topicsT = ownerId
@@ -175,7 +175,7 @@ trait ArenaReadService {
             .postCount(topic.topic.id)(session)
             .map(postCount => { converterService.toApiTopic(topic, postCount) })
         }
-      } yield Paginated[api.Topic](
+      } yield api.PaginatedTopics(
         items = apiTopics,
         totalCount = topicsCount,
         pageSize = pageSize,

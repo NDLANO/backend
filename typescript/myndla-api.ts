@@ -5,6 +5,25 @@ export interface IBreadcrumb {
   name: string
 }
 
+export interface ICategory {
+  id: number
+  title: string
+  description: string
+  topicCount: number
+  postCount: number
+}
+
+export interface ICategoryWithTopics {
+  id: number
+  title: string
+  description: string
+  topicCount: number
+  postCount: number
+  topicPage: number
+  topicPageSize: number
+  topics: ITopic[]
+}
+
 export interface IConfigMeta {
   key: string
   value: (boolean | string[])
@@ -15,6 +34,13 @@ export interface IConfigMeta {
 export interface IConfigMetaRestricted {
   key: string
   value: (boolean | string[])
+}
+
+export interface IFlag {
+  id: number
+  reason: string
+  created: string
+  flagger: IOwner
 }
 
 export interface IFolder {
@@ -56,11 +82,29 @@ export interface IMyNDLAUser {
   shareName: boolean
 }
 
+export interface INewCategory {
+  title: string
+  description: string
+}
+
 export interface INewFolder {
   name: string
   parentId?: string
   status?: string
   description?: string
+}
+
+export interface INewPost {
+  content: string
+}
+
+export interface INewPostNotification {
+  id: number
+  topicId: number
+  isRead: boolean
+  topicTitle: string
+  post: IPost
+  notificationTime: string
 }
 
 export interface INewResource {
@@ -70,8 +114,50 @@ export interface INewResource {
   resourceId: string
 }
 
+export interface INewTopic {
+  title: string
+  initialPost: INewPost
+}
+
 export interface IOwner {
   name: string
+}
+
+export interface IOwner {
+  id: number
+  displayName: string
+  username: string
+  location: string
+}
+
+export interface IPaginatedNewPostNotifications {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: INewPostNotification[]
+}
+
+export interface IPaginatedPosts {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: IPost[]
+}
+
+export interface IPaginatedTopics {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: ITopic[]
+}
+
+export interface IPost {
+  id: number
+  content: string
+  created: string
+  updated: string
+  owner: IOwner
+  flags?: IFlag[]
 }
 
 export interface IResource {
@@ -82,6 +168,14 @@ export interface IResource {
   tags: string[]
   resourceId: string
   rank?: number
+}
+
+export interface ITopic {
+  id: number
+  title: string
+  postCount: number
+  created: string
+  updated: string
 }
 
 export interface IUpdatedFolder {

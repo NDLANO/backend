@@ -45,7 +45,7 @@ trait ConverterService {
         requester: MyNDLAUser
     ): api.TopicWithPosts = {
       val apiPosts = posts.map(post => toApiPost(post, requester))
-      val pagination = api.Paginated(
+      val pagination = api.PaginatedPosts(
         page = page,
         pageSize = pageSize,
         totalCount = postCount,
