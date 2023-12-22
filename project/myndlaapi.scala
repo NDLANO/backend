@@ -50,6 +50,7 @@ object myndlaapi extends Module {
       "NewPostNotification",
       "NewTopic",
       "Topic",
+      "TopicWithPosts",
       "PaginatedTopics",
       "PaginatedPosts",
       "PaginatedNewPostNotifications",

@@ -178,6 +178,15 @@ export interface ITopic {
   updated: string
 }
 
+export interface ITopicWithPosts {
+  id: number
+  title: string
+  postCount: number
+  posts: IPaginatedPosts
+  created: string
+  updated: string
+}
+
 export interface IUpdatedFolder {
   name?: string
   status?: string
