@@ -121,6 +121,20 @@ trait WriteService {
       }
     }
 
+    private def shouldUpdateNotes(existing: domain.Concept, changed: domain.Concept): Boolean = {
+      // Function that sets values we don't want to include when comparing concepts to check if we should update notes
+      val withComparableValues =
+        (concept: domain.Concept) =>
+          concept.copy(
+            revision = None,
+            created = NDLADate.fromUnixTime(0),
+            updated = NDLADate.fromUnixTime(0),
+            responsible = None,
+            updatedBy = Seq.empty
+          )
+      withComparableValues(existing) != withComparableValues(changed)
+    }
+
     private def updateNotes(
         old: domain.Concept,
         updated: api.UpdatedConcept,
@@ -129,8 +143,11 @@ trait WriteService {
     ): domain.Concept = {
       val isNewLanguage =
         !old.supportedLanguages.contains(updated.language) && changed.supportedLanguages.contains(updated.language)
-      val newLanguageEditorNote =
-        if (isNewLanguage) Seq(s"New language '${updated.language}' added.")
+      val dataChanged = shouldUpdateNotes(old, changed);
+
+      val newEditorNote =
+        if (isNewLanguage) Seq(s"New language '${updated.language}' added")
+        else if (dataChanged) Seq(s"Updated ${old.conceptType}")
         else Seq.empty
 
       val changedResponsibleNote =
@@ -139,7 +156,7 @@ trait WriteService {
             Seq("Responsible changed")
           case _ => Seq.empty
         }
-      val allNewNotes = newLanguageEditorNote ++ changedResponsibleNote
+      val allNewNotes = newEditorNote ++ changedResponsibleNote
 
       changed.copy(editorNotes =
         changed.editorNotes ++ allNewNotes.map(domain.EditorNote(_, user.id, changed.status, clock.now()))
