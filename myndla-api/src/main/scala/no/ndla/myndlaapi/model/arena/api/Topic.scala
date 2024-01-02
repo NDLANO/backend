@@ -16,5 +16,6 @@ case class Topic(
     @description("The topics title") title: String,
     @description("Count of posts in the topic") postCount: Long,
     @description("The post creation date") created: NDLADate,
-    @description("The post edit date") updated: NDLADate
+    @description("The post edit date") updated: NDLADate,
+    @description("The id of the parenting category") categoryId: Long
 )

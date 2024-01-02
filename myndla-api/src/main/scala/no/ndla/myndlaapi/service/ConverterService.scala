@@ -32,7 +32,8 @@ trait ConverterService {
         title = compiledTopic.topic.title,
         created = compiledTopic.topic.created,
         updated = compiledTopic.topic.updated,
-        postCount = postCount
+        postCount = postCount,
+        categoryId = compiledTopic.topic.category_id
       )
     }
 
@@ -58,7 +59,8 @@ trait ConverterService {
         created = compiledTopic.topic.created,
         updated = compiledTopic.topic.updated,
         postCount = postCount,
-        posts = pagination
+        posts = pagination,
+        categoryId = compiledTopic.topic.category_id
       )
     }
 
@@ -96,7 +98,8 @@ trait ConverterService {
         created = compiledPost.post.created,
         updated = compiledPost.post.updated,
         owner = toOwner(compiledPost.owner),
-        flags = maybeFlags
+        flags = maybeFlags,
+        topicId = compiledPost.post.topic_id
       )
     }
 

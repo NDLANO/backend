@@ -152,7 +152,9 @@ trait ArenaReadService {
           arenaRepository.postCount(t.topic.id)(session).map(postCount => (t, postCount))
         })
       } yield api.PaginatedTopics(
-        items = topicsWithCount.map { case (topic, postCount) => converterService.toApiTopic(topic, postCount) },
+        items = topicsWithCount.map { case (topic, postCount) =>
+          converterService.toApiTopic(topic, postCount)
+        },
         totalCount = topicsCount,
         pageSize = pageSize,
         page = page

@@ -247,21 +247,24 @@ class ArenaTest
           title = "title3",
           postCount = 1,
           created = someDate,
-          updated = someDate
+          updated = someDate,
+          categoryId = 1
         ),
         api.Topic(
           id = 2,
           title = "title2",
           postCount = 1,
           created = someDate,
-          updated = someDate
+          updated = someDate,
+          categoryId = 1
         ),
         api.Topic(
           id = 1,
           title = "title1",
           postCount = 5,
           created = someDate,
-          updated = someDate
+          updated = someDate,
+          categoryId = 1
         )
       )
     )
@@ -298,7 +301,8 @@ class ArenaTest
               username = "email@ndla.no",
               location = "zxc"
             ),
-            flags = Some(List())
+            flags = Some(List()),
+            topicId = 1
           ),
           api.Post(
             id = 4,
@@ -311,7 +315,8 @@ class ArenaTest
               username = "email@ndla.no",
               location = "zxc"
             ),
-            flags = Some(List())
+            flags = Some(List()),
+            topicId = 1
           ),
           api.Post(
             id = 5,
@@ -324,7 +329,8 @@ class ArenaTest
               username = "email@ndla.no",
               location = "zxc"
             ),
-            flags = Some(List())
+            flags = Some(List()),
+            topicId = 1
           ),
           api.Post(
             id = 6,
@@ -337,7 +343,8 @@ class ArenaTest
               username = "email@ndla.no",
               location = "zxc"
             ),
-            flags = Some(List())
+            flags = Some(List()),
+            topicId = 1
           ),
           api.Post(
             id = 7,
@@ -350,12 +357,14 @@ class ArenaTest
               username = "email@ndla.no",
               location = "zxc"
             ),
-            flags = Some(List())
+            flags = Some(List()),
+            topicId = 1
           )
         )
       ),
       created = someDate,
-      updated = someDate
+      updated = someDate,
+      categoryId = 1
     )
 
     val topic1Resp = simpleHttpClient.send(
@@ -417,7 +426,8 @@ class ArenaTest
           username = "email@ndla.no",
           location = "zxc"
         ),
-        flags = Some(List())
+        flags = Some(List()),
+        topicId = 1
       )
     }
 
@@ -444,7 +454,8 @@ class ArenaTest
           )
         ),
         created = someDate,
-        updated = someDate
+        updated = someDate,
+        categoryId = 1
       )
 
       val topic1Resp = simpleHttpClient.send(
@@ -474,7 +485,8 @@ class ArenaTest
           )
         ),
         created = someDate,
-        updated = someDate
+        updated = someDate,
+        categoryId = 1
       )
 
       val topic1Resp = simpleHttpClient.send(

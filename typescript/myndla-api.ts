@@ -162,6 +162,7 @@ export interface IPost {
   updated: string
   owner: IOwner
   flags?: IFlag[]
+  topicId: number
 }
 
 export interface IResource {
@@ -180,6 +181,7 @@ export interface ITopic {
   postCount: number
   created: string
   updated: string
+  categoryId: number
 }
 
 export interface ITopicWithPosts {
@@ -189,6 +191,7 @@ export interface ITopicWithPosts {
   posts: IPaginatedPosts
   created: string
   updated: string
+  categoryId: number
 }
 
 export interface IUpdatedFolder {
