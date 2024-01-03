@@ -17,5 +17,6 @@ case class Topic(
     @description("Count of posts in the topic") postCount: Long,
     @description("The post creation date") created: NDLADate,
     @description("The post edit date") updated: NDLADate,
-    @description("The id of the parenting category") categoryId: Long
+    @description("The id of the parenting category") categoryId: Long,
+    @description("Whether the requesting user is following the topic") isFollowing: Boolean
 )

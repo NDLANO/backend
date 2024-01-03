@@ -15,5 +15,6 @@ case class Category(
     @description("The category's title") title: String,
     @description("The category's description") description: String,
     @description("Count of topics in the category") topicCount: Long,
-    @description("Count of posts in the category") postCount: Long
+    @description("Count of posts in the category") postCount: Long,
+    @description("Whether the requesting user is following the category") isFollowing: Boolean
 )

@@ -23,18 +23,20 @@ trait ConverterService {
         title = category.title,
         description = category.description,
         topicCount = topicCount,
-        postCount = postCount
+        postCount = postCount,
+        isFollowing = false // TODO:
       )
     }
 
-    def toApiTopic(compiledTopic: CompiledTopic, postCount: Long): api.Topic = {
+    def toApiTopic(compiledTopic: CompiledTopic): api.Topic = {
       api.Topic(
         id = compiledTopic.topic.id,
         title = compiledTopic.topic.title,
         created = compiledTopic.topic.created,
         updated = compiledTopic.topic.updated,
-        postCount = postCount,
-        categoryId = compiledTopic.topic.category_id
+        postCount = compiledTopic.postCount,
+        categoryId = compiledTopic.topic.category_id,
+        isFollowing = compiledTopic.isFollowing
       )
     }
 
@@ -42,7 +44,6 @@ trait ConverterService {
         compiledTopic: CompiledTopic,
         page: Long,
         pageSize: Long,
-        postCount: Long,
         posts: List[CompiledPost],
         requester: MyNDLAUser
     ): api.TopicWithPosts = {
@@ -50,7 +51,7 @@ trait ConverterService {
       val pagination = api.PaginatedPosts(
         page = page,
         pageSize = pageSize,
-        totalCount = postCount,
+        totalCount = compiledTopic.postCount,
         items = apiPosts
       )
 
@@ -59,9 +60,10 @@ trait ConverterService {
         title = compiledTopic.topic.title,
         created = compiledTopic.topic.created,
         updated = compiledTopic.topic.updated,
-        postCount = postCount,
+        postCount = compiledTopic.postCount,
         posts = pagination,
-        categoryId = compiledTopic.topic.category_id
+        categoryId = compiledTopic.topic.category_id,
+        isFollowing = compiledTopic.isFollowing
       )
     }
 

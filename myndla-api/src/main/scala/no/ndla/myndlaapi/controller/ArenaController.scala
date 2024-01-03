@@ -80,9 +80,9 @@ trait ArenaController {
       .in(queryPageSize)
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { _ =>
+      .serverLogicPure { user =>
         { case (categoryId, page, pageSize) =>
-          arenaReadService.getCategory(categoryId, page, pageSize)().handleErrorsOrOk
+          arenaReadService.getCategory(categoryId, page, pageSize, user)().handleErrorsOrOk
         }
       }
 
@@ -95,9 +95,9 @@ trait ArenaController {
       .in(queryPageSize)
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { _ =>
+      .serverLogicPure { user =>
         { case (categoryId, page, pageSize) =>
-          arenaReadService.getTopicsForCategory(categoryId, page, pageSize)().handleErrorsOrOk
+          arenaReadService.getTopicsForCategory(categoryId, page, pageSize, user)().handleErrorsOrOk
         }
       }
 
@@ -126,9 +126,9 @@ trait ArenaController {
       .out(jsonBody[PaginatedTopics])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { _ =>
+      .serverLogicPure { user =>
         { case (page, pageSize, ownerId) =>
-          arenaReadService.getRecentTopics(page, pageSize, ownerId)().handleErrorsOrOk
+          arenaReadService.getRecentTopics(page, pageSize, ownerId, user)().handleErrorsOrOk
         }
       }
 
@@ -238,9 +238,9 @@ trait ArenaController {
       .out(jsonBody[Category])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
-      .serverLogicPure { _ =>
+      .serverLogicPure { user =>
         { case (categoryId, newCategory) =>
-          arenaReadService.updateCategory(categoryId, newCategory)().handleErrorsOrOk
+          arenaReadService.updateCategory(categoryId, newCategory, user)().handleErrorsOrOk
         }
       }
 

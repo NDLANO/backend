@@ -23,12 +23,14 @@ case class CompiledPost(
 
 case class CompiledTopic(
     topic: domain.Topic,
-    owner: MyNDLAUser
+    owner: MyNDLAUser,
+    postCount: Long,
+    isFollowing: Boolean
 )
 
 case class CompiledNotification(
     notification: domain.Notification,
     post: CompiledPost,
-    topic: CompiledTopic,
+    topic: domain.Topic,
     notifiedUser: MyNDLAUser
 )
