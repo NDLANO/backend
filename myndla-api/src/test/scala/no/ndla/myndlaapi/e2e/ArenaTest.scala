@@ -301,7 +301,8 @@ class ArenaTest
               id = 1,
               displayName = "",
               username = "email@ndla.no",
-              location = "zxc"
+              location = "zxc",
+              groups = List.empty
             ),
             flags = Some(List()),
             topicId = 1
@@ -315,7 +316,8 @@ class ArenaTest
               id = 1,
               displayName = "",
               username = "email@ndla.no",
-              location = "zxc"
+              location = "zxc",
+              groups = List.empty
             ),
             flags = Some(List()),
             topicId = 1
@@ -329,7 +331,8 @@ class ArenaTest
               id = 1,
               displayName = "",
               username = "email@ndla.no",
-              location = "zxc"
+              location = "zxc",
+              groups = List.empty
             ),
             flags = Some(List()),
             topicId = 1
@@ -343,7 +346,8 @@ class ArenaTest
               id = 1,
               displayName = "",
               username = "email@ndla.no",
-              location = "zxc"
+              location = "zxc",
+              groups = List.empty
             ),
             flags = Some(List()),
             topicId = 1
@@ -357,7 +361,8 @@ class ArenaTest
               id = 1,
               displayName = "",
               username = "email@ndla.no",
-              location = "zxc"
+              location = "zxc",
+              groups = List.empty
             ),
             flags = Some(List()),
             topicId = 1
@@ -426,7 +431,8 @@ class ArenaTest
           id = 1,
           displayName = "",
           username = "email@ndla.no",
-          location = "zxc"
+          location = "zxc",
+          groups = List.empty
         ),
         flags = Some(List()),
         topicId = 1

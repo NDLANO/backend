@@ -16,7 +16,6 @@ import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
-import no.ndla.network.tapir.AllErrors
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession}
 

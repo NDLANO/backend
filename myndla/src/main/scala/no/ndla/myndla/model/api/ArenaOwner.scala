@@ -7,6 +7,7 @@
 
 package no.ndla.myndla.model.api
 
+import no.ndla.myndla.model.domain.ArenaGroup
 import sttp.tapir.Schema.annotations.description
 
 @description("Arena owner data")
@@ -14,7 +15,8 @@ case class ArenaOwner(
     @description("The owners id") id: Long,
     @description("The name") displayName: String,
     @description("The username") username: String,
-    @description("The location") location: String
+    @description("The location") location: String,
+    @description("Which groups the user belongs to") groups: List[ArenaGroup]
 )
 
 object ArenaOwner {
@@ -28,7 +30,8 @@ object ArenaOwner {
       id = user.id,
       displayName = user.displayName,
       username = user.username,
-      location = location
+      location = location,
+      groups = user.arenaGroups
     )
   }
 
