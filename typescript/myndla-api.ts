@@ -21,6 +21,7 @@ export interface ICategory {
   description: string
   topicCount: number
   postCount: number
+  isFollowing: boolean
 }
 
 export interface ICategoryWithTopics {
@@ -185,6 +186,7 @@ export interface ITopic {
   created: string
   updated: string
   categoryId: number
+  isFollowing: boolean
 }
 
 export interface ITopicWithPosts {
@@ -195,6 +197,7 @@ export interface ITopicWithPosts {
   created: string
   updated: string
   categoryId: number
+  isFollowing: boolean
 }
 
 export interface IUpdatedFolder {
