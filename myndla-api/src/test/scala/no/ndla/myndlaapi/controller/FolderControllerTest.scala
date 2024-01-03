@@ -9,17 +9,15 @@ package no.ndla.myndlaapi.controller
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import no.ndla.common.errors.AccessDeniedException
 import no.ndla.myndla.model.api.Folder
-import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
-import no.ndla.myndlaapi.model.arena.api.PaginatedTopics
+import no.ndla.myndla.model.domain.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
 import no.ndla.network.tapir.Service
 import no.ndla.scalatestsuite.UnitTestSuite
 import sttp.client3.quick._
 
 import java.util.UUID
-import scala.util.{Failure, Success}
+import scala.util.{Success}
 
 class FolderControllerTest extends UnitTestSuite with TestEnvironment {
   val serverPort: Int = findFreePort

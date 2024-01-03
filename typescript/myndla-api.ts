@@ -33,6 +33,7 @@ export interface ICategoryWithTopics {
   topicPage: number
   topicPageSize: number
   topics: ITopic[]
+  isFollowing: boolean
 }
 
 export interface IConfigMeta {

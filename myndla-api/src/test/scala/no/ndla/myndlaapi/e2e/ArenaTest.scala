@@ -271,7 +271,8 @@ class ArenaTest
           categoryId = 1,
           isFollowing = true
         )
-      )
+      ),
+      isFollowing = false
     )
 
     val categoryResp = simpleHttpClient.send(

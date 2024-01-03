@@ -291,6 +291,7 @@ trait ArenaReadService {
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize, requester)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
         postsCount    <- arenaRepository.getPostCountForCategory(categoryId)(session)
+        following     <- arenaRepository.getCategoryFollowing(categoryId, requester.id)(session)
         tt = topics.map(topic => converterService.toApiTopic(topic))
       } yield api.CategoryWithTopics(
         id = categoryId,
@@ -300,7 +301,8 @@ trait ArenaReadService {
         postCount = postsCount,
         topics = tt,
         topicPageSize = pageSize,
-        topicPage = page
+        topicPage = page,
+        isFollowing = following.isDefined
       )
     }
 

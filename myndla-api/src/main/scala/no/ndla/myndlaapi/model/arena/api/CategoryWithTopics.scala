@@ -18,5 +18,6 @@ case class CategoryWithTopics(
     @description("Count of posts in the category") postCount: Long,
     @description("Which page of topics") topicPage: Long,
     @description("Page size of topics") topicPageSize: Long,
-    @description("Topics in the category") topics: List[Topic]
+    @description("Topics in the category") topics: List[Topic],
+    @description("Whether the requesting user is following the category") isFollowing: Boolean
 )
