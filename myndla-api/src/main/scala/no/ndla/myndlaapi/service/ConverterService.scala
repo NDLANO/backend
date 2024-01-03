@@ -17,14 +17,14 @@ trait ConverterService {
 
   class ConverterService {
 
-    def toApiCategory(category: domain.Category, topicCount: Long, postCount: Long): api.Category = {
+    def toApiCategory(category: domain.Category, topicCount: Long, postCount: Long, isFollowing: Boolean): api.Category = {
       api.Category(
         id = category.id,
         title = category.title,
         description = category.description,
         topicCount = topicCount,
         postCount = postCount,
-        isFollowing = false // TODO:
+        isFollowing = isFollowing
       )
     }
 

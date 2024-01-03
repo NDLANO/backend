@@ -215,7 +215,7 @@ trait ArenaReadService {
     def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
       arenaRepository.insertCategory(toInsert)(session).map { inserted =>
-        converterService.toApiCategory(inserted, 0, 0)
+        converterService.toApiCategory(inserted, 0, 0, isFollowing = false)
       }
     }
 
@@ -224,9 +224,10 @@ trait ArenaReadService {
     ): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
       for {
-        existing <- getCategory(categoryId, 0, 0, user)(session)
-        updated  <- arenaRepository.updateCategory(categoryId, toInsert)(session)
-      } yield converterService.toApiCategory(updated, existing.topicCount, existing.postCount)
+        existing  <- getCategory(categoryId, 0, 0, user)(session)
+        updated   <- arenaRepository.updateCategory(categoryId, toInsert)(session)
+        following <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
+      } yield converterService.toApiCategory(updated, existing.topicCount, existing.postCount, following.isDefined)
     }
 
     def postTopic(categoryId: Long, newTopic: NewTopic, user: MyNDLAUser): Try[api.Topic] = {
@@ -366,7 +367,8 @@ trait ArenaReadService {
             for {
               postCount  <- arenaRepository.getPostCountForCategory(category.id)(session)
               topicCount <- arenaRepository.getTopicCountForCategory(category.id)(session)
-            } yield converterService.toApiCategory(category, topicCount, postCount)
+              following <- arenaRepository.getCategoryFollowing(category.id, requester.id)(session)
+            } yield converterService.toApiCategory(category, topicCount, postCount, following.isDefined)
           })
         })
 
