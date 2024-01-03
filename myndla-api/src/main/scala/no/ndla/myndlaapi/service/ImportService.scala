@@ -176,7 +176,7 @@ trait ImportService {
       val singlePost = nodebb.getSinglePost(post.pid).?
 
       val created = convertTimestampToNDLADate(post.timestamp)
-      val updated = convertTimestampToNDLADate(post.edited)
+      val updated = if (post.edited == 0) created else convertTimestampToNDLADate(post.edited)
       arenaRepository.postPost(topic.id, singlePost.content, owner.id, created, updated)(session).map(_ => ())
     }
 
