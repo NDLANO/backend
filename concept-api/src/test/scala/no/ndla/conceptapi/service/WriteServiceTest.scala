@@ -97,7 +97,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       editorNotes = Some(
         Seq(
-          api.EditorNote("New language 'en' added.", "", api.Status("IN_PROGRESS", Seq.empty), today)
+          api.EditorNote("New language 'en' added", "", api.Status("IN_PROGRESS", Seq.empty), today)
         )
       )
     )
@@ -130,7 +130,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       editorNotes = Some(
         Seq(
-          api.EditorNote("New language 'nn' added.", "", api.Status("IN_PROGRESS", Seq.empty), today)
+          api.EditorNote("New language 'nn' added", "", api.Status("IN_PROGRESS", Seq.empty), today)
         )
       )
     )
@@ -193,7 +193,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       responsible = Some(api.ConceptResponsible("123", today)),
       editorNotes = Some(
         Seq(
-          api.EditorNote("New language 'en' added.", "", api.Status("IN_PROGRESS", Seq.empty), today),
+          api.EditorNote("New language 'en' added", "", api.Status("IN_PROGRESS", Seq.empty), today),
           api.EditorNote("Responsible changed", "", api.Status("IN_PROGRESS", Seq.empty), today)
         )
       )
@@ -265,24 +265,24 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val responsibleId = "ResponsibleId"
     val updatedApiConcept =
       api.UpdatedConcept(
-        "nb",
-        None,
-        None,
-        Right(None),
-        None,
-        None,
-        None,
-        Some(Seq.empty),
-        None,
-        None,
-        Right(Some(responsibleId)),
-        None,
-        None
+        language = "nb",
+        title = None,
+        content = None,
+        metaImage = Right(None),
+        copyright = None,
+        tags = None,
+        subjectIds = None,
+        articleIds = Some(Seq(42)),
+        status = None,
+        visualElement = None,
+        responsibleId = Right(Some(responsibleId)),
+        conceptType = None,
+        glossData = None
       )
     val expectedConcept = concept.copy(
       updated = today,
       supportedLanguages = Set("nb"),
-      articleIds = Seq.empty,
+      articleIds = Seq(42),
       responsible = Some(api.ConceptResponsible(responsibleId, today)),
       editorNotes = Some(
         Seq(
