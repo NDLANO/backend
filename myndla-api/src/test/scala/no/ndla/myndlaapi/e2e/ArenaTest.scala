@@ -251,7 +251,7 @@ class ArenaTest
           created = someDate,
           updated = someDate,
           categoryId = 1,
-          isFollowing = false
+          isFollowing = true
         ),
         api.Topic(
           id = 2,
@@ -260,7 +260,7 @@ class ArenaTest
           created = someDate,
           updated = someDate,
           categoryId = 1,
-          isFollowing = false
+          isFollowing = true
         ),
         api.Topic(
           id = 1,
@@ -269,7 +269,7 @@ class ArenaTest
           created = someDate,
           updated = someDate,
           categoryId = 1,
-          isFollowing = false
+          isFollowing = true
         )
       )
     )
@@ -305,7 +305,7 @@ class ArenaTest
               displayName = "",
               username = "email@ndla.no",
               location = "zxc",
-              groups = List.empty
+              groups = List(ArenaGroup.ADMIN)
             ),
             flags = Some(List()),
             topicId = 1
@@ -320,7 +320,7 @@ class ArenaTest
               displayName = "",
               username = "email@ndla.no",
               location = "zxc",
-              groups = List.empty
+              groups = List(ArenaGroup.ADMIN)
             ),
             flags = Some(List()),
             topicId = 1
@@ -335,7 +335,7 @@ class ArenaTest
               displayName = "",
               username = "email@ndla.no",
               location = "zxc",
-              groups = List.empty
+              groups = List(ArenaGroup.ADMIN)
             ),
             flags = Some(List()),
             topicId = 1
@@ -350,7 +350,7 @@ class ArenaTest
               displayName = "",
               username = "email@ndla.no",
               location = "zxc",
-              groups = List.empty
+              groups = List(ArenaGroup.ADMIN)
             ),
             flags = Some(List()),
             topicId = 1
@@ -365,7 +365,7 @@ class ArenaTest
               displayName = "",
               username = "email@ndla.no",
               location = "zxc",
-              groups = List.empty
+              groups = List(ArenaGroup.ADMIN)
             ),
             flags = Some(List()),
             topicId = 1
@@ -375,7 +375,7 @@ class ArenaTest
       created = someDate,
       updated = someDate,
       categoryId = 1,
-      isFollowing = false
+      isFollowing = true
     )
 
     val topic1Resp = simpleHttpClient.send(
@@ -436,7 +436,7 @@ class ArenaTest
           displayName = "",
           username = "email@ndla.no",
           location = "zxc",
-          groups = List.empty
+          groups = List(ArenaGroup.ADMIN)
         ),
         flags = Some(List()),
         topicId = 1
@@ -468,7 +468,7 @@ class ArenaTest
         created = someDate,
         updated = someDate,
         categoryId = 1,
-        isFollowing = false
+        isFollowing = true
       )
 
       val topic1Resp = simpleHttpClient.send(
@@ -500,7 +500,7 @@ class ArenaTest
         created = someDate,
         updated = someDate,
         categoryId = 1,
-        isFollowing = false
+        isFollowing = true
       )
 
       val topic1Resp = simpleHttpClient.send(

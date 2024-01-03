@@ -367,7 +367,7 @@ trait ArenaReadService {
             for {
               postCount  <- arenaRepository.getPostCountForCategory(category.id)(session)
               topicCount <- arenaRepository.getTopicCountForCategory(category.id)(session)
-              following <- arenaRepository.getCategoryFollowing(category.id, requester.id)(session)
+              following  <- arenaRepository.getCategoryFollowing(category.id, requester.id)(session)
             } yield converterService.toApiCategory(category, topicCount, postCount, following.isDefined)
           })
         })
