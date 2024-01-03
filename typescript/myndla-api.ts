@@ -1,10 +1,13 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type ArenaGroup = "ADMIN"
+
 export interface IArenaOwner {
   id: number
   displayName: string
   username: string
   location: string
+  groups: ArenaGroup[]
 }
 
 export interface IBreadcrumb {

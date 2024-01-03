@@ -7,6 +7,8 @@
 
 package no.ndla.myndla.model.domain
 
+import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
+import com.scalatsi.{TSNamedType, TSType}
 import enumeratum._
 import no.ndla.common.model.NDLADate
 import no.ndla.network.model.FeideID
@@ -53,6 +55,10 @@ sealed trait ArenaGroup extends EnumEntry
 object ArenaGroup extends Enum[ArenaGroup] with CirceEnum[ArenaGroup] {
   case object ADMIN extends ArenaGroup
   override def values: IndexedSeq[ArenaGroup] = findValues
+
+  implicit val enumTsType: TSNamedType[ArenaGroup] =
+    TSType.alias[ArenaGroup]("ArenaGroup", TSUnion(values.map(e => TSLiteralString(e.entryName))))
+
 }
 
 case class MyNDLAUser(

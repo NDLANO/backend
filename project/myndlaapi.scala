@@ -43,6 +43,7 @@ object myndlaapi extends Module {
       "NewResource",
       "UpdatedResource",
       "ArenaOwner",
+      "no.ndla.myndla.model.domain.ArenaGroup",
       "Category",
       "CategoryWithTopics",
       "Flag",
