@@ -97,8 +97,8 @@ trait ArenaRepository {
               offset $offset
              ) ns
              left join ${domain.Post.as(p)} on ${p.id} = ${ns(n).post_id}
-             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
              left join ${domain.Topic.as(t)} on ${t.id} = ${ns(n).topic_id}
+             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
              left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
              order by ${ns(n).notification_time} desc
            """
@@ -110,7 +110,7 @@ trait ArenaRepository {
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
           .map { (notification, post, topic, owner, flag) =>
-            compileNotification(notification, post.toList, topic.toList, owner.toList, flag.toList)
+            compileNotification(notification, post.toList, topic.toList, owner.toList :+ user, flag.toList)
           }
           .list
           .apply()
