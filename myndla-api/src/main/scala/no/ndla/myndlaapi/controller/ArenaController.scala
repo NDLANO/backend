@@ -9,6 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
+import no.ndla.myndla.model.api.ArenaOwner
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.arena.api.{
@@ -33,7 +34,7 @@ import no.ndla.network.tapir.{Service, TapirErrorHelpers}
 import sttp.model.StatusCode
 import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.{EndpointInput, _}
+import sttp.tapir._
 
 trait ArenaController {
   this: ErrorHelpers
@@ -403,6 +404,18 @@ trait ArenaController {
         }
       }
 
+    def getByUsername: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Get user data by username")
+      .description("Get user data by username")
+      .in("user")
+      .in(path[String]("username").description("Username of user"))
+      .out(jsonBody[ArenaOwner])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { _ => username =>
+        userService.getArenaUserByUserName(username).handleErrorsOrOk
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       getCategory,
@@ -430,7 +443,8 @@ trait ArenaController {
       markNotificationsAsRead,
       markSingleNotificationAsRead,
       deleteSingleNotification,
-      deleteAllNotifications
+      deleteAllNotifications,
+      getByUsername
     )
   }
 

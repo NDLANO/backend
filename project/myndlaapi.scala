@@ -42,6 +42,7 @@ object myndlaapi extends Module {
       "UpdatedFolder",
       "NewResource",
       "UpdatedResource",
+      "ArenaOwner",
       "Category",
       "CategoryWithTopics",
       "Flag",

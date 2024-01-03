@@ -7,6 +7,7 @@
 
 package no.ndla.myndlaapi.service
 
+import no.ndla.myndla.model.api.ArenaOwner
 import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.{api, domain}
@@ -64,26 +65,12 @@ trait ConverterService {
       )
     }
 
-    def toOwner(user: MyNDLAUser): api.Owner = {
-      val location = user.groups
-        .find(_.isPrimarySchool)
-        .map(_.displayName)
-        .getOrElse(user.organization)
-
-      api.Owner(
-        id = user.id,
-        displayName = user.displayName,
-        username = user.username,
-        location = location
-      )
-    }
-
     def toApiFlag(flag: CompiledFlag): api.Flag = {
       api.Flag(
         id = flag.flag.id,
         reason = flag.flag.reason,
         created = flag.flag.created,
-        flagger = toOwner(flag.flagger)
+        flagger = ArenaOwner.from(flag.flagger)
       )
     }
 
@@ -97,7 +84,7 @@ trait ConverterService {
         content = compiledPost.post.content,
         created = compiledPost.post.created,
         updated = compiledPost.post.updated,
-        owner = toOwner(compiledPost.owner),
+        owner = ArenaOwner.from(compiledPost.owner),
         flags = maybeFlags,
         topicId = compiledPost.post.topic_id
       )

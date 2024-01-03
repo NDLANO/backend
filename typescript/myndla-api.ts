@@ -1,5 +1,12 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export interface IArenaOwner {
+  id: number
+  displayName: string
+  username: string
+  location: string
+}
+
 export interface IBreadcrumb {
   id: string
   name: string
@@ -40,7 +47,7 @@ export interface IFlag {
   id: number
   reason: string
   created: string
-  flagger: IOwner
+  flagger: IArenaOwner
 }
 
 export interface IFolder {
@@ -127,13 +134,6 @@ export interface IOwner {
   name: string
 }
 
-export interface IOwner {
-  id: number
-  displayName: string
-  username: string
-  location: string
-}
-
 export interface IPaginatedNewPostNotifications {
   totalCount: number
   page: number
@@ -160,7 +160,7 @@ export interface IPost {
   content: string
   created: string
   updated: string
-  owner: IOwner
+  owner: IArenaOwner
   flags?: IFlag[]
   topicId: number
 }

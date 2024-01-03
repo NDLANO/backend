@@ -10,11 +10,13 @@ package no.ndla.myndla.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.myndla.model.api.ArenaOwner
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
+import no.ndla.network.tapir.AllErrors
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession}
 
@@ -32,6 +34,13 @@ trait UserService {
   val userService: UserService
 
   class UserService {
+    def getArenaUserByUserName(username: String): Try[ArenaOwner] = {
+      userRepository.userWithUsername(username) match {
+        case Failure(ex)         => Failure(ex)
+        case Success(Some(user)) => Success(ArenaOwner.from(user))
+        case Success(None)       => Failure(NotFoundException(s"User with username '$username' was not found"))
+      }
+    }
 
     def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
       for {
