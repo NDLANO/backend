@@ -431,7 +431,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         organization = "oslo",
         groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
-        shareName = false
+        shareName = false,
+        arenaGroups = List.empty
       )
 
     service.toApiUserData(domainUserData, List.empty) should be(expectedUserData)

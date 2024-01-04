@@ -91,7 +91,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
-      shareName = true
+      shareName = true,
+      arenaGroups = List.empty
     )
 
     doReturn(Success(()))
@@ -181,7 +182,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -247,7 +249,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
@@ -316,7 +319,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))

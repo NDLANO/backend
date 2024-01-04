@@ -177,7 +177,8 @@ trait FolderConverterService {
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs),
-        shareName = domainUserData.shareName
+        shareName = domainUserData.shareName,
+        arenaGroups = domainUserData.arenaGroups
       )
     }
 

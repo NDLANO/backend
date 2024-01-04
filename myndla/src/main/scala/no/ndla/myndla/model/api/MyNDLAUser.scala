@@ -27,17 +27,18 @@ object MyNDLAGroup {
 }
 
 case class MyNDLAUser(
-    @(ApiModelProperty @field)(description = "ID of the user") id: Long,
-    @(ApiModelProperty @field)(description = "FeideID of the user") feideId: String,
-    @(ApiModelProperty @field)(description = "Username of the user") username: String,
-    @(ApiModelProperty @field)(description = "Email address of the user") email: String,
-    @(ApiModelProperty @field)(description = "Name of the user") displayName: String,
-    @(ApiModelProperty @field)(description = "Favorite subjects of the user") favoriteSubjects: Seq[String],
-    @(ApiModelProperty @field)(description = "User role") role: String,
-    @(ApiModelProperty @field)(description = "User root organization") organization: String,
-    @(ApiModelProperty @field)(description = "User groups") groups: Seq[MyNDLAGroup],
-    @(ApiModelProperty @field)(description = "Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
-    @(ApiModelProperty @field)(description = "Whether users name is shared with folders or not") shareName: Boolean
+    @ApiModelProperty(description = "ID of the user") id: Long,
+    @ApiModelProperty(description = "FeideID of the user") feideId: String,
+    @ApiModelProperty(description = "Username of the user") username: String,
+    @ApiModelProperty(description = "Email address of the user") email: String,
+    @ApiModelProperty(description = "Name of the user") displayName: String,
+    @ApiModelProperty(description = "Favorite subjects of the user") favoriteSubjects: Seq[String],
+    @ApiModelProperty(description = "User role") role: String,
+    @ApiModelProperty(description = "User root organization") organization: String,
+    @ApiModelProperty(description = "User groups") groups: Seq[MyNDLAGroup],
+    @ApiModelProperty(description = "Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
+    @ApiModelProperty(description = "Whether users name is shared with folders or not") shareName: Boolean,
+    @ApiModelProperty(description = "Arena user groups") arenaGroups: List[ArenaGroup]
 )
 
 object MyNDLAUser {
