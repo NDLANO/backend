@@ -103,12 +103,20 @@ trait ArenaReadService {
       )
     }
 
-    def resolveFlag(flagId: Long)(session: DBSession = AutoSession): Try[Unit] = for {
+    def resolveFlag(flagId: Long)(session: DBSession = AutoSession): Try[api.Flag] = for {
       maybeFlag <- arenaRepository.getFlag(flagId)(session)
-      _         <- maybeFlag.toTry(NotFoundException(s"Could not find flag with id $flagId"))
-      resolveTime = clock.now()
-      _ <- arenaRepository.resolveFlag(flagId, resolveTime)(session)
-    } yield ()
+      flag      <- maybeFlag.toTry(NotFoundException(s"Could not find flag with id $flagId"))
+      updated   <- toggleFlagResolution(flag.flag)(session)
+    } yield converterService.toApiFlag(flag.copy(flag = updated))
+
+    def toggleFlagResolution(flag: domain.Flag)(session: DBSession): Try[domain.Flag] = {
+      if (flag.resolved.isDefined) {
+        arenaRepository.unresolveFlag(flag.id)(session).map(_ => flag.copy(resolved = None))
+      } else {
+        val resolveTime = clock.now()
+        arenaRepository.resolveFlag(flag.id, resolveTime)(session).map(_ => flag.copy(resolved = Some(resolveTime)))
+      }
+    }
 
     def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlag)(session: DBSession = AutoSession): Try[Unit] =
       for {

@@ -15,6 +15,7 @@ import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.arena.api.{
   Category,
   CategoryWithTopics,
+  Flag,
   NewCategory,
   NewFlag,
   NewPost,
@@ -307,9 +308,9 @@ trait ArenaController {
 
     def resolveFlag: ServerEndpoint[Any, Eff] = endpoint.put
       .in("flags" / pathFlagId)
-      .summary("Resolve arena flag")
-      .description("Resolve arena flag")
-      .out(emptyOutput)
+      .summary("Toggle arena flag resolution status")
+      .description("Toggle arena flag resolution status")
+      .out(jsonBody[Flag])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { _ => flagId =>

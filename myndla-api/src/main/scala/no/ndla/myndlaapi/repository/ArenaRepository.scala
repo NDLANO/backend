@@ -95,7 +95,7 @@ trait ArenaRepository {
              left join ${domain.Post.as(p)} on ${p.id} = ${ns(n).post_id}
              left join ${domain.Topic.as(t)} on ${t.id} = ${ns(n).topic_id}
              left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
-             left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id} and ${f.resolved} is null
+             left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
              order by ${ns(n).notification_time} desc
            """
           .one(rs => domain.Notification.fromResultSet(ns(n).resultName)(rs))
@@ -359,20 +359,34 @@ trait ArenaRepository {
       else Success(())
     }.flatten
 
-    def getFlag(flagId: Long)(implicit session: DBSession) = {
+    def unresolveFlag(flagId: Long)(implicit session: DBSession): Try[Unit] = Try {
+      val count = withSQL {
+        update(domain.Flag)
+          .set(domain.Flag.column.resolved -> None)
+          .where
+          .eq(domain.Flag.column.id, flagId)
+      }.update()
+
+      if (count < 1) Failure(NDLASQLException(s"Resolving a flag with id '$flagId' resulted in no affected row"))
+      else Success(())
+    }.flatten
+
+    def getFlag(flagId: Long)(implicit session: DBSession): Try[Option[CompiledFlag]] = Try {
       val f = domain.Flag.syntax("f")
-      Try {
-        sql"""
-                 select ${f.resultAll}
-                 from ${domain.Flag.as(f)}
-                 where ${f.id} = $flagId
-                 """
-          .map(rs => domain.Flag.fromResultSet(f.resultName)(rs))
-          .single
-          .apply()
-          .sequence
-      }.flatten
-    }
+      val u = DBMyNDLAUser.syntax("u")
+      sql"""
+           select ${f.resultAll}, ${u.resultAll}
+           from ${domain.Flag.as(f)}
+           left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${f.user_id}
+           where ${f.id} = $flagId
+         """
+        .one(rs => domain.Flag.fromResultSet(f.resultName)(rs))
+        .toOne(rs => DBMyNDLAUser.fromResultSet(u)(rs))
+        .map { (flag, user) => flag.map(CompiledFlag(_, user)) }
+        .single
+        .apply()
+        .sequence
+    }.flatten
 
     def flagPost(flagger: MyNDLAUser, postId: Long, reason: String, created: NDLADate)(implicit
         session: DBSession
@@ -821,7 +835,7 @@ trait ArenaRepository {
                   limit $limit
                   offset $offset
                 ) ps
-               left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id} and ${f.resolved} is null
+               left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id}
                left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
                order by ${ps(p).created} asc nulls last
            """
