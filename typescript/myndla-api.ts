@@ -52,6 +52,8 @@ export interface IFlag {
   id: number
   reason: string
   created: string
+  resolved?: string
+  isResolved: boolean
   flagger: IArenaOwner
 }
 
@@ -92,6 +94,7 @@ export interface IMyNDLAUser {
   groups: IMyNDLAGroup[]
   arenaEnabled: boolean
   shareName: boolean
+  arenaGroups: ArenaGroup[]
 }
 
 export interface INewCategory {

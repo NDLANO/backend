@@ -77,7 +77,9 @@ trait ConverterService {
         id = flag.flag.id,
         reason = flag.flag.reason,
         created = flag.flag.created,
-        flagger = ArenaOwner.from(flag.flagger)
+        flagger = ArenaOwner.from(flag.flagger),
+        resolved = flag.flag.resolved,
+        isResolved = flag.flag.resolved.isDefined
       )
     }
 

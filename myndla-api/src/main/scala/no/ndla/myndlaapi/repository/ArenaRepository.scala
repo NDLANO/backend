@@ -729,12 +729,12 @@ trait ArenaRepository {
               from (
                   select ${p.resultAll}
                   from ${domain.Post.as(p)}
-                  where (select count(*) from flags f where f.post_id = ${p.id} and f.resolved is null) > 0
+                  where (select count(*) from flags f where f.post_id = ${p.id}) > 0
                   order by ${p.created} asc nulls last, ${p.id} asc
                   limit $limit
                   offset $offset
                 ) ps
-               left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id} and ${f.resolved} is null
+               left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id}
                left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
                order by ${ps(p).created} asc nulls last
            """
