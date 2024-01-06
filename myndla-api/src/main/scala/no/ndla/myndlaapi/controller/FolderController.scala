@@ -35,9 +35,9 @@ trait FolderController {
   val folderController: FolderController
 
   class FolderController extends Service[Eff] {
-    override val serviceName: String = "Folders"
+    override val serviceName: String = "folders"
 
-    override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / "folders"
+    override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
     private val includeResources =
       query[Boolean]("include-resources")

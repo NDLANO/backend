@@ -100,7 +100,6 @@ trait TapirErrorHelpers extends StrictLogging {
 
         PartialServerEndpoint(newEndpoint, securityLogic)
       }
-
     }
 
     implicit class authlessErrorlessEndpoint[A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
