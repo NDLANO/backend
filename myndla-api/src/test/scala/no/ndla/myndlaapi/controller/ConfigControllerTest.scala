@@ -34,7 +34,6 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That updating config returns 200 if all is good") {
-    Thread.sleep(10000)
     when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValue], any[TokenUser]))
       .thenReturn(
         Success(
