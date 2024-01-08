@@ -2,7 +2,7 @@ CREATE TABLE categories (
     id BIGSERIAL PRIMARY KEY,
     title text,
     description text,
-    visible boolean DEFAULT true,
+    visible boolean DEFAULT true
 );
 
 CREATE TABLE topics (
@@ -11,7 +11,8 @@ CREATE TABLE topics (
     category_id BIGINT REFERENCES categories(id) ON DELETE CASCADE,
     owner_id BIGINT REFERENCES my_ndla_users(id) ON DELETE CASCADE,
     created timestamp NOT NULL DEFAULT now(),
-    updated timestamp NOT NULL DEFAULT now()
+    updated timestamp NOT NULL DEFAULT now(),
+    deleted timestamp NULL
 );
 
 CREATE INDEX topics_category_id_idx ON topics(category_id);
@@ -23,7 +24,8 @@ CREATE TABLE posts (
     topic_id BIGINT REFERENCES topics(id) ON DELETE CASCADE,
     owner_id BIGINT REFERENCES my_ndla_users(id) ON DELETE CASCADE,
     created timestamp NOT NULL DEFAULT now(),
-    updated timestamp NOT NULL DEFAULT now()
+    updated timestamp NOT NULL DEFAULT now(),
+    deleted timestamp NULL
 );
 
 CREATE INDEX posts_topic_id_idx ON posts(topic_id);
