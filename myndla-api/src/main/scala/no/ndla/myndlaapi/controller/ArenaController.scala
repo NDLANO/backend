@@ -106,6 +106,21 @@ trait ArenaController {
         }
       }
 
+    def sortCategories: ServerEndpoint[Any, Eff] = endpoint.put
+      .in("categories" / "sort")
+      .summary("Sort categories")
+      .description("Sort categories")
+      .in(jsonBody[List[Long]].description("List of category ids in the order they should be sorted"))
+      .out(jsonBody[List[Category]])
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArenaAdmin = true)
+      .serverLogicPure {
+        user =>
+          { sortedIds =>
+            arenaReadService.sortCategories(sortedIds, user).handleErrorsOrOk
+          }
+      }
+
     def getTopic: ServerEndpoint[Any, Eff] = endpoint.get
       .in("topics" / pathTopicId)
       .summary("Get single topic")
@@ -423,6 +438,7 @@ trait ArenaController {
 
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
+      sortCategories,
       getCategory,
       getCategoryTopics,
       followCategory,

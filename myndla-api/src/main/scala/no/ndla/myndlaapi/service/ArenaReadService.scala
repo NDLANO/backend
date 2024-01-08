@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.service
 
 import cats.implicits._
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
@@ -28,6 +28,19 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
+    def sortCategories(sortedIds: List[Long], user: MyNDLAUser): Try[List[api.Category]] =
+      arenaRepository.rollbackOnFailure { session =>
+        for {
+          existingCategoryIds <- arenaRepository.getAllCategoryIds(session)
+          _ <-
+            if (existingCategoryIds.sorted != sortedIds.sorted) {
+              Failure(ValidationException("body", "Sorted ids must contain every existing category id"))
+            } else { Success(()) }
+          _    <- arenaRepository.sortCategories(sortedIds)(session)
+          cats <- getCategories(user, filterFollowed = false, sort = CategorySort.ByRank)(session)
+        } yield cats
+      }
+
     def getTopicByPostId(
         postId: Long,
         requester: MyNDLAUser,

@@ -1043,6 +1043,37 @@ trait ArenaRepository {
         .flatMap(_.toTry(NDLASQLException("Did not get a category back after update, this is a bug")))
     }.flatten
 
+    def getAllCategoryIds(implicit session: DBSession): Try[List[Long]] = {
+      Try {
+        sql"""
+             select id from ${domain.Category.table}
+           """
+          .map(rs => rs.long("id"))
+          .list
+          .apply()
+      }
+    }
+
+    def sortCategories(sortedIds: List[Long])(implicit session: DBSession): Try[_] = {
+      val result = sortedIds.zipWithIndex.map { case (categoryId, idx) =>
+        withSQL {
+          update(domain.Category)
+            .set(
+              domain.Category.column.rank -> (idx + 1)
+            )
+            .where
+            .eq(domain.Category.column.id, categoryId)
+        }
+        .update
+        .apply()
+      }
+
+      val allGood = result.forall(x => x == 1)
+
+      if(allGood) Success(())
+      else Failure(NDLASQLException("Failed to update all categories"))
+    }
+
     def deleteAllPosts(implicit session: DBSession): Try[Unit] = Try {
       val numRows = sql"delete from ${domain.Post.table}".update()
       logger.info(s"Deleted $numRows posts")

@@ -3,7 +3,7 @@ CREATE TABLE categories (
     title text,
     description text,
     visible boolean DEFAULT true,
-    rank integer unique
+    rank integer
 );
 
 CREATE TABLE topics (
