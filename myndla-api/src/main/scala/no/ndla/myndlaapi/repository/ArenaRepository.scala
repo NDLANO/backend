@@ -958,10 +958,11 @@ trait ArenaRepository {
       val id =
         sql"""
             insert into ${domain.Category.table}
-              (title, description)
+              (title, description, visible)
             values (
               ${category.title},
-              ${category.description}
+              ${category.description},
+              ${category.visible}
             )
            """.updateAndReturnGeneratedKey
           .apply()
@@ -975,7 +976,8 @@ trait ArenaRepository {
         update(domain.Category)
           .set(
             domain.Category.column.title       -> category.title,
-            domain.Category.column.description -> category.description
+            domain.Category.column.description -> category.description,
+            domain.Category.column.visible     -> category.visible
           )
           .where
           .eq(domain.Category.column.id, categoryId)

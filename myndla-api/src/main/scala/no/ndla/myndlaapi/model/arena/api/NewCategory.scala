@@ -12,5 +12,6 @@ import sttp.tapir.Schema.annotations.description
 @description("Arena category data")
 case class NewCategory(
     @description("The category's title") title: String,
-    @description("The category's description") description: String
+    @description("The category's description") description: String,
+    @description("Whether the category is visible to users") visible: Boolean
 )

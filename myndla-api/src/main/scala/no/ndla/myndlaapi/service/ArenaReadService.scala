@@ -221,7 +221,7 @@ trait ArenaReadService {
       else Failure(AccessDeniedException.forbidden)
 
     def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
-      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
+      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description, newCategory.visible)
       arenaRepository.insertCategory(toInsert)(session).map { inserted =>
         converterService.toApiCategory(inserted, 0, 0, isFollowing = false)
       }
@@ -230,7 +230,7 @@ trait ArenaReadService {
     def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
         session: DBSession = AutoSession
     ): Try[Category] = {
-      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description)
+      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description, newCategory.visible)
       for {
         existing  <- getCategory(categoryId, 0, 0, user)(session)
         updated   <- arenaRepository.updateCategory(categoryId, toInsert)(session)

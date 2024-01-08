@@ -1,7 +1,8 @@
 CREATE TABLE categories (
     id BIGSERIAL PRIMARY KEY,
     title text,
-    description text
+    description text,
+    visible boolean DEFAULT true,
 );
 
 CREATE TABLE topics (

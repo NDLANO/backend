@@ -76,8 +76,9 @@ trait ImportService {
       logger.info(s"Importing category ${category.cid}")
       nodebb.getSingleCategory(category.cid).flatMap { cat =>
         for {
-          importedCategory <- arenaRepository.insertCategory(InsertCategory(cat.name, cat.description))(session)
-          _                <- cat.topics.traverse { t => importTopic(t, importedCategory, adminUser)(session) }
+          importedCategory <- arenaRepository
+            .insertCategory(InsertCategory(cat.name, cat.description, visible = true))(session)
+          _ <- cat.topics.traverse { t => importTopic(t, importedCategory, adminUser)(session) }
         } yield ()
       }
     }

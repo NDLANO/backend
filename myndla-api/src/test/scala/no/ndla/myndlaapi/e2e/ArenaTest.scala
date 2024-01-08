@@ -147,7 +147,7 @@ class ArenaTest
   )
 
   def createCategory(title: String, description: String, shouldSucceed: Boolean = true): Response[String] = {
-    val newCategory = api.NewCategory(title = title, description = description)
+    val newCategory = api.NewCategory(title = title, description = description, visible = true)
     val inBody      = newCategory.asJson.noSpaces
     val res = simpleHttpClient.send(
       quickRequest
