@@ -993,19 +993,28 @@ trait ArenaRepository {
     }
 
     def insertCategory(category: domain.InsertCategory)(implicit session: DBSession): Try[domain.Category] = Try {
-      val id =
-        sql"""
+      sql"""
             insert into ${domain.Category.table}
-              (title, description, visible)
+              (title, description, visible, rank)
             values (
               ${category.title},
               ${category.description},
-              ${category.visible}
+              ${category.visible},
+              (select coalesce(max(rank), 0) + 1 from ${domain.Category.table})
             )
-           """.updateAndReturnGeneratedKey
-          .apply()
-      category.toFull(id)
-    }
+            returning
+                id,
+                title,
+                description,
+                visible,
+                rank
+           """
+        .map(rs => domain.Category.fromResultSet(s => domain.Category.column.c(s))(rs))
+        .single
+        .apply()
+        .sequence
+        .flatMap(_.toTry(NDLASQLException("Did not get a category back after insert, this is a bug")))
+    }.flatten
 
     def updateCategory(categoryId: Long, category: domain.InsertCategory)(implicit
         session: DBSession
@@ -1019,14 +1028,14 @@ trait ArenaRepository {
           )
           .where
           .eq(domain.Category.column.id, categoryId)
-
-      }.update()
-    } match {
-      case Failure(ex)                  => Failure(ex)
-      case Success(count) if count == 1 => Success(category.toFull(categoryId))
-      case Success(count) =>
-        Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
-    }
+          .append(sqls"returning ${sqls.csv(domain.Category.column.*)}")
+      }
+        .map(rs => domain.Category.fromResultSet(s => s)(rs))
+        .single
+        .apply()
+        .sequence
+        .flatMap(_.toTry(NDLASQLException("Did not get a category back after update, this is a bug")))
+    }.flatten
 
     def deleteAllPosts(implicit session: DBSession): Try[Unit] = Try {
       val numRows = sql"delete from ${domain.Post.table}".update()

@@ -30,7 +30,8 @@ trait ConverterService {
         topicCount = topicCount,
         postCount = postCount,
         isFollowing = isFollowing,
-        visible = category.visible
+        visible = category.visible,
+        rank = category.rank
       )
     }
 

@@ -15,23 +15,15 @@ case class Category(
     id: Long,
     title: String,
     description: String,
-    visible: Boolean
+    visible: Boolean,
+    rank: Int
 )
 
 case class InsertCategory(
     title: String,
     description: String,
     visible: Boolean
-) {
-  def toFull(id: Long): Category = {
-    Category(
-      id = id,
-      title = title,
-      description = description,
-      visible = visible
-    )
-  }
-}
+)
 
 object Category extends SQLSyntaxSupport[Category] {
   override val tableName = "categories"
@@ -39,12 +31,15 @@ object Category extends SQLSyntaxSupport[Category] {
   def fromResultSet(sp: SyntaxProvider[Category])(rs: WrappedResultSet): Try[Category] =
     fromResultSet(sp.resultName)(rs)
 
-  def fromResultSet(rn: ResultName[Category])(rs: WrappedResultSet): Try[Category] = Try {
+  def fromResultSet(rn: ResultName[Category])(rs: WrappedResultSet): Try[Category] = fromResultSet(s => rn.c(s))(rs)
+
+  def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): Try[Category] = Try {
     Category(
-      id = rs.long(rn.c("id")),
-      title = rs.string(rn.c("title")),
-      description = rs.string(rn.c("description")),
-      visible = rs.boolean(rn.c("visible"))
+      id = rs.long(colNameWrapper("id")),
+      title = rs.string(colNameWrapper("title")),
+      description = rs.string(colNameWrapper("description")),
+      visible = rs.boolean(colNameWrapper("visible")),
+      rank = rs.int(colNameWrapper("rank"))
     )
   }
 

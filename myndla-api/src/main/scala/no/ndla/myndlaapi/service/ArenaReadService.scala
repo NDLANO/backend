@@ -311,7 +311,8 @@ trait ArenaReadService {
         topicPageSize = pageSize,
         topicPage = page,
         isFollowing = following.isDefined,
-        visible = category.visible
+        visible = category.visible,
+        rank = category.rank
       )
     }
 

@@ -212,7 +212,7 @@ class ArenaTest
     val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.Category]]).toTry.get
     categories.size should be(1)
     categories.head should be(
-      api.Category(1, "title", "description", 0, 0, isFollowing = false, visible = true)
+      api.Category(1, "title", "description", 0, 0, isFollowing = false, visible = true, rank = 1)
     )
   }
 
@@ -275,7 +275,8 @@ class ArenaTest
         )
       ),
       isFollowing = false,
-      visible = true
+      visible = true,
+      rank = 1
     )
 
     val categoryResp = simpleHttpClient.send(

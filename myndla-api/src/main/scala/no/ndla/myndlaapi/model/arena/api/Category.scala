@@ -17,5 +17,6 @@ case class Category(
     @description("Count of topics in the category") topicCount: Long,
     @description("Count of posts in the category") postCount: Long,
     @description("Whether the requesting user is following the category") isFollowing: Boolean,
-    @description("Whether the category is visible to regular users") visible: Boolean
+    @description("Whether the category is visible to regular users") visible: Boolean,
+    @description("Where the category is sorted when sorting by rank") rank: Int
 )
