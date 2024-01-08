@@ -15,7 +15,7 @@ import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
-import no.ndla.myndlaapi.model.arena.api.{Category, NewCategory, NewPost, NewTopic}
+import no.ndla.myndlaapi.model.arena.api.{Category, CategorySort, NewCategory, NewPost, NewTopic}
 import no.ndla.myndlaapi.model.arena.domain.MissingPostException
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
@@ -369,11 +369,13 @@ trait ArenaReadService {
       } yield apiTopic
     }
 
-    def getCategories(requester: MyNDLAUser, filterFollowed: Boolean)(
-        session: DBSession = ReadOnlyAutoSession
-    ): Try[List[api.Category]] =
+    def getCategories(
+        requester: MyNDLAUser,
+        filterFollowed: Boolean,
+        sort: CategorySort
+    )(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
       arenaRepository
-        .getCategories(requester, filterFollowed)(session)
+        .getCategories(requester, filterFollowed, sort)(session)
         .flatMap(categories => {
           categories.traverse(category => {
             for {

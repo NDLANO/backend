@@ -18,6 +18,7 @@ import no.ndla.common.errors.RollbackException
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
+import no.ndla.myndlaapi.model.arena.api.CategorySort
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Post, Topic}
 
@@ -928,7 +929,7 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getCategories(user: MyNDLAUser, filterFollowed: Boolean)(implicit
+    def getCategories(user: MyNDLAUser, filterFollowed: Boolean, sort: CategorySort)(implicit
         session: DBSession
     ): Try[List[domain.Category]] = {
       val ca         = domain.Category.syntax("ca")
@@ -947,12 +948,17 @@ trait ArenaRepository {
             """
       } else buildWhereClause(visibleSql.toSeq)
 
+      val orderByClause = sort match {
+        case CategorySort.ByTitle => sqls"order by ${ca.title}"
+        case CategorySort.ByRank  => sqls"order by ${ca.rank}"
+      }
+
       Try {
         sql"""
              select ${ca.resultAll}
              from ${domain.Category.as(ca)}
              $where
-             order by ${ca.title}
+             $orderByClause
            """
           .map(rs => domain.Category.fromResultSet(ca)(rs))
           .list

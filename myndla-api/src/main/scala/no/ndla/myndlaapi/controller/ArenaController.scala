@@ -14,6 +14,7 @@ import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.arena.api.{
   Category,
+  CategorySort,
   CategoryWithTopics,
   Flag,
   NewCategory,
@@ -65,11 +66,14 @@ trait ArenaController {
       .summary("Get all categories")
       .description("Get all categories")
       .in(query[Boolean]("followed").description("Filter on followed categories").default(false))
+      .in(query[CategorySort]("sort").description("Sort categories").default(CategorySort.ByRank))
       .out(jsonBody[List[Category]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { user => followed =>
-        arenaReadService.getCategories(user, followed)().handleErrorsOrOk
+      .serverLogicPure { user =>
+        { case (followed, sort) =>
+          arenaReadService.getCategories(user, followed, sort)().handleErrorsOrOk
+        }
       }
 
     def getCategory: ServerEndpoint[Any, Eff] = endpoint.get
