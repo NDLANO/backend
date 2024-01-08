@@ -19,5 +19,6 @@ case class CategoryWithTopics(
     @description("Which page of topics") topicPage: Long,
     @description("Page size of topics") topicPageSize: Long,
     @description("Topics in the category") topics: List[Topic],
-    @description("Whether the requesting user is following the category") isFollowing: Boolean
+    @description("Whether the requesting user is following the category") isFollowing: Boolean,
+    @description("Whether the category is visible to regular users") visible: Boolean
 )

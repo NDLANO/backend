@@ -128,7 +128,7 @@ trait ArenaReadService {
 
     def deleteCategory(categoryId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
       _          <- if (user.isAdmin) Success(()) else Failure(AccessDeniedException.forbidden)
-      maybeTopic <- arenaRepository.getCategory(categoryId)(session)
+      maybeTopic <- arenaRepository.getCategory(categoryId, includeHidden = true)(session)
       _          <- maybeTopic.toTry(NotFoundException(s"Could not find category with id $categoryId"))
       _          <- arenaRepository.deleteCategory(categoryId)(session)
     } yield ()
@@ -152,7 +152,7 @@ trait ArenaReadService {
     ): Try[api.PaginatedTopics] = {
       val offset = (page - 1) * pageSize
       for {
-        maybeCategory <- arenaRepository.getCategory(categoryId)(session)
+        maybeCategory <- arenaRepository.getCategory(categoryId, includeHidden = false)(session)
         _             <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize, requester)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
@@ -294,7 +294,7 @@ trait ArenaReadService {
     ): Try[api.CategoryWithTopics] = {
       val offset = (page - 1) * pageSize
       for {
-        maybeCategory <- arenaRepository.getCategory(categoryId)(session)
+        maybeCategory <- arenaRepository.getCategory(categoryId, includeHidden = requester.isAdmin)(session)
         category      <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize, requester)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
@@ -310,7 +310,8 @@ trait ArenaReadService {
         topics = tt,
         topicPageSize = pageSize,
         topicPage = page,
-        isFollowing = following.isDefined
+        isFollowing = following.isDefined,
+        visible = category.visible
       )
     }
 

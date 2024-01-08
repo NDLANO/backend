@@ -211,7 +211,9 @@ class ArenaTest
 
     val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.Category]]).toTry.get
     categories.size should be(1)
-    categories.head should be(api.Category(1, "title", "description", 0, 0, isFollowing = false))
+    categories.head should be(
+      api.Category(1, "title", "description", 0, 0, isFollowing = false, visible = true)
+    )
   }
 
   test("that creating a category with a bunch of topics and posts works as expected") {
@@ -272,7 +274,8 @@ class ArenaTest
           isFollowing = true
         )
       ),
-      isFollowing = false
+      isFollowing = false,
+      visible = true
     )
 
     val categoryResp = simpleHttpClient.send(

@@ -586,13 +586,15 @@ trait ArenaRepository {
       }
     }
 
-    def getCategory(id: Long)(implicit session: DBSession): Try[Option[domain.Category]] = {
-      val ca = domain.Category.syntax("ca")
+    def getCategory(id: Long, includeHidden: Boolean)(implicit session: DBSession): Try[Option[domain.Category]] = {
+      val ca           = domain.Category.syntax("ca")
+      val isVisibleSql = if (includeHidden) sqls"" else sqls"and ${ca.visible} = true"
       Try {
         sql"""
              select ${ca.resultAll}
              from ${domain.Category.as(ca)}
              where ${ca.id} = $id
+             $isVisibleSql
              """
           .map(rs => domain.Category.fromResultSet(ca)(rs))
           .single
@@ -605,6 +607,9 @@ trait ArenaRepository {
       val t  = domain.Topic.syntax("t")
       val u  = DBMyNDLAUser.syntax("u")
       val tf = domain.TopicFollow.syntax("tf")
+      val visibleSql =
+        if (requester.isAdmin) sqls""
+        else sqls"and (select visible from ${domain.Category.table} where id = ${t.category_id}) = true"
       Try {
         sql"""
              select ${t.resultAll}, ${u.resultAll}, ${tf.resultAll},
@@ -614,6 +619,7 @@ trait ArenaRepository {
              left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${t.ownerId}
              left join ${domain.TopicFollow.as(tf)} on ${tf.topic_id} = ${t.id}
              where ${t.id} = $topicId
+             $visibleSql
            """
           .one(rs =>
             (
@@ -673,17 +679,35 @@ trait ArenaRepository {
       })
     } yield CompiledPost(post = post, owner = postOwner, flagsWithFlaggers.toList)
 
-    def topicCountWhere(extra: SQLSyntax)(implicit session: DBSession): Try[Long] = Try {
-      sql"""
+    private def buildWhereClause(conditions: Seq[SQLSyntax]): SQLSyntax =
+      if (conditions.nonEmpty) {
+        val cc = conditions.foldLeft((true, sqls"where ")) { case (acc, cur) =>
+          (
+            false,
+            if (acc._1) sqls"${acc._2} $cur" else sqls"${acc._2} and $cur"
+          )
+        }
+        cc._2
+      } else sqls""
+
+    def topicCountWhere(conditions: Seq[SQLSyntax], requester: MyNDLAUser)(implicit session: DBSession): Try[Long] =
+      Try {
+        val visibleSql =
+          if (requester.isAdmin) None
+          else Some(sqls"(select visible from ${domain.Category.table} where id = category_id) = true")
+
+        val whereClause = buildWhereClause(conditions ++ visibleSql)
+
+        sql"""
            select count(*) as count
            from ${domain.Topic.table}
-           $extra
+           $whereClause
          """
-        .map(rs => rs.long("count"))
-        .single
-        .apply()
-        .getOrElse(0L)
-    }
+          .map(rs => rs.long("count"))
+          .single
+          .apply()
+          .getOrElse(0L)
+      }
 
     def postCount(topicId: Long)(implicit session: DBSession): Try[Long] = Try {
       val p = domain.Post.syntax("p")
@@ -715,8 +739,8 @@ trait ArenaRepository {
         session: DBSession
     ): Try[(List[CompiledTopic], Long)] = {
       for {
-        topics <- getTopicsPaginatedWhere(sqls"", offset, limit, user)
-        count  <- topicCountWhere(sqls"")
+        topics <- getTopicsPaginatedWhere(Seq.empty, offset, limit, user)(session)
+        count  <- topicCountWhere(Seq.empty, user)(session)
       } yield (topics, count)
     }
 
@@ -768,17 +792,27 @@ trait ArenaRepository {
         session: DBSession
     ): Try[(List[CompiledTopic], Long)] = {
       for {
-        topics <- getTopicsPaginatedWhere(sqls"where owner_id = $userId", offset, limit, requester)
-        count  <- topicCountWhere(sqls"where owner_id = $userId")
+        topics <- getTopicsPaginatedWhere(Seq(sqls"where owner_id = $userId"), offset, limit, requester)
+        count  <- topicCountWhere(Seq(sqls"where owner_id = $userId"), requester)
       } yield (topics, count)
     }
 
-    def getTopicsPaginatedWhere(where: SQLSyntax, offset: Long, limit: Long, requester: MyNDLAUser)(implicit
+    def getTopicsPaginatedWhere(
+        conditions: Seq[SQLSyntax],
+        offset: Long,
+        limit: Long,
+        requester: MyNDLAUser
+    )(implicit
         session: DBSession
     ): Try[List[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
       val u  = DBMyNDLAUser.syntax("u")
+      val visibleSql =
+        if (requester.isAdmin) None
+        else Some(sqls"(select visible from ${domain.Category.table} where id = ${t.category_id}) = true")
+
+      val whereClause = buildWhereClause(conditions ++ visibleSql)
       Try {
         sql"""
               select
@@ -791,7 +825,7 @@ trait ArenaRepository {
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
-                  $where
+                  $whereClause
                   order by newest_post_date desc nulls last
                   limit $limit
                   offset $offset
@@ -897,17 +931,21 @@ trait ArenaRepository {
     def getCategories(user: MyNDLAUser, filterFollowed: Boolean)(implicit
         session: DBSession
     ): Try[List[domain.Category]] = {
-      val ca = domain.Category.syntax("ca")
+      val ca         = domain.Category.syntax("ca")
+      val visibleSql = if (user.isAdmin) None else Some(sqls"${ca.visible} = true")
 
       val where = if (filterFollowed) {
+        val subWhereClause = buildWhereClause(
+          Seq(sqls"${domain.CategoryFollow.column.user_id} = ${user.id}") ++ visibleSql
+        )
         sqls"""
             where ${ca.id} in (
                 select ${domain.CategoryFollow.column.category_id}
                 from ${domain.CategoryFollow.table}
-                where ${domain.CategoryFollow.column.user_id} = ${user.id}
+                $subWhereClause
             )
             """
-      } else sqls""
+      } else buildWhereClause(visibleSql.toSeq)
 
       Try {
         sql"""

@@ -29,7 +29,8 @@ trait ConverterService {
         description = category.description,
         topicCount = topicCount,
         postCount = postCount,
-        isFollowing = isFollowing
+        isFollowing = isFollowing,
+        visible = category.visible
       )
     }
 
