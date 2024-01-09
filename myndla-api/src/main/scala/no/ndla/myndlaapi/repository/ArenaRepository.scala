@@ -429,12 +429,12 @@ trait ArenaRepository {
     }.flatten
 
     def deleteTopic(topicId: Long)(implicit session: DBSession): Try[Int] = Try {
-      val t = domain.Topic.syntax("t")
+      val deletedTime = clock.now()
       val count = withSQL {
-        delete
-          .from(Topic as t)
+        update(domain.Topic)
+          .set(domain.Topic.column.deleted -> deletedTime)
           .where
-          .eq(t.id, topicId)
+          .eq(domain.Topic.column.id, topicId)
       }.update()
       if (count < 1) Failure(NDLASQLException(s"Deleting a topic with id '$topicId' resulted in no affected row"))
       else Success(count)
@@ -698,7 +698,8 @@ trait ArenaRepository {
           if (requester.isAdmin) None
           else Some(sqls"(select visible from ${domain.Category.table} where id = category_id) = true")
 
-        val whereClause = buildWhereClause(conditions ++ visibleSql)
+        val deleteClause = sqls"deleted is null"
+        val whereClause  = buildWhereClause(conditions ++ visibleSql :+ deleteClause)
 
         sql"""
            select count(*) as count
@@ -814,7 +815,8 @@ trait ArenaRepository {
         if (requester.isAdmin) None
         else Some(sqls"(select visible from ${domain.Category.table} where id = ${t.category_id}) = true")
 
-      val whereClause = buildWhereClause(conditions ++ visibleSql)
+      val deleteClause = sqls"${t.deleted} is null"
+      val whereClause  = buildWhereClause(conditions ++ visibleSql :+ deleteClause)
       Try {
         sql"""
               select

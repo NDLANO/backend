@@ -16,7 +16,7 @@ import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
 import no.ndla.myndlaapi.model.arena.api.{Category, CategorySort, NewCategory, NewPost, NewTopic}
-import no.ndla.myndlaapi.model.arena.domain.MissingPostException
+import no.ndla.myndlaapi.model.arena.domain.{MissingPostException, TopicGoneException}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
@@ -147,10 +147,9 @@ trait ArenaReadService {
     } yield ()
 
     def deleteTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
-      maybeTopic <- arenaRepository.getTopic(topicId, user)(session)
-      topic      <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-      _          <- failIfEditDisallowed(topic.topic, user)
-      _          <- arenaRepository.deleteTopic(topicId)(session)
+      topic <- getCompiledTopic(topicId, user)(session)
+      _     <- failIfEditDisallowed(topic.topic, user)
+      _     <- arenaRepository.deleteTopic(topicId)(session)
     } yield ()
 
     def deletePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[Unit] = for {
@@ -202,8 +201,7 @@ trait ArenaReadService {
     ): Try[api.Topic] = {
       val updatedTime = clock.now()
       for {
-        maybeTopic   <- arenaRepository.getTopic(topicId, user)(session)
-        topic        <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
+        topic        <- getCompiledTopic(topicId, user)(session)
         posts        <- arenaRepository.getPostsForTopic(topicId, 0, 10)(session)
         _            <- failIfEditDisallowed(topic.topic, user)
         updatedTopic <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
@@ -268,11 +266,10 @@ trait ArenaReadService {
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
-          maybeBeforeTopic <- arenaRepository.getTopic(topicId, user)(session)
-          topic            <- maybeBeforeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-          newPost          <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created)(session)
-          _                <- generateNewPostNotifications(topic, newPost)(session)
-          _                <- followTopic(topicId, user)(session)
+          topic   <- getCompiledTopic(topicId, user)(session)
+          newPost <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created)(session)
+          _       <- generateNewPostNotifications(topic, newPost)(session)
+          _       <- followTopic(topicId, user)(session)
         } yield converterService.toApiTopic(topic)
       }
 
@@ -329,14 +326,23 @@ trait ArenaReadService {
       )
     }
 
+    private def getCompiledTopic(topicId: Long, user: MyNDLAUser)(session: DBSession): Try[CompiledTopic] = {
+      arenaRepository.getTopic(topicId, user)(session) match {
+        case Failure(ex) => Failure(ex)
+        case Success(Some(topic)) if topic.topic.deleted.isDefined =>
+          Failure(TopicGoneException(s"Topic with id $topicId is gone"))
+        case Success(Some(topic)) => Success(topic)
+        case Success(None) => Failure(NotFoundException(s"Could not find topic with id $topicId"))
+      }
+    }
+
     def getTopic(topicId: Long, user: MyNDLAUser, page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[api.TopicWithPosts] = {
       val offset = (page - 1) * pageSize
       for {
-        maybeTopic <- arenaRepository.getTopic(topicId, user)(session)
-        topic      <- maybeTopic.toTry(NotFoundException(s"Could not find topic with id $topicId"))
-        posts      <- arenaRepository.getPostsForTopic(topicId, offset, pageSize)(session)
+        topic <- getCompiledTopic(topicId, user)(session)
+        posts <- arenaRepository.getPostsForTopic(topicId, offset, pageSize)(session)
       } yield converterService.toApiTopicWithPosts(
         compiledTopic = topic,
         page = page,

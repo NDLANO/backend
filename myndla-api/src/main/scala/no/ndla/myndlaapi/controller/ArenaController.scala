@@ -126,7 +126,7 @@ trait ArenaController {
       .summary("Get single topic")
       .description("Get single topic")
       .out(jsonBody[TopicWithPosts])
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 410))
       .in(queryPage)
       .in(queryPageSize)
       .requireMyNDLAUser(requireArena = true)
@@ -179,7 +179,7 @@ trait ArenaController {
       .summary("Follow topic")
       .description("Follow topic")
       .out(jsonBody[TopicWithPosts])
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
         arenaReadService.followTopic(topicId, user)().handleErrorsOrOk
@@ -190,7 +190,7 @@ trait ArenaController {
       .summary("Unfollow topic")
       .description("Unfollow topic")
       .out(jsonBody[TopicWithPosts])
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
         arenaReadService.unfollowTopic(topicId, user)().handleErrorsOrOk
@@ -216,7 +216,7 @@ trait ArenaController {
       .description("Edit a topic")
       .in(jsonBody[NewTopic])
       .out(jsonBody[Topic])
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (topicId, newTopic) =>
@@ -230,7 +230,7 @@ trait ArenaController {
       .description("Add post to topic")
       .in(jsonBody[NewPost])
       .out(statusCode(StatusCode.Created).and(jsonBody[Topic]))
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (topicId, newPost) =>
@@ -294,7 +294,7 @@ trait ArenaController {
       .summary("Delete arena topic")
       .description("Delete arena topic")
       .out(emptyOutput)
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
         arenaReadService.deleteTopic(topicId, user)().handleErrorsOrOk
@@ -415,7 +415,7 @@ trait ArenaController {
       .summary("Get a topic on the page where the post is")
       .description("Get a topic on the page where the post is")
       .out(jsonBody[TopicWithPosts])
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 410))
       .in(queryPageSize)
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
