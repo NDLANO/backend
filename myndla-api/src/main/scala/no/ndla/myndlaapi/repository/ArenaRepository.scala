@@ -830,12 +830,12 @@ trait ArenaRepository {
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
                   $whereClause
-                  order by newest_post_date desc nulls last
+                  order by newest_post_date desc nulls last, ${t.id} asc
                   limit $limit
                   offset $offset
                 ) ts
                left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
-               order by newest_post_date desc nulls last
+               order by newest_post_date desc nulls last, ${ts(t).id} asc
            """
           .one(rs => {
             (
@@ -875,7 +875,7 @@ trait ArenaRepository {
                 ) ps
                left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id}
                left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
-               order by ${ps(p).created} asc nulls last
+               order by ${ps(p).created} asc nulls last, ${ps(p).id} asc
            """
           .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
           .toManies(

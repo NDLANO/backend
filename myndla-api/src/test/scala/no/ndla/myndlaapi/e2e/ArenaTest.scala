@@ -247,9 +247,9 @@ class ArenaTest
       topicPageSize = 10,
       topics = List(
         api.Topic(
-          id = 3,
-          title = "title3",
-          postCount = 1,
+          id = 1,
+          title = "title1",
+          postCount = 5,
           created = someDate,
           updated = someDate,
           categoryId = 1,
@@ -265,9 +265,9 @@ class ArenaTest
           isFollowing = true
         ),
         api.Topic(
-          id = 1,
-          title = "title1",
-          postCount = 5,
+          id = 3,
+          title = "title3",
+          postCount = 1,
           created = someDate,
           updated = someDate,
           categoryId = 1,
