@@ -96,6 +96,7 @@ export interface IComment {
   created: string
   updated: string
   isOpen: boolean
+  solved: boolean
 }
 
 export interface IDraftCopyright {
@@ -244,6 +245,7 @@ export interface IUpdatedComment {
   id?: string
   content: string
   isOpen?: boolean
+  solved?: boolean
 }
 
 export interface IUpdatedUserData {

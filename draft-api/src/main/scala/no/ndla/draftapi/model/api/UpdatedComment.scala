@@ -15,5 +15,6 @@ import scala.annotation.meta.field
 case class UpdatedComment(
     @(ApiModelProperty @field)(description = "Id of the comment") id: Option[String],
     @(ApiModelProperty @field)(description = "Content of the comment") content: String,
-    @(ApiModelProperty @field)(description = "If the comment is open or closed") isOpen: Option[Boolean]
+    @(ApiModelProperty @field)(description = "If the comment is open or closed") isOpen: Option[Boolean],
+    @(ApiModelProperty @field)(description = "If the comment is solved or not") solved: Option[Boolean]
 )

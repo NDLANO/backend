@@ -64,6 +64,7 @@ export interface IComment {
   created: string
   updated: string
   isOpen: boolean
+  solved: boolean
 }
 
 export interface IDraftResponsible {

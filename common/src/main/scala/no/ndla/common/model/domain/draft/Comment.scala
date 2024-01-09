@@ -16,5 +16,6 @@ case class Comment(
     created: NDLADate,
     updated: NDLADate,
     content: String,
-    isOpen: Boolean
+    isOpen: Boolean,
+    solved: Boolean
 )
