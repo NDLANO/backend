@@ -22,7 +22,7 @@ abstract class IntegrationSuite(
     EnableElasticsearchContainer: Boolean = false,
     EnablePostgresContainer: Boolean = false,
     EnableRedisContainer: Boolean = false,
-    PostgresqlVersion: String = "13.6",
+    PostgresqlVersion: String = "13.12",
     ElasticsearchImage: String = "3ca7147", // elasticsearch 8.5.2
     schemaName: String = "testschema"
 ) extends UnitTestSuite {
