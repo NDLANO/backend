@@ -18,7 +18,8 @@ case class Topic(
     title: String,
     category_id: Long,
     created: NDLADate,
-    updated: NDLADate
+    updated: NDLADate,
+    deleted: Option[NDLADate]
 ) extends Owned
 
 object Topic extends SQLSyntaxSupport[Topic] {
@@ -36,7 +37,8 @@ object Topic extends SQLSyntaxSupport[Topic] {
       category_id = rs.long(colFunc("category_id")),
       created = NDLADate.fromUtcDate(rs.localDateTime(colFunc("created"))),
       updated = NDLADate.fromUtcDate(rs.localDateTime(colFunc("updated"))),
-      ownerId = rs.long(colFunc("owner_id"))
+      ownerId = rs.long(colFunc("owner_id")),
+      deleted = rs.localDateTimeOpt(colFunc("deleted")).map(NDLADate.fromUtcDate)
     )
   }
 }

@@ -494,7 +494,8 @@ trait ArenaRepository {
         title = title,
         category_id = categoryId,
         created = created,
-        updated = created
+        updated = created,
+        deleted = None
       )
     }
 
@@ -904,6 +905,7 @@ trait ArenaRepository {
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
                   where ${t.category_id} = $categoryId
+                  and ${t.deleted} is null
                   order by newest_post_date desc nulls last
                   limit $limit
                   offset $offset
@@ -990,6 +992,7 @@ trait ArenaRepository {
              select count(*) as count
              from topics
              where category_id = $categoryId
+             and deleted is null
              """
           .map(rs => rs.long("count"))
           .single
@@ -1063,14 +1066,13 @@ trait ArenaRepository {
             )
             .where
             .eq(domain.Category.column.id, categoryId)
-        }
-        .update
-        .apply()
+        }.update
+          .apply()
       }
 
       val allGood = result.forall(x => x == 1)
 
-      if(allGood) Success(())
+      if (allGood) Success(())
       else Failure(NDLASQLException("Failed to update all categories"))
     }
 
