@@ -19,6 +19,7 @@ import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
 import cats.implicits._
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.common.model.NDLADate
 
 import scala.util.{Failure, Success, Try}
 
@@ -146,7 +147,7 @@ trait SeriesRepository {
           .one(Series.fromResultSet(se.resultName))
           .toMany(AudioMetaInformation.fromResultSetOpt(au.resultName))
           .map { (series, audios) =>
-            series.map(_.copy(episodes = Some(audios.sortBy(_.updated).toSeq)))
+            series.map(_.copy(episodes = Some(audios.sortBy(_.created)(Ordering[NDLADate].reverse).toSeq)))
           }
           .single()
       ).flatMap(_.sequence)

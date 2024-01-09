@@ -123,17 +123,18 @@ trait ConverterService {
       )
     }
 
-    def toApiTitle(title: common.Title): api.Title                  = api.Title(title.title, title.language)
-    def toApiDescription(desc: domain.Description): api.Description = api.Description(desc.description, desc.language)
+    private def toApiTitle(title: common.Title): api.Title = api.Title(title.title, title.language)
+    private def toApiDescription(desc: domain.Description): api.Description =
+      api.Description(desc.description, desc.language)
 
-    def maybeToApiTitle(maybeTitle: Option[common.Title]): api.Title = {
+    private def maybeToApiTitle(maybeTitle: Option[common.Title]): api.Title = {
       maybeTitle match {
         case Some(title) => toApiTitle(title)
         case None        => api.Title("", DefaultLanguage)
       }
     }
 
-    def toApiTags(maybeTag: Option[common.Tag]): Tag = {
+    private def toApiTags(maybeTag: Option[common.Tag]): Tag = {
       maybeTag match {
         case Some(tag) => api.Tag(tag.tags, tag.language)
         case None      => api.Tag(Seq(), DefaultLanguage)
