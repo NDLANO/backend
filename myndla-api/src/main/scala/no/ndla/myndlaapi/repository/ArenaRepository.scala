@@ -20,7 +20,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
 import no.ndla.myndlaapi.model.arena.api.CategorySort
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
-import no.ndla.myndlaapi.model.arena.domain.{Notification, Post, Topic}
+import no.ndla.myndlaapi.model.arena.domain.{Notification, Post}
 
 trait ArenaRepository {
   this: Clock =>
@@ -795,8 +795,8 @@ trait ArenaRepository {
         session: DBSession
     ): Try[(List[CompiledTopic], Long)] = {
       for {
-        topics <- getTopicsPaginatedWhere(Seq(sqls"where owner_id = $userId"), offset, limit, requester)
-        count  <- topicCountWhere(Seq(sqls"where owner_id = $userId"), requester)
+        topics <- getTopicsPaginatedWhere(Seq(sqls"owner_id = $userId"), offset, limit, requester)
+        count  <- topicCountWhere(Seq(sqls"owner_id = $userId"), requester)
       } yield (topics, count)
     }
 
