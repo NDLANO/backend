@@ -10,14 +10,14 @@ package no.ndla.myndla.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.myndla.model.api.ArenaOwner
+import no.ndla.myndla.model.api.{ArenaOwner, PaginatedArenaUsers}
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import no.ndla.network.tapir.auth.TokenUser
-import scalikejdbc.{AutoSession, DBSession}
+import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
 import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
@@ -39,6 +39,17 @@ trait UserService {
         case Success(Some(user)) => Success(ArenaOwner.from(user))
         case Success(None)       => Failure(NotFoundException(s"User with username '$username' was not found"))
       }
+    }
+
+    def getArenaUsersPaginated(page: Long, pageSize: Long)(
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[PaginatedArenaUsers] = {
+      val offset = (page - 1) * pageSize
+      for {
+        totalCount <- userRepository.countUsers(session)
+        users      <- userRepository.getUsersPaginated(offset, pageSize)(session)
+        arenaUsers = users.map(ArenaOwner.from)
+      } yield PaginatedArenaUsers(totalCount, page, pageSize, arenaUsers)
     }
 
     def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {

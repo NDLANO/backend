@@ -24,6 +24,27 @@ trait UserRepository {
 
   class UserRepository extends StrictLogging {
 
+    def getUsersPaginated(offset: Long, limit: Long)(implicit session: DBSession) = Try {
+      val u = DBMyNDLAUser.syntax("u")
+      sql"""
+           select ${u.result.*}
+           from ${DBMyNDLAUser.as(u)}
+           order by ${u.id} asc
+           limit $limit
+           offset $offset
+           """
+        .map(DBMyNDLAUser.fromResultSet(u))
+        .list()
+    }
+
+    def countUsers(implicit session: DBSession): Try[Long] = Try {
+      sql"""select count(*) from ${DBMyNDLAUser.table}"""
+        .map(rs => rs.long("count"))
+        .single
+        .apply()
+        .getOrElse(0)
+    }
+
     implicit val formats: Formats = DBMyNDLAUser.repositorySerializer
 
     def getSession(readOnly: Boolean): DBSession =

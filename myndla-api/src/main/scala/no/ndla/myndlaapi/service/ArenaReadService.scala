@@ -332,7 +332,7 @@ trait ArenaReadService {
         case Success(Some(topic)) if topic.topic.deleted.isDefined =>
           Failure(TopicGoneException(s"Topic with id $topicId is gone"))
         case Success(Some(topic)) => Success(topic)
-        case Success(None) => Failure(NotFoundException(s"Could not find topic with id $topicId"))
+        case Success(None)        => Failure(NotFoundException(s"Could not find topic with id $topicId"))
       }
     }
 

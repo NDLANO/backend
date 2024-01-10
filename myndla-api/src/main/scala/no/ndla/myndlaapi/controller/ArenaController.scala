@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
-import no.ndla.myndla.model.api.ArenaOwner
+import no.ndla.myndla.model.api.{ArenaOwner, PaginatedArenaUsers}
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.arena.api.{
@@ -436,6 +436,21 @@ trait ArenaController {
         userService.getArenaUserByUserName(username).handleErrorsOrOk
       }
 
+    def listUsers: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("List users")
+      .description("List users")
+      .in("users")
+      .in(queryPage)
+      .in(queryPageSize)
+      .out(jsonBody[PaginatedArenaUsers])
+      .errorOut(errorOutputsFor(401, 403))
+      .requireMyNDLAUser(requireArenaAdmin = true)
+      .serverLogicPure { _ =>
+        { case (page, pageSize) =>
+          userService.getArenaUsersPaginated(page, pageSize)().handleErrorsOrOk
+        }
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       sortCategories,
@@ -465,7 +480,8 @@ trait ArenaController {
       markSingleNotificationAsRead,
       deleteSingleNotification,
       deleteAllNotifications,
-      getByUsername
+      getByUsername,
+      listUsers
     )
   }
 
