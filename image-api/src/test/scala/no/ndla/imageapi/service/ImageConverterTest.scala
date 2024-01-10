@@ -9,7 +9,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import org.scalactic.TolerantNumerics
+import org.scalactic.{Equality, TolerantNumerics}
 
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -147,9 +147,9 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     "minimalCropSizesToPreserveRatio calculates image sizes with (about) correct aspect ratio for lots of ratios and image sizes"
   ) {
     def testRatio(ratio: Double, width: Int, height: Int) = {
-      implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.1)
-      val (newWidth, newHeight)   = service.minimalCropSizesToPreserveRatio(width, height, ratio)
-      val calculatedRatio         = newWidth.toDouble / newHeight.toDouble
+      implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.1)
+      val (newWidth, newHeight)                     = service.minimalCropSizesToPreserveRatio(width, height, ratio)
+      val calculatedRatio                           = newWidth.toDouble / newHeight.toDouble
       calculatedRatio should equal(ratio)
     }
     for {
@@ -167,8 +167,8 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     testRatio(1.5, 50, 50, 639, 426)
     testRatio(1.2, 50, 50, 511, 426)
 
-    def testRatio(ratio: Double, focalX: Int, focalY: Int, expectedWidth: Int, expectedHeight: Int): Unit = {
-      implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.01)
+    def testRatio(ratio: Double, focalX: Double, focalY: Double, expectedWidth: Int, expectedHeight: Int): Unit = {
+      implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.01)
       val croppedImage =
         service.dynamicCrop(TestData.ChildrensImage, PercentPoint(focalX, focalY), Some(100), Some(100), Some(ratio))
       val image           = ImageIO.read(croppedImage.get.stream)

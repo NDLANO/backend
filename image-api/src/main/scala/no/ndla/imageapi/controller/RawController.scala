@@ -163,7 +163,7 @@ trait RawController {
 
       (startX, startY, endX, endY) match {
         case (Some(sx), Some(sy), Some(ex), Some(ey)) =>
-          imageConverter.crop(image, PercentPoint(sx.toInt, sy.toInt), PercentPoint(ex.toInt, ey.toInt))
+          imageConverter.crop(image, PercentPoint(sx, sy), PercentPoint(ex, ey))
         case _ => Success(image)
       }
     }
@@ -181,7 +181,7 @@ trait RawController {
 
       (focalX, focalY, widthOpt, heightOpt) match {
         case (Some(fx), Some(fy), w, h) =>
-          imageConverter.dynamicCrop(image, PercentPoint(fx.toInt, fy.toInt), w.map(_.toInt), h.map(_.toInt), ratio)
+          imageConverter.dynamicCrop(image, PercentPoint(fx, fy), w.map(_.toInt), h.map(_.toInt), ratio)
         case _ => Success(image)
       }
     }
