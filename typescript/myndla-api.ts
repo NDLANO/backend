@@ -147,6 +147,13 @@ export interface IOwner {
   name: string
 }
 
+export interface IPaginatedArenaUsers {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: IArenaUser[]
+}
+
 export interface IPaginatedNewPostNotifications {
   totalCount: number
   page: number

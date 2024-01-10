@@ -71,6 +71,27 @@ trait UserRepository {
         )
       }
 
+    def updateUserById(userId: Long, user: MyNDLAUser)(implicit session: DBSession): Try[MyNDLAUser] = {
+      Try {
+        val dataObject = new PGobject()
+        dataObject.setType("jsonb")
+        dataObject.setValue(write(user))
+
+        sql"""
+        update ${DBMyNDLAUser.table}
+        set document=$dataObject
+        where id=$userId
+        """.update()
+      } match {
+        case Failure(ex) => Failure(ex)
+        case Success(count) if count == 1 =>
+          logger.info(s"Updated user with user_id $userId")
+          Success(user)
+        case Success(count) =>
+          Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+      }
+    }
+
     def updateUser(feideId: FeideID, user: MyNDLAUser)(implicit
         session: DBSession = AutoSession
     ): Try[MyNDLAUser] =

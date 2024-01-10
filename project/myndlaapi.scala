@@ -44,6 +44,7 @@ object myndlaapi extends Module {
       "NewResource",
       "UpdatedResource",
       "ArenaUser",
+      "PaginatedArenaUsers",
       "no.ndla.myndla.model.domain.ArenaGroup",
       "Category",
       "CategoryWithTopics",

@@ -41,6 +41,14 @@ trait UserService {
       }
     }
 
+    def getUserById(userId: Long)(session: DBSession): Try[MyNDLAUser] = {
+      userRepository.userWithId(userId)(session) match {
+        case Failure(ex)         => Failure(ex)
+        case Success(Some(user)) => Success(user)
+        case Success(None)       => Failure(NotFoundException(s"User with id '$userId' was not found"))
+      }
+    }
+
     def getArenaUsersPaginated(page: Long, pageSize: Long)(
         session: DBSession = ReadOnlyAutoSession
     ): Try[PaginatedArenaUsers] = {
@@ -144,6 +152,20 @@ trait UserService {
             api = folderConverterService.toApiUserData(updated, enabledOrgs)
           } yield api
       }
+    }
+
+    def adminUpdateMyNDLAUserData(
+        userId: Long,
+        updatedUser: api.UpdatedMyNDLAUser,
+        updaterMyNdla: MyNDLAUser
+    )(session: DBSession = AutoSession): Try[api.MyNDLAUser] = {
+      for {
+        existing <- userService.getUserById(userId)(session)
+        converted = folderConverterService.mergeUserData(existing, updatedUser, None, Some(updaterMyNdla))
+        updated     <- userRepository.updateUserById(userId, converted)(session)
+        enabledOrgs <- configService.getMyNDLAEnabledOrgs
+        api = folderConverterService.toApiUserData(updated, enabledOrgs)
+      } yield api
     }
 
     private[service] def getMyNDLAUserOrFail(feideId: FeideID): Try[domain.MyNDLAUser] = {

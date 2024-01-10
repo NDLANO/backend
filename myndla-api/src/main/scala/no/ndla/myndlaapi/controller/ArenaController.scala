@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
-import no.ndla.myndla.model.api.{ArenaUser, PaginatedArenaUsers}
+import no.ndla.myndla.model.api.{ArenaUser, MyNDLAUser, PaginatedArenaUsers, UpdatedMyNDLAUser}
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.arena.api.{
@@ -451,6 +451,22 @@ trait ArenaController {
         }
       }
 
+    def adminUpdateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint.patch
+      .summary("Update some one elses user data")
+      .description("Update some one elses user data")
+      .in("users" / path[Long]("user-id").description("UserID of user to update"))
+      .in(jsonBody[UpdatedMyNDLAUser])
+      .out(jsonBody[MyNDLAUser])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArenaAdmin = true)
+      .serverLogicPure { adminUser =>
+        { case (userId, updatedMyNdlaUser) =>
+          userService
+            .adminUpdateMyNDLAUserData(userId, updatedMyNdlaUser, adminUser)()
+            .handleErrorsOrOk
+        }
+      }
+
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       sortCategories,
@@ -481,7 +497,8 @@ trait ArenaController {
       deleteSingleNotification,
       deleteAllNotifications,
       getByUsername,
-      listUsers
+      listUsers,
+      adminUpdateMyNDLAUser
     )
   }
 
