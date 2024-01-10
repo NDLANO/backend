@@ -143,7 +143,8 @@ trait ConverterService {
             existingComment.copy(
               updated = newUpdated,
               content = updatedComment.content,
-              isOpen = updatedComment.isOpen.getOrElse(true)
+              isOpen = updatedComment.isOpen.getOrElse(true),
+              solved = updatedComment.solved.getOrElse(false)
             )
           case None =>
             Comment(
@@ -151,7 +152,8 @@ trait ConverterService {
               created = clock.now(),
               updated = clock.now(),
               content = updatedComment.content,
-              isOpen = updatedComment.isOpen.getOrElse(true)
+              isOpen = updatedComment.isOpen.getOrElse(true),
+              solved = updatedComment.solved.getOrElse(false)
             )
         }
       })
@@ -164,7 +166,8 @@ trait ConverterService {
           created = clock.now(),
           updated = clock.now(),
           content = comment.content,
-          isOpen = comment.isOpen.getOrElse(true)
+          isOpen = comment.isOpen.getOrElse(true),
+          solved = false
         )
       )
     }
@@ -181,7 +184,8 @@ trait ConverterService {
                 created = clock.now(),
                 updated = clock.now(),
                 content = comment.content,
-                isOpen = comment.isOpen.getOrElse(true)
+                isOpen = comment.isOpen.getOrElse(true),
+                solved = comment.solved.getOrElse(false)
               )
             )
           case None =>
@@ -191,7 +195,8 @@ trait ConverterService {
                 created = clock.now(),
                 updated = clock.now(),
                 content = comment.content,
-                isOpen = comment.isOpen.getOrElse(true)
+                isOpen = comment.isOpen.getOrElse(true),
+                solved = comment.solved.getOrElse(false)
               )
             )
         }
@@ -472,7 +477,8 @@ trait ConverterService {
       content = comment.content,
       created = comment.created,
       updated = comment.updated,
-      isOpen = comment.isOpen
+      isOpen = comment.isOpen,
+      solved = comment.solved
     )
 
     def toApiArticleTag(tag: common.Tag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)

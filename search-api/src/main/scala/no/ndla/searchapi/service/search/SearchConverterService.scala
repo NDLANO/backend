@@ -523,7 +523,7 @@ trait SearchConverterService {
       val responsible = searchableDraft.responsible.map(r => api.DraftResponsible(r.responsibleId, r.lastUpdated))
       val comments =
         searchableDraft.domainObject.comments.map(c =>
-          Comment(c.id.toString, c.content, c.created, c.updated, c.isOpen)
+          Comment(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
         )
 
       MultiSearchSummary(

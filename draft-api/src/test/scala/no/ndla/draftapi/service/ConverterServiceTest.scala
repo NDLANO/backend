@@ -1127,13 +1127,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val updatedComments =
       List(
-        UpdatedComment(id = None, content = "hei", isOpen = Some(true)),
-        UpdatedComment(id = Some(uuid.toString), content = "yoo", isOpen = Some(false))
+        UpdatedComment(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
+        UpdatedComment(id = Some(uuid.toString), content = "yoo", isOpen = Some(false), solved = Some(false))
       )
-    val existingComments = Seq(Comment(id = uuid, created = now, updated = now, content = "nja", isOpen = true))
+    val existingComments =
+      Seq(Comment(id = uuid, created = now, updated = now, content = "nja", isOpen = true, solved = false))
     val expectedComments = Seq(
-      Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true),
-      Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = false)
+      Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false),
+      Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = false, solved = false)
     )
     service.updatedCommentToDomain(updatedComments, existingComments) should be(expectedComments)
   }
@@ -1145,14 +1146,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val now   = NDLADate.now()
     when(clock.now()).thenReturn(now)
 
-    val updatedComments = List(UpdatedComment(id = Some(uuid.toString), content = "updated keep", isOpen = Some(true)))
+    val updatedComments = List(
+      UpdatedComment(id = Some(uuid.toString), content = "updated keep", isOpen = Some(true), solved = Some(false))
+    )
     val existingComments = Seq(
-      Comment(id = uuid, created = now, updated = now, content = "keep", isOpen = true),
-      Comment(id = uuid2, created = now, updated = now, content = "delete", isOpen = true),
-      Comment(id = uuid3, created = now, updated = now, content = "delete", isOpen = true)
+      Comment(id = uuid, created = now, updated = now, content = "keep", isOpen = true, solved = false),
+      Comment(id = uuid2, created = now, updated = now, content = "delete", isOpen = true, solved = false),
+      Comment(id = uuid3, created = now, updated = now, content = "delete", isOpen = true, solved = false)
     )
     val expectedComments =
-      Seq(Comment(id = uuid, created = now, updated = now, content = "updated keep", isOpen = true))
+      Seq(Comment(id = uuid, created = now, updated = now, content = "updated keep", isOpen = true, solved = false))
     val result = service.updatedCommentToDomain(updatedComments, existingComments)
     result should be(expectedComments)
   }
@@ -1162,8 +1165,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val now  = NDLADate.now()
     when(clock.now()).thenReturn(now)
 
-    val newComments     = List(NewComment(content = "hei", isOpen = None))
-    val expectedComment = Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true)
+    val newComments = List(NewComment(content = "hei", isOpen = None))
+    val expectedComment =
+      Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false)
     service.newCommentToDomain(newComments).head.copy(id = uuid) should be(expectedComment)
   }
 
@@ -1175,20 +1179,21 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val updatedComments =
       List(
-        UpdatedComment(id = None, content = "hei", isOpen = Some(true)),
-        UpdatedComment(id = Some(uuid.toString), content = "yoo", isOpen = None)
+        UpdatedComment(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
+        UpdatedComment(id = Some(uuid.toString), content = "yoo", isOpen = None, solved = Some(false))
       )
     val expectedComments = Success(
       Seq(
-        Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true),
-        Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = true)
+        Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false),
+        Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = true, solved = false)
       )
     )
     service.updatedCommentToDomainNullDocument(updatedComments) should be(expectedComments)
   }
 
   test("that updatedCommentToDomainNullDocument fails if UUID is malformed") {
-    val updatedComments = List(UpdatedComment(id = Some("malformed-UUID"), content = "yoo", isOpen = Some(true)))
+    val updatedComments =
+      List(UpdatedComment(id = Some("malformed-UUID"), content = "yoo", isOpen = Some(true), solved = Some(false)))
     service.updatedCommentToDomainNullDocument(updatedComments).isFailure should be(true)
   }
 
