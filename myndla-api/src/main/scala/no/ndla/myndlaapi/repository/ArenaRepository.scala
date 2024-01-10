@@ -748,10 +748,12 @@ trait ArenaRepository {
     }
 
     def getFlaggedPostsCount(implicit session: DBSession): Try[Long] = Try {
+      val p = domain.Post.syntax("p")
       sql"""
-           select count(*) as count
-           from ${domain.Flag.table}
-           where ${domain.Flag.column.resolved} is null
+          select count(*)
+          from ${domain.Post.as(p)}
+          where (select count(*) from flags f where f.post_id = ${p.id}) > 0
+          and (select deleted from topics t where t.id = ${p.topic_id}) is null
          """
         .map(rs => rs.long("count"))
         .single
@@ -771,6 +773,7 @@ trait ArenaRepository {
                   select ${p.resultAll}
                   from ${domain.Post.as(p)}
                   where (select count(*) from flags f where f.post_id = ${p.id}) > 0
+                  and (select deleted from topics t where t.id = ${p.topic_id}) is null
                   order by ${p.created} asc nulls last, ${p.id} asc
                   limit $limit
                   offset $offset
