@@ -14,7 +14,7 @@ import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla
-import no.ndla.myndla.model.api.ArenaOwner
+import no.ndla.myndla.model.api.ArenaUser
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi._
@@ -305,7 +305,7 @@ class ArenaTest
             content = "description1",
             created = someDate,
             updated = someDate,
-            owner = ArenaOwner(
+            owner = ArenaUser(
               id = 1,
               displayName = "",
               username = "email@ndla.no",
@@ -320,7 +320,7 @@ class ArenaTest
             content = "post1",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaOwner(
+            owner = myndla.model.api.ArenaUser(
               id = 1,
               displayName = "",
               username = "email@ndla.no",
@@ -335,7 +335,7 @@ class ArenaTest
             content = "post2",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaOwner(
+            owner = myndla.model.api.ArenaUser(
               id = 1,
               displayName = "",
               username = "email@ndla.no",
@@ -350,7 +350,7 @@ class ArenaTest
             content = "post3",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaOwner(
+            owner = myndla.model.api.ArenaUser(
               id = 1,
               displayName = "",
               username = "email@ndla.no",
@@ -365,7 +365,7 @@ class ArenaTest
             content = "post4",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaOwner(
+            owner = myndla.model.api.ArenaUser(
               id = 1,
               displayName = "",
               username = "email@ndla.no",
@@ -436,7 +436,7 @@ class ArenaTest
         content = s"post$num",
         created = someDate,
         updated = someDate,
-        owner = myndla.model.api.ArenaOwner(
+        owner = myndla.model.api.ArenaUser(
           id = 1,
           displayName = "",
           username = "email@ndla.no",

@@ -7,7 +7,7 @@
 
 package no.ndla.myndlaapi.service
 
-import no.ndla.myndla.model.api.ArenaOwner
+import no.ndla.myndla.model.api.ArenaUser
 import no.ndla.myndla.model.domain.MyNDLAUser
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.{api, domain}
@@ -79,7 +79,7 @@ trait ConverterService {
         id = flag.flag.id,
         reason = flag.flag.reason,
         created = flag.flag.created,
-        flagger = ArenaOwner.from(flag.flagger),
+        flagger = ArenaUser.from(flag.flagger),
         resolved = flag.flag.resolved,
         isResolved = flag.flag.resolved.isDefined
       )
@@ -95,7 +95,7 @@ trait ConverterService {
         content = compiledPost.post.content,
         created = compiledPost.post.created,
         updated = compiledPost.post.updated,
-        owner = ArenaOwner.from(compiledPost.owner),
+        owner = ArenaUser.from(compiledPost.owner),
         flags = maybeFlags,
         topicId = compiledPost.post.topic_id
       )

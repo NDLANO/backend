@@ -10,7 +10,7 @@ package no.ndla.myndla.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.myndla.model.api.{ArenaOwner, PaginatedArenaUsers}
+import no.ndla.myndla.model.api.{ArenaUser, PaginatedArenaUsers}
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.UserRepository
@@ -33,10 +33,10 @@ trait UserService {
   val userService: UserService
 
   class UserService {
-    def getArenaUserByUserName(username: String): Try[ArenaOwner] = {
+    def getArenaUserByUserName(username: String): Try[ArenaUser] = {
       userRepository.userWithUsername(username) match {
         case Failure(ex)         => Failure(ex)
-        case Success(Some(user)) => Success(ArenaOwner.from(user))
+        case Success(Some(user)) => Success(ArenaUser.from(user))
         case Success(None)       => Failure(NotFoundException(s"User with username '$username' was not found"))
       }
     }
@@ -48,7 +48,7 @@ trait UserService {
       for {
         totalCount <- userRepository.countUsers(session)
         users      <- userRepository.getUsersPaginated(offset, pageSize)(session)
-        arenaUsers = users.map(ArenaOwner.from)
+        arenaUsers = users.map(ArenaUser.from)
       } yield PaginatedArenaUsers(totalCount, page, pageSize, arenaUsers)
     }
 

@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
-import no.ndla.myndla.model.api.{ArenaOwner, PaginatedArenaUsers}
+import no.ndla.myndla.model.api.{ArenaUser, PaginatedArenaUsers}
 import no.ndla.myndla.service.UserService
 import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.arena.api.{
@@ -429,7 +429,7 @@ trait ArenaController {
       .description("Get user data by username")
       .in("user")
       .in(path[String]("username").description("Username of user"))
-      .out(jsonBody[ArenaOwner])
+      .out(jsonBody[ArenaUser])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { _ => username =>

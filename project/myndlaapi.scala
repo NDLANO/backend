@@ -35,6 +35,7 @@ object myndlaapi extends Module {
     exports = Seq(
       "ConfigMetaRestricted",
       "MyNDLAUser",
+      "UpdatedMyNDLAUser",
       "config.ConfigMeta",
       "Folder",
       "FolderData",
@@ -42,7 +43,7 @@ object myndlaapi extends Module {
       "UpdatedFolder",
       "NewResource",
       "UpdatedResource",
-      "ArenaOwner",
+      "ArenaUser",
       "no.ndla.myndla.model.domain.ArenaGroup",
       "Category",
       "CategoryWithTopics",

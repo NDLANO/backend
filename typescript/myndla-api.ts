@@ -2,7 +2,7 @@
 
 export type ArenaGroup = "ADMIN"
 
-export interface IArenaOwner {
+export interface IArenaUser {
   id: number
   displayName: string
   username: string
@@ -22,6 +22,8 @@ export interface ICategory {
   topicCount: number
   postCount: number
   isFollowing: boolean
+  visible: boolean
+  rank: number
 }
 
 export interface ICategoryWithTopics {
@@ -34,6 +36,8 @@ export interface ICategoryWithTopics {
   topicPageSize: number
   topics: ITopic[]
   isFollowing: boolean
+  visible: boolean
+  rank: number
 }
 
 export interface IConfigMeta {
@@ -54,7 +58,7 @@ export interface IFlag {
   created: string
   resolved?: string
   isResolved: boolean
-  flagger: IArenaOwner
+  flagger: IArenaUser
 }
 
 export interface IFolder {
@@ -100,6 +104,7 @@ export interface IMyNDLAUser {
 export interface INewCategory {
   title: string
   description: string
+  visible: boolean
 }
 
 export interface INewFlag {
@@ -168,7 +173,7 @@ export interface IPost {
   content: string
   created: string
   updated: string
-  owner: IArenaOwner
+  owner: IArenaUser
   flags?: IFlag[]
   topicId: number
 }
@@ -208,6 +213,13 @@ export interface IUpdatedFolder {
   name?: string
   status?: string
   description?: string
+}
+
+export interface IUpdatedMyNDLAUser {
+  favoriteSubjects?: string[]
+  arenaEnabled?: boolean
+  shareName?: boolean
+  arenaGroups?: ArenaGroup[]
 }
 
 export interface IUpdatedResource {

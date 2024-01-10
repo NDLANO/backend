@@ -15,5 +15,5 @@ case class PaginatedArenaUsers(
     @description("How many items across all pages") totalCount: Long,
     @description("Which page number this is") page: Long,
     @description("How many items pr page") pageSize: Long,
-    @description("The paginated items") items: List[ArenaOwner]
+    @description("The paginated items") items: List[ArenaUser]
 )

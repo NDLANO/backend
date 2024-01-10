@@ -11,7 +11,7 @@ import no.ndla.myndla.model.domain.ArenaGroup
 import sttp.tapir.Schema.annotations.description
 
 @description("Arena owner data")
-case class ArenaOwner(
+case class ArenaUser(
     @description("The owners id") id: Long,
     @description("The name") displayName: String,
     @description("The username") username: String,
@@ -19,14 +19,14 @@ case class ArenaOwner(
     @description("Which groups the user belongs to") groups: List[ArenaGroup]
 )
 
-object ArenaOwner {
+object ArenaUser {
 
-  def from(user: no.ndla.myndla.model.domain.MyNDLAUser): ArenaOwner = {
+  def from(user: no.ndla.myndla.model.domain.MyNDLAUser): ArenaUser = {
     val location = user.groups
       .find(_.isPrimarySchool)
       .map(_.displayName)
       .getOrElse(user.organization)
-    ArenaOwner(
+    ArenaUser(
       id = user.id,
       displayName = user.displayName,
       username = user.username,
