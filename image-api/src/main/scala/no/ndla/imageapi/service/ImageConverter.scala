@@ -25,7 +25,7 @@ trait ImageConverter {
   this: Props =>
   val imageConverter: ImageConverter
   case class PixelPoint(x: Int, y: Int) // A point given with pixles
-  case class PercentPoint(x: Int, y: Int) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
+  case class PercentPoint(x: Double, y: Double) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
     import PercentPoint._
     if (!inRange(x) || !inRange(y))
       throw new ValidationException(
@@ -42,14 +42,14 @@ trait ImageConverter {
     val MinValue: Int = 0
     val MaxValue: Int = 100
 
-    private def inRange(n: Int): Boolean      = n >= MinValue && n <= MaxValue
-    private def normalise(coord: Int): Double = coord.toDouble / MaxValue.toDouble
+    private def inRange(n: Double): Boolean      = n >= MinValue && n <= MaxValue
+    private def normalise(coord: Double): Double = coord / MaxValue.toDouble
   }
 
   /** This method adds a white background to a [[BufferedImage]], useful for removing transparent pixels for image types
     * that doesn't support transparency
     */
-  def fillTransparentPixels(image: BufferedImage): BufferedImage = {
+  private def fillTransparentPixels(image: BufferedImage): BufferedImage = {
     val width    = image.getWidth();
     val height   = image.getHeight();
     val newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
