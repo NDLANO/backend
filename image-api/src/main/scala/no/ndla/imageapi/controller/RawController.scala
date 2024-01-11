@@ -60,16 +60,19 @@ trait RawController {
       queryParam[Option[Int]]("height")
         .description("The target height to resize the image (the unit is pixles). Image proportions are kept intact"),
       queryParam[Option[Int]]("cropStartX").description(
-        "The first image coordinate X, in percent (0 to 100), specifying the crop start position. If used the other crop parameters must also be supplied"
+        "The first image coordinate X, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop start position. If used the other crop parameters must also be supplied"
       ),
       queryParam[Option[Int]]("cropStartY").description(
-        "The first image coordinate Y, in percent (0 to 100), specifying the crop start position. If used the other crop parameters must also be supplied"
+        "The first image coordinate Y, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop start position. If used the other crop parameters must also be supplied"
       ),
       queryParam[Option[Int]]("cropEndX").description(
-        "The end image coordinate X, in percent (0 to 100), specifying the crop end position. If used the other crop parameters must also be supplied"
+        "The end image coordinate X, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop end position. If used the other crop parameters must also be supplied"
       ),
       queryParam[Option[Int]]("cropEndY").description(
-        "The end image coordinate Y, in percent (0 to 100), specifying the crop end position. If used the other crop parameters must also be supplied"
+        "The end image coordinate Y, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop end position. If used the other crop parameters must also be supplied"
+      ),
+      queryParam[Option[String]]("cropUnit").description(
+        "The unit of the crop parameters. Can be either 'percent' or 'pixel'. If omitted the unit is assumed to be 'percent'"
       ),
       queryParam[Option[Int]]("focalX").description(
         "The end image coordinate X, in percent (0 to 100), specifying the focal point. If used the other focal point parameter, width and/or height, must also be supplied"
@@ -156,15 +159,30 @@ trait RawController {
     }
 
     private def crop(image: ImageStream)(implicit request: HttpServletRequest): Try[ImageStream] = {
-      val startX = doubleInRange("cropStartX", PercentPoint.MinValue, PercentPoint.MaxValue)
-      val startY = doubleInRange("cropStartY", PercentPoint.MinValue, PercentPoint.MaxValue)
-      val endX   = doubleInRange("cropEndX", PercentPoint.MinValue, PercentPoint.MaxValue)
-      val endY   = doubleInRange("cropEndY", PercentPoint.MinValue, PercentPoint.MaxValue)
-
-      (startX, startY, endX, endY) match {
-        case (Some(sx), Some(sy), Some(ex), Some(ey)) =>
-          imageConverter.crop(image, PercentPoint(sx, sy), PercentPoint(ex, ey))
-        case _ => Success(image)
+      val unit = paramOrDefault("cropUnit", "percent")
+      unit match {
+        case "percent" => {
+          val startX = doubleInRange("cropStartX", PercentPoint.MinValue, PercentPoint.MaxValue)
+          val startY = doubleInRange("cropStartY", PercentPoint.MinValue, PercentPoint.MaxValue)
+          val endX   = doubleInRange("cropEndX", PercentPoint.MinValue, PercentPoint.MaxValue)
+          val endY   = doubleInRange("cropEndY", PercentPoint.MinValue, PercentPoint.MaxValue)
+          (startX, startY, endX, endY) match {
+            case (Some(sx), Some(sy), Some(ex), Some(ey)) =>
+              imageConverter.crop(image, PercentPoint(sx, sy), PercentPoint(ex, ey))
+            case _ => Success(image)
+          }
+        }
+        case "px" => {
+          val startX = intOrNone("cropStartX")
+          val startY = intOrNone("cropStartY")
+          val endX   = intOrNone("cropEndX")
+          val endY   = intOrNone("cropEndY")
+          (startX, startY, endX, endY) match {
+            case (Some(sx), Some(sy), Some(ex), Some(ey)) =>
+              imageConverter.crop(image, PixelPoint(sx, sy), PixelPoint(ex, ey))
+            case _ => Success(image)
+          }
+        }
       }
     }
 
