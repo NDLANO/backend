@@ -8,8 +8,11 @@
 
 package no.ndla.common.model.domain.article
 
-import no.ndla.common.model.NDLADate
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.{NDLADate, RelatedContentLink}
 import no.ndla.common.model.domain._
+import no.ndla.common.implicits._
 
 case class Article(
     id: Option[Long],
@@ -35,3 +38,11 @@ case class Article(
     revisionDate: Option[NDLADate],
     slug: Option[String]
 ) extends Content
+
+object Article {
+  implicit def eitherEnc: Encoder[Either[RelatedContentLink, Long]] = eitherEncoder[RelatedContentLink, Long]
+  implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
+
+  implicit def encoder: Encoder[Article] = deriveEncoder[Article]
+  implicit def decoder: Decoder[Article] = deriveDecoder[Article]
+}
