@@ -8,14 +8,19 @@ import scala.io.Source
 
 object ValidationRules {
 
-  def embedTagRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("embed-tag-rules.json").mkString)
+  def embedTagRulesJson: Map[String, Any] = {
+    val classLoader = getClass.getClassLoader
+    convertJsonStr(Source.fromResource("embed-tag-rules.json", classLoader).mkString)
+  }
   def htmlRulesJson: HtmlRulesFile = {
     implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(TagAttribute)
-    parse(Source.fromResource("html-rules.json").mkString).extract[HtmlRulesFile]
+    val classLoader               = getClass.getClassLoader
+    parse(Source.fromResource("html-rules.json", classLoader).mkString).extract[HtmlRulesFile]
   }
   def mathMLRulesJson: MathMLRulesFile = {
     implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(TagAttribute)
-    parse(Source.fromResource("mathml-rules.json").mkString).extract[MathMLRulesFile]
+    val classLoader               = getClass.getClassLoader
+    parse(Source.fromResource("mathml-rules.json", classLoader).mkString).extract[MathMLRulesFile]
   }
 
   private def convertJsonStr(jsonStr: String): Map[String, Any] = {
