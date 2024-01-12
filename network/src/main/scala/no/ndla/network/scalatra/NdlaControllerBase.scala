@@ -96,9 +96,9 @@ trait NdlaControllerBase {
     }
     override def renderPipeline: RenderPipeline = tryRenderer.orElse(super.renderPipeline)
 
-    def isInteger(value: String): Boolean = value.forall(_.isDigit)
-    def isDouble(value: String): Boolean  = Try(value.toDouble).isSuccess
-    def isBoolean(value: String): Boolean = Try(value.toBoolean).isSuccess
+    private def isInteger(value: String): Boolean = value.forall(_.isDigit)
+    private def isDouble(value: String): Boolean  = Try(value.toDouble).isSuccess
+    private def isBoolean(value: String): Boolean = Try(value.toBoolean).isSuccess
 
     def long(paramName: String)(implicit request: HttpServletRequest): Long = {
       val paramValue = params(paramName)
@@ -129,7 +129,7 @@ trait NdlaControllerBase {
       (extractDoubleOpt(one), extractDoubleOpt(two))
     }
 
-    def extractDoubleOpt(paramName: String)(implicit request: HttpServletRequest): Option[Double] = {
+    private def extractDoubleOpt(paramName: String)(implicit request: HttpServletRequest): Option[Double] = {
       params.get(paramName) match {
         case Some(value) =>
           if (!isDouble(value))
@@ -178,6 +178,10 @@ trait NdlaControllerBase {
       paramOrNone(name).flatMap(i => Try(i.toInt).toOption)
     }
 
+    def castIntOrNone(name: String)(implicit request: HttpServletRequest): Option[Int] = {
+      doubleOrNone(name).map(_.toInt)
+    }
+
     def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String = {
       paramOrNone(paramName).getOrElse(default)
     }
@@ -205,7 +209,7 @@ trait NdlaControllerBase {
       }
     }
 
-    val digitsOnlyError = (paramName: String) =>
+    private val digitsOnlyError = (paramName: String) =>
       Failure(
         new ValidationException(
           errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))

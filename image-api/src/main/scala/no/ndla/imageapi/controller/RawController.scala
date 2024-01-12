@@ -172,11 +172,11 @@ trait RawController {
             case _ => Success(image)
           }
         }
-        case "px" => {
-          val startX = intOrNone("cropStartX")
-          val startY = intOrNone("cropStartY")
-          val endX   = intOrNone("cropEndX")
-          val endY   = intOrNone("cropEndY")
+        case "pixel" => {
+          val startX = castIntOrNone("cropStartX")
+          val startY = castIntOrNone("cropStartY")
+          val endX   = castIntOrNone("cropEndX")
+          val endY   = castIntOrNone("cropEndY")
           (startX, startY, endX, endY) match {
             case (Some(sx), Some(sy), Some(ex), Some(ey)) =>
               imageConverter.crop(image, PixelPoint(sx, sy), PixelPoint(ex, ey))
