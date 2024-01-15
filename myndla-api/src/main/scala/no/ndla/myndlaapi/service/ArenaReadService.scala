@@ -36,9 +36,9 @@ trait ArenaReadService {
             if (existingCategoryIds.sorted != sortedIds.sorted) {
               Failure(ValidationException("body", "Sorted ids must contain every existing category id"))
             } else { Success(()) }
-          _    <- arenaRepository.sortCategories(sortedIds)(session)
-          cats <- getCategories(user, filterFollowed = false, sort = CategorySort.ByRank)(session)
-        } yield cats
+          _          <- arenaRepository.sortCategories(sortedIds)(session)
+          categories <- getCategories(user, filterFollowed = false, sort = CategorySort.ByRank)(session)
+        } yield categories
       }
 
     def getTopicByPostId(

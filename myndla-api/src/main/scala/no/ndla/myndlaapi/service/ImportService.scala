@@ -44,9 +44,9 @@ trait ImportService {
 
     private def importCategories(session: DBSession): Try[Unit] = {
       for {
-        adminUser <- getOrCreateAdminUser(session)
-        cat       <- nodebb.getCategories
-        _         <- cat.categories.traverse { c => importCategory(c, adminUser)(session) }
+        adminUser        <- getOrCreateAdminUser(session)
+        nodebbCategories <- nodebb.getCategories
+        _                <- nodebbCategories.categories.traverse { c => importCategory(c, adminUser)(session) }
       } yield ()
     }
 
@@ -74,11 +74,11 @@ trait ImportService {
 
     private def importCategory(category: CategoryInList, adminUser: MyNDLAUser)(session: DBSession): Try[Unit] = {
       logger.info(s"Importing category ${category.cid}")
-      nodebb.getSingleCategory(category.cid).flatMap { cat =>
+      nodebb.getSingleCategory(category.cid).flatMap { nodebbCategory =>
         for {
           importedCategory <- arenaRepository
-            .insertCategory(InsertCategory(cat.name, cat.description, visible = true))(session)
-          _ <- cat.topics.traverse { t => importTopic(t, importedCategory, adminUser)(session) }
+            .insertCategory(InsertCategory(nodebbCategory.name, nodebbCategory.description, visible = true))(session)
+          _ <- nodebbCategory.topics.traverse { t => importTopic(t, importedCategory, adminUser)(session) }
         } yield ()
       }
     }
