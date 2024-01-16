@@ -127,7 +127,7 @@ trait ImportService {
         .find(_.uid == topic.uid)
         .toTry(ImportException(s"No owner found for topic ${topic.tid} with uid ${topic.uid}"))
         .?
-      val adminUsers = List("ndla_admin", "gunnar", "Gunnar")
+      val adminUsers = List("ndla_admin", "gunnar", "Gunnar", "Moderator")
       if (adminUsers.contains(owner.username)) {
         Success(adminUser)
       } else {
