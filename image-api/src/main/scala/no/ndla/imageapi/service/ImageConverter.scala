@@ -137,6 +137,11 @@ trait ImageConverter {
       crop(originalImage, sourceImage, topLeft, bottomRight)
     }
 
+    def crop(originalImage: ImageStream, start: PixelPoint, end: PixelPoint): Try[ImageStream] = {
+      val sourceImage = originalImage.sourceImage
+      crop(originalImage, sourceImage, start, end)
+    }
+
     private def getStartEndCoords(focalPoint: Int, targetDimensionSize: Int, originalDimensionSize: Int): (Int, Int) = {
       val ts                 = min(targetDimensionSize.toDouble, originalDimensionSize.toDouble) / 2.0
       val (start, end)       = (focalPoint - ts.floor.toInt, focalPoint + ts.round.toInt)
