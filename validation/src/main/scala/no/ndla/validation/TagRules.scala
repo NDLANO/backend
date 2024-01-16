@@ -211,7 +211,6 @@ object TagAttribute extends Enum[TagAttribute] {
   case object DataContent             extends TagAttribute("data-code-content")
   case object DataContentId           extends TagAttribute("data-content-id")
   case object DataContentType         extends TagAttribute("data-content-type")
-  case object DataCropUnit            extends TagAttribute("data-crop-unit")
   case object DataDate                extends TagAttribute("data-date")
   case object DataDescription         extends TagAttribute("data-description")
   case object DataDescriptionLanguage extends TagAttribute("data-description-language")

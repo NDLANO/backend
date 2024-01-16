@@ -401,18 +401,6 @@
               "data-lower-right-x"
             ]
           }
-        },
-        {
-          "name": "data-crop-unit",
-          "validation": {
-            "required": false,
-            "mustCoexistWith": [
-              "data-upper-left-x",
-              "data-upper-left-y",
-              "data-lower-right-y",
-              "data-lower-right-x"
-            ]
-          }
         }
       ]
     },
