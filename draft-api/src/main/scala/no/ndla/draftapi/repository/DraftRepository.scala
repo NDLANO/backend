@@ -10,7 +10,7 @@ package no.ndla.draftapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.RollbackException
-import no.ndla.common.model.domain.{EditorNote, Priority}
+import no.ndla.common.model.domain.{ArticleType, EditorNote, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, GenerateIDException, NotFoundException}
@@ -119,7 +119,9 @@ trait DraftRepository {
               previousVersionsNotes = article.previousVersionsNotes ++ article.notes,
               responsible = if (keepDraftData) article.responsible else None,
               priority = if (keepDraftData) article.priority else Priority.Unspecified,
-              comments = if (keepDraftData) article.comments else Seq.empty
+              comments =
+                if (keepDraftData | article.articleType == ArticleType.TopicArticle) article.comments
+                else Seq.empty
             )
 
             val dataObject = new PGobject()
