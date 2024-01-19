@@ -1,6 +1,8 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type Availability = ("decoder" | "encoder" | "everyone" | "teacher")
+export type Availability = ("everyone" | "teacher")
+
+export type Either = (ILeft | IRight)
 
 export interface IArticle {
   id: number
@@ -129,6 +131,11 @@ export interface IGrepCodesSearchResult {
   results: string[]
 }
 
+export interface ILeft {
+  value: "Could not find TSType[A] in scope and could not generate it"
+  type: "Left"
+}
+
 export interface ILicense {
   license: string
   description?: string
@@ -190,6 +197,11 @@ export interface IRevisionMeta {
   status: string
 }
 
+export interface IRight {
+  value: "Could not find TSType[B] in scope and could not generate it"
+  type: "Right"
+}
+
 export interface ISearchResult {
   totalCount: number
   page: number
@@ -221,7 +233,7 @@ export interface IUpdatedArticle {
   tags?: string[]
   introduction?: string
   metaDescription?: string
-  metaImage?: (null | INewArticleMetaImage)
+  metaImage: Either
   visualElement?: string
   copyright?: IDraftCopyright
   requiredLibraries?: IRequiredLibrary[]
@@ -234,7 +246,7 @@ export interface IUpdatedArticle {
   availability?: string
   relatedContent?: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
-  responsibleId?: (null | string)
+  responsibleId: Either
   slug?: string
   comments?: IUpdatedComment[]
   prioritized?: boolean

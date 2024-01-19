@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type Either = (ILeft | IRight)
+
 export interface IAuthor {
   type: string
   name: string
@@ -115,6 +117,11 @@ export interface IImageTitle {
   language: string
 }
 
+export interface ILeft {
+  value: "Could not find TSType[A] in scope and could not generate it"
+  type: "Left"
+}
+
 export interface ILicense {
   license: string
   description?: string
@@ -129,6 +136,11 @@ export interface INewImageMetaInformationV2 {
   caption: string
   language: string
   modelReleased?: string
+}
+
+export interface IRight {
+  value: "Could not find TSType[B] in scope and could not generate it"
+  type: "Right"
 }
 
 export interface ISearchParams {
@@ -173,7 +185,7 @@ export interface ITagsSearchResult {
 export interface IUpdateImageMetaInformation {
   language: string
   title?: string
-  alttext?: (null | string)
+  alttext: Either
   copyright?: ICopyright
   tags?: string[]
   caption?: string
