@@ -12,31 +12,31 @@ object Dependencies {
     val ScalatraV             = "2.8.4"
     val HikariConnectionPoolV = "5.0.1"
     val ScalaLoggingV         = "3.9.5"
-    val ScalaTestV            = "3.2.10"
+    val ScalaTestV            = "3.2.15"
     val Log4JV                = "2.20.0"
-    val JettyV                = "9.4.48.v20220622"
-    val AwsSdkV               = "1.12.470"
+    val JettyV                = "9.4.53.v20231009"
+    val AwsSdkV               = "1.12.472"
     val MockitoV              = "1.17.22"
-    val Elastic4sV            = "8.5.0"
-    val JacksonV              = "2.14.1"
+    val Elastic4sV            = "8.5.3"
+    val JacksonV              = "2.14.3"
     val CatsEffectV           = "3.5.1"
     val ElasticsearchV        = "7.16.2"
     val Json4SV               = "4.0.6"
     val JavaxServletV         = "4.0.1"
-    val FlywayV               = "7.5.3"
-    val PostgresV             = "42.5.1"
-    val ScalaTsiV             = "0.6.0"
+    val FlywayV               = "9.16.0"
+    val PostgresV             = "42.5.4"
+    val ScalaTsiV             = "0.8.2"
     val Http4sV               = "0.23.23"
     val TapirV                = "1.9.1"
     val ApiSpecV              = "0.7.1"
     val SttpV                 = "3.9.0"
-    val CirceV                = "0.14.2"
+    val CirceV                = "0.14.6"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.17.6"
-    val JsoupV                = "1.15.3"
+    val JsoupV                = "1.15.4"
     val JavaMelodyV           = "1.92.0"
 
-    lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
+    lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "4.0.3"
 
     lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
     lazy val postgres    = "org.postgresql"   % "postgresql"  % PostgresV
@@ -44,9 +44,9 @@ object Dependencies {
 
     lazy val sttp = "com.softwaremill.sttp.client3" %% "core" % SttpV
 
-    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % "1.7.0"
-    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.1"
-    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % "1.7.0"
+    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % "1.7.2"
+    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.2"
+    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % "1.7.2"
 
     lazy val database: Seq[ModuleID] = Seq(
       scalikejdbc,
@@ -72,7 +72,7 @@ object Dependencies {
 
     lazy val circe: Seq[ModuleID] = Seq(
       "io.circe" %% "circe-generic"        % CirceV,
-      "io.circe" %% "circe-generic-extras" % CirceV,
+      "io.circe" %% "circe-generic-extras" % "0.14.3",
       "io.circe" %% "circe-literal"        % CirceV,
       "io.circe" %% "circe-parser"         % CirceV
     )
@@ -128,8 +128,8 @@ object Dependencies {
     lazy val vulnerabilityOverrides: Seq[ModuleID] = Seq(
       "com.google.guava"          % "guava"         % "30.0-jre",
       "commons-codec"             % "commons-codec" % "1.15",
-      "org.apache.httpcomponents" % "httpclient"    % "4.5.13",
-      "org.yaml"                  % "snakeyaml"     % "1.33"
+      "org.apache.httpcomponents" % "httpclient"    % "4.5.14",
+      "org.yaml"                  % "snakeyaml"     % "2.0"
     )
   }
 }

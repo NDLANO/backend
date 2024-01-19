@@ -28,8 +28,8 @@ object imageapi extends Module {
       "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
       "org.imgscalr"      % "imgscalr-lib"                    % "4.2",
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
-      "com.twelvemonkeys.imageio" % "imageio-core" % "3.8.2",
-      "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.8.2",
+      "com.twelvemonkeys.imageio" % "imageio-core" % "3.9.3",
+      "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.9.3",
       "commons-io"                % "commons-io"   % "2.11.0"
     ),
     awsS3,

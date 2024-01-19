@@ -139,7 +139,7 @@ trait Module {
           s"java -Dorg.scalatra.environment=production $$JAVA_OPTS ${reflectiveAccessOptions.mkString(" ")} -jar $artifactTargetPath"
 
         new Dockerfile {
-          from("eclipse-temurin:20-jdk")
+          from("eclipse-temurin:21-jdk")
           add(artifact, artifactTargetPath)
           entryPointRaw(entry)
         }
