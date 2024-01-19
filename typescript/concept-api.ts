@@ -1,7 +1,5 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type Either = (ILeft | IRight)
-
 export interface IAuthor {
   type: string
   name: string
@@ -154,11 +152,6 @@ export interface IGlossExample {
   transcriptions: { [ key: string ]: string }
 }
 
-export interface ILeft {
-  value: "Could not find TSType[A] in scope and could not generate it"
-  type: "Left"
-}
-
 export interface ILicense {
   license: string
   description?: string
@@ -185,11 +178,6 @@ export interface INewConceptMetaImage {
   alt: string
 }
 
-export interface IRight {
-  value: "Could not find TSType[B] in scope and could not generate it"
-  type: "Right"
-}
-
 export interface IStatus {
   current: string
   other: string[]
@@ -213,14 +201,14 @@ export interface IUpdatedConcept {
   language: string
   title?: string
   content?: string
-  metaImage: Either
+  metaImage?: (null | INewConceptMetaImage)
   copyright?: IDraftCopyright
   tags?: string[]
   subjectIds?: string[]
   articleIds?: number[]
   status?: string
   visualElement?: string
-  responsibleId: Either
+  responsibleId?: (null | string)
   conceptType?: string
   glossData?: IGlossData
 }
