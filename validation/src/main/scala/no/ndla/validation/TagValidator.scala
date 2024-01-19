@@ -258,14 +258,20 @@ object TagValidator {
       embed: Element
   ): Option[ValidationMessage] = {
     val childrenRule = tagRules.children.getOrElse(ChildrenRule.default)
-    if (childrenRule.required) {
-      if (embed.childNodeSize() == 0) {
+    if (childrenRule.allowedChildren.isEmpty) {
+      Option.when(embed.childNodeSize() != 0) {
+        return ValidationMessage(
+          fieldName,
+          s"$EmbedTagName tag with `data-resource=${resourceType.toString}` are not allowed to have children."
+        ).some
+      }
+    } else {
+      if (childrenRule.required && embed.childNodeSize() == 0) {
         return ValidationMessage(
           fieldName,
           s"$EmbedTagName with `data-resource=$resourceType` requires at least one child."
         ).some
       }
-
       val childrenTagNames  = embed.children().asScala.toList.map(_.tagName())
       val onlyValidChildren = childrenTagNames.forall(tag => childrenRule.allowedChildren.contains(tag))
       Option.when(!onlyValidChildren) {
@@ -273,13 +279,6 @@ object TagValidator {
           fieldName,
           s"$EmbedTagName tag with `data-resource=$resourceType` can only have the following children tags: [${childrenRule.allowedChildren
               .mkString(",")}]"
-        )
-      }
-    } else {
-      Option.when(embed.childNodeSize() != 0) {
-        ValidationMessage(
-          fieldName,
-          s"$EmbedTagName tag with `data-resource=${resourceType.toString}` are not allowed to have children."
         )
       }
     }

@@ -21,7 +21,33 @@
             "dataType": "NUMBER"
           }
         }
-      ]
+      ],
+      "children": {
+        "required": false,
+        "allowedChildren": [
+          "aside",
+          "b",
+          "br",
+          "details",
+          "div",
+          "em",
+          "h2",
+          "h3",
+          "h4",
+          "i",
+          "math",
+          "ndlaembed",
+          "ol",
+          "p",
+          "s",
+          "strong",
+          "sub",
+          "sup",
+          "table",
+          "u",
+          "ul"
+        ]
+      }
     },
     "h5p": {
       "fields": [
