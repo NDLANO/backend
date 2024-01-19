@@ -1,5 +1,28 @@
 {
   "attributes": {
+    "uu-disclaimer": {
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-disclaimer",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-article-id",
+          "validation": {
+            "required": false,
+            "dataType": "NUMBER"
+          }
+        }
+      ]
+    },
     "h5p": {
       "fields": [
         {
@@ -31,19 +54,6 @@
           "name": "data-alt",
           "validation": {
             "required": false
-          }
-        },
-        {
-          "name": "data-disclaimer",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-disclaimer-article-id",
-          "validation": {
-            "required": false,
-            "dataType": "NUMBER"
           }
         }
       ]
@@ -90,19 +100,6 @@
               "data-caption",
               "data-title"
             ]
-          }
-        },
-        {
-          "name": "data-disclaimer",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-disclaimer-article-id",
-          "validation": {
-            "required": false,
-            "dataType": "NUMBER"
           }
         }
       ]
@@ -265,19 +262,6 @@
           "name": "data-alt",
           "validation": {
             "required": false
-          }
-        },
-        {
-          "name": "data-disclaimer",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-disclaimer-article-id",
-          "validation": {
-            "required": false,
-            "dataType": "NUMBER"
           }
         }
       ]
@@ -624,19 +608,6 @@
             "mustCoexistWith": [
               "data-imageid"
             ]
-          }
-        },
-        {
-          "name": "data-disclaimer",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-disclaimer-article-id",
-          "validation": {
-            "required": false,
-            "dataType": "NUMBER"
           }
         }
       ]

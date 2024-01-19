@@ -67,5 +67,6 @@ object ResourceType extends Enum[ResourceType] {
   case object KeyFigure       extends ResourceType("key-figure")
   case object CampaignBlock   extends ResourceType("campaign-block")
   case object LinkBlock       extends ResourceType("link-block")
+  case object UuDisclaimer    extends ResourceType("uu-disclaimer")
 
 }
