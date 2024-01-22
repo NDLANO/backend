@@ -433,7 +433,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         shareName = false
       )
 
-    service.toApiUserData(domainUserData, List.empty) should be(expectedUserData)
+    service.toApiUserData(domainUserData, List.empty, List.empty) should be(expectedUserData)
   }
 
   test("That mergeUserData works correctly") {

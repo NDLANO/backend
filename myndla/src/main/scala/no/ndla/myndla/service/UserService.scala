@@ -35,7 +35,8 @@ trait UserService {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
         userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
         orgs     <- configService.getMyNDLAEnabledOrgs
-        api = folderConverterService.toApiUserData(userData, orgs)
+        users    <- configService.getMyNDLAEnabledUsers
+        api = folderConverterService.toApiUserData(userData, orgs, users)
       } yield api
     }
 
@@ -85,9 +86,10 @@ trait UserService {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
         combined = folderConverterService.mergeUserData(existingUserData, updatedUser, None)
-        updated     <- userRepository.updateUser(feideId, combined)
-        enabledOrgs <- configService.getMyNDLAEnabledOrgs
-        api = folderConverterService.toApiUserData(updated, enabledOrgs)
+        updated      <- userRepository.updateUser(feideId, combined)
+        enabledOrgs  <- configService.getMyNDLAEnabledOrgs
+        enabledUsers <- configService.getMyNDLAEnabledUsers
+        api = folderConverterService.toApiUserData(updated, enabledOrgs, enabledUsers)
       } yield api
     }
 
@@ -102,9 +104,10 @@ trait UserService {
           for {
             existing <- userService.getMyNDLAUserOrFail(id)
             converted = folderConverterService.mergeUserData(existing, updatedUser, Some(user))
-            updated     <- userRepository.updateUser(id, converted)
-            enabledOrgs <- configService.getMyNDLAEnabledOrgs
-            api = folderConverterService.toApiUserData(updated, enabledOrgs)
+            updated      <- userRepository.updateUser(id, converted)
+            enabledOrgs  <- configService.getMyNDLAEnabledOrgs
+            enabledUsers <- configService.getMyNDLAEnabledUsers
+            api = folderConverterService.toApiUserData(updated, enabledOrgs, enabledUsers)
           } yield api
       }
     }

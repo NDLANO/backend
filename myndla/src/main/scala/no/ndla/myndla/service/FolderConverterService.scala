@@ -165,7 +165,11 @@ trait FolderConverterService {
       )
     }
 
-    def toApiUserData(domainUserData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): api.MyNDLAUser = {
+    def toApiUserData(
+        domainUserData: domain.MyNDLAUser,
+        arenaEnabledOrgs: List[String],
+        arenaEnabledUsers: List[String]
+    ): api.MyNDLAUser = {
       api.MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
@@ -176,7 +180,9 @@ trait FolderConverterService {
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
-        arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(domainUserData.organization),
+        arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(
+          domainUserData.organization
+        ) || arenaEnabledUsers.contains(domainUserData.email),
         shareName = domainUserData.shareName
       )
     }

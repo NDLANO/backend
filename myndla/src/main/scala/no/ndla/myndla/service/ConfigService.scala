@@ -25,23 +25,25 @@ trait ConfigService {
 
   class ConfigService {
 
-    def isWriteRestricted: Boolean =
+    def isWriteRestricted: Boolean = getConfigBoolean(ConfigKey.LearningpathWriteRestricted)
+
+    def isMyNDLAWriteRestricted: Boolean = getConfigBoolean(ConfigKey.MyNDLAWriteRestricted)
+
+    def getMyNDLAEnabledOrgs: Try[List[String]] = getConfigStringList(ConfigKey.ArenaEnabledOrgs)
+
+    def getMyNDLAEnabledUsers: Try[List[String]] = getConfigStringList(ConfigKey.ArenaEnabledUsers)
+
+    private def getConfigBoolean(configKey: ConfigKey): Boolean = {
       configRepository
-        .getConfigWithKey(ConfigKey.LearningpathWriteRestricted)
+        .getConfigWithKey(configKey)
         .map(_.value)
         .collectFirst { case BooleanValue(value) => value }
         .getOrElse(false)
+    }
 
-    def isMyNDLAWriteRestricted: Boolean =
+    private def getConfigStringList(configKey: ConfigKey): Try[List[String]] = Try {
       configRepository
-        .getConfigWithKey(ConfigKey.MyNDLAWriteRestricted)
-        .map(_.value)
-        .collectFirst { case BooleanValue(value) => value }
-        .getOrElse(false)
-
-    def getMyNDLAEnabledOrgs: Try[List[String]] = Try {
-      configRepository
-        .getConfigWithKey(ConfigKey.ArenaEnabledOrgs)
+        .getConfigWithKey(configKey)
         .map(_.value)
         .collectFirst { case StringListValue(value) => value }
         .getOrElse(List.empty)
@@ -54,7 +56,7 @@ trait ConfigService {
       }
     }
 
-    def asApiConfigRestricted(configValue: domain.config.ConfigMeta): api.config.ConfigMetaRestricted = {
+    private def asApiConfigRestricted(configValue: domain.config.ConfigMeta): api.config.ConfigMetaRestricted = {
       api.config.ConfigMetaRestricted(
         key = configValue.key.entryName,
         value = configValue.valueToEither
@@ -75,7 +77,7 @@ trait ConfigService {
       } yield asApiConfig(stored)
     }
 
-    def asApiConfig(configValue: domain.config.ConfigMeta): api.config.ConfigMeta = {
+    private def asApiConfig(configValue: domain.config.ConfigMeta): api.config.ConfigMeta = {
       api.config.ConfigMeta(
         configValue.key.entryName,
         configValue.valueToEither,
