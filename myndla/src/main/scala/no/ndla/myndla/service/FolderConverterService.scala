@@ -182,7 +182,7 @@ trait FolderConverterService {
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled || arenaEnabledOrgs.contains(
           domainUserData.organization
-        ) || arenaEnabledUsers.contains(domainUserData.email),
+        ) || arenaEnabledUsers.map(_.toLowerCase).contains(domainUserData.email.toLowerCase),
         shareName = domainUserData.shareName
       )
     }
