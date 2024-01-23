@@ -165,7 +165,12 @@ trait FolderConverterService {
       )
     }
 
-    def toApiUserData(domainUserData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): api.MyNDLAUser = {
+    def toApiUserData(
+        domainUserData: domain.MyNDLAUser,
+        arenaEnabledOrgs: List[String],
+        arenaEnabledUsers: List[String]
+    ): api.MyNDLAUser = {
+      val arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs, arenaEnabledUsers)
       api.MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
@@ -176,14 +181,20 @@ trait FolderConverterService {
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
-        arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs),
+        arenaEnabled = arenaEnabled,
         shareName = domainUserData.shareName,
         arenaGroups = domainUserData.arenaGroups
       )
     }
 
-    def getArenaEnabled(userData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
-      userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization)
+    def getArenaEnabled(
+        userData: domain.MyNDLAUser,
+        arenaEnabledOrgs: List[String],
+        arenaEnabledUsers: List[String]
+    ): Boolean =
+      userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization) || arenaEnabledUsers
+        .map(_.toLowerCase)
+        .contains(userData.email.toLowerCase)
 
     def domainToApiModel[Domain, Api](
         domainObjects: List[Domain],
