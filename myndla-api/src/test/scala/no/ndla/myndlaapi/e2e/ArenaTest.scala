@@ -18,6 +18,7 @@ import no.ndla.myndla.model.api.ArenaUser
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi._
+import no.ndla.myndlaapi.model.arena.api.PaginatedNewPostNotifications
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.quality.Strictness
@@ -165,7 +166,8 @@ class ArenaTest
       title: String,
       content: String,
       categoryId: Long,
-      shouldSucceed: Boolean = true
+      shouldSucceed: Boolean = true,
+      token: String = "asd"
   ): Response[String] = {
     val newTopic = api.NewTopic(title = title, initialPost = api.NewPost(content = content))
     val inBody   = newTopic.asJson.noSpaces
@@ -174,14 +176,19 @@ class ArenaTest
         .post(uri"$myndlaApiArenaUrl/categories/$categoryId/topics")
         .body(inBody)
         .header("Content-type", "application/json")
-        .header("FeideAuthorization", s"Bearer asd")
+        .header("FeideAuthorization", s"Bearer $token")
         .readTimeout(10.seconds)
     )
     if (shouldSucceed) { res.code.code should be(201) }
     res
   }
 
-  def createPost(content: String, topicId: Long, shouldSucceed: Boolean = true): Response[String] = {
+  def createPost(
+      content: String,
+      topicId: Long,
+      shouldSucceed: Boolean = true,
+      token: String = "asd"
+  ): Response[String] = {
     val newPost = api.NewPost(content = content)
     val inBody  = newPost.asJson.noSpaces
     val res = simpleHttpClient.send(
@@ -189,7 +196,7 @@ class ArenaTest
         .post(uri"$myndlaApiArenaUrl/topics/$topicId/posts")
         .body(inBody)
         .header("Content-type", "application/json")
-        .header("FeideAuthorization", s"Bearer asd")
+        .header("FeideAuthorization", s"Bearer $token")
         .readTimeout(10.seconds)
     )
     if (shouldSucceed) { res.code.code should be(201) }
@@ -518,6 +525,70 @@ class ArenaTest
       topic1ResultTry should be(Success(expectedTopic1Result))
       topic1Resp.code.code should be(200)
     }
+  }
+
+  test("that fetching posting in topic generates notification for follower") {
+    val user1Token = "user1"
+    val user1Id    = "user1Id"
+    val user2Token = "user2"
+    val user2Id    = "user2Id"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(user1Token)))).thenReturn(Success(user1Id))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(user2Token)))).thenReturn(Success(user2Id))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
+    when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
+
+    val createCategoryRes = createCategory("title", "description")
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryId        = categoryIdT.get.id
+
+    // User 1 creates topic which should result in following own topic
+    val createTopicRes = createTopic("title1", "description1", categoryId, token = user1Token)
+    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.Topic]).toTry
+    val topicId        = topicIdT.get.id
+
+    // User 2 posts to user1s followed topic
+    createPost("noe innhold i topicen", topicId, token = user2Token)
+
+    { // User 1 should have a notification
+      val notificationsResp = simpleHttpClient.send(
+        quickRequest
+          .get(uri"$myndlaApiArenaUrl/notifications")
+          .header("FeideAuthorization", s"Bearer $user1Token")
+          .readTimeout(10.seconds)
+      )
+      val notificationT =
+        io.circe.parser.parse(notificationsResp.body).flatMap(_.as[PaginatedNewPostNotifications]).toTry
+      notificationT.get.items.size should be(1)
+      val notif = notificationT.get.items.head
+      notif.topicId should be(topicId)
+      notif.isRead should be(false)
+    }
+
+    { // User 1 fetches topic
+      val topic1Resp = simpleHttpClient.send(
+        quickRequest
+          .get(uri"$myndlaApiArenaUrl/topics/$topicId")
+          .header("FeideAuthorization", s"Bearer $user1Token")
+          .readTimeout(10.seconds)
+      )
+      topic1Resp.code.code should be(200)
+    }
+
+    { // User 1 should have read notification
+      val notificationsResp = simpleHttpClient.send(
+        quickRequest
+          .get(uri"$myndlaApiArenaUrl/notifications")
+          .header("FeideAuthorization", s"Bearer $user1Token")
+          .readTimeout(10.seconds)
+      )
+      val notificationT =
+        io.circe.parser.parse(notificationsResp.body).flatMap(_.as[PaginatedNewPostNotifications]).toTry
+      notificationT.get.items.size should be(1)
+      val notif = notificationT.get.items.head
+      notif.topicId should be(topicId)
+      notif.isRead should be(true)
+    }
+
   }
 
 }
