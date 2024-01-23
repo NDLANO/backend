@@ -244,6 +244,48 @@ class EmbedTagValidatorTest extends UnitSuite {
     TagValidator.validate("content", tag).size should be(1)
   }
 
+  test("validate should return no validation errors if uu-disclaimer embed-tag is used correctly with embed") {
+    val tag = generateTagWithAttrsAndChildren(
+      Map(
+        TagAttribute.DataResource   -> ResourceType.UuDisclaimer.toString,
+        TagAttribute.DataDisclaimer -> "Dette er en disclaimer",
+        TagAttribute.DataArticleId  -> "123"
+      ),
+      generateTagWithAttrs(
+        Map(
+          TagAttribute.DataResource    -> ResourceType.Image.toString,
+          TagAttribute.DataResource_Id -> "1234",
+          TagAttribute.DataSize        -> "fullbredde",
+          TagAttribute.DataAlt         -> "alternative text",
+          TagAttribute.DataCaption     -> "here is a rabbit",
+          TagAttribute.DataAlign       -> "left"
+        )
+      )
+    )
+    val res = TagValidator.validate("content", tag)
+    res.size should be(0)
+  }
+
+  test("validate should return no validation errors if uu-disclaimer embed-tag is used correctly with html") {
+    val tag = generateTagWithAttrsAndChildren(
+      Map(
+        TagAttribute.DataResource   -> ResourceType.UuDisclaimer.toString,
+        TagAttribute.DataDisclaimer -> "Dette er en disclaimer",
+        TagAttribute.DataArticleId  -> "123"
+      ),
+      """
+        |<p>Her er en disclaimer</p>
+        |<details>
+        |<summary>Tittel</summary>
+        |Innhold
+        |</details>
+        |<div data-type="framed-content"><p>Tekst</p></div>
+        |""".stripMargin
+    )
+    val res = TagValidator.validate("content", tag)
+    res.size should be(0)
+  }
+
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=error"
   ) {

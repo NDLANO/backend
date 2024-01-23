@@ -103,7 +103,8 @@ object TestData {
     email = "",
     arenaEnabled = false,
     displayName = "",
-    shareName = false
+    shareName = false,
+    arenaGroups = List.empty
   )
 
 }

@@ -10,6 +10,7 @@ package no.ndla.myndlaapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndla.service.{
   ConfigService,
@@ -19,15 +20,19 @@ import no.ndla.myndla.service.{
   UserService
 }
 import no.ndla.myndlaapi.controller.{
+  ArenaController,
   ConfigController,
   ErrorHelpers,
   FolderController,
+  InternController,
   StatsController,
   SwaggerDocControllerConfig,
   UserController
 }
 import no.ndla.myndlaapi.integration.DataSource
-import no.ndla.myndlaapi.service.ReadService
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
+import no.ndla.myndlaapi.repository.ArenaRepository
+import no.ndla.myndlaapi.service.{ArenaReadService, ConverterService, ImportService}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
@@ -51,7 +56,8 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
-    with ReadService
+    with ArenaReadService
+    with ConverterService
     with FolderRepository
     with FolderReadService
     with FolderWriteService
@@ -65,13 +71,18 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with RedisClient
     with FolderController
     with UserController
-    with StatsController {
+    with StatsController
+    with ArenaController
+    with MyNDLAAuthHelpers
+    with ArenaRepository
+    with ImportService
+    with NodeBBClient
+    with InternController {
   override val props: MyNdlaApiProperties = properties
 
   lazy val healthController                               = new TapirHealthController[Eff]
   lazy val clock: SystemClock                             = new SystemClock
   lazy val migrator                                       = new DBMigrator
-  lazy val readService: ReadService                       = new ReadService
   lazy val folderController: FolderController             = new FolderController
   lazy val feideApiClient: FeideApiClient                 = new FeideApiClient
   lazy val redisClient                                    = new RedisClient(props.RedisHost, props.RedisPort)
@@ -86,6 +97,13 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val configService: ConfigService                   = new ConfigService
   lazy val configController: ConfigController             = new ConfigController
   lazy val statsController: StatsController               = new StatsController
+  lazy val arenaRepository: ArenaRepository               = new ArenaRepository
+  lazy val arenaReadService: ArenaReadService             = new ArenaReadService
+  lazy val arenaController: ArenaController               = new ArenaController
+  lazy val converterService: ConverterService             = new ConverterService
+  lazy val importService: ImportService                   = new ImportService
+  lazy val nodebb: NodeBBClient                           = new NodeBBClient
+  lazy val internController: InternController             = new InternController
 
   override val dataSource: Option[HikariDataSource] =
     Option.when(props.migrateToLocalDB)(DataSource.getHikariDataSource)
@@ -97,7 +115,9 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
       folderController,
       userController,
       configController,
-      statsController
+      statsController,
+      arenaController,
+      internController
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )

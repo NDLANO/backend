@@ -91,6 +91,7 @@ case class ConfigMeta(
     case ConfigKey.LearningpathWriteRestricted => validateBooleanKey(ConfigKey.LearningpathWriteRestricted)
     case ConfigKey.MyNDLAWriteRestricted       => validateBooleanKey(ConfigKey.MyNDLAWriteRestricted)
     case ConfigKey.ArenaEnabledOrgs            => validateStringListKey(ConfigKey.ArenaEnabledOrgs)
+    case ConfigKey.ArenaEnabledUsers           => validateStringListKey(ConfigKey.ArenaEnabledUsers)
     case ConfigKey.AiEnabledOrgs               => validateStringListKey(ConfigKey.AiEnabledOrgs)
   }
 }

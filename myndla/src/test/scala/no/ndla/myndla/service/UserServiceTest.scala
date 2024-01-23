@@ -48,10 +48,16 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val updatedUserData =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = Some(true))
+      api.UpdatedMyNDLAUser(
+        favoriteSubjects = Some(Seq("r", "e")),
+        arenaEnabled = None,
+        shareName = Some(true),
+        arenaGroups = None
+      )
     val userAfterMerge = MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -71,7 +77,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = true
+      shareName = true,
+      arenaGroups = List.empty
     )
     val expected = api.MyNDLAUser(
       id = 42,
@@ -84,7 +91,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
-      shareName = true
+      shareName = true,
+      arenaGroups = List.empty
     )
 
     doReturn(Success(()))
@@ -93,6 +101,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
+    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
 
@@ -105,7 +114,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   test("That updateUserData fails if user does not exist") {
     val feideId = "feide"
     val updatedUserData =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = None)
+      api.UpdatedMyNDLAUser(
+        favoriteSubjects = Some(Seq("r", "e")),
+        arenaEnabled = None,
+        shareName = None,
+        arenaGroups = None
+      )
 
     doReturn(Success(()))
       .when(folderWriteService)
@@ -155,7 +169,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
@@ -168,7 +183,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -178,6 +194,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
+    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
@@ -220,7 +237,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
@@ -233,10 +251,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
+    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
 
@@ -282,7 +302,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
@@ -301,10 +322,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
+    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
     when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))

@@ -8,15 +8,18 @@
 package no.ndla.myndla.service
 
 import no.ndla.common.Clock
-import no.ndla.common.errors.{NotFoundException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.myndla.model.api.{ArenaUser, PaginatedArenaUsers}
+import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import no.ndla.network.tapir.auth.TokenUser
-import scalikejdbc.{AutoSession, DBSession}
+import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 trait UserService {
@@ -30,12 +33,56 @@ trait UserService {
   val userService: UserService
 
   class UserService {
-    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
+    def getArenaUserByUserName(username: String): Try[ArenaUser] = {
+      userRepository.userWithUsername(username) match {
+        case Failure(ex)         => Failure(ex)
+        case Success(Some(user)) => Success(ArenaUser.from(user))
+        case Success(None)       => Failure(NotFoundException(s"User with username '$username' was not found"))
+      }
+    }
+
+    private def getUserById(userId: Long)(session: DBSession): Try[MyNDLAUser] = {
+      userRepository.userWithId(userId)(session) match {
+        case Failure(ex)         => Failure(ex)
+        case Success(Some(user)) => Success(user)
+        case Success(None)       => Failure(NotFoundException(s"User with id '$userId' was not found"))
+      }
+    }
+
+    def getArenaUsersPaginated(page: Long, pageSize: Long)(
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[PaginatedArenaUsers] = {
+      val offset = (page - 1) * pageSize
+      for {
+        totalCount <- userRepository.countUsers(session)
+        users      <- userRepository.getUsersPaginated(offset, pageSize)(session)
+        arenaUsers = users.map(ArenaUser.from)
+      } yield PaginatedArenaUsers(totalCount, page, pageSize, arenaUsers)
+    }
+
+    def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
         userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+      } yield userData
+    }
+
+    def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
+      for {
+        userData <- getMyNdlaUserDataDomain(feideAccessToken)
         orgs     <- configService.getMyNDLAEnabledOrgs
-        api = folderConverterService.toApiUserData(userData, orgs)
+        users    <- configService.getMyNDLAEnabledUsers
+        arenaEnabled = folderConverterService.getArenaEnabled(userData, orgs, users)
+        user <- if (arenaEnabled) Success(userData) else Failure(AccessDeniedException("User is not arena enabled"))
+      } yield user
+    }
+
+    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
+      for {
+        userData <- getMyNdlaUserDataDomain(feideAccessToken)
+        orgs     <- configService.getMyNDLAEnabledOrgs
+        users    <- configService.getMyNDLAEnabledUsers
+        api = folderConverterService.toApiUserData(userData, orgs, users)
       } yield api
     }
 
@@ -44,11 +91,9 @@ trait UserService {
         feideAccessToken: Option[FeideAccessToken]
     )(implicit session: DBSession): Try[domain.MyNDLAUser] = {
       userRepository.userWithFeideId(feideId)(session).flatMap {
-        case None =>
-          createMyNDLAUser(feideId, feideAccessToken)(session)
-        case Some(userData) =>
-          if (userData.wasUpdatedLast24h) Success(userData)
-          else fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
+        case None                                         => createMyNDLAUser(feideId, feideAccessToken)(session)
+        case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
+        case Some(userData) => fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
       }
     }
 
@@ -71,7 +116,8 @@ trait UserService {
         updatedFeideUser = api.UpdatedMyNDLAUser(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
-          shareName = Some(shareName)
+          shareName = Some(shareName),
+          arenaGroups = None
         )
         updated <- userService.updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
@@ -84,29 +130,47 @@ trait UserService {
       for {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
-        combined = folderConverterService.mergeUserData(existingUserData, updatedUser, None)
-        updated     <- userRepository.updateUser(feideId, combined)
-        enabledOrgs <- configService.getMyNDLAEnabledOrgs
-        api = folderConverterService.toApiUserData(updated, enabledOrgs)
+        combined = folderConverterService.mergeUserData(existingUserData, updatedUser, None, Some(existingUserData))
+        updated      <- userRepository.updateUser(feideId, combined)
+        enabledOrgs  <- configService.getMyNDLAEnabledOrgs
+        enabledUsers <- configService.getMyNDLAEnabledUsers
+        api = folderConverterService.toApiUserData(updated, enabledOrgs, enabledUsers)
       } yield api
     }
 
     def adminUpdateMyNDLAUserData(
         updatedUser: api.UpdatedMyNDLAUser,
         feideId: Option[String],
-        user: TokenUser
+        updaterToken: Option[TokenUser],
+        updaterMyNdla: Option[MyNDLAUser]
     ): Try[api.MyNDLAUser] = {
       feideId match {
         case None => Failure(ValidationException("feideId", "You need to supply a feideId to update a user."))
         case Some(id) =>
           for {
             existing <- userService.getMyNDLAUserOrFail(id)
-            converted = folderConverterService.mergeUserData(existing, updatedUser, Some(user))
-            updated     <- userRepository.updateUser(id, converted)
-            enabledOrgs <- configService.getMyNDLAEnabledOrgs
-            api = folderConverterService.toApiUserData(updated, enabledOrgs)
+            converted = folderConverterService.mergeUserData(existing, updatedUser, updaterToken, updaterMyNdla)
+            updated      <- userRepository.updateUser(id, converted)
+            enabledOrgs  <- configService.getMyNDLAEnabledOrgs
+            enabledUsers <- configService.getMyNDLAEnabledUsers
+            api = folderConverterService.toApiUserData(updated, enabledOrgs, enabledUsers)
           } yield api
       }
+    }
+
+    def adminUpdateMyNDLAUserData(
+        userId: Long,
+        updatedUser: api.UpdatedMyNDLAUser,
+        updaterMyNdla: MyNDLAUser
+    )(session: DBSession = AutoSession): Try[api.MyNDLAUser] = {
+      for {
+        existing <- userService.getUserById(userId)(session)
+        converted = folderConverterService.mergeUserData(existing, updatedUser, None, Some(updaterMyNdla))
+        updated      <- userRepository.updateUserById(userId, converted)(session)
+        enabledOrgs  <- configService.getMyNDLAEnabledOrgs
+        enabledUsers <- configService.getMyNDLAEnabledUsers
+        api = folderConverterService.toApiUserData(updated, enabledOrgs, enabledUsers)
+      } yield api
     }
 
     private[service] def getMyNDLAUserOrFail(feideId: FeideID): Try[domain.MyNDLAUser] = {
@@ -130,6 +194,11 @@ trait UserService {
         )
     }
 
+    def getInitialIsArenaGroups(@unused feideId: FeideID): List[ArenaGroup] = {
+      // NOTE: This exists to simplify mocking in tests until we have api user management
+      List.empty
+    }
+
     private def createMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
         session: DBSession
     ): Try[domain.MyNDLAUser] = {
@@ -146,6 +215,7 @@ trait UserService {
           username = feideExtendedUserData.username,
           email = feideExtendedUserData.email,
           arenaEnabled = false,
+          arenaGroups = getInitialIsArenaGroups(feideId),
           shareName = false,
           displayName = feideExtendedUserData.displayName
         )
@@ -175,7 +245,8 @@ trait UserService {
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled,
         shareName = userData.shareName,
-        displayName = feideUser.displayName
+        displayName = feideUser.displayName,
+        arenaGroups = userData.arenaGroups
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }

@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type ArenaGroup = "ADMIN"
+
 export interface IAuthor {
   type: string
   name: string
@@ -194,6 +196,7 @@ export interface IMyNDLAUser {
   groups: IMyNDLAGroup[]
   arenaEnabled: boolean
   shareName: boolean
+  arenaGroups: ArenaGroup[]
 }
 
 export interface INewFolder {
