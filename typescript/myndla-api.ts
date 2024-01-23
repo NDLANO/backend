@@ -1,8 +1,43 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type ArenaGroup = "ADMIN"
+
+export interface IArenaUser {
+  id: number
+  displayName: string
+  username: string
+  location: string
+  groups: ArenaGroup[]
+}
+
 export interface IBreadcrumb {
   id: string
   name: string
+}
+
+export interface ICategory {
+  id: number
+  title: string
+  description: string
+  topicCount: number
+  postCount: number
+  isFollowing: boolean
+  visible: boolean
+  rank: number
+}
+
+export interface ICategoryWithTopics {
+  id: number
+  title: string
+  description: string
+  topicCount: number
+  postCount: number
+  topicPage: number
+  topicPageSize: number
+  topics: ITopic[]
+  isFollowing: boolean
+  visible: boolean
+  rank: number
 }
 
 export interface IConfigMeta {
@@ -15,6 +50,15 @@ export interface IConfigMeta {
 export interface IConfigMetaRestricted {
   key: string
   value: (boolean | string[])
+}
+
+export interface IFlag {
+  id: number
+  reason: string
+  created: string
+  resolved?: string
+  isResolved: boolean
+  flagger: IArenaUser
 }
 
 export interface IFolder {
@@ -54,6 +98,17 @@ export interface IMyNDLAUser {
   groups: IMyNDLAGroup[]
   arenaEnabled: boolean
   shareName: boolean
+  arenaGroups: ArenaGroup[]
+}
+
+export interface INewCategory {
+  title: string
+  description: string
+  visible: boolean
+}
+
+export interface INewFlag {
+  reason: string
 }
 
 export interface INewFolder {
@@ -63,6 +118,19 @@ export interface INewFolder {
   description?: string
 }
 
+export interface INewPost {
+  content: string
+}
+
+export interface INewPostNotification {
+  id: number
+  topicId: number
+  isRead: boolean
+  topicTitle: string
+  post: IPost
+  notificationTime: string
+}
+
 export interface INewResource {
   resourceType: string
   path: string
@@ -70,8 +138,51 @@ export interface INewResource {
   resourceId: string
 }
 
+export interface INewTopic {
+  title: string
+  initialPost: INewPost
+}
+
 export interface IOwner {
   name: string
+}
+
+export interface IPaginatedArenaUsers {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: IArenaUser[]
+}
+
+export interface IPaginatedNewPostNotifications {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: INewPostNotification[]
+}
+
+export interface IPaginatedPosts {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: IPost[]
+}
+
+export interface IPaginatedTopics {
+  totalCount: number
+  page: number
+  pageSize: number
+  items: ITopic[]
+}
+
+export interface IPost {
+  id: number
+  content: string
+  created: string
+  updated: string
+  owner: IArenaUser
+  flags?: IFlag[]
+  topicId: number
 }
 
 export interface IResource {
@@ -84,10 +195,38 @@ export interface IResource {
   rank?: number
 }
 
+export interface ITopic {
+  id: number
+  title: string
+  postCount: number
+  created: string
+  updated: string
+  categoryId: number
+  isFollowing: boolean
+}
+
+export interface ITopicWithPosts {
+  id: number
+  title: string
+  postCount: number
+  posts: IPaginatedPosts
+  created: string
+  updated: string
+  categoryId: number
+  isFollowing: boolean
+}
+
 export interface IUpdatedFolder {
   name?: string
   status?: string
   description?: string
+}
+
+export interface IUpdatedMyNDLAUser {
+  favoriteSubjects?: string[]
+  arenaEnabled?: boolean
+  shareName?: boolean
+  arenaGroups?: ArenaGroup[]
 }
 
 export interface IUpdatedResource {

@@ -9,6 +9,7 @@ package no.ndla.myndlaapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.myndla.MyNDLAAuthHelpers
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndla.service.{
   ConfigService,
@@ -18,6 +19,7 @@ import no.ndla.myndla.service.{
   UserService
 }
 import no.ndla.myndlaapi.controller.{
+  ArenaController,
   ConfigController,
   ErrorHelpers,
   FolderController,
@@ -26,7 +28,9 @@ import no.ndla.myndlaapi.controller.{
   UserController
 }
 import no.ndla.myndlaapi.integration.DataSource
-import no.ndla.myndlaapi.service.ReadService
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
+import no.ndla.myndlaapi.repository.ArenaRepository
+import no.ndla.myndlaapi.service.{ArenaReadService, ConverterService, ImportService}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
@@ -46,7 +50,11 @@ trait TestEnvironment
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
-    with ReadService
+    with ArenaReadService
+    with ArenaRepository
+    with ArenaController
+    with MyNDLAAuthHelpers
+    with ConverterService
     with FolderRepository
     with FolderReadService
     with FolderWriteService
@@ -64,11 +72,13 @@ trait TestEnvironment
     with ErrorHelpers
     with Routes[Eff]
     with NdlaMiddleware
-    with TapirErrorHelpers {
+    with TapirErrorHelpers
+    with ImportService
+    with NodeBBClient {
   val props                                          = new MyNdlaApiProperties
   lazy val clock: SystemClock                        = mock[SystemClock]
   val migrator: DBMigrator                           = mock[DBMigrator]
-  val readService: ReadService                       = mock[ReadService]
+  val arenaReadService: ArenaReadService             = mock[ArenaReadService]
   val folderRepository: FolderRepository             = mock[FolderRepository]
   val folderReadService: FolderReadService           = mock[FolderReadService]
   val folderWriteService: FolderWriteService         = mock[FolderWriteService]
@@ -83,6 +93,11 @@ trait TestEnvironment
   val folderController: FolderController             = mock[FolderController]
   val userController: UserController                 = mock[UserController]
   val statsController: StatsController               = mock[StatsController]
+  val arenaController: ArenaController               = mock[ArenaController]
+  val arenaRepository: ArenaRepository               = mock[ArenaRepository]
+  val converterService: ConverterService             = mock[ConverterService]
+  val importService: ImportService                   = mock[ImportService]
+  val nodebb: NodeBBClient                           = mock[NodeBBClient]
 
   val dataSource = mock[Option[HikariDataSource]]
   val lpDs       = mock[HikariDataSource]
@@ -92,7 +107,7 @@ trait TestEnvironment
   def resetMocks(): Unit = reset(
     clock,
     migrator,
-    readService,
+    arenaReadService,
     folderRepository,
     folderReadService,
     folderWriteService,
@@ -105,7 +120,10 @@ trait TestEnvironment
     configController,
     redisClient,
     folderController,
-    userController
+    userController,
+    arenaController,
+    arenaRepository,
+    converterService
   )
 
 }

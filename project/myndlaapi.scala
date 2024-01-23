@@ -29,18 +29,37 @@ object myndlaapi extends Module {
     imports = Seq(
       "no.ndla.common.model.api._",
       "no.ndla.myndla.model.api.config._",
-      "no.ndla.myndla.model.api._"
+      "no.ndla.myndla.model.api._",
+      "no.ndla.myndlaapi.model.arena.api._"
     ),
     exports = Seq(
       "ConfigMetaRestricted",
       "MyNDLAUser",
+      "UpdatedMyNDLAUser",
       "config.ConfigMeta",
       "Folder",
       "FolderData",
       "NewFolder",
       "UpdatedFolder",
       "NewResource",
-      "UpdatedResource"
+      "UpdatedResource",
+      "ArenaUser",
+      "PaginatedArenaUsers",
+      "no.ndla.myndla.model.domain.ArenaGroup",
+      "Category",
+      "CategoryWithTopics",
+      "Flag",
+      "NewCategory",
+      "NewPost",
+      "NewPostNotification",
+      "NewFlag",
+      "NewTopic",
+      "Topic",
+      "TopicWithPosts",
+      "PaginatedTopics",
+      "PaginatedPosts",
+      "PaginatedNewPostNotifications",
+      "Post"
     )
   )
 

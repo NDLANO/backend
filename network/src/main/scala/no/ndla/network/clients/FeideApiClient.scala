@@ -151,7 +151,7 @@ trait FeideApiClient {
       feideResponse match {
         case Failure(ex: HttpRequestException) =>
           val code = ex.httpResponse.map(_.code)
-          if (code.exists(_.code == 403) || code.exists(_.code == 401)) {
+          if (code.exists(_.code == 403) || code.exists(_.code == 401) || code.exists(_.code == 400)) {
             Failure(
               AccessDeniedException(
                 "User could not be authenticated with feide and such is missing required role(s) to perform this operation"

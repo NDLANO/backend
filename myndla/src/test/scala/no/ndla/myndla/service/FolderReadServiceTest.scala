@@ -300,7 +300,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = true
+      shareName = true,
+      arenaGroups = List.empty
     )
 
     val folderUUID   = UUID.randomUUID()

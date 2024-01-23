@@ -240,11 +240,11 @@ trait FolderController {
 
     override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getAllFolders,
+      fetchAllResources,
       getSingleFolder,
       createNewFolder,
       updateFolder,
       removeFolder,
-      fetchAllResources,
       createFolderResource,
       updateResource,
       deleteResource,
