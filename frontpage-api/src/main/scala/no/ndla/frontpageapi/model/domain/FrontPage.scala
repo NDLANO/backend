@@ -18,7 +18,7 @@ import cats.implicits._
 
 import scala.util.Try
 
-case class Menu(articleId: Long, menu: List[Menu], hideLevelFlag: Boolean)
+case class Menu(articleId: Long, menu: List[Menu], hideLevel: Boolean)
 
 case class FrontPage(
     articleId: Long,

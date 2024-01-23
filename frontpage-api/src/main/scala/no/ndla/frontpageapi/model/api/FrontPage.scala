@@ -20,7 +20,7 @@ import scala.annotation.unused
 case class Menu(
     @description("Id of the article") articleId: Long,
     @description("List of submenu objects") menu: List[MenuData],
-    @description("Hide submenu level 3") hideLevelFlag: Boolean
+    @description("Hide submenu") hideLevel: Boolean
 ) extends MenuData
 
 @description("Object containing frontpage data")
@@ -48,7 +48,7 @@ object Menu {
 
 sealed trait MenuData {}
 object MenuData {
-  def apply(articleId: Long, menu: List[MenuData], hideLevelFlag: Boolean): MenuData = new Menu(articleId, menu, hideLevelFlag)
+  def apply(articleId: Long, menu: List[MenuData], hideLevel: Boolean): MenuData = new Menu(articleId, menu, hideLevel)
 
   implicit val menuDataAlias: TSNamedType[MenuData] = TSType.alias[MenuData]("IMenuData", Menu.menuTSI.get)
 }

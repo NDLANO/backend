@@ -51,7 +51,7 @@ class V11__frontpage_hide_level_flag extends BaseJavaMigration {
 
   private def updateMenu(json: Json): Json = {
     def addHideLevelFlag(obj: Json): Json = {
-      val withFlag  = obj.mapObject(_.add("hideLevelFlag", Json.False))
+      val withFlag  = obj.mapObject(_.add("hideLevel", Json.False))
       val maybeMenu = obj.hcursor.downField("menu").focus
 
       maybeMenu match {
@@ -62,7 +62,7 @@ class V11__frontpage_hide_level_flag extends BaseJavaMigration {
       }
     }
 
-    addHideLevelFlag(json).mapObject(_.remove("hideLevelFlag"))
+    addHideLevelFlag(json).mapObject(_.remove("hideLevel"))
   }
   private def update(frontPageData: V11__DBFrontPage)(implicit session: DBSession): Unit = {
     val pgObject = new PGobject()
