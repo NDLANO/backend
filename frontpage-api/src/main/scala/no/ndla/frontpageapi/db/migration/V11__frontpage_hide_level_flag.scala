@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA frontpage-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.frontpageapi.db.migration
 
 import io.circe.parser.parse
@@ -8,8 +15,7 @@ import scalikejdbc._
 
 import scala.util.{Failure, Success}
 
-
-class v11_frontpage_hide_level_flag extends BaseJavaMigration {
+class V11__frontpage_hide_level_flag extends BaseJavaMigration {
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
@@ -19,24 +25,24 @@ class v11_frontpage_hide_level_flag extends BaseJavaMigration {
         .foreach(update)
     }
 
-    private def frontPageData(implicit session: DBSession): List[V11__DBFrontPage] = {
-      sql"select id, document from mainfrontpage"
-        .map(rs => V11__DBFrontPage(rs.long("id"), rs.string("document")))
-        .list()
-    }
+  private def frontPageData(implicit session: DBSession): List[V11__DBFrontPage] = {
+    sql"select id, document from mainfrontpage"
+      .map(rs => V11__DBFrontPage(rs.long("id"), rs.string("document")))
+      .list()
+  }
 
-    implicit class JsonObjectOps(obj: JsonObject) {
-      def addIfNotExists(key: String, value: Json): JsonObject = {
-        if (obj.contains(key)) obj
-        else obj.add(key, value)
-      }
+  implicit class JsonObjectOps(obj: JsonObject) {
+    def addIfNotExists(key: String, value: Json): JsonObject = {
+      if (obj.contains(key)) obj
+      else obj.add(key, value)
     }
+  }
 
-  private def convertFrontpage(frontPageData: V11__DBFrontPage): V11__DBFrontPage = {
+  private[migration] def convertFrontpage(frontPageData: V11__DBFrontPage): V11__DBFrontPage = {
     parse(frontPageData.document).toTry match {
       case Success(value) =>
         val updatedJson = updateMenu(value)
-        V11__DBFrontPage(frontPageData.id, updatedJson:Json)
+        V11__DBFrontPage(frontPageData.id, updatedJson.noSpaces)
       case Failure(error) =>
         println(s"Something went wrong then updating frontpage: '$frontPageData.id")
         throw error
@@ -45,7 +51,7 @@ class v11_frontpage_hide_level_flag extends BaseJavaMigration {
 
   private def updateMenu(json: Json): Json = {
     def addHideLevelFlag(obj: Json): Json = {
-      val withFlag = obj.mapObject(_.add("hideLevelFlag", Json.False))
+      val withFlag  = obj.mapObject(_.add("hideLevelFlag", Json.False))
       val maybeMenu = obj.hcursor.downField("menu").focus
 
       maybeMenu match {
@@ -56,7 +62,7 @@ class v11_frontpage_hide_level_flag extends BaseJavaMigration {
       }
     }
 
-    json.mapArray(_.map(addHideLevelFlag))
+    addHideLevelFlag(json).mapObject(_.remove("hideLevelFlag"))
   }
   private def update(frontPageData: V11__DBFrontPage)(implicit session: DBSession): Unit = {
     val pgObject = new PGobject()

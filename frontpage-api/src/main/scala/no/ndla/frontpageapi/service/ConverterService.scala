@@ -21,7 +21,8 @@ trait ConverterService {
   object ConverterService {
     import props.{BrightcoveAccountId, BrightcovePlayer, RawImageApiUrl}
 
-    private def toApiMenu(menu: domain.Menu): api.Menu = api.Menu(menu.articleId, menu.menu.map(toApiMenu))
+    private def toApiMenu(menu: domain.Menu): api.Menu =
+      api.Menu(menu.articleId, menu.menu.map(toApiMenu), menu.hideLevelFlag)
 
     def toApiFrontPage(frontPage: domain.FrontPage): api.FrontPage =
       api.FrontPage(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
@@ -188,7 +189,7 @@ trait ConverterService {
 
     private def toDomainMenu(menu: api.Menu): domain.Menu = {
       val apiMenu = menu.menu.map { case x: api.Menu => toDomainMenu(x) }
-      domain.Menu(articleId = menu.articleId, menu = apiMenu)
+      domain.Menu(articleId = menu.articleId, menu = apiMenu, hideLevelFlag = menu.hideLevelFlag)
     }
 
     def toDomainFrontPage(page: api.FrontPage): domain.FrontPage = {
