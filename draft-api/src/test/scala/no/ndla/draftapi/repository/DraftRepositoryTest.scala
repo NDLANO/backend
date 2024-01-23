@@ -9,7 +9,7 @@ package no.ndla.draftapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._
@@ -19,6 +19,7 @@ import org.scalatest.Outcome
 import scalikejdbc._
 
 import java.net.Socket
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
@@ -424,5 +425,29 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val inserted = repository.insert(article)(AutoSession)
     val fetched  = repository.withSlug("aPEkAtT")(ReadOnlyAutoSession).get
     fetched should be(inserted)
+  }
+
+  test("Comments are kept on publishing topic-articles") {
+    val now      = NDLADate.now().withNano(0)
+    val comments = Seq(Comment(UUID.randomUUID(), now, now, "hei", isOpen = false, solved = true))
+    val article = TestData.sampleDomainArticle.copy(
+      status = Status(DraftStatus.IN_PROGRESS, Set.empty),
+      comments = comments,
+      revision = Some(1)
+    )
+    val topicArticle = TestData.sampleTopicArticle.copy(
+      id = Some(123L),
+      status = Status(DraftStatus.IN_PROGRESS, Set.empty),
+      comments = comments,
+      revision = Some(1)
+    )
+
+    repository.insert(article)(AutoSession)
+    repository.insert(topicArticle)(AutoSession)
+    val publishedArticle      = repository.storeArticleAsNewVersion(article, None)(AutoSession).get
+    val publishedTopicArticle = repository.storeArticleAsNewVersion(topicArticle, None)(AutoSession).get
+
+    publishedArticle.comments should be(Seq())
+    publishedTopicArticle.comments should be(comments)
   }
 }
