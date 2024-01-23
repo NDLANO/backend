@@ -260,10 +260,10 @@ object TagValidator {
     val childrenRule = tagRules.children.getOrElse(ChildrenRule.default)
     if (childrenRule.allowedChildren.isEmpty) {
       Option.when(embed.childNodeSize() != 0) {
-        return ValidationMessage(
+        ValidationMessage(
           fieldName,
           s"$EmbedTagName tag with `data-resource=${resourceType.toString}` are not allowed to have children."
-        ).some
+        )
       }
     } else {
       if (childrenRule.required && embed.childNodeSize() == 0) {
