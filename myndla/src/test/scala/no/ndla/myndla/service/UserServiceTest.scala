@@ -48,10 +48,16 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val updatedUserData =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = Some(true))
+      api.UpdatedMyNDLAUser(
+        favoriteSubjects = Some(Seq("r", "e")),
+        arenaEnabled = None,
+        shareName = Some(true),
+        arenaGroups = None
+      )
     val userAfterMerge = MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -71,7 +77,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = true
+      shareName = true,
+      arenaGroups = List.empty
     )
     val expected = api.MyNDLAUser(
       id = 42,
@@ -84,7 +91,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
-      shareName = true
+      shareName = true,
+      arenaGroups = List.empty
     )
 
     doReturn(Success(()))
@@ -106,7 +114,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   test("That updateUserData fails if user does not exist") {
     val feideId = "feide"
     val updatedUserData =
-      api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None, shareName = None)
+      api.UpdatedMyNDLAUser(
+        favoriteSubjects = Some(Seq("r", "e")),
+        arenaEnabled = None,
+        shareName = None,
+        arenaGroups = None
+      )
 
     doReturn(Success(()))
       .when(folderWriteService)
@@ -156,7 +169,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
@@ -169,7 +183,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -222,7 +237,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,
@@ -235,7 +251,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
@@ -285,7 +302,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
@@ -304,7 +322,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false
+      shareName = false,
+      arenaGroups = List.empty
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
