@@ -46,12 +46,15 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment {
       |  "menu": [
       |    {
       |      "articleId": 1,
+      |      "hideLevel": false,
       |      "menu": [
       |        {
       |          "articleId": 2,
+      |          "hideLevel": false,
       |          "menu": [
       |            {
       |              "articleId": 4,
+      |              "hideLevel": false,
       |              "menu": []
       |            }
       |          ]
@@ -60,6 +63,7 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment {
       |    },
       |    {
       |      "articleId": 3,
+      |      "hideLevel": false,
       |      "menu": []
       |    }
       |  ]

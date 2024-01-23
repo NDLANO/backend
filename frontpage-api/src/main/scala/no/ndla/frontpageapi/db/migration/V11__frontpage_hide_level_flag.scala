@@ -64,9 +64,9 @@ class V11__frontpage_hide_level_flag extends BaseJavaMigration {
 
     addHideLevelFlag(json).mapObject(_.remove("hideLevel"))
   }
-  private def update(frontPageData: V11__DBFrontPage)(implicit session: DBSession): Unit = {
+  private def update(frontPageData: V11__DBFrontPage)(implicit session: DBSession) = {
     val pgObject = new PGobject()
-    pgObject.setType("json")
+    pgObject.setType("jsonb")
     pgObject.setValue(frontPageData.document)
     sql"update mainfrontpage set document = $pgObject where id = ${frontPageData.id}"
       .update()
