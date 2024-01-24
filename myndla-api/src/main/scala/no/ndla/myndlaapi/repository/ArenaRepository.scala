@@ -75,6 +75,45 @@ trait ArenaRepository {
       })
     }
 
+    def getNotificationsForTopic(user: MyNDLAUser, topicId: Long)(implicit session: DBSession) = {
+      val n  = domain.Notification.syntax("n")
+      val ns = SubQuery.syntax("ns").include(n)
+      val p  = domain.Post.syntax("p")
+      val t  = domain.Topic.syntax("t")
+      val u  = DBMyNDLAUser.syntax("u")
+      val f  = domain.Flag.syntax("f")
+      Try {
+        sql"""
+             select ${ns.resultAll}, ${p.resultAll}, ${t.resultAll}, ${u.resultAll}, ${f.resultAll}
+             from (
+               select ${n.resultAll}
+               from ${domain.Notification.as(n)}
+               where ${n.user_id} = ${user.id} and ${n.topic_id} = $topicId
+               order by ${n.notification_time} desc
+             ) ns
+             left join ${domain.Post.as(p)} on ${p.id} = ${ns(n).post_id}
+             left join ${domain.Topic.as(t)} on ${t.id} = ${ns(n).topic_id}
+             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
+             left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
+             order by ${ns(n).notification_time} desc
+           """
+          .one(rs => domain.Notification.fromResultSet(ns(n).resultName)(rs))
+          .toManies(
+            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
+            rs => domain.Topic.fromResultSet(t.resultName)(rs).toOption,
+            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => domain.Flag.fromResultSet(f)(rs).toOption
+          )
+          .map { (notification, post, topic, owner, flag) =>
+            compileNotification(notification, post.toList, topic.toList, owner.toList :+ user, flag.toList)
+          }
+          .list
+          .apply()
+          .sequence
+      }.flatten
+
+    }
+
     def getNotifications(user: MyNDLAUser, offset: Long, limit: Long)(implicit session: DBSession) = {
       val n  = domain.Notification.syntax("n")
       val ns = SubQuery.syntax("ns").include(n)

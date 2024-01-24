@@ -9,6 +9,7 @@ package no.ndla.myndlaapi.service
 
 import cats.implicits._
 import no.ndla.common.Clock
+import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.myndla.model.domain.MyNDLAUser
@@ -337,12 +338,13 @@ trait ArenaReadService {
     }
 
     def getTopic(topicId: Long, user: MyNDLAUser, page: Long, pageSize: Long)(
-        session: DBSession = ReadOnlyAutoSession
+        session: DBSession = AutoSession
     ): Try[api.TopicWithPosts] = {
       val offset = (page - 1) * pageSize
       for {
         topic <- getCompiledTopic(topicId, user)(session)
         posts <- arenaRepository.getPostsForTopic(topicId, offset, pageSize)(session)
+        _     <- readNotification(user, topicId, posts)(session)
       } yield converterService.toApiTopicWithPosts(
         compiledTopic = topic,
         page = page,
@@ -350,6 +352,14 @@ trait ArenaReadService {
         posts = posts,
         requester = user
       )
+    }
+
+    def readNotification(user: MyNDLAUser, topicId: Long, posts: List[CompiledPost])(session: DBSession): Try[Unit] = {
+      val postIds       = posts.map(_.post.id).toSet
+      val notifications = arenaRepository.getNotificationsForTopic(user, topicId)(session).?
+      val toRead        = notifications.filter(not => postIds.contains(not.post.post.id))
+      val read = toRead.traverse(not => arenaRepository.readNotification(not.notification.id, user.id)(session))
+      read.map(_ => ())
     }
 
     def followTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
