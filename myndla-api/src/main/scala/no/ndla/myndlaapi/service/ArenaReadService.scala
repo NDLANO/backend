@@ -263,7 +263,7 @@ trait ArenaReadService {
       }
     }
 
-    def postPost(topicId: Long, newPost: NewPost, user: MyNDLAUser): Try[api.Topic] =
+    def postPost(topicId: Long, newPost: NewPost, user: MyNDLAUser): Try[api.Post] =
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
@@ -271,7 +271,8 @@ trait ArenaReadService {
           newPost <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created)(session)
           _       <- generateNewPostNotifications(topic, newPost)(session)
           _       <- followTopic(topicId, user)(session)
-        } yield converterService.toApiTopic(topic)
+          compiledPost = CompiledPost(newPost, user, List.empty)
+        } yield converterService.toApiPost(compiledPost, user)
       }
 
     def generateNewPostNotifications(topic: CompiledTopic, newPost: domain.Post)(

@@ -229,7 +229,7 @@ trait ArenaController {
       .summary("Add post to topic")
       .description("Add post to topic")
       .in(jsonBody[NewPost])
-      .out(statusCode(StatusCode.Created).and(jsonBody[Topic]))
+      .out(statusCode(StatusCode.Created).and(jsonBody[Post]))
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
