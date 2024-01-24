@@ -41,6 +41,9 @@ case class MultiSearchSummary(
     @(ApiModelProperty @field)(description = "Responsible field") responsible: Option[DraftResponsible],
     @(ApiModelProperty @field)(description = "Information about comments attached to the article") comments: Option[Seq[Comment]],
     @(ApiModelProperty @field)(description = "If the article should be prioritized" ) prioritized: Option[Boolean],
-    @(ApiModelProperty @field)(description = "If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String]
+    @(ApiModelProperty @field)(description = "If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String],
+    @(ApiModelProperty @field)(description = "A combined resource type name if a standard article, otherwise the article type name") resourceTypeName: Option[String],
+    @(ApiModelProperty @field)(description = "Name of the parent topic if exists") parentTopicName: Option[String],
+    @(ApiModelProperty @field)(description = "Name of the primary context root if exists") primaryRootName: Option[String]
 )
 // format: on

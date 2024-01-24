@@ -546,7 +546,10 @@ trait SearchConverterService {
         responsible = None,
         comments = None,
         prioritized = None,
-        priority = None
+        priority = None,
+        resourceTypeName = None,
+        parentTopicName = None,
+        primaryRootName = None
       )
     }
 
@@ -583,6 +586,10 @@ trait SearchConverterService {
           Comment(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
         )
 
+      val resourceTypeName = searchableDraft.resourceTypeName.getLanguageOrDefault(language)
+      val parentTopicName  = searchableDraft.parentTopicName.getLanguageOrDefault(language)
+      val primaryRootName  = searchableDraft.primaryRoot.getLanguageOrDefault(language)
+
       MultiSearchSummary(
         id = searchableDraft.id,
         title = title,
@@ -603,7 +610,10 @@ trait SearchConverterService {
         responsible = responsible,
         comments = Some(comments),
         priority = Some(searchableDraft.priority.entryName),
-        prioritized = Some(searchableDraft.priority == Priority.Prioritized)
+        prioritized = Some(searchableDraft.priority == Priority.Prioritized),
+        resourceTypeName = resourceTypeName,
+        parentTopicName = parentTopicName,
+        primaryRootName = primaryRootName
       )
     }
 
@@ -655,7 +665,10 @@ trait SearchConverterService {
         responsible = None,
         comments = None,
         prioritized = None,
-        priority = None
+        priority = None,
+        resourceTypeName = None,
+        parentTopicName = None,
+        primaryRootName = None
       )
     }
 
