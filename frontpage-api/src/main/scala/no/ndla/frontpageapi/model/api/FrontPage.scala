@@ -20,7 +20,7 @@ import scala.annotation.unused
 case class Menu(
     @description("Id of the article") articleId: Long,
     @description("List of submenu objects") menu: List[MenuData],
-    @description("Hide submenu") hideLevel: Boolean
+    @description("Hide this level in menu") hideLevel: Boolean = false
 ) extends MenuData
 
 @description("Object containing frontpage data")
