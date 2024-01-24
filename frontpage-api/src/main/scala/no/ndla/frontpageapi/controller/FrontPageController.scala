@@ -11,7 +11,7 @@ import io.circe.generic.auto._
 import no.ndla.frontpageapi.Eff
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_ADMIN

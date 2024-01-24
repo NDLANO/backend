@@ -9,6 +9,8 @@ package no.ndla.frontpageapi.model.api
 
 import cats.implicits.toFunctorOps
 import com.scalatsi.{TSIType, TSNamedType, TSType}
+import no.ndla.network.tapir.NoNullJsonPrinter._
+import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
@@ -31,7 +33,7 @@ case class FrontPage(
 
 object Menu {
   implicit val encodeMenu: Encoder[Menu] = deriveEncoder
-  implicit val decodeMenu: Decoder[Menu] = deriveDecoder
+  implicit val decodeMenu: Decoder[Menu] = deriveConfiguredDecoder
 
   implicit val encodeMenuData: Encoder[MenuData] = Encoder.instance { case menu: Menu => menu.asJson }
   implicit val decodeMenuData: Decoder[MenuData] = Decoder[Menu].widen
