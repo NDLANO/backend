@@ -15,7 +15,7 @@ import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Priority, VisualElement}
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ArticleType, Priority, VisualElement}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
@@ -300,7 +300,7 @@ trait SearchConverterService {
               shouldUsePublishedTax = false
             )
         }
-      }
+      }.getOrElse(List.empty)
 
       val traits               = getArticleTraits(draft.content)
       val embedAttributes      = getAttributesToIndex(draft.content, draft.visualElement)
@@ -334,6 +334,20 @@ trait SearchConverterService {
         draft.revisionMeta.filter(_.status == RevisionStatus.NeedsRevision).sortBy(_.revisionDate).headOption
       val draftStatus = search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq)
 
+      val parentTopicName = SearchableLanguageValues(
+        taxonomyContexts.headOption
+          .map(ctx => {
+            ctx.breadcrumbs
+              .map(lv => lv.value.lastOption.map(LanguageValue(lv.language, _)))
+              .flatten
+          })
+          .getOrElse(Seq.empty)
+      )
+
+      val primaryContext           = taxonomyContexts.find(_.isPrimary)
+      val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
+      val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
+
       Success(
         SearchableDraft(
           id = draft.id.get,
@@ -361,7 +375,7 @@ trait SearchConverterService {
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           notes = notes,
-          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
+          contexts = asSearchableTaxonomyContexts(taxonomyContexts),
           users = users.distinct,
           previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
           grepContexts = getGrepContexts(draft.grepCodes, grepBundle),
@@ -372,10 +386,53 @@ trait SearchConverterService {
           nextRevision = nextRevision,
           responsible = draft.responsible,
           domainObject = draft,
-          priority = draft.priority
+          priority = draft.priority,
+          parentTopicName = parentTopicName,
+          defaultParentTopicName = parentTopicName.defaultValue,
+          primaryRoot = primaryRoot,
+          defaultRoot = primaryRoot.defaultValue,
+          resourceTypeName = sortableResourceTypeName,
+          defaultResourceTypeName = sortableResourceTypeName.defaultValue
         )
       )
 
+    }
+
+    private def getSortableResourceTypeName(draft: Draft, taxonomyContexts: List[TaxonomyContext]) = {
+      draft.articleType match {
+        case ArticleType.Standard =>
+          taxonomyContexts.headOption
+            .map(ctx => {
+              val typeNames    = ctx.resourceTypes.map(t => t.name)
+              val allLanguages = typeNames.flatMap(_.map(_.language)).distinct
+              val values = allLanguages.map(language => {
+                val value = typeNames
+                  .map(typeName => typeName.getLanguageOrDefault(language).getOrElse(""))
+                  .mkString(" - ")
+                LanguageValue(language, value)
+              })
+              SearchableLanguageValues(values)
+            })
+            .getOrElse(
+              SearchableLanguageValues.from(
+                "nb" -> "Læringsressurs",
+                "nn" -> "Læringsressurs",
+                "en" -> "Subject matter"
+              )
+            )
+        case ArticleType.TopicArticle =>
+          SearchableLanguageValues.from(
+            "nb" -> "Emne",
+            "nn" -> "Emne",
+            "en" -> "Topic"
+          )
+        case ArticleType.FrontpageArticle =>
+          SearchableLanguageValues.from(
+            "nb" -> "Om-NDLA-artikkel",
+            "nn" -> "Om-NDLA-artikkel",
+            "en" -> "About-NDLA article"
+          )
+      }
     }
 
     private def asLearningPathApiLicense(license: String): License = {

@@ -123,7 +123,13 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
           )
         )
       ),
-      priority = Priority.Unspecified
+      priority = Priority.Unspecified,
+      parentTopicName = titles,
+      defaultParentTopicName = titles.defaultValue,
+      primaryRoot = titles,
+      defaultRoot = titles.defaultValue,
+      resourceTypeName = titles,
+      defaultResourceTypeName = titles.defaultValue
     )
 
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
