@@ -8,8 +8,9 @@
 package no.ndla.myndla.repository
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.DBUtil.buildWhereClause
 import no.ndla.common.errors.NotFoundException
-import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, MyNDLAUserDocument, NDLASQLException}
+import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, MyNDLAUserDocument, NDLASQLException, UserRole}
 import no.ndla.network.model.FeideID
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -24,25 +25,41 @@ trait UserRepository {
 
   class UserRepository extends StrictLogging {
 
-    def getUsersPaginated(offset: Long, limit: Long)(implicit session: DBSession) = Try {
+    def getUsersPaginated(offset: Long, limit: Long, filterTeachers: Boolean, query: Option[String])(implicit
+        session: DBSession
+    ): Try[(Long, List[MyNDLAUser])] = Try {
       val u = DBMyNDLAUser.syntax("u")
-      sql"""
+
+      val teacherClause = Option.when(filterTeachers)(sqls"u.document->>'userRole' = ${UserRole.EMPLOYEE.toString}")
+      val queryClause = query.map(q => {
+        val qString = s"%$q%"
+        sqls"u.document->>'displayName' ilike $qString or u.document->>'username' ilike $qString"
+      })
+
+      val whereClause = buildWhereClause((teacherClause ++ queryClause).toSeq)
+
+      val count: Long = sql"""
+              select count(*)
+              from ${DBMyNDLAUser.as(u)}
+              $whereClause
+           """
+        .map(rs => rs.long("count"))
+        .single
+        .apply()
+        .getOrElse(0)
+
+      val users = sql"""
            select ${u.result.*}
            from ${DBMyNDLAUser.as(u)}
+           $whereClause
            order by ${u.id} asc
            limit $limit
            offset $offset
            """
         .map(DBMyNDLAUser.fromResultSet(u))
         .list()
-    }
 
-    def countUsers(implicit session: DBSession): Try[Long] = Try {
-      sql"""select count(*) from ${DBMyNDLAUser.table}"""
-        .map(rs => rs.long("count"))
-        .single
-        .apply()
-        .getOrElse(0)
+      count -> users
     }
 
     implicit val formats: Formats = DBMyNDLAUser.repositorySerializer
