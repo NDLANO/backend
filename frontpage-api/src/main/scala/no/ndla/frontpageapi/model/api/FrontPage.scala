@@ -9,6 +9,8 @@ package no.ndla.frontpageapi.model.api
 
 import cats.implicits.toFunctorOps
 import com.scalatsi.{TSIType, TSNamedType, TSType}
+import no.ndla.network.tapir.NoNullJsonPrinter._
+import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
@@ -19,7 +21,8 @@ import scala.annotation.unused
 @description("The Menu object")
 case class Menu(
     @description("Id of the article") articleId: Long,
-    @description("List of submenu objects") menu: List[MenuData]
+    @description("List of submenu objects") menu: List[MenuData],
+    @description("Hide this level in menu") hideLevel: Boolean = false
 ) extends MenuData
 
 @description("Object containing frontpage data")
@@ -30,7 +33,7 @@ case class FrontPage(
 
 object Menu {
   implicit val encodeMenu: Encoder[Menu] = deriveEncoder
-  implicit val decodeMenu: Decoder[Menu] = deriveDecoder
+  implicit val decodeMenu: Decoder[Menu] = deriveConfiguredDecoder
 
   implicit val encodeMenuData: Encoder[MenuData] = Encoder.instance { case menu: Menu => menu.asJson }
   implicit val decodeMenuData: Decoder[MenuData] = Decoder[Menu].widen
@@ -47,7 +50,7 @@ object Menu {
 
 sealed trait MenuData {}
 object MenuData {
-  def apply(articleId: Long, menu: List[MenuData]): MenuData = new Menu(articleId, menu)
+  def apply(articleId: Long, menu: List[MenuData], hideLevel: Boolean): MenuData = new Menu(articleId, menu, hideLevel)
 
   implicit val menuDataAlias: TSNamedType[MenuData] = TSType.alias[MenuData]("IMenuData", Menu.menuTSI.get)
 }
