@@ -379,4 +379,113 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     service.getSharedFolder(folderUUID, Some(feideId)) should be(Success(apiFolder))
   }
 
+  test("That getSharedFolder returns folder with tags only if owner") {
+    reset(feideApiClient)
+    when(clock.now()).thenReturn(TestData.today)
+    val ownerId      = "ownerId"
+    val otherId      = "someOtherId"
+    val folderUUID   = UUID.randomUUID()
+    val resourceUUID = UUID.randomUUID()
+    val resource = emptyDomainResource.copy(
+      id = resourceUUID,
+      feideId = ownerId,
+      tags = List("a", "b"),
+      resourceType = "article",
+      path = "/path",
+      created = TestData.today
+    )
+    val folderWithId = emptyDomainFolder.copy(
+      id = folderUUID,
+      status = FolderStatus.SHARED,
+      feideId = ownerId,
+      resources = List(resource)
+    )
+
+    val apiResource = api.Resource(
+      id = resourceUUID.toString,
+      resourceType = "article",
+      path = "/path",
+      created = TestData.today,
+      tags = List("a", "b"),
+      resourceId = "1",
+      rank = None
+    )
+    val apiFolder = emptyApiFolder.copy(
+      id = folderUUID.toString,
+      name = "",
+      status = "shared",
+      breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = "")),
+      resources = List(apiResource)
+    )
+
+    when(feideApiClient.getFeideID(Some(ownerId))).thenReturn(Success(ownerId))
+    when(feideApiClient.getFeideID(Some(otherId))).thenReturn(Success(otherId))
+    when(
+      folderRepository.getFolderAndChildrenSubfoldersWithResources(
+        eqTo(folderUUID),
+        eqTo(FolderStatus.SHARED),
+        eqTo(Some(ownerId))
+      )(any)
+    )
+      .thenReturn(Success(Some(folderWithId)))
+    when(
+      folderRepository.getFolderAndChildrenSubfoldersWithResources(
+        eqTo(folderUUID),
+        eqTo(FolderStatus.SHARED),
+        eqTo(Some(otherId))
+      )(any)
+    )
+      .thenReturn(Success(Some(folderWithId)))
+
+    when(userRepository.userWithFeideId(eqTo(ownerId))(any[DBSession])).thenReturn(
+      Success(
+        Some(
+          MyNDLAUser(
+            id = 1,
+            feideId = ownerId,
+            favoriteSubjects = Seq.empty,
+            userRole = UserRole.EMPLOYEE,
+            lastUpdated = TestData.today,
+            organization = "lal",
+            groups = Seq.empty,
+            username = "username",
+            displayName = "User Name",
+            email = "user_name@example.com",
+            arenaEnabled = true,
+            arenaGroups = List.empty,
+            shareName = false
+          )
+        )
+      )
+    )
+
+    when(userRepository.userWithFeideId(eqTo(otherId))(any[DBSession])).thenReturn(
+      Success(
+        Some(
+          MyNDLAUser(
+            id = 2,
+            feideId = otherId,
+            favoriteSubjects = Seq.empty,
+            userRole = UserRole.EMPLOYEE,
+            lastUpdated = TestData.today,
+            organization = "lal",
+            groups = Seq.empty,
+            username = "username",
+            displayName = "User Name",
+            email = "user_name@example.com",
+            arenaEnabled = true,
+            arenaGroups = List.empty,
+            shareName = false
+          )
+        )
+      )
+    )
+
+    service.getSharedFolder(folderUUID, Some(ownerId)) should be(Success(apiFolder))
+
+    service.getSharedFolder(folderUUID, Some(otherId)) should be(
+      Success(apiFolder.copy(resources = List(apiResource.copy(tags = List.empty))))
+    )
+  }
+
 }

@@ -50,7 +50,13 @@ trait FolderReadService {
         feideUser    <- userRepository.userWithFeideId(feideId)
         apiFolders <- folderConverterService.domainToApiModel(
           withData,
-          v => folderConverterService.toApiFolder(v, List(api.Breadcrumb(id = v.id.toString, name = v.name)), feideUser)
+          v =>
+            folderConverterService.toApiFolder(
+              v,
+              List(api.Breadcrumb(id = v.id.toString, name = v.name)),
+              feideUser,
+              feideUser.exists(_.feideId == v.feideId)
+            )
         )
         sorted = apiFolders.sortBy(_.rank)
       } yield sorted
@@ -72,7 +78,12 @@ trait FolderReadService {
         folderAsTopFolder = folderWithContent.copy(parentId = None)
         breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
         feideUser   <- userRepository.userWithFeideId(folderWithContent.feideId)
-        converted   <- folderConverterService.toApiFolder(folderAsTopFolder, breadcrumbs, feideUser)
+        converted <- folderConverterService.toApiFolder(
+          folderAsTopFolder,
+          breadcrumbs,
+          feideUser,
+          feideId.contains(folderWithContent.feideId)
+        )
       } yield converted
     }
 
@@ -179,7 +190,12 @@ trait FolderReadService {
         _                 <- folderWithContent.isOwner(feideId)
         feideUser         <- userRepository.userWithFeideId(folderWithContent.feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
-        converted         <- folderConverterService.toApiFolder(folderWithContent, breadcrumbs, feideUser)
+        converted <- folderConverterService.toApiFolder(
+          folderWithContent,
+          breadcrumbs,
+          feideUser,
+          feideId == folderWithContent.feideId
+        )
       } yield converted
     }
 
@@ -188,9 +204,12 @@ trait FolderReadService {
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[List[api.Resource]] = {
       for {
-        feideId            <- feideApiClient.getFeideID(feideAccessToken)
-        resources          <- folderRepository.resourcesWithFeideId(feideId, size)
-        convertedResources <- folderConverterService.domainToApiModel(resources, folderConverterService.toApiResource)
+        feideId   <- feideApiClient.getFeideID(feideAccessToken)
+        resources <- folderRepository.resourcesWithFeideId(feideId, size)
+        convertedResources <- folderConverterService.domainToApiModel(
+          resources,
+          resource => folderConverterService.toApiResource(resource, isOwner = true)
+        )
       } yield convertedResources
     }
 

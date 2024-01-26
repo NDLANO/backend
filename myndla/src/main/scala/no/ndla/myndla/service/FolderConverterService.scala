@@ -28,7 +28,8 @@ trait FolderConverterService {
     def toApiFolder(
         domainFolder: domain.Folder,
         breadcrumbs: List[api.Breadcrumb],
-        feideUser: Option[domain.MyNDLAUser]
+        feideUser: Option[domain.MyNDLAUser],
+        isOwner: Boolean
     ): Try[api.Folder] = {
       def loop(
           folder: domain.Folder,
@@ -45,7 +46,7 @@ trait FolderConverterService {
         })
         .flatMap(subFolders =>
           folder.resources
-            .traverse(toApiResource)
+            .traverse(r => toApiResource(r, isOwner))
             .map(resources => {
               api.Folder(
                 id = folder.id.toString,
@@ -127,11 +128,11 @@ trait FolderConverterService {
       )
     }
 
-    def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
+    def toApiResource(domainResource: domain.Resource, isOwner: Boolean): Try[api.Resource] = {
       val resourceType = domainResource.resourceType
       val path         = domainResource.path
       val created      = domainResource.created
-      val tags         = domainResource.tags
+      val tags         = if (isOwner) domainResource.tags else List.empty
       val resourceId   = domainResource.resourceId
 
       Success(

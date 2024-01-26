@@ -214,7 +214,7 @@ class CloneFolderTest
       resourceType = "article",
       path = "/path",
       created = testClock.now(),
-      tags = List("a", "b"),
+      tags = List(), // No tags since we are not owner
       resourceId = "1",
       rank = Some(1)
     )
@@ -324,7 +324,7 @@ class CloneFolderTest
       resourceType = "article",
       path = "/path",
       created = testClock.now(),
-      tags = List("a", "b"),
+      tags = List(), // No tags since we are not owner
       resourceId = "1",
       rank = Some(1)
     )
@@ -427,7 +427,7 @@ class CloneFolderTest
       resourceType = "article",
       path = "/path",
       created = testClock.now(),
-      tags = List("a", "b"),
+      tags = List(), // No tags since we are not owner
       resourceId = "1",
       rank = Some(1)
     )
