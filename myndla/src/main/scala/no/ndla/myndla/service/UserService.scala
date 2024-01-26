@@ -49,13 +49,12 @@ trait UserService {
       }
     }
 
-    def getArenaUsersPaginated(page: Long, pageSize: Long)(
+    def getArenaUsersPaginated(page: Long, pageSize: Long, filterTeachers: Boolean, query: Option[String])(
         session: DBSession = ReadOnlyAutoSession
     ): Try[PaginatedArenaUsers] = {
       val offset = (page - 1) * pageSize
       for {
-        totalCount <- userRepository.countUsers(session)
-        users      <- userRepository.getUsersPaginated(offset, pageSize)(session)
+        (totalCount, users) <- userRepository.getUsersPaginated(offset, pageSize, filterTeachers, query)(session)
         arenaUsers = users.map(ArenaUser.from)
       } yield PaginatedArenaUsers(totalCount, page, pageSize, arenaUsers)
     }

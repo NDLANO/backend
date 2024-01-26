@@ -442,12 +442,21 @@ trait ArenaController {
       .in("users")
       .in(queryPage)
       .in(queryPageSize)
+      .in(query[Boolean]("filter-teachers").description("Whether to filter teachers or not").default(false))
+      .in(query[Option[String]]("query").description("Search query to match against username or display name"))
       .out(jsonBody[PaginatedArenaUsers])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { _ =>
-        { case (page, pageSize) =>
-          userService.getArenaUsersPaginated(page, pageSize)().handleErrorsOrOk
+        { case (page, pageSize, filterTeachers, query) =>
+          userService
+            .getArenaUsersPaginated(
+              page,
+              pageSize,
+              filterTeachers,
+              query
+            )()
+            .handleErrorsOrOk
         }
       }
 

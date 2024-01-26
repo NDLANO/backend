@@ -14,6 +14,7 @@ import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.common.DBUtil.buildWhereClause
 import no.ndla.common.errors.RollbackException
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
@@ -719,17 +720,6 @@ trait ArenaRepository {
           })
       })
     } yield CompiledPost(post = post, owner = postOwner, flagsWithFlaggers.toList)
-
-    private def buildWhereClause(conditions: Seq[SQLSyntax]): SQLSyntax =
-      if (conditions.nonEmpty) {
-        val cc = conditions.foldLeft((true, sqls"where ")) { case (acc, cur) =>
-          (
-            false,
-            if (acc._1) sqls"${acc._2} $cur" else sqls"${acc._2} and $cur"
-          )
-        }
-        cc._2
-      } else sqls""
 
     def topicCountWhere(conditions: Seq[SQLSyntax], requester: MyNDLAUser)(implicit session: DBSession): Try[Long] =
       Try {
