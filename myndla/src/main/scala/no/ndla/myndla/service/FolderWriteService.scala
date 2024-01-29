@@ -77,7 +77,8 @@ trait FolderWriteService {
     private[service] def cloneChildrenRecursively(
         sourceFolder: CopyableFolder,
         destinationFolder: domain.Folder,
-        feideId: FeideID
+        feideId: FeideID,
+        isOwner: Boolean
     )(implicit session: DBSession): Try[domain.Folder] = {
 
       val clonedResources = sourceFolder.resources.traverse(res => {
@@ -85,7 +86,7 @@ trait FolderWriteService {
           api.NewResource(
             resourceType = res.resourceType,
             path = res.path,
-            tags = res.tags.some,
+            tags = if (isOwner) res.tags.some else None,
             resourceId = res.resourceId
           )
         createOrUpdateFolderResourceConnection(destinationFolder.id, newResource, feideId)
@@ -101,7 +102,7 @@ trait FolderWriteService {
         )
         folderRepository
           .insertFolder(feideId, newFolder)
-          .flatMap(newFolder => cloneChildrenRecursively(childFolder, newFolder, feideId))
+          .flatMap(newFolder => cloneChildrenRecursively(childFolder, newFolder, feideId, isOwner))
       })
 
       for {
@@ -114,7 +115,8 @@ trait FolderWriteService {
         sourceFolder: CopyableFolder,
         destinationId: Option[UUID],
         feideId: FeideID,
-        makeUniqueRootNamesWithPostfix: Option[String]
+        makeUniqueRootNamesWithPostfix: Option[String],
+        isOwner: Boolean
     )(implicit
         session: DBSession
     ): Try[domain.Folder] = {
@@ -134,7 +136,7 @@ trait FolderWriteService {
               makeUniqueRootNamesWithPostfix,
               isCloning = true
             )
-            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
+            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId, isOwner)
           } yield clonedFolder
         case Some(id) =>
           for {
@@ -146,7 +148,7 @@ trait FolderWriteService {
               makeUniqueRootNamesWithPostfix,
               isCloning = true
             )
-            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
+            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId, isOwner)
           } yield clonedFolder
       }
     }
@@ -166,11 +168,12 @@ trait FolderWriteService {
             Some(feideId)
           )
           sourceFolder <- folderReadService.getWith404IfNone(sourceId, maybeFolder)
+          isOwner = sourceFolder.feideId == feideId
           _            <- sourceFolder.isClonable
-          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some)(session)
+          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some, isOwner)(session)
           breadcrumbs  <- folderReadService.getBreadcrumbs(clonedFolder)
           feideUser    <- userRepository.userWithFeideId(feideId)
-          converted    <- folderConverterService.toApiFolder(clonedFolder, breadcrumbs, feideUser)
+          converted    <- folderConverterService.toApiFolder(clonedFolder, breadcrumbs, feideUser, isOwner)
         } yield converted
       }
     }
@@ -179,7 +182,13 @@ trait FolderWriteService {
         session: DBSession
     ): Try[Seq[domain.Folder]] =
       toImport.traverse(folder =>
-        cloneRecursively(folder, None, feideId, makeUniqueRootNamesWithPostfix = " (Fra import)".some)
+        cloneRecursively(
+          folder,
+          None,
+          feideId,
+          makeUniqueRootNamesWithPostfix = " (Fra import)".some,
+          isOwner = true
+        )
       )
 
     private def importUserDataAuthenticated(
@@ -231,7 +240,7 @@ trait FolderWriteService {
         updated        <- folderRepository.updateFolder(id, feideId, converted)
         crumbs         <- folderReadService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
         feideUser      <- userRepository.userWithFeideId(feideId)
-        api            <- folderConverterService.toApiFolder(updated, crumbs, feideUser)
+        api            <- folderConverterService.toApiFolder(updated, crumbs, feideUser, isOwner = true)
       } yield api
     }
 
@@ -247,7 +256,7 @@ trait FolderWriteService {
         _                <- existingResource.isOwner(feideId)
         converted = folderConverterService.mergeResource(existingResource, updatedResource)
         updated <- folderRepository.updateResource(converted)
-        api     <- folderConverterService.toApiResource(updated)
+        api     <- folderConverterService.toApiResource(updated, isOwner = true)
       } yield api
     }
 
@@ -534,7 +543,7 @@ trait FolderWriteService {
         inserted  <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
         crumbs    <- folderReadService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         feideUser <- userRepository.userWithFeideId(feideId)
-        api       <- folderConverterService.toApiFolder(inserted, crumbs, feideUser)
+        api       <- folderConverterService.toApiFolder(inserted, crumbs, feideUser, isOwner = true)
       } yield api
     }
 
@@ -563,7 +572,7 @@ trait FolderWriteService {
         feideId   <- feideApiClient.getFeideID(feideAccessToken)
         _         <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
-        converted <- folderConverterService.toApiResource(resource)
+        converted <- folderConverterService.toApiResource(resource, isOwner = true)
       } yield converted
     }
 

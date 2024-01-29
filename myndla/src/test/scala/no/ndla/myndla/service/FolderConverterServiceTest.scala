@@ -231,7 +231,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     )
 
     val Success(result) =
-      service.toApiFolder(mainFolder, List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")), None)
+      service.toApiFolder(
+        mainFolder,
+        List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")),
+        None,
+        true
+      )
     result should be(expected)
   }
 
@@ -349,7 +354,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         rank = None
       )
 
-    service.toApiResource(existing) should be(Success(expected))
+    service.toApiResource(existing, isOwner = true) should be(Success(expected))
   }
 
   test("that newResource toDomainResource converts correctly") {
@@ -382,7 +387,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       TestData.emptyDomainFolder.copy(id = folder3UUID)
     )
 
-    val result = service.domainToApiModel(folderDomainList, f => service.toApiFolder(f, List.empty, None))
+    val result =
+      service.domainToApiModel(folderDomainList, f => service.toApiFolder(f, List.empty, None, isOwner = true))
     result.get.length should be(3)
     result should be(
       Success(
