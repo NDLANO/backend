@@ -53,7 +53,7 @@ trait TestData {
       id = 1,
       oldNdlaUrl = None,
       revision = 1,
-      title = api.ArticleTitle("title", "nb"),
+      title = api.ArticleTitle("title", "title", "nb"),
       content = api.ArticleContentV2("this is content", "nb"),
       copyright = model.api.Copyright(
         model.api.License("licence", None, None),
@@ -89,7 +89,7 @@ trait TestData {
       articleId,
       Some(s"//red.ndla.no/node/$externalId"),
       2,
-      api.ArticleTitle("title", "nb"),
+      api.ArticleTitle("title", "title", "nb"),
       api.ArticleContentV2("content", "nb"),
       model.api.Copyright(
         model.api.License(
@@ -246,7 +246,7 @@ trait TestData {
       1,
       None,
       1,
-      api.ArticleTitle("test", "en"),
+      api.ArticleTitle("test", "test", "en"),
       api.ArticleContentV2(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
         |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>

@@ -14,7 +14,7 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi}
 import no.ndla.common.model.api.{License, UpdateWith}
-import no.ndla.common.model.domain.{Author, Availability, Description, RequiredLibrary, Tag, Title}
+import no.ndla.common.model.domain.{Author, Availability, Description, Introduction, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 
 import scala.util.Success
@@ -40,6 +40,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Some("Creative Commons Attribution 4.0 International"),
         Some("https://creativecommons.org/licenses/by/4.0/")
       )
+    )
+  }
+
+  test("toApiArticleTitle returns both title and htmlTitle") {
+    val title = Title("Title with <span data-language=\"uk\">ukrainian</span> word", "en")
+    service.toApiArticleTitle(title) should equal(
+      api.ArticleTitle("Title with ukrainian word", "Title with <span data-language=\"uk\">ukrainian</span> word", "en")
+    )
+  }
+
+  test("toApiArticleIntroduction returns both introduction and htmlIntroduction") {
+    val introduction = Introduction("Introduction with <em>emphasis</em>", "en")
+    service.toApiArticleIntroduction(introduction) should equal(
+      api.ArticleIntroduction("Introduction with emphasis", "Introduction with <em>emphasis</em>", "en")
     )
   }
 
