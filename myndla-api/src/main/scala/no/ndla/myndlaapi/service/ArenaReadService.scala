@@ -13,6 +13,7 @@ import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.myndla.model.domain.MyNDLAUser
+import no.ndla.myndla.repository.{FolderRepository, UserRepository}
 import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
@@ -20,12 +21,20 @@ import no.ndla.myndlaapi.model.arena.api.{Category, CategorySort, NewCategory, N
 import no.ndla.myndlaapi.model.arena.domain.{MissingPostException, TopicGoneException}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.repository.ArenaRepository
+import no.ndla.network.model.FeideAccessToken
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
 import scala.util.{Failure, Success, Try}
 
 trait ArenaReadService {
-  this: FeideApiClient with ArenaRepository with ConverterService with UserService with Clock with ConfigService =>
+  this: FeideApiClient
+    with ArenaRepository
+    with ConverterService
+    with UserService
+    with Clock
+    with ConfigService
+    with FolderRepository
+    with UserRepository =>
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
@@ -229,7 +238,7 @@ trait ArenaReadService {
     }
 
     private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] =
-      if (owned.ownerId == user.id || user.isAdmin) Success(())
+      if (owned.ownerId.contains(user.id) || user.isAdmin) Success(())
       else Failure(AccessDeniedException.forbidden)
 
     def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
@@ -258,7 +267,7 @@ trait ArenaReadService {
           topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created, created)(session)
           _     <- followTopic(topic.id, user)(session)
           _     <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created)(session)
-          compiledTopic = CompiledTopic(topic, user, 1, isFollowing = true)
+          compiledTopic = CompiledTopic(topic, Some(user), 1, isFollowing = true)
         } yield converterService.toApiTopic(compiledTopic)
       }
     }
@@ -271,7 +280,7 @@ trait ArenaReadService {
           newPost <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created)(session)
           _       <- generateNewPostNotifications(topic, newPost)(session)
           _       <- followTopic(topicId, user)(session)
-          compiledPost = CompiledPost(newPost, user, List.empty)
+          compiledPost = CompiledPost(newPost, Some(user), List.empty)
         } yield converterService.toApiPost(compiledPost, user)
       }
 
@@ -282,7 +291,7 @@ trait ArenaReadService {
       getFollowers(topic.topic.id)(session)
         .flatMap { followers =>
           followers.traverse { follower =>
-            if (follower.id == newPost.ownerId) Success(None)
+            if (newPost.ownerId.contains(follower.id)) Success(None)
             else
               arenaRepository
                 .insertNotification(
@@ -416,5 +425,18 @@ trait ArenaReadService {
           })
         })
 
+    def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] =
+      arenaRepository.rollbackOnFailure(session => {
+        for {
+          feideId <- feideApiClient.getFeideID(feideAccessToken)
+          user    <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+          _       <- arenaRepository.disconnectPostsByUser(user.id)(session)
+          _       <- arenaRepository.disconnectTopicsByUser(user.id)(session)
+          _       <- arenaRepository.disconnectFlagsByUser(user.id)(session)
+          _       <- folderRepository.deleteAllUserFolders(feideId)(session)
+          _       <- folderRepository.deleteAllUserResources(feideId)(session)
+          _       <- userRepository.deleteUser(feideId)(session)
+        } yield ()
+      })
   }
 }
