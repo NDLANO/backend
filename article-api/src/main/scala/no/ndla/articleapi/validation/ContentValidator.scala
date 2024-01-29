@@ -28,7 +28,7 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator() {
-    private val allowedTags = if (props.AllowHtmlInTitle) Set("span") else Set.empty[String]
+    private val allowedTags = props.InlineHtmlTags
 
     def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val metaValidation =

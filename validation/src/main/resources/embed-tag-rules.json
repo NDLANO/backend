@@ -257,7 +257,15 @@
         {
           "name": "data-caption",
           "validation": {
-            "required": true
+            "required": true,
+            "allowedHtml": [
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
+            ]
           }
         },
         {
@@ -322,7 +330,15 @@
         {
           "name": "data-caption",
           "validation": {
-            "required": true
+            "required": true,
+            "allowedHtml": [
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
+            ]
           }
         },
         {
@@ -891,7 +907,12 @@
           "validation": {
             "required": true,
             "allowedHtml": [
-              "span"
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
             ]
           }
         },
@@ -942,7 +963,12 @@
           "validation": {
             "required": true,
             "allowedHtml": [
-              "span"
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
             ]
           }
         },
@@ -951,7 +977,12 @@
           "validation": {
             "required": true,
             "allowedHtml": [
-              "span"
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
             ]
           }
         },
@@ -995,7 +1026,12 @@
           "validation": {
             "required": true,
             "allowedHtml": [
-              "span"
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
             ]
           }
         },
@@ -1010,7 +1046,12 @@
           "validation": {
             "required": true,
             "allowedHtml": [
-              "span"
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
             ]
           }
         },
@@ -1080,7 +1121,12 @@
           "validation": {
             "required": true,
             "allowedHtml": [
-              "span"
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
             ]
           }
         },

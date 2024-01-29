@@ -103,9 +103,9 @@ class ArticleApiProperties extends BaseProps {
     ResourceType.H5P.toString   -> H5PAddress
   )
 
-  def AllowHtmlInTitle: Boolean = booleanPropOrFalse("ALLOW_HTML_IN_TITLE")
+  def InlineHtmlTags: Set[String] = if (booleanPropOrFalse("ALLOW_HTML_IN_TITLE")) Set("code", "em", "span", "strong", "sub", "sup") else Set.empty
 
-  def H5PAddress: String = propOrElse(
+  private def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",
     Map(
       "test"    -> "https://h5p-test.ndla.no",

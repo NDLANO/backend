@@ -329,14 +329,14 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
-  test("Html in data-caption is forbidden for image") {
+  test("Html in data-alt is forbidden for image") {
     val embedString =
       s"""<$EmbedTagName
          | data-resource="image"
          | data-resource_id="1"
          | data-size=""
          | data-align=""
-         | data-alt=""
+         | data-alt="Bilde på <span lang='en'>engelsk</span>"
          | data-caption="Bilde på <span lang='en'>engelsk</span>"
          |/>""".stripMargin
 
@@ -345,7 +345,7 @@ class EmbedTagRulesTest extends UnitSuite {
       Seq(
         ValidationMessage(
           "test",
-          s"HTML tag '$EmbedTagName' contains attributes with HTML: data-caption"
+          s"HTML tag '$EmbedTagName' contains attributes with HTML: data-alt"
         )
       )
     )
