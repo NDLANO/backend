@@ -61,8 +61,10 @@ trait UserService {
 
     def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
       for {
-        feideId  <- feideApiClient.getFeideID(feideAccessToken)
-        userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+        feideId <- feideApiClient.getFeideID(feideAccessToken)
+        userData <- userRepository.rollbackOnFailure(session =>
+          getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+        )
       } yield userData
     }
 
@@ -89,10 +91,14 @@ trait UserService {
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
     )(implicit session: DBSession): Try[domain.MyNDLAUser] = {
-      userRepository.userWithFeideId(feideId)(session).flatMap {
-        case None                                         => createMyNDLAUser(feideId, feideAccessToken)(session)
-        case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
-        case Some(userData) => fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
+      userRepository.reserveFeideIdIfNotExists(feideId)(session).flatMap {
+        case false => createMyNDLAUser(feideId, feideAccessToken)(session)
+        case true =>
+          userRepository.userWithFeideId(feideId)(session).flatMap {
+            case None => Failure(new IllegalStateException(s"User with feide_id $feideId was not found."))
+            case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
+            case Some(userData) => fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
+          }
       }
     }
 
