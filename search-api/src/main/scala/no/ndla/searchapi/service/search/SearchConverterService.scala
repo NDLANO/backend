@@ -402,7 +402,7 @@ trait SearchConverterService {
       draft.articleType match {
         case ArticleType.Standard =>
           taxonomyContexts.headOption
-            .map(ctx => {
+            .flatMap(ctx => {
               val typeNames    = ctx.resourceTypes.map(t => t.name)
               val allLanguages = typeNames.flatMap(_.map(_.language)).distinct
               val values = allLanguages.map(language => {
@@ -411,7 +411,9 @@ trait SearchConverterService {
                   .mkString(" - ")
                 LanguageValue(language, value)
               })
-              SearchableLanguageValues(values)
+              Option.when(values.nonEmpty) {
+                SearchableLanguageValues(values)
+              }
             })
             .getOrElse(
               SearchableLanguageValues.from(
