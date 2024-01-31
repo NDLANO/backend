@@ -1,14 +1,14 @@
 /*
- * Part of NDLA search-api.
- * Copyright (C) 2021 NDLA
+ * Part of NDLA search
+ * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.searchapi.service.search
+package no.ndla.search
 
-import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
 import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
 
 /** [[FakeAgg]] and inheriting classes are an abstraction to easier work with Elastic4s' Aggregations They are usually
   * used by calling `convertToReal()` which returns the real Elasitc4s [[Aggregation]] And then passing them to an
