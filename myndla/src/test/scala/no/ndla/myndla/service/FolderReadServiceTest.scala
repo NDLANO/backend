@@ -13,10 +13,11 @@ import no.ndla.myndla.{TestData, TestEnvironment}
 import no.ndla.myndla.model.domain.{Folder, FolderStatus, MyNDLAGroup, MyNDLAUser, Resource, UserRole}
 import no.ndla.myndla.model.api
 import no.ndla.scalatestsuite.UnitTestSuite
+import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import java.util.UUID
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
@@ -28,6 +29,10 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     resetMocks()
     when(clock.now()).thenReturn(TestData.today)
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
+    when(folderRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    })
   }
 
   test("That getSingleFolder returns folder and its data when user is the owner") {
