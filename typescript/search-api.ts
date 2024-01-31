@@ -179,6 +179,9 @@ export interface IMultiSearchSummary {
   comments?: IComment[]
   prioritized?: boolean
   priority?: string
+  resourceTypeName?: string
+  parentTopicName?: string
+  primaryRootName?: string
 }
 
 export interface IMultiSearchTermsAggregation {
