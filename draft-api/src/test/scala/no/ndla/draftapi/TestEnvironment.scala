@@ -72,8 +72,11 @@ trait TestEnvironment
     with DBMigrator
     with Props
     with DraftApiInfo {
-  val props: DraftApiProperties = new DraftApiProperties
-  val migrator: DBMigrator      = mock[DBMigrator]
+  val props: DraftApiProperties = new DraftApiProperties {
+    override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
+    override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
+  }
+  val migrator: DBMigrator = mock[DBMigrator]
 
   val articleSearchService   = mock[ArticleSearchService]
   val articleIndexService    = mock[ArticleIndexService]

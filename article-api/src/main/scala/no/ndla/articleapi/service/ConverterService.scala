@@ -39,6 +39,7 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s._
 import org.json4s.native.Serialization.read
+import org.jsoup.Jsoup
 
 import scala.util.{Failure, Success, Try}
 
@@ -112,7 +113,7 @@ trait ConverterService {
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(toApiArticleTitle)
-        .getOrElse(api.ArticleTitle("", UnknownLanguage.toString))
+        .getOrElse(api.ArticleTitle("", "", UnknownLanguage.toString))
       val visualElement   = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
       val introduction    = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
@@ -200,7 +201,7 @@ trait ConverterService {
       )
     }
 
-    def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
+    private def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
       relatedContent.map {
         case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
@@ -225,7 +226,7 @@ trait ConverterService {
       articleRepository.getExternalIdsFromId(id).map(createLinkToOldNdla).headOption
     }
 
-    def getSupportedArticleLanguages(article: Article): Seq[String] = {
+    private def getSupportedArticleLanguages(article: Article): Seq[String] = {
       getSupportedLanguages(
         article.title,
         article.visualElement,
@@ -254,7 +255,7 @@ trait ConverterService {
           .getOrElse(api.ArticleTag(Seq(), UnknownLanguage.toString))
         val title = findByLanguageOrBestEffort(article.title, language)
           .map(toApiArticleTitle)
-          .getOrElse(api.ArticleTitle("", UnknownLanguage.toString))
+          .getOrElse(api.ArticleTitle("", "", UnknownLanguage.toString))
         val introduction  = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
         val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language)
@@ -302,17 +303,17 @@ trait ConverterService {
     }
 
     def toApiArticleTitle(title: Title): api.ArticleTitle = {
-      api.ArticleTitle(title.title, title.language)
+      api.ArticleTitle(Jsoup.parse(title.title).body().text(), title.title, title.language)
     }
 
-    def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2 = {
+    private def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2 = {
       api.ArticleContentV2(
         content.content,
         content.language
       )
     }
 
-    def toApiRelatedContent(relatedContent: RelatedContent): common.model.api.RelatedContent = {
+    private def toApiRelatedContent(relatedContent: RelatedContent): common.model.api.RelatedContent = {
       relatedContent match {
         case Left(x)  => Left(common.model.api.RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
@@ -320,7 +321,7 @@ trait ConverterService {
 
     }
 
-    def toApiCopyright(copyright: Copyright): commonApi.Copyright = {
+    private def toApiCopyright(copyright: Copyright): commonApi.Copyright = {
       commonApi.Copyright(
         toApiLicense(copyright.license),
         copyright.origin,
@@ -340,27 +341,27 @@ trait ConverterService {
       }
     }
 
-    def toApiArticleTag(tag: Tag): api.ArticleTag = {
+    private def toApiArticleTag(tag: Tag): api.ArticleTag = {
       api.ArticleTag(tag.tags, tag.language)
     }
 
-    def toApiRequiredLibrary(required: RequiredLibrary): api.RequiredLibrary = {
+    private def toApiRequiredLibrary(required: RequiredLibrary): api.RequiredLibrary = {
       api.RequiredLibrary(required.mediaType, required.name, required.url)
     }
 
-    def toApiVisualElement(visual: VisualElement): api.VisualElement = {
+    private def toApiVisualElement(visual: VisualElement): api.VisualElement = {
       api.VisualElement(visual.resource, visual.language)
     }
 
     def toApiArticleIntroduction(intro: Introduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(intro.introduction, intro.language)
+      api.ArticleIntroduction(Jsoup.parse(intro.introduction).body().text(), intro.introduction, intro.language)
     }
 
-    def toApiArticleMetaDescription(metaDescription: Description): api.ArticleMetaDescription = {
+    private def toApiArticleMetaDescription(metaDescription: Description): api.ArticleMetaDescription = {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
-    def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
+    private def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
       api.ArticleMetaImage(
         s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
@@ -368,7 +369,7 @@ trait ConverterService {
       )
     }
 
-    def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
+    private def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
     def toApiArticleIds(ids: ArticleIds): api.ArticleIds = api.ArticleIds(ids.articleId, ids.externalId)
 

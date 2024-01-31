@@ -61,7 +61,8 @@ trait TestEnvironment
     with TestData
     with DBMigrator {
   val props: ArticleApiProperties = new ArticleApiProperties {
-    override def AllowHtmlInTitle: Boolean = true
+    override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
+    override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
   val TestData: TestData = new TestData
   val migrator           = mock[DBMigrator]
