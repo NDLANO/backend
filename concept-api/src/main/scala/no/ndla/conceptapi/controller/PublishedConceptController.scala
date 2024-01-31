@@ -73,7 +73,8 @@ trait PublishedConceptController {
         shouldScroll: Boolean,
         embedResource: Option[String],
         embedId: Option[String],
-        conceptType: Option[String]
+        conceptType: Option[String],
+        aggregatePaths: List[String]
     ) = {
       val settings = SearchSettings(
         withIdIn = idList,
@@ -88,7 +89,8 @@ trait PublishedConceptController {
         shouldScroll = shouldScroll,
         embedResource = embedResource,
         embedId = embedId,
-        conceptType = conceptType
+        conceptType = conceptType,
+        aggregatePaths = aggregatePaths
       )
 
       val result = query.emptySomeToNone match {
@@ -154,7 +156,8 @@ trait PublishedConceptController {
             asQueryParam(exactTitleMatch),
             asQueryParam(embedResource),
             asQueryParam(embedId),
-            asQueryParam(conceptType)
+            asQueryParam(conceptType),
+            asQueryParam(aggregatePaths)
           )
           authorizations "oauth2"
           responseMessages response500
@@ -177,6 +180,7 @@ trait PublishedConceptController {
         val embedResource   = paramOrNone(this.embedResource.paramName)
         val embedId         = paramOrNone(this.embedId.paramName)
         val conceptType     = paramOrNone(this.conceptType.paramName)
+        val aggregatePaths  = paramAsListOfString(this.aggregatePaths.paramName)
 
         search(
           query,
@@ -192,7 +196,8 @@ trait PublishedConceptController {
           shouldScroll,
           embedResource,
           embedId,
-          conceptType
+          conceptType,
+          aggregatePaths
         )
 
       }
@@ -233,6 +238,7 @@ trait PublishedConceptController {
             val embedResource   = searchParams.embedResource
             val embedId         = searchParams.embedId
             val conceptType     = searchParams.conceptType
+            val aggregatePaths  = searchParams.aggregatePaths
 
             search(
               query,
@@ -248,7 +254,8 @@ trait PublishedConceptController {
               shouldScroll,
               embedResource,
               embedId,
-              conceptType
+              conceptType,
+              aggregatePaths
             )
           case Failure(ex) => errorHandler(ex)
         }

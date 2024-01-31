@@ -208,7 +208,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     reset(draftConceptSearchService)
 
     val multiResult =
-      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Some("heiheihei"))
+      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
     when(draftConceptSearchService.all(any[search.DraftSearchSettings])).thenReturn(Success(multiResult))
 
     val expectedSettings =

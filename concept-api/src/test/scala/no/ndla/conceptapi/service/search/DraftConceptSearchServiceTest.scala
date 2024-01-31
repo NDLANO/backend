@@ -228,7 +228,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     embedResource = None,
     embedId = None,
     responsibleIdFilter = List.empty,
-    conceptType = None
+    conceptType = None,
+    aggregatePaths = List.empty
   )
 
   override def beforeAll(): Unit = {

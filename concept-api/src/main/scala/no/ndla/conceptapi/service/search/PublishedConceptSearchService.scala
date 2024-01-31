@@ -20,6 +20,7 @@ import no.ndla.conceptapi.model.search.{SearchSettings, SearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
+import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
@@ -170,6 +171,7 @@ trait PublishedConceptSearchService {
         )
         Failure(new ResultWindowTooLargeException())
       } else {
+        val aggregations = buildTermsAggregation(settings.aggregatePaths, List(publishedConceptIndexService.getMapping))
         val searchToExecute =
           search(searchIndex)
             .size(numResults)
@@ -177,6 +179,7 @@ trait PublishedConceptSearchService {
             .trackTotalHits(true)
             .query(filteredSearch)
             .highlighting(highlight("*"))
+            .aggs(aggregations)
             .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
         val searchWithScroll =
@@ -186,14 +189,16 @@ trait PublishedConceptSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
+            val aggResult = getAggregationsFromResult(response.result)
             Success(
               SearchResult(
-                response.result.totalHits,
-                Some(settings.page),
-                numResults,
-                searchLanguage,
-                getHits(response.result, settings.searchLanguage),
-                response.result.scrollId
+                totalCount = response.result.totalHits,
+                page = Some(settings.page),
+                pageSize = numResults,
+                language = searchLanguage,
+                results = getHits(response.result, settings.searchLanguage),
+                aggregations = aggResult,
+                scrollId = response.result.scrollId
               )
             )
           case Failure(ex) => errorHandler(ex)

@@ -65,7 +65,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
     reset(publishedConceptSearchService)
 
     val multiResult =
-      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Some("heiheihei"))
+      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
     when(publishedConceptSearchService.all(any[SearchSettings])).thenReturn(Success(multiResult))
 
     val expectedSettings =

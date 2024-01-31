@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.model.api
 
+import no.ndla.search.api.MultiSearchTermsAggregation
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -17,5 +18,8 @@ case class ConceptSearchResult(
     @(ApiModelProperty @field)(description = "For which page results are shown from") page: Option[Int],
     @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
     @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[ConceptSummary]
+    @(ApiModelProperty @field)(description = "The search results") results: Seq[ConceptSummary],
+    @(ApiModelProperty @field)(description = "The aggregated fields if specified in query") aggregations: Seq[
+      MultiSearchTermsAggregation
+    ]
 )

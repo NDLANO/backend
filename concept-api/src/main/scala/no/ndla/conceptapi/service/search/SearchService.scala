@@ -21,6 +21,7 @@ import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.mapping.ISO639
+import no.ndla.search.AggregationBuilder.getAggregationsFromResult
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import java.lang.Math.max
@@ -48,6 +49,7 @@ trait SearchService {
             pageSize = response.result.hits.hits.length,
             language = if (language == "*") AllLanguages else language,
             results = hits,
+            aggregations = getAggregationsFromResult(response.result),
             scrollId = response.result.scrollId
           )
         })

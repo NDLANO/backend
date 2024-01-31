@@ -91,7 +91,8 @@ trait DraftConceptController {
         embedResource: Option[String],
         embedId: Option[String],
         responsibleId: List[String],
-        conceptType: Option[String]
+        conceptType: Option[String],
+        aggregatePaths: List[String]
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
@@ -108,7 +109,8 @@ trait DraftConceptController {
         embedResource = embedResource,
         embedId = embedId,
         responsibleIdFilter = responsibleId,
-        conceptType = conceptType
+        conceptType = conceptType,
+        aggregatePaths = aggregatePaths
       )
 
       val result = query.emptySomeToNone match {
@@ -176,7 +178,8 @@ trait DraftConceptController {
             asQueryParam(embedResource),
             asQueryParam(embedId),
             asQueryParam(responsibleIdFilter),
-            asQueryParam(conceptType)
+            asQueryParam(conceptType),
+            asQueryParam(aggregatePaths)
           )
           .authorizations("oauth2")
           .responseMessages(response500)
@@ -201,6 +204,7 @@ trait DraftConceptController {
         val embedId            = paramOrNone(this.embedId.paramName)
         val responsibleIds     = paramAsListOfString(this.responsibleIdFilter.paramName)
         val conceptType        = paramOrNone(this.conceptType.paramName)
+        val aggregatePaths     = paramAsListOfString(this.aggregatePaths.paramName)
 
         search(
           query,
@@ -218,7 +222,8 @@ trait DraftConceptController {
           embedResource,
           embedId,
           responsibleIds,
-          conceptType
+          conceptType,
+          aggregatePaths
         )
 
       }
@@ -311,6 +316,7 @@ trait DraftConceptController {
             val embedId        = searchParams.embedId
             val responsibleId  = searchParams.responsibleIds
             val conceptType    = searchParams.conceptType
+            val aggregatePaths = searchParams.aggregatePaths
 
             search(
               query,
@@ -328,7 +334,8 @@ trait DraftConceptController {
               embedResource,
               embedId,
               responsibleId,
-              conceptType
+              conceptType,
+              aggregatePaths
             )
           case Failure(ex) => errorHandler(ex)
         }
