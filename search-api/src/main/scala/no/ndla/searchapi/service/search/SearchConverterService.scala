@@ -336,9 +336,12 @@ trait SearchConverterService {
 
       val parentTopicName = SearchableLanguageValues(
         taxonomyContexts.headOption
-          .map(ctx => {
-            ctx.breadcrumbs
-              .map(lv => lv.value.lastOption.map(LanguageValue(lv.language, _)))
+          .map(context => {
+            context.breadcrumbs
+              .map(breadcrumbsLanguageValue =>
+                breadcrumbsLanguageValue.value.lastOption
+                  .map(LanguageValue(breadcrumbsLanguageValue.language, _))
+              )
               .flatten
           })
           .getOrElse(Seq.empty)
@@ -402,8 +405,8 @@ trait SearchConverterService {
       draft.articleType match {
         case ArticleType.Standard =>
           taxonomyContexts.headOption
-            .flatMap(ctx => {
-              val typeNames = ctx.resourceTypes.map(t => t.name)
+            .flatMap(context => {
+              val typeNames = context.resourceTypes.map(resourceType => resourceType.name)
               Option.when(typeNames.nonEmpty) {
                 SearchableLanguageValues.combine(typeNames)
               }

@@ -51,7 +51,7 @@ trait IndexService {
         normalizers = List(lowerNormalizer)
       )
 
-    def createIndexRequest(
+    private def createIndexRequest(
         concept: Concept,
         indexName: String,
         taxonomyData: TaxonomyData

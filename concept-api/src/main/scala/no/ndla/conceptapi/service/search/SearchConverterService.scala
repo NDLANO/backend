@@ -67,8 +67,8 @@ trait SearchConverterService {
       val allConnectedSubjects = c.subjectIds.flatMap(subjectId => {
         taxonomyData.subjectsById
           .get(subjectId)
-          .map(x => {
-            val translations = x.translations.map(_.toLanguageValue)
+          .map(subject => {
+            val translations = subject.translations.map(_.toLanguageValue)
             SearchableLanguageValues(translations)
           })
       })
