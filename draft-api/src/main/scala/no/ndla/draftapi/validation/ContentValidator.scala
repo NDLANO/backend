@@ -34,8 +34,8 @@ trait ContentValidator {
 
   class ContentValidator() {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
-    private val allowedTags             = props.InlineHtmlTags
-    private val allowedIntroductionTags = if (allowedTags.isEmpty) allowedTags else allowedTags ++ Set("br", "p")
+    private val inlineHtmlTags       = props.InlineHtmlTags
+    private val introductionHtmlTags = props.IntroductionHtmlTags
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
       NDLADate.fromString(dateString) match {
@@ -172,7 +172,7 @@ trait ContentValidator {
     }
 
     private def validateIntroduction(content: Introduction): List[ValidationMessage] = {
-      TextValidator.validate("introduction", content.introduction, allowedIntroductionTags).toList ++
+      TextValidator.validate("introduction", content.introduction, introductionHtmlTags).toList ++
         validateLanguage("language", content.language)
     }
 
@@ -194,7 +194,7 @@ trait ContentValidator {
     }
 
     private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
-      TextValidator.validate(s"title.$language", title, allowedTags).toList ++
+      TextValidator.validate(s"title.$language", title, inlineHtmlTags).toList ++
         validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)

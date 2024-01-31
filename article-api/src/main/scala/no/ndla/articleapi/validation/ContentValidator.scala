@@ -28,8 +28,8 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator() {
-    private val allowedTags             = props.InlineHtmlTags
-    private val allowedIntroductionTags = if (allowedTags.isEmpty) allowedTags else allowedTags ++ Set("br", "p")
+    private val inlineHtmlTags       = props.InlineHtmlTags
+    private val introductionHtmlTags = props.IntroductionHtmlTags
 
     def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val metaValidation =
@@ -121,7 +121,7 @@ trait ContentValidator {
 
     private def validateIntroduction(content: Introduction): Seq[ValidationMessage] = {
       val field = s"introduction.${content.language}"
-      TextValidator.validate(field, content.introduction, allowedIntroductionTags).toList ++
+      TextValidator.validate(field, content.introduction, introductionHtmlTags).toList ++
         validateLanguage("introduction.language", content.language)
     }
 
@@ -141,7 +141,7 @@ trait ContentValidator {
     private def validateTitle(titles: Seq[LanguageField[String]]): Seq[ValidationMessage] = {
       titles.flatMap(title => {
         val field = s"title.$language"
-        TextValidator.validate(field, title.value, allowedTags).toList ++
+        TextValidator.validate(field, title.value, inlineHtmlTags).toList ++
           validateLanguage("title.language", title.language) ++
           validateLength("title", title.value, 256)
       }) ++ validateNonEmpty("title", titles)

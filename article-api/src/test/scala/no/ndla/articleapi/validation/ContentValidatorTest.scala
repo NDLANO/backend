@@ -28,7 +28,7 @@ import scala.util.Failure
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator
   val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val validIntroduction         = """<p>heisann <span lang="en">heia</span></p>"""
+  val validIntroduction         = """<p>heisann <span lang="en">heia</span></p><p>hopp</p>"""
   val invalidDocument           = """<section><invalid></invalid></section>"""
 
   test("validateArticle does not throw an exception on a valid document") {
