@@ -22,6 +22,7 @@ export interface IArticleIds {
 
 export interface IArticleIntroduction {
   introduction: string
+  htmlIntroduction: string
   language: string
 }
 
@@ -73,6 +74,7 @@ export interface IArticleTag {
 
 export interface IArticleTitle {
   title: string
+  htmlTitle: string
   language: string
 }
 
