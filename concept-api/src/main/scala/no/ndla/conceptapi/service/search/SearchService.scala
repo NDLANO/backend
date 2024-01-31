@@ -16,7 +16,9 @@ import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.term.TermQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
+import no.ndla.conceptapi.model.domain.Sort._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
+import no.ndla.language.Language
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.mapping.ISO639
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
@@ -145,30 +147,51 @@ trait SearchService {
         case _          => language
       }
 
+      def languageSort(default: String, languageField: String, order: SortOrder): FieldSort = sortLanguage match {
+        case Language.AllLanguages =>
+          fieldSort(default)
+            .sortOrder(order)
+            .missing("_last")
+        case _ =>
+          fieldSort(languageField)
+            .sortOrder(order)
+            .missing("_last")
+            .unmappedType("long")
+      }
+
       sort match {
-        case Sort.ByTitleAsc =>
-          language match {
-            case "*" | AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-            case _ => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.Asc).missing("_last").unmappedType("long")
-          }
-        case Sort.ByTitleDesc =>
-          language match {
-            case "*" | AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
-            case _ =>
-              fieldSort(s"title.$sortLanguage.lower").order(SortOrder.Desc).missing("_last").unmappedType("long")
-          }
-        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
-        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
-        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
-        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
-        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
-        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
-        case Sort.ByResponsibleLastUpdatedAsc =>
+        case ByTitleAsc =>
+          languageSort("defaultTitle", s"title.$sortLanguage.lower", SortOrder.Asc)
+        case ByTitleDesc =>
+          languageSort("defaultTitle", s"title.$sortLanguage.lower", SortOrder.Desc)
+        case ByRelevanceAsc =>
+          fieldSort("_score").order(SortOrder.Asc)
+        case ByRelevanceDesc =>
+          fieldSort("_score").order(SortOrder.Desc)
+        case ByLastUpdatedAsc =>
+          fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
+        case ByLastUpdatedDesc =>
+          fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
+        case ByIdAsc =>
+          fieldSort("id").order(SortOrder.Asc).missing("_last")
+        case ByIdDesc =>
+          fieldSort("id").order(SortOrder.Desc).missing("_last")
+        case ByStatusAsc =>
+          fieldSort("status.current").sortOrder(SortOrder.Asc).missing("_last")
+        case ByStatusDesc =>
+          fieldSort("status.current").sortOrder(SortOrder.Desc).missing("_last")
+        case BySubjectAsc =>
+          languageSort("defaultSortableSubject", s"sortableSubject.$sortLanguage.raw", SortOrder.Asc)
+        case BySubjectDesc =>
+          languageSort("defaultSortableSubject", s"sortableSubject.$sortLanguage.raw", SortOrder.Desc)
+        case ByConceptTypeAsc =>
+          languageSort("defaultSortableConceptType", s"sortableConceptType.$sortLanguage.raw", SortOrder.Asc)
+        case ByConceptTypeDesc =>
+          languageSort("defaultSortableConceptType", s"sortableConceptType.$sortLanguage.raw", SortOrder.Desc)
+        case ByResponsibleLastUpdatedAsc =>
           fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByResponsibleLastUpdatedDesc =>
+        case ByResponsibleLastUpdatedDesc =>
           fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
-        case Sort.ByStatusAsc  => fieldSort("status.current").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByStatusDesc => fieldSort("status.current").sortOrder(SortOrder.Desc).missing("_last")
       }
     }
 

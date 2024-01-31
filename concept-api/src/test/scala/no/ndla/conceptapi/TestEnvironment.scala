@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.conceptapi.controller.{DraftConceptController, NdlaController, PublishedConceptController}
-import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
@@ -39,6 +39,7 @@ trait TestEnvironment
     with DraftConceptIndexService
     with DraftConceptSearchService
     with IndexService
+    with TaxonomyApiClient
     with BaseIndexService
     with Elastic4sClient
     with SearchService
@@ -74,6 +75,8 @@ trait TestEnvironment
   val draftConceptSearchService     = mock[DraftConceptSearchService]
   val publishedConceptIndexService  = mock[PublishedConceptIndexService]
   val publishedConceptSearchService = mock[PublishedConceptSearchService]
+
+  val taxonomyApiClient = mock[TaxonomyApiClient]
 
   var e4sClient        = mock[NdlaE4sClient]
   val mockitoSugar     = mock[MockitoSugar]

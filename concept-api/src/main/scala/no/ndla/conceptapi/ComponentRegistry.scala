@@ -10,7 +10,7 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller._
-import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
@@ -61,7 +61,8 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with NdlaSwaggerSupport
     with DBConcept
     with SearchSettingsHelper
-    with DraftSearchSettingsHelper {
+    with DraftSearchSettingsHelper
+    with TaxonomyApiClient {
   override val props: ConceptApiProperties = properties
   override val migrator                    = new DBMigrator
 
@@ -81,6 +82,8 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val draftConceptIndexService      = new DraftConceptIndexService
   lazy val publishedConceptIndexService  = new PublishedConceptIndexService
   lazy val publishedConceptSearchService = new PublishedConceptSearchService
+
+  lazy val taxonomyApiClient: TaxonomyApiClient = new TaxonomyApiClient
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 

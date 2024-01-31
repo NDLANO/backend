@@ -95,7 +95,10 @@ trait DraftIndexService {
         keywordField("nextRevision.status"),
         textField("nextRevision.note"),
         dateField("nextRevision.revisionDate"),
-        keywordField("priority")
+        keywordField("priority"),
+        keywordField("defaultParentTopicName"),
+        keywordField("defaultRoot"),
+        keywordField("defaultResourceTypeName")
       )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("metaDescription") ++
@@ -107,7 +110,10 @@ trait DraftIndexService {
         generateLanguageSupportedDynamicTemplates("relevance") ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("contexts.root") ++
+        generateLanguageSupportedDynamicTemplates("contexts.root", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("parentTopicName", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("resourceTypeName", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("primaryRoot", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
         generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
 

@@ -40,5 +40,11 @@ case class SearchableDraft(
     nextRevision: Option[RevisionMeta],
     responsible: Option[Responsible],
     domainObject: Draft,
-    priority: Priority
+    priority: Priority,
+    defaultParentTopicName: Option[String],
+    parentTopicName: SearchableLanguageValues,
+    defaultRoot: Option[String],
+    primaryRoot: SearchableLanguageValues,
+    resourceTypeName: SearchableLanguageValues,
+    defaultResourceTypeName: Option[String]
 )

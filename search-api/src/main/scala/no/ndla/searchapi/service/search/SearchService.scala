@@ -18,12 +18,14 @@ import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, Sim
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
+import SortOrder.{Asc, Desc}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
+import no.ndla.searchapi.model.domain.Sort._
 import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.search.SearchType
 
@@ -343,44 +345,54 @@ trait SearchService {
         })
     }
 
+    private def sortField(field: String, order: SortOrder, missingLast: Boolean = true): FieldSort = {
+      val sortDefinition = fieldSort(field).sortOrder(order)
+      if (missingLast) sortDefinition.missing("_last") else sortDefinition
+    }
+
     def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
         case Language.NoLanguage => DefaultLanguage
         case _                   => language
       }
 
+      def defaultSort(default: String, withLanguage: String, order: SortOrder): FieldSort = sortLanguage match {
+        case Language.AllLanguages =>
+          fieldSort(default)
+            .sortOrder(order)
+            .missing("_last")
+        case _ =>
+          fieldSort(s"$withLanguage.$sortLanguage.raw")
+            .sortOrder(order)
+            .missing("_last")
+            .unmappedType("long")
+      }
+
       sort match {
-        case Sort.ByTitleAsc =>
-          sortLanguage match {
-            case Language.AllLanguages => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
-            case _ =>
-              fieldSort(s"title.$sortLanguage.raw").sortOrder(SortOrder.Asc).missing("_last").unmappedType("long")
-          }
-        case Sort.ByTitleDesc =>
-          sortLanguage match {
-            case Language.AllLanguages => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
-            case _ =>
-              fieldSort(s"title.$sortLanguage.raw").sortOrder(SortOrder.Desc).missing("_last").unmappedType("long")
-          }
-        case Sort.ByDurationAsc     => fieldSort("duration").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByDurationDesc    => fieldSort("duration").sortOrder(SortOrder.Desc).missing("_last")
-        case Sort.ByStatusAsc       => fieldSort("draftStatus.current").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByStatusDesc      => fieldSort("draftStatus.current").sortOrder(SortOrder.Desc).missing("_last")
-        case Sort.ByRelevanceAsc    => fieldSort("_score").sortOrder(SortOrder.Asc)
-        case Sort.ByRelevanceDesc   => fieldSort("_score").sortOrder(SortOrder.Desc)
-        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
-        case Sort.ByIdAsc           => fieldSort("id").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByIdDesc          => fieldSort("id").sortOrder(SortOrder.Desc).missing("_last")
-        case Sort.ByRevisionDateAsc => fieldSort("nextRevision.revisionDate").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByRevisionDateDesc =>
-          fieldSort("nextRevision.revisionDate").sortOrder(SortOrder.Desc).missing("_last")
-        case Sort.ByResponsibleLastUpdatedAsc =>
-          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByResponsibleLastUpdatedDesc =>
-          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
-        case Sort.ByPrioritizedAsc  => fieldSort("prioritized").order(SortOrder.Asc).missing("_last")
-        case Sort.ByPrioritizedDesc => fieldSort("prioritized").order(SortOrder.Desc).missing("_last")
+        case ByTitleAsc                   => defaultSort("defaultTitle", "title", Asc)
+        case ByTitleDesc                  => defaultSort("defaultTitle", "title", Desc)
+        case ByPrimaryRootAsc             => defaultSort("defaultRoot", "primaryRoot", Asc)
+        case ByPrimaryRootDesc            => defaultSort("defaultRoot", "primaryRoot", Desc)
+        case ByParentTopicNameAsc         => defaultSort("defaultParentTopicName", "parentTopicName", Asc)
+        case ByParentTopicNameDesc        => defaultSort("defaultParentTopicName", "parentTopicName", Desc)
+        case ByResourceTypeAsc            => defaultSort("defaultResourceTypeName", "resourceTypeName", Asc)
+        case ByResourceTypeDesc           => defaultSort("defaultResourceTypeName", "resourceTypeName", Desc)
+        case ByDurationAsc                => sortField("duration", Asc)
+        case ByDurationDesc               => sortField("duration", Desc)
+        case ByStatusAsc                  => sortField("draftStatus.current", Asc)
+        case ByStatusDesc                 => sortField("draftStatus.current", Desc)
+        case ByRelevanceAsc               => sortField("_score", Asc, missingLast = false)
+        case ByRelevanceDesc              => sortField("_score", Desc, missingLast = false)
+        case ByLastUpdatedAsc             => sortField("lastUpdated", Asc)
+        case ByLastUpdatedDesc            => sortField("lastUpdated", Desc)
+        case ByIdAsc                      => sortField("id", Asc)
+        case ByIdDesc                     => sortField("id", Desc)
+        case ByRevisionDateAsc            => sortField("nextRevision.revisionDate", Asc)
+        case ByRevisionDateDesc           => sortField("nextRevision.revisionDate", Desc)
+        case ByResponsibleLastUpdatedAsc  => sortField("responsible.lastUpdated", Asc)
+        case ByResponsibleLastUpdatedDesc => sortField("responsible.lastUpdated", Desc)
+        case ByPrioritizedAsc             => sortField("prioritized", Asc)
+        case ByPrioritizedDesc            => sortField("prioritized", Desc)
       }
     }
 

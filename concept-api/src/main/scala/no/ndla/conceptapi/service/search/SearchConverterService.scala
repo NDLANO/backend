@@ -12,15 +12,15 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{api => commonApi}
+import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
-import no.ndla.conceptapi.model.domain.{Concept, DBConcept, SearchResult}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptType, DBConcept, SearchResult}
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.search.SearchConverter.getEmbedValues
-import no.ndla.search.SearchLanguage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s._
@@ -53,24 +53,51 @@ trait SearchConverterService {
       })
     }
 
-    def asSearchableConcept(c: Concept): SearchableConcept = {
-      val defaultTitle = c.title
-        .sortBy(title => {
-          val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
-          languagePriority.indexOf(title.language)
-        })
-        .lastOption
+    def asSearchableConcept(c: Concept, taxonomyData: TaxonomyData): SearchableConcept = {
+      val title   = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title)))
+      val content = SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content)))
+      val tags    = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags)))
+      val visualElement = SearchableLanguageValues(
+        c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
+      )
+
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
       val copyright            = asSearchableCopyright(c.copyright);
+
+      val allConnectedSubjects = c.subjectIds.flatMap(subjectId => {
+        taxonomyData.subjectsById
+          .get(subjectId)
+          .map(subject => {
+            val translations = subject.translations.map(_.toLanguageValue)
+            SearchableLanguageValues(translations)
+          })
+      })
+
+      val sortableSubject = SearchableLanguageValues.combine(allConnectedSubjects.toSeq)
+
+      val sortableConceptType = c.conceptType match {
+        case ConceptType.CONCEPT =>
+          SearchableLanguageValues.from(
+            "nb" -> "Forklaring",
+            "nn" -> "Forklaring",
+            "en" -> "Concept"
+          )
+        case _ =>
+          SearchableLanguageValues.from(
+            "nb" -> "Glose",
+            "nn" -> "Glose",
+            "en" -> "Gloss"
+          )
+      }
 
       SearchableConcept(
         id = c.id.get,
         conceptType = c.conceptType.toString,
-        title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
-        content = SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content))),
-        defaultTitle = defaultTitle.map(_.title),
+        title = title,
+        content = content,
+        defaultTitle = title.defaultValue,
         metaImage = c.metaImage,
-        tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+        tags = tags,
         subjectIds = c.subjectIds.toSeq,
         lastUpdated = c.updated,
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
@@ -78,15 +105,17 @@ trait SearchConverterService {
         license = c.copyright.flatMap(_.license),
         copyright = copyright,
         embedResourcesAndIds = embedResourcesAndIds,
-        visualElement = SearchableLanguageValues(
-          c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
-        ),
+        visualElement = visualElement,
         articleIds = c.articleIds,
         created = c.created,
         source = c.copyright.flatMap(_.origin),
         responsible = c.responsible,
         gloss = c.glossData.map(_.gloss),
-        domainObject = c
+        domainObject = c,
+        sortableSubject = sortableSubject,
+        sortableConceptType = sortableConceptType,
+        defaultSortableSubject = sortableSubject.defaultValue,
+        defaultSortableConceptType = sortableConceptType.defaultValue
       )
     }
 
@@ -130,6 +159,10 @@ trait SearchConverterService {
 
       val responsible = searchableConcept.responsible.map(r => ConceptResponsible(r.responsibleId, r.lastUpdated))
       val glossData   = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
+      val subjectName = searchableConcept.sortableSubject.getLanguageOrDefault(language)
+      val conceptTypeName = searchableConcept.sortableConceptType
+        .getLanguageOrDefault(language)
+        .getOrElse(searchableConcept.conceptType)
 
       api.ConceptSummary(
         id = searchableConcept.id,
@@ -150,7 +183,9 @@ trait SearchConverterService {
         source = searchableConcept.source,
         responsible = responsible,
         conceptType = searchableConcept.conceptType,
-        glossData = glossData
+        glossData = glossData,
+        subjectName = subjectName,
+        conceptTypeName = conceptTypeName
       )
     }
 
