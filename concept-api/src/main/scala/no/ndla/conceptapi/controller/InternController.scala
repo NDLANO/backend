@@ -67,7 +67,7 @@ trait InternController {
       }
     }: Unit
 
-    def deleteIndexes[T <: IndexService[_]](indexService: T) = {
+    def deleteIndexes[T <: IndexService](indexService: T) = {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
       indexService.findAllIndexes match {
         case Failure(ex) =>

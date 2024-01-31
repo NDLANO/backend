@@ -403,16 +403,9 @@ trait SearchConverterService {
         case ArticleType.Standard =>
           taxonomyContexts.headOption
             .flatMap(ctx => {
-              val typeNames    = ctx.resourceTypes.map(t => t.name)
-              val allLanguages = typeNames.flatMap(_.map(_.language)).distinct
-              val values = allLanguages.map(language => {
-                val value = typeNames
-                  .map(typeName => typeName.getLanguageOrDefault(language).getOrElse(""))
-                  .mkString(" - ")
-                LanguageValue(language, value)
-              })
-              Option.when(values.nonEmpty) {
-                SearchableLanguageValues(values)
+              val typeNames = ctx.resourceTypes.map(t => t.name)
+              Option.when(typeNames.nonEmpty) {
+                SearchableLanguageValues.combine(typeNames)
               }
             })
             .getOrElse(

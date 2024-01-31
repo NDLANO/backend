@@ -21,6 +21,7 @@ import org.scalatest.Outcome
 import java.time.LocalDateTime
 import scala.util.Success
 import no.ndla.common.model.NDLADate
+import no.ndla.conceptapi.integration.model.TaxonomyData
 
 class PublishedConceptSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -207,6 +208,7 @@ class PublishedConceptSearchServiceTest
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
+    when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
     publishedConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
 
     publishedConceptIndexService.indexDocument(concept1)

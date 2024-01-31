@@ -41,6 +41,16 @@ object SearchableLanguageValues {
     val languageValues = values.map { case (language, value) => LanguageValue(language, value) }
     SearchableLanguageValues(languageValues)
   }
+
+  def combine(values: Seq[SearchableLanguageValues]): SearchableLanguageValues = {
+    val allLanguages = values.flatMap(_.map(_.language)).distinct
+    val languageValues = allLanguages.map { language =>
+      val valuesForLanguage = values.map(_.getLanguageOrDefault(language).getOrElse(""))
+      LanguageValue(language, valuesForLanguage.mkString(" - "))
+    }
+
+    SearchableLanguageValues(languageValues)
+  }
 }
 
 object SearchableLanguageList {

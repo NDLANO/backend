@@ -35,5 +35,9 @@ case class SearchableConcept(
     source: Option[String],
     responsible: Option[Responsible],
     gloss: Option[String],
-    domainObject: domain.Concept
+    domainObject: domain.Concept,
+    sortableSubject: SearchableLanguageValues,
+    sortableConceptType: SearchableLanguageValues,
+    defaultSortableSubject: Option[String],
+    defaultSortableConceptType: Option[String]
 )

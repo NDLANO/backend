@@ -10,24 +10,35 @@ package no.ndla.conceptapi.service.search
 import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.analysis.{Analysis, CustomNormalizer}
-import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.api.ElasticIndexingException
-import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
+import no.ndla.conceptapi.integration.TaxonomyApiClient
+import no.ndla.conceptapi.integration.model.TaxonomyData
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ElasticIndexingException}
+import no.ndla.conceptapi.model.domain.{Concept, DBConcept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
+import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import org.json4s.Formats
+import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService with Props =>
-
-  trait IndexService[D <: Concept] extends BaseIndexService with StrictLogging {
-    val repository: Repository[D]
+  this: Elastic4sClient
+    with BaseIndexService
+    with Props
+    with TaxonomyApiClient
+    with SearchConverterService
+    with DBConcept =>
+  trait IndexService extends BaseIndexService with StrictLogging {
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ Concept.serializers
+    val repository: Repository[Concept]
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     val lowerNormalizer: CustomNormalizer =
@@ -40,13 +51,28 @@ trait IndexService {
         normalizers = List(lowerNormalizer)
       )
 
-    def createIndexRequest(domainModel: D, indexName: String): Try[IndexRequest]
+    def createIndexRequest(
+        concept: Concept,
+        indexName: String,
+        taxonomyData: TaxonomyData
+    ): Try[IndexRequest] = {
+      concept.id match {
+        case Some(id) =>
+          val source = write(searchConverterService.asSearchableConcept(concept, taxonomyData))
+          Success(
+            indexInto(indexName).doc(source).id(id.toString)
+          )
 
-    def indexDocument(imported: D): Try[D] = {
+        case _ => Failure(ConceptMissingIdException("Attempted to create index request for concept without an id."))
+      }
+    }
+
+    def indexDocument(imported: Concept): Try[Concept] = {
       for {
-        _       <- createIndexIfNotExists()
-        request <- createIndexRequest(imported, searchIndex)
-        _       <- e4sClient.execute(request)
+        _            <- createIndexIfNotExists()
+        taxonomyData <- if (imported.subjectIds.nonEmpty) taxonomyApiClient.getSubjects else Success(TaxonomyData.empty)
+        request      <- createIndexRequest(imported, searchIndex, taxonomyData)
+        _            <- e4sClient.execute(request)
       } yield imported
     }
 
@@ -71,18 +97,18 @@ trait IndexService {
       }
     }
 
-    def sendToElastic(indexName: String): Try[Int] = {
-      getRanges
-        .flatMap(ranges => {
-          ranges.traverse { case (start, end) =>
-            val toIndex = repository.documentsWithIdBetween(start, end)
-            indexDocuments(toIndex, indexName)
-          }
-        })
-        .map(_.sum)
+    private def sendToElastic(indexName: String): Try[Int] = {
+      for {
+        taxonomyData <- taxonomyApiClient.getSubjects
+        ranges       <- getRanges
+        indexed <- ranges.traverse { case (start, end) =>
+          val toIndex = repository.documentsWithIdBetween(start, end)
+          indexDocuments(toIndex, indexName, taxonomyData)
+        }
+      } yield indexed.sum
     }
 
-    def getRanges: Try[List[(Long, Long)]] = {
+    private def getRanges: Try[List[(Long, Long)]] = {
       Try {
         val (minId, maxId) = repository.minMaxId
         Seq
@@ -93,11 +119,11 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
+    def indexDocuments(contents: Seq[Concept], indexName: String, taxonomyData: TaxonomyData): Try[Int] = {
       if (contents.isEmpty) {
         Success(0)
       } else {
-        val req                    = contents.map(content => createIndexRequest(content, indexName))
+        val req                    = contents.map(content => createIndexRequest(content, indexName, taxonomyData))
         val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
         val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
@@ -132,36 +158,6 @@ trait IndexService {
           Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
         case Failure(ex) =>
           Failure(ex)
-      }
-    }
-
-    /** Returns Sequence of FieldDefinitions for a given field.
-      *
-      * @param fieldName
-      *   Name of field in mapping.
-      * @param keepRaw
-      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
-      * @return
-      *   Sequence of FieldDefinitions for a field.
-      */
-    protected def generateLanguageSupportedFieldList(
-        fieldName: String,
-        keepRaw: Boolean = false
-    ): Seq[ElasticField] = {
-      keepRaw match {
-        case true =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
-              .fielddata(false)
-              .analyzer(langAnalyzer.analyzer)
-              .fields(keywordField("raw"), keywordField("lower").normalizer("lower"))
-          )
-        case false =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
-              .fielddata(false)
-              .analyzer(langAnalyzer.analyzer)
-          )
       }
     }
 
@@ -202,6 +198,66 @@ trait IndexService {
         pathMatch = Some(s"$fieldName.*")
       )
       languageTemplates ++ Seq(catchAlltemplate)
+    }
+
+    def getMapping: MappingDefinition = {
+      val fields: Seq[ElasticField] = List(
+        intField("id"),
+        keywordField("conceptType"),
+        keywordField("defaultTitle").normalizer("lower"),
+        keywordField("subjectIds"),
+        nestedField("metaImage").fields(
+          keywordField("imageId"),
+          keywordField("altText"),
+          keywordField("language")
+        ),
+        dateField("lastUpdated"),
+        dateField("created"),
+        longField("articleIds"),
+        keywordField("status.current"),
+        keywordField("status.other"),
+        keywordField("updatedBy"),
+        keywordField("license"),
+        keywordField("source"),
+        keywordField("origin"),
+        keywordField("defaultSortableSubject"),
+        keywordField("defaultSortableConceptType"),
+        nestedField("copyright").fields(
+          nestedField("creators").fields(
+            keywordField("type"),
+            keywordField("name")
+          ),
+          nestedField("processors").fields(
+            keywordField("type"),
+            keywordField("name")
+          ),
+          nestedField("rightsholders").fields(
+            keywordField("type"),
+            keywordField("name")
+          )
+        ),
+        nestedField("embedResourcesAndIds").fields(
+          keywordField("resource"),
+          keywordField("id"),
+          keywordField("language")
+        ),
+        ObjectField(
+          "responsible",
+          properties = Seq(
+            keywordField("responsibleId"),
+            dateField("lastUpdated")
+          )
+        ),
+        textField("gloss"),
+        ObjectField("domainObject", enabled = Some(false))
+      )
+      val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("content") ++
+        generateLanguageSupportedDynamicTemplates("tags", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("sortableSubject", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("sortableConceptType", keepRaw = true)
+
+      properties(fields).dynamicTemplates(dynamics)
     }
 
   }
