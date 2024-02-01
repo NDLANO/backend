@@ -79,7 +79,7 @@ trait ConverterService {
         id = flag.flag.id,
         reason = flag.flag.reason,
         created = flag.flag.created,
-        flagger = ArenaUser.from(flag.flagger),
+        flagger = flag.flagger.map(ArenaUser.from),
         resolved = flag.flag.resolved,
         isResolved = flag.flag.resolved.isDefined
       )
@@ -95,7 +95,7 @@ trait ConverterService {
         content = compiledPost.post.content,
         created = compiledPost.post.created,
         updated = compiledPost.post.updated,
-        owner = ArenaUser.from(compiledPost.owner),
+        owner = compiledPost.owner.map(ArenaUser.from),
         flags = maybeFlags,
         topicId = compiledPost.post.topic_id
       )

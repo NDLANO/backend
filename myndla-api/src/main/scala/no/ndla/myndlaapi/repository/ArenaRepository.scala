@@ -16,12 +16,12 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.DBUtil.buildWhereClause
 import no.ndla.common.errors.RollbackException
-import no.ndla.common.implicits.OptionImplicit
+import no.ndla.common.implicits._
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
 import no.ndla.myndlaapi.model.arena.api.CategorySort
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
-import no.ndla.myndlaapi.model.arena.domain.{Notification, Post}
+import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
 
 trait ArenaRepository {
   this: Clock =>
@@ -381,7 +381,7 @@ trait ArenaRepository {
            where ${f.post_id} = $postId
          """
         .one(rs => domain.Flag.fromResultSet(f.resultName)(rs))
-        .toOne(rs => DBMyNDLAUser.fromResultSet(u)(rs))
+        .toOptionalOne(rs => Option(DBMyNDLAUser.fromResultSet(u)(rs)))
         .map { (flag, user) => flag.map(CompiledFlag(_, user)) }
         .list
         .apply()
@@ -422,7 +422,7 @@ trait ArenaRepository {
            where ${f.id} = $flagId
          """
         .one(rs => domain.Flag.fromResultSet(f.resultName)(rs))
-        .toOne(rs => DBMyNDLAUser.fromResultSet(u)(rs))
+        .toOptionalOne(rs => Option(DBMyNDLAUser.fromResultSet(u)(rs)))
         .map { (flag, user) => flag.map(CompiledFlag(_, user)) }
         .single
         .apply()
@@ -448,7 +448,7 @@ trait ArenaRepository {
 
       domain.Flag(
         id = inserted,
-        user_id = flagger.id,
+        user_id = Some(flagger.id),
         post_id = postId,
         reason = reason,
         created = created,
@@ -492,7 +492,7 @@ trait ArenaRepository {
       else Success(count)
     }.flatten
 
-    def getPost(postId: Long)(implicit session: DBSession): Try[Option[(domain.Post, MyNDLAUser)]] = {
+    def getPost(postId: Long)(implicit session: DBSession): Try[Option[(domain.Post, Option[MyNDLAUser])]] = {
       val p = domain.Post.syntax("p")
       val u = DBMyNDLAUser.syntax("u")
       Try {
@@ -503,7 +503,7 @@ trait ArenaRepository {
                  where ${p.id} = $postId
              """
           .one(rs => domain.Post.fromResultSet(p.resultName)(rs))
-          .toOne(rs => DBMyNDLAUser.fromResultSet(u)(rs))
+          .toOptionalOne(rs => Option(DBMyNDLAUser.fromResultSet(u)(rs)))
           .map { (post, user) => post.map(_ -> user) }
           .single
           .apply()
@@ -530,7 +530,7 @@ trait ArenaRepository {
 
       domain.Topic(
         id = inserted,
-        ownerId = ownerId,
+        ownerId = Some(ownerId),
         title = title,
         category_id = categoryId,
         created = created,
@@ -582,6 +582,36 @@ trait ArenaRepository {
       }.flatten
     }
 
+    def disconnectFlagsByUser(userId: Long)(implicit session: DBSession): Try[Unit] = Try {
+      withSQL {
+        update(domain.Flag)
+          .set(domain.Flag.column.c("user_id") -> None)
+          .where
+          .eq(domain.Flag.column.user_id, userId)
+      }.execute
+        .apply(): Unit
+    }
+
+    def disconnectPostsByUser(userId: Long)(implicit session: DBSession): Try[Unit] = Try {
+      withSQL {
+        update(domain.Post)
+          .set(domain.Post.column.c("owner_id") -> None)
+          .where
+          .eq(domain.Post.column.ownerId, userId)
+      }.execute
+        .apply(): Unit
+    }
+
+    def disconnectTopicsByUser(userId: Long)(implicit session: DBSession): Try[Unit] = Try {
+      withSQL {
+        update(domain.Topic)
+          .set(domain.Topic.column.c("owner_id") -> None)
+          .where
+          .eq(domain.Topic.column.ownerId, userId)
+      }.execute
+        .apply(): Unit
+    }
+
     def postPost(topicId: Long, content: String, ownerId: Long, created: NDLADate, updated: NDLADate)(implicit
         session: DBSession
     ): Try[domain.Post] = Try {
@@ -605,7 +635,7 @@ trait ArenaRepository {
         topic_id = topicId,
         created = created,
         updated = updated,
-        ownerId = ownerId
+        ownerId = Some(ownerId)
       )
     }
 
@@ -683,6 +713,14 @@ trait ArenaRepository {
       }.flatten
     }
 
+    private def findOwner(owned: Owned, owners: Seq[MyNDLAUser], `type`: String): Try[Option[MyNDLAUser]] =
+      owners.find(user => owned.ownerId.contains(user.id)) match {
+        case Some(owner)                   => Success(Some(owner))
+        case None if owned.ownerId.isEmpty => Success(None)
+        case None =>
+          Failure(NDLASQLException(s"${`type`} with id ${owned.id} has no owner in result."))
+      }
+
     def compileTopic(
         topic: Try[domain.Topic],
         owners: Seq[MyNDLAUser],
@@ -690,10 +728,8 @@ trait ArenaRepository {
         isFollowing: Boolean
     ): Try[CompiledTopic] = {
       for {
-        t <- topic
-        owner <- owners
-          .find(_.id == t.ownerId)
-          .toTry(NDLASQLException(s"Topic with id ${t.id} has no owner in result."))
+        t     <- topic
+        owner <- findOwner(t, owners, "Topic")
       } yield CompiledTopic(
         topic = t,
         owner = owner,
@@ -706,20 +742,25 @@ trait ArenaRepository {
         post: domain.Post,
         owners: Seq[MyNDLAUser],
         flags: Seq[domain.Flag]
-    ): Try[CompiledPost] = for {
-      postOwner <- owners
-        .find(_.id == post.ownerId)
-        .toTry(NDLASQLException(s"Post with id ${post.id} has no owner in result."))
-      postFlags = flags.filter(f => f.post_id == post.id)
-      flagsWithFlaggers <- postFlags.traverse(f => {
-        owners
-          .find(_.id == f.user_id)
-          .toTry(NDLASQLException(s"Flag with id ${f.id} has no flagger in result."))
-          .map(flagger => {
+    ): Try[CompiledPost] = {
+      val postOwner = findOwner(post, owners, "Post").?
+      val postFlags = flags.filter(f => f.post_id == post.id)
+      val flagsWithFlaggers = postFlags
+        .traverse(f =>
+          findOwner(f, owners, "Flag").map(flagger => {
             CompiledFlag(flag = f, flagger = flagger)
           })
-      })
-    } yield CompiledPost(post = post, owner = postOwner, flagsWithFlaggers.toList)
+        )
+        .?
+
+      Success(
+        CompiledPost(
+          post = post,
+          owner = postOwner,
+          flags = flagsWithFlaggers.toList
+        )
+      )
+    }
 
     def topicCountWhere(conditions: Seq[SQLSyntax], requester: MyNDLAUser)(implicit session: DBSession): Try[Long] =
       Try {

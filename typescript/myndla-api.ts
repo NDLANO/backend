@@ -58,7 +58,7 @@ export interface IFlag {
   created: string
   resolved?: string
   isResolved: boolean
-  flagger: IArenaUser
+  flagger?: IArenaUser
 }
 
 export interface IFolder {
@@ -180,7 +180,7 @@ export interface IPost {
   content: string
   created: string
   updated: string
-  owner: IArenaUser
+  owner?: IArenaUser
   flags?: IFlag[]
   topicId: number
 }

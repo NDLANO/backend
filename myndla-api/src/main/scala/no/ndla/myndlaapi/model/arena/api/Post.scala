@@ -17,7 +17,7 @@ case class Post(
     @description("The post content") content: String,
     @description("The post creation date") created: NDLADate,
     @description("The post edit date") updated: NDLADate,
-    @description("The post owner") owner: ArenaUser,
+    @description("The post owner") owner: Option[ArenaUser],
     @description("The flags that have been added to post. Only visible to admins.") flags: Option[List[Flag]],
     @description("The id of the parenting topic") topicId: Long
 )

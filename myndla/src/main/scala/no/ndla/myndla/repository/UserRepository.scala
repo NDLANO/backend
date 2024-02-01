@@ -9,14 +9,13 @@ package no.ndla.myndla.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.DBUtil.buildWhereClause
-import no.ndla.common.errors.NotFoundException
+import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, MyNDLAUserDocument, NDLASQLException, UserRole}
 import no.ndla.network.model.FeideID
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc.interpolation.SQLSyntax
-import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession, scalikejdbcSQLInterpolationImplicitDef}
+import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
 
@@ -68,6 +67,19 @@ trait UserRepository {
       if (readOnly) ReadOnlyAutoSession
       else AutoSession
 
+    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
+      try {
+        DB.localTx { session =>
+          func(session) match {
+            case Failure(ex)    => throw RollbackException(ex)
+            case Success(value) => Success(value)
+          }
+        }
+      } catch {
+        case RollbackException(ex) => Failure(ex)
+      }
+    }
+
     def insertUser(feideId: FeideID, document: MyNDLAUserDocument)(implicit
         session: DBSession = AutoSession
     ): Try[MyNDLAUser] =
@@ -77,8 +89,9 @@ trait UserRepository {
         dataObject.setValue(write(document))
 
         val userId = sql"""
-        insert into ${DBMyNDLAUser.table} (feide_id, document)
-        values ($feideId, $dataObject)
+        update ${DBMyNDLAUser.table}
+        set document=$dataObject
+        where feide_id=$feideId
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new user with id: $userId")
@@ -164,6 +177,29 @@ trait UserRepository {
       sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"
         .map(DBMyNDLAUser.fromResultSet(u))
         .single()
+    }
+
+    /** Returns false if the user was inserted, true if the user already existed. */
+    def reserveFeideIdIfNotExists(feideId: FeideID)(implicit session: DBSession): Try[Boolean] = {
+      Try {
+        sql"""
+            with inserted as (
+                insert into ${DBMyNDLAUser.table}
+                (feide_id, document)
+                values ($feideId, null)
+                on conflict do nothing
+                returning id, feide_id, document
+            )
+            select id, feide_id, document
+            from inserted
+         """
+          .map(rs => rs.stringOpt("feide_id"))
+          .single()
+          .flatten
+      }.map {
+        case Some(_) => false
+        case None    => true
+      }
     }
 
     def numberOfUsers()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {

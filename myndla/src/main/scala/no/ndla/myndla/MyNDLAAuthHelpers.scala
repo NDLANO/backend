@@ -65,7 +65,7 @@ trait MyNDLAAuthHelpers {
               case Left(err)                                                  => Left(err)
             }
           } else if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
-          else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk
+          else userService.getMyNdlaUserDataDomain(maybeToken, List.empty).handleErrorsOrOk
         }
         val securityLogic = (m: MonadError[F]) => (a: Option[FeideAccessToken]) => m.unit(authFunc(a))
         PartialServerEndpoint(newEndpoint, securityLogic)

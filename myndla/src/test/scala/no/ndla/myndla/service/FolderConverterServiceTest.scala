@@ -441,7 +441,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         arenaGroups = List.empty
       )
 
-    service.toApiUserData(domainUserData, List.empty, List.empty) should be(expectedUserData)
+    service.toApiUserData(domainUserData, List.empty) should be(expectedUserData)
   }
 
   test("That mergeUserData works correctly") {
@@ -551,9 +551,9 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       arenaGroups = List.empty
     )
 
-    service.mergeUserData(domainUserData, updatedUserData1, None, None) should be(expectedUserData1)
-    service.mergeUserData(domainUserData, updatedUserData2, None, None) should be(expectedUserData2)
-    service.mergeUserData(domainUserData, updatedUserData3, None, None) should be(expectedUserData3)
+    service.mergeUserData(domainUserData, updatedUserData1, None, None, List.empty) should be(expectedUserData1)
+    service.mergeUserData(domainUserData, updatedUserData2, None, None, List.empty) should be(expectedUserData2)
+    service.mergeUserData(domainUserData, updatedUserData3, None, None, List.empty) should be(expectedUserData3)
   }
 
 }
