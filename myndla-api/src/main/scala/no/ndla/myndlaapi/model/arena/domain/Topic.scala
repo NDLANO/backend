@@ -19,7 +19,9 @@ case class Topic(
     category_id: Long,
     created: NDLADate,
     updated: NDLADate,
-    deleted: Option[NDLADate]
+    deleted: Option[NDLADate],
+    override val locked: Boolean,
+    pinned: Boolean
 ) extends Owned
 
 object Topic extends SQLSyntaxSupport[Topic] {
@@ -38,7 +40,9 @@ object Topic extends SQLSyntaxSupport[Topic] {
       created = NDLADate.fromUtcDate(rs.localDateTime(colFunc("created"))),
       updated = NDLADate.fromUtcDate(rs.localDateTime(colFunc("updated"))),
       ownerId = rs.longOpt(colFunc("owner_id")),
-      deleted = rs.localDateTimeOpt(colFunc("deleted")).map(NDLADate.fromUtcDate)
+      deleted = rs.localDateTimeOpt(colFunc("deleted")).map(NDLADate.fromUtcDate),
+      locked = rs.boolean(colFunc("locked")),
+      pinned = rs.boolean(colFunc("pinned"))
     )
   }
 }

@@ -169,8 +169,14 @@ class ArenaTest
       shouldSucceed: Boolean = true,
       token: String = "asd"
   ): Response[String] = {
-    val newTopic = api.NewTopic(title = title, initialPost = api.NewPost(content = content))
-    val inBody   = newTopic.asJson.noSpaces
+    val newTopic =
+      api.NewTopic(
+        title = title,
+        initialPost = api.NewPost(content = content),
+        isLocked = false,
+        isPinned = false
+      )
+    val inBody = newTopic.asJson.noSpaces
     val res = simpleHttpClient.send(
       quickRequest
         .post(uri"$myndlaApiArenaUrl/categories/$categoryId/topics")
@@ -260,7 +266,9 @@ class ArenaTest
           created = someDate,
           updated = someDate,
           categoryId = 1,
-          isFollowing = true
+          isFollowing = true,
+          isLocked = false,
+          isPinned = false
         ),
         api.Topic(
           id = 2,
@@ -269,7 +277,9 @@ class ArenaTest
           created = someDate,
           updated = someDate,
           categoryId = 1,
-          isFollowing = true
+          isFollowing = true,
+          isLocked = false,
+          isPinned = false
         ),
         api.Topic(
           id = 3,
@@ -278,7 +288,9 @@ class ArenaTest
           created = someDate,
           updated = someDate,
           categoryId = 1,
-          isFollowing = true
+          isFollowing = true,
+          isLocked = false,
+          isPinned = false
         )
       ),
       isFollowing = false,
@@ -397,7 +409,9 @@ class ArenaTest
       created = someDate,
       updated = someDate,
       categoryId = 1,
-      isFollowing = true
+      isFollowing = true,
+      isLocked = false,
+      isPinned = false
     )
 
     val topic1Resp = simpleHttpClient.send(
@@ -492,7 +506,9 @@ class ArenaTest
         created = someDate,
         updated = someDate,
         categoryId = 1,
-        isFollowing = true
+        isFollowing = true,
+        isLocked = false,
+        isPinned = false
       )
 
       val topic1Resp = simpleHttpClient.send(
@@ -524,7 +540,9 @@ class ArenaTest
         created = someDate,
         updated = someDate,
         categoryId = 1,
-        isFollowing = true
+        isFollowing = true,
+        isLocked = false,
+        isPinned = false
       )
 
       val topic1Resp = simpleHttpClient.send(

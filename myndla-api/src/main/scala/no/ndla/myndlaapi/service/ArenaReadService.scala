@@ -211,10 +211,16 @@ trait ArenaReadService {
     ): Try[api.Topic] = {
       val updatedTime = clock.now()
       for {
-        topic        <- getCompiledTopic(topicId, user)(session)
-        posts        <- arenaRepository.getPostsForTopic(topicId, 0, 10)(session)
-        _            <- failIfEditDisallowed(topic.topic, user)
-        updatedTopic <- arenaRepository.updateTopic(topicId, newTopic.title, updatedTime)(session)
+        topic <- getCompiledTopic(topicId, user)(session)
+        posts <- arenaRepository.getPostsForTopic(topicId, 0, 10)(session)
+        _     <- failIfEditDisallowed(topic.topic, user)
+        updatedTopic <- arenaRepository.updateTopic(
+          topicId = topicId,
+          title = newTopic.title,
+          updated = updatedTime,
+          locked = if (user.isAdmin) newTopic.isLocked else topic.topic.locked,
+          pinned = if (user.isAdmin) newTopic.isPinned else topic.topic.pinned
+        )(session)
         mainPostId <- posts.headOption
           .map(_.post.id)
           .toTry(MissingPostException("Could not find main post for topic"))
@@ -237,9 +243,14 @@ trait ArenaReadService {
       } yield converterService.toApiPost(compiledPost, user)
     }
 
-    private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] =
-      if (owned.ownerId.contains(user.id) || user.isAdmin) Success(())
-      else Failure(AccessDeniedException.forbidden)
+    private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] = {
+      if (user.isAdmin) return Success(())
+
+      val isOwner = owned.ownerId.contains(user.id)
+      if (isOwner && !owned.locked) return Success(())
+
+      Failure(AccessDeniedException.forbidden)
+    }
 
     def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
       val toInsert = domain.InsertCategory(newCategory.title, newCategory.description, newCategory.visible)
@@ -263,13 +274,27 @@ trait ArenaReadService {
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
-          _     <- getCategory(categoryId, 0, 0, user)(session)
-          topic <- arenaRepository.insertTopic(categoryId, newTopic.title, user.id, created, created)(session)
-          _     <- followTopic(topic.id, user)(session)
-          _     <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created)(session)
+          _ <- getCategory(categoryId, 0, 0, user)(session)
+          topic <- arenaRepository.insertTopic(
+            categoryId = categoryId,
+            title = newTopic.title,
+            ownerId = user.id,
+            created = created,
+            updated = created,
+            locked = if (user.isAdmin) newTopic.isLocked else false,
+            pinned = if (user.isAdmin) newTopic.isPinned else false
+          )(session)
+          _ <- followTopic(topic.id, user)(session)
+          _ <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created)(session)
           compiledTopic = CompiledTopic(topic, Some(user), 1, isFollowing = true)
         } yield converterService.toApiTopic(compiledTopic)
       }
+    }
+
+    private def failIfPostDisallowed(topic: CompiledTopic, user: MyNDLAUser): Try[Unit] = {
+      if (user.isAdmin) return Success(())
+      if (topic.topic.locked) return Failure(AccessDeniedException.forbidden)
+      Success(())
     }
 
     def postPost(topicId: Long, newPost: NewPost, user: MyNDLAUser): Try[api.Post] =
@@ -277,6 +302,7 @@ trait ArenaReadService {
         val created = clock.now()
         for {
           topic   <- getCompiledTopic(topicId, user)(session)
+          _       <- failIfPostDisallowed(topic, user)
           newPost <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created)(session)
           _       <- generateNewPostNotifications(topic, newPost)(session)
           _       <- followTopic(topicId, user)(session)

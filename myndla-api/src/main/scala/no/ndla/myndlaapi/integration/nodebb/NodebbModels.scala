@@ -30,7 +30,9 @@ case class TopicInList(
     uid: Long,
     title: String,
     user: Owner,
-    deleted: Long
+    deleted: Long,
+    locked: Long,
+    pinned: Long
 )
 
 case class Pagination(

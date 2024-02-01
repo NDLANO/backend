@@ -141,6 +141,8 @@ export interface INewResource {
 export interface INewTopic {
   title: string
   initialPost: INewPost
+  isLocked: boolean
+  isPinned: boolean
 }
 
 export interface IOwner {
@@ -203,6 +205,8 @@ export interface ITopic {
   updated: string
   categoryId: number
   isFollowing: boolean
+  isLocked: boolean
+  isPinned: boolean
 }
 
 export interface ITopicWithPosts {
@@ -214,6 +218,8 @@ export interface ITopicWithPosts {
   updated: string
   categoryId: number
   isFollowing: boolean
+  isLocked: boolean
+  isPinned: boolean
 }
 
 export interface IUpdatedFolder {

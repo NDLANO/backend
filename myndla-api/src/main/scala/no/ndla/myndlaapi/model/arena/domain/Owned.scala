@@ -10,4 +10,6 @@ package no.ndla.myndlaapi.model.arena.domain
 trait Owned {
   def id: Long
   def ownerId: Option[Long]
+
+  def locked: Boolean = false
 }

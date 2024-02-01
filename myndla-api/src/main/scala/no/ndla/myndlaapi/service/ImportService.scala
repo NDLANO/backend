@@ -153,7 +153,9 @@ trait ImportService {
           title = topic.title,
           ownerId = topicOwner.id,
           created = convertTimestampToNDLADate(singleTopic.timestamp),
-          updated = convertTimestampToNDLADate(singleTopic.timestamp)
+          updated = convertTimestampToNDLADate(singleTopic.timestamp),
+          locked = topic.locked == 1,
+          pinned = topic.pinned == 1
         )(session)
         _ <- importPosts(allPosts, top, adminUser)(session)
       } yield ()

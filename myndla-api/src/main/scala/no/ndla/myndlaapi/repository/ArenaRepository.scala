@@ -511,7 +511,15 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def insertTopic(categoryId: Long, title: String, ownerId: Long, created: NDLADate, updated: NDLADate)(implicit
+    def insertTopic(
+        categoryId: Long,
+        title: String,
+        ownerId: Long,
+        created: NDLADate,
+        updated: NDLADate,
+        locked: Boolean,
+        pinned: Boolean
+    )(implicit
         session: DBSession
     ): Try[domain.Topic] = Try {
       val column = domain.Topic.column.c _
@@ -523,7 +531,9 @@ trait ArenaRepository {
             column("category_id") -> categoryId,
             column("owner_id")    -> ownerId,
             column("created")     -> created,
-            column("updated")     -> updated
+            column("updated")     -> updated,
+            column("locked")      -> locked,
+            column("pinned")      -> pinned
           )
       }.updateAndReturnGeneratedKey
         .apply()
@@ -535,18 +545,28 @@ trait ArenaRepository {
         category_id = categoryId,
         created = created,
         updated = created,
-        deleted = None
+        deleted = None,
+        locked = locked,
+        pinned = pinned
       )
     }
 
-    def updateTopic(topicId: Long, title: String, updated: NDLADate)(implicit session: DBSession): Try[domain.Topic] =
+    def updateTopic(
+        topicId: Long,
+        title: String,
+        updated: NDLADate,
+        locked: Boolean,
+        pinned: Boolean
+    )(implicit session: DBSession): Try[domain.Topic] =
       Try {
         val column = domain.Topic.column.c _
         withSQL {
           update(domain.Topic)
             .set(
               column("title")   -> title,
-              column("updated") -> updated
+              column("updated") -> updated,
+              column("locked")  -> locked,
+              column("pinned")  -> pinned
             )
             .where
             .eq(domain.Topic.column.id, topicId)
@@ -981,12 +1001,12 @@ trait ArenaRepository {
                   from ${domain.Topic.as(t)}
                   where ${t.category_id} = $categoryId
                   and ${t.deleted} is null
-                  order by newest_post_date desc nulls last
+                  order by ${t.pinned} desc, newest_post_date desc nulls last
                   limit $limit
                   offset $offset
                 ) ts
                left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
-               order by newest_post_date desc nulls last
+               order by ${ts(t).pinned} desc, newest_post_date desc nulls last
            """
           .one(rs => {
             (
