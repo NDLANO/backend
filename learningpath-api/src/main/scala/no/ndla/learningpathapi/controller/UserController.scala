@@ -64,6 +64,7 @@ trait UserController {
           .parameters(
             asHeaderParam(feideToken)
           )
+          .deprecated(true)
           .responseMessages(response403, response500)
           .authorizations("oauth2")
       )
@@ -81,6 +82,7 @@ trait UserController {
             asHeaderParam(feideToken),
             bodyParam[UpdatedMyNDLAUser]
           )
+          .deprecated(true)
           .responseMessages(response403, response404, response500)
           .authorizations("oauth2")
       )
@@ -99,6 +101,7 @@ trait UserController {
             asQueryParam(feideId),
             bodyParam[UpdatedMyNDLAUser]
           )
+          .deprecated(true)
           .responseMessages(response403, response404, response500)
           .authorizations("oauth2")
       )
@@ -119,6 +122,7 @@ trait UserController {
           .parameters(
             asHeaderParam(feideToken)
           )
+          .deprecated(true)
           .responseMessages(response403, response500)
           .authorizations("oauth2")
       )
@@ -133,6 +137,7 @@ trait UserController {
           .summary("Export all stored user-related data as a json structure")
           .description("Export all stored user-related data as a json structure")
           .parameters(asHeaderParam(feideToken))
+          .deprecated(true)
       )
     ) {
       folderReadService.exportUserData(requestFeideToken)
@@ -148,6 +153,7 @@ trait UserController {
             asHeaderParam(feideToken),
             bodyParam[ExportedUserData]
           )
+          .deprecated(true)
       )
     ) {
       val importBody = tryExtract[ExportedUserData](request.body)

@@ -92,6 +92,7 @@ trait FolderController {
             asQueryParam(includeSubfolders),
             asQueryParam(includeResources)
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -116,6 +117,7 @@ trait FolderController {
             asQueryParam(includeResources),
             asQueryParam(includeSubfolders)
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -137,6 +139,7 @@ trait FolderController {
             asHeaderParam(feideToken),
             bodyParam[NewFolder]
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -159,6 +162,7 @@ trait FolderController {
             asPathParam(folderId),
             bodyParam[UpdatedFolder]
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -179,6 +183,7 @@ trait FolderController {
             asHeaderParam(feideToken),
             asPathParam(folderId)
           )
+          .deprecated(true)
           .responseMessages(response204, response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -200,6 +205,7 @@ trait FolderController {
             asHeaderParam(feideToken),
             asQueryParam(size)
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -226,6 +232,7 @@ trait FolderController {
             asPathParam(folderId),
             bodyParam[NewResource]
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -247,6 +254,7 @@ trait FolderController {
             asPathParam(resourceId),
             bodyParam[UpdatedResource]
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -268,6 +276,7 @@ trait FolderController {
             asPathParam(folderId),
             asPathParam(resourceId)
           )
+          .deprecated(true)
           .responseMessages(response204, response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -290,6 +299,7 @@ trait FolderController {
           .parameters(
             asPathParam(folderId)
           )
+          .deprecated(true)
           .responseMessages(response400, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -308,6 +318,7 @@ trait FolderController {
             asPathParam(folderId),
             asQueryParam(folderStatus)
           )
+          .deprecated(true)
           .responseMessages(response204, response400, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -330,6 +341,7 @@ trait FolderController {
             asPathParam(sourceId),
             asQueryParam(destinationId)
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
@@ -351,6 +363,7 @@ trait FolderController {
             asHeaderParam(feideToken),
             bodyParam[FolderSortRequest]
           )
+          .deprecated(true)
       )
     ) {
       for {
@@ -372,6 +385,7 @@ trait FolderController {
             bodyParam[FolderSortRequest],
             asQueryParam(folderIdQuery)
           )
+          .deprecated(true)
       )
     ) {
       for {
