@@ -168,10 +168,9 @@ trait FolderConverterService {
 
     def toApiUserData(
         domainUserData: domain.MyNDLAUser,
-        arenaEnabledOrgs: List[String],
-        arenaEnabledUsers: List[String]
+        arenaEnabledOrgs: List[String]
     ): api.MyNDLAUser = {
-      val arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs, arenaEnabledUsers)
+      val arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs)
       api.MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
@@ -188,14 +187,8 @@ trait FolderConverterService {
       )
     }
 
-    def getArenaEnabled(
-        userData: domain.MyNDLAUser,
-        arenaEnabledOrgs: List[String],
-        arenaEnabledUsers: List[String]
-    ): Boolean =
-      userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization) || arenaEnabledUsers
-        .map(_.toLowerCase)
-        .contains(userData.email.toLowerCase)
+    def getArenaEnabled(userData: domain.MyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
+      userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization)
 
     def domainToApiModel[Domain, Api](
         domainObjects: List[Domain],
@@ -229,14 +222,16 @@ trait FolderConverterService {
         domainUserData: domain.MyNDLAUser,
         updatedUser: api.UpdatedMyNDLAUser,
         updaterToken: Option[TokenUser],
-        updaterUser: Option[domain.MyNDLAUser]
+        updaterUser: Option[domain.MyNDLAUser],
+        arenaEnabledUsers: List[String]
     ): domain.MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
         if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN) || updaterUser.exists(_.isAdmin))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
-        else domainUserData.arenaEnabled
+        else
+          domainUserData.arenaEnabled || arenaEnabledUsers.map(_.toLowerCase).contains(domainUserData.email.toLowerCase)
       }
 
       val arenaGroups =

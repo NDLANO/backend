@@ -38,7 +38,7 @@ trait FolderWriteService {
     val MaxFolderDepth = 5L
 
     private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
-      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(AutoSession)
     }
 
     private[service] def isOperationAllowedOrAccessDenied(
