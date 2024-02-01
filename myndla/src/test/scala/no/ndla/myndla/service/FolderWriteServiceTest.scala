@@ -32,6 +32,10 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     super.beforeEach()
     resetMocks()
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
+    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    })
   }
 
   test("that a user without access cannot delete a folder") {

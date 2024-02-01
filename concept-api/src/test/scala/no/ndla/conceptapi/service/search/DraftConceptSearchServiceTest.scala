@@ -20,6 +20,7 @@ import org.scalatest.Outcome
 
 import scala.util.Success
 import no.ndla.common.model.NDLADate
+import no.ndla.conceptapi.integration.model.TaxonomyData
 
 import java.util.UUID
 
@@ -232,6 +233,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   override def beforeAll(): Unit = {
     super.beforeAll()
+    when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
     if (elasticSearchContainer.isSuccess) {
       draftConceptIndexService.createIndexAndAlias().get
 

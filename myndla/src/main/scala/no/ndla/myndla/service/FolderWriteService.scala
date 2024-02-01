@@ -17,7 +17,7 @@ import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
-import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
+import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -38,7 +38,9 @@ trait FolderWriteService {
     val MaxFolderDepth = 5L
 
     private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
-      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(AutoSession)
+      userRepository.rollbackOnFailure(session =>
+        userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
+      )
     }
 
     private[service] def isOperationAllowedOrAccessDenied(

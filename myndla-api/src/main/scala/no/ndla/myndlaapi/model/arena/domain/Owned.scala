@@ -8,5 +8,6 @@
 package no.ndla.myndlaapi.model.arena.domain
 
 trait Owned {
-  def ownerId: Long
+  def id: Long
+  def ownerId: Option[Long]
 }

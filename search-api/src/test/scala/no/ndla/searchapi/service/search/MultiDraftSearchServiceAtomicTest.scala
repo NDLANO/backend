@@ -7,21 +7,26 @@
 
 package no.ndla.searchapi.service.search
 
+import com.sksamuel.elastic4s.ElasticApi.indexInto
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain._
-import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.ApiTaxonomyContext
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment}
+import org.json4s.native.Serialization
 import org.scalatest.Outcome
 
 import java.util.UUID
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class MultiDraftSearchServiceAtomicTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -871,4 +876,78 @@ class MultiDraftSearchServiceAtomicTest
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(List(1))
   }
+
+  test("That sorting on resource types works as expected") {
+    val indexService = new DraftIndexService {
+      override val indexShards = 1
+      override def createIndexRequest(
+          domainModel: Draft,
+          indexName: String,
+          taxonomyBundle: Option[TaxonomyBundle],
+          grepBundle: Option[GrepBundle]
+      ): Try[IndexRequest] = {
+
+        val draft = domainModel.id.get match {
+          case 1 =>
+            TestData.searchableDraft.copy(
+              id = 1,
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Apekatt emne"),
+              defaultParentTopicName = Some("Apekatt emne"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
+              defaultRoot = Some("Capekatt rot"),
+              resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
+              defaultResourceTypeName = Some("Bapekatt ressurs")
+            )
+          case 2 =>
+            TestData.searchableDraft.copy(
+              id = 2,
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Bpekatt emne"),
+              defaultParentTopicName = Some("Bpekatt emne"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
+              defaultRoot = Some("Apekatt rot"),
+              resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
+              defaultResourceTypeName = Some("Capekatt ressurs")
+            )
+          case 3 =>
+            TestData.searchableDraft.copy(
+              id = 3,
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Cpekatt emne"),
+              defaultParentTopicName = Some("Cpekatt emne"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
+              defaultRoot = Some("Bapekatt rot"),
+              resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
+              defaultResourceTypeName = Some("Apekatt ressurs")
+            )
+          case _ => fail("Unexpected id, this is a bug with the test")
+        }
+
+        val source = Serialization.write(draft)
+        Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+      }
+    }
+
+    indexService.indexDocument(TestData.draft1.copy(id = Some(1)), Some(taxonomyTestBundle), Some(grepBundle)).get
+    indexService.indexDocument(TestData.draft1.copy(id = Some(2)), Some(taxonomyTestBundle), Some(grepBundle)).get
+    indexService.indexDocument(TestData.draft1.copy(id = Some(3)), Some(taxonomyTestBundle), Some(grepBundle)).get
+
+    blockUntil(() => indexService.countDocuments == 3)
+    val searchService = new MultiDraftSearchService
+
+    val Success(search1) = searchService.matchingQuery(
+      multiDraftSearchSettings.copy(sort = Sort.ByParentTopicNameAsc)
+    )
+    search1.results.map(_.id) should be(List(1, 2, 3))
+
+    val Success(search2) = searchService.matchingQuery(
+      multiDraftSearchSettings.copy(sort = Sort.ByPrimaryRootAsc)
+    )
+    search2.results.map(_.id) should be(List(2, 3, 1))
+
+    val Success(search3) = searchService.matchingQuery(
+      multiDraftSearchSettings.copy(sort = Sort.ByResourceTypeAsc)
+    )
+    search3.results.map(_.id) should be(List(3, 1, 2))
+
+  }
+
 }

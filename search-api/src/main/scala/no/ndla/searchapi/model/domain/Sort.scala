@@ -36,7 +36,12 @@ object Sort extends Enum[Sort] {
   case object ByStatusDesc                 extends Sort("-status")
   case object ByPrioritizedDesc            extends Sort("-prioritized")
   case object ByPrioritizedAsc             extends Sort("prioritized")
+  case object ByParentTopicNameDesc        extends Sort("-parentTopicName")
+  case object ByParentTopicNameAsc         extends Sort("parentTopicName")
+  case object ByPrimaryRootDesc            extends Sort("-primaryRoot")
+  case object ByPrimaryRootAsc             extends Sort("primaryRoot")
+  case object ByResourceTypeDesc           extends Sort("-resourceType")
+  case object ByResourceTypeAsc            extends Sort("resourceType")
 
   def valueOf(s: String): Option[Sort] = Sort.values.find(_.entryName == s)
-
 }

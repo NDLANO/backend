@@ -12,18 +12,18 @@ import no.ndla.myndlaapi.model.arena.domain
 
 case class CompiledFlag(
     flag: domain.Flag,
-    flagger: MyNDLAUser
+    flagger: Option[MyNDLAUser]
 )
 
 case class CompiledPost(
     post: domain.Post,
-    owner: MyNDLAUser,
+    owner: Option[MyNDLAUser],
     flags: List[CompiledFlag]
 )
 
 case class CompiledTopic(
     topic: domain.Topic,
-    owner: MyNDLAUser,
+    owner: Option[MyNDLAUser],
     postCount: Long,
     isFollowing: Boolean
 )

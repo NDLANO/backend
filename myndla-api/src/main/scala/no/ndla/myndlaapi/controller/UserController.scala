@@ -22,6 +22,7 @@ import sttp.tapir._
 import sttp.tapir.generic.auto._
 import io.circe.generic.auto._
 import no.ndla.myndla.MyNDLAAuthHelpers
+import no.ndla.myndlaapi.service.ArenaReadService
 import no.ndla.network.model.FeideID
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -31,7 +32,8 @@ trait UserController {
     with MyNDLAAuthHelpers
     with TapirErrorHelpers
     with FolderWriteService
-    with FolderReadService =>
+    with FolderReadService
+    with ArenaReadService =>
   val userController: UserController
 
   class UserController extends Service[Eff] {
@@ -92,7 +94,7 @@ trait UserController {
       .errorOut(errorOutputsFor(401, 403))
       .out(emptyOutput)
       .serverLogicPure { feideHeader =>
-        folderWriteService.deleteAllUserData(feideHeader).handleErrorsOrOk
+        arenaReadService.deleteAllUserData(feideHeader).handleErrorsOrOk
       }
 
     def exportUserData: ServerEndpoint[Any, Eff] = endpoint.get

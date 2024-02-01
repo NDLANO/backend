@@ -17,17 +17,19 @@ import no.ndla.common.model.domain.{
   EditorNote,
   Introduction,
   Priority,
-  Status,
+  Responsible,
   Tag,
   Title,
   VisualElement,
-  draft
+  draft,
+  Status
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.language.Language.DefaultLanguage
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningPathVerificationStatus}
@@ -38,6 +40,7 @@ import no.ndla.searchapi.model.taxonomy._
 import org.apache.commons.lang3.RandomStringUtils
 
 import java.net.URI
+import java.util.UUID
 
 object TestData {
 
@@ -1647,5 +1650,98 @@ object TestData {
 
   val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(
     singleSearchableTaxonomyContext
+  )
+
+  val searchableTitles = SearchableLanguageValues.from(
+    "nb" -> "Christian Tut",
+    "en" -> "Christian Honk"
+  )
+
+  val searchableContents = SearchableLanguageValues.from(
+    "nn" -> "Eg kjøyrar rundt i min fine bil",
+    "nb" -> "Jeg kjører rundt i tutut",
+    "en" -> "I'm in my mums car wroomwroom"
+  )
+
+  val searchableVisualElements = SearchableLanguageValues.from(
+    "nn" -> "image",
+    "nb" -> "image"
+  )
+
+  val searchableIntroductions    = SearchableLanguageValues.from("en" -> "Wroom wroom")
+  val searchableMetaDescriptions = SearchableLanguageValues.from("nb" -> "Mammas bil")
+  val searchableTags             = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
+  val searchableEmbedAttrs = SearchableLanguageList.from(
+    "nb" -> Seq("En norsk", "To norsk"),
+    "en" -> Seq("One english")
+  )
+
+  val searchableEmbedResourcesAndIds = List(
+    EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb")
+  )
+
+  val olddate = today.minusDays(5)
+
+  val searchableRevisionMeta = List(
+    RevisionMeta(
+      id = UUID.randomUUID(),
+      revisionDate = today,
+      note = "some note",
+      status = RevisionStatus.NeedsRevision
+    ),
+    RevisionMeta(
+      id = UUID.randomUUID(),
+      revisionDate = olddate,
+      note = "some other note",
+      status = RevisionStatus.NeedsRevision
+    )
+  )
+  val searchableDraft = SearchableDraft(
+    id = 100,
+    draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
+    title = searchableTitles,
+    content = searchableContents,
+    visualElement = searchableVisualElements,
+    introduction = searchableIntroductions,
+    metaDescription = searchableMetaDescriptions,
+    tags = searchableTags,
+    lastUpdated = TestData.today,
+    license = Some("by-sa"),
+    authors = List("Jonas", "Papi"),
+    articleType = LearningResourceType.Article.toString,
+    defaultTitle = Some("Christian Tut"),
+    supportedLanguages = List("en", "nb", "nn"),
+    notes = List("Note1", "note2"),
+    contexts = searchableTaxonomyContexts,
+    users = List("ndalId54321", "ndalId12345"),
+    previousVersionsNotes = List("OldNote"),
+    grepContexts = List(),
+    traits = List.empty,
+    embedAttributes = searchableEmbedAttrs,
+    embedResourcesAndIds = searchableEmbedResourcesAndIds,
+    revisionMeta = searchableRevisionMeta,
+    nextRevision = searchableRevisionMeta.lastOption,
+    responsible = Some(Responsible("some responsible", TestData.today)),
+    domainObject = TestData.draft1.copy(
+      status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED)),
+      notes = Seq(
+        EditorNote(
+          note = "Hei",
+          user = "user",
+          timestamp = TestData.today,
+          status = Status(
+            current = DraftStatus.IN_PROGRESS,
+            other = Set(DraftStatus.PUBLISHED)
+          )
+        )
+      )
+    ),
+    priority = Priority.Unspecified,
+    parentTopicName = searchableTitles,
+    defaultParentTopicName = searchableTitles.defaultValue,
+    primaryRoot = searchableTitles,
+    defaultRoot = searchableTitles.defaultValue,
+    resourceTypeName = searchableTitles,
+    defaultResourceTypeName = searchableTitles.defaultValue
   )
 }

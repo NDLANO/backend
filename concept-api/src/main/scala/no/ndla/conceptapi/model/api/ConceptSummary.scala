@@ -34,6 +34,8 @@ case class ConceptSummary(
     @(ApiModelProperty @field)(description = "URL for the source of the concept") source: Option[String],
     @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this concept") responsible: Option[ConceptResponsible],
     @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'gloss'") conceptType: String,
-    @(ApiModelProperty @field)(description = "Information about the gloss") glossData: Option[GlossData]
+    @(ApiModelProperty @field)(description = "Information about the gloss") glossData: Option[GlossData],
+    @(ApiModelProperty @field)(description = "A name of the concepts subject(s)") subjectName: Option[String],
+    @(ApiModelProperty @field)(description = "A translated name of the concept type") conceptTypeName: String
 )
 // format: on

@@ -15,8 +15,10 @@ import no.ndla.myndla.model.domain.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument,
 import no.ndla.myndla.model.api
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
 import no.ndla.scalatestsuite.UnitTestSuite
+import org.mockito.invocation.InvocationOnMock
+import scalikejdbc.DBSession
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
@@ -138,6 +140,11 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
     when(clock.now()).thenReturn(NDLADate.now())
+    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    })
+    when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(false))
 
     val feideId = "feide"
     val feideGroups =
@@ -209,13 +216,18 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
     verify(feideApiClient, times(1)).getFeideGroups(any)
     verify(feideApiClient, times(1)).getOrganization(any)
-    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(1)).reserveFeideIdIfNotExists(any)(any)
     verify(userRepository, times(1)).insertUser(any, any)(any)
     verify(userRepository, times(0)).updateUser(any, any)(any)
   }
 
   test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
     when(clock.now()).thenReturn(NDLADate.now())
+    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    })
+    when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"
     val domainUserData = MyNDLAUser(
@@ -271,6 +283,11 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists but needs update") {
     when(clock.now()).thenReturn(NDLADate.now())
+    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    })
+    when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"
     val feideGroups =

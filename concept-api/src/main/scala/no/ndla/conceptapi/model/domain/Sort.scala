@@ -29,6 +29,10 @@ object Sort extends Enum[Sort] {
   case object ByResponsibleLastUpdatedAsc  extends Sort("responsibleLastUpdated")
   case object ByStatusAsc                  extends Sort("status")
   case object ByStatusDesc                 extends Sort("-status")
+  case object BySubjectAsc                 extends Sort("subject")
+  case object BySubjectDesc                extends Sort("-subject")
+  case object ByConceptTypeAsc             extends Sort("conceptType")
+  case object ByConceptTypeDesc            extends Sort("-conceptType")
 
   def valueOf(s: String): Option[Sort] = Sort.values.find(_.entryName == s)
 
