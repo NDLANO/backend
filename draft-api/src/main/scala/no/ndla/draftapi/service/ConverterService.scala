@@ -435,7 +435,7 @@ trait ConverterService {
       api.Status(status.current.toString, status.other.map(_.toString).toSeq)
 
     def toApiArticleTitle(title: common.Title): api.ArticleTitle =
-      api.ArticleTitle(title.title, Jsoup.parse(title.title).body().text(), title.language)
+      api.ArticleTitle(title.title, Jsoup.parseBodyFragment(title.title).body().text(), title.language)
 
     private def toApiArticleContent(content: common.ArticleContent): api.ArticleContent =
       api.ArticleContent(content.content, content.language)
@@ -493,7 +493,11 @@ trait ConverterService {
       api.VisualElement(visual.resource, visual.language)
 
     def toApiArticleIntroduction(intro: common.Introduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(intro.introduction, Jsoup.parse(intro.introduction).body().text(), intro.language)
+      api.ArticleIntroduction(
+        intro.introduction,
+        Jsoup.parseBodyFragment(intro.introduction).body().text(),
+        intro.language
+      )
     }
 
     private def toApiArticleMetaDescription(metaDescription: common.Description): api.ArticleMetaDescription = {
