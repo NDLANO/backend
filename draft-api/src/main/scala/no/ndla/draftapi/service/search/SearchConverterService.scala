@@ -87,7 +87,7 @@ trait SearchConverterService {
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiArticleTitle)
-        .getOrElse(api.ArticleTitle("", UnknownLanguage.toString))
+        .getOrElse(api.ArticleTitle("", "", UnknownLanguage.toString))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
       val introduction =
         findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
