@@ -429,7 +429,7 @@ trait ArenaReadService {
       arenaRepository.rollbackOnFailure(session => {
         for {
           feideId <- feideApiClient.getFeideID(feideAccessToken)
-          user    <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+          user    <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
           _       <- arenaRepository.disconnectPostsByUser(user.id)(session)
           _       <- arenaRepository.disconnectTopicsByUser(user.id)(session)
           _       <- arenaRepository.disconnectFlagsByUser(user.id)(session)

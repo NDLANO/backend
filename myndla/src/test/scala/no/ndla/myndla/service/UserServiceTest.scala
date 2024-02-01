@@ -101,7 +101,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
@@ -127,7 +127,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
 
     service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(

@@ -39,7 +39,7 @@ trait FolderWriteService {
 
     private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
       userRepository.rollbackOnFailure(session =>
-        userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+        userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
       )
     }
 
