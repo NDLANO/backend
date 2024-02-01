@@ -18,7 +18,7 @@ import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
-import scalikejdbc.{AutoSession, DBSession}
+import scalikejdbc.DBSession
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -42,24 +42,25 @@ trait FolderReadService {
         includeResources: Boolean,
         feideId: FeideID
     ): Try[List[Folder]] = {
-      implicit val session: DBSession = folderRepository.getSession(true)
-      for {
-        topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
-        withFavorite <- mergeWithFavorite(topFolders, feideId)
-        withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
-        feideUser    <- userRepository.userWithFeideId(feideId)
-        apiFolders <- folderConverterService.domainToApiModel(
-          withData,
-          v =>
-            folderConverterService.toApiFolder(
-              v,
-              List(api.Breadcrumb(id = v.id.toString, name = v.name)),
-              feideUser,
-              feideUser.exists(_.feideId == v.feideId)
-            )
-        )
-        sorted = apiFolders.sortBy(_.rank)
-      } yield sorted
+      folderRepository.rollbackOnFailure(session => {
+        for {
+          topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)(session)
+          withFavorite <- mergeWithFavorite(topFolders, feideId)
+          withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(session)
+          feideUser    <- userRepository.userWithFeideId(feideId)(session)
+          apiFolders <- folderConverterService.domainToApiModel(
+            withData,
+            v =>
+              folderConverterService.toApiFolder(
+                v,
+                List(api.Breadcrumb(id = v.id.toString, name = v.name)),
+                feideUser,
+                feideUser.exists(_.feideId == v.feideId)
+              )
+          )
+          sorted = apiFolders.sortBy(_.rank)
+        } yield sorted
+      })
     }
 
     def getSharedFolder(id: UUID, maybeFeideToken: Option[FeideAccessToken]): Try[Folder] = {
@@ -231,7 +232,9 @@ trait FolderReadService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[api.MyNDLAUser] =
       for {
-        user  <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+        user <- userRepository.rollbackOnFailure(session =>
+          userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+        )
         orgs  <- configService.getMyNDLAEnabledOrgs
         users <- configService.getMyNDLAEnabledUsers
       } yield folderConverterService.toApiUserData(user, orgs, users)

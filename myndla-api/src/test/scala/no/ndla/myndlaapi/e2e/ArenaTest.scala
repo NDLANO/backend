@@ -312,12 +312,14 @@ class ArenaTest
             content = "description1",
             created = someDate,
             updated = someDate,
-            owner = ArenaUser(
-              id = 1,
-              displayName = "",
-              username = "email@ndla.no",
-              location = "zxc",
-              groups = List(ArenaGroup.ADMIN)
+            owner = Some(
+              ArenaUser(
+                id = 1,
+                displayName = "",
+                username = "email@ndla.no",
+                location = "zxc",
+                groups = List(ArenaGroup.ADMIN)
+              )
             ),
             flags = Some(List()),
             topicId = 1
@@ -327,12 +329,14 @@ class ArenaTest
             content = "post1",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaUser(
-              id = 1,
-              displayName = "",
-              username = "email@ndla.no",
-              location = "zxc",
-              groups = List(ArenaGroup.ADMIN)
+            owner = Some(
+              myndla.model.api.ArenaUser(
+                id = 1,
+                displayName = "",
+                username = "email@ndla.no",
+                location = "zxc",
+                groups = List(ArenaGroup.ADMIN)
+              )
             ),
             flags = Some(List()),
             topicId = 1
@@ -342,12 +346,14 @@ class ArenaTest
             content = "post2",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaUser(
-              id = 1,
-              displayName = "",
-              username = "email@ndla.no",
-              location = "zxc",
-              groups = List(ArenaGroup.ADMIN)
+            owner = Some(
+              myndla.model.api.ArenaUser(
+                id = 1,
+                displayName = "",
+                username = "email@ndla.no",
+                location = "zxc",
+                groups = List(ArenaGroup.ADMIN)
+              )
             ),
             flags = Some(List()),
             topicId = 1
@@ -357,12 +363,14 @@ class ArenaTest
             content = "post3",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaUser(
-              id = 1,
-              displayName = "",
-              username = "email@ndla.no",
-              location = "zxc",
-              groups = List(ArenaGroup.ADMIN)
+            owner = Some(
+              myndla.model.api.ArenaUser(
+                id = 1,
+                displayName = "",
+                username = "email@ndla.no",
+                location = "zxc",
+                groups = List(ArenaGroup.ADMIN)
+              )
             ),
             flags = Some(List()),
             topicId = 1
@@ -372,12 +380,14 @@ class ArenaTest
             content = "post4",
             created = someDate,
             updated = someDate,
-            owner = myndla.model.api.ArenaUser(
-              id = 1,
-              displayName = "",
-              username = "email@ndla.no",
-              location = "zxc",
-              groups = List(ArenaGroup.ADMIN)
+            owner = Some(
+              myndla.model.api.ArenaUser(
+                id = 1,
+                displayName = "",
+                username = "email@ndla.no",
+                location = "zxc",
+                groups = List(ArenaGroup.ADMIN)
+              )
             ),
             flags = Some(List()),
             topicId = 1
@@ -443,12 +453,14 @@ class ArenaTest
         content = s"post$num",
         created = someDate,
         updated = someDate,
-        owner = myndla.model.api.ArenaUser(
-          id = 1,
-          displayName = "",
-          username = "email@ndla.no",
-          location = "zxc",
-          groups = List(ArenaGroup.ADMIN)
+        owner = Some(
+          myndla.model.api.ArenaUser(
+            id = 1,
+            displayName = "",
+            username = "email@ndla.no",
+            location = "zxc",
+            groups = List(ArenaGroup.ADMIN)
+          )
         ),
         flags = Some(List()),
         topicId = 1
