@@ -19,5 +19,7 @@ case class TopicWithPosts(
     @description("The post creation date") created: NDLADate,
     @description("The post edit date") updated: NDLADate,
     @description("The id of the parenting category") categoryId: Long,
-    @description("Whether the requesting user is following the topic") isFollowing: Boolean
+    @description("Whether the requesting user is following the topic") isFollowing: Boolean,
+    @description("Whether the topic is locked or not") isLocked: Boolean,
+    @description("Whether the topic is pinned to the top of the category") isPinned: Boolean
 )

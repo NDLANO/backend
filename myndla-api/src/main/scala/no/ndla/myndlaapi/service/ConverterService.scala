@@ -43,7 +43,9 @@ trait ConverterService {
         updated = compiledTopic.topic.updated,
         postCount = compiledTopic.postCount,
         categoryId = compiledTopic.topic.category_id,
-        isFollowing = compiledTopic.isFollowing
+        isFollowing = compiledTopic.isFollowing,
+        isLocked = compiledTopic.topic.locked,
+        isPinned = compiledTopic.topic.pinned
       )
     }
 
@@ -70,7 +72,9 @@ trait ConverterService {
         postCount = compiledTopic.postCount,
         posts = pagination,
         categoryId = compiledTopic.topic.category_id,
-        isFollowing = compiledTopic.isFollowing
+        isFollowing = compiledTopic.isFollowing,
+        isLocked = compiledTopic.topic.locked,
+        isPinned = compiledTopic.topic.pinned
       )
     }
 
