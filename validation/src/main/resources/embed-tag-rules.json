@@ -470,6 +470,13 @@
             "required": false,
             "dataType": "LIST"
           }
+        },
+        {
+          "name": "data-concept-type",
+          "validation": {
+            "required": false,
+            "dataType": "STRING"
+          }
         }
       ]
     },
