@@ -20,6 +20,7 @@ import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
+import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
@@ -238,7 +239,8 @@ trait SearchConverterService {
         searchResult.page,
         searchResult.pageSize,
         searchResult.language,
-        searchResult.results
+        searchResult.results,
+        searchResult.aggregations.map(toApiMultiTermsAggregation)
       )
 
     def toApiStatus(status: Status): api.Status = {

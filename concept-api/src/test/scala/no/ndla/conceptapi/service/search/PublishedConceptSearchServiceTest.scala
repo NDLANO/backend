@@ -22,6 +22,7 @@ import java.time.LocalDateTime
 import scala.util.Success
 import no.ndla.common.model.NDLADate
 import no.ndla.conceptapi.integration.model.TaxonomyData
+import no.ndla.search.model.domain.{Bucket, TermAggregation}
 
 class PublishedConceptSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -204,7 +205,8 @@ class PublishedConceptSearchServiceTest
     shouldScroll = false,
     embedResource = None,
     embedId = None,
-    conceptType = None
+    conceptType = None,
+    aggregatePaths = List.empty
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
@@ -789,6 +791,29 @@ class PublishedConceptSearchServiceTest
     val Success(search) = publishedConceptSearchService.matchingQuery("glossorama", searchSettings)
     search.totalCount should be(1)
     search.results.head.id should be(12)
+  }
+
+  test("Aggregating works as expected") {
+    val settings = searchSettings.copy(
+      aggregatePaths = List("subjectIds")
+    )
+
+    val expectedAggregations = TermAggregation(
+      field = Seq("subjectIds"),
+      sumOtherDocCount = 0,
+      docCountErrorUpperBound = 0,
+      buckets = Seq(
+        Bucket("urn:subject:3", 8),
+        Bucket("urn:subject:4", 8),
+        Bucket("urn:subject:1", 1),
+        Bucket("urn:subject:10", 1),
+        Bucket("urn:subject:100", 1),
+        Bucket("urn:subject:2", 1)
+      )
+    )
+
+    val Success(result) = publishedConceptSearchService.all(settings)
+    result.aggregations should be(Seq(expectedAggregations))
   }
 
 }

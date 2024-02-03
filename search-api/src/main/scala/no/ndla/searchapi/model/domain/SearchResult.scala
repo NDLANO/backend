@@ -6,6 +6,7 @@
  */
 
 package no.ndla.searchapi.model.domain
+import no.ndla.search.model.domain.TermAggregation
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary}
 
 case class SearchResult(

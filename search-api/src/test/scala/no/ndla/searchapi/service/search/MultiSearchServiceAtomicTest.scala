@@ -10,9 +10,9 @@ package no.ndla.searchapi.service.search
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.ArticleContent
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
-import no.ndla.searchapi.model.domain.{Bucket, TermAggregation}
 import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome

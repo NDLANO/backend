@@ -7,11 +7,14 @@
 
 package no.ndla.conceptapi.model.domain
 
+import no.ndla.search.model.domain.TermAggregation
+
 case class SearchResult[T](
     totalCount: Long,
     page: Option[Int],
     pageSize: Int,
     language: String,
     results: Seq[T],
+    aggregations: Seq[TermAggregation],
     scrollId: Option[String]
 )

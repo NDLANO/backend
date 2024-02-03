@@ -20,6 +20,7 @@ import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, g
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
+import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
@@ -766,19 +767,6 @@ trait SearchConverterService {
             .toList
       }
     }
-
-    private def toApiMultiTermsAggregation(agg: domain.TermAggregation): api.MultiSearchTermsAggregation =
-      api.MultiSearchTermsAggregation(
-        field = agg.field.mkString("."),
-        sumOtherDocCount = agg.sumOtherDocCount,
-        docCountErrorUpperBound = agg.docCountErrorUpperBound,
-        values = agg.buckets.map(b =>
-          api.TermValue(
-            value = b.value,
-            count = b.count
-          )
-        )
-      )
 
     def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResult =
       api.MultiSearchResult(

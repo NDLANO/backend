@@ -15,6 +15,7 @@ import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.network.model.RequestInfo
+import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHelpers
@@ -97,7 +98,7 @@ trait MultiSearchService {
         Failure(ResultWindowTooLargeException())
       } else {
 
-        val aggregations = buildTermsAggregation(settings.aggregatePaths)
+        val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
 
         val searchToExecute = search(searchIndex)
           .query(filteredSearch)

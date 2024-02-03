@@ -1,11 +1,11 @@
 /*
- * Part of NDLA search-api
- * Copyright (C) 2021 NDLA
+ * Part of NDLA search
+ * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.searchapi.model.api
+package no.ndla.search.api
 
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 

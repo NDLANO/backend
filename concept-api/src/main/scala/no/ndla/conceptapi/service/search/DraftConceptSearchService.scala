@@ -18,6 +18,7 @@ import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult}
 import no.ndla.conceptapi.model.search.{DraftSearchSettings, DraftSearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.AllLanguages
+import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
@@ -171,6 +172,7 @@ trait DraftConceptSearchService {
         )
         Failure(new ResultWindowTooLargeException())
       } else {
+        val aggregations = buildTermsAggregation(settings.aggregatePaths, List(draftConceptIndexService.getMapping))
         val searchToExecute =
           search(searchIndex)
             .size(numResults)
@@ -178,6 +180,7 @@ trait DraftConceptSearchService {
             .trackTotalHits(true)
             .query(filteredSearch)
             .highlighting(highlight("*"))
+            .aggs(aggregations)
             .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
         val searchWithScroll =
@@ -189,12 +192,13 @@ trait DraftConceptSearchService {
           case Success(response) =>
             Success(
               SearchResult(
-                response.result.totalHits,
-                Some(settings.page),
-                numResults,
-                searchLanguage,
-                getHits(response.result, settings.searchLanguage),
-                response.result.scrollId
+                totalCount = response.result.totalHits,
+                page = Some(settings.page),
+                pageSize = numResults,
+                language = searchLanguage,
+                results = getHits(response.result, settings.searchLanguage),
+                aggregations = getAggregationsFromResult(response.result),
+                scrollId = response.result.scrollId
               )
             )
           case Failure(ex) => errorHandler(ex)

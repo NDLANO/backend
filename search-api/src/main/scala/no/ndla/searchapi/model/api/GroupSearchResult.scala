@@ -7,7 +7,9 @@
 
 package no.ndla.searchapi.model.api
 
+import no.ndla.search.api.MultiSearchTermsAggregation
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
 import scala.annotation.meta.field
 
 // format: off

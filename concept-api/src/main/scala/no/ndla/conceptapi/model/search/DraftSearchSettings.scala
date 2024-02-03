@@ -26,7 +26,8 @@ case class DraftSearchSettings(
     embedResource: Option[String],
     embedId: Option[String],
     responsibleIdFilter: List[String],
-    conceptType: Option[String]
+    conceptType: Option[String],
+    aggregatePaths: List[String]
 )
 
 trait DraftSearchSettingsHelper {
@@ -48,7 +49,8 @@ trait DraftSearchSettingsHelper {
         embedResource = None,
         embedId = None,
         responsibleIdFilter = List.empty,
-        conceptType = None
+        conceptType = None,
+        aggregatePaths = List.empty
       )
     }
   }

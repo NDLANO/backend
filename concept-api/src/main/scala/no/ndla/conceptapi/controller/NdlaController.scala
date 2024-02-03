@@ -87,6 +87,10 @@ trait NdlaController {
       "ids",
       "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,)."
     )
+    protected val aggregatePaths = Param[Option[Seq[String]]](
+      "aggregate-paths",
+      "List of index-paths that should be term-aggregated and returned in result."
+    )
     protected val conceptType = Param[Option[String]](
       "concept-type",
       s"Return only concepts of given type. Allowed values are ${ConceptType.values.mkString(",")}"

@@ -24,7 +24,8 @@ case class SearchSettings(
     shouldScroll: Boolean,
     embedResource: Option[String],
     embedId: Option[String],
-    conceptType: Option[String]
+    conceptType: Option[String],
+    aggregatePaths: List[String]
 )
 
 trait SearchSettingsHelper {
@@ -44,7 +45,8 @@ trait SearchSettingsHelper {
         shouldScroll = false,
         embedResource = None,
         embedId = None,
-        conceptType = None
+        conceptType = None,
+        aggregatePaths = List.empty
       )
     }
   }
