@@ -59,6 +59,7 @@ export interface IConceptSearchParams {
   embedResource?: string
   embedId?: string
   conceptType?: string
+  aggregatePaths: string[]
 }
 
 export interface IConceptSearchResult {
@@ -67,6 +68,7 @@ export interface IConceptSearchResult {
   pageSize: number
   language: string
   results: IConceptSummary[]
+  aggregations: IMultiSearchTermsAggregation[]
 }
 
 export interface IConceptSummary {
@@ -120,6 +122,7 @@ export interface IDraftConceptSearchParams {
   embedId?: string
   responsibleIds: string[]
   conceptType?: string
+  aggregatePaths: string[]
 }
 
 export interface IDraftCopyright {
@@ -160,6 +163,13 @@ export interface ILicense {
   url?: string
 }
 
+export interface IMultiSearchTermsAggregation {
+  field: string
+  sumOtherDocCount: number
+  docCountErrorUpperBound: number
+  values: ITermValue[]
+}
+
 export interface INewConcept {
   language: string
   title: string
@@ -197,6 +207,11 @@ export interface ITagsSearchResult {
   pageSize: number
   language: string
   results: string[]
+}
+
+export interface ITermValue {
+  value: string
+  count: number
 }
 
 export interface IUpdatedConcept {
