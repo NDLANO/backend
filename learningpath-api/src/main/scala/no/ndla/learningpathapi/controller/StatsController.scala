@@ -40,6 +40,7 @@ trait StatsController {
           .summary("Get stats for my-ndla usage.")
           .description("Get stats for my-ndla usage.")
           .responseMessages(response404, response500, response502)
+          .deprecated(true)
       )
     ) {
       folderReadService.getStats match {

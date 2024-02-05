@@ -73,6 +73,7 @@ trait ConfigController {
           .parameters(
             asPathParam(configKeyPathParam)
           )
+          .deprecated(true)
           .responseMessages(response400, response403, response404, response500)
           .authorizations("oauth2")
       )
@@ -91,6 +92,7 @@ trait ConfigController {
             asPathParam(configKeyPathParam),
             bodyParam[ConfigMetaValue]
           )
+          .deprecated(true)
           .responseMessages(response400, response404, response403, response500)
           .authorizations("oauth2")
       )
