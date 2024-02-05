@@ -61,34 +61,36 @@ trait TestEnvironment
     with DraftSearchSettingsHelper
     with DBMigrator
     with ConceptApiInfo {
-  override val props = new ConceptApiProperties
+  override val props: ConceptApiProperties = new ConceptApiProperties {
+    override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
+  }
 
-  val migrator                   = mock[DBMigrator]
-  val draftConceptRepository     = mock[DraftConceptRepository]
-  val publishedConceptRepository = mock[PublishedConceptRepository]
+  val migrator: DBMigrator                                   = mock[DBMigrator]
+  val draftConceptRepository: DraftConceptRepository         = mock[DraftConceptRepository]
+  val publishedConceptRepository: PublishedConceptRepository = mock[PublishedConceptRepository]
 
-  val draftConceptController     = mock[DraftConceptController]
-  val publishedConceptController = mock[PublishedConceptController]
+  val draftConceptController: DraftConceptController         = mock[DraftConceptController]
+  val publishedConceptController: PublishedConceptController = mock[PublishedConceptController]
 
-  val searchConverterService        = mock[SearchConverterService]
-  val draftConceptIndexService      = mock[DraftConceptIndexService]
-  val draftConceptSearchService     = mock[DraftConceptSearchService]
-  val publishedConceptIndexService  = mock[PublishedConceptIndexService]
-  val publishedConceptSearchService = mock[PublishedConceptSearchService]
+  val searchConverterService: SearchConverterService               = mock[SearchConverterService]
+  val draftConceptIndexService: DraftConceptIndexService           = mock[DraftConceptIndexService]
+  val draftConceptSearchService: DraftConceptSearchService         = mock[DraftConceptSearchService]
+  val publishedConceptIndexService: PublishedConceptIndexService   = mock[PublishedConceptIndexService]
+  val publishedConceptSearchService: PublishedConceptSearchService = mock[PublishedConceptSearchService]
 
-  val taxonomyApiClient = mock[TaxonomyApiClient]
+  val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
 
-  var e4sClient        = mock[NdlaE4sClient]
-  val mockitoSugar     = mock[MockitoSugar]
-  val dataSource       = mock[HikariDataSource]
-  val writeService     = mock[WriteService]
-  val readService      = mock[ReadService]
-  val converterService = mock[ConverterService]
-  val contentValidator = mock[ContentValidator]
-  val clock            = mock[SystemClock]
-  val importService    = mock[ImportService]
+  var e4sClient: NdlaE4sClient           = mock[NdlaE4sClient]
+  val mockitoSugar: MockitoSugar         = mock[MockitoSugar]
+  val dataSource: HikariDataSource       = mock[HikariDataSource]
+  val writeService: WriteService         = mock[WriteService]
+  val readService: ReadService           = mock[ReadService]
+  val converterService: ConverterService = mock[ConverterService]
+  val contentValidator: ContentValidator = mock[ContentValidator]
+  val clock: SystemClock                 = mock[SystemClock]
+  val importService: ImportService       = mock[ImportService]
 
-  val ndlaClient       = mock[NdlaClient]
-  val articleApiClient = mock[ArticleApiClient]
+  val ndlaClient: NdlaClient             = mock[NdlaClient]
+  val articleApiClient: ArticleApiClient = mock[ArticleApiClient]
 
 }

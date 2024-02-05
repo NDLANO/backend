@@ -10,6 +10,7 @@ package no.ndla.conceptapi.validation
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.draft.DraftCopyright
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
@@ -22,7 +23,7 @@ import no.ndla.validation._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftConceptRepository with ConverterService =>
+  this: DraftConceptRepository with ConverterService with Props =>
   val contentValidator: ContentValidator
 
   class ContentValidator {
@@ -71,7 +72,7 @@ trait ContentValidator {
     }
 
     private def validateConceptContent(content: ConceptContent): Seq[ValidationMessage] = {
-      TextValidator.validate("content", content.content, Set.empty).toList ++
+      TextValidator.validate("content", content.content, props.IntroductionHtmlTags).toList ++
         validateLanguage("language", content.language)
     }
 
