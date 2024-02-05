@@ -27,6 +27,7 @@ import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageO
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation._
+import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
@@ -233,7 +234,7 @@ trait ConverterService {
       }
     }
 
-    def toDomainRelatedContent(relatedContent: Seq[commonApi.RelatedContent]): Seq[common.RelatedContent] = {
+    private def toDomainRelatedContent(relatedContent: Seq[commonApi.RelatedContent]): Seq[common.RelatedContent] = {
       relatedContent.map {
         case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
@@ -241,29 +242,29 @@ trait ConverterService {
 
     }
 
-    def toDomainTitle(articleTitle: api.ArticleTitle): common.Title =
+    private def toDomainTitle(articleTitle: api.ArticleTitle): common.Title =
       common.Title(articleTitle.title, articleTitle.language)
 
-    def toDomainContent(articleContent: api.ArticleContent): common.ArticleContent = {
+    private def toDomainContent(articleContent: api.ArticleContent): common.ArticleContent = {
       common.ArticleContent(removeUnknownEmbedTagAttribute(articleContent.content), articleContent.language)
     }
 
-    def toDomainTag(tag: Seq[String], language: String): Option[common.Tag] =
+    private def toDomainTag(tag: Seq[String], language: String): Option[common.Tag] =
       if (tag.nonEmpty) Some(common.Tag(tag, language)) else None
 
-    def toDomainVisualElement(visual: String, language: String): common.VisualElement =
+    private def toDomainVisualElement(visual: String, language: String): common.VisualElement =
       common.VisualElement(removeUnknownEmbedTagAttribute(visual), language)
 
-    def toDomainIntroduction(intro: String, language: String): common.Introduction =
+    private def toDomainIntroduction(intro: String, language: String): common.Introduction =
       common.Introduction(intro, language)
 
-    def toDomainMetaDescription(meta: String, language: String): common.Description =
+    private def toDomainMetaDescription(meta: String, language: String): common.Description =
       common.Description(meta, language)
 
-    def toDomainMetaImage(metaImage: api.NewArticleMetaImage, language: String): common.ArticleMetaImage =
+    private def toDomainMetaImage(metaImage: api.NewArticleMetaImage, language: String): common.ArticleMetaImage =
       common.ArticleMetaImage(metaImage.id, metaImage.alt, language)
 
-    def toDomainCopyright(copyright: DraftCopyright): common.draft.DraftCopyright = {
+    private def toDomainCopyright(copyright: DraftCopyright): common.draft.DraftCopyright = {
       common.draft.DraftCopyright(
         license = copyright.license.map(_.license),
         origin = copyright.origin,
@@ -320,7 +321,7 @@ trait ConverterService {
       })
     }
 
-    def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): common.RequiredLibrary = {
+    private def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): common.RequiredLibrary = {
       common.RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
     }
 
@@ -349,7 +350,7 @@ trait ConverterService {
         isImported: Boolean
     ): IO[Try[Draft]] = StateTransitionRules.doTransition(draft, status, user, isImported)
 
-    def toApiResponsible(responsible: Responsible): api.DraftResponsible =
+    private def toApiResponsible(responsible: Responsible): api.DraftResponsible =
       api.DraftResponsible(
         responsibleId = responsible.responsibleId,
         lastUpdated = responsible.lastUpdated
@@ -427,18 +428,19 @@ trait ConverterService {
       )
     }
 
-    def toApiEditorNote(note: common.EditorNote): api.EditorNote =
+    private def toApiEditorNote(note: common.EditorNote): api.EditorNote =
       api.EditorNote(note.note, note.user, toApiStatus(note.status), note.timestamp)
 
-    def toApiStatus(status: common.Status): api.Status =
+    private def toApiStatus(status: common.Status): api.Status =
       api.Status(status.current.toString, status.other.map(_.toString).toSeq)
 
-    def toApiArticleTitle(title: common.Title): api.ArticleTitle = api.ArticleTitle(title.title, title.language)
+    def toApiArticleTitle(title: common.Title): api.ArticleTitle =
+      api.ArticleTitle(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
 
-    def toApiArticleContent(content: common.ArticleContent): api.ArticleContent =
+    private def toApiArticleContent(content: common.ArticleContent): api.ArticleContent =
       api.ArticleContent(content.content, content.language)
 
-    def toApiArticleMetaImage(metaImage: common.ArticleMetaImage): api.ArticleMetaImage = {
+    private def toApiArticleMetaImage(metaImage: common.ArticleMetaImage): api.ArticleMetaImage = {
       api.ArticleMetaImage(
         s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
@@ -446,7 +448,7 @@ trait ConverterService {
       )
     }
 
-    def toApiCopyright(copyright: common.draft.DraftCopyright): DraftCopyright = {
+    private def toApiCopyright(copyright: common.draft.DraftCopyright): DraftCopyright = {
       model.api.DraftCopyright(
         copyright.license.map(toApiLicense),
         copyright.origin,
@@ -465,14 +467,14 @@ trait ConverterService {
         .getOrElse(commonApi.License("unknown", None, None))
     }
 
-    def toApiRelatedContent(relatedContent: common.RelatedContent): commonApi.RelatedContent = {
+    private def toApiRelatedContent(relatedContent: common.RelatedContent): commonApi.RelatedContent = {
       relatedContent match {
         case Left(x)  => Left(commonApi.RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
     }
 
-    def toApiComment(comment: Comment): draft.Comment = draft.Comment(
+    private def toApiComment(comment: Comment): draft.Comment = draft.Comment(
       id = comment.id.toString,
       content = comment.content,
       created = comment.created,
@@ -483,7 +485,7 @@ trait ConverterService {
 
     def toApiArticleTag(tag: common.Tag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)
 
-    def toApiRequiredLibrary(required: common.RequiredLibrary): api.RequiredLibrary = {
+    private def toApiRequiredLibrary(required: common.RequiredLibrary): api.RequiredLibrary = {
       api.RequiredLibrary(required.mediaType, required.name, required.url)
     }
 
@@ -491,16 +493,20 @@ trait ConverterService {
       api.VisualElement(visual.resource, visual.language)
 
     def toApiArticleIntroduction(intro: common.Introduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(intro.introduction, intro.language)
+      api.ArticleIntroduction(
+        Jsoup.parseBodyFragment(intro.introduction).body().text(),
+        intro.introduction,
+        intro.language
+      )
     }
 
-    def toApiArticleMetaDescription(metaDescription: common.Description): api.ArticleMetaDescription = {
+    private def toApiArticleMetaDescription(metaDescription: common.Description): api.ArticleMetaDescription = {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
-    def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
+    private def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-    def toArticleApiCopyright(copyright: common.draft.DraftCopyright): common.article.Copyright = {
+    private def toArticleApiCopyright(copyright: common.draft.DraftCopyright): common.article.Copyright = {
       common.article.Copyright(
         copyright.license.getOrElse(""),
         copyright.origin,
@@ -600,7 +606,7 @@ trait ConverterService {
       fileEmbeds.flatMap(e => Option(e.attr(TagAttribute.DataPath.toString)))
     }
 
-    def cloneFilesIfExists(existingContent: Seq[String], newContent: String): Try[String] = {
+    private def cloneFilesIfExists(existingContent: Seq[String], newContent: String): Try[String] = {
       val existingFiles = existingContent.flatMap(getExistingPaths)
 
       val doc        = HtmlTagRules.stringToJsoupDocument(newContent)
@@ -752,7 +758,7 @@ trait ConverterService {
         updatedArticle: api.UpdatedArticle,
         lang: String
     ): Draft = {
-      val updatedTitles           = updatedArticle.title.toSeq.map(t => toDomainTitle(api.ArticleTitle(t, lang)))
+      val updatedTitles           = updatedArticle.title.toSeq.map(t => toDomainTitle(api.ArticleTitle(t, t, lang)))
       val updatedContents         = updatedArticle.content.toSeq.map(c => toDomainContent(api.ArticleContent(c, lang)))
       val updatedTags             = updatedArticle.tags.flatMap(tags => toDomainTag(tags, lang)).toSeq
       val updatedVisualElement    = updatedArticle.visualElement.map(c => toDomainVisualElement(c, lang)).toSeq

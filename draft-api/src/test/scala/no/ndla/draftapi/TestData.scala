@@ -72,7 +72,7 @@ object TestData {
     oldNdlaUrl = None,
     revision = 1,
     status = api.Status(PLANNED.toString, Seq.empty),
-    title = Some(api.ArticleTitle("title", "nb")),
+    title = Some(api.ArticleTitle("title", "title", "nb")),
     content = Some(api.ArticleContent("this is content", "nb")),
     copyright = Some(
       DraftCopyright(
@@ -183,7 +183,7 @@ object TestData {
     Some(s"//red.ndla.no/node/$externalId"),
     2,
     api.Status(PLANNED.toString, Seq.empty),
-    Some(api.ArticleTitle("title", "nb")),
+    Some(api.ArticleTitle("title", "title", "nb")),
     Some(api.ArticleContent("content", "nb")),
     Some(
       model.api.DraftCopyright(
@@ -235,7 +235,7 @@ object TestData {
     Some(s"//red.ndla.no/node/$externalId"),
     2,
     api.Status(EXTERNAL_REVIEW.toString, Seq.empty),
-    Some(api.ArticleTitle("title", "nb")),
+    Some(api.ArticleTitle("title", "title", "nb")),
     Some(api.ArticleContent("content", "nb")),
     Some(
       model.api.DraftCopyright(
@@ -475,7 +475,7 @@ object TestData {
     oldNdlaUrl = None,
     revision = 1,
     status = api.Status(PLANNED.toString, Seq.empty),
-    title = Some(api.ArticleTitle("test", "en")),
+    title = Some(api.ArticleTitle("test", "title", "en")),
     content = Some(
       api.ArticleContent(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>

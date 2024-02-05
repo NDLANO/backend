@@ -303,7 +303,7 @@ trait ConverterService {
     }
 
     def toApiArticleTitle(title: Title): api.ArticleTitle = {
-      api.ArticleTitle(Jsoup.parse(title.title).body().text(), title.title, title.language)
+      api.ArticleTitle(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
     }
 
     private def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2 = {
@@ -354,7 +354,11 @@ trait ConverterService {
     }
 
     def toApiArticleIntroduction(intro: Introduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(Jsoup.parse(intro.introduction).body().text(), intro.introduction, intro.language)
+      api.ArticleIntroduction(
+        Jsoup.parseBodyFragment(intro.introduction).body().text(),
+        intro.introduction,
+        intro.language
+      )
     }
 
     private def toApiArticleMetaDescription(metaDescription: Description): api.ArticleMetaDescription = {

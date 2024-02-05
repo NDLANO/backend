@@ -45,6 +45,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
+  test("toApiArticleTitle returns both title and plainTitle") {
+    val title = Title("Title with <span data-language=\"uk\">ukrainian</span> word", "en")
+    service.toApiArticleTitle(title) should equal(
+      api.ArticleTitle("Title with ukrainian word", "Title with <span data-language=\"uk\">ukrainian</span> word", "en")
+    )
+  }
+
+  test("toApiArticleIntroduction returns both introduction and plainIntroduction") {
+    val introduction = Introduction("<p>Introduction with <em>emphasis</em></p>", "en")
+    service.toApiArticleIntroduction(introduction) should equal(
+      api.ArticleIntroduction("Introduction with emphasis", "<p>Introduction with <em>emphasis</em></p>", "en")
+    )
+  }
+
   test("toApiArticle converts a domain.Article to an api.ArticleV2") {
     when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(any)).thenReturn(List(TestData.externalId))
     service.toApiArticle(TestData.sampleDomainArticle, "nb") should equal(Success(TestData.apiArticleV2))
