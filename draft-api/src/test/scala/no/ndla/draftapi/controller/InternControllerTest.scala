@@ -7,19 +7,32 @@
 
 package no.ndla.draftapi.controller
 
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain.ImportId
-import org.scalatra.test.scalatest.ScalatraFunSuite
+import no.ndla.network.tapir.Service
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
+class InternControllerTest extends UnitSuite with TestEnvironment {
   implicit val formats = org.json4s.DefaultFormats
-  implicit val swagger = new DraftSwagger
+  val serverPort: Int  = findFreePort
 
-  lazy val controller = new InternController
-  addServlet(controller, "/test")
+  val controller                            = new InternController
+  override val services: List[Service[Eff]] = List(controller)
+
+  override def beforeAll(): Unit = {
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
+    Thread.sleep(1000)
+  }
+
+  override def beforeEach(): Unit = {
+    reset(clock)
+    when(clock.now()).thenCallRealMethod()
+  }
 
   test("that deleting an article goes several attempts if call to article-api fails") {
     val failedApiCall = Failure(new RuntimeException("Api call failed :/"))
@@ -31,21 +44,36 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       Success(ContentId(10))
     )
 
-    delete(s"/test/article/10/", headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      verify(articleApiClient, times(4)).deleteArticle(eqTo(10), any)
-    }
+    simpleHttpClient.send(
+      quickRequest
+        .delete(uri"http://localhost:$serverPort/intern/article/10/")
+        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+    )
+    verify(articleApiClient, times(4)).deleteArticle(eqTo(10), any)
   }
 
   test("that getting ids returns 404 for missing and 200 for existing") {
     val uuid = "16d4668f-0917-488b-9b4a-8f7be33bb72a"
 
     when(readService.importIdOfArticle("1234")).thenReturn(None)
-    get(s"/test/import-id/1234") { status should be(404) }
+
+    {
+      val res = simpleHttpClient.send(
+        quickRequest
+          .get(uri"http://localhost:$serverPort/intern/import-id/1234")
+      )
+      res.code.code should be(404)
+    }
 
     when(readService.importIdOfArticle("1234")).thenReturn(Some(ImportId(Some(uuid))))
-    get("/test/import-id/1234") {
-      status should be(200)
-      body should be(s"""{"importId":"$uuid"}""".stripMargin)
+
+    {
+      val res = simpleHttpClient.send(
+        quickRequest
+          .get(uri"http://localhost:$serverPort/intern/import-id/1234")
+      )
+      res.code.code should be(200)
+      res.body should be(s"""{"importId":"$uuid"}""".stripMargin)
     }
   }
 
@@ -66,9 +94,13 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index9"))
     doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index10"))
 
-    delete("/test/index") {
-      status should equal(200)
-      body should equal("Deleted 6 indexes")
+    {
+      val res = simpleHttpClient.send(
+        quickRequest
+          .delete(uri"http://localhost:$serverPort/intern/index")
+      )
+      res.code.code should be(200)
+      res.body should equal("Deleted 6 indexes")
     }
 
     verify(articleIndexService).findAllIndexes(props.DraftSearchIndex)
@@ -100,9 +132,13 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
 
-    delete("/test/index") {
-      status should equal(500)
-      body should equal("Failed to find indexes")
+    {
+      val res = simpleHttpClient.send(
+        quickRequest
+          .delete(uri"http://localhost:$serverPort/intern/index")
+      )
+      res.code.code should be(500)
+      res.body should equal("Failed to find indexes")
     }
 
     verify(articleIndexService, never).deleteIndexWithName(any[Option[String]])
@@ -130,12 +166,17 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index9"))
     doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index10"))
 
-    delete("/test/index") {
-      status should equal(500)
-      body should equal(
+    {
+      val res = simpleHttpClient.send(
+        quickRequest
+          .delete(uri"http://localhost:$serverPort/intern/index")
+      )
+      res.code.code should be(500)
+      res.body should equal(
         "Failed to delete 1 index: No index with name 'index2' exists. 5 indexes were deleted successfully."
       )
     }
+
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
     verify(tagIndexService).deleteIndexWithName(Some("index7"))

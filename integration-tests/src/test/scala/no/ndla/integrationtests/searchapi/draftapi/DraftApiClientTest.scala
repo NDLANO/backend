@@ -7,6 +7,7 @@
 
 package no.ndla.integrationtests.searchapi.draftapi
 
+import cats.effect.{IO, unsafe}
 import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
@@ -23,6 +24,9 @@ import org.eclipse.jetty.server.Server
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
+
+import scala.concurrent.Future
+import scala.util.{Success, Try}
 
 class DraftApiClientTest
     extends IntegrationSuite(EnablePostgresContainer = true, EnableElasticsearchContainer = true)
@@ -57,24 +61,24 @@ class DraftApiClientTest
     override def SearchServer: String = esHost
   }
 
-  var draftApi: draftapi.MainClass = null
-  var draftApiServer: Server       = null
-  val draftApiBaseUrl              = s"http://localhost:$draftApiPort"
+  var draftApi: draftapi.MainClass   = null
+  var draftApiServer: Server         = null
+  var cancelFunc: () => Future[Unit] = null
+  val draftApiBaseUrl                = s"http://localhost:$draftApiPort"
 
   override def beforeAll(): Unit = {
     draftApi = new draftapi.MainClass(draftApiProperties)
-    draftApiServer = draftApi.startServer()
+    cancelFunc = IO { draftApi.run() }.unsafeRunCancelable()(unsafe.IORuntime.global)
     blockUntil(() => {
       import sttp.client3.quick._
       val req = quickRequest.get(uri"$draftApiBaseUrl/health")
-      val res = simpleHttpClient.send(req)
-      res.code.code == 200
+      val res = Try(simpleHttpClient.send(req))
+      res.map(_.code.code) == Success(200)
     })
   }
 
   override def afterAll(): Unit = {
     super.afterAll()
-    draftApiServer.stop()
   }
 
   private def setupArticles() = {

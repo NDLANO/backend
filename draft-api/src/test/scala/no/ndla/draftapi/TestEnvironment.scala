@@ -21,7 +21,7 @@ import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirErrorHelpers}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -39,7 +39,6 @@ trait TestEnvironment
     with StrictLogging
     with DraftController
     with InternController
-    with HealthController
     with UserDataController
     with ReindexClient
     with DataSource
@@ -66,12 +65,11 @@ trait TestEnvironment
     with DBArticle
     with ErrorHelpers
     with MemoizeHelpers
-    with NdlaController
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with DBMigrator
     with Props
-    with DraftApiInfo {
+    with Routes[Eff]
+    with TapirErrorHelpers
+    with NdlaMiddleware {
   val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
@@ -89,8 +87,6 @@ trait TestEnvironment
   val draftController    = mock[DraftController]
   val fileController     = mock[FileController]
   val userDataController = mock[UserDataController]
-
-  val healthController = mock[HealthController]
 
   val dataSource         = mock[HikariDataSource]
   val draftRepository    = mock[ArticleRepository]
@@ -119,4 +115,6 @@ trait TestEnvironment
   val searchApiClient   = mock[SearchApiClient]
   val taxonomyApiClient = mock[TaxonomyApiClient]
   val h5pApiClient      = mock[H5PApiClient]
+
+  val services: List[Service[Eff]] = List.empty
 }

@@ -11,6 +11,7 @@ import cats.effect.unsafe.implicits.global
 import no.ndla.common
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, DraftStatus}
@@ -415,7 +416,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = Right(Some(api.NewArticleMetaImage("321", "NyAlt"))),
+      metaImage = UpdateWith(api.NewArticleMetaImage("321", "NyAlt")),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -509,7 +510,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = Right(Some(api.NewArticleMetaImage("321", "NyAlt"))),
+      metaImage = UpdateWith(api.NewArticleMetaImage("321", "NyAlt")),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -726,7 +727,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success(res1) = service.toDomainArticle(
       beforeUpdate,
-      TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Left(null)),
+      TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Delete),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -736,7 +737,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res2) = service.toDomainArticle(
       beforeUpdate,
       TestData.sampleApiUpdateArticle
-        .copy(language = Some("nb"), metaImage = Right(Some(api.NewArticleMetaImage("1", "Hola")))),
+        .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImage("1", "Hola"))),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -745,7 +746,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success(res3) = service.toDomainArticle(
       beforeUpdate,
-      TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Right(None)),
+      TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Missing),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -761,7 +762,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success(res1) = service.toDomainArticle(
       1,
-      TestData.sampleApiUpdateArticle.copy(metaImage = Left(null)),
+      TestData.sampleApiUpdateArticle.copy(metaImage = Delete),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -770,7 +771,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success(res2) = service.toDomainArticle(
       2,
-      TestData.sampleApiUpdateArticle.copy(metaImage = Right(Some(api.NewArticleMetaImage("1", "Hola")))),
+      TestData.sampleApiUpdateArticle.copy(metaImage = UpdateWith(api.NewArticleMetaImage("1", "Hola"))),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -779,7 +780,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success(res3) = service.toDomainArticle(
       3,
-      TestData.sampleApiUpdateArticle.copy(metaImage = Right(None)),
+      TestData.sampleApiUpdateArticle.copy(metaImage = Missing),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -983,7 +984,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
-        updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         isImported = false,
         TestData.userWithWriteAccess,
         None,
@@ -994,7 +995,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = None),
-        updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         isImported = false,
         TestData.userWithWriteAccess,
         None,
@@ -1027,7 +1028,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
-        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         isImported = false,
         TestData.userWithWriteAccess,
         None,
@@ -1037,7 +1038,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = None),
-        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         isImported = false,
         TestData.userWithWriteAccess,
         None,
@@ -1047,7 +1048,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
-        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("oldId"))),
+        updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("oldId")),
         isImported = false,
         TestData.userWithWriteAccess,
         None,

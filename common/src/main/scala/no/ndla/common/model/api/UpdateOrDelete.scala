@@ -1,6 +1,8 @@
 package no.ndla.common.model.api
 
 import io.circe.{Decoder, Encoder, FailedCursor, Json}
+import com.scalatsi.TypescriptType.{TSNull, TSString, TSUndefined, TSUnion}
+import com.scalatsi._
 
 import java.util.UUID
 
@@ -18,6 +20,13 @@ case object Delete                       extends UpdateOrDelete[Nothing]
 final case class UpdateWith[A](value: A) extends UpdateOrDelete[A]
 
 object UpdateOrDelete {
+  implicit def str: TSType[UpdateOrDelete[String]] = {
+    TSType.alias[UpdateOrDelete[String]](
+      "UpdateOrDeleteString",
+      TSUnion(Seq(TSNull, TSUndefined, TSString))
+    )
+  }
+
   implicit def decodeUpdateOrDelete[A](implicit decodeA: Decoder[A]): Decoder[UpdateOrDelete[A]] =
     Decoder.withReattempt {
       case c: FailedCursor if !c.incorrectFocus => Right(Missing)

@@ -34,7 +34,7 @@ object RevisionMeta {
 
 sealed abstract class RevisionStatus(override val entryName: String) extends EnumEntry
 
-object RevisionStatus extends Enum[RevisionStatus] {
+object RevisionStatus extends Enum[RevisionStatus] with CirceEnum[RevisionStatus] {
   override def values: IndexedSeq[RevisionStatus] = findValues
 
   case object Revised       extends RevisionStatus("revised")

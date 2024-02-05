@@ -13,8 +13,8 @@ import scala.annotation.meta.field
 
 sealed trait PartialArticleFields extends EnumEntry
 
-object PartialArticleFields extends Enum[PartialArticleFields] {
-  val values: IndexedSeq[PartialArticleFields] = findValues
+object PartialArticleFields extends Enum[PartialArticleFields] with CirceEnum[PartialArticleFields] {
+  override val values: IndexedSeq[PartialArticleFields] = findValues
 
   case object availability    extends PartialArticleFields
   case object grepCodes       extends PartialArticleFields

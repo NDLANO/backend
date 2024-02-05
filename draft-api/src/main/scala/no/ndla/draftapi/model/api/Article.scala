@@ -7,12 +7,15 @@
 
 package no.ndla.draftapi.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{DraftCopyright, RelatedContent}
+import no.ndla.common.model.api.{DraftCopyright, RelatedContent, RelatedContentLink}
 import no.ndla.common.model.api.draft.Comment
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
+import no.ndla.common.implicits._
 
 // format: off
 @ApiModel(description = "Information about the article")
@@ -50,3 +53,11 @@ case class Article(
     @(ApiModelProperty @field)(description = "If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: String,
     @(ApiModelProperty @field)(description = "If the article has been edited after last status or responsible change") started: Boolean
 )
+
+object Article {
+  implicit def relatedContentEnc: Encoder[Either[RelatedContentLink, Long]] = eitherEncoder[RelatedContentLink, Long]
+  implicit def relatedContentDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
+
+  implicit def encoder: Encoder[Article] = deriveEncoder
+  implicit def decoder: Decoder[Article] = deriveDecoder
+}

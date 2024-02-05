@@ -7,13 +7,13 @@
 
 package no.ndla.draftapi.service
 
-import java.io.InputStream
 import com.amazonaws.services.s3.model._
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.domain.UploadedFile
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.AmazonClient
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait FileStorageService {
   this: AmazonClient with Props =>
@@ -25,21 +25,26 @@ trait FileStorageService {
     private val resourceDirectory = "resources"
 
     def uploadResourceFromStream(
-        stream: InputStream,
-        storageKey: String,
+        stream: UploadedFile,
         contentType: String,
-        size: Long
-    ): Try[String] = {
+        storageKey: String
+    ): Try[ObjectMetadata] = {
       val uploadPath = s"$resourceDirectory/$storageKey"
-      val metadata   = new ObjectMetadata()
-      metadata.setContentType(contentType)
-      metadata.setContentLength(size)
 
-      Try {
-        val request = new PutObjectRequest(AttachmentStorageName, uploadPath, stream, metadata)
-        amazonClient.putObject(request)
-      }.map(_ => uploadPath)
+      val metadata = new ObjectMetadata()
+      metadata.setContentType(contentType)
+      metadata.setContentLength(stream.fileSize)
+
+      val request = new PutObjectRequest(AttachmentStorageName, uploadPath, stream.stream, metadata)
+      Try(amazonClient.putObject(request)) match {
+        case Success(_)         => getObjectMetaData(uploadPath)
+        case Failure(exception) => Failure(exception)
+      }
+
     }
+
+    def getObjectMetaData(storageKey: String): Try[ObjectMetadata] =
+      Try(amazonClient.getObjectMetadata(AttachmentStorageName, storageKey))
 
     def resourceExists(storageKey: String): Boolean = resourceWithPathExists(s"$resourceDirectory/$storageKey")
 

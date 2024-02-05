@@ -17,7 +17,8 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.domain.{Priority, Responsible}
+import no.ndla.common.model.api.UpdateWith
+import no.ndla.common.model.domain.{Priority, Responsible, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain => common}
@@ -34,7 +35,6 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation._
 import org.jsoup.nodes.Element
-import org.scalatra.servlet.FileItem
 import scalikejdbc.{AutoSession, ReadOnlyAutoSession}
 
 import java.util.concurrent.Executors
@@ -353,9 +353,13 @@ trait WriteService {
         updatedApiArticle: api.UpdatedArticle,
         shouldNotAutoUpdateStatus: Boolean
     ): Draft = {
-      val isAutomaticResponsibleChange = updatedApiArticle.responsibleId.map(_.isEmpty).getOrElse(true)
-      val isAutomaticStatusChange      = updatedApiArticle.status.isEmpty
-      val isAutomaticOnEditTransition  = isAutomaticResponsibleChange && isAutomaticStatusChange
+      val isAutomaticResponsibleChange = updatedApiArticle.responsibleId match {
+        case UpdateWith(_) => false
+        case _             => true
+      }
+
+      val isAutomaticStatusChange     = updatedApiArticle.status.isEmpty
+      val isAutomaticOnEditTransition = isAutomaticResponsibleChange && isAutomaticStatusChange
 
       if (shouldNotAutoUpdateStatus && draft.status.current == PUBLISHED) {
         draft.copy(started = false)
@@ -666,8 +670,15 @@ trait WriteService {
         .map(api.ContentId)
     }
 
-    def storeFile(file: FileItem): Try[api.UploadedFile] =
-      uploadFile(file).map(f => api.UploadedFile(f.fileName, f.contentType, f.fileExtension, s"/files/${f.filePath}"))
+    def storeFile(file: UploadedFile): Try[api.UploadedFile] =
+      uploadFile(file).map(f =>
+        api.UploadedFile(
+          filename = f.fileName,
+          mime = f.contentType,
+          extension = f.fileExtension,
+          path = s"/files/${f.filePath}"
+        )
+      )
 
     private[service] def getFileExtension(fileName: String): Try[String] = {
       val badExtensionError =
@@ -702,18 +713,22 @@ trait WriteService {
       }
     }
 
-    private[service] def uploadFile(file: FileItem): Try[domain.UploadedFile] = {
-      getFileExtension(file.name).flatMap(fileExtension => {
-        val contentType = file.getContentType.getOrElse("")
-        val fileName = LazyList
-          .continually(randomFilename(fileExtension))
-          .dropWhile(fileStorage.resourceExists)
-          .head
+    private[service] def uploadFile(file: UploadedFile): Try[domain.UploadedFile] = {
+      val fileExtension = file.fileName.flatMap(fn => getFileExtension(fn).toOption).getOrElse("")
+      val contentType   = file.contentType.getOrElse("")
+      val fileName      = LazyList.continually(randomFilename(fileExtension)).dropWhile(fileStorage.resourceExists).head
 
-        fileStorage
-          .uploadResourceFromStream(file.getInputStream, fileName, contentType, file.size)
-          .map(uploadPath => domain.UploadedFile(fileName, uploadPath, file.size, contentType, fileExtension))
-      })
+      fileStorage
+        .uploadResourceFromStream(file, contentType, fileName)
+        .map(_ =>
+          domain.UploadedFile(
+            fileName = fileName,
+            filePath = fileName,
+            size = file.fileSize,
+            contentType = contentType,
+            fileExtension = fileExtension
+          )
+        )
     }
 
     private[service] def randomFilename(extension: String, length: Int = 20): String = {

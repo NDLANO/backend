@@ -47,6 +47,8 @@ trait TapirErrorHelpers extends StrictLogging {
     val WINDOW_TOO_LARGE       = "RESULT_WINDOW_TOO_LARGE"
     val RESOURCE_OUTDATED      = "RESOURCE_OUTDATED"
 
+    val PUBLISH                = "PUBLISH"
+
     val GENERIC_DESCRIPTION =
       s"Ooops. Something we didn't anticipate occurred. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
     val NOT_FOUND_DESCRIPTION            = s"The page you requested does not exist"
@@ -60,6 +62,8 @@ trait TapirErrorHelpers extends StrictLogging {
       "The search-context specified was not expected. Please create one by searching from page 1."
     val INDEX_MISSING_DESCRIPTION =
       s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
+
+    val ILLEGAL_STATUS_TRANSITION: String = "Illegal status transition"
 
     def generic: ErrorBody                      = ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 500)
     def notFound: ErrorBody                     = ErrorBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now(), 404)

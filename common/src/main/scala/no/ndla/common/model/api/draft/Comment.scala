@@ -7,6 +7,8 @@
 
 package no.ndla.common.model.api.draft
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -21,3 +23,8 @@ case class Comment(
     @(ApiModelProperty @field)(description = "If the comment is open or closed") isOpen: Boolean,
     @(ApiModelProperty @field)(description = "If the comment is solved or not") solved: Boolean
 )
+
+object Comment {
+  implicit def encoder: Encoder[Comment] = deriveEncoder
+  implicit def decoder: Decoder[Comment] = deriveDecoder
+}

@@ -7,7 +7,10 @@
 
 package no.ndla.draftapi.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
 import scala.annotation.meta.field
 
 @ApiModel(description = "Information about search-results")
@@ -46,3 +49,8 @@ case class ArticleDump(
     @(ApiModelProperty @field)(description = "The chosen search language") language: String,
     @(ApiModelProperty @field)(description = "The search results") results: Seq[Article]
 )
+
+object ArticleDump {
+  implicit def encoder: Encoder[ArticleDump] = deriveEncoder
+  implicit def decoder: Decoder[ArticleDump] = deriveDecoder
+}

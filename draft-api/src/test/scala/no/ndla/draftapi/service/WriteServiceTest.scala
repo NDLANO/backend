@@ -8,8 +8,10 @@
 package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
+import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
+import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft._
@@ -24,10 +26,8 @@ import no.ndla.validation.HtmlTagRules
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
-import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
-import java.io.ByteArrayInputStream
 import java.util.UUID
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -217,7 +217,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(updatedTags),
       introduction = Some(updatedIntro),
       metaDescription = Some(updatedMetaDescription),
-      metaImage = Right(Some(newImageMeta)),
+      metaImage = UpdateWith(newImageMeta),
       visualElement = Some(updatedVisualElement),
       copyright = Some(updatedCopyright),
       requiredLibraries = Some(Seq(updatedRequiredLib)),
@@ -418,26 +418,20 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("uploading file calls fileStorageService as expected") {
-    val fileToUpload           = mock[FileItem]
+    val fileToUpload           = mock[domain.UploadedFile]
     val fileBytes: Array[Byte] = "these are not the bytes you're looking for".getBytes
-    when(fileToUpload.getInputStream).thenReturn(new ByteArrayInputStream(fileBytes))
-    when(fileToUpload.size).thenReturn(fileBytes.length.toLong)
-    when(fileToUpload.getContentType).thenReturn(Some("application/pdf"))
-    when(fileToUpload.name).thenReturn("myfile.pdf")
+    when(fileToUpload.fileSize).thenReturn(fileBytes.length.toLong)
+    when(fileToUpload.contentType).thenReturn(Some("application/pdf"))
+    when(fileToUpload.fileName).thenReturn(Some("myfile.pdf"))
     when(fileStorage.resourceExists(anyString())).thenReturn(false)
     when(
       fileStorage
         .uploadResourceFromStream(
-          any[ByteArrayInputStream],
-          anyString(),
+          any[UploadedFile],
           eqTo("application/pdf"),
-          eqTo(fileBytes.length.toLong)
+          any
         )
-    )
-      .thenAnswer((i: InvocationOnMock) => {
-        val fn = i.getArgument[String](1)
-        Success(s"resource/$fn")
-      })
+    ).thenAnswer((_: InvocationOnMock) => Success(mock[ObjectMetadata]))
 
     val uploaded = service.uploadFile(fileToUpload)
 
@@ -445,10 +439,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     uploaded.isSuccess should be(true)
     verify(fileStorage, times(1)).resourceExists(anyString)
     verify(fileStorage, times(1)).uploadResourceFromStream(
-      any[ByteArrayInputStream],
-      storageKeyCaptor.capture(),
+      any,
       eqTo("application/pdf"),
-      eqTo(fileBytes.length.toLong)
+      storageKeyCaptor.capture()
     )
     storageKeyCaptor.getValue.endsWith(".pdf") should be(true)
   }
@@ -1498,7 +1491,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       revision = 1,
       title = Some("updated title"),
       language = Some("nb"),
-      responsibleId = Right(Some("heiho"))
+      responsibleId = UpdateWith("heiho")
     )
     when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
     val result = service

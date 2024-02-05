@@ -7,32 +7,30 @@
 
 package no.ndla.draftapi
 
-import com.typesafe.scalalogging.StrictLogging
-import no.ndla.network.scalatra.NdlaScalatraServer
-import org.eclipse.jetty.server.Server
+import no.ndla.common.Warmup
+import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(props: DraftApiProperties) extends StrictLogging {
+class MainClass(override val props: DraftApiProperties) extends NdlaTapirMain[Eff] {
   val componentRegistry = new ComponentRegistry(props)
 
-  def startServer(): Server = {
-    new NdlaScalatraServer[DraftApiProperties, ComponentRegistry](
-      "no.ndla.draftapi.ScalatraBootstrap",
-      componentRegistry, {
-        logger.info("Starting the db migration...")
-        val startDBMillis = System.currentTimeMillis()
-        componentRegistry.migrator.migrate(): Unit
-        logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
-      },
-      warmupRequest => {
-        warmupRequest("/draft-api/v1/drafts", Map("query" -> "norge", "fallback" -> "true"))
-        warmupRequest("/draft-api/v1/drafts/1", Map.empty)
-        warmupRequest("/health", Map.empty)
-      }
-    )
+  private def warmupRequest = (path: String, options: Map[String, String]) =>
+    Warmup.warmupRequest(props.ApplicationPort, path, options)
+
+  override def warmup(): Unit = {
+    warmupRequest("/draft-api/v1/drafts", Map("query" -> "norge", "fallback" -> "true"))
+    warmupRequest("/draft-api/v1/drafts/1", Map.empty)
+    warmupRequest("/health", Map.empty)
+
+    componentRegistry.healthController.setWarmedUp()
   }
 
-  def start(): Unit = {
-    val server = startServer()
-    server.join()
+  override def beforeStart(): Unit = {
+    logger.info("Starting the db migration...")
+    val startDBMillis = System.currentTimeMillis()
+    componentRegistry.migrator.migrate(): Unit
+    logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
   }
+
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
+    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 
 sealed trait DraftStatus extends EnumEntry {}
 
-object DraftStatus extends Enum[DraftStatus] {
+object DraftStatus extends Enum[DraftStatus] with CirceEnum[DraftStatus] {
   case object IMPORTED          extends DraftStatus
   case object PLANNED           extends DraftStatus
   case object IN_PROGRESS       extends DraftStatus

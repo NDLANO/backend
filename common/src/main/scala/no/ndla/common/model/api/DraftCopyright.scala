@@ -8,6 +8,8 @@
 
 package no.ndla.common.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -24,3 +26,8 @@ case class DraftCopyright(
     @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[NDLADate],
     @(ApiModelProperty @field)(description = "Whether or not the content has been processed") processed: Boolean
 )
+
+object DraftCopyright {
+    implicit def encoder: Encoder[DraftCopyright] = deriveEncoder[DraftCopyright]
+    implicit def decoder: Decoder[DraftCopyright] = deriveDecoder[DraftCopyright]
+}

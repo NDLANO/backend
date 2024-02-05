@@ -10,3 +10,6 @@
 --add-opens=java.desktop/java.awt.event=ALL-UNNAMED
 --add-opens=java.desktop/java.awt=ALL-UNNAMED
 --enable-preview
+-Xmx2G
+-XX:ReservedCodeCacheSize=1000m
+-Xss8M

@@ -25,6 +25,8 @@ import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
+import scala.util.{Success, Try}
+
 class LearningpathApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
@@ -69,8 +71,8 @@ class LearningpathApiClientTest
     blockUntil(() => {
       import sttp.client3.quick._
       val req = quickRequest.get(uri"$learningpathApiBaseUrl/health")
-      val res = simpleHttpClient.send(req)
-      res.code.code == 200
+      val res = Try(simpleHttpClient.send(req))
+      res.map(_.code.code) == Success(200)
     })
   }
 

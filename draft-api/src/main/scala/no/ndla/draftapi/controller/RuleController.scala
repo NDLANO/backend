@@ -6,72 +6,66 @@
  */
 
 package no.ndla.draftapi.controller
-import no.ndla.draftapi.model.api.Error
+import cats.implicits._
+import no.ndla.draftapi.Eff
+import no.ndla.draftapi.model.api.ErrorHelpers
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.validation._
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.{ResponseMessage, Swagger}
+import sttp.tapir.EndpointInput
+import sttp.tapir._
+import no.ndla.network.tapir.NoNullJsonPrinter._
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.validation.model.HtmlRulesFile
+import sttp.tapir.generic.auto._
+import sttp.tapir.server.ServerEndpoint
 
 trait RuleController {
-  this: NdlaController =>
+  this: ErrorHelpers =>
   val ruleController: RuleController
 
-  class RuleController(implicit val swagger: Swagger) extends NdlaController {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription                 = "API for accessing validation rules."
+  class RuleController extends Service[Eff] {
+    import ErrorHelpers._
+    override val serviceName: String         = "rules"
+    override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
-    registerModel[Error]()
+    val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      getHtmlRules,
+      getEmbedTagRules,
+      getMathMLRules
+    )
 
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
-
-    get(
-      "/html/",
-      operation(
-        apiOperation[Map[String, Any]]("getHtmlRules")
-          .summary("Show all HTML validation rules")
-          .description("Shows all the HTML validation rules.")
-          .parameters(asHeaderParam(correlationId))
-          .authorizations("oauth2")
-          .responseMessages(response403, response500)
-      )
-    ) {
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
-        ValidationRules.htmlRulesJson
+    def getHtmlRules: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("html")
+      .summary("Show all HTML validation rules")
+      .description("Shows all the HTML validation rules.")
+      .out(jsonBody[HtmlRulesFile])
+      .errorOut(errorOutputsFor(401, 403))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ => _ =>
+        ValidationRules.htmlRulesJson.asRight
       }
-    }: Unit
 
-    get(
-      "/embed-tag/",
-      operation(
-        apiOperation[Map[String, Any]]("getEmbedTagRules")
-          .summary("Show all embed tag validation rules")
-          .description("Shows all the embed tag  validation rules.")
-          .parameters(asHeaderParam(correlationId))
-          .authorizations("oauth2")
-          .responseMessages(response403, response500)
-      )
-    ) {
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
-        ValidationRules.embedTagRulesJson
+    def getEmbedTagRules: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("embed-tag")
+      .summary("Show all embed tag validation rules")
+      .description("Shows all the embed tag  validation rules.")
+      .out(jsonBody[HtmlRulesFile])
+      .errorOut(errorOutputsFor(401, 403))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ => _ =>
+        ValidationRules.embedTagRulesJson.asRight
       }
-    }: Unit
 
-    get(
-      "/mathml/",
-      operation(
-        apiOperation[Map[String, Any]]("getMathMLRules")
-          .summary("Show all MathML validation rules")
-          .description("Shows all the MathML validation rules.")
-          .parameters(asHeaderParam(correlationId))
-          .authorizations("oauth2")
-          .responseMessages(response403, response500)
-      )
-    ) {
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
-        ValidationRules.mathMLRulesJson
+    def getMathMLRules: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("mathml")
+      .summary("Show all MathML validation rules")
+      .description("Shows all the MathML validation rules.")
+      .out(jsonBody[MathMLRulesFile])
+      .errorOut(errorOutputsFor(401, 403))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ => _ =>
+        ValidationRules.mathMLRulesJson.asRight
       }
-    }: Unit
   }
-
 }
