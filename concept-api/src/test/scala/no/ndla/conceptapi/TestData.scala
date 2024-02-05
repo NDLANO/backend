@@ -29,12 +29,12 @@ object TestData {
   val authHeaderWithAllRoles =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJjb25jZXB0OndyaXRlIiwiY29uY2VwdDphZG1pbiJdLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.RYX5urIY8B5dRxMUgesTLbABjRZ5k-Jc3KMDLz99UnU"
 
-  val userWithNoRoles               = TokenUser("unit test", Set.empty, None)
-  val userWithWriteAccess           = TokenUser("unit test", Set(CONCEPT_API_WRITE), None)
-  val userWithWriteAndPublishAccess = TokenUser("unit test", Set(CONCEPT_API_ADMIN, CONCEPT_API_WRITE), None)
+  val userWithNoRoles: TokenUser               = TokenUser("unit test", Set.empty, None)
+  val userWithWriteAccess: TokenUser           = TokenUser("unit test", Set(CONCEPT_API_WRITE), None)
+  val userWithWriteAndPublishAccess: TokenUser = TokenUser("unit test", Set(CONCEPT_API_ADMIN, CONCEPT_API_WRITE), None)
 
-  val today     = NDLADate.now().minusDays(0)
-  val yesterday = NDLADate.now().minusDays(1)
+  val today: NDLADate     = NDLADate.now().minusDays(0)
+  val yesterday: NDLADate = NDLADate.now().minusDays(1)
 
   val visualElementString =
     s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
@@ -46,7 +46,7 @@ object TestData {
     1.toLong,
     1,
     api.ConceptTitle("Tittel", "nb"),
-    Some(api.ConceptContent("Innhold", "nb")),
+    Some(api.ConceptContent("Innhold", "Innhold", "nb")),
     None,
     None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
@@ -158,7 +158,7 @@ object TestData {
     1.toLong,
     1,
     api.ConceptTitle("Tittelur", "nn"),
-    Some(api.ConceptContent("Innhald", "nn")),
+    Some(api.ConceptContent("Innhald", "Innhald", "nn")),
     None,
     None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),

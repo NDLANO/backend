@@ -7,9 +7,6 @@
 
 package no.ndla.conceptapi.db.migration
 
-import no.ndla.common.model.domain.Title
-import no.ndla.conceptapi.model.api.{ConceptContent, ConceptTags}
-import no.ndla.conceptapi.model.domain.{ConceptMetaImage, VisualElement}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction}
@@ -103,7 +100,7 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
   def convertToNewConcept(document: String): String = {
     val concept = parse(document)
     val titles = (concept \ "title")
-      .extract[Seq[Title]]
+      .extract[Seq[V9_ConceptTitle]]
       .map(t => {
         if (t.language == "unknown")
           t.copy(language = "und")
@@ -111,7 +108,7 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
           t
       })
     val content = (concept \ "content")
-      .extract[Seq[ConceptContent]]
+      .extract[Seq[V9_ConceptContent]]
       .map(c => {
         if (c.language == "unknown")
           c.copy(language = "und")
@@ -119,7 +116,7 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
           c
       })
     val tags = (concept \ "tags")
-      .extract[Seq[ConceptTags]]
+      .extract[Seq[V9_ConceptTags]]
       .map(t => {
         if (t.language == "unknown")
           t.copy(language = "und")
@@ -127,7 +124,7 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
           t
       })
     val metaImage = (concept \ "metaImage")
-      .extract[Seq[ConceptMetaImage]]
+      .extract[Seq[V9_ConceptMetaImage]]
       .map(m => {
         if (m.language == "unknown")
           m.copy(language = "und")
@@ -135,7 +132,7 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
           m
       })
     val visualElement = (concept \ "visualElement")
-      .extract[Seq[VisualElement]]
+      .extract[Seq[V9_VisualElement]]
       .map(t => {
         if (t.language == "unknown")
           t.copy(language = "und")
@@ -152,4 +149,10 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
 
     compact(render(newConcept))
   }
+
+  private case class V9_ConceptTitle(title: String, language: String)
+  private case class V9_ConceptContent(content: String, language: String)
+  private case class V9_ConceptTags(tags: Seq[String], language: String)
+  private case class V9_ConceptMetaImage(imageId: String, altText: String, language: String)
+  private case class V9_VisualElement(visualElement: String, language: String)
 }

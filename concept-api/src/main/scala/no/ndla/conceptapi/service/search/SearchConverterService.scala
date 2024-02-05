@@ -43,7 +43,7 @@ trait SearchConverterService {
 
     }
 
-    def asSearchableCopyright(maybeCopyright: Option[DraftCopyright]): Option[SearchableCopyright] = {
+    private def asSearchableCopyright(maybeCopyright: Option[DraftCopyright]): Option[SearchableCopyright] = {
       maybeCopyright.map(c => {
         SearchableCopyright(
           origin = c.origin,
@@ -63,7 +63,7 @@ trait SearchConverterService {
       )
 
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
-      val copyright            = asSearchableCopyright(c.copyright);
+      val copyright            = asSearchableCopyright(c.copyright)
 
       val allConnectedSubjects = c.subjectIds.flatMap(subjectId => {
         taxonomyData.subjectsById
@@ -136,7 +136,7 @@ trait SearchConverterService {
         .getOrElse(api.ConceptTitle("", UnknownLanguage.toString()))
       val content = findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
-        .getOrElse(api.ConceptContent("", UnknownLanguage.toString()))
+        .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString()))
       val metaImage = findByLanguageOrBestEffort(searchableConcept.metaImage, language)
         .map(converterService.toApiMetaImage)
         .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage.toString()))

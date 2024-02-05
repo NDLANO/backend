@@ -14,5 +14,6 @@ import scala.annotation.meta.field
 @ApiModel(description = "Information about the concept")
 case class ConceptContent(
     @(ApiModelProperty @field)(description = "The content of this concept") content: String,
+    @(ApiModelProperty @field)(description = "The html content of this concept") htmlContent: String,
     @(ApiModelProperty @field)(description = "The language of this concept") language: String
 )
