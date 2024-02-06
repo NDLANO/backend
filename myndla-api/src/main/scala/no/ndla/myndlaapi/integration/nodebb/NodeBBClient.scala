@@ -15,6 +15,7 @@ import no.ndla.myndlaapi.Props
 import sttp.client3.Response
 import sttp.client3.quick._
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait NodeBBClient {
@@ -23,8 +24,9 @@ trait NodeBBClient {
 
   class NodeBBClient extends StrictLogging {
     private val baseUrl: String = props.nodeBBUrl
-    val attemptLimit            = 5
-    def doReq(request: sttp.client3.Request[String, Any], attempt: Int = 1): Try[Response[String]] = {
+    private val attemptLimit    = 5
+    @tailrec
+    private def doReq(request: sttp.client3.Request[String, Any], attempt: Int = 1): Try[Response[String]] = {
       Try {
         simpleHttpClient.send(request)
       } match {
