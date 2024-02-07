@@ -30,6 +30,7 @@ export interface IConcept {
 
 export interface IConceptContent {
   content: string
+  htmlContent: string
   language: string
 }
 
