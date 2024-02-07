@@ -52,7 +52,7 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
   def InitialScrollContextKeywords        = List("0", "initial", "start", "first")
 
   def IntroductionHtmlTags: Set[String] =
-    if (booleanPropOrFalse("ALLOW_HTML_IN_TITLE")) Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
+    if (booleanPropOrFalse("ALLOW_HTML")) Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
     else Set.empty
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
