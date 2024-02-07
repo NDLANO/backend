@@ -55,6 +55,7 @@ trait ImportService {
       existing.flatMap {
         case Some(admin) => Success(admin)
         case None =>
+          userRepository.reserveFeideIdIfNotExists("ndla_admin")(session): Unit
           val toInsert = MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
             userRole = UserRole.EMPLOYEE,
