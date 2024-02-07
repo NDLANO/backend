@@ -35,7 +35,7 @@ class MyNdlaApiProperties extends BaseProps {
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
-  def nodeBBUrl: String = propOrElse("NODEBB_URL", "http://api-gateway.ndla-local/groups")
+  def nodeBBUrl: String = propOrElse("NODEBB_URL", s"$ApiGatewayUrl/groups")
 
   // NOTE: These props are for migrating the learningpath-api data to this api
   //       and should be removed when the migration is done.
