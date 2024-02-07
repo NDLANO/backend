@@ -16,7 +16,7 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{api => commonApi, domain => commonDomain}
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.model.api.{ConceptTags, NotFoundException}
 import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordClass}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
@@ -26,6 +26,7 @@ import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribute}
+import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
 import scala.jdk.CollectionConverters._
@@ -52,7 +53,7 @@ trait ConverterService {
           .getOrElse(api.ConceptTitle("", UnknownLanguage.toString))
         val content = findByLanguageOrBestEffort(concept.content, language)
           .map(toApiConceptContent)
-          .getOrElse(api.ConceptContent("", UnknownLanguage.toString))
+          .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(concept.metaImage, language)
           .map(toApiMetaImage)
           .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage.toString))
@@ -62,7 +63,7 @@ trait ConverterService {
         val visualElement = findByLanguageOrBestEffort(concept.visualElement, language).map(toApiVisualElement)
 
         val responsible = concept.responsible.map(toApiConceptResponsible)
-        val status      = toApiStatus(concept.status);
+        val status      = toApiStatus(concept.status)
         val editorNotes = Option.when(user.hasPermission(CONCEPT_API_WRITE))(concept.editorNotes.map(toApiEditorNote))
 
         Success(
@@ -113,13 +114,13 @@ trait ConverterService {
       )
     }
 
-    def toApiStatus(status: domain.Status) = {
+    def toApiStatus(status: domain.Status): api.Status = {
       api.Status(
         current = status.current.toString,
         other = status.other.map(_.toString).toSeq
       )
     }
-    def toApiEditorNote(editorNote: domain.EditorNote) = {
+    private def toApiEditorNote(editorNote: domain.EditorNote) = {
       api.EditorNote(
         note = editorNote.note,
         updatedBy = editorNote.user,
@@ -128,14 +129,14 @@ trait ConverterService {
       )
     }
 
-    def toApiTags(tags: Tag) = {
+    def toApiTags(tags: Tag): ConceptTags = {
       api.ConceptTags(
         tags.tags,
         tags.language
       )
     }
 
-    def toApiCopyright(copyright: commonDomain.draft.DraftCopyright): commonApi.DraftCopyright = {
+    private def toApiCopyright(copyright: commonDomain.draft.DraftCopyright): commonApi.DraftCopyright = {
       commonApi.DraftCopyright(
         copyright.license.flatMap(toMaybeApiLicense),
         copyright.origin,
@@ -148,7 +149,7 @@ trait ConverterService {
       )
     }
 
-    def toMaybeApiLicense(shortLicense: String): Option[commonApi.License] = {
+    private def toMaybeApiLicense(shortLicense: String): Option[commonApi.License] = {
       getLicense(shortLicense)
         .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
     }
@@ -162,8 +163,8 @@ trait ConverterService {
     def toApiConceptTitle(title: Title): api.ConceptTitle =
       api.ConceptTitle(title.title, title.language)
 
-    def toApiConceptContent(title: domain.ConceptContent): api.ConceptContent =
-      api.ConceptContent(title.content, title.language)
+    def toApiConceptContent(content: domain.ConceptContent): api.ConceptContent =
+      api.ConceptContent(Jsoup.parseBodyFragment(content.content).body().text(), content.content, content.language)
 
     def toApiMetaImage(metaImage: domain.ConceptMetaImage): api.ConceptMetaImage =
       api.ConceptMetaImage(
@@ -175,7 +176,7 @@ trait ConverterService {
     def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
       api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
-    def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
+    private def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
       api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
     def toDomainGlossData(apiGlossData: Option[api.GlossData]): Try[Option[domain.GlossData]] = {
@@ -380,7 +381,7 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(copyright: commonApi.DraftCopyright): commonDomain.draft.DraftCopyright =
+    private def toDomainCopyright(copyright: commonApi.DraftCopyright): commonDomain.draft.DraftCopyright =
       commonDomain.draft.DraftCopyright(
         copyright.license.map(_.license),
         copyright.origin,

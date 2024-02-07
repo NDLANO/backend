@@ -20,6 +20,7 @@ import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
+import org.mockito.stubbing.ScalaOngoingStubbing
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
@@ -32,18 +33,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val concept: api.Concept =
     TestData.sampleNbApiConcept.copy(
-      id = conceptId.toLong,
+      id = conceptId,
       updated = today,
       supportedLanguages = Set("nb"),
       responsible = Some(ConceptResponsible("hei", TestData.today))
     )
 
   val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(
-    id = Some(conceptId.toLong),
+    id = Some(conceptId),
     responsible = Some(Responsible("hei", TestData.today))
   )
 
-  def mockWithConcept(concept: domain.Concept) = {
+  def mockWithConcept(concept: domain.Concept): ScalaOngoingStubbing[NDLADate] = {
     when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
     when(draftConceptRepository.update(any[Concept])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))
@@ -91,7 +92,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None
       )
     val expectedConcept = concept.copy(
-      content = Option(api.ConceptContent(newContent, "en")),
+      content = Option(api.ConceptContent(newContent, newContent, "en")),
       updated = today,
       supportedLanguages = Set("nb", "en"),
       articleIds = Seq.empty,
@@ -171,7 +172,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedConcept = concept.copy(
       title = api.ConceptTitle(updatedTitle, "en"),
-      content = Option(api.ConceptContent(updatedContent, "en")),
+      content = Option(api.ConceptContent(updatedContent, updatedContent, "en")),
       metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
         commonApi.DraftCopyright(
