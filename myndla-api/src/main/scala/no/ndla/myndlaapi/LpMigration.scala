@@ -14,6 +14,8 @@ import no.ndla.myndla.model.domain.MyNDLAUserDocument
 import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, FolderRow, UserRepository}
 import scalikejdbc.{ConnectionPool, DBSession, DataSourceConnectionPool, NamedDB}
 
+import scala.annotation.tailrec
+
 // TODO: Delete this when migration is done
 case class LpMigration(props: MyNdlaApiProperties, localDataSource: HikariDataSource, lpDataSource: HikariDataSource)
     extends FolderRepository
@@ -26,14 +28,15 @@ case class LpMigration(props: MyNdlaApiProperties, localDataSource: HikariDataSo
   override val configRepository: ConfigRepository = new ConfigRepository
   override val clock: SystemClock                 = new SystemClock
 
-  def migrateConfig(lpSession: DBSession, myndlaSession: DBSession): Unit = {
+  private def migrateConfig(lpSession: DBSession, myndlaSession: DBSession): Unit = {
     val allLpConfigs = configRepository.getAllConfigs(lpSession)
     allLpConfigs.foreach(x => configRepository.updateConfigParam(x)(myndlaSession))
   }
 
-  def migrateUsers(lpSession: DBSession, myndlaSession: DBSession): Unit = {
+  private def migrateUsers(lpSession: DBSession, myndlaSession: DBSession): Unit = {
     val oldUsers = userRepository.getAllUsers(lpSession)
-    oldUsers.foreach(x =>
+    oldUsers.foreach(x => {
+      userRepository.reserveFeideIdIfNotExists(x.feideId)(myndlaSession): Unit
       userRepository.insertUser(
         x.feideId,
         MyNDLAUserDocument(
@@ -50,15 +53,16 @@ case class LpMigration(props: MyNdlaApiProperties, localDataSource: HikariDataSo
           arenaGroups = List.empty
         )
       )(myndlaSession)
-    )
+    })
   }
 
-  def migrateFolders(lpSession: DBSession, myndlaSession: DBSession): Unit = {
+  private def migrateFolders(lpSession: DBSession, myndlaSession: DBSession): Unit = {
     val folders         = folderRepository.getAllFolderRows(lpSession)
     val resources       = folderRepository.getAllResourceRows(lpSession)
     val folderResources = folderRepository.getAllFolderResourceRows(lpSession)
 
     // To make sure the parent folder exists before inserting the child folder
+    @tailrec
     def insertFolderRecursivly(inserted: List[FolderRow], toInsert: List[FolderRow]): Unit = {
       if (toInsert.isEmpty) return
 
@@ -73,7 +77,7 @@ case class LpMigration(props: MyNdlaApiProperties, localDataSource: HikariDataSo
     folderResources.foreach(x => folderRepository.insertFolderResourceRow(x)(myndlaSession))
   }
 
-  def detectExistingMigration(myndlaSession: DBSession): Boolean = {
+  private def detectExistingMigration(myndlaSession: DBSession): Boolean = {
     configRepository.getAllConfigs(myndlaSession).nonEmpty
 
   }
