@@ -56,14 +56,6 @@ class CloneFolderTest
     override def MetaPort: Int        = pgc.getMappedPort(5432)
     override def MetaSchema: String   = "testschema"
 
-    override def LpMetaServer: String      = pgc.getHost
-    override def LpMetaResource: String    = pgc.getDatabaseName
-    override def LpMetaUserName: String    = pgc.getUsername
-    override def LpMetaPassword: String    = pgc.getPassword
-    override def LpMetaPort: Int           = pgc.getMappedPort(5432)
-    override def LpMetaSchema: String      = "testschema"
-    override def migrateToLocalDB: Boolean = true
-
     override def RedisHost: String = "localhost"
     override def RedisPort: Int    = redisPort
   }
@@ -75,7 +67,7 @@ class CloneFolderTest
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
       override lazy val feideApiClient: FeideApiClient =
         mock[FeideApiClient](withSettings.strictness(Strictness.LENIENT))
-      override lazy val clock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
+      override lazy val clock: SystemClock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
       override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override lazy val userRepository: UserRepository     = spy(new UserRepository)
 
@@ -89,7 +81,7 @@ class CloneFolderTest
     }
   }
 
-  val testClock = myndlaApi.componentRegistry.clock
+  val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
 
   val myndlaApiBaseUrl   = s"http://localhost:$myndlaApiPort"
   val myndlaApiFolderUrl = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
@@ -659,7 +651,7 @@ class CloneFolderTest
     )
 
     val result = read[api.Folder](response.body)
-    result.updated should not be (result.created)
+    result.updated should not be result.created
     result.updated should be(updated)
   }
 

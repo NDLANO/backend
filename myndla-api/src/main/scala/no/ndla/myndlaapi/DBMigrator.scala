@@ -8,16 +8,16 @@
 
 package no.ndla.myndlaapi
 
-import com.zaxxer.hikari.HikariDataSource
+import no.ndla.myndlaapi.integration.DataSource
 import org.flywaydb.core.Flyway
 
 trait DBMigrator {
-  this: Props =>
+  this: Props with DataSource =>
   val migrator: DBMigrator
 
   class DBMigrator {
 
-    def migrate(dataSource: HikariDataSource): Unit = {
+    def migrate(): Unit = {
       val flyway = Flyway
         .configure()
         .javaMigrations(

@@ -8,6 +8,7 @@
 package no.ndla.myndlaapi.repository
 
 import cats.implicits._
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain._
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
@@ -23,8 +24,9 @@ class FolderRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
     with UnitSuite
     with TestEnvironment {
-  override val migrator: DBMigrator = new DBMigrator
-  var repository: FolderRepository  = _
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator: DBMigrator         = new DBMigrator
+  var repository: FolderRepository          = _
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -69,10 +71,9 @@ class FolderRepositoryTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     Try {
-      val ds = testDataSource.get
-      ConnectionPool.singleton(new DataSourceConnectionPool(ds))
+      DataSource.connectToDatabase()
       if (serverIsListening) {
-        migrator.migrate(ds)
+        migrator.migrate()
       }
     }
   }

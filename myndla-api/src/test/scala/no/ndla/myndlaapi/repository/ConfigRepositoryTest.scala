@@ -7,9 +7,10 @@
 
 package no.ndla.myndlaapi.repository
 
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
-import no.ndla.myndlaapi.TestEnvironment
+import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 import scalikejdbc._
@@ -17,9 +18,11 @@ import scalikejdbc._
 import scala.util.{Failure, Try}
 
 class ConfigRepositoryTest
-    extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "learningpathapi_test")
+    extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "myndlaapi_test")
+    with UnitSuite
     with TestEnvironment {
-  override val migrator = new DBMigrator
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator                     = new DBMigrator
 
   var repository: ConfigRepository = _
 
@@ -52,9 +55,8 @@ class ConfigRepositoryTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    val ds = testDataSource.get
-    ConnectionPool.singleton(new DataSourceConnectionPool(ds))
-    migrator.migrate(ds)
+    DataSource.connectToDatabase()
+    migrator.migrate()
   }
 
   override def beforeEach(): Unit = {

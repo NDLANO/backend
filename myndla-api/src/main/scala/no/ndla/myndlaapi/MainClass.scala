@@ -25,18 +25,8 @@ class MainClass(override val props: MyNdlaApiProperties) extends NdlaTapirMain[E
   override def beforeStart(): Unit = {
     logger.info("Starting the db migration...")
     val startDBMillis = System.currentTimeMillis()
-
-    componentRegistry.DataSource.connectToDatabase()
-
-    if (props.migrateToLocalDB) {
-      componentRegistry.migrator.migrate(componentRegistry.dataSource.get)
-      LpMigration(props, componentRegistry.dataSource.get, componentRegistry.lpDs).start()
-      logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
-    } else {
-      logger.info(
-        "Skipping db migration, because we're running against learningpath-api db for now... use `LP_MIGRATE=true` to use local db."
-      )
-    }
+    componentRegistry.migrator.migrate()
+    logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
   }
 
   override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {

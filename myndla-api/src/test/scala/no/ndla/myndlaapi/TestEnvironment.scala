@@ -77,6 +77,7 @@ trait TestEnvironment
     with NodeBBClient {
   val props                                          = new MyNdlaApiProperties
   lazy val clock: SystemClock                        = mock[SystemClock]
+  val dataSource: HikariDataSource                   = mock[HikariDataSource]
   val migrator: DBMigrator                           = mock[DBMigrator]
   val arenaReadService: ArenaReadService             = mock[ArenaReadService]
   val folderRepository: FolderRepository             = mock[FolderRepository]
@@ -99,14 +100,12 @@ trait TestEnvironment
   val importService: ImportService                   = mock[ImportService]
   val nodebb: NodeBBClient                           = mock[NodeBBClient]
 
-  val dataSource = mock[Option[HikariDataSource]]
-  val lpDs       = mock[HikariDataSource]
-
   val services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = reset(
     clock,
     migrator,
+    dataSource,
     arenaReadService,
     folderRepository,
     folderReadService,
