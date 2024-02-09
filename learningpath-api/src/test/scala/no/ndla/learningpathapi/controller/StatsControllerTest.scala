@@ -8,7 +8,6 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
-import no.ndla.myndla.model.api.Stats
 import org.json4s.DefaultFormats
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
@@ -24,10 +23,10 @@ class StatsControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     resetMocks()
   }
 
-  test("That getting stats returns in fact stats") {
-    when(folderReadService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty)))
+  test("That getting stats redirects to the correct endpoint") {
     get("/") {
-      status should be(200)
+      status should be(301)
+      response.getHeader("Location") should be("/myndla-api/v1/stats")
     }
   }
 
