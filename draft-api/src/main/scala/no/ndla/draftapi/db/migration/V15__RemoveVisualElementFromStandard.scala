@@ -10,7 +10,7 @@ package no.ndla.draftapi.db.migration
 import enumeratum.Json4s
 import no.ndla.common.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JArray
+import org.json4s.{Formats, JArray}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
@@ -18,7 +18,7 @@ import scalikejdbc.{DB, DBSession, _}
 import scala.util.{Success, Try}
 
 class V15__RemoveVisualElementFromStandard extends BaseJavaMigration {
-  implicit val formats = org.json4s.DefaultFormats + Json4s.serializer(ArticleType)
+  implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(ArticleType)
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)

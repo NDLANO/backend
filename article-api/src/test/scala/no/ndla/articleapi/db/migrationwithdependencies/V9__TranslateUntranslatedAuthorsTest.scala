@@ -9,11 +9,12 @@ package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.db.migrationwithdependencies.{V8_Author, V9__TranslateUntranslatedAuthors}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 
 class V9__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
-  val migration        = new V9__TranslateUntranslatedAuthors(props)
-  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+  val migration                 = new V9__TranslateUntranslatedAuthors(props)
+  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {
     val metaString =

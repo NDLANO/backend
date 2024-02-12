@@ -8,6 +8,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import org.json4s.Formats
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalikejdbc.DBSession
 
@@ -15,10 +16,10 @@ import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
-  implicit val jsonFormats = org.json4s.DefaultFormats
-  implicit val swagger     = new LearningpathSwagger
+  implicit val jsonFormats: Formats = org.json4s.DefaultFormats
+  val swagger                       = new LearningpathSwagger
 
-  lazy val controller = new InternController
+  lazy val controller = new InternController()(swagger)
   addServlet(controller, "/*")
 
   test("that id with value 404 gives OK") {

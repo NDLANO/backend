@@ -24,9 +24,9 @@ object TSTypes {
   // Scala2 enumerations doesn't work as expected in scala-tsi. See: https://github.com/scala-tsi/scala-tsi/issues/182
   implicit val availability: TSType[Availability.Value] = TSType.sameAs[Availability.Value, Availability.type]
 
-  implicit val author              = TSType.fromCaseClass[Author]
-  implicit val requiredLibrary     = TSType.fromCaseClass[RequiredLibrary]
-  implicit val editorNote          = TSType.fromCaseClass[EditorNote]
-  implicit val relatedContentLink  = TSType.fromCaseClass[RelatedContentLink]
-  implicit val newArticleMetaImage = TSType.fromCaseClass[NewArticleMetaImage]
+  implicit val author: TSIType[Author]                           = TSType.fromCaseClass[Author]
+  implicit val requiredLibrary: TSIType[RequiredLibrary]         = TSType.fromCaseClass[RequiredLibrary]
+  implicit val editorNote: TSIType[EditorNote]                   = TSType.fromCaseClass[EditorNote]
+  implicit val relatedContentLink: TSIType[RelatedContentLink]   = TSType.fromCaseClass[RelatedContentLink]
+  implicit val newArticleMetaImage: TSIType[NewArticleMetaImage] = TSType.fromCaseClass[NewArticleMetaImage]
 }

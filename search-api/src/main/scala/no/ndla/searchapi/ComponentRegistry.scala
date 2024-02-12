@@ -59,7 +59,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   override val props: SearchApiProperties = properties
   import props._
 
-  implicit val swagger = new SearchSwagger
+  implicit val swagger: SearchSwagger = new SearchSwagger
 
   lazy val searchController = new SearchController
   lazy val healthController = new HealthController

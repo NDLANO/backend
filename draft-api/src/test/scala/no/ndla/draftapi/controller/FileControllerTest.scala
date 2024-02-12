@@ -25,7 +25,7 @@ class FileControllerTest extends UnitSuite with TestEnvironment {
 
   val serverPort: Int = findFreePort
 
-  val controller                       = new FileController
+  val controller                            = new FileController
   override val services: List[Service[Eff]] = List(controller)
 
   override def beforeAll(): Unit = {

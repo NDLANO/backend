@@ -96,19 +96,19 @@ object TokenUser {
     case Success(value) => DecodeResult.Value(value)
   }
 
-  private implicit val userinfoCodec = Codec.string.mapDecode(decode)(encode)
-  private val authScheme             = AuthenticationScheme.Bearer.name
-  private val codec                  = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
+  private implicit val userinfoCodec: Codec[String, TokenUser, TextPlain] = Codec.string.mapDecode(decode)(encode)
+  private val authScheme                                                  = AuthenticationScheme.Bearer.name
+  private val codec = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
   private def filterHeaders(headers: List[String]) = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
   private def stringPrefixWithSpace                = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
-  val authCodec: Codec[List[String], Option[TokenUser], TextPlain] = Codec
+  private val authCodec: Codec[List[String], Option[TokenUser], TextPlain] = Codec
     .id[List[String], CodecFormat.TextPlain](codec.format, Schema.binary)
     .map(filterHeaders(_))(identity)
     .map(stringPrefixWithSpace)
     .mapDecode(codec.decode)(codec.encode)
     .schema(codec.schema)
 
-  def oauth2Input(permissions: Seq[Permission]) = {
+  def oauth2Input(permissions: Seq[Permission]): EndpointInput.Auth[Option[TokenUser], AuthType.ScopedOAuth2] = {
     val authType: AuthType.ScopedOAuth2 = EndpointInput.AuthType
       .OAuth2(
         None,

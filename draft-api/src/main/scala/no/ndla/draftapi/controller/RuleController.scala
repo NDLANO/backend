@@ -16,7 +16,7 @@ import sttp.tapir.EndpointInput
 import sttp.tapir._
 import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.validation.model.HtmlRulesFile
+import no.ndla.validation.model.{HtmlRulesFile, MathMLRulesFile}
 import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
 

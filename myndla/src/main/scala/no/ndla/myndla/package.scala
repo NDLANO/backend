@@ -19,7 +19,7 @@ package object myndla {
   val FavoriteFolderDefaultName: String = "Favoritter"
 
   // Binders used for UUID binding of scalikejdbc results
-  implicit val uuidBinder = Binders.of[Try[UUID]] {
+  implicit val uuidBinder: Binders[Try[UUID]] = Binders.of[Try[UUID]] {
     case v: UUID => Success(v)
     case v       => Failure(NDLASQLException(s"Parsing UUID type from '${v.toString}' was not possible."))
   }(v => (ps, idx) => ps.setObject(idx, v))

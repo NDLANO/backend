@@ -8,14 +8,14 @@
 package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.Extraction
+import org.json4s.{Extraction, Formats}
 import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
 class V14__CreateMissingFilePaths extends BaseJavaMigration {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: Formats = org.json4s.DefaultFormats
   case class LanguageObject(language: String)
   case class FilePathObject(filePath: String, fileSize: Long, language: String, mimeType: String)
 

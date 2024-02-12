@@ -13,13 +13,14 @@ import no.ndla.draftapi._
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.network.tapir.Service
+import org.json4s.Formats
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment {
-  implicit val formats = org.json4s.DefaultFormats
-  val serverPort: Int  = findFreePort
+  implicit val formats: Formats = org.json4s.DefaultFormats
+  val serverPort: Int           = findFreePort
 
   val controller                            = new InternController
   override val services: List[Service[Eff]] = List(controller)

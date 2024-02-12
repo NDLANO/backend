@@ -10,7 +10,7 @@ package no.ndla.draftapi.model.domain
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.draft.Draft.jsonEncoder
-import no.ndla.common.model.domain.draft.{DraftCopyright, Draft}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright}
 import no.ndla.draftapi.Props
 import org.json4s.FieldSerializer._
 import org.json4s.ext.JavaTimeSerializers
@@ -41,7 +41,7 @@ trait DBArticle {
   this: Props =>
 
   object DBArticle extends SQLSyntaxSupport[Draft] {
-    val repositorySerializer = jsonEncoder +
+    val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Draft](
         ignore("id") orElse
           ignore("revision") orElse
@@ -71,9 +71,9 @@ trait DBArticle {
       JavaTimeSerializers.all +
       NDLADate.Json4sSerializer
 
-    implicit val formats    = JSonSerializer
-    override val tableName  = "agreementdata"
-    override val schemaName = Some(props.MetaSchema)
+    implicit val formats: Formats = JSonSerializer
+    override val tableName        = "agreementdata"
+    override val schemaName       = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
 
@@ -93,9 +93,9 @@ trait DBArticle {
   }
 
   object DBUserData extends SQLSyntaxSupport[UserData] {
-    implicit val formats         = org.json4s.DefaultFormats
-    override val tableName       = "userdata"
-    lazy override val schemaName = Some(props.MetaSchema)
+    implicit val formats: Formats = org.json4s.DefaultFormats
+    override val tableName        = "userdata"
+    lazy override val schemaName  = Some(props.MetaSchema)
 
     val JSonSerializer = FieldSerializer[UserData](
       ignore("id")

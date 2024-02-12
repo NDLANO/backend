@@ -58,7 +58,7 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
 
 object NDLADate {
 
-  implicit val typescriptType = TSType.sameAs[NDLADate, String]
+  implicit val typescriptType: TSType[NDLADate] = TSType.sameAs[NDLADate, String]
 
   case class NDLADateError(message: String) extends RuntimeException(message)
 

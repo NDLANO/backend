@@ -21,8 +21,8 @@ import scala.util.{Failure, Success}
 
 class DraftConceptControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  implicit val swagger                      = new ConceptSwagger
-  lazy val controller                       = new DraftConceptController
+  val swagger: ConceptSwagger               = new ConceptSwagger
+  lazy val controller                       = new DraftConceptController()(swagger)
   addServlet(controller, "/test")
 
   val conceptId = 1L

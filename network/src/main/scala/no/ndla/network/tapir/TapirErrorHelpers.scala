@@ -47,7 +47,7 @@ trait TapirErrorHelpers extends StrictLogging {
     val WINDOW_TOO_LARGE       = "RESULT_WINDOW_TOO_LARGE"
     val RESOURCE_OUTDATED      = "RESOURCE_OUTDATED"
 
-    val PUBLISH                = "PUBLISH"
+    val PUBLISH = "PUBLISH"
 
     val GENERIC_DESCRIPTION =
       s"Ooops. Something we didn't anticipate occurred. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."

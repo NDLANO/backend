@@ -20,6 +20,6 @@ case class License(
 )
 
 object License {
-    implicit def encoder: Encoder[License] = deriveEncoder[License]
-    implicit def decoder: Decoder[License] = deriveDecoder[License]
+  implicit def encoder: Encoder[License] = deriveEncoder[License]
+  implicit def decoder: Decoder[License] = deriveDecoder[License]
 }

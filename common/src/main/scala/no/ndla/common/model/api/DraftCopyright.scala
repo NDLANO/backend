@@ -28,6 +28,6 @@ case class DraftCopyright(
 )
 
 object DraftCopyright {
-    implicit def encoder: Encoder[DraftCopyright] = deriveEncoder[DraftCopyright]
-    implicit def decoder: Decoder[DraftCopyright] = deriveDecoder[DraftCopyright]
+  implicit def encoder: Encoder[DraftCopyright] = deriveEncoder[DraftCopyright]
+  implicit def decoder: Decoder[DraftCopyright] = deriveDecoder[DraftCopyright]
 }

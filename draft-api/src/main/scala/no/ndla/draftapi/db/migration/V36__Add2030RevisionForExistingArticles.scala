@@ -10,7 +10,7 @@ package no.ndla.draftapi.db.migration
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction, JArray, JField, JObject, JString}
+import org.json4s.{DefaultFormats, Extraction, Formats, JArray, JField, JObject, JString}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
@@ -60,9 +60,9 @@ class V36__Add2030RevisionForExistingArticles extends BaseJavaMigration {
       .update()
   }
 
-  private val revisionDate     = LocalDateTime.of(2030, Month.JANUARY, 1, 0, 0)
-  private implicit val formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
-  private val revDate          = Extraction.decompose(revisionDate)
+  private val revisionDate              = LocalDateTime.of(2030, Month.JANUARY, 1, 0, 0)
+  private implicit val formats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
+  private val revDate                   = Extraction.decompose(revisionDate)
 
   private[migration] def convertArticleUpdate(document: String): String = {
     val oldArticle = parse(document)

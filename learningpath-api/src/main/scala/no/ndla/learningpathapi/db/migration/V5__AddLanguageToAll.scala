@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 
 class V5__AddLanguageToAll extends BaseJavaMigration {
 
-  implicit val formats =
+  implicit val formats: Formats =
     org.json4s.DefaultFormats +
       FieldSerializer[V5_LearningPath](
         ignore("id") orElse
