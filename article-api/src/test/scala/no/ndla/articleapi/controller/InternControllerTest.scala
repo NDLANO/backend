@@ -63,7 +63,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
 
     import io.circe.generic.auto._
     import io.circe.syntax._
-    val jsonStr = TestData.sampleArticleWithByNcSa.asJson.noSpaces
+    val jsonStr = TestData.sampleArticleWithByNcSa.asJson.deepDropNullValues.noSpaces
 
     val response = simpleHttpClient.send(
       quickRequest
@@ -148,7 +148,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     import io.circe.generic.auto._
     import io.circe.syntax._
     val art     = TestData.sampleArticleWithByNcSa.copy(id = Some(10L))
-    val jsonStr = art.asJson.noSpaces
+    val jsonStr = art.asJson.deepDropNullValues.noSpaces
 
     val response = simpleHttpClient.send(
       quickRequest
