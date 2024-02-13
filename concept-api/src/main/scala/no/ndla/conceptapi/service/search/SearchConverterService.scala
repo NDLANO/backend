@@ -26,6 +26,7 @@ import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s._
 import org.json4s.native.Serialization.read
+import org.jsoup.Jsoup
 
 trait SearchConverterService {
   this: ConverterService with DBConcept =>
@@ -55,9 +56,11 @@ trait SearchConverterService {
     }
 
     def asSearchableConcept(c: Concept, taxonomyData: TaxonomyData): SearchableConcept = {
-      val title   = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title)))
-      val content = SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content)))
-      val tags    = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags)))
+      val title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title)))
+      val content = SearchableLanguageValues(
+        c.content.map(content => LanguageValue(content.language, Jsoup.parseBodyFragment(content.content).text()))
+      )
+      val tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags)))
       val visualElement = SearchableLanguageValues(
         c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
       )

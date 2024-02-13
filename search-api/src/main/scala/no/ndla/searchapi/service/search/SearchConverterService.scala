@@ -51,7 +51,7 @@ trait SearchConverterService {
 
   class SearchConverterService extends StrictLogging {
 
-    private def parseHtml(html: String) = {
+    private def parseHtml(html: String): Element = {
       val document = Jsoup.parseBodyFragment(html)
       document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
       document.body()
@@ -159,6 +159,8 @@ trait SearchConverterService {
       )
     }
 
+    private def toPlaintext(text: String): String = Jsoup.parseBodyFragment(text).text()
+
     def asSearchableArticle(
         ai: Article,
         taxonomyBundle: Option[TaxonomyBundle],
@@ -200,19 +202,19 @@ trait SearchConverterService {
         SearchableArticle(
           id = ai.id.get,
           title = SearchableLanguageValues(
-            ai.title.map(title => LanguageValue(title.language, title.title))
+            ai.title.map(title => LanguageValue(title.language, toPlaintext(title.title)))
           ),
           visualElement = model.SearchableLanguageValues(
             ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
           ),
           introduction = model.SearchableLanguageValues(
-            ai.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
+            ai.introduction.map(intro => LanguageValue(intro.language, toPlaintext(intro.introduction)))
           ),
           metaDescription = model.SearchableLanguageValues(
             ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
           ),
           content = model.SearchableLanguageValues(
-            ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))
+            ai.content.map(article => LanguageValue(article.language, toPlaintext(article.content)))
           ),
           tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
           lastUpdated = ai.updated,
@@ -240,12 +242,12 @@ trait SearchConverterService {
     ): Try[SearchableLearningPath] = {
       val taxonomyContexts = taxonomyBundle match {
         case Some(bundle) =>
-          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, true))
+          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = true))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:learningpath:${lp.id.get}",
             filterVisibles = true,
-            true,
+            filterContexts = true,
             shouldUsePublishedTax = true
           )
       }
@@ -292,12 +294,13 @@ trait SearchConverterService {
       val taxonomyContexts = {
         val draftId = draft.id.get
         taxonomyBundle match {
-          case Some(bundle) => Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, true))
+          case Some(bundle) =>
+            Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = true))
           case None =>
             taxonomyApiClient.getTaxonomyContext(
               s"urn:article:$draftId",
               filterVisibles = false,
-              true,
+              filterContexts = true,
               shouldUsePublishedTax = false
             )
         }
@@ -356,17 +359,17 @@ trait SearchConverterService {
         SearchableDraft(
           id = draft.id.get,
           draftStatus = draftStatus,
-          title = model.SearchableLanguageValues(draft.title.map(title => LanguageValue(title.language, title.title))),
+          title = model.SearchableLanguageValues(
+            draft.title.map(title => LanguageValue(title.language, toPlaintext(title.title)))
+          ),
           content = model.SearchableLanguageValues(
-            draft.content.map(article =>
-              LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text())
-            )
+            draft.content.map(article => LanguageValue(article.language, toPlaintext(article.content)))
           ),
           visualElement = model.SearchableLanguageValues(
             draft.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
           ),
           introduction = model.SearchableLanguageValues(
-            draft.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
+            draft.introduction.map(intro => LanguageValue(intro.language, toPlaintext(intro.introduction)))
           ),
           metaDescription = model.SearchableLanguageValues(
             draft.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
@@ -402,7 +405,10 @@ trait SearchConverterService {
 
     }
 
-    private def getSortableResourceTypeName(draft: Draft, taxonomyContexts: List[TaxonomyContext]) = {
+    private def getSortableResourceTypeName(
+        draft: Draft,
+        taxonomyContexts: List[TaxonomyContext]
+    ): SearchableLanguageValues = {
       draft.articleType match {
         case ArticleType.Standard =>
           taxonomyContexts.headOption
