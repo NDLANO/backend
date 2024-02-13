@@ -90,7 +90,8 @@ object Dependencies {
       "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle" % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"        % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-jdkhttp-server"    % TapirV,
-      "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"      % ApiSpecV
+      "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"      % ApiSpecV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-testing"           % TapirV % "test"
     ).map {
       // NOTE: tapir-jdkhttp-server includes some logback provider for slf4j
       //       this conflicts with the existing provider, so lets exclude it.

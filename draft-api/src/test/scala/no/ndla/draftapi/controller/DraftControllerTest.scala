@@ -574,4 +574,13 @@ class DraftControllerTest extends UnitSuite with TestEnvironment {
     verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
     verify(articleSearchService, times(0)).scroll(any[String], any[String])
   }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
+    }
+  }
 }

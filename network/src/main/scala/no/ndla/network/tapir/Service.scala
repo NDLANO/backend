@@ -13,7 +13,7 @@ trait Service[F[_]] {
   val enableSwagger: Boolean = true
   val serviceName: String    = this.getClass.getSimpleName
   protected val prefix: EndpointInput[Unit]
-  protected val endpoints: List[ServerEndpoint[Any, F]]
+  val endpoints: List[ServerEndpoint[Any, F]]
 
   lazy val builtEndpoints: List[ServerEndpoint[Any, F]] = {
     this.endpoints.map(e => {

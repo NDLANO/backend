@@ -63,4 +63,13 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment {
     response2.code.code should be(200)
   }
 
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
+    }
+  }
+
 }

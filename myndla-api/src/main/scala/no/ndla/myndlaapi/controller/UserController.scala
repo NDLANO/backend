@@ -120,7 +120,7 @@ trait UserController {
         folderWriteService.importUserData(importBody, feideHeader).handleErrorsOrOk
       }
 
-    override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getMyNDLAUser,
       updateMyNDLAUser,
       adminUpdateMyNDLAUser,

@@ -15,7 +15,6 @@ import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.Service
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.read
-import org.scalatra.test.BytesPart
 import sttp.client3.quick._
 
 import scala.util.Success
@@ -38,7 +37,6 @@ class FileControllerTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenCallRealMethod()
   }
 
-  val exampleFile                  = BytesPart("hello.pdf", "Hello".getBytes, "application/pdf")
   val exampleFileBody: Array[Byte] = "Hello".getBytes
 
   test("That uploading a file returns 200 with body if successful") {
@@ -76,5 +74,14 @@ class FileControllerTest extends UnitSuite with TestEnvironment {
         .multipartBody[Any](multipart("file", exampleFileBody))
     )
     resp.code.code should be(401)
+  }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
+    }
   }
 }

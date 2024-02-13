@@ -252,7 +252,7 @@ trait SeriesController {
         case _ => orFunction
       }
 
-    override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getSeriesSearch,
       postSeriesSearch,
       getSingleSeries,
