@@ -200,13 +200,15 @@ trait SearchConverterService {
         SearchableArticle(
           id = ai.id.get,
           title = SearchableLanguageValues(
-            ai.title.map(title => LanguageValue(title.language, title.title))
+            ai.title.map(title => LanguageValue(title.language, Jsoup.parseBodyFragment(title.title).text()))
           ),
           visualElement = model.SearchableLanguageValues(
             ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
           ),
           introduction = model.SearchableLanguageValues(
-            ai.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
+            ai.introduction.map(intro =>
+              LanguageValue(intro.language, Jsoup.parseBodyFragment(intro.introduction).text())
+            )
           ),
           metaDescription = model.SearchableLanguageValues(
             ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
@@ -356,7 +358,9 @@ trait SearchConverterService {
         SearchableDraft(
           id = draft.id.get,
           draftStatus = draftStatus,
-          title = model.SearchableLanguageValues(draft.title.map(title => LanguageValue(title.language, title.title))),
+          title = model.SearchableLanguageValues(
+            draft.title.map(title => LanguageValue(title.language, Jsoup.parseBodyFragment(title.title).text()))
+          ),
           content = model.SearchableLanguageValues(
             draft.content.map(article =>
               LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text())
@@ -366,7 +370,9 @@ trait SearchConverterService {
             draft.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
           ),
           introduction = model.SearchableLanguageValues(
-            draft.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
+            draft.introduction.map(intro =>
+              LanguageValue(intro.language, Jsoup.parseBodyFragment(intro.introduction).text())
+            )
           ),
           metaDescription = model.SearchableLanguageValues(
             draft.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
