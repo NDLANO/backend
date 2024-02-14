@@ -7,6 +7,8 @@
 
 package no.ndla.common.model.domain.draft
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Author
 
@@ -20,3 +22,8 @@ case class DraftCopyright(
     validTo: Option[NDLADate],
     processed: Boolean
 )
+
+object DraftCopyright {
+  implicit val encoder: Encoder[DraftCopyright] = deriveEncoder
+  implicit val decoder: Decoder[DraftCopyright] = deriveDecoder
+}

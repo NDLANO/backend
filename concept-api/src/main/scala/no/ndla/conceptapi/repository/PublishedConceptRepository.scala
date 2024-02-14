@@ -12,7 +12,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
+import no.ndla.conceptapi.model.domain.{Concept, PublishedConcept}
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.postgresql.util.PGobject
@@ -22,7 +22,7 @@ import org.json4s.native.Serialization.{read, write}
 import scala.util.{Failure, Success, Try}
 
 trait PublishedConceptRepository {
-  this: DataSource with DBConcept =>
+  this: DataSource =>
   val publishedConceptRepository: PublishedConceptRepository
 
   class PublishedConceptRepository extends StrictLogging with Repository[Concept] {

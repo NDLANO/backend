@@ -7,9 +7,17 @@
 
 package no.ndla.conceptapi.model.api
 
+import no.ndla.common.Clock
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+
 import java.time.LocalDateTime
 import scala.annotation.meta.field
 import no.ndla.conceptapi.Props
+import no.ndla.conceptapi.integration.DataSource
+import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
+import org.postgresql.util.PSQLException
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Information about an error")
@@ -18,55 +26,49 @@ case class Error(
     @(ApiModelProperty @field)(description = "Description of the error") description: String,
     @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
 )
-trait ErrorHelpers {
-  this: Props =>
+trait ErrorHelpers extends TapirErrorHelpers {
+  this: Props with Clock with DataSource =>
 
-  object ErrorHelpers {
-    val GENERIC                = "GENERIC"
-    val NOT_FOUND              = "NOT_FOUND"
-    val INDEX_MISSING          = "INDEX_MISSING"
-    val VALIDATION             = "VALIDATION"
-    val RESOURCE_OUTDATED      = "RESOURCE_OUTDATED"
-    val ACCESS_DENIED          = "ACCESS DENIED"
-    val WINDOW_TOO_LARGE       = "RESULT_WINDOW_TOO_LARGE"
-    val PUBLISH                = "PUBLISH"
-    val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"
-    val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
-    val OPERATION_NOT_ALLOWED  = "OPERATION_NOT_ALLOWED"
+  import ErrorHelpers._
+  import ConceptErrorHelpers._
 
-    val VALIDATION_DESCRIPTION = "Validation Error"
+  override def handleErrors: PartialFunction[Throwable, AllErrors] = {
+    case a: AccessDeniedException         => forbiddenMsg(a.getMessage)
+    case v: ValidationException           => validationError(v)
+    case n: NotFoundException             => notFoundWithMsg(n.getMessage)
+    case o: OptimisticLockException       => errorBody(RESOURCE_OUTDATED, o.getMessage, 409)
+    case st: IllegalStatusStateTransition => badRequest(st.getMessage)
+    case _: IndexNotFoundException        => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 500)
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)
+    case ona: OperationNotAllowedException => errorBody(OPERATION_NOT_ALLOWED, ona.getMessage, 400)
+    case psqle: PSQLException =>
+      DataSource.connectToDatabase()
+      logger.error("Something went wrong with database connections", psqle)
+      errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
+    case h: HttpRequestException =>
+      h.httpResponse match {
+        case Some(resp) if resp.code.isClientError => errorBody(VALIDATION, resp.body, 400)
+        case _ =>
+          logger.error(s"Problem with remote service: ${h.getMessage}")
+          errorBody(GENERIC, GENERIC_DESCRIPTION, 502)
+      }
+  }
 
-    val GENERIC_DESCRIPTION =
-      s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-
-    val INDEX_MISSING_DESCRIPTION =
-      s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
-
-    val RESOURCE_OUTDATED_DESCRIPTION =
-      "The resource is outdated. Please try fetching before submitting again."
-
+  object ConceptErrorHelpers {
+    val OPERATION_NOT_ALLOWED = "OPERATION_NOT_ALLOWED"
     val WINDOW_TOO_LARGE_DESCRIPTION =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 
-    val DATABASE_UNAVAILABLE_DESCRIPTION =
-      s"Database seems to be unavailable, retrying connection."
-
-    val INVALID_SEARCH_CONTEXT_DESCRIPTION =
-      "The search-context specified was not expected. Please create one by searching from page 1."
-
-    val ILLEGAL_STATUS_TRANSITION: String = "Illegal status transition"
-
-    val GenericError: Error      = Error(GENERIC, GENERIC_DESCRIPTION)
-    val IndexMissingError: Error = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
-
-    val InvalidSearchContext: Error = Error(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION)
-
   }
+
   case class OptimisticLockException(message: String = ErrorHelpers.RESOURCE_OUTDATED_DESCRIPTION)
       extends RuntimeException(message)
   case class IllegalStatusStateTransition(message: String = ErrorHelpers.ILLEGAL_STATUS_TRANSITION)
       extends RuntimeException(message)
-  class ResultWindowTooLargeException(message: String = ErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION)
+  class ResultWindowTooLargeException(message: String = ConceptErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION)
       extends RuntimeException(message)
 }
 

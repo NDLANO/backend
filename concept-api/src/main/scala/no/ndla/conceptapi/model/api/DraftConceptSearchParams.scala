@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -32,3 +34,8 @@ case class DraftConceptSearchParams(
   @(ApiModelProperty @field)(description = "The type of concepts to return.") conceptType: Option[String],
   @(ApiModelProperty @field)(description = "A list of index paths to aggregate over") aggregatePaths: List[String],
 )
+
+object DraftConceptSearchParams{
+  implicit val encoder: Encoder[DraftConceptSearchParams] = deriveEncoder
+  implicit val decoder: Decoder[DraftConceptSearchParams] = deriveDecoder
+}

@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
@@ -19,3 +21,8 @@ case class VisualElement(
     @(ApiModelProperty @field)(description = "The ISO 639-1 language code describing which article translation this visual element belongs to") language: String
 )
 // format: on
+
+object VisualElement {
+  implicit val encoder: Encoder[VisualElement] = deriveEncoder
+  implicit val decoder: Decoder[VisualElement] = deriveDecoder
+}

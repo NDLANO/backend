@@ -32,7 +32,7 @@ object conceptapi extends Module {
     elastic4s,
     melody,
     database,
-    scalatra,
+    tapirHttp4sCirce,
     vulnerabilityOverrides
   )
 

@@ -7,13 +7,22 @@
 
 package no.ndla.conceptapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
+sealed trait TagOutput
+case class SomeStringList(list: List[String])   extends TagOutput
+case class SomeTagList(list: List[SubjectTags]) extends TagOutput
 
-@ApiModel(description = "A subject id, and list of tags used in the subject")
+@description("A subject id, and list of tags used in the subject")
 case class SubjectTags(
-    @(ApiModelProperty @field)(description = "Taxonomy id of the subject") subjectId: String,
-    @(ApiModelProperty @field)(description = "List of tags used in the subject") tags: List[String],
-    @(ApiModelProperty @field)(description = "Language for the specified tags") language: String
+    @description("Taxonomy id of the subject") subjectId: String,
+    @description("List of tags used in the subject") tags: List[String],
+    @description("Language for the specified tags") language: String
 )
+
+object SubjectTags {
+  implicit val encoder: Encoder[SubjectTags] = deriveEncoder
+  implicit val decoder: Decoder[SubjectTags] = deriveDecoder
+}

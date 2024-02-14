@@ -29,9 +29,8 @@ import org.mockito.ArgumentMatchers._
 import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment {
-  implicit val formats: Formats = DefaultFormats + NDLADate.Json4sSerializer
-  val serverPort: Int           = findFreePort
-
+  implicit val formats: Formats             = DefaultFormats + NDLADate.Json4sSerializer
+  val serverPort: Int                       = findFreePort
   val controller                            = new DraftController
   override val services: List[Service[Eff]] = List(controller)
 

@@ -10,10 +10,14 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.conceptapi.controller.{DraftConceptController, NdlaController, PublishedConceptController}
+import no.ndla.conceptapi.controller.{
+  ConceptControllerHelpers,
+  DraftConceptController,
+  InternController,
+  PublishedConceptController
+}
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
-import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service._
@@ -21,6 +25,7 @@ import no.ndla.conceptapi.service.search._
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -28,11 +33,10 @@ trait TestEnvironment
     extends DraftConceptRepository
     with PublishedConceptRepository
     with DraftConceptController
+    with ConceptControllerHelpers
     with NdlaControllerBase
     with NdlaSwaggerSupport
-    with DBConcept
     with PublishedConceptController
-    with NdlaController
     with SearchConverterService
     with PublishedConceptSearchService
     with PublishedConceptIndexService
@@ -60,7 +64,9 @@ trait TestEnvironment
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
     with DBMigrator
-    with ConceptApiInfo {
+    with Routes[Eff]
+    with NdlaMiddleware
+    with InternController {
   override val props: ConceptApiProperties = new ConceptApiProperties {
     override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
   }
@@ -71,6 +77,7 @@ trait TestEnvironment
 
   val draftConceptController: DraftConceptController         = mock[DraftConceptController]
   val publishedConceptController: PublishedConceptController = mock[PublishedConceptController]
+  val internController: InternController                     = mock[InternController]
 
   val searchConverterService: SearchConverterService               = mock[SearchConverterService]
   val draftConceptIndexService: DraftConceptIndexService           = mock[DraftConceptIndexService]
@@ -93,4 +100,5 @@ trait TestEnvironment
   val ndlaClient: NdlaClient             = mock[NdlaClient]
   val articleApiClient: ArticleApiClient = mock[ArticleApiClient]
 
+  val services: List[Service[Eff]] = List.empty
 }

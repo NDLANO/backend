@@ -7,6 +7,8 @@
 
 package no.ndla.search.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -18,6 +20,11 @@ case class TermValue(
     @(ApiModelProperty @field)(description = "Number of times the value appeared in result") count: Int
 )
 
+object TermValue {
+  implicit val encoder: Encoder[TermValue] = deriveEncoder
+  implicit val decoder: Decoder[TermValue] = deriveDecoder
+}
+
 @ApiModel(description = "Information about search aggregation on `field`")
 case class MultiSearchTermsAggregation(
     @(ApiModelProperty @field)(description = "The field the specific aggregation is matching") field: String,
@@ -27,3 +34,8 @@ case class MultiSearchTermsAggregation(
     @(ApiModelProperty @field)(description = "Values appearing in the field") values: Seq[TermValue]
 )
 // format: on
+
+object MultiSearchTermsAggregation {
+  implicit val encoder: Encoder[MultiSearchTermsAggregation] = deriveEncoder
+  implicit val decoder: Decoder[MultiSearchTermsAggregation] = deriveDecoder
+}

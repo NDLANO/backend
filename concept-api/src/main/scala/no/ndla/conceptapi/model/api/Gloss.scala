@@ -7,7 +7,10 @@
 
 package no.ndla.conceptapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
 import scala.annotation.meta.field
 
 // format: off
@@ -18,6 +21,11 @@ case class GlossExample(
     @(ApiModelProperty @field)(description = "Alternative writing of the example") transcriptions: Map[String, String],
 )
 
+object GlossExample {
+  implicit val encoder: Encoder[GlossExample] = deriveEncoder
+  implicit val decoder: Decoder[GlossExample] = deriveDecoder
+}
+
 @ApiModel(description = "Information about the gloss data")
 case class GlossData(
     @(ApiModelProperty @field)(description = "The gloss itself") gloss: String,
@@ -27,3 +35,8 @@ case class GlossData(
     @(ApiModelProperty @field)(description = "List of examples of how the gloss can be used") examples: List[List[GlossExample]],
 )
 // format: on
+
+object GlossData {
+  implicit val encoder: Encoder[GlossData] = deriveEncoder
+  implicit val decoder: Decoder[GlossData] = deriveDecoder
+}

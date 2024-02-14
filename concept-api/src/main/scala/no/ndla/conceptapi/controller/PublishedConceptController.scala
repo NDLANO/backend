@@ -7,24 +7,25 @@
 
 package no.ndla.conceptapi.controller
 
-import com.typesafe.scalalogging.StrictLogging
+import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.implicits._
-import no.ndla.common.model.NDLADate
-import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api._
-import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
+import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ReadService, WriteService}
+import no.ndla.conceptapi.{Eff, Props}
 import no.ndla.language.Language
 import no.ndla.network.scalatra.NdlaSwaggerSupport
-import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.Ok
-import org.scalatra.swagger.Swagger
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.{DynamicHeaders, Service}
+import sttp.model.StatusCode
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.server.ServerEndpoint
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait PublishedConceptController {
   this: WriteService
@@ -32,32 +33,41 @@ trait PublishedConceptController {
     with PublishedConceptSearchService
     with SearchConverterService
     with Props
-    with NdlaController
-    with NdlaSwaggerSupport =>
+    with NdlaSwaggerSupport
+    with ConceptControllerHelpers
+    with ErrorHelpers =>
   val publishedConceptController: PublishedConceptController
 
-  class PublishedConceptController(implicit val swagger: Swagger)
-      extends NdlaController
-      with NdlaSwaggerSupport
-      with StrictLogging {
+  class PublishedConceptController extends Service[Eff] {
+    import ConceptControllerHelpers._
+    import ErrorHelpers._
     import props._
-    protected implicit override val jsonFormats: Formats =
-      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-    val applicationDescription = "This is the Api for concepts"
 
-    private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
+    override val serviceName: String         = "concepts"
+    override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
+
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      getSubjects,
+      getTags,
+      getConceptById,
+      getAllConcepts,
+      postSearchConcepts
+    )
+
+    private def scrollSearchOr(scrollId: Option[String], language: String)(
+        orFunction: => Try[(ConceptSearchResult, DynamicHeaders)]
+    ): Try[(ConceptSearchResult, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           publishedConceptSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
-              Ok(searchConverterService.asApiConceptSearchResult(scrollResult), getResponseScrollHeader(scrollResult))
-            case Failure(ex) => errorHandler(ex)
+              val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
+              val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+              Success((body, headers))
+            case Failure(ex) => Failure(ex)
           }
         case _ => orFunction
       }
-
-    private def getResponseScrollHeader(result: SearchResult[_]) =
-      result.scrollId.map(i => this.scrollId.paramName -> i).toMap
 
     private def search(
         query: Option[String],
@@ -101,144 +111,71 @@ trait PublishedConceptController {
 
       result match {
         case Success(searchResult) =>
-          Ok(searchConverterService.asApiConceptSearchResult(searchResult), getResponseScrollHeader(searchResult))
-        case Failure(ex) => errorHandler(ex)
+          val scrollHeader = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+          val output       = searchConverterService.asApiConceptSearchResult(searchResult)
+          Success((output, scrollHeader))
+        case Failure(ex) => Failure(ex)
       }
 
     }
 
-    get(
-      "/:concept_id",
-      operation(
-        apiOperation[Concept]("getConceptById")
-          .summary("Show concept with a specified id")
-          .description("Shows the concept for the specified id.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(language),
-            asPathParam(conceptId),
-            asQueryParam(fallback)
-          )
-          .authorizations("oauth2")
-          .responseMessages(response404, response500)
-      )
-    ) {
-      val conceptId = long(this.conceptId.paramName)
-      val language =
-        paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, false)
-      val user     = TokenUser.fromScalatraRequest(request).toOption
-
-      readService.publishedConceptWithId(conceptId, language, fallback, user) match {
-        case Success(concept) => Ok(concept)
-        case Failure(ex)      => errorHandler(ex)
+    def getConceptById: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Show concept with a specified id")
+      .description("Shows the concept for the specified id.")
+      .in(pathConceptId)
+      .in(language)
+      .in(fallback)
+      .out(jsonBody[Concept])
+      .errorOut(errorOutputsFor(404))
+      .withOptionalUser
+      .serverLogicPure { user =>
+        { case (conceptId, language, fallback) =>
+          readService.publishedConceptWithId(conceptId, language, fallback, user).handleErrorsOrOk
+        }
       }
-    }: Unit
 
-    get(
-      "/",
-      operation(
-        apiOperation[ConceptSearchResult]("getAllConcepts")
-          .summary("Show all concepts")
-          .description("Shows all concepts. You can search it too.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(query),
-            asQueryParam(conceptIds),
-            asQueryParam(language),
-            asQueryParam(pageNo),
-            asQueryParam(pageSize),
-            asQueryParam(sort),
-            asQueryParam(fallback),
-            asQueryParam(scrollId),
-            asQueryParam(subjects),
-            asQueryParam(tagsToFilterBy),
-            asQueryParam(exactTitleMatch),
-            asQueryParam(embedResource),
-            asQueryParam(embedId),
-            asQueryParam(conceptType),
-            asQueryParam(aggregatePaths)
-          )
-          authorizations "oauth2"
-          responseMessages response500
-      )
-    ) {
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val scrollId = paramOrNone(this.scrollId.paramName)
-
-      scrollSearchOr(scrollId, language) {
-        val query           = paramOrNone(this.query.paramName)
-        val sort            = paramOrNone(this.sort.paramName).flatMap(Sort.valueOf)
-        val pageSize        = intOrDefault(this.pageSize.paramName, DefaultPageSize)
-        val page            = intOrDefault(this.pageNo.paramName, 1)
-        val idList          = paramAsListOfLong(this.conceptIds.paramName)
-        val fallback        = booleanOrDefault(this.fallback.paramName, default = false)
-        val subjects        = paramAsListOfString(this.subjects.paramName)
-        val tagsToFilterBy  = paramAsListOfString(this.tagsToFilterBy.paramName)
-        val exactTitleMatch = booleanOrDefault(this.exactTitleMatch.paramName, default = false)
-        val shouldScroll    = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
-        val embedResource   = paramOrNone(this.embedResource.paramName)
-        val embedId         = paramOrNone(this.embedId.paramName)
-        val conceptType     = paramOrNone(this.conceptType.paramName)
-        val aggregatePaths  = paramAsListOfString(this.aggregatePaths.paramName)
-
-        search(
-          query,
-          sort,
-          language,
-          page,
-          pageSize,
-          idList,
-          fallback,
-          subjects.toSet,
-          tagsToFilterBy.toSet,
-          exactTitleMatch,
-          shouldScroll,
-          embedResource,
-          embedId,
-          conceptType,
-          aggregatePaths
-        )
-
-      }
-    }: Unit
-
-    post(
-      "/search/",
-      operation(
-        apiOperation[ConceptSearchResult]("searchConcepts")
-          .summary("Show all concepts")
-          .description("Shows all concepts. You can search it too.")
-          .parameters(
-            asHeaderParam(correlationId),
-            bodyParam[ConceptSearchParams]
-          )
-          .authorizations("oauth2")
-          .responseMessages(response400, response500)
-      )
-    ) {
-      val body     = tryExtract[ConceptSearchParams](request.body)
-      val scrollId = body.map(_.scrollId).getOrElse(None)
-      val lang     = body.map(_.language).toOption.flatten
-
-      scrollSearchOr(scrollId, lang.getOrElse(DefaultLanguage)) {
-        body match {
-          case Success(searchParams) =>
-            val query           = searchParams.query
-            val sort            = searchParams.sort.flatMap(Sort.valueOf)
-            val language        = searchParams.language.getOrElse(Language.AllLanguages)
-            val pageSize        = searchParams.pageSize.getOrElse(DefaultPageSize)
-            val page            = searchParams.page.getOrElse(1)
-            val idList          = searchParams.idList
-            val fallback        = searchParams.fallback.getOrElse(false)
-            val subjects        = searchParams.subjects
-            val tagsToFilterBy  = searchParams.tags
-            val exactTitleMatch = searchParams.exactTitleMatch.getOrElse(false)
-            val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
-            val embedResource   = searchParams.embedResource
-            val embedId         = searchParams.embedId
-            val conceptType     = searchParams.conceptType
-            val aggregatePaths  = searchParams.aggregatePaths
+    def getAllConcepts: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Show all concepts")
+      .description("Shows all concepts. You can search it too.")
+      .in(queryParam)
+      .in(conceptIds)
+      .in(language)
+      .in(pageNo)
+      .in(pageSize)
+      .in(sort)
+      .in(fallback)
+      .in(scrollId)
+      .in(subjects)
+      .in(tagsToFilterBy)
+      .in(exactTitleMatch)
+      .in(embedResource)
+      .in(embedId)
+      .in(conceptType)
+      .in(aggregatePaths)
+      .out(jsonBody[ConceptSearchResult])
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .errorOut(errorOutputsFor(400, 404))
+      .serverLogicPure {
+        case (
+              query,
+              idList,
+              language,
+              page,
+              pageSize,
+              sortStr,
+              fallback,
+              scrollId,
+              subjects,
+              tagsToFilterBy,
+              exactTitleMatch,
+              embedResource,
+              embedId,
+              conceptType,
+              aggregatePaths
+            ) =>
+          scrollSearchOr(scrollId, language) {
+            val sort         = Sort.valueOf(sortStr)
+            val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
 
             search(
               query,
@@ -246,71 +183,102 @@ trait PublishedConceptController {
               language,
               page,
               pageSize,
-              idList,
+              idList.values,
               fallback,
-              subjects,
-              tagsToFilterBy,
+              subjects.values.toSet,
+              tagsToFilterBy.values.toSet,
               exactTitleMatch,
               shouldScroll,
               embedResource,
               embedId,
               conceptType,
-              aggregatePaths
+              aggregatePaths.values
             )
-          case Failure(ex) => errorHandler(ex)
-        }
+          }.handleErrorsOrOk
       }
-    }: Unit
 
-    get(
-      "/subjects/",
-      operation(
-        apiOperation[List[String]]("getSubjects")
-          .summary("Returns a list of all subjects used in concepts")
-          .description("Returns a list of all subjects used in concepts")
-          .parameters(
-            asHeaderParam(correlationId)
+    def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Show all concepts")
+      .description("Shows all concepts. You can search it too.")
+      .in("search")
+      .in(jsonBody[ConceptSearchParams])
+      .out(jsonBody[ConceptSearchResult])
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .errorOut(errorOutputsFor(400, 403, 404))
+      .serverLogicPure { searchParams =>
+        scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(DefaultLanguage)) {
+          val query           = searchParams.query
+          val sort            = searchParams.sort.flatMap(Sort.valueOf)
+          val language        = searchParams.language.getOrElse(Language.AllLanguages)
+          val pageSize        = searchParams.pageSize.getOrElse(DefaultPageSize)
+          val page            = searchParams.page.getOrElse(1)
+          val idList          = searchParams.idList
+          val fallback        = searchParams.fallback.getOrElse(false)
+          val subjects        = searchParams.subjects
+          val tagsToFilterBy  = searchParams.tags
+          val exactTitleMatch = searchParams.exactTitleMatch.getOrElse(false)
+          val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val embedResource   = searchParams.embedResource
+          val embedId         = searchParams.embedId
+          val conceptType     = searchParams.conceptType
+          val aggregatePaths  = searchParams.aggregatePaths
+
+          search(
+            query,
+            sort,
+            language,
+            page,
+            pageSize,
+            idList,
+            fallback,
+            subjects,
+            tagsToFilterBy,
+            exactTitleMatch,
+            shouldScroll,
+            embedResource,
+            embedId,
+            conceptType,
+            aggregatePaths
           )
-          .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500)
-      )
-    ) {
-      readService.allSubjects() match {
-        case Success(subjects) => Ok(subjects)
-        case Failure(ex)       => errorHandler(ex)
+        }.handleErrorsOrOk
       }
-    }: Unit
 
-    get(
-      "/tags/",
-      operation(
-        apiOperation[List[SubjectTags]]("getTags")
-          .summary("Returns a list of all tags in the specified subjects")
-          .description("Returns a list of all tags in the specified subjects")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(language),
-            asQueryParam(fallback),
-            asQueryParam(subjects)
+    def getSubjects: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Returns a list of all subjects used in concepts")
+      .description("Returns a list of all subjects used in concepts")
+      .in("subjects")
+      .out(jsonBody[Set[String]])
+      .errorOut(errorOutputsFor(400))
+      .serverLogicPure { _ =>
+        readService.allSubjects().handleErrorsOrOk
+      }
+
+    def getTags: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Returns a list of all tags in the specified subjects")
+      .description("Returns a list of all tags in the specified subjects")
+      .in("tags")
+      .in(language)
+      .in(fallback)
+      .in(subjects)
+      .out(
+        oneOf[TagOutput](
+          oneOfVariant[SomeTagList](
+            statusCode(StatusCode.Ok).and(jsonBody[List[SubjectTags]]).map(x => SomeTagList(x))(x => x.list)
+          ),
+          oneOfDefaultVariant[SomeStringList](
+            statusCode(StatusCode.Ok).and(jsonBody[List[String]]).map(x => SomeStringList(x))(x => x.list)
           )
-          .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500)
+        )
       )
-    ) {
-      val subjects = paramAsListOfString(this.subjects.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-
-      if (subjects.nonEmpty) {
-        publishedConceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
-          case Success(res) if res.nonEmpty => Ok(res)
-          case Success(_)  => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-          case Failure(ex) => errorHandler(ex)
-        }
-      } else {
-        readService.allTagsFromConcepts(language, fallback)
+      .errorOut(errorOutputsFor(400, 403, 404))
+      .serverLogicPure { case (language, fallback, subjects) =>
+        if (subjects.values.nonEmpty) {
+          publishedConceptSearchService.getTagsWithSubjects(subjects.values, language, fallback) match {
+            case Success(res) if res.nonEmpty => SomeTagList(res).asRight
+            case Success(_)  => returnLeftError(NotFoundException("Could not find any tags in the specified subjects"))
+            case Failure(ex) => returnLeftError(ex)
+          }
+        } else { SomeStringList(readService.allTagsFromConcepts(language, fallback)).asRight }
       }
-    }: Unit
-
   }
 }

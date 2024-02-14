@@ -6,6 +6,8 @@
  */
 
 package no.ndla.conceptapi.model.api
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -18,3 +20,8 @@ case class ConceptMetaImage(
       description = "The ISO 639-1 language code describing which concept translation this meta image belongs to"
     ) language: String
 )
+
+object ConceptMetaImage {
+  implicit val encoder: Encoder[ConceptMetaImage] = deriveEncoder
+  implicit val decoder: Decoder[ConceptMetaImage] = deriveDecoder
+}

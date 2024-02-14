@@ -6,6 +6,8 @@
  */
 
 package no.ndla.conceptapi.model.api
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -18,3 +20,8 @@ case class ConceptResponsible(
     @(ApiModelProperty @field)(description = "Date of when the responsible editor was last updated") lastUpdated: NDLADate,
     // format: on
 )
+
+object ConceptResponsible {
+  implicit val encoder: Encoder[ConceptResponsible] = deriveEncoder
+  implicit val decoder: Decoder[ConceptResponsible] = deriveDecoder
+}

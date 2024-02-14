@@ -7,21 +7,26 @@
 
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
+import cats.implicits._
+import no.ndla.conceptapi.Eff
+import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResults, ErrorHelpers, NotFoundException}
+import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
-import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
-import org.json4s.Formats
-import org.scalatra.swagger.Swagger
-import org.scalatra.{InternalServerError, Ok}
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.Service
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import sttp.model.StatusCode
+import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
+import sttp.tapir._
+import sttp.tapir.generic.auto._
 
 trait InternController {
   this: IndexService
@@ -32,40 +37,56 @@ trait InternController {
     with ReadService
     with DraftConceptRepository
     with PublishedConceptRepository
-    with NdlaController
-    with DBConcept =>
+    with ErrorHelpers =>
   val internController: InternController
 
-  class InternController(implicit val swagger: Swagger) extends NdlaController {
-    protected val applicationDescription                 = "API for accessing internal functionality in draft API"
-    protected implicit override val jsonFormats: Formats = Concept.jsonEncoder
+  class InternController extends Service[Eff] {
+    import ErrorHelpers._
 
-    post("/index") {
-      val numShards = intOrNone("numShards")
-      implicit val ec: ExecutionContextExecutorService =
-        ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
+    override val prefix        = "intern"
+    override val enableSwagger = false
 
-      val aggregateFuture = for {
-        draftFuture     <- Future(draftConceptIndexService.indexDocuments(numShards))
-        publishedFuture <- Future(publishedConceptIndexService.indexDocuments(numShards))
-      } yield (draftFuture, publishedFuture)
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      postIndex,
+      deleteIndex,
+      dumpDraftConcept,
+      dumpSingleDraftConcept,
+      dumpPublishedConcept,
+      dumpSinglePublishedConcept,
+      postDraftConcept,
+      importConcept
+    )
 
-      Await.result(aggregateFuture, 10 minutes) match {
-        case (Success(draftReindex), Success(publishedReindex)) =>
-          val msg =
-            s"""Completed indexing of ${draftReindex.totalIndexed} draft concepts in ${draftReindex.millisUsed} ms.
-               |Completed indexing of ${publishedReindex.totalIndexed} published concepts in ${publishedReindex.millisUsed} ms.
-               |""".stripMargin
-          logger.info(msg)
-          Ok(msg)
-        case (Failure(ex), _) =>
-          logger.error(s"Reindexing draft concepts failed with ${ex.getMessage}", ex)
-          errorHandler(ex)
-        case (_, Failure(ex)) =>
-          logger.error(s"Reindexing published concepts failed with ${ex.getMessage}", ex)
-          errorHandler(ex)
+    def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("index")
+      .in(query[Option[Int]]("numShards"))
+      .out(stringBody)
+      .errorOut(errorOutputsFor(400))
+      .serverLogicPure { numShards =>
+        implicit val ec: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
+
+        val aggregateFuture = for {
+          draftFuture     <- Future(draftConceptIndexService.indexDocuments(numShards))
+          publishedFuture <- Future(publishedConceptIndexService.indexDocuments(numShards))
+        } yield (draftFuture, publishedFuture)
+
+        Await.result(aggregateFuture, 10 minutes) match {
+          case (Success(draftReindex), Success(publishedReindex)) =>
+            val msg =
+              s"""Completed indexing of ${draftReindex.totalIndexed} draft concepts in ${draftReindex.millisUsed} ms.
+                 |Completed indexing of ${publishedReindex.totalIndexed} published concepts in ${publishedReindex.millisUsed} ms.
+                 |""".stripMargin
+            logger.info(msg)
+            msg.asRight
+          case (Failure(ex), _) =>
+            logger.error(s"Reindexing draft concepts failed with ${ex.getMessage}", ex)
+            returnLeftError(ex)
+          case (_, Failure(ex)) =>
+            logger.error(s"Reindexing published concepts failed with ${ex.getMessage}", ex)
+            returnLeftError(ex)
+        }
       }
-    }: Unit
 
     def deleteIndexes[T <: IndexService](indexService: T) = {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
@@ -87,87 +108,107 @@ trait InternController {
       }
     }
 
-    delete("/index") {
-      def logDeleteResult(t: Try[String]) = {
-        t match {
-          case Failure(ex) =>
-            logger.error(ex.getMessage)
-            ex.getMessage
-          case Success(msg) =>
-            logger.info(msg)
-            msg
+    def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("index")
+      .out(stringBody)
+      .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
+      .serverLogicPure { _ =>
+        def logDeleteResult(t: Try[String]) = {
+          t match {
+            case Failure(ex) =>
+              logger.error(ex.getMessage)
+              ex.getMessage
+            case Success(msg) =>
+              logger.info(msg)
+              msg
+          }
+        }
+
+        val result1 = deleteIndexes(draftConceptIndexService)
+        val result2 = deleteIndexes(publishedConceptIndexService)
+
+        val msg =
+          s"""${logDeleteResult(result1)}
+             |${logDeleteResult(result2)}""".stripMargin
+
+        if (result1.isFailure || result2.isFailure) msg.asLeft
+        else msg.asRight
+      }
+
+    def dumpDraftConcept: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "draft-concept")
+      .out(jsonBody[ConceptDomainDump])
+      .in(query[Int]("page").default(1))
+      .in(query[Int]("page-size").default(250))
+      .serverLogicPure { case (pageNo, pageSize) =>
+        readService.getDraftConceptDomainDump(pageNo, pageSize).asRight
+      }
+
+    def dumpSingleDraftConcept: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "draft-concept" / path[Long]("id"))
+      .out(jsonBody[Concept])
+      .errorOut(errorOutputsFor(400, 404))
+      .serverLogicPure { id =>
+        draftConceptRepository.withId(id) match {
+          case Some(concept) => concept.asRight
+          case None          => returnLeftError(NotFoundException(s"Could not find draft concept with id '$id'"))
         }
       }
 
-      val result1 = deleteIndexes(draftConceptIndexService)
-      val result2 = deleteIndexes(publishedConceptIndexService)
-
-      val msg =
-        s"""${logDeleteResult(result1)}
-           |${logDeleteResult(result2)}""".stripMargin
-
-      if (result1.isFailure || result2.isFailure) InternalServerError(msg)
-      else Ok(msg)
-    }: Unit
-
-    get("/dump/draft-concept/") {
-      val pageNo   = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-
-      readService.getDraftConceptDomainDump(pageNo, pageSize)
-    }: Unit
-
-    get("/dump/draft-concept/:id") {
-      val id = long("id")
-      draftConceptRepository.withId(id) match {
-        case Some(concept) => Ok(concept)
-        case None          => errorHandler(NotFoundException(s"Could not find draft concept with id '$id'"))
+    def dumpPublishedConcept: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "concept")
+      .out(jsonBody[ConceptDomainDump])
+      .in(query[Int]("page").default(1))
+      .in(query[Int]("page-size").default(250))
+      .serverLogicPure { case (pageNo, pageSize) =>
+        readService.getPublishedConceptDomainDump(pageNo, pageSize).asRight
       }
-    }: Unit
 
-    get("/dump/concept/") {
-      val pageNo   = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-
-      readService.getPublishedConceptDomainDump(pageNo, pageSize)
-    }: Unit
-
-    get("/dump/concept/:id") {
-      val id = long("id")
-      publishedConceptRepository.withId(id) match {
-        case Some(concept) => Ok(concept)
-        case None          => errorHandler(NotFoundException(s"Could not find published concept with id '$id'"))
+    def dumpSinglePublishedConcept: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "concept" / path[Long]("id"))
+      .out(jsonBody[Concept])
+      .errorOut(errorOutputsFor(400, 404))
+      .serverLogicPure { id =>
+        publishedConceptRepository.withId(id) match {
+          case Some(concept) => concept.asRight
+          case None          => returnLeftError(NotFoundException(s"Could not find published concept with id '$id'"))
+        }
       }
-    }: Unit
 
-    post("/dump/draft-concept/") {
-      val concept = tryExtract[Concept](request.body)
-      concept match {
-        case Success(c) => Ok(draftConceptRepository.insert(c))
-        case Failure(f) => errorHandler(f)
+    def postDraftConcept: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("dump" / "draft-concept")
+      .in(jsonBody[Concept])
+      .out(jsonBody[Concept])
+      .errorOut(errorOutputsFor(400, 404))
+      .serverLogicPure { concept =>
+        draftConceptRepository.insert(concept).asRight
       }
-    }: Unit
 
-    post("/import/concept") {
-      requirePermissionOrAccessDeniedWithUser(CONCEPT_API_WRITE) { user =>
-        val start       = System.currentTimeMillis
-        val forceUpdate = booleanOrDefault("forceUpdate", default = false)
-
-        importService.importConcepts(forceUpdate, user) match {
-          case Success(result) =>
-            if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
-              InternalServerError(result)
-            } else {
-              Ok(result)
+    def importConcept: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("import" / "concept")
+      .out(jsonBody[ConceptImportResults])
+      .errorOut(statusCode(StatusCode.InternalServerError).and(jsonBody[ConceptImportResults]))
+      .errorOutEither(statusCode(StatusCode.InternalServerError).and(stringBody))
+      .in(query[Boolean]("forceUpdate").default(false))
+      .withOptionalUser
+      .serverLogicPure {
+        user =>
+          { forceUpdate =>
+            val start = System.currentTimeMillis
+            importService.importConcepts(forceUpdate, user.get) match {
+              case Success(result) =>
+                if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
+                  result.asLeft.asLeft
+                } else {
+                  result.asRight
+                }
+              case Failure(ex) =>
+                val errMsg =
+                  s"Import of concepts failed after ${System.currentTimeMillis - start} ms with error: ${ex.getMessage}\n"
+                logger.warn(errMsg, ex)
+                errMsg.asRight.asLeft
             }
-          case Failure(ex) =>
-            val errMsg =
-              s"Import of concepts failed after ${System.currentTimeMillis - start} ms with error: ${ex.getMessage}\n"
-            logger.warn(errMsg, ex)
-            InternalServerError(body = errMsg)
-        }
+          }
       }
-    }: Unit
-
   }
 }

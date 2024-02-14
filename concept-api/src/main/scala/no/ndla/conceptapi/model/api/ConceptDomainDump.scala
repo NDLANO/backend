@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -19,3 +21,8 @@ case class ConceptDomainDump(
     @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
     @(ApiModelProperty @field)(description = "The search results") results: Seq[domain.Concept]
 )
+
+object ConceptDomainDump {
+  implicit val encoder: Encoder[ConceptDomainDump] = deriveEncoder
+  implicit val decoder: Decoder[ConceptDomainDump] = deriveDecoder
+}

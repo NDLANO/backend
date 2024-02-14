@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -19,3 +21,8 @@ case class TagsSearchResult(
     @(ApiModelProperty @field)(description = "The chosen search language") language: String,
     @(ApiModelProperty @field)(description = "The search results") results: Seq[String]
 )
+
+object TagsSearchResult {
+  implicit val encoder: Encoder[TagsSearchResult] = deriveEncoder
+  implicit val decoder: Decoder[TagsSearchResult] = deriveDecoder
+}
