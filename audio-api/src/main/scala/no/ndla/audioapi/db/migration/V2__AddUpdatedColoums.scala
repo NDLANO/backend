@@ -8,6 +8,7 @@
 package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -17,8 +18,8 @@ import java.time.format.DateTimeFormatter
 
 class V2__AddUpdatedColoums extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
-  val timeService      = new TimeService()
+  implicit val formats: Formats = org.json4s.DefaultFormats
+  val timeService               = new TimeService()
 
   override def migrate(context: Context) = DB(context.getConnection)
     .autoClose(false)

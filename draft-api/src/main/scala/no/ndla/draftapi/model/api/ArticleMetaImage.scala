@@ -7,6 +7,8 @@
 
 package no.ndla.draftapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -19,3 +21,8 @@ case class ArticleMetaImage(
       description = "The ISO 639-1 language code describing which article translation this meta image belongs to"
     ) language: String
 )
+
+object ArticleMetaImage {
+  implicit def encoder: Encoder[ArticleMetaImage] = deriveEncoder
+  implicit def decoder: Decoder[ArticleMetaImage] = deriveDecoder
+}

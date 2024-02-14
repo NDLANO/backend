@@ -9,7 +9,7 @@ package no.ndla.draftapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
-import no.ndla.common.model.api.DraftCopyright
+import no.ndla.common.model.api.{DraftCopyright, Missing}
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
@@ -123,7 +123,7 @@ object TestData {
     tags = None,
     introduction = None,
     metaDescription = None,
-    metaImage = Right(None),
+    metaImage = Missing,
     visualElement = None,
     copyright = None,
     requiredLibraries = None,
@@ -136,7 +136,7 @@ object TestData {
     availability = None,
     relatedContent = None,
     revisionMeta = None,
-    responsibleId = Right(None),
+    responsibleId = Missing,
     slug = None,
     comments = None,
     prioritized = None,

@@ -9,9 +9,11 @@ package no.ndla.common.model
 
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate.fromTimestampSeconds
+import no.ndla.common.model.domain.draft.NestedOptionalDate
 import no.ndla.scalatestsuite.UnitTestSuite
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 class NDLADateTest extends UnitTestSuite {
@@ -113,6 +115,43 @@ class NDLADateTest extends UnitTestSuite {
     val result =
       read[TestObjectWithOptionalDate](objectJsonString)(formats, implicitly[Manifest[TestObjectWithOptionalDate]])
     result should be(TestObjectWithOptionalDate(None))
+  }
+
+  test("That circe parses empty string as `None` for optional NDLADates") {
+    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+    import io.circe.parser.parse
+    import io.circe.syntax._
+
+    implicit val decoder: Decoder[TestObjectWithOptionalDate] = deriveDecoder[TestObjectWithOptionalDate]
+    implicit val encoder: Encoder[TestObjectWithOptionalDate] = deriveEncoder[TestObjectWithOptionalDate]
+
+    {
+      val objectJsonString = s"""{"optDate":""}"""
+      val parsed           = parse(objectJsonString).toTry.get
+
+      val result         = parsed.as[TestObjectWithOptionalDate].toTry.get
+      val expectedObject = TestObjectWithOptionalDate(None)
+
+      result should be(expectedObject)
+
+      val jsonStringResult   = result.asJson.dropNullValues.noSpaces
+      val expectedJsonString = s"""{}"""
+      jsonStringResult should be(expectedJsonString)
+    }
+  }
+
+  test("That nested circe empty string parsing works as expected") {
+    import io.circe.generic.semiauto.deriveDecoder
+    import io.circe.parser.parse
+    @unused
+    implicit val subDecoder: Decoder[TestObjectWithOptionalDate] = deriveDecoder[TestObjectWithOptionalDate]
+    implicit val decoder: Decoder[NestedOptionalDate]            = deriveDecoder[NestedOptionalDate]
+
+    val objectJsonString2 = s"""{"subfield":{}}"""
+    val parsed            = parse(objectJsonString2).toTry.get
+    val result            = parsed.as[NestedOptionalDate].toTry.get
+    val expectedObject    = NestedOptionalDate(Some(TestObjectWithOptionalDate(None)))
+    result should be(expectedObject)
   }
 
 }

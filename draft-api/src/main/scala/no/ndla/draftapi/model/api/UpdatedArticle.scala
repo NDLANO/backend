@@ -4,43 +4,64 @@
  *
  * See LICENSE
  */
-// format: off
 
 package no.ndla.draftapi.model.api
 
+import com.scalatsi.TypescriptType.{TSNull, TSUndefined, TSUnion}
+import no.ndla.common.implicits._
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto._
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{Deletable, DraftCopyright, RelatedContent}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import no.ndla.common.model.api.{DraftCopyright, RelatedContent, RelatedContentLink, UpdateOrDelete}
+import sttp.tapir.Schema.annotations.description
+import com.scalatsi._
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about the article")
+// format: off
+@description("Information about the article")
 case class UpdatedArticle(
-    @(ApiModelProperty @field)(description = "The revision number for the article") revision: Int,
-    @(ApiModelProperty @field)(description = "The chosen language") language: Option[String],
-    @(ApiModelProperty @field)(description = "The title of the article") title: Option[String],
-    @(ApiModelProperty @field)(description = "The status of the article") status: Option[String],
-    @(ApiModelProperty @field)(description = "The date the article is published") published: Option[NDLADate],
-    @(ApiModelProperty @field)(description = "The content of the article") content: Option[String],
-    @(ApiModelProperty @field)(description = "Searchable tags") tags: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "An introduction") introduction: Option[String],
-    @(ApiModelProperty @field)(description = "A meta description") metaDescription: Option[String],
-    @(ApiModelProperty @field)(description = "An image-api ID for the article meta image") metaImage: Deletable[NewArticleMetaImage],
-    @(ApiModelProperty @field)(description = "A visual element for the article. May be anything from an image to a video or H5P") visualElement: Option[String],
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the article") copyright: Option[DraftCopyright],
-    @(ApiModelProperty @field)(description = "Required libraries in order to render the article") requiredLibraries: Option[Seq[RequiredLibrary]],
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: Option[String],
-    @(ApiModelProperty @field)(description = "The notes for this article draft") notes: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "The labels attached to this article; meant for editors.") editorLabels: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Option[Seq[Long]],
-    @(ApiModelProperty @field)(description = "Stores the new article as a separate version. Useful when making big changes that should be revertable.") createNewVersion: Option[Boolean],
-    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[String],
-    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
-    @(ApiModelProperty @field)(description = "A list of all revisions of the article") revisionMeta: Option[Seq[RevisionMeta]],
-    @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Deletable[String],
-    @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
-    @(ApiModelProperty @field)(description = "Information about a comment attached to an article") comments: Option[List[UpdatedComment]],
-    @(ApiModelProperty @field)(description = "If the article should be prioritized") prioritized: Option[Boolean],
-    @(ApiModelProperty @field)(description = "If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String]
+    @description("The revision number for the article") revision: Int,
+    @description("The chosen language") language: Option[String],
+    @description("The title of the article") title: Option[String],
+    @description("The status of the article") status: Option[String],
+    @description("The date the article is published") published: Option[NDLADate],
+    @description("The content of the article") content: Option[String],
+    @description("Searchable tags") tags: Option[Seq[String]],
+    @description("An introduction") introduction: Option[String],
+    @description("A meta description") metaDescription: Option[String],
+    @description("An image-api ID for the article meta image") metaImage: UpdateOrDelete[NewArticleMetaImage],
+    @description("A visual element for the article. May be anything from an image to a video or H5P") visualElement: Option[String],
+    @description("Describes the copyright information for the article") copyright: Option[DraftCopyright],
+    @description("Required libraries in order to render the article") requiredLibraries: Option[Seq[RequiredLibrary]],
+    @description("The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: Option[String],
+    @description("The notes for this article draft") notes: Option[Seq[String]],
+    @description("The labels attached to this article; meant for editors.") editorLabels: Option[Seq[String]],
+    @description("A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
+    @description("A list of conceptIds connected to the article") conceptIds: Option[Seq[Long]],
+    @description("Stores the new article as a separate version. Useful when making big changes that should be revertable.") createNewVersion: Option[Boolean],
+    @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[String],
+    @description("A list of content related to the article") relatedContent: Option[Seq[Either[RelatedContentLink, Long]]],
+    @description("A list of all revisions of the article") revisionMeta: Option[Seq[RevisionMeta]],
+    @description("NDLA ID representing the editor responsible for this article") responsibleId: UpdateOrDelete[String],
+    @description("The path to the frontpage article") slug: Option[String],
+    @description("Information about a comment attached to an article") comments: Option[List[UpdatedComment]],
+    @description("If the article should be prioritized") prioritized: Option[Boolean],
+    @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String]
 )
+// format: on
+
+object UpdatedArticle {
+  implicit def relatedContentEncoder: Encoder[RelatedContent] = eitherEncoder[RelatedContentLink, Long]
+  implicit def relatedContentDecoder: Decoder[RelatedContent] = eitherDecoder[RelatedContentLink, Long]
+
+  implicit def encoder: Encoder[UpdatedArticle] = deriveEncoder[UpdatedArticle]
+  implicit def decoder: Decoder[UpdatedArticle] = deriveDecoder[UpdatedArticle]
+
+  implicit val typescriptUpdatedArticle: TSType[UpdatedArticle]    = TSType.fromCaseClass[UpdatedArticle]
+  implicit def typescriptNewMetaImage: TSType[NewArticleMetaImage] = TSType.fromCaseClass[NewArticleMetaImage]
+  implicit def typescriptNewMetaImageUnion: TSType[UpdateOrDelete[NewArticleMetaImage]] = {
+    TSType.alias[UpdateOrDelete[NewArticleMetaImage]](
+      "UpdateOrDeleteNewArticleMetaImage",
+      TSUnion(Seq(TSNull, TSUndefined, typescriptNewMetaImage.get))
+    )
+  }
+}

@@ -9,12 +9,12 @@ package no.ndla.articleapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction, JString}
+import org.json4s.{DefaultFormats, Extraction, Formats, JString}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 class V34__RemoveStudentFromAvailability extends BaseJavaMigration {
-  implicit val formats = DefaultFormats
+  implicit val formats: Formats = DefaultFormats
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)

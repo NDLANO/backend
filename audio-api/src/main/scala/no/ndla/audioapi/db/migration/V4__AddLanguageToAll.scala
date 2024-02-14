@@ -11,12 +11,13 @@ import no.ndla.language.Language.languageOrUnknown
 
 import java.time.LocalDateTime
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 class V4__AddLanguageToAll extends BaseJavaMigration {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: Formats = org.json4s.DefaultFormats
 
   override def migrate(context: Context): Unit =
     DB(context.getConnection)

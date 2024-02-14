@@ -82,7 +82,7 @@ object AttributeType extends Enum[AttributeType] {
 sealed abstract class TagAttribute(override val entryName: String) extends EnumEntry {
   override def toString: String = entryName
 }
-object TagAttribute extends Enum[TagAttribute] {
+object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   val values: IndexedSeq[TagAttribute] = findValues
 
   case object Accent               extends TagAttribute("accent")

@@ -8,24 +8,30 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.{Eff, Props}
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain.{DBArticle, ReindexResult}
+import no.ndla.draftapi.model.api.{ArticleDomainDump, ArticleDump, ContentId, NotFoundException}
+import no.ndla.draftapi.model.domain.{ArticleIds, DBArticle, ImportId, ReindexResult}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.language.Language
-import org.json4s.Formats
-import org.scalatra.swagger.Swagger
-import org.scalatra.{InternalServerError, NotFound, Ok}
+import sttp.tapir._
 import cats.implicits._
+import com.typesafe.scalalogging.StrictLogging
+import no.ndla.network.tapir.NoNullJsonPrinter._
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.{Service, TapirErrorHelpers}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.ReadOnlyAutoSession
+import sttp.model.StatusCode
+import sttp.tapir.server.ServerEndpoint
+import io.circe.generic.auto._
+import sttp.tapir.generic.auto._
 
 import java.util.concurrent.{Executors, TimeUnit}
-import scala.annotation.tailrec
+import scala.annotation.{tailrec, unused}
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -40,16 +46,18 @@ trait InternController {
     with TagIndexService
     with GrepCodesIndexService
     with ArticleApiClient
-    with NdlaController
+    with TapirErrorHelpers
     with DBArticle
     with Props =>
   val internController: InternController
 
-  class InternController(implicit val swagger: Swagger) extends NdlaController {
+  class InternController extends Service[Eff] with StrictLogging {
     import props.{DraftSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
+    import ErrorHelpers._
 
-    protected val applicationDescription                 = "API for accessing internal functionality in draft API"
-    protected implicit override val jsonFormats: Formats = Draft.jsonEncoder
+    override val prefix                   = "intern"
+    override val enableSwagger            = false
+    private val stringInternalServerError = statusCode(StatusCode.InternalServerError).and(stringBody)
 
     def createIndexFuture(
         indexService: IndexService[_, _],
@@ -73,29 +81,46 @@ trait InternController {
       fut
     }
 
-    post("/index") {
-      val numShards = intOrNone("numShards")
-      implicit val ec: ExecutionContextExecutorService =
-        ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
-      val articleIndex = createIndexFuture(articleIndexService, numShards)
-      val tagIndex     = createIndexFuture(tagIndexService, numShards)
-      val grepIndex    = createIndexFuture(grepCodesIndexService, numShards)
-      val indexResults = Future.sequence(List(articleIndex, tagIndex, grepIndex))
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      postIndex,
+      deleteIndex,
+      getIds,
+      importExternalId,
+      getByExternalId,
+      getArticles,
+      deleteArticle,
+      dumpArticles,
+      dumpSingleArticle,
+      postDump
+    )
 
-      Await.result(indexResults, Duration.Inf).sequence match {
-        case Failure(ex) =>
-          logger.warn(ex.getMessage, ex)
-          InternalServerError(ex.getMessage)
-        case Success(results) =>
-          val maxTime = results.map(rr => rr.millisUsed).max
-          val result =
-            s"Completed all indexes in ${maxTime} ms."
-          logger.info(result)
-          Ok(result)
+    def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("index")
+      .in(query[Option[Int]]("numShards"))
+      .out(stringBody)
+      .errorOut(stringInternalServerError)
+      .serverLogicPure { numShards =>
+        implicit val ec: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+        val articleIndex = createIndexFuture(articleIndexService, numShards)
+        val tagIndex     = createIndexFuture(tagIndexService, numShards)
+        val grepIndex    = createIndexFuture(grepCodesIndexService, numShards)
+        val indexResults = Future.sequence(List(articleIndex, tagIndex, grepIndex))
+
+        Await.result(indexResults, Duration.Inf).sequence match {
+          case Failure(ex) =>
+            logger.warn(ex.getMessage, ex)
+            ex.getMessage.asLeft
+          case Success(results) =>
+            val maxTime = results.map(rr => rr.millisUsed).max
+            val result =
+              s"Completed all indexes in ${maxTime} ms."
+            logger.info(result)
+            result.asRight
+        }
       }
-    }: Unit
 
-    delete("/index") {
+    def deleteIndexLogic(@unused x: Unit): Either[String, String] = {
       implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
@@ -106,9 +131,9 @@ trait InternController {
       } yield (articleIndex, tagIndex, grepIndex)
 
       val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
-        case (Failure(articleFail), _, _) => halt(status = 500, body = articleFail.getMessage)
-        case (_, Failure(tagFail), _)     => halt(status = 500, body = tagFail.getMessage)
-        case (_, _, Failure(grepFail))    => halt(status = 500, body = grepFail.getMessage)
+        case (Failure(articleFail), _, _) => return articleFail.getMessage.asLeft
+        case (_, Failure(tagFail), _)     => return tagFail.getMessage.asLeft
+        case (_, _, Failure(grepFail))    => return grepFail.getMessage.asLeft
         case (Success(articleIndexes), Success(tagIndexes), Success(grepIndexes)) =>
           val articleDeleteResults = articleIndexes.map(index => {
             logger.info(s"Deleting article index $index")
@@ -130,45 +155,65 @@ trait InternController {
         val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
           s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
           s"${pluralIndex(successes.length)} were deleted successfully."
-        halt(status = 500, body = message)
+        message.asLeft
       } else {
-        Ok(body = s"Deleted ${pluralIndex(successes.length)}")
+        s"Deleted ${pluralIndex(successes.length)}".asRight
       }
 
-    }: Unit
+    }
 
-    get("/ids") {
-      paramOrNone("status").map(DraftStatus.valueOfOrError) match {
-        case Some(Success(status)) => draftRepository.idsWithStatus(status)(ReadOnlyAutoSession).getOrElse(List.empty)
-        case Some(Failure(ex))     => errorHandler(ex)
-        case None                  => draftRepository.getAllIds(ReadOnlyAutoSession)
+    def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("index")
+      .out(stringBody)
+      .errorOut(stringInternalServerError)
+      .serverLogicPure(deleteIndexLogic)
+
+    def getIds: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("ids")
+      .in(query[Option[String]]("status"))
+      .errorOut(errorOutputsFor(400))
+      .out(jsonBody[Seq[ArticleIds]])
+      .serverLogicPure { status =>
+        status.map(DraftStatus.valueOfOrError) match {
+          case Some(Success(status)) =>
+            draftRepository.idsWithStatus(status)(ReadOnlyAutoSession).getOrElse(List.empty).asRight
+          case Some(Failure(ex)) => returnLeftError(ex)
+          case None              => draftRepository.getAllIds(ReadOnlyAutoSession).asRight
+        }
       }
-    }: Unit
 
-    get("/import-id/:external_id") {
-      val articleId = params("external_id")
-      readService.importIdOfArticle(articleId) match {
-        case Some(ids) => Ok(ids)
-        case _         => NotFound()
+    def importExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("import-id" / path[String]("external_id"))
+      .errorOut(errorOutputsFor(400, 404))
+      .out(jsonBody[ImportId])
+      .serverLogicPure { externalId =>
+        readService.importIdOfArticle(externalId) match {
+          case Some(ids) => ids.asRight
+          case _         => ErrorHelpers.notFound.asLeft
+        }
       }
-    }: Unit
 
-    get("/id/:external_id") {
-      val externalId = params("external_id")
-      draftRepository.getIdFromExternalId(externalId)(ReadOnlyAutoSession) match {
-        case Some(id) => id
-        case None     => NotFound()
+    def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("id" / path[String]("external_id"))
+      .out(jsonBody[Long])
+      .errorOut(errorOutputsFor(404))
+      .serverLogicPure { externalId =>
+        draftRepository.getIdFromExternalId(externalId)(ReadOnlyAutoSession) match {
+          case Some(id) => id.asRight
+          case None     => ErrorHelpers.notFound.asLeft
+        }
       }
-    }: Unit
 
-    get("/articles") {
-      val pageNo   = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-      val lang     = paramOrDefault("language", Language.AllLanguages)
-      val fallback = booleanOrDefault("fallback", default = false)
-
-      readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
-    }: Unit
+    def getArticles: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("articles")
+      .in(query[Int]("page").default(1))
+      .in(query[Int]("page-size").default(250))
+      .in(query[String]("language").default(Language.AllLanguages))
+      .in(query[Boolean]("fallback").default(false))
+      .out(jsonBody[ArticleDump])
+      .serverLogicPure { case (pageNo, pageSize, lang, fallback) =>
+        readService.getArticlesByPage(pageNo, pageSize, lang, fallback).asRight
+      }
 
     @tailrec
     private def deleteArticleWithRetries(
@@ -184,44 +229,44 @@ trait InternController {
       }
     }
 
-    delete("/article/:id/") {
-      requirePermissionOrAccessDeniedWithUser(DRAFT_API_WRITE) { user =>
-        val id = long("id")
-        deleteArticleWithRetries(id, user).flatMap(id => writeService.deleteArticle(id.id)) match {
-          case Success(a)  => a
-          case Failure(ex) => errorHandler(ex)
+    def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("article" / path[Long]("id"))
+      .out(jsonBody[ContentId])
+      .errorOut(errorOutputsFor(404))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { user => id =>
+        deleteArticleWithRetries(id, user)
+          .flatMap(id => writeService.deleteArticle(id.id))
+          .handleErrorsOrOk
+      }
+
+    def dumpArticles: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "article")
+      .in(query[Int]("page").default(1))
+      .in(query[Int]("page-size").default(250))
+      .out(jsonBody[ArticleDomainDump])
+      .serverLogicPure { case (pageNo, pageSize) =>
+        readService.getArticleDomainDump(pageNo, pageSize).asRight
+      }
+
+    def dumpSingleArticle: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "article" / path[Long]("id"))
+      .errorOut(errorOutputsFor(404))
+      .out(jsonBody[Draft])
+      .serverLogicPure { id =>
+        draftRepository.withId(id)(ReadOnlyAutoSession) match {
+          case Some(article) => article.asRight
+          case None          => returnLeftError(NotFoundException(s"Could not find draft with id: '$id"))
         }
       }
-    }: Unit
 
-    get("/dump/article/?") {
-      // Dumps all domain articles
-      val pageNo   = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-
-      readService.getArticleDomainDump(pageNo, pageSize)
-    }: Unit
-
-    get("/dump/article/:id") {
-      // Dumps one domain article
-      val id = long("id")
-      draftRepository.withId(id)(ReadOnlyAutoSession) match {
-        case Some(article) => Ok(article)
-        case None          => errorHandler(NotFoundException(s"Could not find draft with id: '$id"))
+    def postDump: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("dump" / "article")
+      .in(jsonBody[Draft])
+      .errorOut(errorOutputsFor(400, 500))
+      .out(jsonBody[Draft])
+      .serverLogicPure { article =>
+        writeService.insertDump(article).handleErrorsOrOk
       }
-    }: Unit
-
-    post("/dump/article/?") {
-      tryExtract[Draft](request.body) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(article) =>
-          writeService.insertDump(article) match {
-            case Failure(ex)       => errorHandler(ex)
-            case Success(inserted) => Ok(inserted)
-          }
-      }
-
-    }: Unit
-
   }
 }

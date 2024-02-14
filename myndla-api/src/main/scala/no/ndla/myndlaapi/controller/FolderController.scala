@@ -238,7 +238,7 @@ trait FolderController {
         folderWriteService.sortFolder(sortObject, sortRequest, feideHeader).handleErrorsOrOk
       }
 
-    override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getAllFolders,
       fetchAllResources,
       getSingleFolder,

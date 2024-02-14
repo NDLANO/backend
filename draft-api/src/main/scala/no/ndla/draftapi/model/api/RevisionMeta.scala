@@ -7,6 +7,8 @@
 
 package no.ndla.draftapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -18,3 +20,8 @@ case class RevisionMeta(
     @ApiModelProperty(description = "Notes to keep track of what needs to happen before revision") note: String,
     @ApiModelProperty(description = "Status of a revision, either 'revised' or 'needs-revision'", allowableValues = "revised,needs-revision") status: String
 )
+
+object RevisionMeta {
+    implicit def encoder: Encoder[RevisionMeta] = deriveEncoder[RevisionMeta]
+    implicit def decoder: Decoder[RevisionMeta] = deriveDecoder[RevisionMeta]
+}

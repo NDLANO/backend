@@ -476,7 +476,7 @@ trait ArenaController {
         }
       }
 
-    override protected val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getCategories,
       sortCategories,
       getCategory,

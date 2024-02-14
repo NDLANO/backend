@@ -136,4 +136,6 @@ class DraftApiProperties extends BaseProps with StrictLogging {
     ".stp",
     ".step"
   )
+
+  def multipartFileSizeThresholdBytes = 1024 * 1024 * 30 // 30MB
 }

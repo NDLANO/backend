@@ -20,7 +20,7 @@ trait TapirHealthController {
 
     protected def checkHealth(): Either[String, String] = Right("Health check succeeded")
 
-    override protected val endpoints: List[ServerEndpoint[Any, F]] = List(
+    override val endpoints: List[ServerEndpoint[Any, F]] = List(
       endpoint.get
         .out(stringBody)
         .errorOut(

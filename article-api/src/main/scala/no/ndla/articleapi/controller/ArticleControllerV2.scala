@@ -12,7 +12,7 @@ import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{DynamicHeaders, Sort}
+import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
@@ -21,7 +21,7 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.Service
+import no.ndla.network.tapir.{DynamicHeaders, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir._

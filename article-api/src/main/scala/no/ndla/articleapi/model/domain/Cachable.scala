@@ -8,25 +8,11 @@
 
 package no.ndla.articleapi.model.domain
 
+import no.ndla.network.tapir.DynamicHeaders
 import sttp.model.Header
 import sttp.model.headers.CacheDirective
-import sttp.tapir.EndpointIO.annotations.headers
 
 import scala.util.Try
-
-// TODO: This should probably go somewhere else
-case class DynamicHeaders(
-    @headers
-    headers: List[Header]
-)
-
-object DynamicHeaders {
-  def fromMaybeValue(name: String, s: Option[String]): DynamicHeaders =
-    new DynamicHeaders(fromOpt(name, s).toList)
-
-  def fromOpt(name: String, s: Option[String]): Option[Header] =
-    s.map(Header(name, _))
-}
 
 /** Wrapper class for content that can have different cachability attributes based on the content Useful for Articles
   * that require login

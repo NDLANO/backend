@@ -51,7 +51,7 @@ trait Module {
     organization        := "ndla",
     version             := "0.0.1",
     scalaVersion        := ScalaV,
-    javacOptions ++= Seq("-source", "20", "-target", "20"),
+    javacOptions ++= Seq("-source", "21", "-target", "21"),
     ghGenerateEnable        := true,
     ghGenerateEnableRelease := this.enableReleases,
     javaOptions ++= reflectiveAccessOptions,

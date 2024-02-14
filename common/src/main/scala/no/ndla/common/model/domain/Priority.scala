@@ -13,7 +13,7 @@ import scala.util.{Failure, Success, Try}
 
 sealed abstract class Priority(override val entryName: String) extends EnumEntry
 
-object Priority extends Enum[Priority] {
+object Priority extends Enum[Priority] with CirceEnum[Priority] {
   case object Prioritized extends Priority("prioritized")
   case object OnHold      extends Priority("on-hold")
   case object Unspecified extends Priority("unspecified")

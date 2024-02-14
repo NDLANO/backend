@@ -29,10 +29,12 @@ object AllErrors {
   implicit val dateTimeEncoder: Encoder[LocalDateTime] = DateParser.Circe.localDateTimeEncoder
   implicit val dateTimeDecoder: Decoder[LocalDateTime] = DateParser.Circe.localDateTimeDecoder
 
-  implicit val notFound            = removeStatusCode(deriveEncoder[NotFoundWithSupportedLanguages])
-  implicit val msgEncoder          = deriveEncoder[ValidationMessage]
-  implicit val validationErrorBody = removeStatusCode(deriveEncoder[ValidationErrorBody])
-  implicit val errorBody           = removeStatusCode(deriveEncoder[ErrorBody])
+  implicit val notFound: Encoder[NotFoundWithSupportedLanguages] = removeStatusCode(
+    deriveEncoder[NotFoundWithSupportedLanguages]
+  )
+  implicit val msgEncoder: Encoder[ValidationMessage]            = deriveEncoder[ValidationMessage]
+  implicit val validationErrorBody: Encoder[ValidationErrorBody] = removeStatusCode(deriveEncoder[ValidationErrorBody])
+  implicit val errorBody: Encoder[ErrorBody]                     = removeStatusCode(deriveEncoder[ErrorBody])
 
   implicit val encoder: Encoder[AllErrors] = Encoder.instance {
     case s: ErrorBody                       => s.asJson

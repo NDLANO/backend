@@ -8,6 +8,7 @@
 package no.ndla.draftapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.{DefaultFormats, Formats}
 import org.json4s.JsonAST.{JArray, JField, JObject, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
@@ -15,7 +16,7 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V2__RenameMetaImageId extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: Formats = DefaultFormats
 
   override def migrate(context: Context) = DB(context.getConnection)
     .autoClose(false)

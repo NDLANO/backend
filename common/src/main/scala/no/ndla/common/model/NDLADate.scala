@@ -8,7 +8,7 @@
 package no.ndla.common.model
 
 import com.scalatsi.TSType
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, FailedCursor}
 import io.circe.syntax._
 import org.json4s.{CustomSerializer, JString, MappingException}
 import scalikejdbc.ParameterBinderFactory
@@ -58,7 +58,7 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
 
 object NDLADate {
 
-  implicit val typescriptType = TSType.sameAs[NDLADate, String]
+  implicit val typescriptType: TSType[NDLADate] = TSType.sameAs[NDLADate, String]
 
   case class NDLADateError(message: String) extends RuntimeException(message)
 
@@ -170,6 +170,24 @@ object NDLADate {
       case None        => Failure(NDLADateError(s"Failed to decode ${cur.value} as `NDLADate`"))
     }
   })
+
+  implicit def optEncoder: Encoder[Option[NDLADate]] = Encoder.instance(ndlaDate => {
+    ndlaDate.map(d => asString(d)).asJson
+  })
+
+  implicit def optDecoder: Decoder[Option[NDLADate]] = Decoder.withReattempt {
+    case c: FailedCursor if !c.incorrectFocus => Right(None)
+    case c =>
+      Decoder
+        .instanceTry(cur => {
+          cur.value.asString match {
+            case Some(value) if value.isBlank => Success(None)
+            case Some(value)                  => fromString(value).map(Some(_))
+            case None                         => Failure(NDLADateError(s"Failed to decode ${cur.value} as `NDLADate`"))
+          }
+        })
+        .tryDecode(c)
+  }
 
   implicit val schema: Schema[NDLADate] = Schema.schemaForLocalDateTime.as[NDLADate]
 

@@ -12,13 +12,11 @@ import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.myndla.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.tag.IntegrationTest
 import org.scalatest.Outcome
 import scalikejdbc._
 
 import scala.util.{Failure, Try}
 
-@IntegrationTest
 class ConfigRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "learningpathapi_test")
     with UnitSuite

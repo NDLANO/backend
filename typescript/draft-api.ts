@@ -223,7 +223,7 @@ export interface IUpdatedArticle {
   tags?: string[]
   introduction?: string
   metaDescription?: string
-  metaImage?: (null | INewArticleMetaImage)
+  metaImage: UpdateOrDeleteNewArticleMetaImage
   visualElement?: string
   copyright?: IDraftCopyright
   requiredLibraries?: IRequiredLibrary[]
@@ -236,7 +236,7 @@ export interface IUpdatedArticle {
   availability?: string
   relatedContent?: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
-  responsibleId?: (null | string)
+  responsibleId: UpdateOrDeleteString
   slug?: string
   comments?: IUpdatedComment[]
   prioritized?: boolean
@@ -276,3 +276,7 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
+
+export type UpdateOrDeleteNewArticleMetaImage = (null | undefined | INewArticleMetaImage)
+
+export type UpdateOrDeleteString = (null | undefined | string)

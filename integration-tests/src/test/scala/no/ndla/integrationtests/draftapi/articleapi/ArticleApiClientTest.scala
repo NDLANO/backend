@@ -64,8 +64,8 @@ class ArticleApiClientTest
     blockUntil(() => {
       import sttp.client3.quick._
       val req = quickRequest.get(uri"$articleApiBaseUrl/health")
-      val res = simpleHttpClient.send(req)
-      res.code.code == 200
+      val res = Try(simpleHttpClient.send(req))
+      res.map(_.code.code) == Success(200)
     })
   }
 

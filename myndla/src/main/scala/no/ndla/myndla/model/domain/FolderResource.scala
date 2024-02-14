@@ -7,7 +7,7 @@
 
 package no.ndla.myndla.model.domain
 
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
 import scalikejdbc._
 
 import java.util.UUID
@@ -19,8 +19,8 @@ case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int) extends R
 }
 
 object DBFolderResource extends SQLSyntaxSupport[FolderResource] {
-  implicit val formats   = DefaultFormats
-  override val tableName = "folder_resources"
+  implicit val formats: Formats = DefaultFormats
+  override val tableName        = "folder_resources"
   // lazy override val schemaName = Some(props.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[FolderResource])(rs: WrappedResultSet): Try[FolderResource] =

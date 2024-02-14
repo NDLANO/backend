@@ -10,10 +10,11 @@ package no.ndla.audioapi.db.migrationwithdependencies
 import no.ndla.audioapi.db.migration.V4_Author
 import no.ndla.audioapi.db.migrationwithdependencies.V6__TranslateUntranslatedAuthors
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import org.json4s.Formats
 
 class V6__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
-  val migration        = new V6__TranslateUntranslatedAuthors(props)
-  implicit val formats = org.json4s.DefaultFormats
+  val migration                 = new V6__TranslateUntranslatedAuthors(props)
+  implicit val formats: Formats = org.json4s.DefaultFormats
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {
     val metaString =

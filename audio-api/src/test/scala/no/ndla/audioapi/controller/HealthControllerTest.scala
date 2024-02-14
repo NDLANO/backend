@@ -17,12 +17,13 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.network.tapir.Service
+import org.json4s.Formats
 import sttp.client3.Response
 import sttp.model.StatusCode
 import sttp.client3.quick._
 
 class HealthControllerTest extends UnitSuite with TestEnvironment {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: Formats = org.json4s.DefaultFormats
 
   val serverPort: Int = findFreePort
 
@@ -100,6 +101,15 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
+  }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
+    }
   }
 
 }

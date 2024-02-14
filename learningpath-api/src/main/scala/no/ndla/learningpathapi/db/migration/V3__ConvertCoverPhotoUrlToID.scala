@@ -17,7 +17,7 @@ import scalikejdbc._
 
 class V3__ConvertCoverPhotoUrlToID extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: Formats = org.json4s.DefaultFormats
 
   override def migrate(context: Context) = DB(context.getConnection)
     .autoClose(false)

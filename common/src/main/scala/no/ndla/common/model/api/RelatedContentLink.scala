@@ -7,6 +7,8 @@
 
 package no.ndla.common.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -16,3 +18,8 @@ case class RelatedContentLink(
     @(ApiModelProperty @field)(description = "Title of the article") title: String,
     @(ApiModelProperty @field)(description = "The url to where the article can be viewed") url: String
 )
+
+object RelatedContentLink {
+  implicit def encoder: Encoder[RelatedContentLink] = deriveEncoder
+  implicit def decoder: Decoder[RelatedContentLink] = deriveDecoder
+}

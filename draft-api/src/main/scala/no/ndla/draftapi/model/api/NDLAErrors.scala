@@ -7,9 +7,18 @@
 
 package no.ndla.draftapi.model.api
 
+import cats.implicits._
+import no.ndla.common.Clock
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+
 import java.time.LocalDateTime
 import scala.annotation.meta.field
 import no.ndla.draftapi.Props
+import no.ndla.draftapi.integration.DataSource
+import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
+import org.postgresql.util.PSQLException
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Information about an error")
@@ -19,49 +28,60 @@ case class Error(
     @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
 )
 
-trait ErrorHelpers {
-  this: Props =>
-  object ErrorHelpers {
-    val GENERIC                = "GENERIC"
-    val NOT_FOUND              = "NOT_FOUND"
-    val INDEX_MISSING          = "INDEX_MISSING"
-    val VALIDATION             = "VALIDATION"
-    val RESOURCE_OUTDATED      = "RESOURCE_OUTDATED"
-    val ACCESS_DENIED          = "ACCESS DENIED"
-    val WINDOW_TOO_LARGE       = "RESULT_WINDOW_TOO_LARGE"
-    val PUBLISH                = "PUBLISH"
-    val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"
-    val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
+trait ErrorHelpers extends TapirErrorHelpers {
+  this: Props with Clock with DataSource =>
 
-    val VALIDATION_DESCRIPTION = "Validation Error"
+  import ErrorHelpers._
 
-    val GENERIC_DESCRIPTION =
-      s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-
-    val INDEX_MISSING_DESCRIPTION =
-      s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
-    val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
-
-    val WINDOW_TOO_LARGE_DESCRIPTION =
-      s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
-    val DATABASE_UNAVAILABLE_DESCRIPTION  = s"Database seems to be unavailable, retrying connection."
-    val ILLEGAL_STATUS_TRANSITION: String = "Illegal status transition"
-
-    val INVALID_SEARCH_CONTEXT_DESCRIPTION =
-      "The search-context specified was not expected. Please create one by searching from page 1."
-
-    val GenericError: Error         = Error(GENERIC, GENERIC_DESCRIPTION)
-    val IndexMissingError: Error    = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
-    val InvalidSearchContext: Error = Error(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION)
-
+  override def handleErrors: PartialFunction[Throwable, AllErrors] = {
+    case a: AccessDeniedException if a.unauthorized => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401)
+    case v: ValidationException =>
+      ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
+    case as: ArticleStatusException        => ErrorBody(VALIDATION, as.getMessage, clock.now(), 400)
+    case _: IndexNotFoundException         => ErrorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, clock.now(), 500)
+    case n: NotFoundException              => ErrorBody(NOT_FOUND, n.getMessage, clock.now(), 404)
+    case o: OptimisticLockException        => ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409)
+    case rw: ResultWindowTooLargeException => ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
+    case pf: ArticlePublishException       => ErrorBody(PUBLISH, pf.getMessage, clock.now(), 400)
+    case st: IllegalStatusStateTransition  => ErrorBody(VALIDATION, st.getMessage, clock.now(), 400)
+    case _: FileTooBigException =>
+      ErrorBody(
+        FILE_TOO_BIG,
+        DraftErrorHelpers.fileTooBigDescription,
+        clock.now(),
+        413
+      )
+    case psql: PSQLException =>
+      logger.error(s"Got postgres exception: '${psql.getMessage}', attempting db reconnect", psql)
+      DataSource.connectToDatabase()
+      ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
+    case h: HttpRequestException =>
+      h.httpResponse match {
+        case Some(resp) if resp.code.isClientError =>
+          ErrorBody(VALIDATION, resp.body, clock.now(), 400)
+        case _ =>
+          logger.error(s"Problem with remote service: ${h.getMessage}")
+          ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 502)
+      }
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
   }
 
-  class OptimisticLockException(message: String = ErrorHelpers.RESOURCE_OUTDATED_DESCRIPTION)
-      extends RuntimeException(message)
-  case class IllegalStatusStateTransition(message: String = ErrorHelpers.ILLEGAL_STATUS_TRANSITION)
-      extends RuntimeException(message)
-  class ResultWindowTooLargeException(message: String = ErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION)
-      extends RuntimeException(message)
+  object DraftErrorHelpers {
+    val WINDOW_TOO_LARGE_DESCRIPTION =
+      s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
+
+    val fileTooBigDescription =
+      s"The file is too big. Max file size is ${props.multipartFileSizeThresholdBytes / 1024 / 1024} MiB"
+  }
+
+  class OptimisticLockException(message: String = RESOURCE_OUTDATED_DESCRIPTION)       extends RuntimeException(message)
+  case class IllegalStatusStateTransition(message: String = ILLEGAL_STATUS_TRANSITION) extends RuntimeException(message)
+  class ResultWindowTooLargeException(
+      message: String = DraftErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION
+  ) extends RuntimeException(message)
 
 }
 
@@ -75,3 +95,4 @@ case class OperationNotAllowedException(message: String) extends RuntimeExceptio
 case class CloneFileException(message: String)           extends RuntimeException(message)
 case class H5PException(message: String)                 extends RuntimeException(message)
 case class GenerateIDException(message: String)          extends RuntimeException(message)
+case class FileTooBigException()                         extends RuntimeException()

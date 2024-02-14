@@ -12,7 +12,7 @@ import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.api.{DraftCopyright, draft}
+import no.ndla.common.model.api.{Delete, DraftCopyright, Missing, UpdateWith, draft}
 import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
@@ -587,7 +587,11 @@ trait ConverterService {
     }
 
     private def languageFieldIsDefined(article: api.UpdatedArticle): Boolean = {
-      val metaImageExists = article.metaImage.map(_.isDefined).getOrElse(true)
+      val metaImageExists = article.metaImage match {
+        case UpdateWith(_) => true
+        case _             => false
+      }
+
       val langFields: Seq[Option[_]] = Seq(
         article.title,
         article.content,
@@ -651,7 +655,7 @@ trait ConverterService {
 
       val changedResponsible =
         article.responsibleId match {
-          case Right(Some(newId)) if !toMergeInto.responsible.map(_.responsibleId).contains(newId) =>
+          case UpdateWith(newId) if !toMergeInto.responsible.map(_.responsibleId).contains(newId) =>
             Seq("Ansvarlig endret.")
           case _ => Seq.empty
         }
@@ -695,11 +699,11 @@ trait ConverterService {
       } yield (newNotes, newContent)
 
       val responsible = (article.responsibleId, toMergeInto.responsible) match {
-        case (Left(_), _)                       => None
-        case (Right(Some(responsibleId)), None) => Some(Responsible(responsibleId, clock.now()))
-        case (Right(Some(responsibleId)), Some(existing)) if existing.responsibleId != responsibleId =>
+        case (Delete, _)                       => None
+        case (UpdateWith(responsibleId), None) => Some(Responsible(responsibleId, clock.now()))
+        case (UpdateWith(responsibleId), Some(existing)) if existing.responsibleId != responsibleId =>
           Some(Responsible(responsibleId, clock.now()))
-        case (Right(_), existing) => existing
+        case (_, existing) => existing
       }
 
       val updatedComments = article.comments
@@ -766,11 +770,10 @@ trait ConverterService {
       val updatedMetaDescriptions = updatedArticle.metaDescription.map(m => toDomainMetaDescription(m, lang)).toSeq
 
       val updatedMetaImage = updatedArticle.metaImage match {
-        case Left(_) => toMergeInto.metaImage.filterNot(_.language == lang)
-        case Right(meta) =>
-          val domainMetaImage = meta
-            .map(m => common.ArticleMetaImage(m.id, m.alt, lang))
-            .toSeq
+        case Delete  => toMergeInto.metaImage.filterNot(_.language == lang)
+        case Missing => toMergeInto.metaImage
+        case UpdateWith(m) =>
+          val domainMetaImage = Seq(common.ArticleMetaImage(m.id, m.alt, lang))
           mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
       }
 
@@ -811,17 +814,19 @@ trait ConverterService {
         }
 
         val newMetaImage = article.metaImage match {
-          case Right(meta) => meta.map(m => common.ArticleMetaImage(m.id, m.alt, lang)).toSeq
-          case Left(_)     => Seq.empty
+          case UpdateWith(meta) => Seq(common.ArticleMetaImage(meta.id, meta.alt, lang))
+          case _                => Seq.empty
         }
 
         val updatedAvailability =
           common.Availability.valueOf(article.availability).getOrElse(common.Availability.everyone)
         val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
 
-        val responsible = article.responsibleId
-          .getOrElse(None)
-          .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
+        val responsible = article.responsibleId match {
+          case Missing                   => None
+          case Delete                    => None
+          case UpdateWith(responsibleId) => Some(Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
+        }
 
         val articleType = article.articleType
           .map(common.ArticleType.valueOfOrError)

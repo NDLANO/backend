@@ -15,13 +15,11 @@ import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.tag.IntegrationTest
 import org.scalatest.Outcome
 import scalikejdbc._
 
 import scala.util.{Failure, Try}
 
-@IntegrationTest
 class LearningPathRepositoryComponentIntegrationTest
     extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "learningpathapi_test")
     with UnitSuite

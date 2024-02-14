@@ -10,7 +10,7 @@ package no.ndla.articleapi.db.migrationwithdependencies
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.db.migration.{V6_Article, V6_Author}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.FieldSerializer
+import org.json4s.{FieldSerializer, Formats}
 import org.json4s.FieldSerializer.ignore
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
@@ -21,7 +21,8 @@ import java.time.LocalDateTime
 class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMigration {
   import props._
 
-  implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
+  implicit val formats: Formats =
+    org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 
   override def migrate(context: Context) = DB(context.getConnection)
     .autoClose(false)

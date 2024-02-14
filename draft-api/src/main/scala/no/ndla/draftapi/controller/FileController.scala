@@ -8,97 +8,87 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.ValidationException
+import no.ndla.draftapi.{Eff, Props}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.service.WriteService
+import no.ndla.network.tapir.NoNullJsonPrinter._
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import org.scalatra.NoContent
-import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
-import org.scalatra.swagger.{ResponseMessage, Swagger}
+import sttp.model.{Part, StatusCode}
+import sttp.tapir.EndpointInput
+import sttp.tapir._
+import io.circe.generic.auto._
+import no.ndla.common.model.domain
+import sttp.tapir.generic.auto._
+import sttp.tapir.server.ServerEndpoint
 
-import scala.util.{Failure, Success}
+import java.io.File
+import scala.util.{Failure, Success, Try}
 
 trait FileController {
-  this: WriteService with NdlaController =>
+  this: WriteService with ErrorHelpers with Props =>
   val fileController: FileController
 
-  class FileController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport {
-    protected val applicationDescription        = "API for uploading files to ndla.no."
-    private val multipartFileSizeThresholdBytes = 1024 * 1024 * 30 // 30MB
-    configureMultipartHandling(MultipartConfig(fileSizeThreshold = Some(multipartFileSizeThresholdBytes)))
+  class FileController extends Service[Eff] {
+    import ErrorHelpers._
+    override val serviceName: String         = "files"
+    override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
-    // Additional models used in error responses
-    registerModel[ValidationError]()
-    registerModel[Error]()
+    private val filePath = query[Option[String]]("path").description("Path to file. Eg: resources/awdW2CaX.png")
 
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      uploadFile,
+      deleteFile
+    )
 
-    private val file     = Param("file", "File to upload")
-    private val filePath = Param[String]("path", "Path to file. Eg: resources/awdW2CaX.png")
+    case class FileForm(file: Part[File])
 
-    post(
-      "/",
-      operation(
-        apiOperation[api.UploadedFile]("uploadFile")
-          .summary("Uploads provided file")
-          .description("Uploads provided file")
-          .authorizations("oauth2")
-          .consumes("multipart/form-data")
-          .parameters(
-            asHeaderParam(correlationId),
-            asFileParam(file)
-          )
-          .responseMessages(response400, response403, response500)
-      )
-    ) {
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
-        fileParams.get(file.paramName) match {
-          case Some(fileToUpload) =>
-            writeService.storeFile(fileToUpload) match {
-              case Success(uploadedFile) => uploadedFile
-              case Failure(ex)           => errorHandler(ex)
-            }
-          case None =>
-            errorHandler(
-              ValidationException("file", "The request must contain a file")
-            )
-        }
+    def doWithStream[T](filePart: Part[File])(f: domain.UploadedFile => Try[T]): Try[T] = {
+      val file = domain.UploadedFile.fromFilePart(filePart)
+      if (file.fileSize > props.multipartFileSizeThresholdBytes) Failure(FileTooBigException())
+      else file.doWithStream(f)
+    }
+
+    def uploadFile: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Uploads provided file")
+      .description("Uploads provided file")
+      .in(multipartBody[FileForm])
+      .out(jsonBody[api.UploadedFile])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure {
+        _ =>
+          { formData =>
+            doWithStream(formData.file) { uploadedFile =>
+              writeService.storeFile(uploadedFile)
+            }.handleErrorsOrOk
+          }
       }
-    }: Unit
 
-    delete(
-      "/",
-      operation(
-        apiOperation[Unit]("Delete")
-          .summary("Deletes provided file")
-          .description("Deletes provided file")
-          .authorizations("oauth2")
-          .parameters(
-            asHeaderParam(correlationId)
-          )
-          .responseMessages(response400, response403, response500)
-      )
-    ) {
-      requirePermissionOrAccessDenied(DRAFT_API_WRITE) {
-        paramOrNone(this.filePath.paramName) match {
-          case Some(filePath) =>
-            writeService.deleteFile(filePath) match {
-              case Failure(ex) => errorHandler(ex)
-              case Success(_)  => NoContent()
+    def deleteFile: ServerEndpoint[Any, Eff] = endpoint.delete
+      .summary("Deletes provided file")
+      .description("Deletes provided file")
+      .out(statusCode(StatusCode.NoContent).and(emptyOutput))
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .in(filePath)
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ =>
+        {
+          case Some(fp) =>
+            writeService.deleteFile(fp) match {
+              case Failure(ex) => returnLeftError(ex)
+              case Success(_)  => Right(())
             }
           case None =>
-            errorHandler(
+            returnLeftError(
               ValidationException(
-                this.filePath.paramName,
+                this.filePath.name,
                 "The request must contain a file path query parameter"
               )
             )
         }
       }
-    }: Unit
-
   }
 }

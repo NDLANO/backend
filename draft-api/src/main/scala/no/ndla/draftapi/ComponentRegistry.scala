@@ -22,7 +22,14 @@ import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{
+  NdlaMiddleware,
+  Routes,
+  Service,
+  SwaggerControllerConfig,
+  TapirErrorHelpers,
+  TapirHealthController
+}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: DraftApiProperties)
@@ -35,10 +42,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with LearningpathApiClient
     with TaxonomyApiClient
     with DraftController
-    with HealthController
-    with NdlaController
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
+    with TapirHealthController
     with MemoizeHelpers
     with DraftRepository
     with UserDataRepository
@@ -72,22 +76,16 @@ class ComponentRegistry(properties: DraftApiProperties)
     with Props
     with DBMigrator
     with ErrorHelpers
-    with DraftApiInfo {
+    with Routes[Eff]
+    with NdlaMiddleware
+    with TapirErrorHelpers
+    with SwaggerControllerConfig
+    with SwaggerDocControllerConfig {
   override val props: DraftApiProperties = properties
 
   override val migrator                     = new DBMigrator
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
-
-  implicit val swagger: DraftSwagger = new DraftSwagger
-
-  lazy val internController   = new InternController
-  lazy val draftController    = new DraftController
-  lazy val fileController     = new FileController
-  lazy val ruleController     = new RuleController
-  lazy val resourcesApp       = new ResourcesApp
-  lazy val healthController   = new HealthController
-  lazy val userDataController = new UserDataController
 
   lazy val draftRepository    = new ArticleRepository
   lazy val userDataRepository = new UserDataRepository
@@ -127,4 +125,23 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val taxonomyApiClient     = new TaxonomyApiClient
   lazy val learningpathApiClient = new LearningpathApiClient
   lazy val h5pApiClient          = new H5PApiClient
+
+  lazy val internController   = new InternController
+  lazy val draftController    = new DraftController
+  lazy val fileController     = new FileController
+  lazy val ruleController     = new RuleController
+  lazy val userDataController = new UserDataController
+  lazy val healthController   = new TapirHealthController[Eff]
+
+  private val swagger = new SwaggerController(
+    List[Service[Eff]](
+      draftController,
+      ruleController,
+      userDataController,
+      internController,
+      healthController
+    ),
+    SwaggerDocControllerConfig.swaggerInfo
+  )
+  override val services: List[Service[Eff]] = swagger.getServices()
 }

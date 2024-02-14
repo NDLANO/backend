@@ -8,13 +8,14 @@
 package no.ndla.articleapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.Formats
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
 class V3__AddUpdatedColoums extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: Formats = org.json4s.DefaultFormats
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)

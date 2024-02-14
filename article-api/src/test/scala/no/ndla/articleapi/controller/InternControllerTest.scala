@@ -63,7 +63,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
 
     import io.circe.generic.auto._
     import io.circe.syntax._
-    val jsonStr = TestData.sampleArticleWithByNcSa.asJson.noSpaces
+    val jsonStr = TestData.sampleArticleWithByNcSa.asJson.deepDropNullValues.noSpaces
 
     val response = simpleHttpClient.send(
       quickRequest
@@ -148,7 +148,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     import io.circe.generic.auto._
     import io.circe.syntax._
     val art     = TestData.sampleArticleWithByNcSa.copy(id = Some(10L))
-    val jsonStr = art.asJson.noSpaces
+    val jsonStr = art.asJson.deepDropNullValues.noSpaces
 
     val response = simpleHttpClient.send(
       quickRequest
@@ -164,6 +164,15 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
       useImportValidation = eqTo(false),
       useSoftValidation = eqTo(false)
     )
+  }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
+    }
   }
 
 }
