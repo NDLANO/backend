@@ -14,6 +14,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.{api => commonApi, domain => commonDomain}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptTags, NotFoundException}
@@ -281,12 +282,11 @@ trait ConverterService {
         updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq
 
       val updatedMetaImage = updateConcept.metaImage match {
-        case Left(_) => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
-        case Right(meta) =>
-          val domainMetaImage = meta
-            .map(m => domain.ConceptMetaImage(m.id, m.alt, updateConcept.language))
-            .toSeq
-          mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
+        case Delete => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
+        case UpdateWith(m) =>
+          val domainMetaImage = domain.ConceptMetaImage(m.id, m.alt, updateConcept.language)
+          mergeLanguageFields(toMergeInto.metaImage, Seq(domainMetaImage))
+        case Missing => toMergeInto.metaImage
       }
 
       val updatedBy = {
@@ -296,11 +296,11 @@ trait ConverterService {
       }
 
       val responsible = (updateConcept.responsibleId, toMergeInto.responsible) match {
-        case (Left(_), _)                       => None
-        case (Right(Some(responsibleId)), None) => Some(Responsible(responsibleId, clock.now()))
-        case (Right(Some(responsibleId)), Some(existing)) if existing.responsibleId != responsibleId =>
+        case (Delete, _)                       => None
+        case (UpdateWith(responsibleId), None) => Some(Responsible(responsibleId, clock.now()))
+        case (UpdateWith(responsibleId), Some(existing)) if existing.responsibleId != responsibleId =>
           Some(Responsible(responsibleId, clock.now()))
-        case (Right(_), existing) => existing
+        case (_, existing) => existing
       }
 
       toDomainGlossData(updateConcept.glossData).map(glossData =>
@@ -334,14 +334,13 @@ trait ConverterService {
       val lang = concept.language
 
       val newMetaImage = concept.metaImage match {
-        case Right(meta) => meta.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq
-        case Left(_)     => Seq.empty
+        case UpdateWith(m) => Seq(domain.ConceptMetaImage(m.id, m.alt, lang))
+        case _             => Seq.empty
       }
 
       val responsible = concept.responsibleId match {
-        case Left(_)                    => None
-        case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
-        case Right(_)                   => None
+        case UpdateWith(responsibleId) => Some(Responsible(responsibleId, clock.now()))
+        case _                         => None
       }
 
       // format: off

@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.errors.ValidationException
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.model.StatusCode
@@ -71,10 +72,15 @@ trait TapirErrorHelpers extends StrictLogging {
     def badRequest(msg: String): ErrorBody      = ErrorBody(BAD_REQUEST, msg, clock.now(), 400)
     def unauthorized: ErrorBody                 = ErrorBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now(), 401)
     def forbidden: ErrorBody                    = ErrorBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now(), 403)
+    def forbiddenMsg(msg: String): ErrorBody    = ErrorBody(FORBIDDEN, msg, clock.now(), 403)
     def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now(), 422)
     def invalidSearchContext: ErrorBody =
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
     def methodNotAllowed: ErrorBody = ErrorBody(METHOD_NOT_ALLOWED, METHOD_NOT_ALLOWED_DESCRIPTION, clock.now(), 405)
+    def validationError(ve: ValidationException): ValidationErrorBody =
+      ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = ve.errors.some, 400)
+    def errorBody(code: String, description: String, statusCode: Int): ErrorBody =
+      ErrorBody(code, description, clock.now(), statusCode)
 
     /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
       * some endpoint.

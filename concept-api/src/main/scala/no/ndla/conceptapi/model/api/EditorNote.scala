@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -19,3 +21,8 @@ case class EditorNote(
     @(ApiModelProperty @field)(description = "Status of concept at saved time") status: Status,
     @(ApiModelProperty @field)(description = "Timestamp of when note was saved") timestamp: NDLADate
 )
+
+object EditorNote {
+  implicit val encoder: Encoder[EditorNote] = deriveEncoder
+  implicit val decoder: Decoder[EditorNote] = deriveDecoder
+}

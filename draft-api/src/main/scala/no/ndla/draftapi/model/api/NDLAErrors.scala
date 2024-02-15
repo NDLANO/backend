@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.model.api
 
-import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 
@@ -16,7 +15,7 @@ import scala.annotation.meta.field
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
@@ -35,9 +34,8 @@ trait ErrorHelpers extends TapirErrorHelpers {
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case a: AccessDeniedException if a.unauthorized => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401)
-    case v: ValidationException =>
-      ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
-    case as: ArticleStatusException        => ErrorBody(VALIDATION, as.getMessage, clock.now(), 400)
+    case v: ValidationException                     => validationError(v)
+    case as: ArticleStatusException                 => ErrorBody(VALIDATION, as.getMessage, clock.now(), 400)
     case _: IndexNotFoundException         => ErrorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, clock.now(), 500)
     case n: NotFoundException              => ErrorBody(NOT_FOUND, n.getMessage, clock.now(), 404)
     case o: OptimisticLockException        => ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409)

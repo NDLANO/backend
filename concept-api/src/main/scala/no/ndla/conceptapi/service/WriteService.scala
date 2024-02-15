@@ -23,6 +23,7 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.UpdateWith
 
 trait WriteService {
   this: DraftConceptRepository
@@ -152,7 +153,7 @@ trait WriteService {
 
       val changedResponsibleNote =
         updated.responsibleId match {
-          case Right(Some(newId)) if !old.responsible.map(_.responsibleId).contains(newId) =>
+          case UpdateWith(newId) if !old.responsible.map(_.responsibleId).contains(newId) =>
             Seq("Responsible changed")
           case _ => Seq.empty
         }

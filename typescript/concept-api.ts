@@ -219,14 +219,14 @@ export interface IUpdatedConcept {
   language: string
   title?: string
   content?: string
-  metaImage?: (null | INewConceptMetaImage)
+  metaImage: UpdateOrDeleteNewConceptMetaImage
   copyright?: IDraftCopyright
   tags?: string[]
   subjectIds?: string[]
   articleIds?: number[]
   status?: string
   visualElement?: string
-  responsibleId?: (null | string)
+  responsibleId: UpdateOrDeleteString
   conceptType?: string
   glossData?: IGlossData
 }
@@ -247,3 +247,7 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
+
+export type UpdateOrDeleteNewConceptMetaImage = (null | undefined | INewConceptMetaImage)
+
+export type UpdateOrDeleteString = (null | undefined | string)

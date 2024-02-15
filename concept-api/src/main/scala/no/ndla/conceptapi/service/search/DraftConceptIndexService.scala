@@ -9,11 +9,11 @@ package no.ndla.conceptapi.service.search
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
+import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
 
 trait DraftConceptIndexService {
-  this: IndexService with DraftConceptRepository with SearchConverterService with Props with DBConcept =>
+  this: IndexService with DraftConceptRepository with SearchConverterService with Props =>
   val draftConceptIndexService: DraftConceptIndexService
 
   class DraftConceptIndexService extends StrictLogging with IndexService {

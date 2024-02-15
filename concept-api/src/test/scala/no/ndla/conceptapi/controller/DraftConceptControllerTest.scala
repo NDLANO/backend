@@ -6,60 +6,87 @@
  */
 package no.ndla.conceptapi.controller
 
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search
-import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.DefaultFormats
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers._
-import org.scalatra.test.scalatest.ScalatraFunSuite
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class DraftConceptControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val swagger: ConceptSwagger               = new ConceptSwagger
-  lazy val controller                       = new DraftConceptController()(swagger)
-  addServlet(controller, "/test")
+class DraftConceptControllerTest extends UnitSuite with TestEnvironment {
+  implicit val formats: Formats             = org.json4s.DefaultFormats
+  val serverPort: Int                       = findFreePort
+  val controller                            = new DraftConceptController
+  override val services: List[Service[Eff]] = List(controller)
+
+  override def beforeAll(): Unit = {
+    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
+    Thread.sleep(1000)
+  }
+
+  override def beforeEach(): Unit = {
+    reset(clock, searchConverterService)
+    when(clock.now()).thenCallRealMethod()
+  }
 
   val conceptId = 1L
   val lang      = "nb"
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
-  override def beforeEach(): Unit = {}
-
   test("/<concept_id> should return 200 if the concept was found") {
     when(readService.conceptWithId(conceptId, lang, fallback = false, None))
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    get(s"/test/$conceptId?language=$lang") {
-      status should equal(200)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang")
+      )
+      .code
+      .code should be(200)
   }
 
   test("/<concept_id> should return 404 if the concept was not found") {
     when(readService.conceptWithId(conceptId, lang, fallback = false, None))
       .thenReturn(Failure(NotFoundException("Not found, yolo")))
 
-    get(s"/test/$conceptId?language=$lang") {
-      status should equal(404)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang")
+      )
+      .code
+      .code should be(404)
   }
 
   test("/<concept_id> should return 400 if the concept was not found") {
-    get(s"/test/one") {
-      status should equal(400)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/one")
+      )
+      .code
+      .code should be(400)
   }
 
   test("POST / should return 400 if body does not contain all required fields") {
-    post("/test/", invalidConcept, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      status should equal(400)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest
+          .post(uri"http://localhost:$serverPort/concept-api/v1/drafts")
+          .body(invalidConcept)
+          .header("Authorization", TestData.authHeaderWithWriteRole)
+      )
+      .code
+      .code should be(400)
   }
 
   test("POST / should return 201 on created") {
@@ -68,13 +95,15 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
         .newConcept(any[NewConcept], any[TokenUser])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
-    post(
-      "/test/",
-      write(TestData.sampleNewConcept),
-      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
-    ) {
-      status should equal(201)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest
+          .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
+          .body(write(TestData.sampleNewConcept))
+          .header("Authorization", TestData.authHeaderWithWriteRole)
+      )
+      .code
+      .code should be(201)
   }
 
   test("POST / should return 403 if no write role") {
@@ -83,13 +112,15 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
         .newConcept(any[NewConcept], any)
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
-    post(
-      "/test/",
-      write(TestData.sampleNewConcept),
-      headers = Map("Authorization" -> TestData.authHeaderWithWrongRole)
-    ) {
-      status should equal(403)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest
+          .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
+          .body(write(TestData.sampleNewConcept))
+          .header("Authorization", TestData.authHeaderWithWrongRole)
+      )
+      .code
+      .code should be(403)
   }
 
   test("PATCH / should return 200 on updated") {
@@ -99,13 +130,18 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    patch(
-      "/test/1",
-      write(TestData.updatedConcept),
-      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
-    ) {
-      status should equal(200)
-    }
+    import io.circe.generic.auto._
+    import io.circe.syntax._
+    val body = TestData.updatedConcept.asJson.deepDropNullValues.noSpaces
+
+    val res = simpleHttpClient
+      .send(
+        quickRequest
+          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+          .body(body)
+          .header("Authorization", TestData.authHeaderWithWriteRole)
+      )
+    res.code.code should be(200)
   }
 
   test("PATCH / should return 403 if no write role") {
@@ -115,13 +151,15 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    patch(
-      "/test/1",
-      write(TestData.updatedConcept),
-      headers = Map("Authorization" -> TestData.authHeaderWithoutAnyRoles)
-    ) {
-      status should equal(403)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest
+          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+          .body(write(TestData.updatedConcept))
+          .header("Authorization", TestData.authHeaderWithoutAnyRoles)
+      )
+      .code
+      .code should be(403)
   }
 
   test("PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[Long]]") {
@@ -133,27 +171,51 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing         = """{"language":"nb"}"""
-    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
+    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Missing)
 
     val nullArtId    = """{"language":"nb","metaImage":null}"""
-    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
+    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
 
     val existingArtId = """{"language":"nb","metaImage":{"id":"123","alt":"alt123"}}"""
     val existingExpected = TestData.emptyApiUpdatedConcept
-      .copy(language = "nb", metaImage = Right(Some(NewConceptMetaImage(id = "123", alt = "alt123"))))
+      .copy(language = "nb", metaImage = UpdateWith(NewConceptMetaImage(id = "123", alt = "alt123")))
 
-    patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      status should equal(200)
+    {
+      simpleHttpClient
+        .send(
+          quickRequest
+            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+            .body(missing)
+            .header("Authorization", TestData.authHeaderWithWriteRole)
+        )
+        .code
+        .code should be(200)
       verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[TokenUser])
     }
 
-    patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      status should equal(200)
+    {
+      simpleHttpClient
+        .send(
+          quickRequest
+            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+            .body(nullArtId)
+            .header("Authorization", TestData.authHeaderWithWriteRole)
+        )
+        .code
+        .code should be(200)
       verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[TokenUser])
     }
 
-    patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      status should equal(200)
+    {
+      simpleHttpClient
+        .send(
+          quickRequest
+            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+            .body(existingArtId)
+            .header("Authorization", TestData.authHeaderWithWriteRole)
+        )
+        .code
+        .code should be(200)
       verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[TokenUser])
     }
   }
@@ -162,9 +224,10 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
       .thenReturn(TestData.sampleApiTagsSearchResult)
 
-    get("/test/tag-search/") {
-      status should equal(200)
-    }
+    simpleHttpClient
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/tag-search/"))
+      .code
+      .code should be(200)
   }
 
   test(
@@ -178,28 +241,52 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing         = """{"language":"nb"}"""
-    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
+    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Missing)
 
     val nullArtId    = """{"language":"nb","metaImage":null}"""
-    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
+    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
 
     val existingArtId = """{"language":"nb","metaImage": {"id": "1",
                           |		"alt": "alt-text"}}""".stripMargin
     val existingExpected = TestData.emptyApiUpdatedConcept
-      .copy(language = "nb", metaImage = Right(Some(api.NewConceptMetaImage("1", "alt-text"))))
+      .copy(language = "nb", metaImage = UpdateWith(api.NewConceptMetaImage("1", "alt-text")))
 
-    patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      status should equal(200)
+    {
+      simpleHttpClient
+        .send(
+          quickRequest
+            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+            .body(missing)
+            .header("Authorization", TestData.authHeaderWithWriteRole)
+        )
+        .code
+        .code should be(200)
       verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[TokenUser])
     }
 
-    patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      status should equal(200)
+    {
+      simpleHttpClient
+        .send(
+          quickRequest
+            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+            .body(nullArtId)
+            .header("Authorization", TestData.authHeaderWithWriteRole)
+        )
+        .code
+        .code should be(200)
       verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[TokenUser])
     }
 
-    patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
-      status should equal(200)
+    {
+      simpleHttpClient
+        .send(
+          quickRequest
+            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+            .body(existingArtId)
+            .header("Authorization", TestData.authHeaderWithWriteRole)
+        )
+        .code
+        .code should be(200)
       verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[TokenUser])
     }
   }
@@ -210,13 +297,29 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     val multiResult =
       SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
     when(draftConceptSearchService.all(any[search.DraftSearchSettings])).thenReturn(Success(multiResult))
+    when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 
     val expectedSettings =
       draftSearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
 
-    get("/test/?search-context=initial") {
-      status should be(200)
-      verify(draftConceptSearchService, times(1)).all(eqTo(expectedSettings))
+    simpleHttpClient
+      .send(
+        quickRequest
+          .get(uri"http://localhost:$serverPort/concept-api/v1/drafts/?search-context=initial")
+          .header("Authorization", TestData.authHeaderWithWriteRole)
+      )
+      .code
+      .code should be(200)
+
+    verify(draftConceptSearchService, times(1)).all(eqTo(expectedSettings))
+  }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
     }
   }
 

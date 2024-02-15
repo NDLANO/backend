@@ -15,6 +15,6 @@ object Main {
     setPropsFromEnv()
     val props     = new ConceptApiProperties
     val mainClass = new MainClass(props)
-    mainClass.start()
+    mainClass.run()
   }
 }

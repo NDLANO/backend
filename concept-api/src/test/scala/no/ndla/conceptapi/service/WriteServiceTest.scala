@@ -20,6 +20,7 @@ import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{Missing, UpdateWith}
 import org.mockito.stubbing.ScalaOngoingStubbing
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -80,14 +81,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         "en",
         None,
         content = Some(newContent),
-        Right(None),
+        Missing,
         None,
         None,
         None,
         Some(Seq.empty),
         None,
         None,
-        Right(None),
+        Missing,
         None,
         None
       )
@@ -113,14 +114,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         "nn",
         title = Some(newTitle),
         None,
-        Right(None),
+        Missing,
         None,
         None,
         None,
         Some(Seq.empty),
         None,
         None,
-        Right(None),
+        Missing,
         None,
         None
       )
@@ -158,14 +159,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       "en",
       Some(updatedTitle),
       Some(updatedContent),
-      Right(Some(updatedMetaImage)),
+      UpdateWith(updatedMetaImage),
       Some(updatedCopyright),
       Some(Seq("Nye", "Tags")),
       Some(Seq("urn:subject:900")),
       Some(Seq(69L)),
       None,
       None,
-      Right(Some("123")),
+      UpdateWith("123"),
       None,
       None
     )
@@ -269,14 +270,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         language = "nb",
         title = None,
         content = None,
-        metaImage = Right(None),
+        metaImage = Missing,
         copyright = None,
         tags = None,
         subjectIds = None,
         articleIds = Some(Seq(42)),
         status = None,
         visualElement = None,
-        responsibleId = Right(Some(responsibleId)),
+        responsibleId = UpdateWith(responsibleId),
         conceptType = None,
         glossData = None
       )

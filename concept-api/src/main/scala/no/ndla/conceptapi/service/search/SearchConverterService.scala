@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{api => commonApi}
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
-import no.ndla.conceptapi.model.domain.{Concept, ConceptType, DBConcept, SearchResult}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptType, SearchResult}
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService
@@ -29,7 +29,7 @@ import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
-  this: ConverterService with DBConcept =>
+  this: ConverterService =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {

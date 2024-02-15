@@ -14,6 +14,7 @@ import no.ndla.conceptapi.model.domain.{ConceptContent, Status}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.Missing
 
 object TestData {
 
@@ -184,14 +185,14 @@ object TestData {
     language = "",
     title = None,
     content = None,
-    metaImage = Right(None),
+    metaImage = Missing,
     copyright = None,
     tags = None,
     subjectIds = None,
     articleIds = None,
     status = None,
     visualElement = None,
-    Right(None),
+    Missing,
     conceptType = None,
     glossData = None
   )
@@ -232,14 +233,14 @@ object TestData {
       "nb",
       None,
       Some("Innhold"),
-      Right(None),
+      Missing,
       None,
       None,
       None,
       Some(Seq(12L)),
       None,
       None,
-      Right(None),
+      Missing,
       conceptType = None,
       glossData = None
     )

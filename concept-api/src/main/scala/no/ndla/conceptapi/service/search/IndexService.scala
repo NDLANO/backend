@@ -19,7 +19,7 @@ import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ElasticIndexingException}
-import no.ndla.conceptapi.model.domain.{Concept, DBConcept, ReindexResult}
+import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
 import no.ndla.search.model.SearchableLanguageFormats
@@ -30,12 +30,7 @@ import org.json4s.native.Serialization.write
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient
-    with BaseIndexService
-    with Props
-    with TaxonomyApiClient
-    with SearchConverterService
-    with DBConcept =>
+  this: Elastic4sClient with BaseIndexService with Props with TaxonomyApiClient with SearchConverterService =>
   trait IndexService extends BaseIndexService with StrictLogging {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ Concept.serializers
     val repository: Repository[Concept]

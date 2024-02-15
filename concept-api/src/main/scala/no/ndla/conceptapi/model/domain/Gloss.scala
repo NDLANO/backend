@@ -7,7 +7,10 @@
 
 package no.ndla.conceptapi.model.domain
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.conceptapi.model.api.InvalidStatusException
+
 import scala.util.{Failure, Success, Try}
 
 object WordClass extends Enumeration {
@@ -62,9 +65,18 @@ object WordClass extends Enumeration {
       case Some(conceptType) => Success(conceptType)
     }
   }
+
+  implicit val encoder: Encoder[WordClass.Value] = Encoder.encodeEnumeration(WordClass)
+  implicit val decoder: Decoder[WordClass.Value] = Decoder.decodeEnumeration(WordClass)
 }
 
 case class GlossExample(example: String, language: String, transcriptions: Map[String, String])
+
+object GlossExample {
+  implicit val encoder: Encoder[GlossExample] = deriveEncoder
+  implicit val decoder: Decoder[GlossExample] = deriveDecoder
+}
+
 case class GlossData(
     gloss: String,
     wordClass: WordClass.Value,
@@ -72,3 +84,8 @@ case class GlossData(
     transcriptions: Map[String, String],
     examples: List[List[GlossExample]]
 )
+
+object GlossData {
+  implicit val encoder: Encoder[GlossData] = deriveEncoder
+  implicit val decoder: Decoder[GlossData] = deriveDecoder
+}

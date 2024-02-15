@@ -12,7 +12,7 @@ import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHelpers, NotFoundException}
-import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
+import no.ndla.conceptapi.model.domain.Concept
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
@@ -21,7 +21,7 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptRepository {
-  this: DataSource with DBConcept with Props with ErrorHelpers =>
+  this: DataSource with Props with ErrorHelpers =>
   val draftConceptRepository: DraftConceptRepository
 
   class DraftConceptRepository extends StrictLogging with Repository[Concept] {

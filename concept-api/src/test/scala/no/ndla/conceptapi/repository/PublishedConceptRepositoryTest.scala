@@ -19,6 +19,7 @@ import scalikejdbc.{DB, _}
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
+import no.ndla.conceptapi.model.domain.PublishedConcept
 
 class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 

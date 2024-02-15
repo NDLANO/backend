@@ -8,11 +8,12 @@
 package no.ndla.conceptapi.model.domain
 
 import enumeratum._
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
@@ -46,70 +47,67 @@ case class Concept(
   lazy val supportedLanguages: Set[String] =
     getSupportedLanguages(title, content, tags, visualElement, metaImage).toSet
 }
-trait DBConcept {
-  this: Props =>
+object Concept extends SQLSyntaxSupport[Concept] {
+  implicit val encoder: Encoder[Concept] = deriveEncoder
+  implicit val decoder: Decoder[Concept] = deriveDecoder
 
-  object Concept extends SQLSyntaxSupport[Concept] {
-    override val tableName                  = "conceptdata"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
+  override val tableName = "conceptdata"
 
-    def fromResultSet(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
-      fromResultSet(lp.resultName)(rs)
+  def fromResultSet(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
+    fromResultSet(lp.resultName)(rs)
 
-    def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
-      implicit val formats: Formats = this.repositorySerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
+  def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
+    implicit val formats: Formats = this.repositorySerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
-      val id       = rs.long(lp.c("id"))
-      val revision = rs.int(lp.c("revision"))
-      val jsonStr  = rs.string(lp.c("document"))
+    val id       = rs.long(lp.c("id"))
+    val revision = rs.int(lp.c("revision"))
+    val jsonStr  = rs.string(lp.c("document"))
 
-      val meta = read[Concept](jsonStr)
+    val meta = read[Concept](jsonStr)
 
-      new Concept(
-        id = Some(id),
-        revision = Some(revision),
-        meta.title,
-        meta.content,
-        meta.copyright,
-        meta.created,
-        meta.updated,
-        meta.updatedBy,
-        meta.metaImage,
-        meta.tags,
-        meta.subjectIds,
-        meta.articleIds,
-        meta.status,
-        meta.visualElement,
-        meta.responsible,
-        meta.conceptType,
-        meta.glossData,
-        meta.editorNotes
-      )
-    }
-    val serializers: List[Serializer[_]] = List(
-      Json4s.serializer(ConceptStatus),
-      new EnumNameSerializer(ConceptType),
-      new EnumNameSerializer(WordClass),
-      NDLADate.Json4sSerializer
-    ) ++ JavaTimeSerializers.all
-
-    val jsonEncoder: Formats = DefaultFormats ++ serializers
-
-    val repositorySerializer: Formats = jsonEncoder +
-      FieldSerializer[Concept](
-        ignore("id") orElse
-          ignore("revision")
-      )
+    new Concept(
+      id = Some(id),
+      revision = Some(revision),
+      meta.title,
+      meta.content,
+      meta.copyright,
+      meta.created,
+      meta.updated,
+      meta.updatedBy,
+      meta.metaImage,
+      meta.tags,
+      meta.subjectIds,
+      meta.articleIds,
+      meta.status,
+      meta.visualElement,
+      meta.responsible,
+      meta.conceptType,
+      meta.glossData,
+      meta.editorNotes
+    )
   }
+  val serializers: List[Serializer[_]] = List(
+    Json4s.serializer(ConceptStatus),
+    new EnumNameSerializer(ConceptType),
+    new EnumNameSerializer(WordClass),
+    NDLADate.Json4sSerializer
+  ) ++ JavaTimeSerializers.all
 
-  object PublishedConcept extends SQLSyntaxSupport[Concept] {
-    override val tableName                  = "publishedconceptdata"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
-  }
+  val jsonEncoder: Formats = DefaultFormats ++ serializers
+
+  val repositorySerializer: Formats = jsonEncoder +
+    FieldSerializer[Concept](
+      ignore("id") orElse
+        ignore("revision")
+    )
+}
+
+object PublishedConcept extends SQLSyntaxSupport[Concept] {
+  override val tableName = "publishedconceptdata"
 }
 
 sealed trait ConceptStatus extends EnumEntry {}
-object ConceptStatus extends Enum[ConceptStatus] {
+object ConceptStatus extends Enum[ConceptStatus] with CirceEnum[ConceptStatus] {
   case object IN_PROGRESS       extends ConceptStatus
   case object EXTERNAL_REVIEW   extends ConceptStatus
   case object INTERNAL_REVIEW   extends ConceptStatus

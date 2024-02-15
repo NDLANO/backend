@@ -6,6 +6,8 @@
  */
 
 package no.ndla.conceptapi.model.api
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.ApiModelProperty
 
 import scala.annotation.meta.field
@@ -14,3 +16,8 @@ case class NewConceptMetaImage(
     @(ApiModelProperty @field)(description = "The image-api id of the meta image") id: String,
     @(ApiModelProperty @field)(description = "The alt text of the meta image") alt: String
 )
+
+object NewConceptMetaImage {
+  implicit val encoder: Encoder[NewConceptMetaImage] = deriveEncoder
+  implicit val decoder: Decoder[NewConceptMetaImage] = deriveDecoder
+}

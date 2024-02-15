@@ -18,6 +18,7 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -59,14 +60,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         "nb",
         Some("heisann"),
         None,
-        Right(None),
+        Missing,
         None,
         None,
         None,
         Some(Seq(42L)),
         None,
         None,
-        Right(None),
+        Missing,
         None,
         None
       )
@@ -90,14 +91,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         "nn",
         None,
         Some("Nytt innhald"),
-        Right(None),
+        Missing,
         None,
         None,
         None,
         Some(Seq(42L)),
         None,
         None,
-        Right(None),
+        Missing,
         None,
         None
       )
@@ -121,14 +122,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         "en",
         Some("Title"),
         Some("My content"),
-        Right(None),
+        Missing,
         None,
         None,
         None,
         Some(Seq(42L)),
         None,
         None,
-        Right(None),
+        Missing,
         None,
         None
       )
@@ -157,7 +158,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       "nn",
       None,
       Some("Nytt innhald"),
-      Right(None),
+      Missing,
       Option(
         commonApi.DraftCopyright(
           None,
@@ -175,7 +176,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some(Seq(42L)),
       None,
       None,
-      Right(None),
+      Missing,
       None,
       None
     )
@@ -311,7 +312,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Seq(domain.ConceptMetaImage("2", "Hej", "nn")),
       updated = updated
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
 
     converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
@@ -330,7 +331,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(
       language = "nb",
-      metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola")))
+      metaImage = UpdateWith(api.NewConceptMetaImage("1", "Hola"))
     )
 
     converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
@@ -348,7 +349,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
       updated = updated
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Missing)
 
     converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
@@ -373,7 +374,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(
       language = "nb",
-      metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola")))
+      metaImage = UpdateWith(api.NewConceptMetaImage("1", "Hola"))
     )
 
     converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
@@ -397,7 +398,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         )
       )
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
 
     converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
   }
@@ -505,13 +506,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updated = updated
     )
 
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Right(Some("newId")))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = UpdateWith("newId"))
     converterService.toDomainConcept(withOldResponsible, updateWith, userInfo).get should be(withNewResponsible)
 
-    val updateWith2 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Right(Some("oldId")))
+    val updateWith2 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = UpdateWith("oldId"))
     converterService.toDomainConcept(withOldResponsible, updateWith2, userInfo).get should be(withOldResponsible)
 
-    val updateWith3 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Left(null))
+    val updateWith3 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Delete)
     converterService.toDomainConcept(withOldResponsible, updateWith3, userInfo).get should be(withoutResponsible)
   }
 
@@ -780,14 +781,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Some("tittel"),
       content = Some("Nokko innhald"),
       copyright = None,
-      metaImage = Right(None),
+      metaImage = Missing,
       tags = None,
       subjectIds = None,
       articleIds = None,
       visualElement = Some(
         "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\" data-url=\"https://api.test.ndla.no/audio-api/v1/audio/2755\"></ndlaembed>"
       ),
-      responsibleId = Right(None),
+      responsibleId = Missing,
       conceptType = None,
       glossData = None,
       status = None
@@ -810,14 +811,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Some("tittel"),
       content = Some("Nokko innhald"),
       copyright = None,
-      metaImage = Right(None),
+      metaImage = Missing,
       tags = None,
       subjectIds = None,
       articleIds = None,
       visualElement = Some(
         "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\" data-url=\"https://api.test.ndla.no/audio-api/v1/audio/2755\"></ndlaembed>"
       ),
-      responsibleId = Right(None),
+      responsibleId = Missing,
       conceptType = None,
       glossData = None,
       status = None
