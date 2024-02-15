@@ -302,6 +302,20 @@ trait FolderRepository {
           Success(resourceId)
       }
 
+    def numberOfFavouritesForResource(resourceId: String, resourceType: String)(implicit
+        session: DBSession
+    ): Try[Long] = Try {
+      sql"""
+            select count(*) as count from ${DBFolderResource.table} fr
+            inner join ${DBResource.table} r on fr.resource_id = r.id
+            where r.document->>'resourceId' = $resourceId
+            and r.resource_type = $resourceType
+         """
+        .map(rs => rs.long("count"))
+        .single()
+        .getOrElse(0L)
+    }
+
     def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${DBFolder.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)

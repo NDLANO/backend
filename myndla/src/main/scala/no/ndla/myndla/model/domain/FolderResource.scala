@@ -21,7 +21,6 @@ case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int) extends R
 object DBFolderResource extends SQLSyntaxSupport[FolderResource] {
   implicit val formats: Formats = DefaultFormats
   override val tableName        = "folder_resources"
-  // lazy override val schemaName = Some(props.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[FolderResource])(rs: WrappedResultSet): Try[FolderResource] =
     fromResultSet(s => lp.resultName.c(s), rs)

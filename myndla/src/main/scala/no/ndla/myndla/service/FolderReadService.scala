@@ -12,7 +12,7 @@ import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.myndla.FavoriteFolderDefaultName
-import no.ndla.myndla.model.api.Folder
+import no.ndla.myndla.model.api.{Folder, SingleResourceStats}
 import no.ndla.myndla.model.domain.FolderStatus
 import no.ndla.myndla.model.{api, domain}
 import no.ndla.myndla.repository.{FolderRepository, UserRepository}
@@ -264,6 +264,13 @@ trait FolderReadService {
 
     def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[api.ExportedUserData] = {
       withFeideId(maybeFeideToken)(feideId => exportUserDataAuthenticated(maybeFeideToken, feideId))
+    }
+
+    def getFavouriteStatsForResource(resourceId: String, resourceType: String): Try[SingleResourceStats] = {
+      implicit val session: DBSession = folderRepository.getSession(true)
+      folderRepository
+        .numberOfFavouritesForResource(resourceId, resourceType)
+        .map(totalCount => api.SingleResourceStats(totalCount))
     }
 
     private def exportUserDataAuthenticated(
