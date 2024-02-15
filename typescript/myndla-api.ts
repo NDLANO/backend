@@ -197,6 +197,25 @@ export interface IResource {
   rank?: number
 }
 
+export interface IResourceStats {
+  type: string
+  number: number
+}
+
+export interface ISingleResourceStats {
+  favourites: number
+}
+
+export interface IStats {
+  numberOfUsers: number
+  numberOfFolders: number
+  numberOfResources: number
+  numberOfTags: number
+  numberOfSubjects: number
+  numberOfSharedFolders: number
+  favouritedResources: IResourceStats[]
+}
+
 export interface ITopic {
   id: number
   title: string
