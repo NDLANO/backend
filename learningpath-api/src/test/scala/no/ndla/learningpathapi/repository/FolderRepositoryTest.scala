@@ -18,7 +18,8 @@ import no.ndla.myndla.model.domain.{
   Folder,
   FolderStatus,
   NewFolderData,
-  ResourceDocument
+  ResourceDocument,
+  ResourceType
 }
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -129,9 +130,12 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
     val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
-    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
-    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
-    val resource3 = repository.insertResource("feide", "/path3", "type", created, TestData.baseResourceDocument)
+    val resource1 =
+      repository.insertResource("feide", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource2 =
+      repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource3 =
+      repository.insertResource("feide", "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
 
     repository.resourceWithId(resource1.get.id) should be(resource1)
     repository.resourceWithId(resource2.get.id) should be(resource2)
@@ -144,8 +148,10 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
 
     val created = NDLADate.now().withNano(0)
 
-    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
-    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
+    val resource1 =
+      repository.insertResource("feide", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource2 =
+      repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
 
     repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
     repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
@@ -193,8 +199,10 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
-    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
-    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
+    val resource1 =
+      repository.insertResource("feide", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource2 =
+      repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
     repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
     repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
     repository.createFolderResourceConnection(folder2.get.id, resource2.get.id, 3)
@@ -210,8 +218,10 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
-    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
-    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
+    val resource1 =
+      repository.insertResource("feide", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource2 =
+      repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
 
     repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
     repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 1)
@@ -228,7 +238,11 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
 
   test("that resourceWithPathAndFeideId works correctly") {
     val resource1 =
-      TestData.emptyDomainResource.copy(path = "pathernity test", resourceType = "type", feideId = "feide-1")
+      TestData.emptyDomainResource.copy(
+        path = "pathernity test",
+        resourceType = ResourceType.Article,
+        feideId = "feide-1"
+      )
 
     repository.insertResource(
       resource1.feideId,
@@ -238,17 +252,29 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
       ResourceDocument(resource1.tags, resource1.resourceId)
     )
     val correct =
-      repository.resourceWithPathAndTypeAndFeideId(path = "pathernity test", resourceType = "type", feideId = "feide-1")
+      repository.resourceWithPathAndTypeAndFeideId(
+        path = "pathernity test",
+        resourceType = ResourceType.Article,
+        feideId = "feide-1"
+      )
     correct.isSuccess should be(true)
     correct.get.isDefined should be(true)
 
     val wrong1 =
-      repository.resourceWithPathAndTypeAndFeideId(path = "pathernity test", resourceType = "type", feideId = "wrong")
+      repository.resourceWithPathAndTypeAndFeideId(
+        path = "pathernity test",
+        resourceType = ResourceType.Article,
+        feideId = "wrong"
+      )
     wrong1.isSuccess should be(true)
     wrong1.get.isDefined should be(false)
 
     val wrong2 =
-      repository.resourceWithPathAndTypeAndFeideId(path = "pathernity", resourceType = "type", feideId = "feide-1")
+      repository.resourceWithPathAndTypeAndFeideId(
+        path = "pathernity",
+        resourceType = ResourceType.Article,
+        feideId = "feide-1"
+      )
     wrong2.isSuccess should be(true)
     wrong2.get.isDefined should be(false)
   }
@@ -273,9 +299,12 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
     val folder1 = repository.insertFolder("feide", doc)
     val folder2 = repository.insertFolder("feide", doc.copy(parentId = Some(folder1.get.id)))
 
-    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
-    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
-    val resource3 = repository.insertResource("feide", "/path3", "type", created, TestData.baseResourceDocument)
+    val resource1 =
+      repository.insertResource("feide", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource2 =
+      repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource3 =
+      repository.insertResource("feide", "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
 
     repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
     repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
@@ -289,12 +318,12 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
   test("that resourcesWithFeideId works as expected") {
     val created = NDLADate.now()
 
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide2", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide3", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide2", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide3", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
 
     val results = repository.resourcesWithFeideId(feideId = "feide1", size = 2)
     results.isSuccess should be(true)
@@ -394,7 +423,7 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
       .insertResource(
         "feide",
         "/testPath",
-        "resourceType",
+        ResourceType.Article,
         NDLADate.now().withNano(0),
         ResourceDocument(List(), "1")
       )
@@ -436,12 +465,12 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
   test("that deleteAllUserResources works as expected") {
     val created = NDLADate.now()
 
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide2", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide3", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide2", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide3", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
 
     resourceCount() should be(6)
     repository.deleteAllUserResources(feideId = "feide1") should be(Success(4))
@@ -459,10 +488,14 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
     val folder3 = repository.insertFolder("feide2", doc)
 
-    val resource1 = repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
-    val resource2 = repository.insertResource("feide1", "/path2", "type", created, TestData.baseResourceDocument)
-    val resource3 = repository.insertResource("feide1", "/path3", "type", created, TestData.baseResourceDocument)
-    val resource4 = repository.insertResource("feide2", "/path4", "type", created, TestData.baseResourceDocument)
+    val resource1 =
+      repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource2 =
+      repository.insertResource("feide1", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource3 =
+      repository.insertResource("feide1", "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource4 =
+      repository.insertResource("feide2", "/path4", ResourceType.Article, created, TestData.baseResourceDocument)
 
     repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
     repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
@@ -563,7 +596,7 @@ class FolderRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tr
       .insertResource(
         "feide",
         "/testPath",
-        "resourceType",
+        ResourceType.Article,
         NDLADate.now().withNano(0),
         ResourceDocument(List(), "1")
       )

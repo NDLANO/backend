@@ -23,9 +23,10 @@ import no.ndla.myndla.model.domain.{
   NDLASQLException,
   NewFolderData,
   Resource,
-  ResourceDocument
+  ResourceDocument,
+  ResourceType
 }
-import no.ndla.myndla.{uuidBinder, maybeUuidBinder, uuidParameterFactory}
+import no.ndla.myndla.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.network.model.FeideID
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -106,7 +107,7 @@ trait FolderRepository {
     def insertResource(
         feideId: FeideID,
         path: String,
-        resourceType: String,
+        resourceType: ResourceType,
         created: NDLADate,
         document: ResourceDocument
     )(implicit session: DBSession = AutoSession): Try[Resource] = Try {
@@ -127,7 +128,7 @@ trait FolderRepository {
             column("id")            -> newId,
             column("feide_id")      -> feideId,
             column("path")          -> path,
-            column("resource_type") -> resourceType,
+            column("resource_type") -> resourceType.entryName,
             column("created")       -> created,
             column("document")      -> jsonDocument
           )
@@ -345,10 +346,10 @@ trait FolderRepository {
 
     def resourceWithPathAndTypeAndFeideId(
         path: String,
-        resourceType: String,
+        resourceType: ResourceType,
         feideId: FeideID
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Resource]] = resourceWhere(
-      sqls"path=$path and resource_type=$resourceType and feide_id=$feideId"
+      sqls"path=$path and resource_type=${resourceType.entryName} and feide_id=$feideId"
     )
 
     def foldersWithFeideAndParentID(parentId: Option[UUID], feideId: FeideID)(implicit

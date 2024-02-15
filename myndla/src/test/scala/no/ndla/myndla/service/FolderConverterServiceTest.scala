@@ -19,6 +19,7 @@ import no.ndla.myndla.model.domain.{
   NewFolderData,
   Resource,
   ResourceDocument,
+  ResourceType,
   UserRole
 }
 import no.ndla.scalatestsuite.UnitTestSuite
@@ -85,7 +86,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       Resource(
         id = resourceUUID,
         feideId = "w",
-        resourceType = "concept",
+        resourceType = ResourceType.Concept,
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
@@ -150,7 +151,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val apiResource = api.Resource(
       id = resourceUUID.toString,
-      resourceType = "concept",
+      resourceType = ResourceType.Concept,
       tags = List("a", "b", "c"),
       created = created,
       path = "/subject/1/topic/1/resource/4",
@@ -336,7 +337,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       Resource(
         id = folderUUID,
         feideId = "feideid",
-        resourceType = "article",
+        resourceType = ResourceType.Article,
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
@@ -346,7 +347,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     val expected =
       api.Resource(
         id = folderUUID.toString,
-        resourceType = "article",
+        resourceType = ResourceType.Article,
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
@@ -362,13 +363,18 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     when(clock.now()).thenReturn(created)
     val newResource1 =
       api.NewResource(
-        resourceType = "audio",
+        resourceType = ResourceType.Audio,
         path = "/subject/1/topic/1/resource/4",
         tags = Some(List("a", "b")),
         resourceId = "1"
       )
     val newResource2 =
-      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None, resourceId = "2")
+      api.NewResource(
+        resourceType = ResourceType.Audio,
+        path = "/subject/1/topic/1/resource/4",
+        tags = None,
+        resourceId = "2"
+      )
     val expected1 = ResourceDocument(tags = List("a", "b"), resourceId = "1")
     val expected2 = expected1.copy(tags = List.empty, resourceId = "2")
 

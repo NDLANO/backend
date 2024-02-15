@@ -13,7 +13,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.{CopyableFolder, CopyableResource}
+import no.ndla.myndla.model.domain.{CopyableFolder, CopyableResource, ResourceType}
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import scala.annotation.meta.field
@@ -123,7 +123,7 @@ case class UpdatedFolder(
 // format: off
 case class Resource(
     @(ApiModelProperty @field)(description = "Unique ID of the resource") id: String,
-    @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: String,
+    @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
     @(ApiModelProperty @field)(description = "When the resource was created") created: NDLADate,
     @(ApiModelProperty @field)(description = "List of tags") tags: List[String],
@@ -138,7 +138,9 @@ object Resource {
 }
 
 case class NewResource(
-    @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: String,
+    @(ApiModelProperty @field)(
+      description = "Type of the resource. (Article, Learningpath)"
+    ) resourceType: ResourceType,
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
     @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
     @(ApiModelProperty @field)(
