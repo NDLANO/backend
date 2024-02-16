@@ -1,10 +1,9 @@
 import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
-import sbt.Keys.{libraryDependencies, name}
+import sbt.Keys.libraryDependencies
 import sbtdocker.DockerPlugin
 import Dependencies.versions._
-import Dependencies._
 
 object draftapi extends Module {
   override val moduleName: String        = "draft-api"
@@ -30,6 +29,7 @@ object draftapi extends Module {
       "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV      % "test",
       "org.flywaydb"      % "flyway-core"                     % FlywayV
     ),
+    flexmark,
     awsS3,
     melody,
     elastic4s,

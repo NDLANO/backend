@@ -35,6 +35,7 @@ object Dependencies {
     val TestContainersV       = "1.17.6"
     val JsoupV                = "1.15.4"
     val JavaMelodyV           = "1.92.0"
+    val FlexmarkV             = "0.64.8"
 
     lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "4.0.3"
 
@@ -43,6 +44,14 @@ object Dependencies {
     lazy val hikari      = "com.zaxxer"       % "HikariCP"    % HikariConnectionPoolV
 
     lazy val sttp = "com.softwaremill.sttp.client3" %% "core" % SttpV
+
+    // Maybe remove flexmark when markdown migration is complete
+    lazy val flexmark: Seq[ModuleID] = Seq(
+      "com.vladsch.flexmark" % "flexmark"                       % FlexmarkV,
+      "com.vladsch.flexmark" % "flexmark-util-data"             % FlexmarkV,
+      "com.vladsch.flexmark" % "flexmark-ext-gfm-strikethrough" % FlexmarkV,
+      "com.vladsch.flexmark" % "flexmark-ext-superscript"       % FlexmarkV
+    )
 
     lazy val enumeratum       = "com.beachape" %% "enumeratum"        % "1.7.2"
     lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.2"

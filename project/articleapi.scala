@@ -29,6 +29,7 @@ object articleapi extends Module {
       "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"      % "flyway-core"                     % FlywayV
     ),
+    flexmark,
     melody,
     elastic4s,
     database,
