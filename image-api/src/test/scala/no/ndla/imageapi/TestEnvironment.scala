@@ -13,16 +13,13 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.imageapi.controller.{
   BaseImageController,
-  HealthController,
   ImageControllerV2,
   ImageControllerV3,
   InternController,
-  NdlaController,
   RawController
 }
 import no.ndla.imageapi.integration._
-import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump}
-import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation}
+import no.ndla.imageapi.model.api.ErrorHelpers
 import no.ndla.imageapi.repository._
 import no.ndla.imageapi.service._
 import no.ndla.imageapi.service.search.{
@@ -36,6 +33,7 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -53,7 +51,6 @@ trait TestEnvironment
     with ValidationService
     with ImageRepository
     with ReadService
-    with ImageMetaDomainDump
     with WriteService
     with AmazonClient
     with ImageStorageService
@@ -65,21 +62,18 @@ trait TestEnvironment
     with NdlaControllerBase
     with ImageControllerV2
     with ImageControllerV3
-    with HealthController
     with RawController
     with TagsService
     with ImageConverter
     with MockitoSugar
     with Clock
     with Props
-    with DBImageMetaInformation
     with ErrorHelpers
     with DBMigrator
-    with NdlaController
-    with ImagesApiInfo
     with TestData
-    with DBImageFile
-    with Random {
+    with Random
+    with Routes[Eff]
+    with NdlaMiddleware {
   val props    = new ImageApiProperties
   val TestData = new TestData
 
@@ -109,8 +103,9 @@ trait TestEnvironment
   var e4sClient              = mock[NdlaE4sClient]
   val searchConverterService = mock[SearchConverterService]
   val imageConverter         = mock[ImageConverter]
-  val healthController       = mock[HealthController]
 
   val clock  = mock[SystemClock]
   val random = mock[Random]
+
+  val services: List[Service[Eff]] = List.empty
 }

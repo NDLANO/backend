@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Uri, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2, ImageMetaInformationV3}
-import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageFileData, ImageMetaInformation, Sort}
+import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterService, TagSearchService}
@@ -30,10 +30,7 @@ trait ReadService {
     with ImageIndexService
     with ImageStorageService
     with TagSearchService
-    with SearchConverterService
-    with DBImageFile
-    with DBImageMetaInformation
-    with ImageMetaDomainDump =>
+    with SearchConverterService =>
   val readService: ReadService
 
   class ReadService extends StrictLogging {

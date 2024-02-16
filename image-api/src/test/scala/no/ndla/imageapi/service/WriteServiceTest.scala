@@ -9,8 +9,9 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.api.{Copyright, License}
-import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
+import no.ndla.common.model.api.{Copyright, License, Missing, UpdateWith}
+import no.ndla.common.model.domain.UploadedFile
+import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
 import no.ndla.common.model.domain.article.{Copyright => DomainCopyright}
 import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.domain
@@ -20,10 +21,9 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
-import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
@@ -31,7 +31,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val writeService     = new WriteService
   override val converterService = new ConverterService
   val newFileName               = "AbCdeF.mp3"
-  val fileMock1: FileItem       = mock[FileItem]
+  val fileMock1: UploadedFile   = mock[UploadedFile]
 
   val newImageMeta = NewImageMetaInformationV2(
     "title",
@@ -80,11 +80,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override def beforeEach(): Unit = {
-    when(fileMock1.getContentType).thenReturn(Some("image/jpeg"))
+    when(fileMock1.contentType).thenReturn(Some("image/jpeg"))
     val bytes = TestData.NdlaLogoImage.stream.readAllBytes()
-    when(fileMock1.get()).thenReturn(bytes)
-    when(fileMock1.size).thenReturn(1024)
-    when(fileMock1.name).thenReturn("file.jpg")
+    when(fileMock1.stream).thenReturn(new ByteArrayInputStream(bytes))
+    when(fileMock1.fileSize).thenReturn(1024)
+    when(fileMock1.fileName).thenReturn(Some("file.jpg"))
     when(random.string(any)).thenCallRealMethod()
 
     val applicationUrl = mock[HttpServletRequest]
@@ -140,7 +140,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("storeNewImage should return Failure if upload failes") {
-    when(validationService.validateImageFile(any[FileItem])).thenReturn(None)
+    when(validationService.validateImageFile(any)).thenReturn(None)
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Failure(new RuntimeException))
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
@@ -152,7 +152,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("storeNewImage should return Failure if validation fails") {
     reset(imageRepository, imageIndexService, imageStorage)
-    when(validationService.validateImageFile(any[FileItem])).thenReturn(None)
+    when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None)))
       .thenReturn(Failure(new ValidationException(errors = Seq())))
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
@@ -168,7 +168,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("storeNewImage should return Failure if failed to insert into database") {
-    when(validationService.validateImageFile(any[FileItem])).thenReturn(None)
+    when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
@@ -183,7 +183,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("storeNewImage should return Failure if failed to index image metadata") {
-    when(validationService.validateImageFile(any[FileItem])).thenReturn(None)
+    when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
@@ -204,7 +204,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("storeNewImage should return Failure if failed to index tag metadata") {
     val afterInsert = domainImageMeta.copy(id = Some(1))
-    when(validationService.validateImageFile(any[FileItem])).thenReturn(None)
+    when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
@@ -227,7 +227,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("storeNewImage should return Success if creation of new image file succeeded") {
     val afterInsert = domainImageMeta.copy(id = Some(1))
-    when(validationService.validateImageFile(any[FileItem])).thenReturn(None)
+    when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
@@ -299,7 +299,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "en",
       Some("Title"),
-      Right(Some("AltText")),
+      UpdateWith("AltText"),
       None,
       None,
       None,
@@ -325,7 +325,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "nb",
       Some("Title"),
-      Right(Some("AltText")),
+      UpdateWith("AltText"),
       None,
       None,
       None,
@@ -350,7 +350,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "nb",
       Some("Title"),
-      Right(Some("AltText")),
+      UpdateWith("AltText"),
       Some(
         Copyright(
           License("testLic", Some("License for testing"), None),
@@ -425,7 +425,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "nn",
       None,
-      Right(None),
+      Missing,
       None,
       None,
       None,
@@ -550,7 +550,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val upd = UpdateImageMetaInformation(
       language = "nb",
       title = Some("new title"),
-      alttext = Right(None),
+      alttext = Missing,
       copyright = None,
       tags = None,
       caption = None,
@@ -575,11 +575,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = "ndla124"
     )
 
-    val fileMock = mock[FileItem]
-    when(fileMock.name).thenReturn("someupload.jpg")
-    when(fileMock.getContentType).thenReturn(Some("image/jpg"))
-    when(fileMock.get()).thenReturn(TestData.NdlaLogoImage.stream.readAllBytes())
-    when(fileMock.size).thenReturn(1337)
+    val fileMock = mock[UploadedFile]
+    when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
+    when(fileMock.contentType).thenReturn(Some("image/jpg"))
+    when(fileMock.stream).thenReturn(TestData.NdlaLogoImage.stream)
+    when(fileMock.fileSize).thenReturn(1337)
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
@@ -638,7 +638,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val upd = UpdateImageMetaInformation(
       language = "nb",
       title = Some("new title"),
-      alttext = Right(None),
+      alttext = Missing,
       copyright = None,
       tags = None,
       caption = None,
@@ -662,11 +662,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = "ndla124"
     )
 
-    val fileMock = mock[FileItem]
-    when(fileMock.name).thenReturn("someupload.jpg")
-    when(fileMock.getContentType).thenReturn(Some("image/jpg"))
-    when(fileMock.get()).thenReturn(TestData.NdlaLogoImage.stream.readAllBytes())
-    when(fileMock.size).thenReturn(1337)
+    val fileMock = mock[UploadedFile]
+    when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
+    when(fileMock.contentType).thenReturn(Some("image/jpg"))
+    when(fileMock.stream).thenReturn(TestData.NdlaLogoImage.stream)
+    when(fileMock.fileSize).thenReturn(1337)
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))

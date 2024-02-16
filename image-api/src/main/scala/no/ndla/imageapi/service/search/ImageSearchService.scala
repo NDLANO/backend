@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
-import no.ndla.imageapi.model.domain.{DBImageMetaInformation, SearchResult, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.common.implicits._
 import no.ndla.language.Language
@@ -36,8 +36,7 @@ trait ImageSearchService {
     with SearchService
     with SearchConverterService
     with Props
-    with ErrorHelpers
-    with DBImageMetaInformation =>
+    with ErrorHelpers =>
   val imageSearchService: ImageSearchService
   class ImageSearchService extends StrictLogging with SearchService[(SearchableImage, MatchedLanguage)] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
@@ -177,7 +176,7 @@ trait ImageSearchService {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(new ResultWindowTooLargeException(ErrorHelpers.WindowTooLargeError.description))
+        Failure(new ResultWindowTooLargeException(ImageErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION))
       } else {
         val searchToExecute =
           search(searchIndex)

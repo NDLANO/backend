@@ -8,36 +8,32 @@
 
 package no.ndla.imageapi
 
-import com.typesafe.scalalogging.StrictLogging
-import no.ndla.network.scalatra.NdlaScalatraServer
-import org.eclipse.jetty.server.Server
+import no.ndla.common.Warmup
+import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(props: ImageApiProperties) extends StrictLogging {
+class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain[Eff] {
   val componentRegistry = new ComponentRegistry(props)
 
-  def startServer(): Server = {
-    new NdlaScalatraServer[ImageApiProperties, ComponentRegistry](
-      "no.ndla.imageapi.ScalatraBootstrap",
-      componentRegistry, {
-        logger.info("Starting DB Migration")
-        val DbStartMillis = System.currentTimeMillis()
-        componentRegistry.migrator.migrate(): Unit
-        logger.info(s"Done DB Migration took ${System.currentTimeMillis() - DbStartMillis} ms")
+  private def warmupRequest = (path: String, options: Map[String, String]) =>
+    Warmup.warmupRequest(props.ApplicationPort, path, options)
 
-        componentRegistry.imageSearchService.createEmptyIndexIfNoIndexesExist()
-        componentRegistry.tagSearchService.createEmptyIndexIfNoIndexesExist()
-      },
-      warmupRequest => {
-        warmupRequest("/image-api/v2/images", Map("query" -> "norge", "fallback" -> "true"))
-        warmupRequest("/image-api/v2/images/1", Map("language" -> "nb"))
-        warmupRequest("/image-api/raw/id/1", Map.empty)
-        warmupRequest("/health", Map.empty)
-      }
-    )
+  override def warmup(): Unit = {
+    warmupRequest("/image-api/v2/images", Map("query" -> "norge", "fallback" -> "true"))
+    warmupRequest("/image-api/v2/images/1", Map("language" -> "nb"))
+    warmupRequest("/image-api/raw/id/1", Map.empty)
+    warmupRequest("/health", Map.empty)
   }
 
-  def start(): Unit = {
-    val server = startServer()
-    server.join()
+  override def beforeStart(): Unit = {
+    logger.info("Starting DB Migration")
+    val DbStartMillis = System.currentTimeMillis()
+    componentRegistry.migrator.migrate(): Unit
+    logger.info(s"Done DB Migration took ${System.currentTimeMillis() - DbStartMillis} ms")
+
+    componentRegistry.imageSearchService.createEmptyIndexIfNoIndexesExist()
+    componentRegistry.tagSearchService.createEmptyIndexIfNoIndexesExist()
   }
+
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
+    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

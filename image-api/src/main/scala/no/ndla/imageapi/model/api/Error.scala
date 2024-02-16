@@ -7,10 +7,23 @@
 
 package no.ndla.imageapi.model.api
 
-import no.ndla.common.DateParser
+import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
+import no.ndla.common.{Clock, DateParser}
 
 import java.time.LocalDateTime
 import no.ndla.imageapi.Props
+import no.ndla.imageapi.integration.DataSource
+import no.ndla.imageapi.model.{
+  ImageNotFoundException,
+  ImageStorageException,
+  ImportException,
+  InvalidUrlException,
+  ResultWindowTooLargeException
+}
+import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
+import org.postgresql.util.PSQLException
+import org.scalatra.servlet.SizeConstraintExceededException
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -23,49 +36,38 @@ case class Error(
       DateParser.dateToString(LocalDateTime.now(), withMillis = false)
 )
 
-trait ErrorHelpers {
-  this: Props =>
+trait ErrorHelpers extends TapirErrorHelpers {
+  this: Props with Clock with DataSource =>
 
-  object ErrorHelpers {
-    val GENERIC                = "GENERIC"
-    val NOT_FOUND              = "NOT FOUND"
-    val INDEX_MISSING          = "INDEX MISSING"
-    val VALIDATION             = "VALIDATION"
-    val FILE_TOO_BIG           = "FILE TOO BIG"
-    val ACCESS_DENIED          = "ACCESS DENIED"
-    val GATEWAY_TIMEOUT        = "GATEWAY TIMEOUT"
-    val WINDOW_TOO_LARGE       = "RESULT WINDOW TOO LARGE"
-    val IMPORT_FAILED          = "IMPORT FAILED"
-    val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"
-    val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
-    val INVALID_URL            = "INVALID_URL"
+  import ErrorHelpers._
+  import ImageErrorHelpers._
+  override def handleErrors: PartialFunction[Throwable, AllErrors] = {
+    case v: ValidationException    => validationError(v)
+    case a: AccessDeniedException  => forbiddenMsg(a.getMessage)
+    case _: IndexNotFoundException => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 500)
+    case i: ImageNotFoundException => notFoundWithMsg(i.getMessage)
+    case b: ImportException        => errorBody(IMPORT_FAILED, b.getMessage, 422)
+    case iu: InvalidUrlException   => errorBody(INVALID_URL, iu.getMessage, 400)
+    case s: ImageStorageException =>
+      errorBody(GATEWAY_TIMEOUT, s.getMessage, 504)
+    case rw: ResultWindowTooLargeException =>
+      errorBody(WINDOW_TOO_LARGE, rw.getMessage, 422)
+    case _: SizeConstraintExceededException =>
+      errorBody(FILE_TOO_BIG, fileTooBigError, 413)
+    case _: PSQLException =>
+      DataSource.connectToDatabase()
+      errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)
+    case _: FileTooBigException => errorBody(FILE_TOO_BIG, fileTooBigError, 413)
+  }
 
-    val GenericError: Error = Error(
-      GENERIC,
-      s"Ooops. Something we didn't anticipate occurred. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-    )
-
-    val IndexMissingError: Error = Error(
-      INDEX_MISSING,
-      s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
-    )
-
-    val FileTooBigError: Error = Error(
-      FILE_TOO_BIG,
-      s"The file is too big. Max file size is ${props.MaxImageFileSizeBytes / 1024 / 1024} MiB"
-    )
-    val ImageNotFoundError: Error = Error(NOT_FOUND, s"Ooops. That image does not exists")
-
-    val WindowTooLargeError: Error = Error(
-      WINDOW_TOO_LARGE,
+  object ImageErrorHelpers {
+    val INVALID_URL     = "INVALID_URL"
+    val fileTooBigError = s"The file is too big. Max file size is ${props.MaxImageFileSizeBytes / 1024 / 1024} MiB"
+    val WINDOW_TOO_LARGE_DESCRIPTION =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
-    )
-    val DatabaseUnavailableError: Error =
-      Error(DATABASE_UNAVAILABLE, s"Database seems to be unavailable, retrying connection.")
-
-    val InvalidSearchContext: Error = Error(
-      INVALID_SEARCH_CONTEXT,
-      "The search-context specified was not expected. Please create one by searching from page 1."
-    )
   }
 }

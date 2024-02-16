@@ -47,6 +47,7 @@ trait TapirErrorHelpers extends StrictLogging {
     val REMOTE_ERROR           = "REMOTE ERROR"
     val WINDOW_TOO_LARGE       = "RESULT_WINDOW_TOO_LARGE"
     val RESOURCE_OUTDATED      = "RESOURCE_OUTDATED"
+    val GATEWAY_TIMEOUT        = "GATEWAY TIMEOUT"
 
     val PUBLISH = "PUBLISH"
 

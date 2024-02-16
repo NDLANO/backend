@@ -14,8 +14,6 @@ import io.lemonlabs.uri.UrlPath
 import no.ndla.common.model.{domain => commonDomain, api => commonApi}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{
-  DBImageFile,
-  DBImageMetaInformation,
   ImageFileData,
   ImageFileDataDocument,
   ImageMetaInformation,
@@ -35,7 +33,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with Props with DBImageFile with DBImageMetaInformation =>
+  this: Clock with Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {

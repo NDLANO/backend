@@ -8,6 +8,8 @@
 
 package no.ndla.imageapi.controller
 
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{api => commonApi}
@@ -19,19 +21,24 @@ import no.ndla.mapping.License.{CC_BY, getLicense}
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.jackson.Serialization._
-import org.scalatra.test.scalatest.ScalatraSuite
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
+class InternControllerTest extends UnitSuite with TestEnvironment {
 
-  override val converterService      = new ConverterService
-  implicit val swagger: ImageSwagger = new ImageSwagger
-  lazy val controller                = new InternController
-  addServlet(controller, "/*")
+  val serverPort: Int                           = findFreePort
+  override val converterService                 = new ConverterService
+  val controller                                = new InternController
+  override val services: List[InternController] = List(controller)
+
+  override def beforeAll(): Unit = {
+    IO { Routes.startJdkServer("InternControllerTest", serverPort) {} }.unsafeRunAndForget()
+    Thread.sleep(1000)
+  }
+
   val updated = NDLADate.of(2017, 4, 1, 12, 15, 32)
-
-  val BySa = getLicense(CC_BY.toString).get
+  val BySa    = getLicense(CC_BY.toString).get
 
   val DefaultApiImageMetaInformation = api.ImageMetaInformationV2(
     "1",
@@ -88,31 +95,38 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   )
 
   override def beforeEach() = {
-    reset(imageRepository, imageIndexService)
+    reset(clock, imageRepository, imageIndexService)
+    when(clock.now()).thenCallRealMethod()
   }
 
   test("That GET /extern/abc returns 404") {
     when(imageRepository.withExternalId(eqTo("abc"))).thenReturn(None)
-    get("/extern/abc") {
-      status should equal(404)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/intern/extern/abc")
+      )
+      .code
+      .code should be(404)
   }
 
   test("That GET /extern/123 returns 404 if 123 is not found") {
     when(imageRepository.withExternalId(eqTo("123"))).thenReturn(None)
-    get("/extern/123") {
-      status should equal(404)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123")
+      )
+      .code
+      .code should be(404)
   }
 
   test("That GET /extern/123 returns 200 and imagemeta when found") {
     implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
     when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Some(DefaultDomainImageMetaInformation))
-    get("/extern/123") {
-      status should equal(200)
-      body should equal(write(DefaultApiImageMetaInformation))
-    }
+    val res = simpleHttpClient
+      .send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123"))
+    res.code.code should be(200)
+    res.body should equal(write(DefaultApiImageMetaInformation))
   }
 
   test("That DELETE /index removes all indexes") {
@@ -120,10 +134,10 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(200)
-      body should equal("Deleted 3 indexes")
-    }
+    val res = simpleHttpClient
+      .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    res.code.code should be(200)
+    res.body should be("Deleted 3 indexes")
     verify(imageIndexService).findAllIndexes(props.SearchIndex)
     verify(imageIndexService).deleteIndexWithName(Some("index1"))
     verify(imageIndexService).deleteIndexWithName(Some("index2"))
@@ -138,10 +152,10 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(500)
-      body should equal("Failed to find indexes")
-    }
+    val res = simpleHttpClient
+      .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    res.code.code should equal(500)
+    res.body should equal("Failed to find indexes")
     verify(imageIndexService, never).deleteIndexWithName(any[Option[String]])
   }
 
@@ -154,15 +168,23 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
       .when(imageIndexService)
       .deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(500)
-      body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
-      )
-    }
+    val res = simpleHttpClient
+      .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    res.code.code should equal(500)
+    res.body should equal(
+      "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
+    )
     verify(imageIndexService).deleteIndexWithName(Some("index1"))
     verify(imageIndexService).deleteIndexWithName(Some("index2"))
     verify(imageIndexService).deleteIndexWithName(Some("index3"))
   }
 
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
+    }
+  }
 }

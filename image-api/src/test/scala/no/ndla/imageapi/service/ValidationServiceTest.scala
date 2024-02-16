@@ -10,16 +10,15 @@ package no.ndla.imageapi.service
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.domain.{Author, Tag, UploadedFile}
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
-import org.scalatra.servlet.FileItem
 
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
   override val validationService = new ValidationService
 
-  val fileMock  = mock[FileItem]
+  val fileMock  = mock[UploadedFile]
   def updated() = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val sampleImageMeta = new ImageMetaInformation(
@@ -55,7 +54,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validateImageFile returns a validation message if file has an unknown extension") {
     val fileName = "image.asdf"
-    when(fileMock.name).thenReturn(fileName)
+    when(fileMock.fileName).thenReturn(Some(fileName))
     val Some(result) = validationService.validateImageFile(fileMock)
 
     result.message.contains(s"The file $fileName does not have a known file extension") should be(true)
@@ -63,7 +62,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validateImageFile returns a validation message if content type is unknown") {
     val fileName = "image.jpg"
-    when(fileMock.name).thenReturn(fileName)
+    when(fileMock.fileName).thenReturn(Some(fileName))
     when(fileMock.contentType).thenReturn(Some("text/html"))
     val Some(result) = validationService.validateImageFile(fileMock)
 
@@ -72,7 +71,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validateImageFile returns None if image file is valid") {
     val fileName = "image.jpg"
-    when(fileMock.name).thenReturn(fileName)
+    when(fileMock.fileName).thenReturn(Some(fileName))
     when(fileMock.contentType).thenReturn(Some("image/jpeg"))
     validationService.validateImageFile(fileMock).isDefined should be(false)
   }

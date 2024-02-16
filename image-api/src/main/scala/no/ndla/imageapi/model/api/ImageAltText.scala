@@ -7,14 +7,17 @@
 
 package no.ndla.imageapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Alt-text of an image")
+@description("Alt-text of an image")
 case class ImageAltText(
-    @(ApiModelProperty @field)(description = "The alternative text for the image") alttext: String,
-    @(ApiModelProperty @field)(
-      description = "ISO 639-1 code that represents the language used in the alternative text"
-    ) language: String
+    @description("The alternative text for the image") alttext: String,
+    @description("ISO 639-1 code that represents the language used in the alternative text") language: String
 )
+
+object ImageAltText {
+  implicit val encoder: Encoder[ImageAltText] = deriveEncoder
+  implicit val decoder: Decoder[ImageAltText] = deriveDecoder
+}

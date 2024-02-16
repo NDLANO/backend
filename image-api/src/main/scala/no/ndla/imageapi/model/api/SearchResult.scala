@@ -7,34 +7,48 @@
 
 package no.ndla.imageapi.model.api
 
-import org.scalatra.swagger.annotations.ApiModel
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about search-results")
+@description("Information about search-results")
 case class SearchResult(
-    @(ApiModelProperty @field)(description = "The total number of images matching this query") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Option[Int],
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[ImageMetaSummary]
+    @description("The total number of images matching this query") totalCount: Long,
+    @description("For which page results are shown from") page: Option[Int],
+    @description("The number of results per page") pageSize: Int,
+    @description("The chosen search language") language: String,
+    @description("The search results") results: Seq[ImageMetaSummary]
 )
 
-@ApiModel(description = "Information about search-results")
+object SearchResult {
+  implicit val encoder: Encoder[SearchResult] = deriveEncoder
+  implicit val decoder: Decoder[SearchResult] = deriveDecoder
+}
+
+@description("Information about search-results")
 case class SearchResultV3(
-    @(ApiModelProperty @field)(description = "The total number of images matching this query") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Option[Int],
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[ImageMetaInformationV3]
+    @description("The total number of images matching this query") totalCount: Long,
+    @description("For which page results are shown from") page: Option[Int],
+    @description("The number of results per page") pageSize: Int,
+    @description("The chosen search language") language: String,
+    @description("The search results") results: Seq[ImageMetaInformationV3]
 )
 
-@ApiModel(description = "Information about tags-search-results")
+object SearchResultV3 {
+  implicit val encoder: Encoder[SearchResultV3] = deriveEncoder
+  implicit val decoder: Decoder[SearchResultV3] = deriveDecoder
+}
+
+@description("Information about tags-search-results")
 case class TagsSearchResult(
-    @(ApiModelProperty @field)(description = "The total number of tags matching this query") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Int,
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[String]
+    @description("The total number of tags matching this query") totalCount: Long,
+    @description("For which page results are shown from") page: Int,
+    @description("The number of results per page") pageSize: Int,
+    @description("The chosen search language") language: String,
+    @description("The search results") results: Seq[String]
 )
+
+object TagsSearchResult {
+  implicit val encoder: Encoder[TagsSearchResult] = deriveEncoder
+  implicit val decoder: Decoder[TagsSearchResult] = deriveDecoder
+}

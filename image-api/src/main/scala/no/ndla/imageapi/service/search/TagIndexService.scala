@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageMetaInformation}
+import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
@@ -20,12 +20,7 @@ import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
 trait TagIndexService {
-  this: SearchConverterService
-    with IndexService
-    with ImageRepository
-    with Props
-    with DBImageMetaInformation
-    with DBImageFile =>
+  this: SearchConverterService with IndexService with ImageRepository with Props =>
   val tagIndexService: TagIndexService
 
   class TagIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableTag] {

@@ -9,12 +9,12 @@ package no.ndla.common.model.domain
 
 import sttp.model.Part
 
-import java.io.{File, FileInputStream}
+import java.io.{File, FileInputStream, InputStream}
 import scala.util.Try
 
 case class UploadedFile(
     partName: String,
-    stream: FileInputStream,
+    stream: InputStream,
     fileName: Option[String],
     fileSize: Long,
     contentType: Option[String],

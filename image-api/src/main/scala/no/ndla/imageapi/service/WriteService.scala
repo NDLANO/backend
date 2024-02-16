@@ -13,7 +13,8 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits._
-import no.ndla.common.model.api.Deletable
+import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
+import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model._
@@ -29,7 +30,6 @@ import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
-import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
 import java.lang.Math.max
@@ -45,8 +45,6 @@ trait WriteService {
     with TagIndexService
     with Clock
     with Props
-    with DBImageFile
-    with DBImageMetaInformation
     with Random =>
   val writeService: WriteService
 
@@ -144,7 +142,7 @@ trait WriteService {
 
     def storeNewImage(
         newImage: NewImageMetaInformationV2,
-        file: FileItem,
+        file: UploadedFile,
         user: TokenUser
     ): Try[ImageMetaInformation] = {
       validationService.validateImageFile(file) match {
@@ -218,16 +216,20 @@ trait WriteService {
       val now    = clock.now()
       val userId = user.id
 
+      val alttexts = toMerge.alttext match {
+        case Missing => existing.alttexts
+        case Delete  => existing.alttexts.filterNot(_.language == toMerge.language)
+        case UpdateWith(value) =>
+          existing.alttexts
+            .filterNot(_.language == toMerge.language) :+ converterService.asDomainAltText(value, toMerge.language)
+      }
+
       val newImageMeta = existing.copy(
         titles = mergeLanguageFields(
           existing.titles,
           toMerge.title.toSeq.map(t => converterService.asDomainTitle(t, toMerge.language))
         ),
-        alttexts = mergeDeletableLanguageFields(
-          existing.alttexts,
-          toMerge.alttext.map(_.map(converterService.asDomainAltText(_, toMerge.language))),
-          toMerge.language
-        ),
+        alttexts = alttexts,
         copyright = toMerge.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(existing.copyright),
         tags = mergeTags(existing.tags, toMerge.tags.toSeq.map(t => converterService.toDomainTag(t, toMerge.language))),
         captions = mergeLanguageFields(
@@ -295,7 +297,7 @@ trait WriteService {
 
     private def updateImageFile(
         imageId: Long,
-        newFile: FileItem,
+        newFile: UploadedFile,
         oldImage: ImageMetaInformation,
         language: String,
         user: TokenUser
@@ -335,7 +337,7 @@ trait WriteService {
     private[service] def updateImageAndFile(
         imageId: Long,
         updateMeta: UpdateImageMetaInformation,
-        newFile: Option[FileItem],
+        newFile: Option[UploadedFile],
         user: TokenUser
     ): Try[domain.ImageMetaInformation] = {
       imageRepository.withId(imageId) match {
@@ -361,7 +363,7 @@ trait WriteService {
     def updateImage(
         imageId: Long,
         updateMeta: UpdateImageMetaInformation,
-        newFile: Option[FileItem],
+        newFile: Option[UploadedFile],
         user: TokenUser
     ): Try[ImageMetaInformationV2] =
       for {
@@ -376,7 +378,7 @@ trait WriteService {
     def updateImageV3(
         imageId: Long,
         updateMeta: UpdateImageMetaInformation,
-        newFile: Option[FileItem],
+        newFile: Option[UploadedFile],
         user: TokenUser
     ): Try[ImageMetaInformationV3] =
       for {
@@ -391,9 +393,9 @@ trait WriteService {
       }
     }
 
-    private def uploadImageWithName(file: FileItem, fileName: String): Try[UploadedImage] = {
-      val contentType = file.getContentType.getOrElse("")
-      val bytes       = file.get()
+    private def uploadImageWithName(file: UploadedFile, fileName: String): Try[UploadedImage] = {
+      val contentType = file.contentType.getOrElse("")
+      val bytes       = file.stream.readAllBytes()
       val image       = Try(Option(ImageIO.read(new ByteArrayInputStream(bytes))))
 
       val dimensions = image match {
@@ -412,12 +414,12 @@ trait WriteService {
       }
 
       imageStorage
-        .uploadFromStream(new ByteArrayInputStream(bytes), fileName, contentType, file.size)
-        .map(filePath => UploadedImage(filePath, file.size, contentType, dimensions))
+        .uploadFromStream(new ByteArrayInputStream(bytes), fileName, contentType, file.fileSize)
+        .map(filePath => UploadedImage(filePath, file.fileSize, contentType, dimensions))
     }
 
-    private[service] def uploadImage(file: FileItem): Try[UploadedImage] = {
-      val extension = getFileExtension(file.name).getOrElse("")
+    private[service] def uploadImage(file: UploadedFile): Try[UploadedImage] = {
+      val extension = file.fileName.flatMap(getFileExtension).getOrElse("")
       val fileName  = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
       uploadImageWithName(file, fileName)
     }

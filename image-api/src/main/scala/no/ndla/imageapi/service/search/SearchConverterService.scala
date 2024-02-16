@@ -12,13 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary, ImageTitle}
-import no.ndla.imageapi.model.domain.{
-  DBImageFile,
-  DBImageMetaInformation,
-  ImageFileData,
-  ImageMetaInformation,
-  SearchResult
-}
+import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, SearchResult}
 import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.imageapi.model.search.{SearchableImage, SearchableImageFile, SearchableTag}
 import no.ndla.imageapi.service.ConverterService
@@ -35,7 +29,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
-  this: ConverterService with Props with DBImageMetaInformation with DBImageFile =>
+  this: ConverterService with Props =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {

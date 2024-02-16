@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{FileTooBigException, ValidationException}
 import no.ndla.draftapi.{Eff, Props}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api._
