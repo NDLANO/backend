@@ -127,6 +127,15 @@
               "data-title"
             ]
           }
+        },
+        {
+          "name": "data-alt",
+          "validation": {
+            "required": false,
+            "mustCoexistWith": [
+              "data-imageid"
+            ]
+          }
         }
       ]
     },
