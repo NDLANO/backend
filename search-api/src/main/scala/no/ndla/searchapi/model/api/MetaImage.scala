@@ -6,19 +6,22 @@
  */
 
 package no.ndla.searchapi.model.api
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.language.model.LanguageField
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Meta image of the resource")
+@description("Meta image of the resource")
 case class MetaImage(
-    @(ApiModelProperty @field)(description = "The meta image id") url: String,
-    @(ApiModelProperty @field)(description = "The meta image alt text") alt: String,
-    @(ApiModelProperty @field)(
-      description = "The ISO 639-1 language code describing which translation this meta image belongs to"
-    ) language: String
+    @description("The meta image id") url: String,
+    @description("The meta image alt text") alt: String,
+    @description("The ISO 639-1 language code describing which translation this meta image belongs to") language: String
 ) extends LanguageField[(String, String)] {
   override def value: (String, String) = url -> alt
   override def isEmpty: Boolean        = url.isEmpty || alt.isEmpty
+}
+
+object MetaImage {
+  implicit val encoder: Encoder[MetaImage] = deriveEncoder
+  implicit val decoder: Decoder[MetaImage] = deriveDecoder
 }

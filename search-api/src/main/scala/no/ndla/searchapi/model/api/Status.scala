@@ -7,12 +7,17 @@
 
 package no.ndla.searchapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Status information of the resource")
+@description("Status information of the resource")
 case class Status(
-    @(ApiModelProperty @field)(description = "The current status of the resource") current: String,
-    @(ApiModelProperty @field)(description = "Previous statuses this resource has been in") other: Seq[String]
+    @description("The current status of the resource") current: String,
+    @description("Previous statuses this resource has been in") other: Seq[String]
 )
+
+object Status {
+  implicit val encoder: Encoder[Status] = deriveEncoder
+  implicit val decoder: Decoder[Status] = deriveDecoder
+}

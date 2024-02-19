@@ -7,15 +7,20 @@
 
 package no.ndla.searchapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Taxonomy resource type")
+@description("Taxonomy resource type")
 case class TaxonomyResourceType(
-    @(ApiModelProperty @field)(description = "Id of the taoxonomy resource type") id: String,
-    @(ApiModelProperty @field)(description = "Name of the subject this context is in") name: String,
-    @(ApiModelProperty @field)(
-      description = "The ISO 639-1 language code describing which article translation this visual element belongs to"
+    @description("Id of the taoxonomy resource type") id: String,
+    @description("Name of the subject this context is in") name: String,
+    @description(
+      "The ISO 639-1 language code describing which article translation this visual element belongs to"
     ) language: String
 )
+
+object TaxonomyResourceType {
+  implicit val encoder: Encoder[TaxonomyResourceType] = deriveEncoder
+  implicit val decoder: Decoder[TaxonomyResourceType] = deriveDecoder
+}

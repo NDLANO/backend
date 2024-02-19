@@ -27,7 +27,7 @@ object searchapi extends Module {
     ),
     melody,
     elastic4s,
-    scalatra,
+    tapirHttp4sCirce,
     vulnerabilityOverrides
   )
 

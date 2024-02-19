@@ -1,0 +1,128 @@
+/*
+ * Part of NDLA search-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ */
+
+package no.ndla.searchapi.controller.parameters
+
+import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
+import no.ndla.language.Language
+import no.ndla.searchapi.model.domain.Sort
+import sttp.tapir.EndpointIO.annotations._
+
+  // format: off
+  case class DraftSearchParams(
+      @description("The page number of the search hits to display.")
+      page: Int = 1,
+
+      @description(s"The number of search hits to display for each page.")
+      pageSize: Int = 10,
+
+      @description("A list of article-types the search should be filtered by.")
+      articleTypes: List[String] = List.empty,
+
+      @description("A list of context-types the learning resources should be filtered by.")
+      contextTypes: List[String] = List.empty,
+
+      @description("The ISO 639-1 language code describing language.")
+      language: String = Language.AllLanguages,
+
+      @description("Return only learning resources that have one of the provided ids.")
+      learningResourceIds: List[Long] = List.empty,
+
+      @description("Return only learning resources of specific type(s).")
+      resourceTypes: List[String] = List.empty,
+
+      @description("Return only results with provided license.")
+      license: Option[String],
+
+      @description("Return only results with content matching the specified query.")
+      query: Option[String],
+
+      @description("Return only results with notes matching the specified note-query.")
+      noteQuery: Option[String],
+
+      @description("The sorting used on results.")
+      sort: Option[Sort],
+
+      @description("Fallback to existing language if language is specified.")
+      fallback: Boolean = false,
+
+      @description("A comma separated list of subjects the learning resources should be filtered by.")
+      subjects: List[String] = List.empty,
+
+      @description("A list of ISO 639-1 language codes that the learning resource can be available in.")
+      languageFilter: List[String] = List.empty,
+
+      @description(
+        """A list of relevances the learning resources should be filtered by.
+          |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
+          |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin)
+      relevanceFilter: List[String] = List.empty,
+
+
+      @description(
+        s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ["0", "initial", "start", "first"].
+           |When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
+           |This value may change between scrolls. Always use the one in the latest scroll result.
+           |""".stripMargin)
+      scrollId: Option[String],
+
+      @description("List of statuses to filter by. A draft only needs to have one of the available statuses to be included in result (OR).")
+      draftStatus: List[String] = List.empty,
+
+      @description(
+        s"""List of users to filter by.
+         |The value to search for is the user-id from Auth0.
+         |UpdatedBy on article and user in editorial-notes are searched.""".stripMargin)
+      users: List[String] = List.empty,
+
+      @description("A list of codes from GREP API the resources should be filtered by.")
+      grepCodes: List[String] = List.empty,
+
+      @description("List of index-paths that should be term-aggregated and returned in result.")
+      aggregatePaths: List[String] = List.empty,
+
+      @description("Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types.")
+      embedResource: List[String] = List.empty,
+
+      @description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
+      embedId: Option[String],
+
+      @description("Whether or not to include the 'other' status field when filtering with 'status' param.")
+      includeOtherStatuses: Boolean = false,
+
+      @description("Return only results having next revision after this date.")
+      revisionDateFilterFrom: Option[NDLADate],
+
+      @description("Return only results having next revision before this date.")
+      revisionDateFilterTo: Option[NDLADate],
+
+      @description("Set to true to avoid including hits from the revision history log.")
+      excludeRevisionLog: Boolean = false,
+
+      @description("List of responsible ids to filter by (OR filter).")
+      responsibleIds: List[String] = List.empty,
+
+      @description("Filter out inactive taxonomy contexts.")
+      filterInactive: Boolean = false,
+
+      @description("Set to true to only return prioritized articles")
+      prioritized: Option[Boolean],
+
+      @description("List of priority-levels to filter by.")
+      priorityFilter: List[String] = List.empty,
+
+      @description("A list of parent topics the learning resources should be filtered by.")
+      topics: List[String] = List.empty
+)
+
+object DraftSearchParams {
+  import no.ndla.network.tapir.NoNullJsonPrinter._
+  implicit val encoder: Encoder[DraftSearchParams] = deriveConfiguredEncoder
+  implicit val decoder: Decoder[DraftSearchParams] = deriveConfiguredDecoder
+}

@@ -9,6 +9,7 @@ package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.language.Language
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 
 case class MultiDraftSearchSettings(
@@ -45,3 +46,40 @@ case class MultiDraftSearchSettings(
     prioritized: Option[Boolean],
     priority: List[String]
 )
+
+object MultiDraftSearchSettings {
+  def default: MultiDraftSearchSettings = MultiDraftSearchSettings(
+    query = None,
+    noteQuery = None,
+    fallback = false,
+    language = Language.AllLanguages,
+    license = None,
+    page = 1,
+    pageSize = 10,
+    sort = Sort.ByRelevanceDesc,
+    withIdIn = List.empty,
+    subjects = List.empty,
+    topics = List.empty,
+    resourceTypes = List.empty,
+    learningResourceTypes = List.empty,
+    supportedLanguages = List.empty,
+    relevanceIds = List.empty,
+    statusFilter = List.empty,
+    userFilter = List.empty,
+    grepCodes = List.empty,
+    shouldScroll = false,
+    searchDecompounded = false,
+    aggregatePaths = List.empty,
+    embedResource = List.empty,
+    embedId = None,
+    includeOtherStatuses = false,
+    revisionDateFilterFrom = None,
+    revisionDateFilterTo = None,
+    excludeRevisionHistory = false,
+    responsibleIdFilter = List.empty,
+    articleTypes = List.empty,
+    filterInactive = false,
+    prioritized = None,
+    priority = List.empty
+  )
+}

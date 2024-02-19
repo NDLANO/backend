@@ -7,20 +7,23 @@
 
 package no.ndla.searchapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.search.api.MultiSearchTermsAggregation
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-// format: off
-@ApiModel(description = "Information about search-results")
+@description("Information about search-results")
 case class MultiSearchResult(
-    @(ApiModelProperty @field)(description = "The total number of resources matching this query") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Option[Int],
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[MultiSearchSummary],
-    @(ApiModelProperty @field)(description = "The suggestions for other searches") suggestions: Seq[MultiSearchSuggestion],
-    @(ApiModelProperty @field)(description = "The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregation]
+    @description("The total number of resources matching this query") totalCount: Long,
+    @description("For which page results are shown from") page: Option[Int],
+    @description("The number of results per page") pageSize: Int,
+    @description("The chosen search language") language: String,
+    @description("The search results") results: Seq[MultiSearchSummary],
+    @description("The suggestions for other searches") suggestions: Seq[MultiSearchSuggestion],
+    @description("The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregation]
 )
-// format: on
+
+object MultiSearchResult {
+  implicit val encoder: Encoder[MultiSearchResult] = deriveEncoder
+  implicit val decoder: Decoder[MultiSearchResult] = deriveDecoder
+}
