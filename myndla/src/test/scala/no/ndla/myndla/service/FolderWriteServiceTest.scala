@@ -14,7 +14,15 @@ import no.ndla.myndla.{TestData, TestEnvironment}
 import no.ndla.myndla.model.api.{FolderSortRequest, NewFolder, NewResource}
 import no.ndla.myndla.model.api
 import no.ndla.myndla.model.domain.FolderSortObject.FolderSorting
-import no.ndla.myndla.model.domain.{Folder, FolderAndDirectChildren, FolderResource, FolderStatus, Resource, UserRole}
+import no.ndla.myndla.model.domain.{
+  Folder,
+  FolderAndDirectChildren,
+  FolderResource,
+  FolderStatus,
+  Resource,
+  ResourceType,
+  UserRole
+}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
@@ -272,13 +280,14 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val folderId     = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
-    val newResource  = NewResource(resourceType = "", path = resourcePath, tags = None, resourceId = "1")
+    val newResource =
+      NewResource(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
     val resource =
       Resource(
         id = resourceId,
         feideId = feideId,
         path = resourcePath,
-        resourceType = "",
+        resourceType = ResourceType.Article,
         created = created,
         tags = List.empty,
         resourceId = "1",
@@ -301,11 +310,21 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       )(mock[DBSession])
       .isSuccess should be(true)
 
-    verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
+    verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(
+      eqTo(resourcePath),
+      eqTo(ResourceType.Article),
+      eqTo(feideId)
+    )(
       any
     )
     verify(folderConverterService, times(1)).toDomainResource(eqTo(newResource))
-    verify(folderRepository, times(1)).insertResource(eqTo(feideId), eqTo(resourcePath), eqTo(""), any, any)(any)
+    verify(folderRepository, times(1)).insertResource(
+      eqTo(feideId),
+      eqTo(resourcePath),
+      eqTo(ResourceType.Article),
+      any,
+      any
+    )(any)
     verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any)(any)
     verify(folderConverterService, times(0)).mergeResource(any, any[NewResource])
     verify(folderRepository, times(0)).updateResource(any)(any)
@@ -321,13 +340,14 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val folderId     = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
-    val newResource  = NewResource(resourceType = "", path = resourcePath, tags = None, resourceId = "1")
+    val newResource =
+      NewResource(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
     val resource =
       Resource(
         id = resourceId,
         feideId = feideId,
         path = resourcePath,
-        resourceType = "",
+        resourceType = ResourceType.Article,
         created = created,
         tags = List.empty,
         resourceId = "1",
@@ -351,7 +371,11 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       )(mock[DBSession])
       .get
 
-    verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
+    verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(
+      eqTo(resourcePath),
+      eqTo(ResourceType.Article),
+      eqTo(feideId)
+    )(
       any
     )
     verify(folderConverterService, times(0)).toDomainResource(eqTo(newResource))

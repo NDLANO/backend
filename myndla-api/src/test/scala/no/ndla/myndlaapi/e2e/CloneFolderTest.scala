@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.e2e
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.api
 import no.ndla.myndla.model.api.Breadcrumb
@@ -42,7 +43,8 @@ class CloneFolderTest
       JavaTimeSerializers.all ++
       JavaTypesSerializers.all +
       new EnumNameSerializer(UserRole) +
-      NDLADate.Json4sSerializer
+      NDLADate.Json4sSerializer +
+      Json4s.serializer(ResourceType)
 
   val myndlaApiPort: Int          = findFreePort
   val pgc: PostgreSQLContainer[_] = postgresContainer.get
@@ -162,7 +164,7 @@ class CloneFolderTest
     folderRepository.insertFolder(feideId, folderData = pChild2)
 
     val document = ResourceDocument(tags = List("a", "b"), resourceId = "1")
-    val rId      = folderRepository.insertResource(feideId, "/path", "article", testClock.now(), document).get.id
+    val rId = folderRepository.insertResource(feideId, "/path", ResourceType.Article, testClock.now(), document).get.id
     folderRepository.createFolderResourceConnection(pId, rId, 1)
 
     pId
@@ -211,7 +213,7 @@ class CloneFolderTest
 
     val parentChild3 = api.Resource(
       id = customId,
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = testClock.now(),
       tags = List(), // No tags since we are not owner
@@ -321,7 +323,7 @@ class CloneFolderTest
 
     val parentChild3 = api.Resource(
       id = customId,
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = testClock.now(),
       tags = List(), // No tags since we are not owner
@@ -424,7 +426,7 @@ class CloneFolderTest
 
     val parentChild3 = api.Resource(
       id = customId,
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = testClock.now(),
       tags = List(), // No tags since we are not owner

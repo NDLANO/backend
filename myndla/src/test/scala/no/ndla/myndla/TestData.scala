@@ -16,6 +16,7 @@ import no.ndla.myndla.model.domain.{
   NewFolderData,
   Resource,
   ResourceDocument,
+  ResourceType,
   UserRole
 }
 
@@ -27,7 +28,7 @@ object TestData {
   val emptyDomainResource: Resource = Resource(
     id = UUID.randomUUID(),
     feideId = "",
-    resourceType = "",
+    resourceType = ResourceType.Article,
     path = "",
     created = NDLADate.now(),
     tags = List.empty,

@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api.{Error, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
@@ -21,6 +22,7 @@ import no.ndla.myndla.model.api.{
   UpdatedResource
 }
 import no.ndla.myndla.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
+import no.ndla.myndla.model.domain.ResourceType
 import no.ndla.myndla.service.{FolderReadService, FolderWriteService}
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
@@ -44,7 +46,11 @@ trait FolderController {
 
   class FolderController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats =
-      DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all + NDLADate.Json4sSerializer
+      DefaultFormats ++
+        JavaTimeSerializers.all ++
+        JavaTypesSerializers.all +
+        NDLADate.Json4sSerializer +
+        Json4s.serializer(ResourceType)
 
     protected val applicationDescription = "API for accessing My NDLA from ndla.no."
 

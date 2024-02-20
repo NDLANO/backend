@@ -8,12 +8,13 @@
 
 package no.ndla.learningpathapi.e2e
 
+import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api.{Error => apiError}
 import no.ndla.myndla.model.api
 import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, UnitSuite}
 import no.ndla.myndla.model.api.Breadcrumb
-import no.ndla.myndla.model.domain.{Folder, FolderStatus, NewFolderData, ResourceDocument, UserRole}
+import no.ndla.myndla.model.domain.{Folder, FolderStatus, NewFolderData, ResourceDocument, ResourceType, UserRole}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.eclipse.jetty.server.Server
@@ -41,7 +42,8 @@ class CloneFolderTest
       JavaTimeSerializers.all ++
       JavaTypesSerializers.all +
       new EnumNameSerializer(UserRole) +
-      NDLADate.Json4sSerializer
+      NDLADate.Json4sSerializer +
+      Json4s.serializer(ResourceType)
 
   val learningpathApiPort: Int    = findFreePort
   val pgc: PostgreSQLContainer[_] = postgresContainer.get
@@ -149,7 +151,7 @@ class CloneFolderTest
     folderRepository.insertFolder(feideId, folderData = pChild2)
 
     val document = ResourceDocument(tags = List("a", "b"), resourceId = "1")
-    val rId      = folderRepository.insertResource(feideId, "/path", "article", testClock.now(), document).get.id
+    val rId = folderRepository.insertResource(feideId, "/path", ResourceType.Article, testClock.now(), document).get.id
     folderRepository.createFolderResourceConnection(pId, rId, 1)
 
     pId
@@ -198,7 +200,7 @@ class CloneFolderTest
 
     val parentChild3 = api.Resource(
       id = customId,
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = testClock.now(),
       tags = List(), // No tags since we are not owner
@@ -307,7 +309,7 @@ class CloneFolderTest
 
     val parentChild3 = api.Resource(
       id = customId,
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = testClock.now(),
       tags = List(), // No tags since we are not owner
@@ -410,7 +412,7 @@ class CloneFolderTest
 
     val parentChild3 = api.Resource(
       id = customId,
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = testClock.now(),
       tags = List(), // No tags since we are not owner

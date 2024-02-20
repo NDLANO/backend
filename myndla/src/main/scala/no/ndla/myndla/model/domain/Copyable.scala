@@ -19,7 +19,7 @@ trait CopyableFolder {
 }
 
 trait CopyableResource {
-  val resourceType: String
+  val resourceType: ResourceType
   val path: String
   val tags: List[String]
   val resourceId: String

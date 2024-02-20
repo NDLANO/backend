@@ -10,7 +10,7 @@ package no.ndla.myndla.service
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.myndla.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomainResource}
 import no.ndla.myndla.{TestData, TestEnvironment}
-import no.ndla.myndla.model.domain.{Folder, FolderStatus, MyNDLAGroup, MyNDLAUser, Resource, UserRole}
+import no.ndla.myndla.model.domain.{Folder, FolderStatus, MyNDLAGroup, MyNDLAUser, Resource, ResourceType, UserRole}
 import no.ndla.myndla.model.api
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.invocation.InvocationOnMock
@@ -91,7 +91,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val resource1 = Resource(
       id = resource1UUID,
       feideId = "",
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/subject/1/topic/1/resource/4",
       created = created,
       tags = List.empty,
@@ -108,7 +108,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       resources = List(
         api.Resource(
           id = resource1UUID.toString,
-          resourceType = "article",
+          resourceType = ResourceType.Article,
           tags = List.empty,
           path = "/subject/1/topic/1/resource/4",
           created = created,
@@ -395,7 +395,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       id = resourceUUID,
       feideId = ownerId,
       tags = List("a", "b"),
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = TestData.today
     )
@@ -408,7 +408,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
     val apiResource = api.Resource(
       id = resourceUUID.toString,
-      resourceType = "article",
+      resourceType = ResourceType.Article,
       path = "/path",
       created = TestData.today,
       tags = List("a", "b"),

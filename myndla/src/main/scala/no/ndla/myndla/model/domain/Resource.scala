@@ -8,6 +8,8 @@
 package no.ndla.myndla.model.domain
 
 import cats.implicits._
+import enumeratum._
+import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.network.model.FeideID
 import org.json4s.FieldSerializer._
@@ -22,7 +24,7 @@ case class ResourceDocument(tags: List[String], resourceId: String) {
   def toFullResource(
       id: UUID,
       path: String,
-      resourceType: String,
+      resourceType: ResourceType,
       feideId: String,
       created: NDLADate,
       connection: Option[FolderResource]
@@ -39,12 +41,26 @@ case class ResourceDocument(tags: List[String], resourceId: String) {
     )
 }
 
+sealed abstract class ResourceType(override val entryName: String) extends EnumEntry {}
+
+object ResourceType extends Enum[ResourceType] with CirceEnum[ResourceType] {
+  override val values: IndexedSeq[ResourceType] = findValues
+
+  case object Concept           extends ResourceType("concept")
+  case object Image             extends ResourceType("image")
+  case object Audio             extends ResourceType("audio")
+  case object Multidisciplinary extends ResourceType("multidisciplinary")
+  case object Article           extends ResourceType("article")
+  case object Learningpath      extends ResourceType("learningpath")
+  case object Video             extends ResourceType("video")
+}
+
 case class Resource(
     id: UUID,
     feideId: FeideID,
     created: NDLADate,
     path: String,
-    resourceType: String,
+    resourceType: ResourceType,
     tags: List[String],
     resourceId: String,
     connection: Option[FolderResource]
@@ -88,11 +104,14 @@ object DBResource extends SQLSyntaxSupport[Resource] {
 
     for {
       id <- rs.get[Try[UUID]](colNameWrapper("id"))
-      jsonString   = rs.string(colNameWrapper("document"))
-      feideId      = rs.string(colNameWrapper("feide_id"))
-      created      = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
-      path         = rs.string(colNameWrapper("path"))
-      resourceType = rs.string(colNameWrapper("resource_type"))
+      jsonString      = rs.string(colNameWrapper("document"))
+      feideId         = rs.string(colNameWrapper("feide_id"))
+      created         = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
+      path            = rs.string(colNameWrapper("path"))
+      resourceTypeStr = rs.string(colNameWrapper("resource_type"))
+      resourceType <- ResourceType
+        .withNameOption(resourceTypeStr)
+        .toTry(NDLASQLException(s"Invalid resource type when reading resource with id '$id' from database"))
       metaData <- Try(read[ResourceDocument](jsonString))
 
     } yield metaData.toFullResource(id, path, resourceType, feideId, created, connection)
