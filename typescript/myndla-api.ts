@@ -10,6 +10,14 @@ export interface IArenaUser {
   groups: ArenaGroup[]
 }
 
+export interface IArticle {
+  type: "Article"
+}
+
+export interface IAudio {
+  type: "Audio"
+}
+
 export interface IBreadcrumb {
   id: string
   name: string
@@ -38,6 +46,10 @@ export interface ICategoryWithTopics {
   isFollowing: boolean
   visible: boolean
   rank: number
+}
+
+export interface IConcept {
+  type: "Concept"
 }
 
 export interface IConfigMeta {
@@ -78,6 +90,18 @@ export interface IFolder {
 }
 
 export type IFolderData = IFolder
+
+export interface IImage {
+  type: "Image"
+}
+
+export interface ILearningpath {
+  type: "Learningpath"
+}
+
+export interface IMultidisciplinary {
+  type: "Multidisciplinary"
+}
 
 export interface IMyNDLAGroup {
   id: string
@@ -132,7 +156,7 @@ export interface INewPostNotification {
 }
 
 export interface INewResource {
-  resourceType: string
+  resourceType: ResourceType
   path: string
   tags?: string[]
   resourceId: string
@@ -189,7 +213,7 @@ export interface IPost {
 
 export interface IResource {
   id: string
-  resourceType: string
+  resourceType: ResourceType
   path: string
   created: string
   tags: string[]
@@ -258,3 +282,11 @@ export interface IUpdatedResource {
   tags?: string[]
   resourceId?: string
 }
+
+export interface IVideo {
+  type: "Video"
+}
+
+export type ResourceType = (IMultidisciplinary | IAudio | IArticle | ILearningpath | IVideo | IConcept | IImage)
+
+export type ResourceType = (IConcept | ILearningpath | IMultidisciplinary | IArticle | IVideo | IAudio | IImage)

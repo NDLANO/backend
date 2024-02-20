@@ -2,6 +2,14 @@
 
 export type ArenaGroup = "ADMIN"
 
+export interface IArticle {
+  type: "Article"
+}
+
+export interface IAudio {
+  type: "Audio"
+}
+
 export interface IAuthor {
   type: string
   name: string
@@ -10,6 +18,10 @@ export interface IAuthor {
 export interface IBreadcrumb {
   id: string
   name: string
+}
+
+export interface IConcept {
+  type: "Concept"
 }
 
 export interface IConfigMeta {
@@ -67,6 +79,10 @@ export interface IFolder {
 }
 
 export type IFolderData = IFolder
+
+export interface IImage {
+  type: "Image"
+}
 
 export interface IIntroduction {
   introduction: string
@@ -166,6 +182,10 @@ export interface ILearningStepV2 {
   supportedLanguages: string[]
 }
 
+export interface ILearningpath {
+  type: "Learningpath"
+}
+
 export interface ILicense {
   license: string
   description?: string
@@ -175,6 +195,10 @@ export interface ILicense {
 export interface IMessage {
   message: string
   date: string
+}
+
+export interface IMultidisciplinary {
+  type: "Multidisciplinary"
 }
 
 export interface IMyNDLAGroup {
@@ -207,7 +231,7 @@ export interface INewFolder {
 }
 
 export interface INewResource {
-  resourceType: string
+  resourceType: ResourceType
   path: string
   tags?: string[]
   resourceId: string
@@ -219,7 +243,7 @@ export interface IOwner {
 
 export interface IResource {
   id: string
-  resourceType: string
+  resourceType: ResourceType
   path: string
   created: string
   tags: string[]
@@ -250,3 +274,11 @@ export interface IUpdatedResource {
   tags?: string[]
   resourceId?: string
 }
+
+export interface IVideo {
+  type: "Video"
+}
+
+export type ResourceType = (IMultidisciplinary | IAudio | IArticle | ILearningpath | IVideo | IConcept | IImage)
+
+export type ResourceType = (IConcept | IArticle | IAudio | IMultidisciplinary | IVideo | ILearningpath | IImage)
