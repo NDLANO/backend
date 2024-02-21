@@ -27,16 +27,19 @@ case class UploadedFile(
 }
 
 object UploadedFile {
+  private def stripQuotes(s: String): String = s.stripPrefix("\"").stripSuffix("\"")
   def fromFilePart(filePart: Part[File]): UploadedFile = {
     val file        = filePart.body
     val inputStream = new FileInputStream(file)
+    val partName    = stripQuotes(filePart.name)
+    val fileName    = filePart.fileName.map(stripQuotes)
 
     new UploadedFile(
-      partName = filePart.name,
+      partName = partName,
       stream = inputStream,
       fileSize = file.length(),
       contentType = filePart.contentType,
-      fileName = filePart.fileName,
+      fileName = fileName,
       file = file
     )
   }
