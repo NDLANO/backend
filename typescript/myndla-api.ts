@@ -287,6 +287,6 @@ export interface IVideo {
   type: "Video"
 }
 
-export type ResourceType = (IArticle | IVideo | IMultidisciplinary | IConcept | IImage | IAudio | ILearningpath)
+export type ResourceType = (IVideo | IMultidisciplinary | IAudio | IArticle | IConcept | IImage | ILearningpath)
 
-export type ResourceType = (IImage | IConcept | IVideo | IAudio | IMultidisciplinary | IArticle | ILearningpath)
+export type ResourceType = (IArticle | IConcept | IVideo | ILearningpath | IImage | IAudio | IMultidisciplinary)
