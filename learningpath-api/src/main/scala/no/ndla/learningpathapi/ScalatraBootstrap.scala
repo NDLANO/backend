@@ -17,9 +17,6 @@ class ScalatraBootstrap extends NdlaScalatraBootstrapBase[ComponentRegistry] {
     context.mount(componentRegistry.internController, "/intern")
     context.mount(componentRegistry.resourcesApp, "/learningpath-api/api-docs")
     context.mount(componentRegistry.healthController, "/health")
-    context.mount(componentRegistry.configController, "/learningpath-api/v1/config", "config")
     context.mount(componentRegistry.statsController, "/learningpath-api/v1/stats", "stats")
-    context.mount(componentRegistry.folderController, "/learningpath-api/v1/folders", "folders")
-    context.mount(componentRegistry.userController, "/learningpath-api/v1/users", "users")
   }
 }

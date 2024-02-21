@@ -11,7 +11,6 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.learningpathapi.controller.{
-  ConfigController,
   HealthController,
   InternController,
   LearningpathControllerV2,
@@ -25,14 +24,6 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation._
-import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
-import no.ndla.myndla.service.{
-  ConfigService,
-  FolderConverterService,
-  FolderReadService,
-  FolderWriteService,
-  UserService
-}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
@@ -42,19 +33,10 @@ import org.mockito.scalatest.MockitoSugar
 trait TestEnvironment
     extends LearningpathControllerV2
     with StatsController
-    with ConfigController
-    with UserService
-    with FolderConverterService
-    with FolderReadService
-    with FolderWriteService
-    with ConfigService
     with NdlaControllerBase
     with NdlaSwaggerSupport
     with LearningPathRepositoryComponent
-    with ConfigRepository
     with FeideApiClient
-    with FolderRepository
-    with UserRepository
     with ReadService
     with UpdateService
     with SearchConverterServiceComponent
@@ -79,6 +61,7 @@ trait TestEnvironment
     with TextValidator
     with UrlValidator
     with DBLearningPath
+    with MyNDLAApiClient
     with DBLearningStep
     with NdlaController
     with ErrorHelpers
@@ -94,7 +77,6 @@ trait TestEnvironment
 
   val learningPathRepository: LearningPathRepository                   = mock[LearningPathRepository]
   val learningPathRepositoryComponent: LearningPathRepositoryComponent = mock[LearningPathRepositoryComponent]
-  val configRepository: ConfigRepository                               = mock[ConfigRepository]
   val readService: ReadService                                         = mock[ReadService]
   val updateService: UpdateService                                     = mock[UpdateService]
   val searchConverterService: SearchConverterService                   = mock[SearchConverterService]
@@ -107,7 +89,6 @@ trait TestEnvironment
   val imageApiClient: ImageApiClient                                   = mock[ImageApiClient]
   val languageValidator: LanguageValidator                             = mock[LanguageValidator]
   val learningpathControllerV2: LearningpathControllerV2               = mock[LearningpathControllerV2]
-  val configController: ConfigController                               = mock[ConfigController]
   val statsController: StatsController                                 = mock[StatsController]
   val healthController: HealthController                               = mock[HealthController]
   val internController: InternController                               = mock[InternController]
@@ -118,20 +99,13 @@ trait TestEnvironment
   val searchApiClient: SearchApiClient                                 = mock[SearchApiClient]
   val oembedProxyClient: OembedProxyClient                             = mock[OembedProxyClient]
   val feideApiClient: FeideApiClient                                   = mock[FeideApiClient]
-  val folderRepository: FolderRepository                               = mock[FolderRepository]
-  val userRepository: UserRepository                                   = mock[UserRepository]
   val redisClient: RedisClient                                         = mock[RedisClient]
-  val userService: UserService                                         = mock[UserService]
-  val folderReadService: FolderReadService                             = mock[FolderReadService]
-  val folderWriteService: FolderWriteService                           = mock[FolderWriteService]
-  val configService: ConfigService                                     = mock[ConfigService]
-  val folderConverterService: FolderConverterService                   = mock[FolderConverterService]
+  val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
 
   def resetMocks(): Unit = {
     reset(
       dataSource,
       learningPathRepository,
-      configRepository,
       readService,
       updateService,
       searchService,
@@ -143,8 +117,7 @@ trait TestEnvironment
       e4sClient,
       oembedProxyClient,
       feideApiClient,
-      folderRepository,
-      userRepository
+      myndlaApiClient
     )
   }
 }

@@ -114,7 +114,6 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   override def beforeEach(): Unit = {
     service = new ReadService
     resetMocks()
-    when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
   }
 
   test("That withIdV2 returns None when id does not exist") {

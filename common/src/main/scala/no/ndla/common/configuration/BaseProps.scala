@@ -23,6 +23,7 @@ trait BaseProps {
   def ConceptApiHost: String      = propOrElse("CONCEPT_API_HOST", "concept-api.ndla-local")
   def DraftApiHost: String        = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
   def ImageApiHost: String        = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
+  def MyNDLAApiHost: String       = propOrElse("MYNDLA_API_HOST", "myndla-api.ndla-local")
   def LearningpathApiHost: String = propOrElse("LEARNINGPATH_API_HOST", "learningpath-api.ndla-local")
   def SearchApiHost: String       = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
   def TaxonomyApiHost: String     = propOrElse("TAXONOMY_API_HOST", "taxonomy-api.ndla-local:5000")

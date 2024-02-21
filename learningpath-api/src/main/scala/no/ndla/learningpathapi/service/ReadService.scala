@@ -12,14 +12,13 @@ import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.{api => commonApi}
+import no.ndla.learningpathapi.integration.MyNDLAApiClient
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain.{StepStatus, LearningPathStatus => _}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.myndla.model.domain.InvalidStatusException
-import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
-import no.ndla.myndla.service.ConfigService
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -29,13 +28,10 @@ import scala.util.{Failure, Success, Try}
 trait ReadService {
   this: LearningPathRepositoryComponent
     with FeideApiClient
-    with ConfigRepository
     with ConverterService
-    with UserRepository
-    with FolderRepository
     with Clock
     with RedisClient
-    with ConfigService =>
+    with MyNDLAApiClient =>
   val readService: ReadService
 
   class ReadService {
@@ -175,8 +171,9 @@ trait ReadService {
       } else { Failure(AccessDeniedException("You do not have access to this resource.")) }
     }
 
-    def canWriteNow(userInfo: TokenUser): Boolean =
-      userInfo.canWriteDuringWriteRestriction || !configService.isWriteRestricted
+    def canWriteNow(userInfo: TokenUser): Try[Boolean] = {
+      myndlaApiClient.isWriteRestricted.map(isRestricted => userInfo.canWriteDuringWriteRestriction || !isRestricted)
+    }
 
   }
 }

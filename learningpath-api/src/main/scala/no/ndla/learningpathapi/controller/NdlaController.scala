@@ -8,14 +8,12 @@
 
 package no.ndla.learningpathapi.controller
 
-import cats.implicits._
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ValidationError}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.service.ConverterService
-import no.ndla.myndla.model.domain.{FolderStatus, InvalidStatusException}
-import no.ndla.myndla.service.FolderConverterService
+import no.ndla.myndla.model.domain.InvalidStatusException
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -23,12 +21,10 @@ import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
 
-import java.util.UUID
-import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 trait NdlaController {
-  this: DataSource with ErrorHelpers with ConverterService with FolderConverterService with NdlaSwaggerSupport =>
+  this: DataSource with ErrorHelpers with ConverterService with NdlaSwaggerSupport =>
 
   abstract class NdlaController extends NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
@@ -83,26 +79,6 @@ trait NdlaController {
       case t: Throwable =>
         logger.error(t.getMessage, t)
         InternalServerError(body = Error(GENERIC, GENERIC_DESCRIPTION))
-    }
-
-    def uuidParam(paramName: String)(implicit request: HttpServletRequest): Try[UUID] = {
-      val maybeParam = paramOrNone(paramName)(request)
-      folderConverterService.toUUIDValidated(maybeParam, paramName)
-    }
-
-    def uuidParamOrNone(paramName: String)(implicit request: HttpServletRequest): Try[Option[UUID]] = {
-      paramOrNone(paramName)(request) match {
-        case Some(param) => folderConverterService.toUUIDValidated(Some(param), paramName).map(_.some)
-        case None        => Success(None)
-      }
-    }
-
-    def folderStatusParam(paramName: String)(implicit request: HttpServletRequest): Try[FolderStatus.Value] = {
-      val maybeParam = paramOrNone(paramName)(request)
-      maybeParam match {
-        case None               => Failure(InvalidStatusException("Parameter 'folder-status' is required"))
-        case Some(folderStatus) => FolderStatus.valueOfOrError(folderStatus)
-      }
     }
   }
 }
