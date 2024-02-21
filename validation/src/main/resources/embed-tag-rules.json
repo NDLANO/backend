@@ -1,5 +1,54 @@
 {
   "attributes": {
+    "copyright": {
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        },
+        {
+          "name": "data-title",
+            "validation": {
+              "required": false,
+          }
+        },
+        {
+          "name": "data-copyright",
+            "validation": {
+              "required": true,
+              "dataType": "JSON"
+          }
+        }
+      ],
+      "children": {
+        "required": false,
+        "allowedChildren": [
+          "aside",
+          "b",
+          "br",
+          "details",
+          "div",
+          "em",
+          "h2",
+          "h3",
+          "h4",
+          "i",
+          "math",
+          "ndlaembed",
+          "ol",
+          "p",
+          "s",
+          "strong",
+          "sub",
+          "sup",
+          "table",
+          "u",
+          "ul"
+        ]
+      }
+    },
     "uu-disclaimer": {
       "fields": [
         {

@@ -14,6 +14,7 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.validation.AttributeType._
 import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
 import org.jsoup.nodes.{Element, Node}
+import org.json4s.native.JsonMethods.parseOpt
 
 import scala.jdk.CollectionConverters._
 import scala.util.{Success, Try}
@@ -445,6 +446,7 @@ object TagValidator {
           f.validation.dataType match {
             case BOOLEAN => validateBooleanField(fieldName, partialErrorMessage, key, value, f)
             case EMAIL   => validateEmailField(fieldName, partialErrorMessage, key, value, f)
+            case JSON    => validateJsonField(fieldName, partialErrorMessage, key, value, f)
             case LIST    => validateListField(fieldName, partialErrorMessage, key, value, f)
             case NUMBER  => validateNumberField(fieldName, partialErrorMessage, key, value, f)
             case STRING  => None
@@ -493,6 +495,26 @@ object TagValidator {
           )
         )
 
+    }
+  }
+
+  private def validateJsonField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    parseOpt(value) match {
+      case Some(_)                                          => None
+      case _ if !field.validation.required && value.isEmpty => None
+      case _ =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and attribute $key=$value must be valid json."
+          )
+        )
     }
   }
 

@@ -73,10 +73,11 @@ object AttributeType extends Enum[AttributeType] {
   val values: IndexedSeq[AttributeType] = findValues
   case object BOOLEAN extends AttributeType
   case object EMAIL   extends AttributeType
+  case object JSON    extends AttributeType
+  case object LIST    extends AttributeType
   case object NUMBER  extends AttributeType
   case object STRING  extends AttributeType
   case object URL     extends AttributeType
-  case object LIST    extends AttributeType
 }
 
 sealed abstract class TagAttribute(override val entryName: String) extends EnumEntry {
@@ -211,6 +212,7 @@ object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   case object DataContent             extends TagAttribute("data-code-content")
   case object DataContentId           extends TagAttribute("data-content-id")
   case object DataContentType         extends TagAttribute("data-content-type")
+  case object DataCopyright           extends TagAttribute("data-copyright")
   case object DataDate                extends TagAttribute("data-date")
   case object DataDescription         extends TagAttribute("data-description")
   case object DataDescriptionLanguage extends TagAttribute("data-description-language")
