@@ -331,7 +331,8 @@ trait WriteService {
           imageRepository.insertImageFile(imageId, uploaded.fileName, doc)
       }).?
 
-      Success(converterService.withNewImage(oldImage, imageFileData, language, user))
+      val withNew = converterService.withNewImage(oldImage, imageFileData, language, user)
+      Success(withNew)
     }
 
     private[service] def updateImageAndFile(
