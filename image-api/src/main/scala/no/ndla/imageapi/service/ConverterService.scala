@@ -72,7 +72,7 @@ trait ConverterService {
         domainImageMetaInformation,
         language,
         props.ImageApiV2UrlBase,
-        Some(props.RawControllerPath),
+        Some(props.RawImageUrlBase),
         user
       )
     }

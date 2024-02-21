@@ -108,8 +108,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links with applicationUrl") {
     val Success(apiImage) =
       converterService.asApiImageMetaInformationWithApplicationUrlV2(DefaultImageMetaInformation, None, None)
-    apiImage.metaUrl should equal(s"${props.Domain}/v2/images/1")
-    apiImage.imageUrl should equal(s"${props.Domain}/raw/123.png")
+    apiImage.metaUrl should equal(s"${props.Domain}/image-api/v2/images/1")
+    apiImage.imageUrl should equal(s"${props.Domain}/image-api/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links with domain urls") {
@@ -128,8 +128,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    apiImage.metaUrl should equal(s"${props.Domain}/v2/images/1")
-    apiImage.imageUrl should equal(s"${props.Domain}/raw/123.png")
+    apiImage.metaUrl should equal(s"${props.Domain}/image-api/v2/images/1")
+    apiImage.imageUrl should equal(s"${props.Domain}/image-api/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links even if language is not supported") {

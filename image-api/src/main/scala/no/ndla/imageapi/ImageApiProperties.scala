@@ -115,13 +115,13 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val TagSearchIndex: String = propOrElse("TAG_SEARCH_INDEX_NAME", "tags")
   val TagSearchDocument      = "tag"
 
-  val DefaultPageSize: Int                 = 10
-  val MaxPageSize: Int                     = 10000
-  val IndexBulkSize                        = 1000
-  val SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-image-api.ndla-local")
-  val ElasticSearchIndexMaxResultWindow    = 10000
-  val ElasticSearchScrollKeepAlive         = "1m"
-  val InitialScrollContextKeywords         = List("0", "initial", "start", "first")
+  val DefaultPageSize: Int              = 10
+  val MaxPageSize: Int                  = 10000
+  val IndexBulkSize                     = 1000
+  val SearchServer: String              = propOrElse("SEARCH_SERVER", "http://search-image-api.ndla-local")
+  val ElasticSearchIndexMaxResultWindow = 10000
+  val ElasticSearchScrollKeepAlive      = "1m"
+  val InitialScrollContextKeywords      = List("0", "initial", "start", "first")
 
   lazy val Domain: String       = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ImageApiV2UrlBase: String = Domain + ImageControllerV2Path + "/"
