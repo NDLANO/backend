@@ -105,9 +105,8 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val nodebb: NodeBBClient                           = new NodeBBClient
   lazy val internController: InternController             = new InternController
 
-  override val dataSource: Option[HikariDataSource] =
-    Option.when(props.migrateToLocalDB)(DataSource.getHikariDataSource)
-  override val lpDs: HikariDataSource = DataSource.getLpDs
+  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  DataSource.connectToDatabase()
 
   private val swagger = new SwaggerController[Eff](
     List(

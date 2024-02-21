@@ -15,17 +15,13 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 trait DataSource {
   this: Props =>
 
-  val dataSource: Option[HikariDataSource]
-  val lpDs: HikariDataSource
+  val dataSource: HikariDataSource
 
   import props._
   object DataSource {
 
     def connectToDatabase(): Unit = {
-      val ds = if (props.migrateToLocalDB) { dataSource.get }
-      else { lpDs }
-
-      ConnectionPool.singleton(new DataSourceConnectionPool(ds))
+      ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
     }
 
     def getHikariDataSource: HikariDataSource = {
@@ -38,19 +34,6 @@ trait DataSource {
       dataSourceConfig.setDriverClassName("org.postgresql.Driver")
       dataSourceConfig.setSchema(MetaSchema)
       dataSourceConfig.setMaximumPoolSize(MetaMaxConnections)
-      new HikariDataSource(dataSourceConfig)
-    }
-
-    def getLpDs: HikariDataSource = {
-      val dataSourceConfig = new HikariConfig()
-      dataSourceConfig.setUsername(LpMetaUserName)
-      dataSourceConfig.setPassword(LpMetaPassword)
-      dataSourceConfig.setJdbcUrl(
-        s"jdbc:postgresql://$LpMetaServer:$LpMetaPort/$LpMetaResource?ApplicationName=$ApplicationName"
-      )
-      dataSourceConfig.setDriverClassName("org.postgresql.Driver")
-      dataSourceConfig.setSchema(LpMetaSchema)
-      dataSourceConfig.setMaximumPoolSize(LpMetaMaxConnections)
       new HikariDataSource(dataSourceConfig)
     }
   }

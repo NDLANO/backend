@@ -49,26 +49,18 @@ class ArenaTest
     override def MetaPort: Int        = pgc.getMappedPort(5432)
     override def MetaSchema: String   = "testschema"
 
-    override def LpMetaServer: String      = pgc.getHost
-    override def LpMetaResource: String    = pgc.getDatabaseName
-    override def LpMetaUserName: String    = pgc.getUsername
-    override def LpMetaPassword: String    = pgc.getPassword
-    override def LpMetaPort: Int           = pgc.getMappedPort(5432)
-    override def LpMetaSchema: String      = "testschema"
-    override def migrateToLocalDB: Boolean = true
-
     override def RedisHost: String = "localhost"
     override def RedisPort: Int    = redisPort
   }
 
-  val someDate = NDLADate.of(2017, 1, 1, 1, 59)
-  val feideId  = "feide"
+  val someDate: NDLADate = NDLADate.of(2017, 1, 1, 1, 59)
+  val feideId            = "feide"
 
   val myndlaApi: MainClass = new MainClass(myndlaproperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
       override lazy val feideApiClient: FeideApiClient =
         mock[FeideApiClient](withSettings.strictness(Strictness.LENIENT))
-      override lazy val clock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
+      override lazy val clock: SystemClock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
       override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override lazy val userRepository: UserRepository     = spy(new UserRepository)
       override lazy val userService: UserService           = spy(new UserService)
@@ -85,7 +77,7 @@ class ArenaTest
     }
   }
 
-  val testClock = myndlaApi.componentRegistry.clock
+  val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
 
   val myndlaApiBaseUrl  = s"http://localhost:$myndlaApiPort"
   val myndlaApiArenaUrl = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
@@ -115,7 +107,7 @@ class ArenaTest
     super.afterAll()
   }
 
-  val testUser = MyNDLAUser(
+  val testUser: MyNDLAUser = MyNDLAUser(
     id = 1,
     feideId = feideId,
     favoriteSubjects = Seq.empty,
@@ -131,7 +123,7 @@ class ArenaTest
     shareName = false
   )
 
-  val testAdmin = MyNDLAUser(
+  val testAdmin: MyNDLAUser = MyNDLAUser(
     id = 2,
     feideId = feideId,
     favoriteSubjects = Seq.empty,
