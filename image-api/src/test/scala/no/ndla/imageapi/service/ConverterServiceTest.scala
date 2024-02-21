@@ -94,13 +94,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     {
       val Success(apiImage) =
         converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, Some("nb"), None)
-      apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
+      apiImage.metaUrl should equal(s"${props.ImageApiV2UrlBase}1")
       apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
     {
       val Success(apiImage) =
         converterService.asApiImageMetaInformationWithDomainUrlV2(WantingImageMetaInformation, Some("nb"), None)
-      apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
+      apiImage.metaUrl should equal(s"${props.ImageApiV2UrlBase}1")
       apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
   }

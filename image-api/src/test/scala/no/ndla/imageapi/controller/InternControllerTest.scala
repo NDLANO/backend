@@ -42,7 +42,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
 
   val DefaultApiImageMetaInformation = api.ImageMetaInformationV2(
     "1",
-    s"${props.ImageApiUrlBase}1",
+    s"${props.ImageApiV2UrlBase}1",
     ImageTitle("", "nb"),
     ImageAltText("", "nb"),
     s"${props.RawImageUrlBase}/test.jpg",

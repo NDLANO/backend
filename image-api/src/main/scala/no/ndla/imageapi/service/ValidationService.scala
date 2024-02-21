@@ -27,7 +27,7 @@ trait ValidationService {
     import props.{ValidFileExtensions, ValidMimeTypes}
 
     def validateImageFile(imageFile: UploadedFile): Option[ValidationMessage] = {
-      val fn = imageFile.fileName.getOrElse("")
+      val fn = imageFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
       if (!hasValidFileExtension(fn, ValidFileExtensions))
         return Some(
           ValidationMessage(
