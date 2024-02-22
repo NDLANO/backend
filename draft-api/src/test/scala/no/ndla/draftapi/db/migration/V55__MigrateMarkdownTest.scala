@@ -36,12 +36,51 @@ class V55__MigrateMarkdownTest extends UnitSuite with TestEnvironment {
   test("That migrating markdown for introduction works as expected") {
     {
       val testMarkdown =
-        """Dette er en ingress med markdown.
+        """Dette er en ingress med avsnitt som skal konverteres.
           |Her er et linjeskift.
           |
           |Her er et nytt avsnitt""".stripMargin
       val expectedResult =
-        """<p>Dette er en ingress med markdown.<br>Her er et linjeskift.</p>
+        """<p>Dette er en ingress med avsnitt som skal konverteres.
+          |Her er et linjeskift.</p>
+          |<p>Her er et nytt avsnitt</p>""".stripMargin
+      val migration = new V55__MigrateMarkdown
+      val result    = migration.convertMarkdown(testMarkdown)
+      result should be(expectedResult)
+    }
+    {
+      // format off
+      val testMarkdown =
+        """Dette er en ingress med markdown.
+        |Også her et linjeskift.
+        |
+        |* liste
+        |* skal
+        |* ikkje
+        |* rendres
+        |1. heller
+        |2. ikkje
+        |3. nummererte
+        ||tabell | med | markdown | skal | ignoreres |
+        ||den | skal | ignoreres | sa | eg |
+        |
+        |`kodeblokk er ok`
+        |
+        |Her er et nytt avsnitt""".stripMargin
+      // format on
+      val expectedResult =
+        """<p>Dette er en ingress med markdown.
+          |Også her et linjeskift.</p>
+          |<p>* liste
+          |* skal
+          |* ikkje
+          |* rendres
+          |1. heller
+          |2. ikkje
+          |3. nummererte
+          ||tabell | med | markdown | skal | ignoreres |
+          ||den | skal | ignoreres | sa | eg |</p>
+          |<p><code>kodeblokk er ok</code></p>
           |<p>Her er et nytt avsnitt</p>""".stripMargin
       val migration = new V55__MigrateMarkdown
       val result    = migration.convertMarkdown(testMarkdown)
@@ -49,9 +88,9 @@ class V55__MigrateMarkdownTest extends UnitSuite with TestEnvironment {
     }
     {
       val testMarkdown =
-        """Dette er en ingress uten markdown. Her er det kun ett langt avsnitt.""".stripMargin
+        """Dette er en ingress uten markdown. Her er det kun ett langt avsnitt. Den lar vi være slik den er!""".stripMargin
       val expectedResult =
-        """Dette er en ingress uten markdown. Her er det kun ett langt avsnitt.""".stripMargin
+        """Dette er en ingress uten markdown. Her er det kun ett langt avsnitt. Den lar vi være slik den er!""".stripMargin
       val migration = new V55__MigrateMarkdown
       val result    = migration.convertMarkdown(testMarkdown)
       result should be(expectedResult)

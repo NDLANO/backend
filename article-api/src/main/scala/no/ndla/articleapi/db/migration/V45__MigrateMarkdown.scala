@@ -137,11 +137,17 @@ class V45__MigrateMarkdown extends BaseJavaMigration {
 
   private def convertMarkdown(content: String): String = {
     val options = new MutableDataSet()
-    options.set(HtmlRenderer.SOFT_BREAK, "<br>")
-    // Cast the extensions to Extension before adding them to the list
-    val extensions =
-      List(SubscriptExtension.create(), SuperscriptExtension.create()).map(_.asInstanceOf[Extension]).asJava
+    options.set(HtmlRenderer.HARD_BREAK, "<br>")
+    // Cast extensions to Extension before adding them to the list
+    val extensions = List[Extension](SubscriptExtension.create(), SuperscriptExtension.create()).asJava
     options.set(Parser.EXTENSIONS, extensions)
+    // Disable all parsers except inline
+    options.set(Parser.BLOCK_QUOTE_PARSER, Boolean.box(false))
+    options.set(Parser.HEADING_PARSER, Boolean.box(false))
+    options.set(Parser.HTML_BLOCK_PARSER, Boolean.box(false))
+    options.set(Parser.LIST_BLOCK_PARSER, Boolean.box(false))
+    options.set(Parser.REFERENCE_PARAGRAPH_PRE_PROCESSOR, Boolean.box(false))
+    options.set(Parser.THEMATIC_BREAK_PARSER, Boolean.box(false))
     val parser   = Parser.builder(options).build
     val renderer = HtmlRenderer.builder(options).build
 
