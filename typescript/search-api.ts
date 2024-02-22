@@ -72,6 +72,40 @@ export interface IDraftResponsible {
   lastUpdated: string
 }
 
+export interface IDraftSearchParams {
+  page: number
+  pageSize: number
+  articleTypes: string[]
+  contextTypes: string[]
+  language: string
+  learningResourceIds: number[]
+  resourceTypes: string[]
+  license?: string
+  query?: string
+  noteQuery?: string
+  sort?: Sort
+  fallback: boolean
+  subjects: string[]
+  languageFilter: string[]
+  relevanceFilter: string[]
+  scrollId?: string
+  draftStatus: string[]
+  users: string[]
+  grepCodes: string[]
+  aggregatePaths: string[]
+  embedResource: string[]
+  embedId?: string
+  includeOtherStatuses: boolean
+  revisionDateFilterFrom?: string
+  revisionDateFilterTo?: string
+  excludeRevisionLog: boolean
+  responsibleIds: string[]
+  filterInactive: boolean
+  prioritized?: boolean
+  priorityFilter: string[]
+  topics: string[]
+}
+
 export interface IGroupSearchResult {
   totalCount: number
   page?: number
@@ -245,4 +279,33 @@ export interface IValidationError {
 export interface IValidationMessage {
   field: string
   message: string
+}
+
+export type Sort = SortEnum
+
+export enum SortEnum {
+  -relevance = "-relevance",
+  relevance = "relevance",
+  -title = "-title",
+  title = "title",
+  -lastUpdated = "-lastUpdated",
+  lastUpdated = "lastUpdated",
+  -id = "-id",
+  id = "id",
+  -duration = "-duration",
+  duration = "duration",
+  revisionDate = "revisionDate",
+  -revisionDate = "-revisionDate",
+  responsibleLastUpdated = "responsibleLastUpdated",
+  -responsibleLastUpdated = "-responsibleLastUpdated",
+  status = "status",
+  -status = "-status",
+  -prioritized = "-prioritized",
+  prioritized = "prioritized",
+  -parentTopicName = "-parentTopicName",
+  parentTopicName = "parentTopicName",
+  -primaryRoot = "-primaryRoot",
+  primaryRoot = "primaryRoot",
+  -resourceType = "-resourceType",
+  resourceType = "resourceType",
 }
