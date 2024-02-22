@@ -8,6 +8,8 @@
 package no.ndla.myndla.model.domain
 
 import cats.implicits._
+import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
+import com.scalatsi.{TSNamedType, TSType}
 import enumeratum._
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
@@ -45,6 +47,9 @@ sealed abstract class ResourceType(override val entryName: String) extends EnumE
 
 object ResourceType extends Enum[ResourceType] with CirceEnum[ResourceType] {
   override val values: IndexedSeq[ResourceType] = findValues
+
+  implicit val enumTsType: TSNamedType[ResourceType] =
+    TSType.alias[ResourceType]("ResourceType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 
   case object Concept           extends ResourceType("concept")
   case object Image             extends ResourceType("image")
