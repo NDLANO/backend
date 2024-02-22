@@ -293,6 +293,40 @@ class EmbedTagRulesTest extends UnitSuite {
     }
   }
 
+  test("Fields with dataType JSON should be valid json") {
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="copyright"
+           | data-title="Tittel"
+           | data-copyright="{&quot;license&quot;:&quot;cc-by&quot;,&quot;origin&quot;:&quot;https://snl.no&quot;}"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="copyright"
+           | data-title="Tittel"
+           | data-copyright="No JSON here"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq(
+          ValidationMessage(
+            "test",
+            s"An $EmbedTagName HTML tag with data-resource=copyright and attribute data-copyright=No JSON here must be valid json."
+          )
+        )
+      )
+    }
+  }
+
   test("Optional standalone fields without coExisting is OK") {
     val embedString =
       s"""<$EmbedTagName
