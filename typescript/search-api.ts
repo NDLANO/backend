@@ -73,37 +73,37 @@ export interface IDraftResponsible {
 }
 
 export interface IDraftSearchParams {
-  page: number
-  pageSize: number
-  articleTypes: string[]
-  contextTypes: string[]
-  language: string
-  learningResourceIds: number[]
-  resourceTypes: string[]
+  page?: number
+  pageSize?: number
+  articleTypes?: string[]
+  contextTypes?: string[]
+  language?: string
+  learningResourceIds?: number[]
+  resourceTypes?: string[]
   license?: string
   query?: string
   noteQuery?: string
   sort?: Sort
-  fallback: boolean
-  subjects: string[]
-  languageFilter: string[]
-  relevanceFilter: string[]
+  fallback?: boolean
+  subjects?: string[]
+  languageFilter?: string[]
+  relevanceFilter?: string[]
   scrollId?: string
-  draftStatus: string[]
-  users: string[]
-  grepCodes: string[]
-  aggregatePaths: string[]
-  embedResource: string[]
+  draftStatus?: string[]
+  users?: string[]
+  grepCodes?: string[]
+  aggregatePaths?: string[]
+  embedResource?: string[]
   embedId?: string
-  includeOtherStatuses: boolean
+  includeOtherStatuses?: boolean
   revisionDateFilterFrom?: string
   revisionDateFilterTo?: string
-  excludeRevisionLog: boolean
-  responsibleIds: string[]
-  filterInactive: boolean
+  excludeRevisionLog?: boolean
+  responsibleIds?: string[]
+  filterInactive?: boolean
   prioritized?: boolean
-  priorityFilter: string[]
-  topics: string[]
+  priorityFilter?: string[]
+  topics?: string[]
 }
 
 export interface IGroupSearchResult {
@@ -284,28 +284,28 @@ export interface IValidationMessage {
 export type Sort = SortEnum
 
 export enum SortEnum {
-  -relevance = "-relevance",
-  relevance = "relevance",
-  -title = "-title",
-  title = "title",
-  -lastUpdated = "-lastUpdated",
-  lastUpdated = "lastUpdated",
-  -id = "-id",
-  id = "id",
-  -duration = "-duration",
-  duration = "duration",
-  revisionDate = "revisionDate",
-  -revisionDate = "-revisionDate",
-  responsibleLastUpdated = "responsibleLastUpdated",
-  -responsibleLastUpdated = "-responsibleLastUpdated",
-  status = "status",
-  -status = "-status",
-  -prioritized = "-prioritized",
-  prioritized = "prioritized",
-  -parentTopicName = "-parentTopicName",
-  parentTopicName = "parentTopicName",
-  -primaryRoot = "-primaryRoot",
-  primaryRoot = "primaryRoot",
-  -resourceType = "-resourceType",
-  resourceType = "resourceType",
+  ByRelevanceDesc = "-relevance",
+  ByRelevanceAsc = "relevance",
+  ByTitleDesc = "-title",
+  ByTitleAsc = "title",
+  ByLastUpdatedDesc = "-lastUpdated",
+  ByLastUpdatedAsc = "lastUpdated",
+  ByIdDesc = "-id",
+  ByIdAsc = "id",
+  ByDurationDesc = "-duration",
+  ByDurationAsc = "duration",
+  ByRevisionDateAsc = "revisionDate",
+  ByRevisionDateDesc = "-revisionDate",
+  ByResponsibleLastUpdatedAsc = "responsibleLastUpdated",
+  ByResponsibleLastUpdatedDesc = "-responsibleLastUpdated",
+  ByStatusAsc = "status",
+  ByStatusDesc = "-status",
+  ByPrioritizedDesc = "-prioritized",
+  ByPrioritizedAsc = "prioritized",
+  ByParentTopicNameDesc = "-parentTopicName",
+  ByParentTopicNameAsc = "parentTopicName",
+  ByPrimaryRootDesc = "-primaryRoot",
+  ByPrimaryRootAsc = "primaryRoot",
+  ByResourceTypeDesc = "-resourceType",
+  ByResourceTypeAsc = "resourceType",
 }
