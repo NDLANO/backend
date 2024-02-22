@@ -43,6 +43,8 @@ jobs:
           --password-stdin
       - name: Generate typescript types
         run: sbt generateTypescript
+      - name: Verify typescript types
+        run: cd typescript/ && yarn install && yarn tsc
       - name: Commit typescript changes
         continue-on-error: true
         run: |
