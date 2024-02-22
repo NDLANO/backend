@@ -10,7 +10,6 @@ package no.ndla.searchapi.controller.parameters
 import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.language.Language
 import no.ndla.searchapi.model.domain.Sort
 import sttp.tapir.EndpointIO.annotations._
 
