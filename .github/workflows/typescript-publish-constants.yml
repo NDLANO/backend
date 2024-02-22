@@ -1,4 +1,4 @@
-name: 'Publish typescript types'
+name: 'Publish typescript constants'
 on:
   workflow_dispatch:
     inputs: { }
@@ -6,14 +6,14 @@ on:
     branches:
       - master
     paths:
-      - 'typescript/**'
-      - '!typescript/package.json'
+      - 'typescript/constants-backend/**'
+      - '!typescript/constants-backend/package.json'
 env:
   CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
 jobs:
-  generate_typescript:
-    name: Publish typescript types
+  publish_typescript_constants:
+    name: Publish typescript constants
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,9 +26,9 @@ jobs:
         run: |
           git config user.email "$KNOWIT_EMAIL"
           git config user.name "github-actions"
-      - name: Publish typescript types
+      - name: Publish typescript constants
         run: |
-          cd typescript/
+          cd typescript/constants-backend
           yarn
           yarn build
           yarn publish --non-interactive --access public --patch

@@ -129,6 +129,19 @@ lazy val `myndla-api` = Module.setup(
   )
 )
 
+lazy val constants = Module.setup(
+  project,
+  constantslib,
+  deps = Seq(
+    common,
+    network,
+    language,
+    mapping,
+    myndla,
+    testWith(scalatestsuite)
+  )
+)
+
 // Libraries
 lazy val common = Module.setup(project in file("./common/"), commonlib, deps = Seq(testWith(scalatestsuite), language))
 lazy val scalatestsuite = Module.setup(project in file("./scalatestsuite/"), scalatestsuitelib)

@@ -17,6 +17,6 @@
       "es2019",
       "esnext.asynciterable",
       "dom"
-    ],
+    ]
   }
 }

@@ -1,0 +1,38 @@
+name: 'Publish typescript types'
+on:
+  workflow_dispatch:
+    inputs: { }
+  push:
+    branches:
+      - master
+    paths:
+      - 'typescript/types-backend/**'
+      - '!typescript/types-backend/package.json'
+env:
+  CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+  KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
+jobs:
+  publish_typescript_types:
+    name: Publish typescript types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.12'
+      - name: Setup git
+        run: |
+          git config user.email "$KNOWIT_EMAIL"
+          git config user.name "github-actions"
+      - name: Publish typescript types
+        run: |
+          cd typescript/types-backend
+          yarn
+          yarn build
+          yarn publish --non-interactive --access public --patch
+          git push
+          git push --tags
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

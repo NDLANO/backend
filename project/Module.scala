@@ -179,7 +179,7 @@ trait Module {
     Seq(
       typescriptGenerationImports := imports,
       typescriptExports           := exports,
-      typescriptOutputFile        := file("./typescript") / s"${this.moduleName}.ts"
+      typescriptOutputFile        := file("./typescript/types-backend") / s"${this.moduleName}.ts"
     )
   }
 }

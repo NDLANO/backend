@@ -8,5 +8,5 @@ target/
 .vscode/
 metals.sbt
 
-/typescript/node_modules
-/typescript/build
+/typescript/**/node_modules
+/typescript/**/build
