@@ -2,6 +2,9 @@ name: 'Generate typescript types'
 on:
   workflow_dispatch:
     inputs: { }
+  push:
+    branches:
+      - master
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
   AWS_DEFAULT_REGION: eu-west-1
@@ -40,6 +43,8 @@ jobs:
           --password-stdin
       - name: Generate typescript types
         run: sbt generateTypescript
+      - name: Verify typescript types
+        run: cd typescript/ && yarn install && yarn tsc
       - name: Commit typescript changes
         continue-on-error: true
         run: |
