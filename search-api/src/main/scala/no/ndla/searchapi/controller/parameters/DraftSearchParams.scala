@@ -10,7 +10,6 @@ package no.ndla.searchapi.controller.parameters
 import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.searchapi.model.domain.Sort
 import sttp.tapir.EndpointIO.annotations._
 
   // format: off
@@ -46,7 +45,7 @@ import sttp.tapir.EndpointIO.annotations._
       noteQuery: Option[String],
 
       @description("The sorting used on results.")
-      sort: Option[Sort],
+      sort: Option[String],
 
       @description("Fallback to existing language if language is specified.")
       fallback: Option[Boolean],

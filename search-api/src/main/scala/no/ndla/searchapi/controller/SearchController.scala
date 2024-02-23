@@ -496,7 +496,7 @@ trait SearchController {
             license = params.license,
             page = params.page.getOrElse(1),
             pageSize = params.pageSize.getOrElse(10),
-            sort = params.sort.getOrElse(Sort.ByRelevanceDesc),
+            sort = params.sort.flatMap(Sort.valueOf).getOrElse(Sort.ByRelevanceDesc),
             withIdIn = params.ids.getOrElse(List.empty),
             subjects = params.subjects.getOrElse(List.empty),
             topics = params.topics.getOrElse(List.empty),
