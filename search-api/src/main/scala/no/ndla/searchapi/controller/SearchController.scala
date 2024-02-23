@@ -9,6 +9,7 @@
 package no.ndla.searchapi.controller
 
 import cats.implicits._
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
@@ -31,6 +32,7 @@ import no.ndla.searchapi.service.search.{
   SearchService
 }
 import no.ndla.searchapi.service.{ApiSearchService, SearchClients}
+import sttp.model.QueryParams
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
@@ -174,7 +176,8 @@ trait SearchController {
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       groupSearch,
       searchLearningResources,
-      searchDraftLearningResources
+      searchDraftLearningResources,
+      searchDraftLearningResourcesGet
     )
 
     def groupSearch: ServerEndpoint[Any, Eff] = endpoint.get
@@ -445,6 +448,109 @@ trait SearchController {
             })
           }.handleErrorsOrOk
 
+      }
+
+    def intParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Int] = {
+      queryParams
+        .get(name)
+        .flatMap(str => {
+          str.toIntOption
+        })
+    }
+
+    def intParamOrDefault(name: String, default: => Int)(implicit queryParams: QueryParams): Int =
+      intParamOrNone(name)
+        .getOrElse(default)
+
+    def stringParamOrDefault(name: String, default: => String)(implicit queryParams: QueryParams): String =
+      queryParams
+        .get(name)
+        .getOrElse(default)
+
+    def stringParamOrNone(name: String)(implicit queryParams: QueryParams): Option[String] =
+      queryParams.get(name)
+
+    def stringListParam(name: String)(implicit queryParams: QueryParams): List[String] =
+      queryParams
+        .get(name)
+        .map(_.split(",").toList)
+        .getOrElse(List.empty)
+
+    def dateParamOrNone(name: String)(implicit queryParams: QueryParams): Option[NDLADate] =
+      queryParams
+        .get(name)
+        .flatMap(str => NDLADate.fromString(str).toOption)
+
+    def longListParam(name: String)(implicit queryParams: QueryParams): List[Long] =
+      queryParams
+        .get(name)
+        .map(x => x.split(",").toList.flatMap(_.toLongOption))
+        .getOrElse(List.empty)
+
+    def booleanParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Boolean] =
+      queryParams.get(name).flatMap(_.toBooleanOption)
+
+    def searchDraftLearningResourcesGet: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Find draft learning resources")
+      .description(
+        """Shows all draft learning resources. You can search too.
+          |Query parameters are undocumented, but are the same as the body for the POST endpoint, except `kebab-case`.
+          |""".stripMargin
+      )
+      .in("editorial")
+      .in(queryParams)
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .out(jsonBody[MultiSearchResult])
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure {
+        _ =>
+          { implicit queryParams =>
+            val searchParams = Some(
+              DraftSearchParams(
+                page = intParamOrNone("page"),
+                pageSize = intParamOrNone("page-size"),
+                articleTypes = stringListParam("article-types").some,
+                contextTypes = stringListParam("context-types").some,
+                language = stringParamOrNone("language"),
+                ids = longListParam("ids").some,
+                resourceTypes = stringListParam("resource-types").some,
+                license = stringParamOrNone("license"),
+                query = stringParamOrNone("query"),
+                noteQuery = stringParamOrNone("note-query"),
+                sort = stringParamOrNone("sort"),
+                fallback = booleanParamOrNone("fallback"),
+                subjects = stringListParam("subjects").some,
+                languageFilter = stringListParam("language-filter").some,
+                relevance = stringListParam("relevance").some,
+                scrollId = stringParamOrNone("search-context"),
+                draftStatus = stringListParam("draft-status").some,
+                users = stringListParam("users").some,
+                grepCodes = stringListParam("grep-codes").some,
+                aggregatePaths = stringListParam("aggregate-paths").some,
+                embedResource = stringListParam("embed-resource").some,
+                embedId = stringParamOrNone("embed-id"),
+                includeOtherStatuses = booleanParamOrNone("include-other-statuses"),
+                revisionDateFrom = dateParamOrNone("revision-date-from"),
+                revisionDateTo = dateParamOrNone("revision-date-to"),
+                excludeRevisionLog = booleanParamOrNone("exclude-revision-log"),
+                responsibleIds = stringListParam("responsible-ids").some,
+                filterInactive = booleanParamOrNone("filter-inactive"),
+                prioritized = booleanParamOrNone("prioritized"),
+                priority = stringListParam("priority").some,
+                topics = stringListParam("topics").some
+              )
+            )
+
+            val settings = asSettings(searchParams)
+            scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiDraftSearchService) {
+              multiDraftSearchService.matchingQuery(settings).map { searchResult =>
+                val result  = searchConverterService.toApiMultiSearchResult(searchResult)
+                val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+                (result, headers)
+              }
+            }.handleErrorsOrOk
+          }
       }
 
     def searchDraftLearningResources: ServerEndpoint[Any, Eff] = endpoint.post
