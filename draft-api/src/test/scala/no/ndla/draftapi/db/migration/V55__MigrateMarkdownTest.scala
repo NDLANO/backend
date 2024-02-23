@@ -54,6 +54,9 @@ class V55__MigrateMarkdownTest extends UnitSuite with TestEnvironment {
         """Dette er en ingress med markdown.
         |Også her et linjeskift.
         |
+        |""".stripMargin + "Linje med to mellomrom  \n" +
+        """som blir til en br
+        |
         |* liste
         |* skal
         |* ikkje
@@ -71,6 +74,7 @@ class V55__MigrateMarkdownTest extends UnitSuite with TestEnvironment {
       val expectedResult =
         """<p>Dette er en ingress med markdown.
           |Også her et linjeskift.</p>
+          |<p>Linje med to mellomrom<br>som blir til en br</p>
           |<p>* liste
           |* skal
           |* ikkje
