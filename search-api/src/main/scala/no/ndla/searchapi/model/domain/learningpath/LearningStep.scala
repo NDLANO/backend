@@ -7,6 +7,8 @@
 
 package no.ndla.searchapi.model.domain.learningpath
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.learningpath.EmbedUrl
 import no.ndla.searchapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Title
@@ -25,6 +27,11 @@ case class LearningStep(
     showTitle: Boolean = false,
     status: StepStatus.Value = StepStatus.ACTIVE
 ) {}
+
+object LearningStep {
+  implicit val encoder: Encoder[LearningStep] = deriveEncoder
+  implicit val decoder: Decoder[LearningStep] = deriveDecoder
+}
 
 object StepStatus extends Enumeration {
 
@@ -45,6 +52,8 @@ object StepStatus extends Enumeration {
   def valueOfOrDefault(s: String): StepStatus.Value = {
     valueOf(s).getOrElse(StepStatus.ACTIVE)
   }
+  implicit val encoder: Encoder[StepStatus.Value] = Encoder.encodeEnumeration(StepStatus)
+  implicit val decoder: Decoder[StepStatus.Value] = Decoder.decodeEnumeration(StepStatus)
 }
 
 object StepType extends Enumeration {
@@ -65,4 +74,6 @@ object StepType extends Enumeration {
   def valueOfOrDefault(s: String): StepType.Value = {
     valueOf(s).getOrElse(StepType.TEXT)
   }
+  implicit val encoder: Encoder[StepType.Value] = Encoder.encodeEnumeration(StepType)
+  implicit val decoder: Decoder[StepType.Value] = Decoder.decodeEnumeration(StepType)
 }

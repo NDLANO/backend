@@ -72,6 +72,40 @@ export interface IDraftResponsible {
   lastUpdated: string
 }
 
+export interface IDraftSearchParams {
+  page?: number
+  pageSize?: number
+  articleTypes?: string[]
+  contextTypes?: string[]
+  language?: string
+  ids?: number[]
+  resourceTypes?: string[]
+  license?: string
+  query?: string
+  noteQuery?: string
+  sort?: string
+  fallback?: boolean
+  subjects?: string[]
+  languageFilter?: string[]
+  relevance?: string[]
+  scrollId?: string
+  draftStatus?: string[]
+  users?: string[]
+  grepCodes?: string[]
+  aggregatePaths?: string[]
+  embedResource?: string[]
+  embedId?: string
+  includeOtherStatuses?: boolean
+  revisionDateFrom?: string
+  revisionDateTo?: string
+  excludeRevisionLog?: boolean
+  responsibleIds?: string[]
+  filterInactive?: boolean
+  prioritized?: boolean
+  priority?: string[]
+  topics?: string[]
+}
+
 export interface IGroupSearchResult {
   totalCount: number
   page?: number

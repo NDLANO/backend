@@ -50,13 +50,13 @@ export interface IConceptSearchParams {
   language?: string
   page?: number
   pageSize?: number
-  idList: number[]
+  ids: number[]
   sort?: string
   fallback?: boolean
   scrollId?: string
   subjects: string[]
   tags: string[]
-  exactTitleMatch?: boolean
+  exactMatch?: boolean
   embedResource?: string
   embedId?: string
   conceptType?: string

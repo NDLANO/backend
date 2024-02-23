@@ -8,6 +8,8 @@
 package no.ndla.common.model.domain.draft
 
 import enumeratum._
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 
 import java.util.UUID
@@ -22,6 +24,9 @@ case class RevisionMeta(
 }
 
 object RevisionMeta {
+  implicit val encoder: Encoder[RevisionMeta] = deriveEncoder
+  implicit val decoder: Decoder[RevisionMeta] = deriveDecoder
+
   def default: Seq[RevisionMeta] = Seq(
     RevisionMeta(
       UUID.randomUUID(),

@@ -8,7 +8,10 @@
 package no.ndla.common.model.domain.draft
 
 import enumeratum.Json4s
-import no.ndla.common.model.NDLADate
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.implicits._
+import no.ndla.common.model.{NDLADate, RelatedContentLink}
 import no.ndla.common.model.domain._
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
@@ -52,6 +55,11 @@ case class Draft(
 }
 
 object Draft {
+  implicit def eitherEnc: Encoder[Either[RelatedContentLink, Long]] = eitherEncoder[RelatedContentLink, Long]
+  implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
+  implicit val encoder: Encoder[Draft]                              = deriveEncoder
+  implicit val decoder: Decoder[Draft]                              = deriveDecoder
+
   val serializers = Seq(
     new EnumNameSerializer(Availability),
     Json4s.serializer(DraftStatus),

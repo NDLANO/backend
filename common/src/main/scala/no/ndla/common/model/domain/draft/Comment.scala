@@ -7,6 +7,8 @@
 
 package no.ndla.common.model.domain.draft
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 
 import java.util.UUID
@@ -19,3 +21,8 @@ case class Comment(
     isOpen: Boolean,
     solved: Boolean
 )
+
+object Comment {
+  implicit val encoder: Encoder[Comment] = deriveEncoder
+  implicit val decoder: Decoder[Comment] = deriveDecoder
+}

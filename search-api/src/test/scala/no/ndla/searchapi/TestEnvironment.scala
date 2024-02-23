@@ -9,11 +9,12 @@
 package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
+import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.service.search._
@@ -33,7 +34,6 @@ trait TestEnvironment
     with FeideApiClient
     with RedisClient
     with Elastic4sClient
-    with HealthController
     with ImageApiClient
     with TaxonomyApiClient
     with IndexService
@@ -46,22 +46,19 @@ trait TestEnvironment
     with SearchService
     with ApiSearchService
     with SearchController
-    with NdlaSwaggerSupport
     with LearningPathIndexService
     with InternController
     with SearchApiClient
-    with NdlaController
-    with NdlaControllerBase
     with ErrorHelpers
+    with Clock
     with GrepApiClient
     with Props
-    with SearchApiInfo {
+    with Routes[Eff]
+    with NdlaMiddleware {
   override val props = new SearchApiProperties
 
   val searchController = mock[SearchController]
-  val healthController = mock[HealthController]
   val internController = mock[InternController]
-  val resourcesApp     = mock[ResourcesApp]
 
   val ndlaClient               = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
@@ -76,6 +73,8 @@ trait TestEnvironment
   val articleApiClient      = mock[ArticleApiClient]
   val feideApiClient        = mock[FeideApiClient]
   val redisClient           = mock[RedisClient]
+
+  val clock = mock[SystemClock]
 
   val SearchClients = Map[String, SearchApiClient](
     "articles"      -> draftApiClient,
@@ -92,4 +91,6 @@ trait TestEnvironment
   val learningPathIndexService = mock[LearningPathIndexService]
   val draftIndexService        = mock[DraftIndexService]
   val multiDraftSearchService  = mock[MultiDraftSearchService]
+
+  override val services: List[Service[Eff]] = List()
 }

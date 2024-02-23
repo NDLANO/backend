@@ -7,15 +7,20 @@
 
 package no.ndla.searchapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.WithLanguage
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Meta description of the resource")
+@description("Meta description of the resource")
 case class MetaDescription(
-    @(ApiModelProperty @field)(description = "The meta description") metaDescription: String,
-    @(ApiModelProperty @field)(
-      description = "The ISO 639-1 language code describing which article translation this meta description belongs to"
+    @description("The meta description") metaDescription: String,
+    @description(
+      "The ISO 639-1 language code describing which article translation this meta description belongs to"
     ) language: String
 ) extends WithLanguage
+
+object MetaDescription {
+  implicit val encoder: Encoder[MetaDescription] = deriveEncoder
+  implicit val decoder: Decoder[MetaDescription] = deriveDecoder
+}

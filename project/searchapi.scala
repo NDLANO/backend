@@ -27,12 +27,15 @@ object searchapi extends Module {
     ),
     melody,
     elastic4s,
-    scalatra,
+    tapirHttp4sCirce,
     vulnerabilityOverrides
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    imports = Seq("no.ndla.searchapi.model.api._"),
+    imports = Seq(
+      "no.ndla.searchapi.model.api._",
+      "no.ndla.searchapi.controller.parameters._"
+    ),
     exports = Seq(
       "ApiTaxonomyContext",
       "ArticleResult",
@@ -46,7 +49,8 @@ object searchapi extends Module {
       "ImageResults",
       "LearningpathResults",
       "SearchError",
-      "ValidationError"
+      "ValidationError",
+      "DraftSearchParams"
     )
   )
 

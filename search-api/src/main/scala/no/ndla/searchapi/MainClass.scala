@@ -8,33 +8,29 @@
 
 package no.ndla.searchapi
 
-import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.booleanPropOrFalse
-import no.ndla.network.scalatra.NdlaScalatraServer
+import no.ndla.common.Warmup
+import no.ndla.network.tapir.NdlaTapirMain
 import no.ndla.searchapi.service.StandaloneIndexing
-import org.eclipse.jetty.server.Server
 
-class MainClass(props: SearchApiProperties) extends StrictLogging {
+class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain[Eff] {
   val componentRegistry = new ComponentRegistry(props)
 
-  def startServer(): Server = {
-    new NdlaScalatraServer[SearchApiProperties, ComponentRegistry](
-      "no.ndla.searchapi.ScalatraBootstrap",
-      componentRegistry,
-      {},
-      warmupRequest => {
-        warmupRequest("/search-api/v1/search", Map("query" -> "norge"))
-        warmupRequest("/health", Map.empty)
-      }
-    )
+  private def warmupRequest = (path: String, options: Map[String, String]) =>
+    Warmup.warmupRequest(props.ApplicationPort, path, options)
+
+  override def warmup(): Unit = {
+    warmupRequest("/search-api/v1/search", Map("query" -> "norge"))
+    warmupRequest("/health", Map.empty)
   }
 
-  def start(): Unit = {
+  override def beforeStart(): Unit = {}
+
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
     if (booleanPropOrFalse("STANDALONE_INDEXING_ENABLED")) {
       new StandaloneIndexing(props, componentRegistry).doStandaloneIndexing()
     } else {
-      val server = startServer()
-      server.join()
+      componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
     }
   }
 }

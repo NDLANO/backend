@@ -8,11 +8,13 @@
 
 package no.ndla.searchapi.model.domain
 
+import com.scalatsi.TypescriptType.TSEnum
+import com.scalatsi.{TSNamedType, TSType}
 import enumeratum._
 
 sealed abstract class Sort(override val entryName: String) extends EnumEntry
 
-object Sort extends Enum[Sort] {
+object Sort extends Enum[Sort] with CirceEnum[Sort] {
 
   val values: IndexedSeq[Sort] = findValues
 
@@ -44,4 +46,10 @@ object Sort extends Enum[Sort] {
   case object ByResourceTypeAsc            extends Sort("resourceType")
 
   def valueOf(s: String): Option[Sort] = Sort.values.find(_.entryName == s)
+
+  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
+  implicit val enumTsType: TSNamedType[Sort] = TSType.alias[Sort](
+    "Sort",
+    TSEnum.string("SortEnum", tsEnumValues: _*)
+  )
 }

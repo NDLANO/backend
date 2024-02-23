@@ -7,21 +7,26 @@
 
 package no.ndla.searchapi.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.search.api.MultiSearchTermsAggregation
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 // format: off
-@ApiModel(description = "Search result for group search")
+@description("Search result for group search")
 case class GroupSearchResult(
-    @(ApiModelProperty @field)(description = "The total number of resources matching this query") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Option[Int],
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[MultiSearchSummary],
-    @(ApiModelProperty @field)(description = "The suggestions for other searches") suggestions: Seq[MultiSearchSuggestion],
-    @(ApiModelProperty @field)(description = "The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregation],
-    @(ApiModelProperty @field)(description = "Type of resources in this object") resourceType: String
+    @description("The total number of resources matching this query") totalCount: Long,
+    @description("For which page results are shown from") page: Option[Int],
+    @description("The number of results per page") pageSize: Int,
+    @description("The chosen search language") language: String,
+    @description("The search results") results: Seq[MultiSearchSummary],
+    @description("The suggestions for other searches") suggestions: Seq[MultiSearchSuggestion],
+    @description("The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregation],
+    @description("Type of resources in this object") resourceType: String
 )
 // format: on
+
+object GroupSearchResult {
+  implicit val encoder: Encoder[GroupSearchResult] = deriveEncoder
+  implicit val decoder: Decoder[GroupSearchResult] = deriveDecoder
+}

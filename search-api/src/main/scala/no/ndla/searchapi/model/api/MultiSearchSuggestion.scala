@@ -7,28 +7,41 @@
 
 package no.ndla.searchapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about search-suggestions")
+@description("Information about search-suggestions")
 case class MultiSearchSuggestion(
-    @(ApiModelProperty @field)(description = "The name of the field suggested for") name: String,
-    @(ApiModelProperty @field)(description = "The list of suggestions for given field") suggestions: Seq[
-      SearchSuggestion
-    ]
+    @description("The name of the field suggested for") name: String,
+    @description("The list of suggestions for given field") suggestions: Seq[SearchSuggestion]
 )
 
-@ApiModel(description = "Search suggestion for query-text")
+object MultiSearchSuggestion {
+  implicit val encoder: Encoder[MultiSearchSuggestion] = deriveEncoder
+  implicit val decoder: Decoder[MultiSearchSuggestion] = deriveDecoder
+}
+
+@description("Search suggestion for query-text")
 case class SearchSuggestion(
-    @(ApiModelProperty @field)(description = "The search query suggestions are made for") text: String,
-    @(ApiModelProperty @field)(description = "The offset in the search query") offset: Int,
-    @(ApiModelProperty @field)(description = "The position index in the search query") length: Int,
-    @(ApiModelProperty @field)(description = "The list of suggest options for the field") options: Seq[SuggestOption]
+    @description("The search query suggestions are made for") text: String,
+    @description("The offset in the search query") offset: Int,
+    @description("The position index in the search query") length: Int,
+    @description("The list of suggest options for the field") options: Seq[SuggestOption]
 )
 
-@ApiModel(description = "Search suggestion options for the terms in the query")
+object SearchSuggestion {
+  implicit val encoder: Encoder[SearchSuggestion] = deriveEncoder
+  implicit val decoder: Decoder[SearchSuggestion] = deriveDecoder
+}
+
+@description("Search suggestion options for the terms in the query")
 case class SuggestOption(
-    @(ApiModelProperty @field)(description = "The suggested text") text: String,
-    @(ApiModelProperty @field)(description = "The score of the suggestion") score: Double
+    @description("The suggested text") text: String,
+    @description("The score of the suggestion") score: Double
 )
+
+object SuggestOption {
+  implicit val encoder: Encoder[SuggestOption] = deriveEncoder
+  implicit val decoder: Decoder[SuggestOption] = deriveDecoder
+}

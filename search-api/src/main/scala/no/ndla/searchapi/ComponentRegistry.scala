@@ -9,12 +9,20 @@
 package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{
+  NdlaMiddleware,
+  Routes,
+  Service,
+  SwaggerControllerConfig,
+  TapirErrorHelpers,
+  TapirHealthController
+}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
+import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.service.search._
@@ -28,12 +36,12 @@ class ComponentRegistry(properties: SearchApiProperties)
     with DraftIndexService
     with MultiSearchService
     with ErrorHelpers
+    with Clock
     with MultiDraftSearchService
     with AudioApiClient
     with ConverterService
     with DraftApiClient
     with Elastic4sClient
-    with HealthController
     with TaxonomyApiClient
     with ImageApiClient
     with IndexService
@@ -46,25 +54,20 @@ class ComponentRegistry(properties: SearchApiProperties)
     with SearchService
     with ApiSearchService
     with SearchController
-    with NdlaSwaggerSupport
     with FeideApiClient
     with RedisClient
     with InternController
     with SearchApiClient
     with GrepApiClient
     with Props
-    with NdlaController
-    with NdlaControllerBase
-    with SearchApiInfo {
+    with Routes[Eff]
+    with NdlaMiddleware
+    with TapirErrorHelpers
+    with SwaggerControllerConfig
+    with SwaggerDocControllerConfig
+    with TapirHealthController {
   override val props: SearchApiProperties = properties
   import props._
-
-  implicit val swagger: SearchSwagger = new SearchSwagger
-
-  lazy val searchController = new SearchController
-  lazy val healthController = new HealthController
-  lazy val internController = new InternController
-  lazy val resourcesApp     = new ResourcesApp
 
   lazy val ndlaClient          = new NdlaClient
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
@@ -94,4 +97,20 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val learningPathIndexService = new LearningPathIndexService
   lazy val draftIndexService        = new DraftIndexService
   lazy val multiDraftSearchService  = new MultiDraftSearchService
+
+  lazy val searchController   = new SearchController
+  lazy val healthController   = new TapirHealthController[Eff]
+  lazy val internController   = new InternController
+  lazy val clock: SystemClock = new SystemClock
+
+  private val swagger = new SwaggerController(
+    List[Service[Eff]](
+      searchController,
+      internController,
+      healthController
+    ),
+    SwaggerDocControllerConfig.swaggerInfo
+  )
+
+  override val services: List[Service[Eff]] = swagger.getServices()
 }

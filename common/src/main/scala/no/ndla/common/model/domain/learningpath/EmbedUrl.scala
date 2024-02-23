@@ -8,12 +8,19 @@
 
 package no.ndla.common.model.domain.learningpath
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.model.LanguageField
 
 case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField[String] {
   override def value: String    = url
   override def isEmpty: Boolean = url.isEmpty
+}
+
+object EmbedUrl {
+  implicit val encoder: Encoder[EmbedUrl] = deriveEncoder
+  implicit val decoder: Decoder[EmbedUrl] = deriveDecoder
 }
 
 object EmbedType extends Enumeration {
@@ -39,4 +46,7 @@ object EmbedType extends Enumeration {
   def valueOfOrDefault(s: String): EmbedType.Value = {
     valueOf(s).getOrElse(EmbedType.OEmbed)
   }
+
+  implicit val encoder: Encoder[EmbedType.Value] = Encoder.encodeEnumeration(EmbedType)
+  implicit val decoder: Decoder[EmbedType.Value] = Decoder.decodeEnumeration(EmbedType)
 }
