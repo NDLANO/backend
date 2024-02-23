@@ -39,11 +39,11 @@ class V55__MigrateMarkdownTest extends UnitSuite with TestEnvironment {
         """Dette er en ingress med avsnitt som skal konverteres.
           |Her er et linjeskift.
           |
-          |Her er et nytt avsnitt""".stripMargin
+          |To linjeskift fører til at begge blokkene blir wrappa i p""".stripMargin
       val expectedResult =
         """<p>Dette er en ingress med avsnitt som skal konverteres.
           |Her er et linjeskift.</p>
-          |<p>Her er et nytt avsnitt</p>""".stripMargin
+          |<p>To linjeskift fører til at begge blokkene blir wrappa i p</p>""".stripMargin
       val migration = new V55__MigrateMarkdown
       val result    = migration.convertMarkdown(testMarkdown)
       result should be(expectedResult)
@@ -86,6 +86,17 @@ class V55__MigrateMarkdownTest extends UnitSuite with TestEnvironment {
           ||den | skal | ignoreres | sa | eg |</p>
           |<p><code>kodeblokk er ok</code></p>
           |<p>Her er et nytt avsnitt</p>""".stripMargin
+      val migration = new V55__MigrateMarkdown
+      val result    = migration.convertMarkdown(testMarkdown)
+      result should be(expectedResult)
+    }
+    {
+      val testMarkdown =
+        """Dette er en ingress uten markdown, men med ett linjeskift.
+          |Denne blir nok stående som den er!""".stripMargin
+      val expectedResult =
+        """Dette er en ingress uten markdown, men med ett linjeskift.
+          |Denne blir nok stående som den er!""".stripMargin
       val migration = new V55__MigrateMarkdown
       val result    = migration.convertMarkdown(testMarkdown)
       result should be(expectedResult)
