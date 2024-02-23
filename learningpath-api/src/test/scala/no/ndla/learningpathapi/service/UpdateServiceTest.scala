@@ -243,8 +243,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   override def beforeEach(): Unit = {
     service = new UpdateService
     resetMocks()
-    when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
-    when(readService.canWriteNow(any[TokenUser])).thenReturn(true)
+    when(readService.canWriteNow(any[TokenUser])).thenReturn(Success(true))
     when(searchIndexService.deleteDocument(any[domain.LearningPath], any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.LearningPath](0))
     )
@@ -1007,9 +1006,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP1.id.get))(any[DBSession]))
       .thenReturn(Some(STEP1))
 
-    val exception = intercept[ValidationException] {
-      service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 100, PRIVATE_OWNER)
-    }
+    val Failure(exception: ValidationException) = service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 100, PRIVATE_OWNER)
 
     exception.errors.length should be(1)
     exception.errors.head.field should equal("seqNo")
@@ -1423,7 +1420,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That writeOrAccessDenied denies writes while write restriction is enabled.") {
     val readMock = mock[ReadService]
-    when(readService.canWriteNow(any[TokenUser])).thenReturn(false)
+    when(readService.canWriteNow(any[TokenUser])).thenReturn(Success(false))
 
     service.writeDuringWriteRestrictionOrAccessDenied(TokenUser("SomeDude", scopes = Set(), None)) {
       Success(readMock.tags)

@@ -21,7 +21,6 @@ import no.ndla.learningpathapi.model.domain.{LearningPathStatus, LearningPath =>
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
-import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -31,9 +30,6 @@ import scala.util.{Failure, Success, Try}
 trait UpdateService {
   this: LearningPathRepositoryComponent
     with ReadService
-    with ConfigRepository
-    with FolderRepository
-    with UserRepository
     with ConverterService
     with SearchIndexService
     with Clock
@@ -68,11 +64,10 @@ trait UpdateService {
 
     def insertDump(dump: domain.LearningPath): domain.LearningPath = learningPathRepository.insert(dump)
 
-    private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: TokenUser)(w: => Try[T]): Try[T] =
-      writeOrAccessDenied(
-        readService.canWriteNow(owner),
-        "You do not have write access while write restriction is active."
-      )(w)
+    private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: TokenUser)(w: => Try[T]): Try[T] = for {
+      canWrite <- readService.canWriteNow(owner)
+      result   <- writeOrAccessDenied(canWrite, "You do not have write access while write restriction is active.")(w)
+    } yield result
 
     private[service] def writeOrAccessDenied[T](
         willExecute: Boolean,
@@ -359,7 +354,12 @@ trait UpdateService {
         }
       }
 
-    def updateSeqNo(learningPathId: Long, learningStepId: Long, seqNo: Int, owner: TokenUser): Try[LearningStepSeqNo] =
+    def updateSeqNo(
+        learningPathId: Long,
+        learningStepId: Long,
+        seqNo: Int,
+        owner: TokenUser
+    ): Try[LearningStepSeqNo] = {
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         optimisticLockRetries(10) {
           withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
@@ -393,6 +393,7 @@ trait UpdateService {
           }
         }
       }
+    }
 
     private def rangeToUpdate(from: Int, to: Int): Range = if (from > to) to until from else from + 1 to to
 
