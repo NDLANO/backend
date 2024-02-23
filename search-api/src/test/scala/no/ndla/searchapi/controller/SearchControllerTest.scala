@@ -289,7 +289,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment {
         .post(
           uri"http://localhost:$serverPort/search-api/v1/search/editorial/"
         )
-        .body("""{"revisionDateFilterFrom":"2025-01-02T13:39:05Z","revisionDateFilterTo":"2025-01-02T13:39:05Z"}""")
+        .body("""{"revisionDateFrom":"2025-01-02T13:39:05Z","revisionDateTo":"2025-01-02T13:39:05Z"}""")
         .headers(authHeadersWithWriteRole)
     )
 
