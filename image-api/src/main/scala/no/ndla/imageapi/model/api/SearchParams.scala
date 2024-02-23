@@ -7,23 +7,28 @@
  */
 package no.ndla.imageapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
 // format: off
-@ApiModel(description = "The search parameters")
+@description("The search parameters")
 case class SearchParams(
-    @(ApiModelProperty @field)(description = "Return only images with titles, alt-texts or tags matching the specified query.") query: Option[String],
-    @(ApiModelProperty @field)(description = "Return only images with provided license.") license: Option[String],
-    @(ApiModelProperty @field)(description = "The ISO 639-1 language code describing language used in query-params") language: Option[String],
-    @(ApiModelProperty @field)(description = "Fallback to existing language if language is specified.") fallback: Option[Boolean],
-    @(ApiModelProperty @field)(description = "Return only images with full size larger than submitted value in bytes.") minimumSize: Option[Int],
-    @(ApiModelProperty @field)(description = "Return copyrighted images. May be omitted.") includeCopyrighted: Option[Boolean],
-    @(ApiModelProperty @field)(description = """The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""") sort: Option[String],
-    @(ApiModelProperty @field)(description = "The page number of the search hits to display.") page: Option[Int],
-    @(ApiModelProperty @field)(description = "The number of search hits to display for each page.") pageSize: Option[Int],
-    @(ApiModelProperty @field)(description = "Only show podcast friendly images.") podcastFriendly: Option[Boolean],
-    @(ApiModelProperty @field)(description = "A search context retrieved from the response header of a previous search.") scrollId: Option[String],
-    @(ApiModelProperty @field)(description = "Return only images with one of the provided values for modelReleased.") modelReleased: Option[Seq[String]]
+    @description("Return only images with titles, alt-texts or tags matching the specified query.") query: Option[String],
+    @description("Return only images with provided license.") license: Option[String],
+    @description("The ISO 639-1 language code describing language used in query-params") language: Option[String],
+    @description("Fallback to existing language if language is specified.") fallback: Option[Boolean],
+    @description("Return only images with full size larger than submitted value in bytes.") minimumSize: Option[Int],
+    @description("Return copyrighted images. May be omitted.") includeCopyrighted: Option[Boolean],
+    @description("""The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""") sort: Option[String],
+    @description("The page number of the search hits to display.") page: Option[Int],
+    @description("The number of search hits to display for each page.") pageSize: Option[Int],
+    @description("Only show podcast friendly images.") podcastFriendly: Option[Boolean],
+    @description("A search context retrieved from the response header of a previous search.") scrollId: Option[String],
+    @description("Return only images with one of the provided values for modelReleased.") modelReleased: Option[Seq[String]]
 )
+
+object SearchParams {
+  implicit val encoder: Encoder[SearchParams] = deriveEncoder
+  implicit val decoder: Decoder[SearchParams] = deriveDecoder
+}

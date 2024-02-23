@@ -7,21 +7,20 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.NDLADate
-import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
+import cats.implicits.catsSyntaxEitherId
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.imageapi.{Eff, Props}
+import no.ndla.imageapi.model.api.ErrorHelpers
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
 import no.ndla.network.scalatra.NdlaSwaggerSupport
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.servlet.FileUploadSupport
-import org.scalatra.swagger.{Parameter, ResponseMessage, Swagger}
-import org.scalatra.{NotFound, Ok}
+import no.ndla.network.tapir.{AllErrors, DynamicHeaders, Service}
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import sttp.tapir._
+import sttp.tapir.server.ServerEndpoint
 
-import javax.servlet.http.HttpServletRequest
+import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
 trait RawController {
@@ -29,125 +28,78 @@ trait RawController {
     with ImageConverter
     with ImageRepository
     with ErrorHelpers
-    with NdlaController
     with Props
     with ReadService
     with NdlaSwaggerSupport =>
   val rawController: RawController
 
-  class RawController(implicit val swagger: Swagger)
-      extends NdlaController
-      with NdlaSwaggerSupport
-      with FileUploadSupport {
-    import props.ValidMimeTypes
+  class RawController extends Service[Eff] {
+    override val serviceName: String         = "raw"
+    override val prefix: EndpointInput[Unit] = "image-api" / serviceName
+    override val enableSwagger: Boolean      = false
+    import ErrorHelpers._
 
-    protected implicit override val jsonFormats: Formats =
-      DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-    protected val applicationDescription = "API for accessing image files from ndla.no."
-
-    registerModel[Error]()
-
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
-
-    val getImageParams: List[Parameter] = List(
-      headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-      headerParam[Option[String]]("app-key").description(
-        "Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."
-      ),
-      queryParam[Option[Int]]("width")
-        .description("The target width to resize the image (the unit is pixles). Image proportions are kept intact"),
-      queryParam[Option[Int]]("height")
-        .description("The target height to resize the image (the unit is pixles). Image proportions are kept intact"),
-      queryParam[Option[Int]]("cropStartX").description(
-        "The first image coordinate X, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop start position. If used the other crop parameters must also be supplied"
-      ),
-      queryParam[Option[Int]]("cropStartY").description(
-        "The first image coordinate Y, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop start position. If used the other crop parameters must also be supplied"
-      ),
-      queryParam[Option[Int]]("cropEndX").description(
-        "The end image coordinate X, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop end position. If used the other crop parameters must also be supplied"
-      ),
-      queryParam[Option[Int]]("cropEndY").description(
-        "The end image coordinate Y, in percent (0 to 100) or pixels depending on cropUnit, specifying the crop end position. If used the other crop parameters must also be supplied"
-      ),
-      queryParam[Option[String]]("cropUnit").description(
-        "The unit of the crop parameters. Can be either 'percent' or 'pixel'. If omitted the unit is assumed to be 'percent'"
-      ),
-      queryParam[Option[Int]]("focalX").description(
-        "The end image coordinate X, in percent (0 to 100), specifying the focal point. If used the other focal point parameter, width and/or height, must also be supplied"
-      ),
-      queryParam[Option[Int]]("focalY").description(
-        "The end image coordinate Y, in percent (0 to 100), specifying the focal point. If used the other focal point parameter, width and/or height, must also be supplied"
-      ),
-      queryParam[Option[Double]]("ratio").description(
-        "The wanted aspect ratio, defined as width/height. To be used together with the focal parameters. If used the width and height is ignored and derived from the aspect ratio instead."
-      )
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      getImageFileById,
+      getImageFile
     )
 
-    get(
-      "/:image_name",
-      operation(
-        apiOperation[ImageStream]("getImageFile")
-          .summary("Fetch an image with options to resize and crop")
-          .description("Fetches a image with options to resize and crop")
-          .produces(ValidMimeTypes :+ "application/octet-stream": _*)
-          .parameters(
-            List[Parameter](pathParam[String]("image_name").description("The name of the image"))
-              ++ getImageParams: _*
-          )
-          .responseMessages(response404, response500)
-      )
-    ) {
-      val filePath = params("image_name")
-      getRawImage(filePath) match {
-        case Failure(ex)  => errorHandler(ex)
-        case Success(img) => Ok(img)
+    private def toImageResponse(image: ImageStream): Either[AllErrors, (DynamicHeaders, InputStream)] = {
+      val headers = DynamicHeaders.fromValue("Content-Type", image.contentType)
+      Right(headers -> image.stream)
+    }
+
+    def getImageFile: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Fetch an image with options to resize and crop")
+      .description("Fetches a image with options to resize and crop")
+      .in(path[String]("image_name").description("The name of the image"))
+      .in(EndpointInput.derived[ImageParams])
+      .errorOut(errorOutputsFor(404))
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .out(inputStreamBody)
+      .serverLogicPure { case (filePath, imageParams) =>
+        getRawImage(filePath, imageParams) match {
+          case Failure(ex)  => returnLeftError(ex)
+          case Success(img) => toImageResponse(img)
+        }
       }
-    }: Unit
 
-    get(
-      "/id/:image_id",
-      operation(
-        apiOperation[ImageStream]("getImageFileById")
-          .summary("Fetch an image with options to resize and crop")
-          .description("Fetches a image with options to resize and crop")
-          .produces(ValidMimeTypes :+ "application/octet-stream": _*)
-          .parameters(
-            List[Parameter](
-              pathParam[String]("image_id").description("The ID of the image"),
-              queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language.")
-            )
-              ++ getImageParams: _*
-          )
-          .responseMessages(response404, response500)
-      )
-    ) {
-      val imageId  = long("image_id")
-      val language = paramOrNone("language")
-
-      readService.getImageFileName(imageId, language) match {
-        case Some(fileName) =>
-          getRawImage(fileName) match {
-            case Failure(ex)  => errorHandler(ex)
-            case Success(img) => Ok(img)
-          }
-        case None => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId not found"))
+    def getImageFileById: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Fetch an image with options to resize and crop")
+      .description("Fetches a image with options to resize and crop")
+      .in("id" / path[Long]("image_id").description("The ID of the image"))
+      .in(EndpointInput.derived[ImageParams])
+      .errorOut(errorOutputsFor(404))
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .out(inputStreamBody)
+      .serverLogicPure { case (imageId, imageParams) =>
+        readService.getImageFileName(imageId, imageParams.language) match {
+          case Some(fileName) =>
+            getRawImage(fileName, imageParams) match {
+              case Failure(ex)  => returnLeftError(ex)
+              case Success(img) => toImageResponse(img)
+            }
+          case None => notFoundWithMsg(s"Image with id $imageId not found").asLeft
+        }
       }
-    }: Unit
 
-    private def getRawImage(imageName: String): Try[ImageStream] = {
-      val dynamicCropOrResize =
-        if (canDoDynamicCrop) dynamicCrop _
+    private def getRawImage(
+        imageName: String,
+        imageParams: ImageParams
+    ): Try[ImageStream] = {
+      val dynamicCropOrResize = {
+        val canDynamicCrop = canDoDynamicCrop(imageParams)
+        if (canDynamicCrop) dynamicCrop _
         else {
           resize _
         }
+      }
       val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
       imageStorage.get(imageName) match {
         case Success(img) if nonResizableMimeTypes.contains(img.contentType.toLowerCase) => Success(img)
         case Success(img) =>
-          crop(img)
-            .flatMap(dynamicCropOrResize)
+          crop(img, imageParams)
+            .flatMap(stream => dynamicCropOrResize(stream, imageParams))
             .recoverWith {
               case ex: ValidationException => Failure(ex)
               case ex =>
@@ -158,55 +110,68 @@ trait RawController {
       }
     }
 
-    private def crop(image: ImageStream)(implicit request: HttpServletRequest): Try[ImageStream] = {
-      val unit = paramOrDefault("cropUnit", "percent")
+    private def doubleInRange(paramName: String, double: Option[Double], from: Int, to: Int): Option[Double] = {
+      double match {
+        case Some(d) if d >= Math.min(from, to) && d <= Math.max(from, to) => Some(d)
+        case Some(d) =>
+          throw ValidationException(
+            errors = Seq(
+              ValidationMessage(paramName, s"Invalid value for $paramName. Must be in range $from-$to but was $d")
+            )
+          )
+        case None => None
+      }
+    }
+
+    private def crop(image: ImageStream, imageParams: ImageParams): Try[ImageStream] = {
+      val unit = imageParams.cropUnit.getOrElse("percent")
       unit match {
-        case "percent" => {
-          val startX = doubleInRange("cropStartX", PercentPoint.MinValue, PercentPoint.MaxValue)
-          val startY = doubleInRange("cropStartY", PercentPoint.MinValue, PercentPoint.MaxValue)
-          val endX   = doubleInRange("cropEndX", PercentPoint.MinValue, PercentPoint.MaxValue)
-          val endY   = doubleInRange("cropEndY", PercentPoint.MinValue, PercentPoint.MaxValue)
+        case "percent" =>
+          val startX = doubleInRange("cropStartX", imageParams.cropStartX, PercentPoint.MinValue, PercentPoint.MaxValue)
+          val startY = doubleInRange("cropStartY", imageParams.cropStartY, PercentPoint.MinValue, PercentPoint.MaxValue)
+          val endX   = doubleInRange("cropEndX", imageParams.cropEndX, PercentPoint.MinValue, PercentPoint.MaxValue)
+          val endY   = doubleInRange("cropEndY", imageParams.cropEndY, PercentPoint.MinValue, PercentPoint.MaxValue)
           (startX, startY, endX, endY) match {
             case (Some(sx), Some(sy), Some(ex), Some(ey)) =>
               imageConverter.crop(image, PercentPoint(sx, sy), PercentPoint(ex, ey))
             case _ => Success(image)
           }
-        }
-        case "pixel" => {
-          val startX = castIntOrNone("cropStartX")
-          val startY = castIntOrNone("cropStartY")
-          val endX   = castIntOrNone("cropEndX")
-          val endY   = castIntOrNone("cropEndY")
+        case "pixel" =>
+          val startX = imageParams.cropStartX.map(_.toInt)
+          val startY = imageParams.cropStartY.map(_.toInt)
+          val endX   = imageParams.cropEndX.map(_.toInt)
+          val endY   = imageParams.cropEndY.map(_.toInt)
           (startX, startY, endX, endY) match {
             case (Some(sx), Some(sy), Some(ex), Some(ey)) =>
               imageConverter.crop(image, PixelPoint(sx, sy), PixelPoint(ex, ey))
             case _ => Success(image)
           }
-        }
       }
     }
 
-    private def canDoDynamicCrop(implicit request: HttpServletRequest) =
-      doubleOrNone("focalX").isDefined && doubleOrNone("focalY").isDefined && (doubleOrNone(
-        "width"
-      ).isDefined || doubleOrNone("height").isDefined || doubleOrNone("ratio").isDefined)
+    private def canDoDynamicCrop(imageParams: ImageParams) = {
+      imageParams.focalX.isDefined && imageParams.focalY.isDefined && (
+        imageParams.width.isDefined || imageParams.height.isDefined || imageParams.ratio.isDefined
+      )
+    }
 
-    private def dynamicCrop(image: ImageStream): Try[ImageStream] = {
-      val focalX                = doubleInRange("focalX", PercentPoint.MinValue, PercentPoint.MaxValue)
-      val focalY                = doubleInRange("focalY", PercentPoint.MinValue, PercentPoint.MaxValue)
-      val ratio                 = doubleOrNone("ratio")
-      val (widthOpt, heightOpt) = extractDoubleOpt2("width", "height")
+    private def dynamicCrop(image: ImageStream, imageParams: ImageParams): Try[ImageStream] = {
 
-      (focalX, focalY, widthOpt, heightOpt) match {
+      (imageParams.focalX, imageParams.focalY, imageParams.width, imageParams.height) match {
         case (Some(fx), Some(fy), w, h) =>
-          imageConverter.dynamicCrop(image, PercentPoint(fx, fy), w.map(_.toInt), h.map(_.toInt), ratio)
+          imageConverter.dynamicCrop(
+            image,
+            PercentPoint(fx, fy),
+            w.map(_.toInt),
+            h.map(_.toInt),
+            imageParams.ratio
+          )
         case _ => Success(image)
       }
     }
 
-    private def resize(image: ImageStream)(implicit request: HttpServletRequest): Try[ImageStream] = {
-      val (widthOpt, heightOpt) = extractDoubleOpt2("width", "height")
-      (widthOpt, heightOpt) match {
+    private def resize(image: ImageStream, imageParams: ImageParams): Try[ImageStream] = {
+      (imageParams.width, imageParams.height) match {
         case (Some(width), Some(height)) => imageConverter.resize(image, width.toInt, height.toInt)
         case (Some(width), _)            => imageConverter.resizeWidth(image, width.toInt)
         case (_, Some(height))           => imageConverter.resizeHeight(image, height.toInt)

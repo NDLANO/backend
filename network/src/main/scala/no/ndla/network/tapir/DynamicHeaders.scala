@@ -21,4 +21,8 @@ object DynamicHeaders {
 
   def fromOpt(name: String, s: Option[String]): Option[Header] =
     s.map(Header(name, _))
+
+  def fromValue(name: String, value: String): DynamicHeaders = {
+    new DynamicHeaders(List(Header(name, value)))
+  }
 }

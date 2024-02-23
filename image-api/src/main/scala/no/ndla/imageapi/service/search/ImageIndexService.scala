@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
+import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
@@ -22,7 +22,7 @@ import org.json4s.Formats
 import org.json4s.native.Serialization
 
 trait ImageIndexService {
-  this: SearchConverterService with IndexService with ImageRepository with Props with DBImageMetaInformation =>
+  this: SearchConverterService with IndexService with ImageRepository with Props =>
   val imageIndexService: ImageIndexService
 
   class ImageIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableImage] {

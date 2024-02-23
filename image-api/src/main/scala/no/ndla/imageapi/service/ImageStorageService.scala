@@ -17,13 +17,13 @@ import javax.imageio.ImageIO
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.AmazonClient
 import no.ndla.imageapi.model.ImageNotFoundException
-import no.ndla.imageapi.model.domain.{DBImageFile, ImageStream}
+import no.ndla.imageapi.model.domain.ImageStream
 import org.apache.commons.io.IOUtils
 
 import scala.util.{Failure, Success, Try}
 
 trait ImageStorageService {
-  this: AmazonClient with ReadService with Props with DBImageFile =>
+  this: AmazonClient with ReadService with Props =>
   val imageStorage: AmazonImageStorageService
 
   class AmazonImageStorageService extends StrictLogging {
@@ -68,7 +68,9 @@ trait ImageStorageService {
         NdlaImage(s3Object, imageKey)
       ) match {
         case Success(e) => Success(e)
-        case Failure(_) => Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
+        case Failure(ex) =>
+          logger.error("HMM", ex)
+          Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
       }
     }
 

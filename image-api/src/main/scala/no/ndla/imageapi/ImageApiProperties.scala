@@ -32,11 +32,12 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  val HealthControllerPath = "/health"
-  val ImageApiBasePath     = "/image-api"
-  val ApiDocsPath          = s"$ImageApiBasePath/api-docs"
-  val ImageControllerPath  = s"$ImageApiBasePath/v2/images"
-  val RawControllerPath    = s"$ImageApiBasePath/raw"
+  val HealthControllerPath  = "/health"
+  val ImageApiBasePath      = "/image-api"
+  val ApiDocsPath           = s"$ImageApiBasePath/api-docs"
+  val ImageControllerV2Path = s"$ImageApiBasePath/v2/images"
+  val ImageControllerV3Path = s"$ImageApiBasePath/v3/images"
+  val RawControllerPath     = s"$ImageApiBasePath/raw"
 
   val ValidFileExtensions = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg", ".jfif")
 
@@ -114,16 +115,16 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val TagSearchIndex: String = propOrElse("TAG_SEARCH_INDEX_NAME", "tags")
   val TagSearchDocument      = "tag"
 
-  val DefaultPageSize: Int                 = 10
-  val MaxPageSize: Int                     = 10000
-  val IndexBulkSize                        = 1000
-  val SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-image-api.ndla-local")
-  val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-  val ElasticSearchIndexMaxResultWindow    = 10000
-  val ElasticSearchScrollKeepAlive         = "1m"
-  val InitialScrollContextKeywords         = List("0", "initial", "start", "first")
+  val DefaultPageSize: Int              = 10
+  val MaxPageSize: Int                  = 10000
+  val IndexBulkSize                     = 1000
+  val SearchServer: String              = propOrElse("SEARCH_SERVER", "http://search-image-api.ndla-local")
+  val ElasticSearchIndexMaxResultWindow = 10000
+  val ElasticSearchScrollKeepAlive      = "1m"
+  val InitialScrollContextKeywords      = List("0", "initial", "start", "first")
 
-  lazy val Domain: String     = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
-  val ImageApiUrlBase: String = Domain + ImageControllerPath + "/"
-  val RawImageUrlBase: String = Domain + RawControllerPath
+  lazy val Domain: String       = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
+  val ImageApiV2UrlBase: String = Domain + ImageControllerV2Path + "/"
+  val ImageApiV3UrlBase: String = Domain + ImageControllerV3Path + "/"
+  val RawImageUrlBase: String   = Domain + RawControllerPath
 }

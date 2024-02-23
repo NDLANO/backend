@@ -21,11 +21,7 @@ import java.awt.image.BufferedImage
 import java.io.InputStream
 import javax.imageio.ImageIO
 
-/** Testklasse (og kanskje et utgangspunkt for en mer permanent løsning) som kan benyttes til å laste opp bilder til en
-  * S3-bucket, samt metainformasjon til en DynamoDB-instans
-  */
 trait TestData {
-  this: DBImageMetaInformation with DBImageFile =>
 
   class TestData {
 

@@ -10,3 +10,4 @@ object AccessDeniedException {
 }
 case class NotFoundException(message: String) extends RuntimeException(message)
 case class RollbackException(ex: Throwable)   extends RuntimeException
+case class FileTooBigException()              extends RuntimeException

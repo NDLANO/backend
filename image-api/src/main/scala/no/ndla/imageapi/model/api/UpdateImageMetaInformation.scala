@@ -7,28 +7,24 @@
 
 package no.ndla.imageapi.model.api
 
-import com.scalatsi.TSType
-import com.scalatsi.TypescriptType.TSNull
-import no.ndla.common.model.api.{Copyright, Deletable}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.api.{Copyright, UpdateOrDelete}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-// format: off
-@ApiModel(description = "Meta information for the image")
+@description("Meta information for the image")
 case class UpdateImageMetaInformation(
-    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language") language: String,
-    @(ApiModelProperty @field)(description = "Title for the image") title: Option[String],
-    @(ApiModelProperty @field)(description = "Alternative text for the image") alttext: Deletable[String],
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the image") copyright: Option[Copyright],
-    @(ApiModelProperty @field)(description = "Searchable tags for the image") tags: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "Caption for the image") caption: Option[String],
-    @(ApiModelProperty @field)(description = "Describes if the model has released use of the image", allowableValues = "yes,no,not-applicable") modelReleased: Option[String]
+    @description("ISO 639-1 code that represents the language") language: String,
+    @description("Title for the image") title: Option[String],
+    @description("Alternative text for the image") alttext: UpdateOrDelete[String],
+    @description("Describes the copyright information for the image") copyright: Option[Copyright],
+    @description("Searchable tags for the image") tags: Option[Seq[String]],
+    @description("Caption for the image") caption: Option[String],
+    @description("Describes if the model has released use of the image") modelReleased: Option[String]
 )
-// format: on
 
 object UpdateImageMetaInformation {
-  // This alias is required since scala-tsi doesn't understand that Null is `null`
-  // See: https://github.com/scala-tsi/scala-tsi/issues/172
-  implicit val nullTsType: TSType[Null] = TSType(TSNull)
+  implicit val encoder: Encoder[UpdateImageMetaInformation] =
+    UpdateOrDelete.filterMarkers(deriveEncoder[UpdateImageMetaInformation])
+  implicit val decoder: Decoder[UpdateImageMetaInformation] = deriveDecoder
 }

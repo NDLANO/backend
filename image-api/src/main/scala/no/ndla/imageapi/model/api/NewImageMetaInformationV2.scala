@@ -7,19 +7,24 @@
 
 package no.ndla.imageapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.Copyright
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 // format: off
-@ApiModel(description = "Meta information for the image")
+@description("Meta information for the image")
 case class NewImageMetaInformationV2(
-    @(ApiModelProperty @field)(description = "Title for the image") title: String,
-    @(ApiModelProperty @field)(description = "Alternative text for the image") alttext: Option[String],
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the image") copyright: Copyright,
-    @(ApiModelProperty @field)(description = "Searchable tags for the image") tags: Seq[String],
-    @(ApiModelProperty @field)(description = "Caption for the image") caption: String,
-    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in the caption") language: String,
-    @(ApiModelProperty @field)(description = "Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no'", allowableValues = "yes,no,not-applicable") modelReleased: Option[String]
+    @description("Title for the image") title: String,
+    @description("Alternative text for the image") alttext: Option[String],
+    @description("Describes the copyright information for the image") copyright: Copyright,
+    @description("Searchable tags for the image") tags: Seq[String],
+    @description("Caption for the image") caption: String,
+    @description("ISO 639-1 code that represents the language used in the caption") language: String,
+    @description("Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no'") modelReleased: Option[String]
 )
+
+object NewImageMetaInformationV2{
+  implicit val encoder: Encoder[NewImageMetaInformationV2] = deriveEncoder
+  implicit val decoder: Decoder[NewImageMetaInformationV2] = deriveDecoder
+}

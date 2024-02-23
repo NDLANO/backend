@@ -9,12 +9,12 @@ package no.ndla.common.model.domain
 
 import sttp.model.Part
 
-import java.io.{File, FileInputStream}
+import java.io.{File, FileInputStream, InputStream}
 import scala.util.Try
 
 case class UploadedFile(
     partName: String,
-    stream: FileInputStream,
+    stream: InputStream,
     fileName: Option[String],
     fileSize: Long,
     contentType: Option[String],
@@ -27,16 +27,19 @@ case class UploadedFile(
 }
 
 object UploadedFile {
+  private def stripQuotes(s: String): String = s.stripPrefix("\"").stripSuffix("\"")
   def fromFilePart(filePart: Part[File]): UploadedFile = {
     val file        = filePart.body
     val inputStream = new FileInputStream(file)
+    val partName    = stripQuotes(filePart.name)
+    val fileName    = filePart.fileName.map(stripQuotes)
 
     new UploadedFile(
-      partName = filePart.name,
+      partName = partName,
       stream = inputStream,
       fileSize = file.length(),
       contentType = filePart.contentType,
-      fileName = filePart.fileName,
+      fileName = fileName,
       file = file
     )
   }

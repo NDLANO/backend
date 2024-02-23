@@ -23,7 +23,7 @@ import scalikejdbc._
 import scala.util.Try
 
 trait ImageRepository {
-  this: DataSource with ConverterService with DBImageMetaInformation with DBImageFile =>
+  this: DataSource with ConverterService =>
   val imageRepository: ImageRepository
 
   class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {

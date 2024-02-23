@@ -8,14 +8,17 @@
 
 package no.ndla.imageapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Title of the image")
+@description("Title of the image")
 case class ImageTitle(
-    @(ApiModelProperty @field)(description = "The freetext title of the image") title: String,
-    @(ApiModelProperty @field)(
-      description = "ISO 639-1 code that represents the language used in title"
-    ) language: String
+    @description("The freetext title of the image") title: String,
+    @description("ISO 639-1 code that represents the language used in title") language: String
 )
+
+object ImageTitle {
+  implicit val encoder: Encoder[ImageTitle] = deriveEncoder[ImageTitle]
+  implicit val decoder: Decoder[ImageTitle] = deriveDecoder[ImageTitle]
+}

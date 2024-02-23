@@ -36,7 +36,7 @@ object imageapi extends Module {
     melody,
     elastic4s,
     database,
-    scalatra,
+    tapirHttp4sCirce,
     vulnerabilityOverrides
   )
 

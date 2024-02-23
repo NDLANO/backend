@@ -11,7 +11,7 @@ package no.ndla.audioapi.model.api
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
 import no.ndla.search.NdlaSearchException
@@ -66,4 +66,3 @@ class AudioStorageException(message: String)                         extends Run
 class LanguageMappingException(message: String)                      extends RuntimeException(message)
 class ImportException(message: String)                               extends RuntimeException(message)
 case class ElasticIndexingException(message: String)                 extends RuntimeException(message)
-case class FileTooBigException()                                     extends RuntimeException()

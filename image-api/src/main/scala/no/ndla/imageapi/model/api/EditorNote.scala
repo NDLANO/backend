@@ -7,15 +7,19 @@
 
 package no.ndla.imageapi.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-// format: off
-@ApiModel(description = "Note about a change that happened to the image")
+@description("Note about a change that happened to the image")
 case class EditorNote(
-  @(ApiModelProperty @field)(description = "Timestamp of the change") timestamp: NDLADate,
-  @(ApiModelProperty @field)(description = "Who triggered the change") updatedBy: String,
-  @(ApiModelProperty @field)(description = "Editorial note") note: String
+    @description("Timestamp of the change") timestamp: NDLADate,
+    @description("Who triggered the change") updatedBy: String,
+    @description("Editorial note") note: String
 )
+
+object EditorNote {
+  implicit val encoder: Encoder[EditorNote] = deriveEncoder[EditorNote]
+  implicit val decoder: Decoder[EditorNote] = deriveDecoder[EditorNote]
+}

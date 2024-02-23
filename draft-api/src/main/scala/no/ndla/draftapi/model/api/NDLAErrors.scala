@@ -8,7 +8,7 @@
 package no.ndla.draftapi.model.api
 
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
 
 import java.time.LocalDateTime
 import scala.annotation.meta.field
@@ -93,4 +93,3 @@ case class OperationNotAllowedException(message: String) extends RuntimeExceptio
 case class CloneFileException(message: String)           extends RuntimeException(message)
 case class H5PException(message: String)                 extends RuntimeException(message)
 case class GenerateIDException(message: String)          extends RuntimeException(message)
-case class FileTooBigException()                         extends RuntimeException()

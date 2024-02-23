@@ -14,8 +14,6 @@ import io.lemonlabs.uri.UrlPath
 import no.ndla.common.model.{domain => commonDomain, api => commonApi}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{
-  DBImageFile,
-  DBImageMetaInformation,
   ImageFileData,
   ImageFileDataDocument,
   ImageMetaInformation,
@@ -26,7 +24,6 @@ import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.License.getLicense
-import no.ndla.network.ApplicationUrl
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
@@ -35,7 +32,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with Props with DBImageFile with DBImageMetaInformation =>
+  this: Clock with Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
@@ -71,9 +68,13 @@ trait ConverterService {
         language: Option[String],
         user: Option[TokenUser]
     ): Try[api.ImageMetaInformationV2] = {
-      val baseUrl = ApplicationUrl.get
-      val rawPath = baseUrl.replace("/v2/images/", "/raw")
-      asImageMetaInformationV2(domainImageMetaInformation, language, ApplicationUrl.get, Some(rawPath), user)
+      asImageMetaInformationV2(
+        domainImageMetaInformation,
+        language,
+        props.ImageApiV2UrlBase,
+        Some(props.RawImageUrlBase),
+        user
+      )
     }
 
     def asApiImageMetaInformationWithDomainUrlV2(
@@ -84,7 +85,7 @@ trait ConverterService {
       asImageMetaInformationV2(
         domainImageMetaInformation,
         language,
-        props.ImageApiUrlBase,
+        props.ImageApiV2UrlBase,
         Some(props.RawImageUrlBase),
         user
       )
@@ -95,9 +96,8 @@ trait ConverterService {
         language: Option[String],
         user: Option[TokenUser]
     ): Try[api.ImageMetaInformationV3] = {
-      val baseUrl = ApplicationUrl.get
-      val rawPath = baseUrl.replace("/v3/images/", "/raw")
-
+      val metaUrl = props.ImageApiV3UrlBase + imageMeta.id.get
+      val rawPath = props.RawImageUrlBase
       val title = findByLanguageOrBestEffort(imageMeta.titles, language)
         .map(asApiImageTitle)
         .getOrElse(api.ImageTitle("", DefaultLanguage))
@@ -121,7 +121,7 @@ trait ConverterService {
           api
             .ImageMetaInformationV3(
               id = imageMeta.id.get.toString,
-              metaUrl = baseUrl + imageMeta.id.get,
+              metaUrl = metaUrl,
               title = title,
               alttext = alttext,
               copyright = asApiCopyright(imageMeta.copyright),

@@ -8,7 +8,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.domain.{Author, Tag, UploadedFile}
 import no.ndla.common.model.{domain => commonDomain}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain._
@@ -16,23 +16,23 @@ import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
-import org.scalatra.servlet.FileItem
 
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: Props with DBImageMetaInformation =>
+  this: Props =>
   val validationService: ValidationService
 
   class ValidationService {
     import props.{ValidFileExtensions, ValidMimeTypes}
 
-    def validateImageFile(imageFile: FileItem): Option[ValidationMessage] = {
-      if (!hasValidFileExtension(imageFile.name.toLowerCase, ValidFileExtensions))
+    def validateImageFile(imageFile: UploadedFile): Option[ValidationMessage] = {
+      val fn = imageFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
+      if (!hasValidFileExtension(fn, ValidFileExtensions))
         return Some(
           ValidationMessage(
             "file",
-            s"The file ${imageFile.name} does not have a known file extension. Must be one of ${ValidFileExtensions
+            s"The file $fn does not have a known file extension. Must be one of ${ValidFileExtensions
                 .mkString(",")}"
           )
         )
@@ -43,7 +43,7 @@ trait ValidationService {
         return Some(
           ValidationMessage(
             "file",
-            s"The file ${imageFile.name} is not a valid image file. Only valid type is '${ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
+            s"The file ${fn} is not a valid image file. Only valid type is '${ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
           )
         )
 

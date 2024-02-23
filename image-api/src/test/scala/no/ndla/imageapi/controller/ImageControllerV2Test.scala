@@ -8,6 +8,8 @@
 
 package no.ndla.imageapi.controller
 
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Copyright
@@ -26,15 +28,11 @@ import org.json4s.native.JsonParser
 import org.json4s.{DefaultFormats, Formats}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Strictness
-import org.scalatra.servlet.FileItem
-import org.scalatra.test.Uploadable
-import org.scalatra.test.scalatest.ScalatraSuite
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success, Try}
 
-class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnvironment {
-  import props.MaxImageFileSizeBytes
-
+class ImageControllerV2Test extends UnitSuite with TestEnvironment {
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJpbWFnZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.1_j9R9KML2LTqeAE4bpRByJcR6m6Tv3pTOozpYCnTC8"
 
@@ -44,17 +42,24 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJzb21lOm90aGVyIl0sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.u8o7-FXyVzWurle2tP1pngad8KRja6VjFdmy71T4m0k"
 
-  implicit val swagger: ImageSwagger = new ImageSwagger
-  override val converterService      = new ConverterService
-  lazy val controller                = new ImageControllerV2
-  addServlet(controller, "/*")
+  val serverPort: Int           = findFreePort
+  override val converterService = new ConverterService
+  val controller = new ImageControllerV2 {
+    override val maxImageFileSizeBytes: Int = 10
+  }
+  override val services = List(controller)
 
-  case class PretendFile(content: Array[Byte], contentType: String, fileName: String) extends Uploadable {
-    override def contentLength: Long = content.length.toLong
+  override def beforeAll(): Unit = {
+    IO { Routes.startJdkServer("ImageControllerV2Test", serverPort) {} }.unsafeRunAndForget()
+    Thread.sleep(1000)
   }
 
-  val sampleUploadFile = PretendFile(Array[Byte](-1, -40, -1), "image/jpeg", "image.jpg")
+  override def beforeEach(): Unit = {
+    reset(clock, searchConverterService)
+    when(clock.now()).thenCallRealMethod()
+  }
 
+  val fileBody: Array[Byte] = Array[Byte](-1, -40, -1)
   val sampleNewImageMetaV2: String =
     """
       |{
@@ -68,7 +73,9 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       |    },
       |    "origin": "",
       |    "processed": false,
-      |    "authors": [
+      |    "creators": [],
+      |    "rightsholders": [],
+      |    "processors": [
       |      {
       |        "type": "Forfatter",
       |        "name": "Wenche Heir"
@@ -98,10 +105,11 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val apiSearchResult    = SearchResult(0, Some(1), 10, "nb", List())
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))
     when(searchConverterService.asApiSearchResult(domainSearchResult)).thenReturn(apiSearchResult)
-    get("/") {
-      status should equal(200)
-      body should equal(expectedBody)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images")
+    )
+    res.code.code should be(200)
+    res.body should be(expectedBody)
   }
 
   test("That GET / returns body and 200 when image exists") {
@@ -139,17 +147,19 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val apiSearchResult    = api.SearchResult(1, Some(1), 10, "nb", List(imageSummary))
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))
     when(searchConverterService.asApiSearchResult(domainSearchResult)).thenReturn(apiSearchResult)
-    get("/") {
-      status should equal(200)
-      body should equal(expectedBody)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images")
+    )
+    res.code.code should be(200)
+    res.body should be(expectedBody)
   }
 
   test("That GET /<id> returns 404 when image does not exist") {
     when(readService.withId(123, None, None)).thenReturn(Success(None))
-    get("/123") {
-      status should equal(404)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/123")
+    )
+    res.code.code should be(404)
   }
 
   test("That GET /<id> returns body and 200 when image exists") {
@@ -160,11 +170,12 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
-    get("/1") {
-      status should equal(200)
-      val result = JsonParser.parse(body).extract[api.ImageMetaInformationV2]
-      result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1")
+    )
+    res.code.code should be(200)
+    val result = JsonParser.parse(res.body).extract[api.ImageMetaInformationV2]
+    result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
   }
 
   test("That GET /<id> returns body with agreement license and authors") {
@@ -176,11 +187,12 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
 
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
-    get("/1") {
-      status should equal(200)
-      val result = JsonParser.parse(body).extract[api.ImageMetaInformationV2]
-      result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1")
+    )
+    res.code.code should be(200)
+    val result = JsonParser.parse(res.body).extract[api.ImageMetaInformationV2]
+    result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
   }
 
   test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
@@ -192,23 +204,32 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
 
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
-    get("/1") {
-      status should equal(200)
-      val result = JsonParser.parse(body).extract[api.ImageMetaInformationV2]
-      result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1")
+    )
+    res.code.code should equal(200)
+    val result = JsonParser.parse(res.body).extract[api.ImageMetaInformationV2]
+    result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
   }
 
-  test("That POST / returns 403 if no auth-header") {
-    post("/", Map("metadata" -> sampleNewImageMetaV2)) {
-      status should equal(403)
-    }
+  test("That POST / returns 401 if no auth-header") {
+
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images")
+        .multipartBody(multipart("metadata", sampleNewImageMetaV2))
+    )
+    res.code.code should be(401)
   }
 
   test("That POST / returns 400 if parameters are missing") {
-    post("/", Map("metadata" -> sampleNewImageMetaV2), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(400)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images")
+        .multipartBody(multipart("metadata", sampleNewImageMetaV2))
+        .header("Authorization", authHeaderWithWriteRole)
+    )
+    res.code.code should equal(400)
   }
 
   test("That POST / returns 200 if everything went well") {
@@ -244,83 +265,120 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       editorNotes = Seq.empty
     )
 
-    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem], any))
+    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any, any))
       .thenReturn(Success(sampleImageMeta))
 
-    post(
-      "/",
-      Map("metadata" -> sampleNewImageMetaV2),
-      Map("file"     -> sampleUploadFile),
-      headers = Map("Authorization" -> authHeaderWithWriteRole)
-    ) {
-      status should equal(200)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images")
+        .multipartBody[Any](
+          multipart("metadata", sampleNewImageMetaV2),
+          multipart("file", fileBody)
+        )
+        .header("Authorization", authHeaderWithWriteRole)
+    )
+    res.code.code should equal(200)
   }
 
   test("That POST / returns 403 if auth header does not have expected role") {
-    post("/", Map("metadata" -> sampleNewImageMetaV2), headers = Map("Authorization" -> authHeaderWithWrongRole)) {
-      status should equal(403)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images")
+        .multipartBody[Any](
+          multipart("metadata", sampleNewImageMetaV2),
+          multipart("file", fileBody)
+        )
+        .header("Authorization", authHeaderWithWrongRole)
+    )
+    res.code.code should equal(403)
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
-    post("/", Map("metadata" -> sampleNewImageMetaV2), headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
-      status should equal(403)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images")
+        .multipartBody[Any](
+          multipart("metadata", sampleNewImageMetaV2),
+          multipart("file", fileBody)
+        )
+        .header("Authorization", authHeaderWithoutAnyRoles)
+    )
+    res.code.code should equal(403)
   }
 
   test("That POST / returns 413 if file is too big") {
-    val content: Array[Byte] = Array.fill(MaxImageFileSizeBytes + 1) {
-      0
-    }
-    post(
-      "/",
-      Map("metadata" -> sampleNewImageMetaV2),
-      Map("file"     -> sampleUploadFile.copy(content)),
-      headers = Map("Authorization" -> authHeaderWithWriteRole)
-    ) {
-      status should equal(413)
-    }
+    val tooBigFile =
+      multipart("file", Array[Byte](0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21))
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images")
+        .multipartBody[Any](
+          multipart("metadata", sampleNewImageMetaV2),
+          tooBigFile
+        )
+        .header("Authorization", authHeaderWithWriteRole)
+    )
+    res.code.code should equal(413)
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
     reset(writeService)
     val exceptionMock = mock[RuntimeException](withSettings.strictness(Strictness.Lenient))
-    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem], any))
+    when(writeService.storeNewImage(any[NewImageMetaInformationV2], any, any))
       .thenReturn(Failure(exceptionMock))
 
-    post(
-      "/",
-      Map("metadata" -> sampleNewImageMetaV2),
-      Map("file"     -> sampleUploadFile),
-      headers = Map("Authorization" -> authHeaderWithWriteRole)
-    ) {
-      status should equal(500)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images")
+        .multipartBody[Any](
+          multipart("metadata", sampleNewImageMetaV2),
+          multipart("file", fileBody)
+        )
+        .header("Authorization", authHeaderWithWriteRole)
+    )
+    res.code.code should be(500)
   }
 
   test("That PATCH /<id> returns 200 when everything went well") {
     reset(writeService)
-    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any[Option[FileItem]], any))
+    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any, any))
       .thenReturn(Try(TestData.apiElg))
-    patch("/1", sampleUpdateImageMeta, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(200)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
+        .multipartBody[Any](
+          multipart("metadata", sampleUpdateImageMeta)
+        )
+        .header("Authorization", authHeaderWithWriteRole)
+    )
+    res.code.code should be(200)
   }
 
   test("That PATCH /<id> returns 404 when image doesn't exist") {
     reset(writeService)
-    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any[Option[FileItem]], any))
+    when(writeService.updateImage(any[Long], any[UpdateImageMetaInformation], any, any))
       .thenThrow(new ImageNotFoundException(s"Image with id 1 not found"))
-    patch("/1", sampleUpdateImageMeta, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(404)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
+        .multipartBody[Any](
+          multipart("metadata", sampleUpdateImageMeta)
+        )
+        .header("Authorization", authHeaderWithWriteRole)
+    )
+    res.code.code should be(404)
   }
 
   test("That PATCH /<id> returns 403 when not permitted") {
-    patch("/1", Map("metadata" -> sampleUpdateImageMeta), headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
-      status should equal(403)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
+        .multipartBody[Any](
+          multipart("metadata", sampleUpdateImageMeta)
+        )
+        .header("Authorization", authHeaderWithoutAnyRoles)
+    )
+    res.code.code should be(403)
   }
 
   test("That scrollId is in header, and not in body") {
@@ -335,12 +393,12 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(scrollId)
     )
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(searchResponse))
+    when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    get(s"/") {
-      status should be(200)
-      body.contains(scrollId) should be(false)
-      response.getHeader("search-context") should be(scrollId)
-    }
+    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/"))
+    res.code.code should be(200)
+    res.body.contains(scrollId) should be(false)
+    res.header("search-context") should be(Some(scrollId))
   }
 
   test("That scrolling uses scroll and not searches normally") {
@@ -357,11 +415,12 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     )
 
     when(imageSearchService.scrollV2(anyString, anyString, any)).thenReturn(Success(searchResponse))
+    when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    get(s"/?search-context=$scrollId") {
-      status should be(200)
-    }
-
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/?search-context=$scrollId")
+    )
+    res.code.code should be(200)
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings], any)
     verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String], any)
   }
@@ -380,10 +439,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     )
 
     when(imageSearchService.scrollV2(anyString, anyString, any)).thenReturn(Success(searchResponse))
+    when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
-      status should be(200)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/image-api/v2/images/search/")
+        .body(s"""{"scrollId":"$scrollId"}""")
+    )
+    res.code.code should be(200)
 
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings], any)
     verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String], any)
@@ -405,14 +468,26 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       results = Seq.empty,
       scrollId = Some("heiheihei")
     )
+    when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(result))
+    val res = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/image-api/v2/images/?search-context=initial")
+    )
 
-    get("/?search-context=initial") {
-      status should be(200)
-      verify(imageSearchService, times(1)).matchingQuery(eqTo(expectedSettings), any)
-      verify(imageSearchService, times(0)).scrollV2(any[String], any[String], any)
+    res.code.code should be(200)
+    verify(imageSearchService, times(1)).matchingQuery(eqTo(expectedSettings), any)
+    verify(imageSearchService, times(0)).scrollV2(any[String], any[String], any)
+
+  }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
     }
-
   }
 
 }

@@ -173,7 +173,7 @@ export interface ITagsSearchResult {
 export interface IUpdateImageMetaInformation {
   language: string
   title?: string
-  alttext?: (null | string)
+  alttext: UpdateOrDeleteString
   copyright?: ICopyright
   tags?: string[]
   caption?: string
@@ -191,3 +191,5 @@ export interface IValidationMessage {
   field: string
   message: string
 }
+
+export type UpdateOrDeleteString = (null | undefined | string)

@@ -8,7 +8,8 @@
 
 package no.ndla.imageapi.model.domain
 
-import no.ndla.imageapi.Props
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.WithLanguage
 import org.json4s.native.Serialization
 import org.json4s.{DefaultFormats, Formats}
@@ -35,6 +36,11 @@ case class ImageFileData(
   }
 }
 
+object ImageFileData {
+  implicit val encoder: Encoder[ImageFileData] = deriveEncoder
+  implicit val decoder: Decoder[ImageFileData] = deriveDecoder
+}
+
 case class ImageFileDataDocument(
     size: Long,
     contentType: String,
@@ -54,27 +60,22 @@ case class ImageFileDataDocument(
   }
 }
 
-trait DBImageFile {
-  this: Props =>
+object Image extends SQLSyntaxSupport[ImageFileData] {
+  override val tableName            = "imagefiledata"
+  val jsonEncoder: Formats          = DefaultFormats
+  val repositorySerializer: Formats = jsonEncoder
 
-  object Image extends SQLSyntaxSupport[ImageFileData] {
-    override val tableName                  = "imagefiledata"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
-    val jsonEncoder: Formats                = DefaultFormats
-    val repositorySerializer: Formats       = jsonEncoder
+  def fromResultSet(im: SyntaxProvider[ImageFileData])(rs: WrappedResultSet): Try[Option[ImageFileData]] =
+    fromResultSet(im.resultName)(rs)
 
-    def fromResultSet(im: SyntaxProvider[ImageFileData])(rs: WrappedResultSet): Try[Option[ImageFileData]] =
-      fromResultSet(im.resultName)(rs)
-
-    def fromResultSet(im: ResultName[ImageFileData])(rs: WrappedResultSet): Try[Option[ImageFileData]] = Try {
-      implicit val formats: Formats = this.jsonEncoder
-      for {
-        id          <- rs.longOpt(im.c("id"))
-        jsonString  <- rs.stringOpt(im.c("metadata"))
-        fileName    <- rs.stringOpt(im.c("file_name"))
-        imageMetaId <- rs.longOpt(im.c("image_meta_id"))
-        document = Serialization.read[ImageFileDataDocument](jsonString)
-      } yield document.toFull(id, fileName, imageMetaId)
-    }
+  def fromResultSet(im: ResultName[ImageFileData])(rs: WrappedResultSet): Try[Option[ImageFileData]] = Try {
+    implicit val formats: Formats = this.jsonEncoder
+    for {
+      id          <- rs.longOpt(im.c("id"))
+      jsonString  <- rs.stringOpt(im.c("metadata"))
+      fileName    <- rs.stringOpt(im.c("file_name"))
+      imageMetaId <- rs.longOpt(im.c("image_meta_id"))
+      document = Serialization.read[ImageFileDataDocument](jsonString)
+    } yield document.toFull(id, fileName, imageMetaId)
   }
 }

@@ -8,29 +8,25 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.common.errors.ValidationException
-import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.api.{
-  Error,
-  ErrorHelpers,
-  ImageMetaInformationV3,
-  NewImageMetaInformationV2,
-  SearchParams,
-  SearchResultV3,
-  TagsSearchResult,
-  UpdateImageMetaInformation
-}
-import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ModelReleasedStatus, SearchSettings, Sort}
-import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
-import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
+import cats.implicits._
 import no.ndla.language.Language
+import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
+import no.ndla.imageapi.{Eff, Props}
+import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaInformationV3, SearchParams, SearchResultV3, TagsSearchResult}
+import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
+import no.ndla.imageapi.repository.ImageRepository
+import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
+import no.ndla.network.tapir.NoNullJsonPrinter._
+import no.ndla.network.tapir.{DynamicHeaders, Service}
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import org.scalatra.swagger._
-import org.scalatra.{NoContent, NotFound, Ok}
+import sttp.tapir.generic.auto._
+import sttp.tapir.server.ServerEndpoint
+import sttp.tapir._
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait ImageControllerV3 {
   this: ImageRepository
@@ -39,16 +35,17 @@ trait ImageControllerV3 {
     with ReadService
     with WriteService
     with SearchConverterService
-    with NdlaController
-    with DBImageMetaInformation
     with Props
     with ErrorHelpers
     with BaseImageController =>
   val imageControllerV3: ImageControllerV3
 
-  class ImageControllerV3(implicit override val swagger: Swagger) extends BaseImageController {
-
+  class ImageControllerV3 extends Service[Eff] with BaseImageController {
+    import ErrorHelpers._
     import props._
+
+    override val serviceName: String         = "images V3"
+    override val prefix: EndpointInput[Unit] = "image-api" / "v3" / "images"
 
     /** Does a scroll with [[ImageSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -58,20 +55,18 @@ trait ImageControllerV3 {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr(scrollId: Option[String], language: String, user: Option[TokenUser])(
-        orFunction: => Any
-    ): Any =
+    private def scrollSearchOr(
+        scrollId: Option[String],
+        language: String,
+        user: Option[TokenUser]
+    )(orFunction: => Try[(SearchResultV3, DynamicHeaders)]): Try[(SearchResultV3, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          imageSearchService.scroll(scroll, language) match {
-            case Success(scrollResult) =>
-              val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-              searchConverterService.asApiSearchResultV3(scrollResult, language, user) match {
-                case Failure(ex)        => Failure(ex)
-                case Success(converted) => Ok(converted, headers = responseHeader)
-              }
-            case Failure(ex) => errorHandler(ex)
-          }
+          for {
+            scrollResult <- imageSearchService.scroll(scroll, language)
+            body         <- searchConverterService.asApiSearchResultV3(scrollResult, language, user)
+            headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+          } yield (body, headers)
         case _ => orFunction
       }
 
@@ -122,370 +117,272 @@ trait ImageControllerV3 {
             modelReleased = modelReleasedStatus
           )
       }
-
-      imageSearchService.matchingQueryV3(settings, user) match {
-        case Success(searchResult) =>
-          val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          searchConverterService.asApiSearchResultV3(searchResult, language, user) match {
-            case Failure(ex)        => errorHandler(ex)
-            case Success(converted) => Ok(converted, headers = responseHeader)
-          }
-        case Failure(ex) => errorHandler(ex)
-      }
+      for {
+        searchResult <- imageSearchService.matchingQueryV3(settings, user)
+        output       <- searchConverterService.asApiSearchResultV3(searchResult, language, user)
+        scrollHeader = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+      } yield (output, scrollHeader)
     }
 
-    get(
-      "/",
-      operation(
-        apiOperation[SearchResultV3]("getImagesV3")
-          .summary("Find images.")
-          .description("Find images in the ndla.no database.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(query),
-            asQueryParam(minSize),
-            asQueryParam(language),
-            asQueryParam(fallback),
-            asQueryParam(license),
-            asQueryParam(includeCopyrighted),
-            asQueryParam(sort),
-            asQueryParam(pageNo),
-            asQueryParam(pageSize),
-            asQueryParam(podcastFriendly),
-            asQueryParam(scrollId),
-            asQueryParam(modelReleased)
-          )
-          .responseMessages(response500)
-      )
-    ) {
-      val scrollId = paramOrNone(this.scrollId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-      val user     = TokenUser.fromScalatraRequest(request).toOption
+    def getImagesV3: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Find images.")
+      .description("Find images in the ndla.no database.")
+      .in(queryParam)
+      .in(minSize)
+      .in(language)
+      .in(fallback)
+      .in(license)
+      .in(includeCopyrighted)
+      .in(sort)
+      .in(pageNo)
+      .in(pageSize)
+      .in(podcastFriendly)
+      .in(scrollId)
+      .in(modelReleased)
+      .errorOut(errorOutputsFor(400))
+      .out(jsonBody[SearchResultV3])
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .withOptionalUser
+      .serverLogicPure { user =>
+        {
+          case (
+                query,
+                minimumSize,
+                language,
+                fallback,
+                license,
+                includeCopyrighted,
+                sortStr,
+                pageNo,
+                pageSize,
+                podcastFriendly,
+                scrollId,
+                modelReleased
+              ) =>
+            scrollSearchOr(scrollId, language, user) {
+              val sort                = Sort.valueOf(sortStr)
+              val shouldScroll        = scrollId.exists(InitialScrollContextKeywords.contains)
+              val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
 
-      scrollSearchOr(scrollId, language, user) {
-        val minimumSize        = intOrNone(this.minSize.paramName)
-        val query              = paramOrNone(this.query.paramName)
-        val license            = params.get(this.license.paramName)
-        val pageSize           = intOrNone(this.pageSize.paramName)
-        val page               = intOrNone(this.pageNo.paramName)
-        val sort               = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
-        val podcastFriendly    = booleanOrNone(this.podcastFriendly.paramName)
-        val includeCopyrighted = booleanOrDefault(this.includeCopyrighted.paramName, default = false)
-        val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
-        val modelReleasedStatus =
-          paramAsListOfString(this.modelReleased.paramName).flatMap(ModelReleasedStatus.valueOf)
-
-        searchV3(
-          minimumSize,
-          query,
-          language,
-          fallback,
-          license,
-          sort,
-          pageSize,
-          page,
-          podcastFriendly,
-          includeCopyrighted,
-          shouldScroll,
-          modelReleasedStatus,
-          user
-        )
-      }
-    }: Unit
-
-    post(
-      "/search/",
-      operation(
-        apiOperation[List[SearchResultV3]]("getImagesPostV3")
-          .summary("Find images.")
-          .description("Search for images in the ndla.no database.")
-          .parameters(
-            asHeaderParam(correlationId),
-            bodyParam[SearchParams],
-            asQueryParam(scrollId)
-          )
-          .responseMessages(response400, response500)
-      )
-    ) {
-      val searchParams = extract[SearchParams](request.body)
-      val language     = searchParams.language.getOrElse(Language.AllLanguages)
-      val fallback     = searchParams.fallback.getOrElse(false)
-      val user         = TokenUser.fromScalatraRequest(request).toOption
-
-      scrollSearchOr(searchParams.scrollId, language, user) {
-        val minimumSize        = searchParams.minimumSize
-        val query              = searchParams.query
-        val license            = searchParams.license
-        val pageSize           = searchParams.pageSize
-        val page               = searchParams.page
-        val podcastFriendly    = searchParams.podcastFriendly
-        val sort               = Sort.valueOf(searchParams.sort)
-        val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
-        val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
-        val modelReleasedStatus =
-          searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
-
-        searchV3(
-          minimumSize,
-          query,
-          language,
-          fallback,
-          license,
-          sort,
-          pageSize,
-          page,
-          podcastFriendly,
-          includeCopyrighted,
-          shouldScroll,
-          modelReleasedStatus,
-          user
-        )
-      }
-    }: Unit
-
-    get(
-      "/:image_id",
-      operation(
-        apiOperation[ImageMetaInformationV3]("findByImageIdV3")
-          .summary("Fetch information for image.")
-          .description("Shows info of the image with submitted id.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asPathParam(imageId),
-            asQueryParam(language)
-          )
-          .responseMessages(response404, response500)
-      )
-    ) {
-      val imageId  = long(this.imageId.paramName)
-      val language = paramOrNone(this.language.paramName)
-      val user     = TokenUser.fromScalatraRequest(request).toOption
-
-      readService.withIdV3(imageId, language, user) match {
-        case Success(Some(image)) => image
-        case Success(None) =>
-          NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId and language $language not found"))
-        case Failure(ex) => errorHandler(ex)
-      }
-    }: Unit
-
-    get(
-      "/ids/",
-      operation(
-        apiOperation[List[ImageMetaInformationV3]]("getImagesByIds")
-          .summary("Fetch images that matches ids parameter.")
-          .description("Fetch images that matches ids parameter.")
-          .parameters(
-            asQueryParam(imageIds),
-            asQueryParam(language)
-          )
-          .responseMessages(response500)
-      )
-    ) {
-      val imageIds = paramAsListOfLong(this.imageIds.paramName)
-      val language = paramOrNone(this.language.paramName)
-      val user     = TokenUser.fromScalatraRequest(request).toOption
-
-      readService.getImagesByIdsV3(imageIds, language, user) match {
-        case Success(images) => Ok(images)
-        case Failure(ex)     => errorHandler(ex)
-      }
-    }: Unit
-
-    get(
-      "/external_id/:external_id",
-      operation(
-        apiOperation[ImageMetaInformationV3]("findImageByExternalIdV3")
-          .summary("Fetch information for image by external id.")
-          .description("Shows info of the image with submitted external id.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asPathParam(externalId),
-            asQueryParam(language)
-          )
-          .responseMessages(response404, response500)
-      )
-    ) {
-      val externalId = params(this.externalId.paramName)
-      val language   = paramOrNone(this.language.paramName)
-      val user       = TokenUser.fromScalatraRequest(request).toOption
-
-      imageRepository.withExternalId(externalId) match {
-        case Some(image) => Ok(converterService.asApiImageMetaInformationV3(image, language, user))
-        case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
-      }
-    }: Unit
-
-    post(
-      "/",
-      operation(
-        apiOperation[ImageMetaInformationV3]("newImageV3")
-          .summary("Upload a new image with meta information.")
-          .description("Upload a new image file with meta data.")
-          .consumes("multipart/form-data")
-          .parameters(
-            asHeaderParam(correlationId),
-            asObjectFormParam(metadata),
-            formParam(metadata.paramName, models("NewImageMetaInformationV2")),
-            asFileParam(file)
-          )
-          .authorizations("oauth2")
-          .responseMessages(response400, response403, response413, response500)
-      )
-    ) {
-      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
-        val imageMetaFromParam = params.get(this.metadata.paramName)
-        val imageMetaFromFile = fileParams
-          .get(this.metadata.paramName)
-          .map(f => scala.io.Source.fromInputStream(f.getInputStream).mkString)
-
-        imageMetaFromParam.orElse(imageMetaFromFile).map(extract[NewImageMetaInformationV2]) match {
-          case None => errorHandler(ValidationException("metadata", "The request must contain image metadata"))
-          case Some(imageMeta) =>
-            fileParams.get(this.file.paramName) match {
-              case None => errorHandler(ValidationException("file", "The request must contain an image file"))
-              case Some(file) =>
-                writeService.storeNewImage(imageMeta, file, user) match {
-                  case Failure(ex) => errorHandler(ex)
-                  case Success(storedImage) =>
-                    converterService.asApiImageMetaInformationV3(storedImage, Some(imageMeta.language), Some(user))
-                }
-            }
+              searchV3(
+                minimumSize,
+                query,
+                language,
+                fallback,
+                license,
+                sort,
+                pageSize,
+                pageNo,
+                podcastFriendly,
+                includeCopyrighted,
+                shouldScroll,
+                modelReleasedStatus,
+                user
+              )
+            }.handleErrorsOrOk
         }
       }
-    }: Unit
 
-    delete(
-      "/:image_id",
-      operation(
-        apiOperation[Unit]("deleteImageV3")
-          .summary("Deletes the specified images meta data and file")
-          .description("Deletes the specified images meta data and file")
-          .parameters(
-            asHeaderParam(correlationId),
-            asPathParam(imageId)
-          )
-          .authorizations("oauth2")
-          .responseMessages(response400, response403, response413, response500)
+    def getImagesPostV3: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Find images.")
+      .description("Search for images in the ndla.no database.")
+      .in("search")
+      .in(jsonBody[SearchParams])
+      .errorOut(errorOutputsFor(400))
+      .out(jsonBody[SearchResultV3])
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .withOptionalUser
+      .serverLogicPure {
+        user =>
+          { searchParams =>
+            val language = searchParams.language.getOrElse(Language.AllLanguages)
+            val fallback = searchParams.fallback.getOrElse(false)
+
+            scrollSearchOr(searchParams.scrollId, language, user) {
+              val minimumSize        = searchParams.minimumSize
+              val query              = searchParams.query
+              val license            = searchParams.license
+              val pageSize           = searchParams.pageSize
+              val page               = searchParams.page
+              val podcastFriendly    = searchParams.podcastFriendly
+              val sort               = Sort.valueOf(searchParams.sort)
+              val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
+              val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+              val modelReleasedStatus =
+                searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
+
+              searchV3(
+                minimumSize,
+                query,
+                language,
+                fallback,
+                license,
+                sort,
+                pageSize,
+                page,
+                podcastFriendly,
+                includeCopyrighted,
+                shouldScroll,
+                modelReleasedStatus,
+                user
+              )
+            }.handleErrorsOrOk
+          }
+      }
+
+    def findByImageIdV3: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Fetch information for image.")
+      .description("Shows info of the image with submitted id.")
+      .in(pathImageId)
+      .in(languageOpt)
+      .errorOut(errorOutputsFor(400))
+      .out(jsonBody[ImageMetaInformationV3])
+      .withOptionalUser
+      .serverLogicPure { user =>
+        { case (imageId, language) =>
+          readService.withIdV3(imageId, language, user) match {
+            case Success(Some(image)) => image.asRight
+            case Success(None) => notFoundWithMsg(s"Image with id $imageId and language $language not found").asLeft
+            case Failure(ex)   => returnLeftError(ex)
+          }
+        }
+      }
+
+    def getImagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Fetch images that matches ids parameter.")
+      .description("Fetch images that matches ids parameter.")
+      .in("ids")
+      .in(imageIds)
+      .in(languageOpt)
+      .out(jsonBody[List[ImageMetaInformationV3]])
+      .errorOut(errorOutputsFor(400))
+      .withOptionalUser
+      .serverLogicPure { user =>
+        { case (imageIds, language) =>
+          readService.getImagesByIdsV3(imageIds.values, language, user).handleErrorsOrOk
+        }
+      }
+
+    def findImageByExternalIdV3: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Fetch information for image by external id.")
+      .description("Shows info of the image with submitted external id.")
+      .in("external_id" / pathExternalId)
+      .in(languageOpt)
+      .out(jsonBody[ImageMetaInformationV3])
+      .errorOut(errorOutputsFor(400))
+      .withOptionalUser
+      .serverLogicPure { user =>
+        { case (externalId, language) =>
+          imageRepository.withExternalId(externalId) match {
+            case Some(image) => converterService.asApiImageMetaInformationV3(image, language, user).handleErrorsOrOk
+            case None        => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
+          }
+        }
+      }
+
+    def newImageV3: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Upload a new image with meta information.")
+      .description("Upload a new image file with meta data.")
+      .out(jsonBody[ImageMetaInformationV3])
+      .in(multipartBody[MetaDataAndFileForm])
+      .errorOut(errorOutputsFor(400))
+      .requirePermission(IMAGE_API_WRITE)
+      .serverLogicPure(user =>
+        formData =>
+          doWithStream(formData.file) { uploadedFile =>
+            writeService.storeNewImage(formData.metadata.body, uploadedFile, user).map { case storedImage =>
+              converterService
+                .asApiImageMetaInformationV3(
+                  storedImage,
+                  Some(formData.metadata.body.language),
+                  Some(user)
+                )
+            }
+          }.flatten.handleErrorsOrOk
       )
-    ) {
-      requirePermissionOrAccessDenied(IMAGE_API_WRITE) {
-        val imageId = long(this.imageId.paramName)
+
+    def deleteImageV3: ServerEndpoint[Any, Eff] = endpoint.delete
+      .summary("Deletes the specified images meta data and file")
+      .description("Deletes the specified images meta data and file")
+      .in(pathImageId)
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .requirePermission(IMAGE_API_WRITE)
+      .serverLogicPure { _ => imageId =>
         writeService.deleteImageAndFiles(imageId) match {
-          case Failure(ex) => errorHandler(ex)
-          case Success(_)  => Ok()
+          case Failure(ex) => returnLeftError(ex)
+          case Success(_)  => ().asRight
         }
       }
-    }: Unit
 
-    delete(
-      "/:image_id/language/:language",
-      operation(
-        apiOperation[ImageMetaInformationV3]("deleteLanguageV3")
-          .summary("Delete language version of image metadata.")
-          .description("Delete language version of image metadata.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asPathParam(imageId),
-            asPathParam(pathLanguage)
-          )
-          .authorizations("oauth2")
-          .responseMessages(response400, response403, response500)
-      )
-    ) {
-      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
-        val imageId  = long(this.imageId.paramName)
-        val language = params(this.language.paramName)
-
+    def deleteLanguageV3: ServerEndpoint[Any, Eff] = endpoint.delete
+      .summary("Delete language version of image metadata.")
+      .description("Delete language version of image metadata.")
+      .in(pathImageId / "language" / pathLanguage)
+      .out(noContentOrBodyOutput[ImageMetaInformationV3])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .requirePermission(IMAGE_API_WRITE)
+      .serverLogicPure(user => { case (imageId, language) =>
         writeService.deleteImageLanguageVersionV3(imageId, language, user) match {
-          case Failure(ex)          => errorHandler(ex)
-          case Success(Some(image)) => Ok(image)
-          case Success(None)        => NoContent()
+          case Failure(ex)          => returnLeftError(ex)
+          case Success(Some(image)) => Some(image).asRight
+          case Success(None)        => None.asRight
         }
+      })
+
+    def editImageV3: ServerEndpoint[Any, Eff] = endpoint.patch
+      .summary("Update an existing image with meta information.")
+      .description("Updates an existing image with meta data.")
+      .in(pathImageId)
+      .out(jsonBody[ImageMetaInformationV3])
+      .in(multipartBody[UpdateMetaDataAndFileForm])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .requirePermission(IMAGE_API_WRITE)
+      .serverLogicPure { user => input =>
+        val (imageId, formData) = input
+        doWithMaybeStream(formData.file) { uploadedFile =>
+          writeService.updateImageV3(imageId, formData.metadata.body, uploadedFile, user)
+        }.handleErrorsOrOk
       }
-    }: Unit
 
-    patch(
-      "/:image_id",
-      operation(
-        apiOperation[ImageMetaInformationV3]("editImageV3")
-          .summary("Update an existing image with meta information.")
-          .description("Updates an existing image with meta data.")
-          .consumes("form-data")
-          .parameters(
-            asHeaderParam(correlationId),
-            asPathParam(imageId),
-            bodyParam[UpdateImageMetaInformation]("metadata")
-              .description("The metadata for the image file to submit."),
-            asObjectFormParam(metadata),
-            formParam(updateMetadata.paramName, models("UpdateImageMetaInformation"))
-              .description("metadata used when also updating imagefile"),
-            asFileParam(file)
-          )
-          .authorizations("oauth2")
-          .responseMessages(response400, response403, response500)
-      )
-    ) {
-      requirePermissionOrAccessDeniedWithUser(IMAGE_API_WRITE) { user =>
-        val imageId            = long(this.imageId.paramName)
-        val imageMetaFromParam = params.get(this.updateMetadata.paramName)
-
-        lazy val imageMetaFromFile =
-          fileParams
-            .get(this.updateMetadata.paramName)
-            .map(f => scala.io.Source.fromInputStream(f.getInputStream).mkString)
-
-        val metaToUse = imageMetaFromParam.orElse(imageMetaFromFile).getOrElse(request.body)
-
-        tryExtract[UpdateImageMetaInformation](metaToUse) match {
-          case Failure(ex) => errorHandler(ex)
-          case Success(metaInfo) =>
-            val fileItem = fileParams.get(this.file.paramName)
-            writeService.updateImageV3(imageId, metaInfo, fileItem, user) match {
-              case Success(imageMeta) => Ok(imageMeta)
-              case Failure(e)         => errorHandler(e)
-            }
+    def getTagsSearchableV3: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Retrieves a list of all previously used tags in images")
+      .description("Retrieves a list of all previously used tags in images")
+      .in("tag-search")
+      .in(queryParam)
+      .in(pageSize)
+      .in(pageNo)
+      .in(language)
+      .in(sort)
+      .out(jsonBody[TagsSearchResult])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .serverLogicPure { case (q, pageSizeParam, pageNoParam, language, sortStr) =>
+        val query = q.getOrElse("")
+        val pageSize = pageSizeParam.getOrElse(props.DefaultPageSize) match {
+          case tooSmall if tooSmall < 1 => props.DefaultPageSize
+          case x                        => x
         }
-      }
-    }: Unit
+        val pageNo = pageNoParam.getOrElse(1) match {
+          case tooSmall if tooSmall < 1 => 1
+          case x                        => x
+        }
+        val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
-    get(
-      "/tag-search/",
-      operation(
-        apiOperation[TagsSearchResult]("getTagsSearchableV3")
-          .summary("Retrieves a list of all previously used tags in images")
-          .description("Retrieves a list of all previously used tags in images")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(query),
-            asQueryParam(pageSize),
-            asQueryParam(pageNo),
-            asQueryParam(language),
-            asQueryParam(sort)
-          )
-          .responseMessages(response500)
-          .authorizations("oauth2")
-      )
-    ) {
-      val query = paramOrDefault(this.query.paramName, "")
-      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
-        case tooSmall if tooSmall < 1 => props.DefaultPageSize
-        case x                        => x
-      }
-      val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
-        case tooSmall if tooSmall < 1 => 1
-        case x                        => x
-      }
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-
-      val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, "")).getOrElse(Sort.ByRelevanceDesc)
-
-      readService.getAllTags(query, pageSize, pageNo, language, sort) match {
-        case Failure(ex)     => errorHandler(ex)
-        case Success(result) => Ok(result)
+        readService.getAllTags(query, pageSize, pageNo, language, sort).handleErrorsOrOk
       }
 
-    }: Unit
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      getImagesV3,
+      getImagesPostV3,
+      findByImageIdV3,
+      getImagesByIds,
+      findImageByExternalIdV3,
+      newImageV3,
+      deleteImageV3,
+      deleteLanguageV3,
+      editImageV3,
+      getTagsSearchableV3
+    )
+
   }
 }

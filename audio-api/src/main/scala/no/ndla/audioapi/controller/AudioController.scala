@@ -10,6 +10,7 @@ package no.ndla.audioapi.controller
 
 import cats.implicits._
 import io.circe.generic.extras.auto._
+import no.ndla.audioapi.controller.multipart.{MetaDataAndFileForm, MetaDataAndOptFileForm}
 import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api._
@@ -17,6 +18,7 @@ import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.common.errors.FileTooBigException
 import no.ndla.language.Language
 import no.ndla.common.implicits._
 import no.ndla.common.model.domain.UploadedFile
@@ -292,9 +294,6 @@ trait AudioController {
       if (file.fileSize > maxAudioFileSizeBytes) Failure(FileTooBigException())
       else file.doWithStream(f)
     }
-
-    case class MetaDataAndFileForm(metadata: Part[NewAudioMetaInformation], file: Part[File])
-    case class MetaDataAndOptFileForm(metadata: Part[UpdatedAudioMetaInformation], file: Option[Part[File]])
 
     private case class SummaryWithHeader(
         @jsonbody
