@@ -212,11 +212,11 @@ trait PublishedConceptController {
           val language        = searchParams.language.getOrElse(Language.AllLanguages)
           val pageSize        = searchParams.pageSize.getOrElse(DefaultPageSize)
           val page            = searchParams.page.getOrElse(1)
-          val idList          = searchParams.idList
+          val idList          = searchParams.ids
           val fallback        = searchParams.fallback.getOrElse(false)
           val subjects        = searchParams.subjects
           val tagsToFilterBy  = searchParams.tags
-          val exactTitleMatch = searchParams.exactTitleMatch.getOrElse(false)
+          val exactTitleMatch = searchParams.exactMatch.getOrElse(false)
           val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           val embedResource   = searchParams.embedResource
           val embedId         = searchParams.embedId

@@ -31,7 +31,7 @@ import sttp.tapir.EndpointIO.annotations._
       language: Option[String],
 
       @description("Return only learning resources that have one of the provided ids.")
-      learningResourceIds: Option[List[Long]],
+      ids: Option[List[Long]],
 
       @description("Return only learning resources of specific type(s).")
       resourceTypes: Option[List[String]],
@@ -61,7 +61,7 @@ import sttp.tapir.EndpointIO.annotations._
         """A list of relevances the learning resources should be filtered by.
           |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
           |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin)
-      relevanceFilter: Option[List[String]],
+      relevance: Option[List[String]],
 
 
       @description(
@@ -96,10 +96,10 @@ import sttp.tapir.EndpointIO.annotations._
       includeOtherStatuses: Option[Boolean],
 
       @description("Return only results having next revision after this date.")
-      revisionDateFilterFrom: Option[NDLADate],
+      revisionDateFrom: Option[NDLADate],
 
       @description("Return only results having next revision before this date.")
-      revisionDateFilterTo: Option[NDLADate],
+      revisionDateTo: Option[NDLADate],
 
       @description("Set to true to avoid including hits from the revision history log.")
       excludeRevisionLog: Option[Boolean],
@@ -114,7 +114,7 @@ import sttp.tapir.EndpointIO.annotations._
       prioritized: Option[Boolean],
 
       @description("List of priority-levels to filter by.")
-      priorityFilter: Option[List[String]],
+      priority: Option[List[String]],
 
       @description("A list of parent topics the learning resources should be filtered by.")
       topics: Option[List[String]]

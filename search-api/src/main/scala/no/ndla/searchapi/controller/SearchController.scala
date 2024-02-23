@@ -497,13 +497,13 @@ trait SearchController {
             page = params.page.getOrElse(1),
             pageSize = params.pageSize.getOrElse(10),
             sort = params.sort.getOrElse(Sort.ByRelevanceDesc),
-            withIdIn = params.learningResourceIds.getOrElse(List.empty),
+            withIdIn = params.ids.getOrElse(List.empty),
             subjects = params.subjects.getOrElse(List.empty),
             topics = params.topics.getOrElse(List.empty),
             resourceTypes = params.resourceTypes.getOrElse(List.empty),
             learningResourceTypes = params.contextTypes.getOrElse(List.empty).flatMap(LearningResourceType.valueOf),
             supportedLanguages = params.languageFilter.getOrElse(List.empty),
-            relevanceIds = params.relevanceFilter.getOrElse(List.empty),
+            relevanceIds = params.relevance.getOrElse(List.empty),
             statusFilter = params.draftStatus.getOrElse(List.empty).flatMap(DraftStatus.valueOf),
             userFilter = params.users.getOrElse(List.empty),
             grepCodes = params.grepCodes.getOrElse(List.empty),
@@ -513,14 +513,14 @@ trait SearchController {
             embedResource = params.embedResource.getOrElse(List.empty),
             embedId = params.embedId,
             includeOtherStatuses = params.includeOtherStatuses.getOrElse(false),
-            revisionDateFilterFrom = params.revisionDateFilterFrom,
-            revisionDateFilterTo = params.revisionDateFilterTo,
+            revisionDateFilterFrom = params.revisionDateFrom,
+            revisionDateFilterTo = params.revisionDateTo,
             excludeRevisionHistory = params.excludeRevisionLog.getOrElse(false),
             responsibleIdFilter = params.responsibleIds.getOrElse(List.empty),
             articleTypes = params.articleTypes.getOrElse(List.empty),
             filterInactive = params.filterInactive.getOrElse(false),
             prioritized = params.prioritized,
-            priority = params.priorityFilter.getOrElse(List.empty)
+            priority = params.priority.getOrElse(List.empty)
           )
       }
     }
