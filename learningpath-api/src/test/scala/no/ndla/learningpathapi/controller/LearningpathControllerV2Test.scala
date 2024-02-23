@@ -8,32 +8,46 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.errors.ValidationException
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.{NDLADate, api => commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.Node
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import no.ndla.myndla.model.domain.InvalidStatusException
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
 import org.mockito.ArgumentMatchers._
-import org.mockito.Strictness
-import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import javax.servlet.http.HttpServletRequest
-import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
+import sttp.client3.quick._
 
-class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
+class LearningpathControllerV2Test extends UnitSuite with TestEnvironment {
 
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-  implicit val swagger: LearningpathSwagger = new LearningpathSwagger
+  val serverPort: Int           = findFreePort
+  val controller                = new LearningpathControllerV2
+  override val services: List[Service[Eff]] = List(controller)
+
+  override def beforeAll(): Unit = {
+    IO { Routes.startJdkServer("LearningpathControllerV2Test", serverPort) {} }.unsafeRunAndForget()
+    Thread.sleep(1000)
+  }
+
+  override def beforeEach(): Unit = {
+    resetMocks()
+    when(clock.now()).thenCallRealMethod()
+    when(languageValidator.validate(any[String], any[String], any[Boolean]))
+      .thenReturn(None)
+    when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
+  }
 
   val copyright: api.Copyright = api.Copyright(commonApi.License("by-sa", None, None), List())
 
@@ -54,15 +68,6 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     None,
     None
   )
-
-  lazy val controller = new LearningpathControllerV2
-  addServlet(controller, "/*")
-
-  override def beforeEach(): Unit = {
-    resetMocks()
-    when(languageValidator.validate(any[String], any[String], any[Boolean]))
-      .thenReturn(None)
-  }
 
   test("That GET / will send all query-params to the search service") {
     val query              = "hoppetau"
@@ -90,31 +95,29 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
 
     when(searchService.matchingQuery(eqTo(expectedSettings))).thenReturn(Success(result))
 
-    get(
-      "/",
-      Map(
-        "query"              -> query,
-        "tag"                -> tag,
-        "language"           -> language,
-        "sort"               -> "-duration",
-        "page-size"          -> s"$pageSize",
-        "page"               -> s"$page",
-        "ids"                -> s"$ids",
-        "verificationStatus" -> s"$verificationStatus"
-      )
-    ) {
-      status should equal(200)
-      val convertedBody = read[api.SearchResultV2](body)
-      convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
-    }
+    val queryParams = Map(
+      "query"              -> query,
+      "tag"                -> tag,
+      "language"           -> language,
+      "sort"               -> "-duration",
+      "page-size"          -> s"$pageSize",
+      "page"               -> s"$page",
+      "ids"                -> s"$ids",
+      "verificationStatus" -> s"$verificationStatus"
+    )
+
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths?$queryParams")
+    )
+    res.code.code should be(200)
+    val convertedBody = read[api.SearchResultV2](res.body)
+    convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
   }
 
   test("That GET / will handle all empty query-params as missing query params") {
     val query    = ""
     val tag      = ""
     val language = ""
-    val page     = ""
-    val pageSize = ""
     val duration = ""
     val ids      = "1,2"
 
@@ -124,22 +127,19 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
 
     when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
 
-    get(
-      "/",
-      Map(
-        "query"     -> query,
-        "tag"       -> tag,
-        "language"  -> language,
-        "sort"      -> duration,
-        "page-size" -> s"$pageSize",
-        "page"      -> s"$page",
-        "ids"       -> s"$ids"
-      )
-    ) {
-      status should equal(200)
-      val convertedBody = read[api.SearchResultV2](body)
-      convertedBody.totalCount should be(-1)
-    }
+    val queryParams = Map(
+      "query"    -> query,
+      "tag"      -> tag,
+      "language" -> language,
+      "sort"     -> duration,
+      "ids"      -> s"$ids"
+    )
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths?$queryParams")
+    )
+    res.code.code should be(200)
+    val convertedBody = read[api.SearchResultV2](res.body)
+    convertedBody.totalCount should be(-1)
 
   }
 
@@ -165,16 +165,16 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     )
 
     when(searchService.matchingQuery(eqTo(expectedSettings))).thenReturn(Success(result))
-
-    post(
-      "/search/",
-      body =
-        s"""{"query": "$query", "tag": "$tag", "language": "$language", "page": $page, "pageSize": $pageSize, "ids": [1, 2], "sort": "-duration" }"""
-    ) {
-      status should equal(200)
-      val convertedBody = read[api.SearchResultV2](body)
-      convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
-    }
+    val inputBody =
+      s"""{"query": "$query", "tag": "$tag", "language": "$language", "page": $page, "pageSize": $pageSize, "ids": [1, 2], "sort": "-duration" }"""
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/search/")
+        .body(inputBody)
+    )
+    res.code.code should be(200)
+    val convertedBody = read[api.SearchResultV2](res.body)
+    convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
   }
 
   test("That GET /licenses with filter sat to by only returns creative common licenses") {
@@ -182,17 +182,13 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
       .filter(_.license.toString.startsWith("by"))
       .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
       .toSet
-
-    get(
-      "/licenses/",
-      Map(
-        "filter" -> "by"
-      )
-    ) {
-      status should equal(200)
-      val convertedBody = read[Set[commonApi.License]](body)
-      convertedBody should equal(creativeCommonlicenses)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/licenses/?filter=by")
+    )
+    res.code.code should be(200)
+    val convertedBody = read[Set[commonApi.License]](res.body)
+    convertedBody should equal(creativeCommonlicenses)
   }
 
   test("That GET /licenses with filter not specified returns all licenses") {
@@ -200,65 +196,33 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
       .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
       .toSet
 
-    get("/licenses/", Map()) {
-      status should equal(200)
-      val convertedBody = read[Set[commonApi.License]](body)
-      convertedBody should equal(allLicenses)
-    }
-  }
-
-  test("That paramAsListOfLong returns empty list when empty param") {
-    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
-    val paramName                            = "test"
-    val parameterMap                         = Map("someOther" -> Array(""))
-
-    when(request.getParameterMap).thenReturn(parameterMap.asJava)
-    controller.paramAsListOfLong(paramName)(request) should equal(List())
-  }
-
-  test("That paramAsListOfLong returns List of longs for all ids specified in input") {
-    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
-    val expectedList                         = List(1, 2, 3, 5, 6, 7, 8)
-    val paramName                            = "test"
-    val parameterMap                         = Map(paramName -> Array(expectedList.mkString(" , ")))
-
-    when(request.getParameterMap).thenReturn(parameterMap.asJava)
-    controller.paramAsListOfLong(paramName)(request) should equal(expectedList)
-  }
-
-  test("That paramAsListOfLong returns validation error when list of ids contains a string") {
-    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
-    val paramName                            = "test"
-    val parameterMap                         = Map(paramName -> Array("1,2,abc,3"))
-
-    when(request.getParameterMap).thenReturn(parameterMap.asJava)
-
-    val validationException = intercept[ValidationException] {
-      controller.paramAsListOfLong(paramName)(request)
-    }
-
-    validationException.errors.size should be(1)
-    validationException.errors.head.field should equal(paramName)
-    validationException.errors.head.message should equal(
-      s"Invalid value for $paramName. Only (list of) digits are allowed."
+    val res = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/licenses/")
     )
-
+    res.code.code should be(200)
+    val convertedBody = read[Set[commonApi.License]](res.body)
+    convertedBody should equal(allLicenses)
   }
 
   test("That /with-status returns 400 if invalid status is specified") {
     when(readService.learningPathWithStatus(any[String], any[TokenUser]))
       .thenReturn(Failure(InvalidStatusException("Bad status")))
 
-    get("/status/invalidStatusHurrDurr") {
-      status should equal(400)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/status/invalidStatusHurrDurr")
+    )
+    res.code.code should be(400)
 
     when(readService.learningPathWithStatus(any[String], any[TokenUser]))
       .thenReturn(Success(List.empty))
-    get("/status/unlisted") {
-      status should equal(200)
-    }
 
+    val res2 = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/status/unlisted")
+    )
+    res2.code.code should be(200)
   }
 
   test("That scrollId is in header, and not in body") {
@@ -274,11 +238,12 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     )
     when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
 
-    get(s"/") {
-      status should be(200)
-      body.contains(scrollId) should be(false)
-      response.getHeader("search-context") should be(scrollId)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/")
+    )
+    res.code.code should be(200)
+    res.body.contains(scrollId) should be(false)
+    res.header("search-context") should be(Some(scrollId))
   }
 
   test("That scrolling uses scroll and not searches normally") {
@@ -296,9 +261,10 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
 
     when(searchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    get(s"/?search-context=$scrollId") {
-      status should be(200)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/?search-context=$scrollId")
+    )
+    res.code.code should be(200)
 
     verify(searchService, times(0)).matchingQuery(any[SearchSettings])
     verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
@@ -319,9 +285,12 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
 
     when(searchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
-      status should be(200)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/search/")
+        .body(s"""{"scrollId":"$scrollId"}""")
+    )
+    res.code.code should be(200)
 
     verify(searchService, times(0)).matchingQuery(any[SearchSettings])
     verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
@@ -346,11 +315,12 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     )
     when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
 
-    get("/?search-context=initial") {
-      status should be(200)
-      verify(searchService, times(1)).matchingQuery(expectedSettings)
-      verify(searchService, times(0)).scroll(any[String], any[String])
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/?search-context=initial")
+    )
+    res.code.code should be(200)
+    verify(searchService, times(1)).matchingQuery(expectedSettings)
+    verify(searchService, times(0)).scroll(any[String], any[String])
   }
 
   test("That GET /contains-article returns 200") {
@@ -367,20 +337,33 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     when(taxonomyApiClient.queryNodes(any[Long])).thenReturn(Success(List[Node]()))
     when(searchService.containsPath(any[List[String]])).thenReturn(Success(result))
 
-    get("/contains-article/123") {
-      status should be(200)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/contains-article/123")
+    )
+    res.code.code should be(200)
   }
 
   test("That GET /contains-article returns correct errors when id is a string or nothing") {
     reset(taxonomyApiClient)
+    when(taxonomyApiClient.queryNodes(any[Long])).thenReturn(Success(List[Node]()))
 
-    get("/contains-article/hallohallo") {
-      status should be(400)
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/contains-article/hallohallo")
+    )
+    res.code.code should be(400)
 
-    get("/contains-article/") {
-      status should be(404)
+    val res2 = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/contains-article/")
+    )
+    res2.code.code should be(400)
+  }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
     }
   }
 }

@@ -6,13 +6,18 @@
  */
 
 package no.ndla.learningpathapi.model.api
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Administrator message left on learningpaths")
+@description("Administrator message left on learningpaths")
 case class Message(
-    @(ApiModelProperty @field)(description = "Message left on a learningpath by administrator") message: String,
-    @(ApiModelProperty @field)(description = "When the message was left") date: NDLADate
+    @description("Message left on a learningpath by administrator") message: String,
+    @description("When the message was left") date: NDLADate
 )
+
+object Message {
+  implicit val encoder: Encoder[Message] = deriveEncoder
+  implicit val decoder: Decoder[Message] = deriveDecoder
+}

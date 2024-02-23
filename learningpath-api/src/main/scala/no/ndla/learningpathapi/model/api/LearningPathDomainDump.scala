@@ -7,23 +7,36 @@
 
 package no.ndla.learningpathapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
 import scala.annotation.meta.field
 
-@ApiModel(description = "Information about learningpaths")
+@description("Information about learningpaths")
 case class LearningPathDomainDump(
-    @(ApiModelProperty @field)(description = "The total number of learningpaths in the database") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Int,
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[LearningPath]
+    @description("The total number of learningpaths in the database") totalCount: Long,
+    @description("For which page results are shown from") page: Int,
+    @description("The number of results per page") pageSize: Int,
+    @description("The search results") results: Seq[LearningPath]
 )
 
-@ApiModel(description = "Information about learningsteps")
+object LearningPathDomainDump{
+  implicit val encoder: Encoder[LearningPathDomainDump] = deriveEncoder
+  implicit val decoder: Decoder[LearningPathDomainDump] = deriveDecoder
+}
+
+@description("Information about learningsteps")
 case class LearningStepDomainDump(
-    @(ApiModelProperty @field)(description = "The total number of learningsteps in the database") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Int,
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[LearningStep]
+    @description("The total number of learningsteps in the database") totalCount: Long,
+    @description("For which page results are shown from") page: Int,
+    @description("The number of results per page") pageSize: Int,
+    @description("The search results") results: Seq[LearningStep]
 )
+
+object LearningStepDomainDump {
+  implicit val encoder: Encoder[LearningStepDomainDump] = deriveEncoder
+  implicit val decoder: Decoder[LearningStepDomainDump] = deriveDecoder
+}

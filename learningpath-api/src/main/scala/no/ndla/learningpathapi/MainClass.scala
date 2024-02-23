@@ -8,32 +8,30 @@
 
 package no.ndla.learningpathapi
 
-import com.typesafe.scalalogging.StrictLogging
-import no.ndla.network.scalatra.NdlaScalatraServer
-import org.eclipse.jetty.server.Server
+import no.ndla.common.Warmup
+import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(props: LearningpathApiProperties) extends StrictLogging {
+class MainClass(override val props: LearningpathApiProperties) extends NdlaTapirMain[Eff] {
   val componentRegistry = new ComponentRegistry(props)
 
-  def startServer(): Server = {
-    new NdlaScalatraServer[LearningpathApiProperties, ComponentRegistry](
-      "no.ndla.learningpathapi.ScalatraBootstrap",
-      componentRegistry, {
-        logger.info("Starting the db migration...")
-        val startDBMillis = System.currentTimeMillis()
-        componentRegistry.migrator.migrate(): Unit
-        logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
-      },
-      warmupRequest => {
-        warmupRequest("/learningpath-api/v2/learningpaths", Map("query" -> "norge", "fallback" -> "true"))
-        warmupRequest("/learningpath-api/v2/learningpaths/1", Map.empty)
-        warmupRequest("/health", Map.empty)
-      }
-    )
+  private def warmupRequest = (path: String, options: Map[String, String]) =>
+    Warmup.warmupRequest(props.ApplicationPort, path, options)
+
+  override def warmup(): Unit = {
+    warmupRequest("/learningpath-api/v2/learningpaths", Map("query" -> "norge", "fallback" -> "true"))
+    warmupRequest("/learningpath-api/v2/learningpaths/1", Map.empty)
+    warmupRequest("/health", Map.empty)
+
+    componentRegistry.healthController.setWarmedUp()
   }
 
-  def start(): Unit = {
-    val server = startServer()
-    server.join()
+  override def beforeStart(): Unit = {
+    logger.info("Starting the db migration...")
+    val startDBMillis = System.currentTimeMillis()
+    componentRegistry.migrator.migrate(): Unit
+    logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
   }
+
+  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
+    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

@@ -8,19 +8,21 @@
 
 package no.ndla.learningpathapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.LanguageField
-import org.scalatra.swagger.annotations._
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "The description of the learningpath")
+@description("The description of the learningpath")
 case class Description(
-    @(ApiModelProperty @field)(description = "The learningpath description. Basic HTML allowed") description: String,
-    @(ApiModelProperty @field)(
-      description = "ISO 639-1 code that represents the language used in description"
-    ) language: String
+    @description("The learningpath description. Basic HTML allowed") description: String,
+    @description("ISO 639-1 code that represents the language used in description") language: String
 ) extends LanguageField[String] {
   override def value: String    = description
   override def isEmpty: Boolean = description.isEmpty
+}
+
+object Description {
+  implicit val encoder: Encoder[Description] = deriveEncoder
+  implicit val decoder: Decoder[Description] = deriveDecoder
 }

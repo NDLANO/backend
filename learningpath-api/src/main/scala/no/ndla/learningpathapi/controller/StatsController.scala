@@ -7,41 +7,32 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.Error
+import no.ndla.learningpathapi.{Eff, Props}
+import no.ndla.learningpathapi.model.api.ErrorHelpers
 import no.ndla.learningpathapi.service.ReadService
-import no.ndla.myndla.model.api.Stats
 import no.ndla.network.scalatra.NdlaSwaggerSupport
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.{ResponseMessage, Swagger}
-import org.scalatra.MovedPermanently
+import no.ndla.network.tapir.Service
+import sttp.model.StatusCode
+import sttp.tapir.EndpointInput
+import sttp.tapir._
+import sttp.tapir.server.ServerEndpoint
 
 trait StatsController {
-  this: ReadService with NdlaController with Props with NdlaSwaggerSupport =>
+  this: ReadService with Props with NdlaSwaggerSupport with ErrorHelpers =>
   val statsController: StatsController
 
-  class StatsController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+  class StatsController extends Service[Eff] {
+    override val serviceName: String         = "stats"
+    override val prefix: EndpointInput[Unit] = "learningpath-api" / "v1" / serviceName
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      getStats
+    )
 
-    protected val applicationDescription = "API for getting stats for my-ndla usage."
-
-    // Additional models used in error responses
-    registerModel[Error]()
-
-    private val response301: ResponseMessage = ResponseMessage(301, "Moved permanently", Some("Error"))
-
-    get(
-      "/",
-      operation(
-        apiOperation[Stats]("getStats")
-          .summary("Get stats for my-ndla usage.")
-          .description("Get stats for my-ndla usage.")
-          .responseMessages(response301)
-          .deprecated(true)
-      )
-    ) {
-      MovedPermanently("/myndla-api/v1/stats")
-    }: Unit
+    def getStats: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Get stats for my-ndla usage.")
+      .description("Get stats for my-ndla usage.")
+      .deprecated()
+      .errorOut(statusCode(StatusCode.MovedPermanently).and(header("Location", "/myndla-api/v1/stats")))
+      .serverLogicPure(_ => Left(()))
   }
-
 }

@@ -6,18 +6,18 @@
  */
 
 package no.ndla.learningpathapi.model.api
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Status information about a learningpath")
+// format: off
+@description("Status information about a learningpath")
 case class UpdateLearningPathStatus(
-    @(ApiModelProperty @field)(
-      description = "The publishing status of the learningpath",
-      allowableValues = "PUBLISHED,PRIVATE,DELETED,UNLISTED,SUBMITTED"
-    ) status: String,
-    @(ApiModelProperty @field)(
-      description =
-        "Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath"
-    ) message: Option[String]
+    @description("The publishing status of the learningpath") status: String,
+    @description("Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath") message: Option[String]
 )
+
+object UpdateLearningPathStatus {
+  implicit val encoder: Encoder[UpdateLearningPathStatus] = deriveEncoder
+  implicit val decoder: Decoder[UpdateLearningPathStatus] = deriveDecoder
+}

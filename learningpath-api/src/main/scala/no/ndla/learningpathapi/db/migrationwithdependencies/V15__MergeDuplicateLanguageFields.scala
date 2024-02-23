@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.db.migrationwithdependencies
 
 import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
-import no.ndla.learningpathapi.model.domain.DBLearningStep
+import no.ndla.learningpathapi.model.domain.LearningStep
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
 import org.json4s.JsonAST._
@@ -18,10 +18,9 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V15__MergeDuplicateLanguageFields(properties: LearningpathApiProperties)
     extends BaseJavaMigration
-    with Props
-    with DBLearningStep {
+    with Props {
   override val props            = properties
-  implicit val formats: Formats = DBLearningStep.jsonEncoder
+  implicit val formats: Formats = LearningStep.jsonEncoder
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)

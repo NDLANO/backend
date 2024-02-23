@@ -10,16 +10,9 @@ package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.learningpathapi.controller.{
-  HealthController,
-  InternController,
-  LearningpathControllerV2,
-  NdlaController,
-  StatsController
-}
+import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.ErrorHelpers
-import no.ndla.learningpathapi.model.domain.{DBLearningPath, DBLearningStep}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
@@ -27,6 +20,7 @@ import no.ndla.learningpathapi.validation._
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -53,23 +47,20 @@ trait TestEnvironment
     with DataSource
     with MockitoSugar
     with Clock
-    with HealthController
     with LanguageValidator
     with LearningPathValidator
     with LearningStepValidator
     with TitleValidator
     with TextValidator
     with UrlValidator
-    with DBLearningPath
     with MyNDLAApiClient
-    with DBLearningStep
-    with NdlaController
     with ErrorHelpers
     with Props
     with InternController
     with DBMigrator
-    with LearningpathApiInfo
-    with RedisClient {
+    with RedisClient
+    with NdlaMiddleware
+    with Routes[Eff] {
   val props = new LearningpathApiProperties
 
   val migrator: DBMigrator         = mock[DBMigrator]
@@ -90,7 +81,6 @@ trait TestEnvironment
   val languageValidator: LanguageValidator                             = mock[LanguageValidator]
   val learningpathControllerV2: LearningpathControllerV2               = mock[LearningpathControllerV2]
   val statsController: StatsController                                 = mock[StatsController]
-  val healthController: HealthController                               = mock[HealthController]
   val internController: InternController                               = mock[InternController]
   val learningStepValidator: LearningStepValidator                     = mock[LearningStepValidator]
   val learningPathValidator: LearningPathValidator                     = mock[LearningPathValidator]
@@ -101,6 +91,8 @@ trait TestEnvironment
   val feideApiClient: FeideApiClient                                   = mock[FeideApiClient]
   val redisClient: RedisClient                                         = mock[RedisClient]
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
+
+  val services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = {
     reset(

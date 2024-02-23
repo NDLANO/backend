@@ -8,14 +8,17 @@
 
 package no.ndla.learningpathapi.model.api
 
-import org.scalatra.swagger.annotations._
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-// format: off
-@ApiModel(description = "Representation of an embeddable url")
+@description("Representation of an embeddable url")
 case class EmbedUrlV2(
-  @(ApiModelProperty @field)(description = "The url") url: String,
-  @(ApiModelProperty @field)(description = "Type of embed content", allowableValues = "oembed,iframe,lti") embedType: String
+    @description("The url") url: String,
+    @description("Type of embed content") embedType: String
 )
+
+object EmbedUrlV2 {
+  implicit val encoder: Encoder[EmbedUrlV2] = deriveEncoder
+  implicit val decoder: Decoder[EmbedUrlV2] = deriveDecoder
+}

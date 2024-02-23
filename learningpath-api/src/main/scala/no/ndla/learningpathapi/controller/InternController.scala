@@ -8,23 +8,22 @@
 
 package no.ndla.learningpathapi.controller
 
-import enumeratum.Json4s
-import no.ndla.learningpathapi.Props
+import cats.implicits.catsSyntaxEitherId
+import no.ndla.learningpathapi.model.api.{ErrorHelpers, LearningPathDomainDump, LearningPathSummaryV2}
+import no.ndla.learningpathapi.{Eff, Props}
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
-import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.EmbedType
-import no.ndla.network.AuthUser
-import org.json4s.Formats
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
-import org.scalatra._
-import org.scalatra.swagger.Swagger
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.Service
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import sttp.model.StatusCode
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.model.{CommaSeparated, Delimited}
+import sttp.tapir.server.ServerEndpoint
 
-import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 trait InternController {
@@ -33,107 +32,124 @@ trait InternController {
     with LearningPathRepositoryComponent
     with ReadService
     with UpdateService
-    with NdlaController
-    with Props =>
+    with Props
+    with ErrorHelpers =>
   val internController: InternController
 
-  class InternController(implicit val swagger: Swagger) extends NdlaController {
-    protected val applicationDescription = "API for accessing internal functionality in learningpath API"
-    protected implicit override val jsonFormats: Formats =
-      org.json4s.DefaultFormats +
-        new EnumNameSerializer(LearningPathStatus) +
-        new EnumNameSerializer(LearningPathVerificationStatus) +
-        new EnumNameSerializer(StepType) +
-        Json4s.serializer(StepStatus) +
-        new EnumNameSerializer(EmbedType) ++
-        JavaTimeSerializers.all +
-        NDLADate.Json4sSerializer
+  class InternController extends Service[Eff] {
+    override val prefix                   = "intern"
+    override val enableSwagger            = false
+    private val stringInternalServerError = statusCode(StatusCode.InternalServerError).and(stringBody)
+    import ErrorHelpers._
 
-    def requireClientId(implicit request: HttpServletRequest): String = {
-      AuthUser.getClientId match {
-        case Some(clientId) => clientId
-        case None => {
-          logger.warn(s"Request made to ${request.getRequestURI} without clientId")
-          throw AccessDeniedException("You do not have access to the requested resource.")
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+      getByExternalId,
+      postIndex,
+      deleteIndex,
+      dumpLearningpaths,
+      dumpSingleLearningPath,
+      postLearningPathDump,
+      containsArticle
+    )
+
+    def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("id" / path[String]("external_id"))
+      .out(stringBody)
+      .errorOut(errorOutputsFor(404))
+      .serverLogicPure { externalId =>
+        learningPathRepository.getIdFromExternalId(externalId) match {
+          case Some(id) => id.toString.asRight
+          case None     => notFound.asLeft
+        }
+
+      }
+
+    def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("index")
+      .in(query[Option[Int]]("numShards"))
+      .out(stringBody)
+      .errorOut(stringInternalServerError)
+      .serverLogicPure { numShards =>
+        searchIndexService.indexDocuments(numShards) match {
+          case Success(reindexResult) =>
+            val result =
+              s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+            logger.info(result)
+            result.asRight
+          case Failure(f) =>
+            logger.warn(f.getMessage, f)
+            f.getMessage.asLeft
         }
       }
-    }
 
-    get("/id/:external_id") {
-      val externalId = params("external_id")
-      learningPathRepository.getIdFromExternalId(externalId) match {
-        case Some(id) => id.toString
-        case None     => NotFound()
+    def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("index")
+      .out(stringBody)
+      .errorOut(stringInternalServerError)
+      .serverLogicPure { _ =>
+        def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+        searchIndexService
+          .findAllIndexes(props.SearchIndex)
+          .map(indexes => {
+            indexes.map(index => {
+              logger.info(s"Deleting index $index")
+              searchIndexService.deleteIndexWithName(Option(index))
+            })
+          }) match {
+          case Failure(ex) => ex.getMessage.asLeft
+          case Success(deleteResults) =>
+            val (errors, successes) = deleteResults.partition(_.isFailure)
+            if (errors.nonEmpty) {
+              val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+                s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+                s"${pluralIndex(successes.length)} were deleted successfully."
+              message.asLeft
+            } else {
+              s"Deleted ${pluralIndex(successes.length)}".asRight
+            }
+        }
       }
-    }: Unit
 
-    post("/index") {
-      val numShards = intOrNone("numShards")
-      searchIndexService.indexDocuments(numShards) match {
-        case Success(reindexResult) =>
-          val result =
-            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
-          logger.info(result)
-          Ok(result)
-        case Failure(f) =>
-          logger.warn(f.getMessage, f)
-          InternalServerError(f.getMessage)
+    def dumpLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "learningpath")
+      .in(query[Int]("page").default(1))
+      .in(query[Int]("page-size").default(250))
+      .in(query[Boolean]("only-published").default(true))
+      .out(jsonBody[LearningPathDomainDump])
+      .serverLogicPure { case (pageNo, pageSize, onlyIncludePublished) =>
+        readService.getLearningPathDomainDump(pageNo, pageSize, onlyIncludePublished).asRight
       }
-    }: Unit
 
-    delete("/index") {
-      def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      searchIndexService
-        .findAllIndexes(props.SearchIndex)
-        .map(indexes => {
-          indexes.map(index => {
-            logger.info(s"Deleting index $index")
-            searchIndexService.deleteIndexWithName(Option(index))
-          })
-        }) match {
-        case Failure(ex) => InternalServerError(ex.getMessage)
-        case Success(deleteResults) =>
-          val (errors, successes) = deleteResults.partition(_.isFailure)
-          if (errors.nonEmpty) {
-            val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
-              s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
-              s"${pluralIndex(successes.length)} were deleted successfully."
-            InternalServerError(body = message)
-          } else {
-            Ok(body = s"Deleted ${pluralIndex(successes.length)}")
-          }
+    def dumpSingleLearningPath: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("dump" / "learningpath" / path[Long]("learningpath_id"))
+      .out(jsonBody[domain.LearningPath])
+      .errorOut(errorOutputsFor(404))
+      .serverLogicPure { learningpathId =>
+        learningPathRepository.withId(learningpathId) match {
+          case Some(value) => value.asRight
+          case None        => notFound.asLeft
+        }
       }
-    }: Unit
 
-    get("/dump/learningpath/?") {
-      val pageNo               = intOrDefault("page", 1)
-      val pageSize             = intOrDefault("page-size", 250)
-      val onlyIncludePublished = booleanOrDefault("only-published", true)
-
-      readService.getLearningPathDomainDump(pageNo, pageSize, onlyIncludePublished)
-    }: Unit
-
-    get("/dump/learningpath/:learningpath_id") {
-      val learningpathId = long("learningpath_id")
-      learningPathRepository.withId(learningpathId) match {
-        case Some(value) => Ok(value)
-        case None        => NotFound()
+    def postLearningPathDump: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("dump" / "learningpath")
+      .in(jsonBody[domain.LearningPath])
+      .out(jsonBody[domain.LearningPath])
+      .errorOut(errorOutputsFor(404))
+      .serverLogicPure { dumpToInsert =>
+        updateService.insertDump(dumpToInsert).asRight
       }
-    }: Unit
 
-    post("/dump/learningpath/?") {
-      val dumpToInsert = extract[domain.LearningPath](request.body)
-      updateService.insertDump(dumpToInsert)
-    }: Unit
-
-    get("/containsArticle") {
-      val paths = paramAsListOfString("paths")
-
-      searchService.containsPath(paths) match {
-        case Success(result) => result.results
-        case Failure(ex)     => errorHandler(ex)
+    def containsArticle: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("containsArticle")
+      .in(query[CommaSeparated[String]]("paths").default(Delimited[",", String](List.empty)))
+      .out(jsonBody[Seq[LearningPathSummaryV2]])
+      .errorOut(errorOutputsFor(404))
+      .serverLogicPure { paths =>
+        searchService.containsPath(paths.values) match {
+          case Success(result) => result.results.asRight
+          case Failure(ex)     => returnLeftError(ex)
+        }
       }
-    }: Unit
-
   }
 }

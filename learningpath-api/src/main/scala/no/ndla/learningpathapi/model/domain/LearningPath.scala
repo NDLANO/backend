@@ -8,12 +8,13 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.errors.{AccessDeniedException, ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.validation.DurationValidator
 import no.ndla.network.tapir.auth.TokenUser
@@ -131,6 +132,9 @@ object LearningPathStatus extends Enumeration {
   def valueOfOrDefault(s: String): LearningPathStatus.Value = {
     valueOf(s).getOrElse(LearningPathStatus.PRIVATE)
   }
+
+  implicit val encoder: Encoder[LearningPathStatus.Value] = Encoder.encodeEnumeration(LearningPathStatus)
+  implicit val decoder: Decoder[LearningPathStatus.Value] = Decoder.decodeEnumeration(LearningPathStatus)
 }
 
 object LearningPathVerificationStatus extends Enumeration {
@@ -143,39 +147,39 @@ object LearningPathVerificationStatus extends Enumeration {
   def valueOfOrDefault(s: String): LearningPathVerificationStatus.Value = {
     valueOf(s).getOrElse(LearningPathVerificationStatus.EXTERNAL)
   }
+  implicit val encoder: Encoder[LearningPathVerificationStatus.Value] =
+    Encoder.encodeEnumeration(LearningPathVerificationStatus)
+  implicit val decoder: Decoder[LearningPathVerificationStatus.Value] =
+    Decoder.decodeEnumeration(LearningPathVerificationStatus)
 }
 
-trait DBLearningPath {
-  this: Props =>
+object LearningPath extends SQLSyntaxSupport[LearningPath] {
+  implicit val encoder: Encoder[LearningPath] = deriveEncoder
+  implicit val decoder: Decoder[LearningPath] = deriveDecoder
 
-  object DBLearningPath extends SQLSyntaxSupport[LearningPath] {
+  val jsonSerializer: List[Serializer[_]] = List(
+    new EnumNameSerializer(LearningPathStatus),
+    new EnumNameSerializer(LearningPathVerificationStatus)
+  )
 
-    val jsonSerializer: List[Serializer[_]] = List(
-      new EnumNameSerializer(LearningPathStatus),
-      new EnumNameSerializer(LearningPathVerificationStatus)
+  val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningPath](
+    ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
+  )
+
+  val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
+
+  override val tableName = "learningpaths"
+
+  def fromResultSet(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath =
+    fromResultSet(lp.resultName)(rs)
+
+  def fromResultSet(lp: ResultName[LearningPath])(rs: WrappedResultSet): LearningPath = {
+    implicit val formats: Formats = jsonEncoder ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
+    val meta                      = read[LearningPath](rs.string(lp.c("document")))
+    meta.copy(
+      id = Some(rs.long(lp.c("id"))),
+      revision = Some(rs.int(lp.c("revision"))),
+      externalId = rs.stringOpt(lp.c("external_id"))
     )
-
-    val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningPath](
-      ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
-    )
-
-    val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-
-    override val tableName  = "learningpaths"
-    override val schemaName = Some(props.MetaSchema)
-
-    def fromResultSet(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath =
-      fromResultSet(lp.resultName)(rs)
-
-    def fromResultSet(lp: ResultName[LearningPath])(rs: WrappedResultSet): LearningPath = {
-      implicit val formats: Formats = jsonEncoder ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-      val meta                      = read[LearningPath](rs.string(lp.c("document")))
-      meta.copy(
-        id = Some(rs.long(lp.c("id"))),
-        revision = Some(rs.int(lp.c("revision"))),
-        externalId = rs.stringOpt(lp.c("external_id"))
-      )
-    }
-
   }
 }
