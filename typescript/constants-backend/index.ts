@@ -10,6 +10,25 @@ export enum ConfigKeyEnum {
   AI_ENABLED_ORGS = "AI_ENABLED_ORGS",
 }
 
+export type DraftStatus = DraftStatusEnum
+
+export enum DraftStatusEnum {
+  IMPORTED = "IMPORTED",
+  PLANNED = "PLANNED",
+  IN_PROGRESS = "IN_PROGRESS",
+  EXTERNAL_REVIEW = "EXTERNAL_REVIEW",
+  INTERNAL_REVIEW = "INTERNAL_REVIEW",
+  QUALITY_ASSURANCE = "QUALITY_ASSURANCE",
+  LANGUAGE = "LANGUAGE",
+  FOR_APPROVAL = "FOR_APPROVAL",
+  END_CONTROL = "END_CONTROL",
+  PUBLISH_DELAYED = "PUBLISH_DELAYED",
+  PUBLISHED = "PUBLISHED",
+  REPUBLISH = "REPUBLISH",
+  UNPUBLISHED = "UNPUBLISHED",
+  ARCHIVED = "ARCHIVED",
+}
+
 export type Permission = PermissionEnum
 
 export enum PermissionEnum {

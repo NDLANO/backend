@@ -33,9 +33,14 @@ object constantslib extends Module {
   lazy val tsSettings: Seq[Def.Setting[_]] = Seq(
     typescriptGenerationImports := Seq(
       "no.ndla.myndla.model.domain.config._",
-      "no.ndla.network.tapir.auth._"
+      "no.ndla.network.tapir.auth._",
+      "no.ndla.common.model.domain.draft._"
     ),
-    typescriptExports    := Seq("ConfigKey", "Permission"),
+    typescriptExports := Seq(
+      "ConfigKey",
+      "Permission",
+      "DraftStatus"
+    ),
     typescriptOutputFile := file("./typescript/constants-backend/index.ts")
   )
 
