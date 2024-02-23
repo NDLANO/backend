@@ -78,16 +78,16 @@ export interface IDraftSearchParams {
   articleTypes?: string[]
   contextTypes?: string[]
   language?: string
-  learningResourceIds?: number[]
+  ids?: number[]
   resourceTypes?: string[]
   license?: string
   query?: string
   noteQuery?: string
-  sort?: Sort
+  sort?: string
   fallback?: boolean
   subjects?: string[]
   languageFilter?: string[]
-  relevanceFilter?: string[]
+  relevance?: string[]
   scrollId?: string
   draftStatus?: string[]
   users?: string[]
@@ -96,13 +96,13 @@ export interface IDraftSearchParams {
   embedResource?: string[]
   embedId?: string
   includeOtherStatuses?: boolean
-  revisionDateFilterFrom?: string
-  revisionDateFilterTo?: string
+  revisionDateFrom?: string
+  revisionDateTo?: string
   excludeRevisionLog?: boolean
   responsibleIds?: string[]
   filterInactive?: boolean
   prioritized?: boolean
-  priorityFilter?: string[]
+  priority?: string[]
   topics?: string[]
 }
 
@@ -279,33 +279,4 @@ export interface IValidationError {
 export interface IValidationMessage {
   field: string
   message: string
-}
-
-export type Sort = SortEnum
-
-export enum SortEnum {
-  ByRelevanceDesc = "-relevance",
-  ByRelevanceAsc = "relevance",
-  ByTitleDesc = "-title",
-  ByTitleAsc = "title",
-  ByLastUpdatedDesc = "-lastUpdated",
-  ByLastUpdatedAsc = "lastUpdated",
-  ByIdDesc = "-id",
-  ByIdAsc = "id",
-  ByDurationDesc = "-duration",
-  ByDurationAsc = "duration",
-  ByRevisionDateAsc = "revisionDate",
-  ByRevisionDateDesc = "-revisionDate",
-  ByResponsibleLastUpdatedAsc = "responsibleLastUpdated",
-  ByResponsibleLastUpdatedDesc = "-responsibleLastUpdated",
-  ByStatusAsc = "status",
-  ByStatusDesc = "-status",
-  ByPrioritizedDesc = "-prioritized",
-  ByPrioritizedAsc = "prioritized",
-  ByParentTopicNameDesc = "-parentTopicName",
-  ByParentTopicNameAsc = "parentTopicName",
-  ByPrimaryRootDesc = "-primaryRoot",
-  ByPrimaryRootAsc = "primaryRoot",
-  ByResourceTypeDesc = "-resourceType",
-  ByResourceTypeAsc = "resourceType",
 }
