@@ -34,12 +34,14 @@ object constantslib extends Module {
     typescriptGenerationImports := Seq(
       "no.ndla.myndla.model.domain.config._",
       "no.ndla.network.tapir.auth._",
-      "no.ndla.common.model.domain.draft._"
+      "no.ndla.common.model.domain.draft._",
+      "no.ndla.conceptapi.model.domain._"
     ),
     typescriptExports := Seq(
       "ConfigKey",
+      "DraftStatus",
       "Permission",
-      "DraftStatus"
+      "WordClass"
     ),
     typescriptOutputFile := file("./typescript/constants-backend/index.ts")
   )

@@ -7,67 +7,77 @@
 
 package no.ndla.conceptapi.model.domain
 
+import com.scalatsi.TypescriptType.TSEnum
+import com.scalatsi.{TSNamedType, TSType}
+import enumeratum._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.conceptapi.model.api.InvalidStatusException
 
 import scala.util.{Failure, Success, Try}
 
-object WordClass extends Enumeration {
+sealed abstract class WordClass(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
+
+object WordClass extends Enum[WordClass] with CirceEnum[WordClass] {
+  override def values: IndexedSeq[WordClass] = findValues
 
   // Part of speech of european languages
-  val ADJECTIVE: WordClass.Value                 = Value("adjective")
-  val ADVERB: WordClass.Value                    = Value("adverb")
-  val CONJUNCTION: WordClass.Value               = Value("conjunction")
-  val DETERMINER: WordClass.Value                = Value("determiner")
-  val EXPRESSION: WordClass.Value                = Value("expression")
-  val INTERJECTION: WordClass.Value              = Value("interjection")
-  val NOUN: WordClass.Value                      = Value("noun")
-  val PREPOSITION: WordClass.Value               = Value("preposition")
-  val PRONOUN: WordClass.Value                   = Value("pronoun")
-  val SUBORDINATING_CONJUNCTION: WordClass.Value = Value("subordinating-conjunction")
-  val VERB: WordClass.Value                      = Value("verb")
+  case object ADJECTIVE                 extends WordClass("adjective")
+  case object ADVERB                    extends WordClass("adverb")
+  case object CONJUNCTION               extends WordClass("conjunction")
+  case object DETERMINER                extends WordClass("determiner")
+  case object EXPRESSION                extends WordClass("expression")
+  case object INTERJECTION              extends WordClass("interjection")
+  case object NOUN                      extends WordClass("noun")
+  case object PREPOSITION               extends WordClass("preposition")
+  case object PRONOUN                   extends WordClass("pronoun")
+  case object SUBORDINATING_CONJUNCTION extends WordClass("subordinating-conjunction")
+  case object VERB                      extends WordClass("verb")
 
   // Part of speech of the chinese language
-  val AUXILIARY: WordClass.Value        = Value("auxiliary")
-  val COMPLEMENT: WordClass.Value       = Value("complement")
-  val COVERB: WordClass.Value           = Value("coverb")
-  val DEMONSTRATIVE: WordClass.Value    = Value("demonstrative")
-  val EXCLAMATION_WORD: WordClass.Value = Value("exclamation-word")
-  val LOCATION_WORD: WordClass.Value    = Value("location-word")
-  val MEASURE_WORD: WordClass.Value     = Value("measure-word")
-  val MARKER: WordClass.Value           = Value("marker")
-  val MODAL_VERB: WordClass.Value       = Value("modal-verb")
-  val NOUN_PHRASE: WordClass.Value      = Value("noun-phrase")
-  val NOUN_ZH: WordClass.Value          = Value("noun-zh")
-  val NUMERAL: WordClass.Value          = Value("numeral")
-  val ONOMATOPOEIA: WordClass.Value     = Value("onomatopoeia")
-  val PARTICLE: WordClass.Value         = Value("particle")
-  val PERSONAL_PRONOUN: WordClass.Value = Value("personal-pronoun")
-  val PROPER_NOUN: WordClass.Value      = Value("proper-noun")
-  val QUANTIFIER: WordClass.Value       = Value("quantifier")
-  val QUESTION_WORD: WordClass.Value    = Value("question-word")
-  val STATIVE_VERB: WordClass.Value     = Value("stative-verb")
-  val SUFFIX: WordClass.Value           = Value("suffix")
-  val TIME_WORD: WordClass.Value        = Value("time-word")
-  val TIME_EXPRESSION: WordClass.Value  = Value("time-expression")
-  val VERB_COMPLEMENT: WordClass.Value  = Value("verb-complement")
-  val VERB_OBJECT: WordClass.Value      = Value("verb-object")
+  case object AUXILIARY        extends WordClass("auxiliary")
+  case object COMPLEMENT       extends WordClass("complement")
+  case object COVERB           extends WordClass("coverb")
+  case object DEMONSTRATIVE    extends WordClass("demonstrative")
+  case object EXCLAMATION_WORD extends WordClass("exclamation-word")
+  case object LOCATION_WORD    extends WordClass("location-word")
+  case object MEASURE_WORD     extends WordClass("measure-word")
+  case object MARKER           extends WordClass("marker")
+  case object MODAL_VERB       extends WordClass("modal-verb")
+  case object NOUN_PHRASE      extends WordClass("noun-phrase")
+  case object NOUN_ZH          extends WordClass("noun-zh")
+  case object NUMERAL          extends WordClass("numeral")
+  case object ONOMATOPOEIA     extends WordClass("onomatopoeia")
+  case object PARTICLE         extends WordClass("particle")
+  case object PERSONAL_PRONOUN extends WordClass("personal-pronoun")
+  case object PROPER_NOUN      extends WordClass("proper-noun")
+  case object QUANTIFIER       extends WordClass("quantifier")
+  case object QUESTION_WORD    extends WordClass("question-word")
+  case object STATIVE_VERB     extends WordClass("stative-verb")
+  case object SUFFIX           extends WordClass("suffix")
+  case object TIME_WORD        extends WordClass("time-word")
+  case object TIME_EXPRESSION  extends WordClass("time-expression")
+  case object VERB_COMPLEMENT  extends WordClass("verb-complement")
+  case object VERB_OBJECT      extends WordClass("verb-object")
 
-  def all: Seq[String]                                    = WordClass.values.map(_.toString).toSeq
-  def valueOf(s: String): Option[WordClass.Value]         = WordClass.values.find(_.toString == s)
-  def valueOf(s: Option[String]): Option[WordClass.Value] = s.flatMap(valueOf)
+  def all: Seq[String]                              = WordClass.values.map(_.entryName).toSeq
+  def valueOf(s: String): Option[WordClass]         = WordClass.withNameOption(s)
+  def valueOf(s: Option[String]): Option[WordClass] = s.flatMap(valueOf)
 
-  def valueOfOrError(s: String): Try[WordClass.Value] = {
+  def valueOfOrError(s: String): Try[WordClass] = {
     valueOf(s) match {
       case None =>
         Failure(InvalidStatusException(s"'$s' is not a valid gloss type. Valid options are ${all.mkString(", ")}."))
       case Some(conceptType) => Success(conceptType)
     }
   }
-
-  implicit val encoder: Encoder[WordClass.Value] = Encoder.encodeEnumeration(WordClass)
-  implicit val decoder: Decoder[WordClass.Value] = Decoder.decodeEnumeration(WordClass)
+  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
+  implicit val enumTsType: TSNamedType[WordClass] = TSType.alias[WordClass](
+    "WordClass",
+    TSEnum.string("WordClassEnum", tsEnumValues: _*)
+  )
 }
 
 case class GlossExample(example: String, language: String, transcriptions: Map[String, String])
@@ -79,7 +89,7 @@ object GlossExample {
 
 case class GlossData(
     gloss: String,
-    wordClass: WordClass.Value,
+    wordClass: WordClass,
     originalLanguage: String,
     transcriptions: Map[String, String],
     examples: List[List[GlossExample]]

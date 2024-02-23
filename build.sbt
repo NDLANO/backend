@@ -138,6 +138,7 @@ lazy val constants = Module.setup(
     language,
     mapping,
     myndla,
+    `concept-api`,
     testWith(scalatestsuite)
   )
 )
