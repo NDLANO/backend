@@ -12,9 +12,11 @@
         "directory": "typescript/constants-backend"
     },
     "author": "ndla@knowit.no",
-    "files": [ "build" ],
+    "files": [
+        "build"
+    ],
     "devDependencies": {
         "typescript": "^5.3.3"
     },
-    "version": "0.0.1"
+    "version": "0.0.2"
 }
