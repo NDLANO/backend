@@ -550,7 +550,8 @@ trait SearchConverterService {
         priority = None,
         resourceTypeName = None,
         parentTopicName = None,
-        primaryRootName = None
+        primaryRootName = None,
+        published = None
       )
     }
 
@@ -614,7 +615,8 @@ trait SearchConverterService {
         prioritized = Some(searchableDraft.priority == Priority.Prioritized),
         resourceTypeName = resourceTypeName,
         parentTopicName = parentTopicName,
-        primaryRootName = primaryRootName
+        primaryRootName = primaryRootName,
+        published = Some(searchableDraft.published)
       )
     }
 
@@ -669,7 +671,8 @@ trait SearchConverterService {
         priority = None,
         resourceTypeName = None,
         parentTopicName = None,
-        primaryRootName = None
+        primaryRootName = None,
+        published = None
       )
     }
 
