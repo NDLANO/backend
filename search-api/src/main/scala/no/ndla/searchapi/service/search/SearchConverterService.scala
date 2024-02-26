@@ -355,25 +355,21 @@ trait SearchConverterService {
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
+      val title           = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
+      val content         = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
+      val visualElement   = model.SearchableLanguageValues.fromFields(draft.visualElement)
+      val introduction    = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
+      val metaDescription = model.SearchableLanguageValues.fromFields(draft.metaDescription)
+
       Success(
         SearchableDraft(
           id = draft.id.get,
           draftStatus = draftStatus,
-          title = model.SearchableLanguageValues(
-            draft.title.map(title => LanguageValue(title.language, toPlaintext(title.title)))
-          ),
-          content = model.SearchableLanguageValues(
-            draft.content.map(article => LanguageValue(article.language, toPlaintext(article.content)))
-          ),
-          visualElement = model.SearchableLanguageValues(
-            draft.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
-          ),
-          introduction = model.SearchableLanguageValues(
-            draft.introduction.map(intro => LanguageValue(intro.language, toPlaintext(intro.introduction)))
-          ),
-          metaDescription = model.SearchableLanguageValues(
-            draft.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
-          ),
+          title = title,
+          content = content,
+          visualElement = visualElement,
+          introduction = introduction,
+          metaDescription = metaDescription,
           tags = SearchableLanguageList(draft.tags.map(tag => LanguageValue(tag.language, tag.tags))),
           lastUpdated = draft.updated,
           license = draft.copyright.flatMap(_.license),
@@ -399,10 +395,10 @@ trait SearchConverterService {
           primaryRoot = primaryRoot,
           defaultRoot = primaryRoot.defaultValue,
           resourceTypeName = sortableResourceTypeName,
-          defaultResourceTypeName = sortableResourceTypeName.defaultValue
+          defaultResourceTypeName = sortableResourceTypeName.defaultValue,
+          published = draft.published
         )
       )
-
     }
 
     private def getSortableResourceTypeName(

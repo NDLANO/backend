@@ -1614,7 +1614,9 @@ object TestData {
     articleTypes = List.empty,
     filterInactive = false,
     prioritized = None,
-    priority = List.empty
+    priority = List.empty,
+    publishedFilterFrom = None,
+    publishedFilterTo = None
   )
 
   val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(
@@ -1742,6 +1744,7 @@ object TestData {
     primaryRoot = searchableTitles,
     defaultRoot = searchableTitles.defaultValue,
     resourceTypeName = searchableTitles,
-    defaultResourceTypeName = searchableTitles.defaultValue
+    defaultResourceTypeName = searchableTitles.defaultValue,
+    published = TestData.today
   )
 }

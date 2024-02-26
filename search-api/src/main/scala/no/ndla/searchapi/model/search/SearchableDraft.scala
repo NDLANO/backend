@@ -46,5 +46,6 @@ case class SearchableDraft(
     defaultRoot: Option[String],
     primaryRoot: SearchableLanguageValues,
     resourceTypeName: SearchableLanguageValues,
-    defaultResourceTypeName: Option[String]
+    defaultResourceTypeName: Option[String],
+    published: NDLADate
 )

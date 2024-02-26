@@ -129,7 +129,8 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       primaryRoot = titles,
       defaultRoot = titles.defaultValue,
       resourceTypeName = titles,
-      defaultResourceTypeName = titles.defaultValue
+      defaultResourceTypeName = titles.defaultValue,
+      published = TestData.today
     )
 
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis

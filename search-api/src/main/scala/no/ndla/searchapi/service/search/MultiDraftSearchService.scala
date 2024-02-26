@@ -174,9 +174,11 @@ trait MultiDraftSearchService {
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
-      val statusFilter            = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
-      val usersFilter             = boolUsersFilter(settings.userFilter)
-      val dateFilter              = revisionDateFilter(settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
+      val statusFilter = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
+      val usersFilter  = boolUsersFilter(settings.userFilter)
+      val revisionDateFilter =
+        dateRangeFilter("nextRevision.revisionDate", settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
+      val publishedDateFilter = dateRangeFilter("published", settings.publishedFilterFrom, settings.publishedFilterTo)
       val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
       val responsibleIdFilter = Option.when(settings.responsibleIdFilter.nonEmpty) {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
@@ -216,7 +218,8 @@ trait MultiDraftSearchService {
         usersFilter,
         grepCodesFilter,
         embedResourceAndIdFilter,
-        dateFilter,
+        revisionDateFilter,
+        publishedDateFilter,
         responsibleIdFilter,
         prioritizedFilter,
         priorityFilter
@@ -233,13 +236,13 @@ trait MultiDraftSearchService {
     }
 
     private def dateToEs(date: NDLADate): Long = date.toUTCEpochSecond * 1000
-    private def revisionDateFilter(from: Option[NDLADate], to: Option[NDLADate]): Option[RangeQuery] = {
+    private def dateRangeFilter(field: String, from: Option[NDLADate], to: Option[NDLADate]): Option[RangeQuery] = {
       val fromDate = from.map(dateToEs)
       val toDate   = to.map(dateToEs)
 
       Option.when(fromDate.nonEmpty || toDate.nonEmpty)(
         RangeQuery(
-          field = "nextRevision.revisionDate",
+          field = field,
           gte = fromDate,
           lte = toDate
         )

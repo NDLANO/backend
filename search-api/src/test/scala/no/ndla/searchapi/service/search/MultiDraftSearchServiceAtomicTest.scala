@@ -950,4 +950,111 @@ class MultiDraftSearchServiceAtomicTest
 
   }
 
+  test("Test that filtering published dates works as expected") {
+    val today = NDLADate.now().withNano(0)
+
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      published = today.plusDays(1)
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      published = today.minusDays(10)
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      published = today.minusDays(10)
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4),
+      published = today.minusDays(15)
+    )
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          publishedFilterFrom = Some(today),
+          publishedFilterTo = None
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          publishedFilterFrom = None,
+          publishedFilterTo = Some(today)
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(2, 3, 4))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          publishedFilterFrom = Some(today.minusDays(11)),
+          publishedFilterTo = Some(today.plusDays(2))
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 2, 3))
+  }
+
+  test("Test sorting published dates works as expected") {
+    val today = NDLADate.now().withNano(0)
+
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      published = today.plusDays(1)
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      published = today.minusDays(12)
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      published = today.minusDays(10)
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4),
+      published = today.minusDays(15)
+    )
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          sort = Sort.ByPublishedAsc
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(4, 2, 3, 1))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          sort = Sort.ByPublishedDesc
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 3, 2, 4))
+  }
+
 }
