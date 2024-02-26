@@ -22,6 +22,8 @@ class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain[E
   override def warmup(): Unit = {
     warmupRequest("/search-api/v1/search", Map("query" -> "norge"))
     warmupRequest("/health", Map.empty)
+
+    componentRegistry.healthController.setWarmedUp()
   }
 
   override def beforeStart(): Unit = {}
