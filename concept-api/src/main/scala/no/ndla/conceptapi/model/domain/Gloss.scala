@@ -16,9 +16,7 @@ import no.ndla.conceptapi.model.api.InvalidStatusException
 
 import scala.util.{Failure, Success, Try}
 
-sealed abstract class WordClass(override val entryName: String) extends EnumEntry {
-  override def toString: String = entryName
-}
+sealed abstract class WordClass(override val entryName: String) extends EnumEntry
 
 object WordClass extends Enum[WordClass] with CirceEnum[WordClass] {
   override def values: IndexedSeq[WordClass] = findValues
