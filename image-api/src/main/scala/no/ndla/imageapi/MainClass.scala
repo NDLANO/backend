@@ -22,6 +22,8 @@ class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain[Ef
     warmupRequest("/image-api/v2/images/1", Map("language" -> "nb"))
     warmupRequest("/image-api/raw/id/1", Map.empty)
     warmupRequest("/health", Map.empty)
+
+    componentRegistry.healthController.setWarmedUp()
   }
 
   override def beforeStart(): Unit = {
