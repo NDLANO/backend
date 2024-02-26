@@ -14,7 +14,6 @@ import no.ndla.imageapi.model.api.ErrorHelpers
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
-import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir._
@@ -24,13 +23,7 @@ import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
 trait RawController {
-  this: ImageStorageService
-    with ImageConverter
-    with ImageRepository
-    with ErrorHelpers
-    with Props
-    with ReadService
-    with NdlaSwaggerSupport =>
+  this: ImageStorageService with ImageConverter with ImageRepository with ErrorHelpers with Props with ReadService =>
   val rawController: RawController
 
   class RawController extends Service[Eff] {

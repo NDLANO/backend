@@ -20,7 +20,6 @@ object networklib extends Module {
       "redis.clients"         % "jedis"                   % "4.4.0"
     ),
     vulnerabilityOverrides,
-    scalatra,
     tapirHttp4sCirce
   )
 

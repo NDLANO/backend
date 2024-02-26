@@ -32,7 +32,6 @@ import no.ndla.learningpathapi.validation.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
   Routes,
@@ -48,8 +47,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with LearningpathControllerV2
     with InternController
     with StatsController
-    with NdlaSwaggerSupport
-    with NdlaControllerBase
     with LearningPathRepositoryComponent
     with ReadService
     with UpdateService

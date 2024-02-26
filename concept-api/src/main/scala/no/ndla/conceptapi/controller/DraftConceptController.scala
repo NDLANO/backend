@@ -16,7 +16,6 @@ import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConve
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.{Eff, Props}
 import no.ndla.language.Language.AllLanguages
-import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
@@ -37,7 +36,6 @@ trait DraftConceptController {
     with SearchConverterService
     with ConverterService
     with Props
-    with NdlaSwaggerSupport
     with ConceptControllerHelpers
     with ErrorHelpers =>
   val draftConceptController: DraftConceptController

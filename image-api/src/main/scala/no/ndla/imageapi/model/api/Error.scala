@@ -8,25 +8,13 @@
 package no.ndla.imageapi.model.api
 
 import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
-import no.ndla.common.{Clock, DateParser}
+import no.ndla.common.Clock
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model._
 import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
-import org.scalatra.servlet.SizeConstraintExceededException
-import sttp.tapir.Schema.annotations.description
-
-import java.time.LocalDateTime
-
-@description("Information about errors")
-case class Error(
-    @description("Code stating the type of error") code: String,
-    @description("Description of the error") description: String,
-    @description("When the error occurred") occurredAt: String =
-      DateParser.dateToString(LocalDateTime.now(), withMillis = false)
-)
 
 trait ErrorHelpers extends TapirErrorHelpers {
   this: Props with Clock with DataSource =>
@@ -44,8 +32,6 @@ trait ErrorHelpers extends TapirErrorHelpers {
       errorBody(GATEWAY_TIMEOUT, s.getMessage, 504)
     case rw: ResultWindowTooLargeException =>
       errorBody(WINDOW_TOO_LARGE, rw.getMessage, 422)
-    case _: SizeConstraintExceededException =>
-      errorBody(FILE_TOO_BIG, fileTooBigError, 413)
     case _: PSQLException =>
       DataSource.connectToDatabase()
       errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)

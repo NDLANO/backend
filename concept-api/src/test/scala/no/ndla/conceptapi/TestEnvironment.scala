@@ -24,7 +24,6 @@ import no.ndla.conceptapi.service._
 import no.ndla.conceptapi.service.search._
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
@@ -34,8 +33,6 @@ trait TestEnvironment
     with PublishedConceptRepository
     with DraftConceptController
     with ConceptControllerHelpers
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with PublishedConceptController
     with SearchConverterService
     with PublishedConceptSearchService

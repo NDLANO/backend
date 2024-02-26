@@ -19,7 +19,6 @@ import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, 
 import no.ndla.learningpathapi.validation._
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.scalatest.MockitoSugar
@@ -27,8 +26,6 @@ import org.mockito.scalatest.MockitoSugar
 trait TestEnvironment
     extends LearningpathControllerV2
     with StatsController
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with LearningPathRepositoryComponent
     with FeideApiClient
     with ReadService

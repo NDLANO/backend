@@ -136,7 +136,7 @@ trait Module {
         val artifactTargetPath = s"/app/${artifact.name}"
 
         val entry =
-          s"java -Dorg.scalatra.environment=production $$JAVA_OPTS ${reflectiveAccessOptions.mkString(" ")} -jar $artifactTargetPath"
+          s"java $$JAVA_OPTS ${reflectiveAccessOptions.mkString(" ")} -jar $artifactTargetPath"
 
         new Dockerfile {
           from("eclipse-temurin:21-jdk")

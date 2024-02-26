@@ -9,7 +9,6 @@ object Dependencies {
 
   object versions {
     val ScalaV                = "2.13.12"
-    val ScalatraV             = "2.8.4"
     val HikariConnectionPoolV = "5.0.1"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.15"
@@ -100,13 +99,6 @@ object Dependencies {
 
     lazy val catsEffect: ModuleID                = "org.typelevel" %% "cats-effect" % CatsEffectV
     lazy val tapirHttp4sCirce: Seq[sbt.ModuleID] = circe ++ http4s ++ tapir :+ catsEffect
-
-    lazy val scalatra: Seq[ModuleID] = Seq(
-      "org.scalatra" %% "scalatra"           % ScalatraV,
-      "org.scalatra" %% "scalatra-json"      % ScalatraV,
-      "org.scalatra" %% "scalatra-swagger"   % ScalatraV,
-      "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test"
-    )
 
     lazy val elastic4s: Seq[ModuleID] = Seq(
       "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % Elastic4sV,

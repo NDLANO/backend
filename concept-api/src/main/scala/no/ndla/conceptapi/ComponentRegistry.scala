@@ -21,7 +21,6 @@ import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
   Routes,
@@ -61,8 +60,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with Props
     with DBMigrator
     with ErrorHelpers
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
     with TaxonomyApiClient

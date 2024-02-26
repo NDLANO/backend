@@ -22,7 +22,6 @@ object oembedproxy extends Module {
       "org.mockito"      %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"      %% "mockito-scala-scalatest" % MockitoV   % "test"
     ),
-    scalatra,
     vulnerabilityOverrides,
     tapirHttp4sCirce
   )

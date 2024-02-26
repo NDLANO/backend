@@ -18,7 +18,7 @@ import scala.util.Try
   * that require login
   *
   * One would use the class by using `Cachable.yes(value)` (Or `Cachable.no(value)`) for values that can be cached and
-  * then use `returnValue.Ok()` in the controller to get the scalatra type with headers.
+  * then use `returnValue.Ok()` in the controller to get the resutling type with headers in a tuple.
   */
 case class Cachable[T](
     value: T,

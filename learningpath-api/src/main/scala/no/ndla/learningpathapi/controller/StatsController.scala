@@ -10,7 +10,6 @@ package no.ndla.learningpathapi.controller
 import no.ndla.learningpathapi.{Eff, Props}
 import no.ndla.learningpathapi.model.api.ErrorHelpers
 import no.ndla.learningpathapi.service.ReadService
-import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.Service
 import sttp.model.StatusCode
 import sttp.tapir.EndpointInput
@@ -18,7 +17,7 @@ import sttp.tapir._
 import sttp.tapir.server.ServerEndpoint
 
 trait StatsController {
-  this: ReadService with Props with NdlaSwaggerSupport with ErrorHelpers =>
+  this: ReadService with Props with ErrorHelpers =>
   val statsController: StatsController
 
   class StatsController extends Service[Eff] {

@@ -11,7 +11,6 @@ package no.ndla.oembedproxy
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{OEmbedProxyController, SwaggerDocControllerConfig}
@@ -21,8 +20,6 @@ import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
 class ComponentRegistry(properties: OEmbedProxyProperties)
     extends BaseComponentRegistry[OEmbedProxyProperties]
     with OEmbedProxyController
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with OEmbedServiceComponent
     with NdlaClient
     with ProviderService

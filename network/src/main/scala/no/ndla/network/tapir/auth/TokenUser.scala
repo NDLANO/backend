@@ -9,14 +9,13 @@ package no.ndla.network.tapir.auth
 
 import cats.implicits._
 import no.ndla.network.jwt.JWTExtractor
-import no.ndla.network.model.{JWTClaims, NdlaHttpRequest}
+import no.ndla.network.model.JWTClaims
 import sttp.model.HeaderNames
 import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.EndpointInput.{AuthInfo, AuthType}
 import sttp.tapir._
 
-import javax.servlet.http.HttpServletRequest
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
 
@@ -77,13 +76,6 @@ object TokenUser {
   def fromToken(token: String): Try[TokenUser] = {
     val jWTExtractor = JWTExtractor(token)
     fromExtractor(jWTExtractor, token)
-  }
-
-  /* Only for scalatra, function can be removed when we move to tapir everywhere :^) */
-  def fromScalatraRequest(request: HttpServletRequest): Try[TokenUser] = {
-    val token     = NdlaHttpRequest(request).getToken.getOrElse("")
-    val extractor = JWTExtractor(token)
-    fromExtractor(extractor, token)
   }
 
   implicit class MaybeTokenUser(self: Option[TokenUser]) {

@@ -23,7 +23,6 @@ import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateSer
 import no.ndla.learningpathapi.validation.LanguageValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
-import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.TokenUser
@@ -46,8 +45,7 @@ trait LearningpathControllerV2 {
     with TaxonomyApiClient
     with SearchConverterServiceComponent
     with Props
-    with ErrorHelpers
-    with NdlaSwaggerSupport =>
+    with ErrorHelpers =>
   val learningpathControllerV2: LearningpathControllerV2
 
   class LearningpathControllerV2 extends Service[Eff] {
