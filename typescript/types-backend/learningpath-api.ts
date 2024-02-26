@@ -44,12 +44,6 @@ export interface IEmbedUrlV2 {
   embedType: string
 }
 
-export interface IError {
-  code: string
-  description: string
-  occuredAt: string
-}
-
 export interface IFolder {
   id: string
   name: string
