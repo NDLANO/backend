@@ -44,7 +44,9 @@ case class MultiDraftSearchSettings(
     articleTypes: List[String],
     filterInactive: Boolean,
     prioritized: Option[Boolean],
-    priority: List[String]
+    priority: List[String],
+    publishedFilterFrom: Option[NDLADate],
+    publishedFilterTo: Option[NDLADate]
 )
 
 object MultiDraftSearchSettings {
@@ -80,6 +82,8 @@ object MultiDraftSearchSettings {
     articleTypes = List.empty,
     filterInactive = false,
     prioritized = None,
-    priority = List.empty
+    priority = List.empty,
+    publishedFilterTo = None,
+    publishedFilterFrom = None
   )
 }

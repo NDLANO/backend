@@ -538,7 +538,9 @@ trait SearchController {
                 filterInactive = booleanParamOrNone("filter-inactive"),
                 prioritized = booleanParamOrNone("prioritized"),
                 priority = stringListParam("priority").some,
-                topics = stringListParam("topics").some
+                topics = stringListParam("topics").some,
+                publishedDateFrom = dateParamOrNone("published-date-from"),
+                publishedDateTo = dateParamOrNone("published-date-to")
               )
             )
 
@@ -626,7 +628,9 @@ trait SearchController {
             articleTypes = params.articleTypes.getOrElse(List.empty),
             filterInactive = params.filterInactive.getOrElse(false),
             prioritized = params.prioritized,
-            priority = params.priority.getOrElse(List.empty)
+            priority = params.priority.getOrElse(List.empty),
+            publishedFilterFrom = params.publishedDateFrom,
+            publishedFilterTo = params.publishedDateTo
           )
       }
     }

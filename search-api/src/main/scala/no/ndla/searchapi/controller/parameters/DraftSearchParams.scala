@@ -116,7 +116,13 @@ import sttp.tapir.EndpointIO.annotations._
       priority: Option[List[String]],
 
       @description("A list of parent topics the learning resources should be filtered by.")
-      topics: Option[List[String]]
+      topics: Option[List[String]],
+
+      @description("Return only results having published date after this date.")
+      publishedDateFrom: Option[NDLADate],
+
+      @description("Return only results having published date before this date.")
+      publishedDateTo: Option[NDLADate],
 )
 
 object DraftSearchParams {

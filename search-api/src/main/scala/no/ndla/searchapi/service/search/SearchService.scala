@@ -267,6 +267,8 @@ trait SearchService {
         case ByResponsibleLastUpdatedDesc => sortField("responsible.lastUpdated", Desc)
         case ByPrioritizedAsc             => sortField("prioritized", Asc)
         case ByPrioritizedDesc            => sortField("prioritized", Desc)
+        case ByPublishedAsc               => sortField("published", Asc)
+        case ByPublishedDesc              => sortField("published", Desc)
       }
     }
 
