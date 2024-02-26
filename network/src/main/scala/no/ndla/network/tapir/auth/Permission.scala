@@ -7,12 +7,15 @@
 
 package no.ndla.network.tapir.auth
 
+import com.scalatsi.TypescriptType.TSEnum
+import com.scalatsi.{TSNamedType, TSType}
 import enumeratum._
+
 import scala.collection.immutable.ListMap
 
 sealed abstract class Permission(override val entryName: String) extends EnumEntry {}
 
-object Permission extends Enum[Permission] {
+object Permission extends Enum[Permission] with CirceEnum[Permission] {
   case object AUDIO_API_WRITE          extends Permission("audio:write")
   case object ARTICLE_API_PUBLISH      extends Permission("articles:publish")
   case object ARTICLE_API_WRITE        extends Permission("articles:write")
@@ -37,4 +40,10 @@ object Permission extends Enum[Permission] {
   def thatStartsWith(start: String): List[Permission] = values.filter(_.entryName.startsWith(start)).toList
   def toSwaggerMap(scopes: List[Permission]): ListMap[String, String] =
     ListMap.from(scopes.map(s => s.entryName -> s.entryName))
+
+  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
+  implicit val enumTsType: TSNamedType[Permission] = TSType.alias[Permission](
+    "Permission",
+    TSEnum.string("PermissionEnum", tsEnumValues: _*)
+  )
 }

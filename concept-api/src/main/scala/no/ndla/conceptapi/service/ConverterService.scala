@@ -105,7 +105,7 @@ trait ConverterService {
       domainGlossData.map(glossData =>
         api.GlossData(
           gloss = glossData.gloss,
-          wordClass = glossData.wordClass.toString,
+          wordClass = glossData.wordClass.entryName,
           examples = glossData.examples.map(ge =>
             ge.map(g => api.GlossExample(example = g.example, language = g.language, transcriptions = g.transcriptions))
           ),

@@ -88,8 +88,8 @@ object Concept extends SQLSyntaxSupport[Concept] {
   }
   val serializers: List[Serializer[_]] = List(
     Json4s.serializer(ConceptStatus),
+    Json4s.serializer(WordClass),
     new EnumNameSerializer(ConceptType),
-    new EnumNameSerializer(WordClass),
     NDLADate.Json4sSerializer
   ) ++ JavaTimeSerializers.all
 
