@@ -104,6 +104,8 @@ export interface IDraftSearchParams {
   prioritized?: boolean
   priority?: string[]
   topics?: string[]
+  publishedDateFrom?: string
+  publishedDateTo?: string
 }
 
 export interface IGroupSearchResult {
@@ -216,6 +218,7 @@ export interface IMultiSearchSummary {
   resourceTypeName?: string
   parentTopicName?: string
   primaryRootName?: string
+  published?: string
 }
 
 export interface IMultiSearchTermsAggregation {
