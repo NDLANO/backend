@@ -19,7 +19,7 @@ trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
     private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("learningpath"))
 
     val swaggerInfo: SwaggerInfo = SwaggerInfo(
-      mountPoint = "concept-api" / "api-docs",
+      mountPoint = "learningpath-api" / "api-docs",
       description = "Services for accessing learningpaths",
       authUrl = props.Auth0LoginEndpoint,
       scopes = scopes
