@@ -9,15 +9,13 @@ package no.ndla.search.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 // format: off
-@ApiModel(description = "Value that appears in the search aggregation")
+@description("Value that appears in the search aggregation")
 case class TermValue(
-    @(ApiModelProperty @field)(description = "Value that appeared in result") value: String,
-    @(ApiModelProperty @field)(description = "Number of times the value appeared in result") count: Int
+    @description("Value that appeared in result") value: String,
+    @description("Number of times the value appeared in result") count: Int
 )
 
 object TermValue {
@@ -25,13 +23,13 @@ object TermValue {
   implicit val decoder: Decoder[TermValue] = deriveDecoder
 }
 
-@ApiModel(description = "Information about search aggregation on `field`")
+@description("Information about search aggregation on `field`")
 case class MultiSearchTermsAggregation(
-    @(ApiModelProperty @field)(description = "The field the specific aggregation is matching") field: String,
-    @(ApiModelProperty @field)(description = "Number of documents with values that didn't appear in the aggregation. (Will only happen if there are more than 50 different values)") sumOtherDocCount: Int,
-    @(ApiModelProperty @field)(description = "The result is approximate, this gives an approximation of potential errors. (Specifics here: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html#search-aggregations-bucket-terms-aggregation-approximate-counts)")
+    @description("The field the specific aggregation is matching") field: String,
+    @description("Number of documents with values that didn't appear in the aggregation. (Will only happen if there are more than 50 different values)") sumOtherDocCount: Int,
+    @description("The result is approximate, this gives an approximation of potential errors. (Specifics here: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html#search-aggregations-bucket-terms-aggregation-approximate-counts)")
     docCountErrorUpperBound: Int,
-    @(ApiModelProperty @field)(description = "Values appearing in the field") values: Seq[TermValue]
+    @description("Values appearing in the field") values: Seq[TermValue]
 )
 // format: on
 

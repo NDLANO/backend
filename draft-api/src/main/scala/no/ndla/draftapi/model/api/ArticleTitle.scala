@@ -7,19 +7,15 @@
 
 package no.ndla.draftapi.model.api
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Description of a title")
+@description("Description of a title")
 case class ArticleTitle(
-    @(ApiModelProperty @field)(description = "The freetext title of the article") title: String,
-    @(ApiModelProperty @field)(description = "The freetext html title of the article") htmlTitle: String,
-    @(ApiModelProperty @field)(
-      description = "ISO 639-1 code that represents the language used in title"
-    ) language: String
+    @description("The freetext title of the article") title: String,
+    @description("The freetext html title of the article") htmlTitle: String,
+    @description("ISO 639-1 code that represents the language used in title") language: String
 )
 
 object ArticleTitle {

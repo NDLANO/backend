@@ -10,10 +10,7 @@ package no.ndla.learningpathapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 import sttp.tapir.Schema.annotations.description
-
-import scala.annotation.meta.field
 
 @description("Information about learningpaths")
 case class LearningPathDomainDump(
@@ -23,7 +20,7 @@ case class LearningPathDomainDump(
     @description("The search results") results: Seq[LearningPath]
 )
 
-object LearningPathDomainDump{
+object LearningPathDomainDump {
   implicit val encoder: Encoder[LearningPathDomainDump] = deriveEncoder
   implicit val decoder: Decoder[LearningPathDomainDump] = deriveDecoder
 }

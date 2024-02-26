@@ -6,15 +6,13 @@
  */
 package no.ndla.myndla.model.api
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import org.scalatra.swagger.annotations.ApiModelProperty
-
-import scala.annotation.meta.field
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
 case class ExportedUserData(
-    @(ApiModelProperty @field)(description = "The users data") userData: MyNDLAUser,
-    @(ApiModelProperty @field)(description = "The users folders") folders: List[Folder]
+    @description("The users data") userData: MyNDLAUser,
+    @description("The users folders") folders: List[Folder]
 )
 
 object ExportedUserData {

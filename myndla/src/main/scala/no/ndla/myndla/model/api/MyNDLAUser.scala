@@ -7,18 +7,16 @@
 
 package no.ndla.myndla.model.api
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.myndla.model.domain.ArenaGroup
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 case class MyNDLAGroup(
-    @(ApiModelProperty @field)(description = "ID of the group") id: String,
-    @(ApiModelProperty @field)(description = "Name of the group") displayName: String,
-    @(ApiModelProperty @field)(description = "Is this the primary school") isPrimarySchool: Boolean,
-    @(ApiModelProperty @field)(description = "ID of parent group") parentId: Option[String]
+    @description("ID of the group") id: String,
+    @description("Name of the group") displayName: String,
+    @description("Is this the primary school") isPrimarySchool: Boolean,
+    @description("ID of parent group") parentId: Option[String]
 )
 
 object MyNDLAGroup {
@@ -27,18 +25,18 @@ object MyNDLAGroup {
 }
 
 case class MyNDLAUser(
-    @ApiModelProperty(description = "ID of the user") id: Long,
-    @ApiModelProperty(description = "FeideID of the user") feideId: String,
-    @ApiModelProperty(description = "Username of the user") username: String,
-    @ApiModelProperty(description = "Email address of the user") email: String,
-    @ApiModelProperty(description = "Name of the user") displayName: String,
-    @ApiModelProperty(description = "Favorite subjects of the user") favoriteSubjects: Seq[String],
-    @ApiModelProperty(description = "User role") role: String,
-    @ApiModelProperty(description = "User root organization") organization: String,
-    @ApiModelProperty(description = "User groups") groups: Seq[MyNDLAGroup],
-    @ApiModelProperty(description = "Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
-    @ApiModelProperty(description = "Whether users name is shared with folders or not") shareName: Boolean,
-    @ApiModelProperty(description = "Arena user groups") arenaGroups: List[ArenaGroup]
+    @description("ID of the user") id: Long,
+    @description("FeideID of the user") feideId: String,
+    @description("Username of the user") username: String,
+    @description("Email address of the user") email: String,
+    @description("Name of the user") displayName: String,
+    @description("Favorite subjects of the user") favoriteSubjects: Seq[String],
+    @description("User role") role: String,
+    @description("User root organization") organization: String,
+    @description("User groups") groups: Seq[MyNDLAGroup],
+    @description("Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
+    @description("Whether users name is shared with folders or not") shareName: Boolean,
+    @description("Arena user groups") arenaGroups: List[ArenaGroup]
 )
 
 object MyNDLAUser {
@@ -48,10 +46,10 @@ object MyNDLAUser {
 
 // format: off
 case class UpdatedMyNDLAUser(
-    @(ApiModelProperty @field)(description = "Favorite subjects of the user") favoriteSubjects: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "Whether arena should explicitly be enabled for the user") arenaEnabled: Option[Boolean],
-    @(ApiModelProperty @field)(description = "Whether users name should be shared with folder or not") shareName: Option[Boolean],
-    @(ApiModelProperty @field)(description = "Which arena groups the user should be in, only modifiable by admins") arenaGroups: Option[List[ArenaGroup]]
+    @description("Favorite subjects of the user") favoriteSubjects: Option[Seq[String]],
+    @description("Whether arena should explicitly be enabled for the user") arenaEnabled: Option[Boolean],
+    @description("Whether users name should be shared with folder or not") shareName: Option[Boolean],
+    @description("Which arena groups the user should be in, only modifiable by admins") arenaGroups: Option[List[ArenaGroup]]
 )
 
 object UpdatedMyNDLAUser {

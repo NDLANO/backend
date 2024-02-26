@@ -32,7 +32,8 @@ class StatsControllerTest extends UnitSuite with TestEnvironment {
 
   test("That getting stats redirects to the correct endpoint") {
     val res = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v1/stats")
+      quickRequest
+        .get(uri"http://localhost:$serverPort/learningpath-api/v1/stats")
         .followRedirects(false)
     )
     res.header("Location") should be(Some("/myndla-api/v1/stats"))

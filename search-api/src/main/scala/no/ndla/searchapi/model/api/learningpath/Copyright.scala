@@ -8,13 +8,10 @@
 package no.ndla.searchapi.model.api.learningpath
 
 import no.ndla.common.model.api.{Author, License}
-import org.scalatra.swagger.annotations._
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Description of copyright information")
+@description("Description of copyright information")
 case class Copyright(
-    @(ApiModelProperty @field)(description = "Describes the license of the learningpath") license: License,
-    @(ApiModelProperty @field)(description = "List of authors") contributors: Seq[Author]
+    @description("Describes the license of the learningpath") license: License,
+    @description("List of authors") contributors: Seq[Author]
 )

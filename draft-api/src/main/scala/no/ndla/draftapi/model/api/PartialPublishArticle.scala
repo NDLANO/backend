@@ -8,8 +8,7 @@
 package no.ndla.draftapi.model.api
 
 import enumeratum._
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 sealed trait PartialArticleFields extends EnumEntry
 
@@ -26,8 +25,8 @@ object PartialArticleFields extends Enum[PartialArticleFields] with CirceEnum[Pa
 }
 
 // format: off
-@ApiModel(description = "Partial data about articles to publish in bulk")
+@description("Partial data about articles to publish in bulk")
 case class PartialBulkArticles(
-    @(ApiModelProperty @field)(description = "A list of article ids to partially publish") articleIds: Seq[Long],
-    @(ApiModelProperty @field)(description = "A list of fields that should be partially published") fields: Seq[PartialArticleFields],
+    @description("A list of article ids to partially publish") articleIds: Seq[Long],
+    @description("A list of fields that should be partially published") fields: Seq[PartialArticleFields],
 )

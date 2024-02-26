@@ -9,13 +9,11 @@ package no.ndla.myndla.model.api
 
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 case class Breadcrumb(
-    @(ApiModelProperty @field)(description = "UUID of the folder") id: String,
-    @(ApiModelProperty @field)(description = "Folder name") name: String
+    @description("UUID of the folder") id: String,
+    @description("Folder name") name: String
 )
 
 object Breadcrumb {

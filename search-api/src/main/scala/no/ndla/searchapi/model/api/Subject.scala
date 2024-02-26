@@ -7,13 +7,11 @@
 
 package no.ndla.searchapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Short summary of information about the subject")
+@description("Short summary of information about the subject")
 case class Subject(
-    @(ApiModelProperty @field)(description = "The name of the subject") name: String,
-    @(ApiModelProperty @field)(description = "The path to the article") path: String,
-    @(ApiModelProperty @field)(description = "List of breadcrumbs to article") breadcrumbs: Seq[String]
+    @description("The name of the subject") name: String,
+    @description("The path to the article") path: String,
+    @description("List of breadcrumbs to article") breadcrumbs: Seq[String]
 )

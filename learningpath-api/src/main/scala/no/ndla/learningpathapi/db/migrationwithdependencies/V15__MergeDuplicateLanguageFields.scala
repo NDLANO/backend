@@ -16,9 +16,7 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V15__MergeDuplicateLanguageFields(properties: LearningpathApiProperties)
-    extends BaseJavaMigration
-    with Props {
+class V15__MergeDuplicateLanguageFields(properties: LearningpathApiProperties) extends BaseJavaMigration with Props {
   override val props            = properties
   implicit val formats: Formats = LearningStep.jsonEncoder
 

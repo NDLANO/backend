@@ -9,30 +9,22 @@ package no.ndla.imageapi.model.api
 
 import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
 import no.ndla.common.{Clock, DateParser}
-
-import java.time.LocalDateTime
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DataSource
-import no.ndla.imageapi.model.{
-  ImageNotFoundException,
-  ImageStorageException,
-  ImportException,
-  InvalidUrlException,
-  ResultWindowTooLargeException
-}
+import no.ndla.imageapi.model._
 import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 import org.scalatra.servlet.SizeConstraintExceededException
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
+import java.time.LocalDateTime
 
-@ApiModel(description = "Information about errors")
+@description("Information about errors")
 case class Error(
-    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
-    @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "When the error occurred") occurredAt: String =
+    @description("Code stating the type of error") code: String,
+    @description("Description of the error") description: String,
+    @description("When the error occurred") occurredAt: String =
       DateParser.dateToString(LocalDateTime.now(), withMillis = false)
 )
 

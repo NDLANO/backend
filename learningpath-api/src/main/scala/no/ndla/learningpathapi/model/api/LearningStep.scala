@@ -11,11 +11,7 @@ package no.ndla.learningpathapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.License
-import org.scalatra.swagger.annotations._
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 import sttp.tapir.Schema.annotations.description
-
-import scala.annotation.meta.field
 
 // format: off
 @description("Information about a learningstep")
