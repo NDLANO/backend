@@ -49,7 +49,8 @@ case class MultiSearchSummary(
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String],
     @description("A combined resource type name if a standard article, otherwise the article type name") resourceTypeName: Option[String],
     @description("Name of the parent topic if exists") parentTopicName: Option[String],
-    @description("Name of the primary context root if exists") primaryRootName: Option[String]
+    @description("Name of the primary context root if exists") primaryRootName: Option[String],
+    @description("When the article was last published") published: Option[NDLADate]
 )
 // format: on
 
