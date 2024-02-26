@@ -11,17 +11,13 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 
-import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 object UserInfo {
-  def getUserOrPublic(implicit request: HttpServletRequest): TokenUser = {
-    TokenUser.fromScalatraRequest(request).getOrElse(TokenUser.PublicUser)
-  }
-  def getWithUserIdOrAdmin(implicit request: HttpServletRequest) =
-    TokenUser.fromScalatraRequest(request) match {
-      case Success(user) if user.isAdmin               => Success(user)
-      case Success(user) if user.jwt.ndla_id.isDefined => Success(user)
+  def getWithUserIdOrAdmin(user: TokenUser) =
+    user match {
+      case user if user.isAdmin               => Success(user)
+      case user if user.jwt.ndla_id.isDefined => Success(user)
       case _ => Failure(AccessDeniedException("You do not have access to the requested resource."))
     }
 

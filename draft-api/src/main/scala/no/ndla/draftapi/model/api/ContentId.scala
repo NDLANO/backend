@@ -7,9 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Id for a single Article")
-case class ContentId(@(ApiModelProperty @field)(description = "The unique id of the article") id: Long)
+@description("Id for a single Article")
+case class ContentId(@description("The unique id of the article") id: Long)

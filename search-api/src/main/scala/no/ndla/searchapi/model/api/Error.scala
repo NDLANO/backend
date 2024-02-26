@@ -13,32 +13,30 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
+import sttp.tapir.Schema.annotations.description
 
 import java.time.LocalDateTime
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about an error")
+@description("Information about an error")
 case class Error(
-    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
-    @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "An optional id referring to the cover") id: Option[Long] = None,
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
+    @description("Code stating the type of error") code: String,
+    @description("Description of the error") description: String,
+    @description("An optional id referring to the cover") id: Option[Long] = None,
+    @description("When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
 )
 
-@ApiModel(description = "Information about validation errors")
+@description("Information about validation errors")
 case class ValidationError(
-    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
-    @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "List of validation messages") messages: Seq[ValidationMessage],
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
+    @description("Code stating the type of error") code: String,
+    @description("Description of the error") description: String,
+    @description("List of validation messages") messages: Seq[ValidationMessage],
+    @description("When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
 )
 
-@ApiModel(description = "A message describing a validation error on a specific field")
+@description("A message describing a validation error on a specific field")
 case class ValidationMessage(
-    @(ApiModelProperty @field)(description = "The field the error occured in") field: String,
-    @(ApiModelProperty @field)(description = "The validation message") message: String
+    @description("The field the error occured in") field: String,
+    @description("The validation message") message: String
 )
 
 trait ErrorHelpers extends TapirErrorHelpers {

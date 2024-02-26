@@ -7,15 +7,13 @@
 
 package no.ndla.searchapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about search-results")
+@description("Information about search-results")
 case class SearchResult[T](
-    @(ApiModelProperty @field)(description = "The total number of articles matching this query") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Int,
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[T]
+    @description("The total number of articles matching this query") totalCount: Long,
+    @description("For which page results are shown from") page: Int,
+    @description("The number of results per page") pageSize: Int,
+    @description("The chosen search language") language: String,
+    @description("The search results") results: Seq[T]
 )

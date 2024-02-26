@@ -10,7 +10,6 @@ package no.ndla.oembedproxy
 
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.OEmbedProxyController
@@ -26,8 +25,6 @@ trait TestEnvironment
     with MockitoSugar
     with TapirHealthController
     with Props
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with MemoizeHelpers
     with ErrorHelpers
     with Clock

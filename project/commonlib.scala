@@ -28,7 +28,6 @@ object commonlib extends Module {
       "com.amazonaws"     % "aws-java-sdk-s3"   % AwsSdkV
     ),
     melody,
-    scalatra,
     tapirHttp4sCirce
   )
   val commonTestExcludeOptions = Set(ScalacOptions.warnUnusedPatVars)

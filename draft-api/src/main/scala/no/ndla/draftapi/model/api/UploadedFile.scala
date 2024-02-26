@@ -6,14 +6,12 @@
  */
 
 package no.ndla.draftapi.model.api
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about the uploaded file")
+@description("Information about the uploaded file")
 case class UploadedFile(
-    @(ApiModelProperty @field)(description = "Uploaded file's basename") filename: String,
-    @(ApiModelProperty @field)(description = "Uploaded file's mime type") mime: String,
-    @(ApiModelProperty @field)(description = "Uploaded file's file extension") extension: String,
-    @(ApiModelProperty @field)(description = "Full path of uploaded file") path: String
+    @description("Uploaded file's basename") filename: String,
+    @description("Uploaded file's mime type") mime: String,
+    @description("Uploaded file's file extension") extension: String,
+    @description("Full path of uploaded file") path: String
 )

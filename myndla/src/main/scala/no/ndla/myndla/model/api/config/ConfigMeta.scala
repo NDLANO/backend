@@ -7,18 +7,17 @@
 
 package no.ndla.myndla.model.api.config
 
-import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.annotations.ApiModelProperty
-import org.scalatra.swagger.runtime.annotations.ApiModel
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import sttp.tapir.Schema.annotations.description
 
-@ApiModel(description = "Describes configuration value.")
+@description("Describes configuration value.")
 case class ConfigMeta(
-    @ApiModelProperty(description = "Configuration key") key: String,
-    @ApiModelProperty(description = "Configuration value.") value: Either[Boolean, List[String]],
-    @ApiModelProperty(description = "Date of when configuration was last updated") updatedAt: NDLADate,
-    @ApiModelProperty(description = "UserId of who last updated the configuration parameter.") updatedBy: String
+    @description("Configuration key") key: String,
+    @description("Configuration value.") value: Either[Boolean, List[String]],
+    @description("Date of when configuration was last updated") updatedAt: NDLADate,
+    @description("UserId of who last updated the configuration parameter.") updatedBy: String
 )
 
 object ConfigMeta {

@@ -16,7 +16,6 @@ import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchC
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.conceptapi.{Eff, Props}
 import no.ndla.language.Language
-import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.{DynamicHeaders, Service}
@@ -33,7 +32,6 @@ trait PublishedConceptController {
     with PublishedConceptSearchService
     with SearchConverterService
     with Props
-    with NdlaSwaggerSupport
     with ConceptControllerHelpers
     with ErrorHelpers =>
   val publishedConceptController: PublishedConceptController

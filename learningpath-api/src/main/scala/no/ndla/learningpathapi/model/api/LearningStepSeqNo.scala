@@ -8,11 +8,16 @@
 
 package no.ndla.learningpathapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about the sequence number for a step")
+@description("Information about the sequence number for a step")
 case class LearningStepSeqNo(
-    @(ApiModelProperty @field)(description = "The sequence number for the learningstep") seqNo: Int
+    @description("The sequence number for the learningstep") seqNo: Int
 )
+
+object LearningStepSeqNo {
+  implicit val encoder: Encoder[LearningStepSeqNo] = deriveEncoder
+  implicit val decoder: Decoder[LearningStepSeqNo] = deriveDecoder
+}

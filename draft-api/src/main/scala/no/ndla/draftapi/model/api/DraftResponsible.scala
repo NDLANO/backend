@@ -10,15 +10,13 @@ package no.ndla.draftapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 // format: off
-@ApiModel(description = "Information about the responsible")
+@description("Information about the responsible")
 case class DraftResponsible(
-    @(ApiModelProperty @field)(description = "NDLA ID of responsible editor") responsibleId: String,
-    @(ApiModelProperty @field)(description = "Date of when the responsible editor was last updated") lastUpdated: NDLADate,
+    @description("NDLA ID of responsible editor") responsibleId: String,
+    @description("Date of when the responsible editor was last updated") lastUpdated: NDLADate,
 )
 
 object DraftResponsible {

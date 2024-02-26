@@ -36,7 +36,7 @@ object learningpathapi extends Module {
     melody,
     elastic4s,
     database,
-    scalatra,
+    tapirHttp4sCirce,
     vulnerabilityOverrides
   )
 
@@ -49,7 +49,6 @@ object learningpathapi extends Module {
     ),
     exports = Seq(
       "Author",
-      "Error",
       "LearningPathStatus",
       "LearningPathSummaryV2",
       "LearningPathTagsSummary",

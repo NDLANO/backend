@@ -9,22 +9,21 @@ package no.ndla.draftapi.model.api
 
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
-
-import java.time.LocalDateTime
-import scala.annotation.meta.field
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-@ApiModel(description = "Information about an error")
+import java.time.LocalDateTime
+
+@description("Information about an error")
 case class Error(
-    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
-    @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
+    @description("Code stating the type of error") code: String,
+    @description("Description of the error") description: String,
+    @description("When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
 )
 
 trait ErrorHelpers extends TapirErrorHelpers {

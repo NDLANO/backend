@@ -186,7 +186,7 @@ trait SearchService extends StrictLogging {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(new ResultWindowTooLargeException(ErrorHelpers.WindowTooLargeError.description))
+        Failure(LearningpathHelpers.ResultWindowTooLargeException())
       } else {
         val searchToExecute = search(props.SearchIndex)
           .size(numResults)

@@ -7,14 +7,10 @@
 
 package no.ndla.searchapi.model.api
 import no.ndla.language.model.WithLanguage
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Introduction of learningPath")
+@description("Introduction of learningPath")
 case class LearningPathIntroduction(
-    @(ApiModelProperty @field)(description = "The freetext introduction of the learningpath") introduction: String,
-    @(ApiModelProperty @field)(
-      description = "ISO 639-1 code that represents the language used in introduction"
-    ) language: String
+    @description("The freetext introduction of the learningpath") introduction: String,
+    @description("ISO 639-1 code that represents the language used in introduction") language: String
 ) extends WithLanguage

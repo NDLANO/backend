@@ -18,11 +18,11 @@ import no.ndla.common.model.domain.{
   Introduction,
   Priority,
   Responsible,
+  Status,
   Tag,
   Title,
   VisualElement,
-  draft,
-  Status
+  draft
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
@@ -37,10 +37,10 @@ import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search._
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy._
-import org.apache.commons.lang3.RandomStringUtils
 
 import java.net.URI
 import java.util.UUID
+import scala.util.Random
 
 object TestData {
 
@@ -1045,7 +1045,7 @@ object TestData {
         contextType = contextType,
         parentIds = context.parentIds :+ parent.id,
         isPrimary = isPrimary,
-        contextId = RandomStringUtils.randomAlphabetic(12),
+        contextId = Random.alphanumeric.take(12).mkString,
         isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible),
         isActive = isActive
       )

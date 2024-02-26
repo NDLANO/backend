@@ -26,7 +26,6 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
   Routes,
@@ -68,8 +67,6 @@ class ComponentRegistry(properties: ImageApiProperties)
     with Props
     with DBMigrator
     with ErrorHelpers
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with Random
     with Routes[Eff]
     with NdlaMiddleware

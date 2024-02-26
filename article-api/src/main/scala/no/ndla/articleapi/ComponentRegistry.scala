@@ -31,7 +31,6 @@ import no.ndla.network.tapir.{
   TapirHealthController
 }
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: ArticleApiProperties)
@@ -40,8 +39,6 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with DataSource
     with InternController
     with ArticleControllerV2
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with ArticleRepository
     with Elastic4sClient
     with SearchApiClient

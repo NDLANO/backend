@@ -8,14 +8,18 @@
 
 package no.ndla.learningpathapi.model.api
 
-import org.scalatra.swagger.annotations._
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Summary of meta information for a learningstep including language and supported languages")
+@description("Summary of meta information for a learningstep including language and supported languages")
 case class LearningStepContainerSummary(
-    @(ApiModelProperty @field)(description = "The chosen search language") language: String,
-    @(ApiModelProperty @field)(description = "The chosen search language") learningsteps: Seq[LearningStepSummaryV2],
-    @(ApiModelProperty @field)(description = "The chosen search language") supportedLanguages: Seq[String]
+    @description("The chosen search language") language: String,
+    @description("The chosen search language") learningsteps: Seq[LearningStepSummaryV2],
+    @description("The chosen search language") supportedLanguages: Seq[String]
 )
+
+object LearningStepContainerSummary {
+  implicit val encoder: Encoder[LearningStepContainerSummary] = deriveEncoder
+  implicit val decoder: Decoder[LearningStepContainerSummary] = deriveDecoder
+}

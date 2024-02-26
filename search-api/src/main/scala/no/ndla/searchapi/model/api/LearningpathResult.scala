@@ -7,17 +7,12 @@
 
 package no.ndla.searchapi.model.api
 
-import org.scalatra.swagger.annotations.ApiModel
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Search result for learningpath api")
+@description("Search result for learningpath api")
 case class LearningpathResult(
-    @(ApiModelProperty @field)(description = "The unique id of this learningpath") id: Long,
-    @(ApiModelProperty @field)(description = "The title of the learningpath") title: Title,
-    @(ApiModelProperty @field)(
-      description = "The introduction of the learningpath"
-    ) introduction: LearningPathIntroduction,
-    @(ApiModelProperty @field)(description = "List of supported languages") supportedLanguages: Seq[String]
+    @description("The unique id of this learningpath") id: Long,
+    @description("The title of the learningpath") title: Title,
+    @description("The introduction of the learningpath") introduction: LearningPathIntroduction,
+    @description("List of supported languages") supportedLanguages: Seq[String]
 )

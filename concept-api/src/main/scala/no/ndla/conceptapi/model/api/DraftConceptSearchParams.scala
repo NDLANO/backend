@@ -9,30 +9,28 @@ package no.ndla.conceptapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 // format: off
-@ApiModel(description = "The search parameters")
+@description("The search parameters")
 case class DraftConceptSearchParams(
-  @(ApiModelProperty @field)(description = "The search query.") query: Option[String],
-  @(ApiModelProperty @field)(description = "The ISO 639-1 language code describing language used in query-params.") language: Option[String],
-  @(ApiModelProperty @field)(description = "The page number of the search hits to display.") page: Option[Int],
-  @(ApiModelProperty @field)(description = "The number of search hits to display for each page.") pageSize: Option[Int],
-  @(ApiModelProperty @field)(description = "Return only articles that have one of the provided ids.") idList: List[Long],
-  @(ApiModelProperty @field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[String],
-  @(ApiModelProperty @field)(description = "Whether to fallback to existing language if not found in selected language.") fallback: Option[Boolean],
-  @(ApiModelProperty @field)(description = "A search context retrieved from the response header of a previous search.") scrollId: Option[String],
-  @(ApiModelProperty @field)(description = "A comma-separated list of subjects that should appear in the search.") subjects: Set[String],
-  @(ApiModelProperty @field)(description = "A comma-separated list of tags to filter the search by.") tags: Set[String],
-  @(ApiModelProperty @field)(description = "A comma-separated list of statuses that should appear in the search.") status: Set[String],
-  @(ApiModelProperty @field)(description = "A comma-separated list of users to filter the search by.") users: Seq[String],
-  @(ApiModelProperty @field)(description = "Embed resource type that should exist in the concepts.") embedResource: Option[String],
-  @(ApiModelProperty @field)(description = "Embed id attribute that should exist in the concepts.") embedId: Option[String],
-  @(ApiModelProperty @field)(description = "A comma-separated list of NDLA IDs to filter the search by.") responsibleIds: List[String],
-  @(ApiModelProperty @field)(description = "The type of concepts to return.") conceptType: Option[String],
-  @(ApiModelProperty @field)(description = "A list of index paths to aggregate over") aggregatePaths: List[String],
+  @description("The search query.") query: Option[String],
+  @description("The ISO 639-1 language code describing language used in query-params.") language: Option[String],
+  @description("The page number of the search hits to display.") page: Option[Int],
+  @description("The number of search hits to display for each page.") pageSize: Option[Int],
+  @description("Return only articles that have one of the provided ids.") idList: List[Long],
+  @description("The sorting used on results. Default is by -relevance.") sort: Option[String],
+  @description("Whether to fallback to existing language if not found in selected language.") fallback: Option[Boolean],
+  @description("A search context retrieved from the response header of a previous search.") scrollId: Option[String],
+  @description("A comma-separated list of subjects that should appear in the search.") subjects: Set[String],
+  @description("A comma-separated list of tags to filter the search by.") tags: Set[String],
+  @description("A comma-separated list of statuses that should appear in the search.") status: Set[String],
+  @description("A comma-separated list of users to filter the search by.") users: Seq[String],
+  @description("Embed resource type that should exist in the concepts.") embedResource: Option[String],
+  @description("Embed id attribute that should exist in the concepts.") embedId: Option[String],
+  @description("A comma-separated list of NDLA IDs to filter the search by.") responsibleIds: List[String],
+  @description("The type of concepts to return.") conceptType: Option[String],
+  @description("A list of index paths to aggregate over") aggregatePaths: List[String],
 )
 
 object DraftConceptSearchParams{

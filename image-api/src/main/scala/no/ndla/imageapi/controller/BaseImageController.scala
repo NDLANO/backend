@@ -13,7 +13,6 @@ import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, Sort}
 import no.ndla.language.Language
-import no.ndla.network.scalatra.NdlaSwaggerSupport
 import sttp.model.Part
 import sttp.tapir._
 import sttp.tapir.model.{CommaSeparated, Delimited}
@@ -22,7 +21,7 @@ import java.io.File
 import scala.util.{Failure, Try}
 
 trait BaseImageController {
-  this: Props with NdlaSwaggerSupport =>
+  this: Props =>
 
   /** Base class for sharing code between Image controllers. */
   trait BaseImageController {

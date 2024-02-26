@@ -8,14 +8,12 @@
 package no.ndla.searchapi.model.api.article
 
 import no.ndla.language.model.WithLanguage
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Description of the article introduction")
+@description("Description of the article introduction")
 case class ArticleIntroduction(
-    @(ApiModelProperty @field)(description = "The introduction content") introduction: String,
-    @(ApiModelProperty @field)(
-      description = "The ISO 639-1 language code describing which article translation this introduction belongs to"
+    @description("The introduction content") introduction: String,
+    @description(
+      "The ISO 639-1 language code describing which article translation this introduction belongs to"
     ) language: String
 ) extends WithLanguage

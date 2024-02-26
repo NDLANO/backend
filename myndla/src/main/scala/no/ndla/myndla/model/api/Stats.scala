@@ -9,20 +9,17 @@ package no.ndla.myndla.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.annotations.ApiModel
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Stats for my-ndla usage")
+@description("Stats for my-ndla usage")
 case class Stats(
-    @(ApiModelProperty @field)(description = "The total number of users registered ") numberOfUsers: Long,
-    @(ApiModelProperty @field)(description = "The total number of created folders") numberOfFolders: Long,
-    @(ApiModelProperty @field)(description = "The total number of favourited resources ") numberOfResources: Long,
-    @(ApiModelProperty @field)(description = "The total number of created tags") numberOfTags: Long,
-    @(ApiModelProperty @field)(description = "The total number of favourited subjects") numberOfSubjects: Long,
-    @(ApiModelProperty @field)(description = "The total number of shared folders") numberOfSharedFolders: Long,
-    @(ApiModelProperty @field)(description = "Stats for type resources") favouritedResources: List[ResourceStats]
+    @description("The total number of users registered ") numberOfUsers: Long,
+    @description("The total number of created folders") numberOfFolders: Long,
+    @description("The total number of favourited resources ") numberOfResources: Long,
+    @description("The total number of created tags") numberOfTags: Long,
+    @description("The total number of favourited subjects") numberOfSubjects: Long,
+    @description("The total number of shared folders") numberOfSharedFolders: Long,
+    @description("Stats for type resources") favouritedResources: List[ResourceStats]
 )
 
 object Stats {
@@ -31,8 +28,8 @@ object Stats {
 }
 
 case class ResourceStats(
-    @(ApiModelProperty @field)(description = "The type of favourited resouce") `type`: String,
-    @(ApiModelProperty @field)(description = "The number of favourited resource") number: Long
+    @description("The type of favourited resouce") `type`: String,
+    @description("The number of favourited resource") number: Long
 )
 
 object ResourceStats {

@@ -7,13 +7,12 @@
 
 package no.ndla.draftapi.model.api
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
-@ApiModel(description = "Information about search-results")
+@description("Information about search-results")
 case class ArticleSearchResult(
-    @(ApiModelProperty @field)(description = "The total number of articles matching this query") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Option[Int],
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[ArticleSummary]
+    @description("The total number of articles matching this query") totalCount: Long,
+    @description("For which page results are shown from") page: Option[Int],
+    @description("The number of results per page") pageSize: Int,
+    @description("The search results") results: Seq[ArticleSummary]
 )

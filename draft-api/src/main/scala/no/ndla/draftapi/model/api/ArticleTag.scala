@@ -9,14 +9,12 @@ package no.ndla.draftapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Description of the tags of the article")
+@description("Description of the tags of the article")
 case class ArticleTag(
-    @(ApiModelProperty @field)(description = "The searchable tag.") tags: Seq[String],
-    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in tag") language: String
+    @description("The searchable tag.") tags: Seq[String],
+    @description("ISO 639-1 code that represents the language used in tag") language: String
 )
 
 object ArticleTag {

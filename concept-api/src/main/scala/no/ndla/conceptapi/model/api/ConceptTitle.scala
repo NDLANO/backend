@@ -9,14 +9,12 @@ package no.ndla.conceptapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about the concept")
+@description("Information about the concept")
 case class ConceptTitle(
-    @(ApiModelProperty @field)(description = "The title of this concept") title: String,
-    @(ApiModelProperty @field)(description = "The language of this concept") language: String
+    @description("The title of this concept") title: String,
+    @description("The language of this concept") language: String
 )
 
 object ConceptTitle {

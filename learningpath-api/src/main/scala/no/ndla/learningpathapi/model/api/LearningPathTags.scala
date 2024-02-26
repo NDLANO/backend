@@ -8,12 +8,17 @@
 
 package no.ndla.learningpathapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.WithLanguage
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 case class LearningPathTags(
-    @(ApiModelProperty @field)(description = "The searchable tags. Must be plain text") tags: Seq[String],
-    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in tag") language: String
+    @description("The searchable tags. Must be plain text") tags: Seq[String],
+    @description("ISO 639-1 code that represents the language used in tag") language: String
 ) extends WithLanguage
+
+object LearningPathTags {
+  implicit val encoder: Encoder[LearningPathTags] = deriveEncoder
+  implicit val decoder: Decoder[LearningPathTags] = deriveDecoder
+}

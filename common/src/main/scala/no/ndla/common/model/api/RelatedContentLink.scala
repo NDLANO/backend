@@ -7,16 +7,14 @@
 
 package no.ndla.common.model.api
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "External link related to the article")
+@description("External link related to the article")
 case class RelatedContentLink(
-    @(ApiModelProperty @field)(description = "Title of the article") title: String,
-    @(ApiModelProperty @field)(description = "The url to where the article can be viewed") url: String
+    @description("Title of the article") title: String,
+    @description("The url to where the article can be viewed") url: String
 )
 
 object RelatedContentLink {

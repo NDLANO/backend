@@ -14,13 +14,12 @@ import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{CopyableFolder, CopyableResource, ResourceType}
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
 import scala.annotation.unused
 
 case class Owner(
-    @(ApiModelProperty @field)(description = "Name of the owner") name: String
+    @description("Name of the owner") name: String
 )
 
 object Owner {
@@ -30,19 +29,19 @@ object Owner {
 
 // format: off
 case class Folder(
-    @(ApiModelProperty @field)(description = "UUID of the folder") id: String,
-    @(ApiModelProperty @field)(description = "Folder name") name: String,
-    @(ApiModelProperty @field)(description = "Folder status") status: String,
-    @(ApiModelProperty @field)(description = "UUID of parent folder") parentId: Option[String],
-    @(ApiModelProperty @field)(description = "List of parent folders to resource") breadcrumbs: List[Breadcrumb],
-    @(ApiModelProperty @field)(description = "List of subfolders") subfolders: List[FolderData],
-    @(ApiModelProperty @field)(description = "List of resources") resources: List[Resource],
-    @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int],
-    @(ApiModelProperty @field)(description = "When the folder was created") created: NDLADate,
-    @(ApiModelProperty @field)(description = "When the folder was updated") updated: NDLADate,
-    @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[NDLADate],
-    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String],
-    @(ApiModelProperty @field)(description = "Owner of the folder, if the owner have opted in to share their name") owner: Option[Owner],
+    @description("UUID of the folder") id: String,
+    @description("Folder name") name: String,
+    @description("Folder status") status: String,
+    @description("UUID of parent folder") parentId: Option[String],
+    @description("List of parent folders to resource") breadcrumbs: List[Breadcrumb],
+    @description("List of subfolders") subfolders: List[FolderData],
+    @description("List of resources") resources: List[Resource],
+    @description("Where the folder is sorted within its parent") rank: Option[Int],
+    @description("When the folder was created") created: NDLADate,
+    @description("When the folder was updated") updated: NDLADate,
+    @description("When the folder was last shared") shared: Option[NDLADate],
+    @description("Description of the folder") description: Option[String],
+    @description("Owner of the folder, if the owner have opted in to share their name") owner: Option[Owner],
 ) extends FolderData with CopyableFolder
 // format: on
 
@@ -108,27 +107,27 @@ object FolderData {
 }
 
 case class NewFolder(
-    @(ApiModelProperty @field)(description = "Folder name") name: String,
-    @(ApiModelProperty @field)(description = "Id of parent folder") parentId: Option[String],
-    @(ApiModelProperty @field)(description = "Status of the folder (private, shared)") status: Option[String],
-    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String]
+    @description("Folder name") name: String,
+    @description("Id of parent folder") parentId: Option[String],
+    @description("Status of the folder (private, shared)") status: Option[String],
+    @description("Description of the folder") description: Option[String]
 )
 
 case class UpdatedFolder(
-    @(ApiModelProperty @field)(description = "Folder name") name: Option[String],
-    @(ApiModelProperty @field)(description = "Status of the folder (private, shared)") status: Option[String],
-    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String]
+    @description("Folder name") name: Option[String],
+    @description("Status of the folder (private, shared)") status: Option[String],
+    @description("Description of the folder") description: Option[String]
 )
 
 // format: off
 case class Resource(
-    @(ApiModelProperty @field)(description = "Unique ID of the resource") id: String,
-    @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
-    @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
-    @(ApiModelProperty @field)(description = "When the resource was created") created: NDLADate,
-    @(ApiModelProperty @field)(description = "List of tags") tags: List[String],
-    @(ApiModelProperty @field)(description = "The id of the resource, useful for fetching metadata for the resource") resourceId: String,
-    @(ApiModelProperty @field)(description = "The which rank the resource appears in a sorted sequence") rank: Option[Int]
+    @description("Unique ID of the resource") id: String,
+    @description("Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
+    @description("Relative path of this resource") path: String,
+    @description("When the resource was created") created: NDLADate,
+    @description("List of tags") tags: List[String],
+    @description("The id of the resource, useful for fetching metadata for the resource") resourceId: String,
+    @description("The which rank the resource appears in a sorted sequence") rank: Option[Int]
 ) extends CopyableResource
 // format: on
 
@@ -138,19 +137,13 @@ object Resource {
 }
 
 case class NewResource(
-    @(ApiModelProperty @field)(
-      description = "Type of the resource. (Article, Learningpath)"
-    ) resourceType: ResourceType,
-    @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
-    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
-    @(ApiModelProperty @field)(
-      description = "The id of the resource, useful for fetching metadata for the resource"
-    ) resourceId: String
+    @description("Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
+    @description("Relative path of this resource") path: String,
+    @description("List of tags") tags: Option[List[String]],
+    @description("The id of the resource, useful for fetching metadata for the resource") resourceId: String
 )
 
 case class UpdatedResource(
-    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
-    @(ApiModelProperty @field)(
-      description = "The id of the resource, useful for fetching metadata for the resource"
-    ) resourceId: Option[String]
+    @description("List of tags") tags: Option[List[String]],
+    @description("The id of the resource, useful for fetching metadata for the resource") resourceId: Option[String]
 )

@@ -9,15 +9,13 @@ package no.ndla.draftapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about a library required to render the article")
+@description("Information about a library required to render the article")
 case class RequiredLibrary(
-    @(ApiModelProperty @field)(description = "The type of the library. E.g. CSS or JavaScript") mediaType: String,
-    @(ApiModelProperty @field)(description = "The name of the library") name: String,
-    @(ApiModelProperty @field)(description = "The full url to where the library can be downloaded") url: String
+    @description("The type of the library. E.g. CSS or JavaScript") mediaType: String,
+    @description("The name of the library") name: String,
+    @description("The full url to where the library can be downloaded") url: String
 )
 
 object RequiredLibrary {

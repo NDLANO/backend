@@ -7,28 +7,38 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import no.ndla.learningpathapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.Service
 import org.json4s.Formats
-import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalikejdbc.DBSession
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
+class InternControllerTest extends UnitSuite with TestEnvironment {
 
-  implicit val jsonFormats: Formats = org.json4s.DefaultFormats
-  val swagger                       = new LearningpathSwagger
+  implicit val jsonFormats: Formats         = org.json4s.DefaultFormats
+  val serverPort: Int                       = findFreePort
+  val controller                            = new InternController
+  override val services: List[Service[Eff]] = List(controller)
 
-  lazy val controller = new InternController()(swagger)
-  addServlet(controller, "/*")
+  override def beforeAll(): Unit = {
+    IO { Routes.startJdkServer("InternControllerTest", serverPort) {} }.unsafeRunAndForget()
+    Thread.sleep(1000)
+  }
 
   test("that id with value 404 gives OK") {
     resetMocks()
     when(learningPathRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(404L))
 
-    get("/id/1234") {
-      status should equal(200)
-    }
+    simpleHttpClient
+      .send(
+        quickRequest.get(uri"http://localhost:$serverPort/intern/id/1234")
+      )
+      .code
+      .code should be(200)
   }
 
   test("That DELETE /index removes all indexes") {
@@ -37,10 +47,12 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(200)
-      body should equal("Deleted 3 indexes")
-    }
+
+    val res = simpleHttpClient.send(
+      quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
+    )
+    res.code.code should be(200)
+    res.body should be("Deleted 3 indexes")
     verify(searchIndexService).findAllIndexes(props.SearchIndex)
     verify(searchIndexService).deleteIndexWithName(Some("index1"))
     verify(searchIndexService).deleteIndexWithName(Some("index2"))
@@ -56,10 +68,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(500)
-      body should equal("Failed to find indexes")
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
+    )
+    res.code.code should be(500)
+    res.body should equal("Failed to find indexes")
     verify(searchIndexService, never).deleteIndexWithName(any[Option[String]])
   }
 
@@ -73,14 +86,24 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       .when(searchIndexService)
       .deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(500)
-      body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
-      )
-    }
+    val res = simpleHttpClient.send(
+      quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
+    )
+    res.code.code should be(500)
+    res.body should be(
+      "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
+    )
     verify(searchIndexService).deleteIndexWithName(Some("index1"))
     verify(searchIndexService).deleteIndexWithName(Some("index2"))
     verify(searchIndexService).deleteIndexWithName(Some("index3"))
+  }
+
+  test("That no endpoints are shadowed") {
+    import sttp.tapir.testing.EndpointVerifier
+    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
+    if (errors.nonEmpty) {
+      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
+    }
   }
 }

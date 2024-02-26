@@ -11,12 +11,10 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.myndla.model.domain.config
 import no.ndla.myndla.model.domain.config.{BooleanValue, StringListValue}
-import org.scalatra.swagger.annotations.ApiModelProperty
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 case class ConfigMetaValue(
-    @(ApiModelProperty @field)(description = "Value to set configuration param to.")
+    @description("Value to set configuration param to.")
     value: Either[Boolean, List[String]]
 )
 

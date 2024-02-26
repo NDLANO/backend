@@ -7,16 +7,14 @@
 
 package no.ndla.draftapi.model.api
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 case class NewArticleMetaImage(
-    @(ApiModelProperty @field)(description = "The image-api id of the meta image") id: String,
-    @(ApiModelProperty @field)(description = "The alt text of the meta image") alt: String
+    @description("The image-api id of the meta image") id: String,
+    @description("The alt text of the meta image") alt: String
 )
 
 object NewArticleMetaImage {
