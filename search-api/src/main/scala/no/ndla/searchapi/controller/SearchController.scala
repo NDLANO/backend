@@ -559,7 +559,7 @@ trait SearchController {
       .summary("Find draft learning resources")
       .description("Shows all draft learning resources. You can search too.")
       .in("editorial")
-      .in(jsonBody[Option[DraftSearchParams]])
+      .in(jsonBody[Option[DraftSearchParams]].schema(DraftSearchParams.schema.asOption))
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(jsonBody[MultiSearchResult])
       .out(EndpointOutput.derived[DynamicHeaders])
