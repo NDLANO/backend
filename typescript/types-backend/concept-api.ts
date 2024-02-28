@@ -50,17 +50,17 @@ export interface IConceptSearchParams {
   language?: string
   page?: number
   pageSize?: number
-  ids: number[]
+  ids?: number[]
   sort?: string
   fallback?: boolean
   scrollId?: string
-  subjects: string[]
-  tags: string[]
+  subjects?: string[]
+  tags?: string[]
   exactMatch?: boolean
   embedResource?: string
   embedId?: string
   conceptType?: string
-  aggregatePaths: string[]
+  aggregatePaths?: string[]
 }
 
 export interface IConceptSearchResult {
@@ -111,19 +111,19 @@ export interface IDraftConceptSearchParams {
   language?: string
   page?: number
   pageSize?: number
-  idList: number[]
+  idList?: number[]
   sort?: string
   fallback?: boolean
   scrollId?: string
-  subjects: string[]
-  tags: string[]
-  status: string[]
-  users: string[]
+  subjects?: string[]
+  tags?: string[]
+  status?: string[]
+  users?: string[]
   embedResource?: string
   embedId?: string
-  responsibleIds: string[]
+  responsibleIds?: string[]
   conceptType?: string
-  aggregatePaths: string[]
+  aggregatePaths?: string[]
 }
 
 export interface IDraftCopyright {

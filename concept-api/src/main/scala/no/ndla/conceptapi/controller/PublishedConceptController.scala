@@ -227,16 +227,16 @@ trait PublishedConceptController {
             language,
             page,
             pageSize,
-            idList,
+            idList.getOrElse(List.empty),
             fallback,
-            subjects,
-            tagsToFilterBy,
+            subjects.getOrElse(Set.empty),
+            tagsToFilterBy.getOrElse(Set.empty),
             exactTitleMatch,
             shouldScroll,
             embedResource,
             embedId,
             conceptType,
-            aggregatePaths
+            aggregatePaths.getOrElse(List.empty)
           )
         }.handleErrorsOrOk
       }
