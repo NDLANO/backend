@@ -7,6 +7,7 @@
 
 package no.ndla.network.tapir
 
+import com.scalatsi.TSType
 import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
@@ -21,7 +22,8 @@ object NonEmptyString {
   def fromOptString(s: Option[String]): Option[NonEmptyString] = s.filter(_.nonEmpty).map(f => new NonEmptyString(f))
   def fromString(s: String): Option[NonEmptyString]            = Option.when(s.nonEmpty)(new NonEmptyString(s))
 
-  implicit val schema: Schema[NonEmptyString] = Schema.string
+  implicit val schema: Schema[NonEmptyString]            = Schema.string
+  implicit val schemaOpt: Schema[Option[NonEmptyString]] = Schema.string.asOption
   implicit val queryParamCodec: Codec[List[String], Option[NonEmptyString], CodecFormat.TextPlain] = {
     Codec
       .id[List[String], TextPlain](TextPlain(), Schema.string)
@@ -31,6 +33,8 @@ object NonEmptyString {
         )
       )(x => x.map(_.underlying).toList)
   }
+
+  implicit val typescriptType: TSType[NonEmptyString] = TSType.sameAs[NonEmptyString, String]
 
   implicit val circeOptionDecoder: Decoder[Option[NonEmptyString]] = (c: HCursor) =>
     c.as[Option[String]].map(maybeStr => fromOptString(maybeStr))

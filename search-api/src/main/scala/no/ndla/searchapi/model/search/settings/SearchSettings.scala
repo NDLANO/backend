@@ -8,10 +8,11 @@
 package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.domain.Availability
+import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 
 case class SearchSettings(
-    query: Option[String],
+    query: Option[NonEmptyString],
     fallback: Boolean,
     language: String,
     license: Option[String],

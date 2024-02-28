@@ -19,6 +19,7 @@ import SortOrder.{Asc, Desc}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
+import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.getAggregationsFromResult
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
 import no.ndla.searchapi.Props
@@ -64,7 +65,7 @@ trait SearchService {
     }
 
     def buildSimpleStringQueryForField(
-        query: String,
+        query: NonEmptyString,
         field: String,
         boost: Double,
         language: String,
@@ -77,14 +78,15 @@ trait SearchService {
       }
 
       if (searchLanguage == Language.AllLanguages || fallback) {
-        SearchLanguage.languageAnalyzers.foldLeft(SimpleStringQuery(query, quote_field_suffix = Some(".exact")))(
-          (acc, cur) => {
-            val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
-            if (searchDecompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
-          }
-        )
+        SearchLanguage.languageAnalyzers.foldLeft(
+          SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact"))
+        )((acc, cur) => {
+          val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
+          if (searchDecompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
+        })
       } else {
-        val base = SimpleStringQuery(query, quote_field_suffix = Some(".exact")).field(s"$field.$language", boost)
+        val base =
+          SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact")).field(s"$field.$language", boost)
         if (searchDecompounded) base.field(s"$field.$language.decompounded", 0.1) else base
       }
     }
