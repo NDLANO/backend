@@ -8,7 +8,7 @@
 package no.ndla.network.tapir
 
 import com.scalatsi.TSType
-import io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
+import io.circe.{Decoder, DecodingFailure, Encoder, FailedCursor, HCursor, Json}
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
 
@@ -36,14 +36,16 @@ object NonEmptyString {
 
   implicit val typescriptType: TSType[NonEmptyString] = TSType.sameAs[NonEmptyString, String]
 
-  implicit val circeOptionDecoder: Decoder[Option[NonEmptyString]] = (c: HCursor) =>
-    c.as[Option[String]].map(maybeStr => fromOptString(maybeStr))
+  implicit def circeOptionDecoder: Decoder[Option[NonEmptyString]] = Decoder.withReattempt {
+    case c: FailedCursor if !c.incorrectFocus => Right(None)
+    case c                                    => c.as[Option[String]].map(maybeStr => fromOptString(maybeStr))
+  }
 
   private[tapir] val parseErrorMessage =
     "Tried to parse an empty string as a `NonEmptyString`. The string needs to have length > 0 (Or maybe you wanted `Option[NonEmptyString]`?)"
   private val decodingFailureReason = DecodingFailure.Reason.CustomReason(parseErrorMessage)
 
-  implicit val circeDecoder: Decoder[NonEmptyString] = (c: HCursor) =>
+  implicit def circeDecoder: Decoder[NonEmptyString] = (c: HCursor) =>
     c.as[String].flatMap { str =>
       fromString(str) match {
         case Some(value) => Right(value)
@@ -51,7 +53,7 @@ object NonEmptyString {
       }
     }
 
-  implicit val circeEncoder: Encoder[NonEmptyString] = (a: NonEmptyString) => Json.fromString(a.underlying)
+  implicit def circeEncoder: Encoder[NonEmptyString] = (a: NonEmptyString) => Json.fromString(a.underlying)
 
   /** Helpers that should make working with a bit `Option[NonEmptyString]` easier */
   implicit class NonEmptyStringImplicit(self: Option[NonEmptyString]) {

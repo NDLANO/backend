@@ -55,6 +55,15 @@ class NonEmptyStringTest extends UnitSuite {
     result.cantbeempty.get.underlying should be("spirrevipp")
   }
 
+  test("That decoding missing field returns None for optionals") {
+    import io.circe.generic.auto._
+    case class SomeObject(cantbeempty: Option[NonEmptyString])
+
+    val jsonString           = """{}"""
+    val Right(Right(result)) = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
+    result.cantbeempty should be(None)
+  }
+
   test("That encoding json simply makes a normal string :^)") {
     import io.circe.generic.auto._
     import io.circe.syntax._
