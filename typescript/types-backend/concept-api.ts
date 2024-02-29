@@ -111,7 +111,7 @@ export interface IDraftConceptSearchParams {
   language?: string
   page?: number
   pageSize?: number
-  idList?: number[]
+  ids?: number[]
   sort?: string
   fallback?: boolean
   scrollId?: string

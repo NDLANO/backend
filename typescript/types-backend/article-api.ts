@@ -43,7 +43,7 @@ export interface IArticleSearchParams {
   license?: string
   page?: number
   pageSize?: number
-  idList?: number[]
+  ids?: number[]
   articleTypes?: string[]
   sort?: string
   fallback?: boolean
