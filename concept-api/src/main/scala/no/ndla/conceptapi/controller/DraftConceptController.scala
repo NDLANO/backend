@@ -305,18 +305,18 @@ trait DraftConceptController {
             language,
             page,
             pageSize,
-            idList,
+            idList.getOrElse(List.empty),
             fallback,
-            subjects,
-            tagsToFilterBy,
-            statusFilter,
-            userFilter,
+            subjects.getOrElse(Set.empty),
+            tagsToFilterBy.getOrElse(Set.empty),
+            statusFilter.getOrElse(Set.empty),
+            userFilter.getOrElse(Seq.empty),
             shouldScroll,
             embedResource,
             embedId,
-            responsibleId,
+            responsibleId.getOrElse(List.empty),
             conceptType,
-            aggregatePaths
+            aggregatePaths.getOrElse(List.empty)
           )
         }.handleErrorsOrOk
       }
