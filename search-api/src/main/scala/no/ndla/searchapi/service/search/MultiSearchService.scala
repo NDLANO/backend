@@ -65,12 +65,12 @@ trait MultiSearchService {
               langQueryFunc("content", 1),
               langQueryFunc("tags", 1),
               langQueryFunc("embedAttributes", 1),
-              simpleStringQuery(q).field("authors", 1),
-              simpleStringQuery(q).field("grepContexts.title", 1),
-              idsQuery(q)
+              simpleStringQuery(q.underlying).field("authors", 1),
+              simpleStringQuery(q.underlying).field("grepContexts.title", 1),
+              idsQuery(q.underlying)
             ) ++
-              buildNestedEmbedField(List(q), None, settings.language, settings.fallback) ++
-              buildNestedEmbedField(List.empty, Some(q), settings.language, settings.fallback)
+              buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
+              buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
           )
         )
       })
@@ -102,7 +102,7 @@ trait MultiSearchService {
 
         val searchToExecute = search(searchIndex)
           .query(filteredSearch)
-          .suggestions(suggestions(settings.query, searchLanguage, settings.fallback))
+          .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .from(startAt)
           .trackTotalHits(true)
           .size(numResults)

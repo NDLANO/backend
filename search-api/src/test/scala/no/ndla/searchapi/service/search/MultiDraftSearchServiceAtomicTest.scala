@@ -14,6 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
+import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
@@ -259,7 +260,7 @@ class MultiDraftSearchServiceAtomicTest
 
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some("trylleformel"))
+        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("trylleformel").get))
       )
 
     search1.totalCount should be(1)
@@ -397,7 +398,7 @@ class MultiDraftSearchServiceAtomicTest
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          query = Some("Gris"),
+          query = Some(NonEmptyString.fromString("Gris").get),
           excludeRevisionHistory = true
         )
       )
@@ -408,7 +409,7 @@ class MultiDraftSearchServiceAtomicTest
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          query = Some("Gris"),
+          query = Some(NonEmptyString.fromString("Gris").get),
           excludeRevisionHistory = false
         )
       )

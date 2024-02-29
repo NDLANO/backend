@@ -10,6 +10,7 @@ package no.ndla.searchapi.controller.parameters
 import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.network.tapir.NonEmptyString
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
@@ -40,10 +41,10 @@ import sttp.tapir.Schema.annotations.description
       license: Option[String],
 
       @description("Return only results with content matching the specified query.")
-      query: Option[String],
+      query: Option[NonEmptyString],
 
       @description("Return only results with notes matching the specified note-query.")
-      noteQuery: Option[String],
+      noteQuery: Option[NonEmptyString],
 
       @description("The sorting used on results.")
       sort: Option[String],

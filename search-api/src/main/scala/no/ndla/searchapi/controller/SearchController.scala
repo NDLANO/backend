@@ -16,7 +16,7 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{AllErrors, DynamicHeaders, Service}
+import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.searchapi.controller.parameters.DraftSearchParams
@@ -65,7 +65,9 @@ trait SearchController {
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
 
     private val queryParam =
-      query[Option[String]]("query").description("Return only results with content matching the specified query.")
+      query[Option[NonEmptyString]]("query")
+        .description("Return only results with content matching the specified query.")
+        .schema(NonEmptyString.schemaOpt)
     private val language =
       query[String]("language")
         .description("The ISO 639-1 language code describing language.")
@@ -468,7 +470,7 @@ trait SearchController {
         .getOrElse(default)
 
     def stringParamOrNone(name: String)(implicit queryParams: QueryParams): Option[String] =
-      queryParams.get(name)
+      queryParams.get(name).filterNot(_.isEmpty)
 
     def stringListParam(name: String)(implicit queryParams: QueryParams): List[String] =
       queryParams
@@ -516,8 +518,8 @@ trait SearchController {
                 ids = longListParam("ids").some,
                 resourceTypes = stringListParam("resource-types").some,
                 license = stringParamOrNone("license"),
-                query = stringParamOrNone("query"),
-                noteQuery = stringParamOrNone("note-query"),
+                query = NonEmptyString.fromOptString(stringParamOrNone("query")),
+                noteQuery = NonEmptyString.fromOptString(stringParamOrNone("note-query")),
                 sort = stringParamOrNone("sort"),
                 fallback = booleanParamOrNone("fallback"),
                 subjects = stringListParam("subjects").some,

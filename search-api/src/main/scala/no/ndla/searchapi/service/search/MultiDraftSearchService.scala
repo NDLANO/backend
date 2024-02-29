@@ -67,14 +67,15 @@ trait MultiDraftSearchService {
             langQueryFunc("content", 1),
             langQueryFunc("tags", 1),
             langQueryFunc("embedAttributes", 1),
-            simpleStringQuery(queryString).field("authors", 1),
-            simpleStringQuery(queryString).field("grepContexts.title", 1),
-            idsQuery(queryString),
-            nestedQuery("revisionMeta", simpleStringQuery(queryString).field("revisionMeta.note")).ignoreUnmapped(true)
+            simpleStringQuery(queryString.underlying).field("authors", 1),
+            simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
+            idsQuery(queryString.underlying),
+            nestedQuery("revisionMeta", simpleStringQuery(queryString.underlying).field("revisionMeta.note"))
+              .ignoreUnmapped(true)
           ) ++
-            getRevisionHistoryLogQuery(queryString, settings.excludeRevisionHistory) ++
-            buildNestedEmbedField(List(queryString), None, settings.language, settings.fallback) ++
-            buildNestedEmbedField(List.empty, Some(queryString), settings.language, settings.fallback)
+            getRevisionHistoryLogQuery(queryString.underlying, settings.excludeRevisionHistory) ++
+            buildNestedEmbedField(List(queryString.underlying), None, settings.language, settings.fallback) ++
+            buildNestedEmbedField(List.empty, Some(queryString.underlying), settings.language, settings.fallback)
         )
 
       })
@@ -82,8 +83,8 @@ trait MultiDraftSearchService {
       val noteSearch = settings.noteQuery.map(q => {
         boolQuery()
           .should(
-            simpleStringQuery(q).field("notes", 1),
-            simpleStringQuery(q).field("previousVersionsNotes", 1)
+            simpleStringQuery(q.underlying).field("notes", 1),
+            simpleStringQuery(q.underlying).field("previousVersionsNotes", 1)
           )
       })
 
@@ -113,7 +114,7 @@ trait MultiDraftSearchService {
 
         val searchToExecute = search(searchIndex)
           .query(filteredSearch)
-          .suggestions(suggestions(settings.query, searchLanguage, settings.fallback))
+          .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .trackTotalHits(true)
           .from(startAt)
           .size(numResults)

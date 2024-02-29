@@ -10,11 +10,12 @@ package no.ndla.searchapi.model.search.settings
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
+import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 
 case class MultiDraftSearchSettings(
-    query: Option[String],
-    noteQuery: Option[String],
+    query: Option[NonEmptyString],
+    noteQuery: Option[NonEmptyString],
     fallback: Boolean,
     language: String,
     license: Option[String],
