@@ -286,7 +286,7 @@ trait DraftConceptController {
           val language       = searchParams.language.getOrElse(AllLanguages)
           val pageSize       = searchParams.pageSize.getOrElse(DefaultPageSize)
           val page           = searchParams.page.getOrElse(1)
-          val idList         = searchParams.idList
+          val idList         = searchParams.ids
           val fallback       = searchParams.fallback.getOrElse(false)
           val subjects       = searchParams.subjects
           val tagsToFilterBy = searchParams.tags
