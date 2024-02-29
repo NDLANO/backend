@@ -11,8 +11,6 @@ import org.http4s.Request
 import org.typelevel.ci.CIString
 import sttp.tapir.model.ServerRequest
 
-import javax.servlet.http.HttpServletRequest
-
 case class NdlaHttpRequest(
     serverPort: Int,
     getScheme: String,
@@ -25,15 +23,6 @@ case class NdlaHttpRequest(
 }
 
 object NdlaHttpRequest {
-
-  def apply(req: HttpServletRequest): NdlaHttpRequest =
-    NdlaHttpRequest(
-      serverPort = req.getServerPort,
-      getHeaderFunc = name => Option(req.getHeader(name)),
-      getScheme = req.getScheme,
-      serverName = req.getServerName,
-      servletPath = req.getServletPath
-    )
 
   def from(req: ServerRequest): NdlaHttpRequest = {
     val port   = req.uri.port

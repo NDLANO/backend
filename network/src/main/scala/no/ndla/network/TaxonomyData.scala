@@ -12,8 +12,6 @@ import no.ndla.network.model.NdlaHttpRequest
 import org.http4s.Request
 import org.typelevel.ci.CIString
 
-import javax.servlet.http.HttpServletRequest
-
 object TaxonomyData {
   val TAXONOMY_VERSION_HEADER = "VersionHash"
   private val taxonomyVersion = new ThreadLocal[String]
@@ -22,10 +20,6 @@ object TaxonomyData {
   def set(value: String): Unit = {
     val taxonomyVersionValue = Option(value).getOrElse(defaultVersion)
     taxonomyVersion.set(taxonomyVersionValue)
-  }
-
-  def getFromRequest(request: HttpServletRequest): String = {
-    Option(request.getHeader(TAXONOMY_VERSION_HEADER)).getOrElse(defaultVersion)
   }
 
   def fromRequest(request: NdlaHttpRequest): String = {

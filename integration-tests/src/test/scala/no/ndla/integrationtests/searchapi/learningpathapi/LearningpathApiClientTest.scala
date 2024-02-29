@@ -21,7 +21,6 @@ import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{learningpathapi, searchapi}
-import org.eclipse.jetty.server.Server
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -64,7 +63,6 @@ class LearningpathApiClientTest
   }
 
   var learningpathApi: learningpathapi.MainClass = null
-  var learningpathApiServer: Server              = null
   var cancelFunc: () => Future[Unit]             = null
   val learningpathApiBaseUrl                     = s"http://localhost:$learningpathApiPort"
 

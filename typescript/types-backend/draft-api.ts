@@ -1,6 +1,6 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type Availability = ("decoder" | "encoder" | "everyone" | "teacher")
+export type Availability = ("everyone" | "teacher")
 
 export interface IArticle {
   id: number

@@ -9,22 +9,21 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{NotFoundException, ValidationException}
-import no.ndla.common.model.{NDLADate, api => commonApi}
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
 import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.{NDLADate, api => commonApi}
 import no.ndla.learningpathapi.integration.ImageMetaInformation
-import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
 import no.ndla.learningpathapi.model.api
+import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
+import no.ndla.network.model.NdlaHttpRequest
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
-import org.mockito.ArgumentMatchers._
 import org.mockito.Strictness
 
-import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
@@ -338,12 +337,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That createUrlToLearningPath does not include private in path for private learningpath") {
-    val httpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
-    when(httpServletRequest.getServerPort).thenReturn(80)
+    val httpServletRequest = mock[NdlaHttpRequest](withSettings.strictness(Strictness.Lenient))
+    when(httpServletRequest.serverPort).thenReturn(80)
     when(httpServletRequest.getScheme).thenReturn("http")
-    when(httpServletRequest.getServerName).thenReturn("api-gateway.ndla-local")
-    when(httpServletRequest.getServletPath).thenReturn("/servlet")
-    when(httpServletRequest.getHeader(anyString)).thenReturn(null)
+    when(httpServletRequest.serverName).thenReturn("api-gateway.ndla-local")
+    when(httpServletRequest.servletPath).thenReturn("/servlet")
+    when(httpServletRequest.getHeader(any)).thenReturn(null)
 
     ApplicationUrl.set(httpServletRequest)
     service.createUrlToLearningPath(apiLearningPath.copy(status = "PRIVATE")) should equal(

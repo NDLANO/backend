@@ -12,10 +12,8 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import no.ndla.network.ApplicationUrl
 import no.ndla.network.tapir.auth.TokenUser
 
-import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -75,20 +73,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty
   )
-
-  override def beforeEach(): Unit = {
-    val request = mock[HttpServletRequest]
-    when(request.getServerPort).thenReturn(80)
-    when(request.getScheme).thenReturn("http")
-    when(request.getServerName).thenReturn("image-api")
-    when(request.getServletPath).thenReturn("/v2/images")
-
-    ApplicationUrl.set(request)
-  }
-
-  override def afterEach(): Unit = {
-    ApplicationUrl.clear()
-  }
 
   test("That asApiImageMetaInformationWithDomainUrl returns links with domain urls") {
     {

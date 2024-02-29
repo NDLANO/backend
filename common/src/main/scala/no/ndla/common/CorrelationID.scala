@@ -16,19 +16,9 @@ import org.typelevel.ci.CIString
 import sttp.tapir.model.ServerRequest
 
 import java.util.UUID
-import javax.servlet.http.HttpServletRequest
 
 object CorrelationID {
   private val correlationID = new ThreadLocal[String]
-
-  def set(request: HttpServletRequest): Unit = {
-    val maybeHeaderValue = fromRequest(request)
-    this.set(maybeHeaderValue)
-  }
-
-  def fromRequest(request: HttpServletRequest): Option[String] = {
-    Option(request.getHeader(Constants.CorrelationIdHeader))
-  }
 
   def fromRequest(request: ServerRequest): String = {
     getOrGenerate(request.header(Constants.CorrelationIdHeader))

@@ -20,7 +20,6 @@ import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{draftapi, searchapi}
-import org.eclipse.jetty.server.Server
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -62,7 +61,6 @@ class DraftApiClientTest
   }
 
   var draftApi: draftapi.MainClass   = null
-  var draftApiServer: Server         = null
   var cancelFunc: () => Future[Unit] = null
   val draftApiBaseUrl                = s"http://localhost:$draftApiPort"
 

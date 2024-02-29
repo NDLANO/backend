@@ -1,6 +1,5 @@
 import Dependencies._
 import Dependencies.versions._
-import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._
 import sbt._
@@ -16,17 +15,12 @@ object conceptapi extends Module {
       scalaUri,
       enumeratum,
       catsEffect,
-      "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",
-      "javax.servlet"     % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
-      "org.json4s"       %% "json4s-native"                   % Json4SV,
-      "org.scalatest"    %% "scalatest"                       % ScalaTestV % "test",
-      "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "org.mockito"      %% "mockito-scala"                   % MockitoV   % "test",
-      "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test",
-      "org.flywaydb"      % "flyway-core"                     % FlywayV,
-      "org.typelevel"    %% "cats-core"                       % "2.9.0",
-      "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22"
+      "org.json4s"    %% "json4s-native"           % Json4SV,
+      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
+      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
+      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
+      "org.typelevel" %% "cats-core"               % "2.10.0"
     ),
     melody,
     elastic4s,
@@ -62,7 +56,6 @@ object conceptapi extends Module {
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
-    JettyPlugin,
     ScalaTsiPlugin,
     AssemblyPlugin
   )

@@ -7,7 +7,6 @@
 
 package no.ndla.network
 
-import javax.servlet.http.HttpServletRequest
 import no.ndla.network.jwt.JWTExtractor
 import no.ndla.network.model.NdlaHttpRequest
 
@@ -66,8 +65,7 @@ object AuthUser {
     )
   }
 
-  def set(request: HttpServletRequest): Unit = set(NdlaHttpRequest(request))
-  def set(request: NdlaHttpRequest): Unit    = fromRequest(request).setThreadContext()
+  def set(request: NdlaHttpRequest): Unit = fromRequest(request).setThreadContext()
 
   private def setId(user: String): Unit           = userId.set(Option(user))
   private def setRoles(roles: List[String]): Unit = userRoles.set(roles)

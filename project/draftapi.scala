@@ -1,4 +1,3 @@
-import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys.libraryDependencies
@@ -17,17 +16,12 @@ object draftapi extends Module {
       sttp,
       catsEffect,
       jsoup,
-      "org.eclipse.jetty" % "jetty-webapp"                    % JettyV        % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus"                      % JettyV        % "container",
-      "javax.servlet"     % "javax.servlet-api"               % JavaxServletV % "container;provided;test",
-      "org.json4s"       %% "json4s-native"                   % Json4SV,
-      "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalikejdbc"  %% "scalikejdbc"                     % ScalikeJDBCV,
-      "org.scalatest"    %% "scalatest"                       % ScalaTestV    % "test",
-      "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "org.mockito"      %% "mockito-scala"                   % MockitoV      % "test",
-      "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV      % "test",
-      "org.flywaydb"      % "flyway-core"                     % FlywayV
+      "org.json4s"      %% "json4s-native"           % Json4SV,
+      "org.scalikejdbc" %% "scalikejdbc"             % ScalikeJDBCV,
+      "org.scalatest"   %% "scalatest"               % ScalaTestV % "test",
+      "com.amazonaws"    % "aws-java-sdk-cloudwatch" % AwsSdkV,
+      "org.mockito"     %% "mockito-scala"           % MockitoV   % "test",
+      "org.mockito"     %% "mockito-scala-scalatest" % MockitoV   % "test"
     ),
     flexmark,
     awsS3,
@@ -64,7 +58,6 @@ object draftapi extends Module {
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
-    JettyPlugin,
     ScalaTsiPlugin
   )
 }

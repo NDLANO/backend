@@ -17,14 +17,12 @@ import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import no.ndla.network.ApplicationUrl
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import java.io.{ByteArrayInputStream, InputStream}
-import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -86,12 +84,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock1.fileSize).thenReturn(1024)
     when(fileMock1.fileName).thenReturn(Some("file.jpg"))
     when(random.string(any)).thenCallRealMethod()
-
-    val applicationUrl = mock[HttpServletRequest]
-    when(applicationUrl.getHeader(any[String])).thenReturn("http")
-    when(applicationUrl.getServerName).thenReturn("localhost")
-    when(applicationUrl.getServletPath).thenReturn("/image-api/v2/images/")
-    ApplicationUrl.set(applicationUrl)
 
     reset(imageRepository, imageIndexService, imageStorage, tagIndexService)
     when(imageRepository.insert(any[ImageMetaInformation])(any[DBSession]))

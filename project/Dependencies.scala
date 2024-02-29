@@ -8,35 +8,33 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "2.13.12"
-    val HikariConnectionPoolV = "5.0.1"
+    val ScalaV                = "2.13.13"
+    val HikariConnectionPoolV = "5.1.0"
     val ScalaLoggingV         = "3.9.5"
-    val ScalaTestV            = "3.2.15"
+    val ScalaTestV            = "3.2.17"
     val Log4JV                = "2.20.0"
-    val JettyV                = "9.4.53.v20231009"
-    val AwsSdkV               = "1.12.472"
-    val MockitoV              = "1.17.22"
-    val Elastic4sV            = "8.5.3"
-    val JacksonV              = "2.14.3"
-    val CatsEffectV           = "3.5.1"
-    val ElasticsearchV        = "7.16.2"
-    val Json4SV               = "4.0.6"
-    val JavaxServletV         = "4.0.1"
-    val FlywayV               = "9.16.0"
-    val PostgresV             = "42.5.4"
-    val ScalaTsiV             = "0.7.0"
-    val Http4sV               = "0.23.23"
-    val TapirV                = "1.9.1"
-    val ApiSpecV              = "0.7.1"
-    val SttpV                 = "3.9.0"
+    val AwsSdkV               = "1.12.669"
+    val MockitoV              = "1.17.30"
+    val Elastic4sV            = "8.11.5"
+    val JacksonV              = "2.16.1"
+    val CatsEffectV           = "3.5.3"
+    val Json4SV               = "4.0.7"
+    val FlywayV               = "10.8.1"
+    val PostgresV             = "42.7.2"
+    val ScalaTsiV             = "0.8.2"
+    val Http4sV               = "0.23.25"
+    val TapirV                = "1.9.10"
+    val ApiSpecV              = "0.7.4"
+    val SttpV                 = "3.9.2"
     val CirceV                = "0.14.6"
-    val ScalikeJDBCV          = "4.0.0"
-    val TestContainersV       = "1.17.6"
-    val JsoupV                = "1.15.4"
+    val ScalikeJDBCV          = "4.2.0"
+    val TestContainersV       = "1.19.4"
+    val JsoupV                = "1.17.2"
     val JavaMelodyV           = "1.92.0"
+    val EnumeratumV           = "1.7.3"
     val FlexmarkV             = "0.64.8"
 
-    lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "4.0.3"
+    lazy val scalaUri = ("io.lemonlabs" %% "scala-uri" % "4.0.3").excludeAll("org.typelevel", "cats-parse")
 
     lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
     lazy val postgres    = "org.postgresql"   % "postgresql"  % PostgresV
@@ -52,14 +50,16 @@ object Dependencies {
       "com.vladsch.flexmark" % "flexmark-ext-superscript"       % FlexmarkV
     )
 
-    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % "1.7.2"
-    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.2"
-    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % "1.7.2"
+    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % EnumeratumV
+    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % EnumeratumV
+    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % EnumeratumV
 
     lazy val database: Seq[ModuleID] = Seq(
       scalikejdbc,
       postgres,
-      hikari
+      hikari,
+      "org.flywaydb" % "flyway-core"                % FlywayV,
+      "org.flywaydb" % "flyway-database-postgresql" % FlywayV
     )
 
     lazy val awsS3: Seq[ModuleID] = Seq(
@@ -86,11 +86,11 @@ object Dependencies {
     )
 
     lazy val http4s: Seq[ModuleID] = Seq(
-      "org.http4s" %% "http4s-server"       % Http4sV,
-      "org.http4s" %% "http4s-dsl"          % Http4sV,
-      "org.http4s" %% "http4s-circe"        % Http4sV,
-      "org.http4s" %% "http4s-ember-server" % Http4sV,
-      "org.http4s" %% "http4s-jetty-server" % "0.23.13"
+      "org.http4s"    %% "http4s-server"       % Http4sV,
+      "org.http4s"    %% "http4s-dsl"          % Http4sV,
+      "org.http4s"    %% "http4s-circe"        % Http4sV,
+      "org.http4s"    %% "http4s-ember-server" % Http4sV,
+      "org.typelevel" %% "cats-parse"          % "1.0.0"
     )
 
     lazy val tapir: Seq[ModuleID] = Seq(
@@ -123,13 +123,13 @@ object Dependencies {
       // We need jackson to load `log4j2.yaml`
       "com.fasterxml.jackson.core"       % "jackson-core"            % JacksonV,
       "com.fasterxml.jackson.core"       % "jackson-databind"        % JacksonV,
-      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % JacksonV
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % JacksonV,
+      "com.fasterxml.jackson.module"    %% "jackson-module-scala"    % JacksonV
     )
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides: Seq[ModuleID] = Seq(
-      "com.google.guava"          % "guava"         % "30.0-jre",
-      "commons-codec"             % "commons-codec" % "1.15",
+      "commons-codec"             % "commons-codec" % "1.16.0",
       "org.apache.httpcomponents" % "httpclient"    % "4.5.14",
       "org.yaml"                  % "snakeyaml"     % "2.0"
     )

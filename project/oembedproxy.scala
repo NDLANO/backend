@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys.*
 import sbt.*
@@ -13,14 +12,11 @@ object oembedproxy extends Module {
       scalaUri,
       sttp,
       jsoup,
-      "com.amazonaws"     % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.eclipse.jetty" % "jetty-webapp"            % JettyV     % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus"              % JettyV     % "container",
-      "javax.servlet"     % "javax.servlet-api"       % "4.0.1"    % "container;provided;test",
-      "org.json4s"       %% "json4s-native"           % Json4SV,
-      "org.scalatest"    %% "scalatest"               % ScalaTestV % "test",
-      "org.mockito"      %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"      %% "mockito-scala-scalatest" % MockitoV   % "test"
+      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
+      "org.json4s"    %% "json4s-native"           % Json4SV,
+      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
+      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test"
     ),
     vulnerabilityOverrides,
     tapirHttp4sCirce
@@ -34,7 +30,6 @@ object oembedproxy extends Module {
     dockerSettings()
 
   override lazy val plugins: Seq[Plugins] = Seq(
-    JettyPlugin,
     DockerPlugin
   )
 

@@ -1,6 +1,5 @@
 import Dependencies.versions.*
 import _root_.io.github.davidgregory084.TpolecatPlugin.autoImport.*
-import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
