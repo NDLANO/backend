@@ -17,7 +17,7 @@ case class ArticleSearchParams(
     @description("Return only articles with provided license.") license: Option[String],
     @description("The page number of the search hits to display.") page: Option[Int],
     @description("The number of search hits to display for each page.") pageSize: Option[Int],
-    @description("Return only articles that have one of the provided ids") idList: Option[List[Long]],
+    @description("Return only articles that have one of the provided ids") ids: Option[List[Long]],
     @description("Return only articles of specific type(s)") articleTypes: Option[List[String]],
     @description("The sorting used on results. Default is by -relevance.") sort: Option[String],
     @description("Return all matched articles whether they exist on selected language or not.") fallback: Option[Boolean],

@@ -18,7 +18,7 @@ case class DraftConceptSearchParams(
   @description("The ISO 639-1 language code describing language used in query-params.") language: Option[String],
   @description("The page number of the search hits to display.") page: Option[Int],
   @description("The number of search hits to display for each page.") pageSize: Option[Int],
-  @description("Return only articles that have one of the provided ids.") idList: Option[List[Long]],
+  @description("Return only articles that have one of the provided ids.") ids: Option[List[Long]],
   @description("The sorting used on results. Default is by -relevance.") sort: Option[String],
   @description("Whether to fallback to existing language if not found in selected language.") fallback: Option[Boolean],
   @description("A search context retrieved from the response header of a previous search.") scrollId: Option[String],

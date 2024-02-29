@@ -311,7 +311,7 @@ trait ArticleControllerV2 {
           val license            = searchParams.license
           val pageSize           = searchParams.pageSize.getOrElse(DefaultPageSize)
           val page               = searchParams.page.getOrElse(1)
-          val idList             = searchParams.idList.getOrElse(List.empty)
+          val idList             = searchParams.ids.getOrElse(List.empty)
           val articleTypesFilter = searchParams.articleTypes.getOrElse(List.empty)
           val grepCodes          = searchParams.grepCodes.getOrElse(Seq.empty)
           val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)

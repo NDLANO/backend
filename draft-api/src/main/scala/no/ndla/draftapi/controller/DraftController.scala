@@ -321,7 +321,7 @@ trait DraftController {
           val license            = searchParams.license
           val pageSize           = searchParams.pageSize.getOrElse(DefaultPageSize)
           val page               = searchParams.page.getOrElse(1)
-          val idList             = searchParams.idList
+          val idList             = searchParams.ids
           val articleTypesFilter = searchParams.articleTypes
           val fallback           = searchParams.fallback.getOrElse(false)
           val grepCodes          = searchParams.grepCodes
