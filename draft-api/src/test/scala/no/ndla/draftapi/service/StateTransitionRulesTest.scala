@@ -251,7 +251,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       StateTransitionRules.checkIfArticleIsInUse(article, false, TestData.userWithAdminAccess)
     res.errors should equal(
       Seq(
-        ValidationMessage("status.current", "Article is in use in these draft(s) 1 (Title)"),
         ValidationMessage("status.current", "Article is in use in these published article(s) 1 (Title)")
       )
     )

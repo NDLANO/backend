@@ -305,14 +305,12 @@ trait StateTransitionRules {
 
     private def doIfArticleIsNotInUse(articleId: Long, user: TokenUser)(callback: => Try[Draft]): Try[Draft] =
       (
-        searchApiClient.draftsWhereUsed(articleId, user),
         searchApiClient.publishedWhereUsed(articleId, user),
         learningPathsUsingArticle(articleId, user)
       ) match {
-        case (Nil, Nil, Nil) => callback
-        case (draftsUsingArticle, publishedUsingArticle, pathsUsingArticle) =>
+        case (Nil, Nil) => callback
+        case (publishedUsingArticle, pathsUsingArticle) =>
           val learningPathIds = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
-          val draftsIds       = draftsUsingArticle.map(art => s"${art.id} (${art.title.title})")
           val publishedIds    = publishedUsingArticle.map(art => s"${art.id} (${art.title.title})")
           def errorMessage(ids: Seq[_], msg: String): Option[ValidationMessage] =
             Option.when(ids.nonEmpty)(ValidationMessage("status.current", msg))
@@ -321,17 +319,11 @@ trait StateTransitionRules {
             learningPathIds,
             s"Learningpath(s) ${learningPathIds.mkString(", ")} contains a learning step that uses this article"
           )
-          val draftMessage = errorMessage(
-            draftsIds,
-            s"Article is in use in these draft(s) ${draftsIds.mkString(", ")}"
-          )
           val publishedMessage = errorMessage(
             publishedIds,
             s"Article is in use in these published article(s) ${publishedIds.mkString(", ")}"
           )
-          Failure(
-            new ValidationException(errors = learningPathMessage.toSeq ++ draftMessage.toSeq ++ publishedMessage.toSeq)
-          )
+          Failure(new ValidationException(errors = learningPathMessage.toSeq ++ publishedMessage.toSeq))
       }
 
   }
