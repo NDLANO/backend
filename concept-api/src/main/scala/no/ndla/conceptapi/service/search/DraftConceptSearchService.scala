@@ -121,8 +121,8 @@ trait DraftConceptSearchService {
                 simpleStringQuery(query).field(s"gloss", 1),
                 idsQuery(query)
               ) ++
-                buildNestedEmbedField(Some(query), None, settings.searchLanguage, settings.fallback) ++
-                buildNestedEmbedField(None, Some(query), settings.searchLanguage, settings.fallback)
+                buildNestedEmbedField(List(query), None, settings.searchLanguage, settings.fallback) ++
+                buildNestedEmbedField(List.empty, Some(query), settings.searchLanguage, settings.fallback)
             )
         )
 

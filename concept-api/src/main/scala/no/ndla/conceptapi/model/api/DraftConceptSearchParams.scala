@@ -26,7 +26,7 @@ case class DraftConceptSearchParams(
   @description("A comma-separated list of tags to filter the search by.") tags: Option[Set[String]],
   @description("A comma-separated list of statuses that should appear in the search.") status: Option[Set[String]],
   @description("A comma-separated list of users to filter the search by.") users: Option[Seq[String]],
-  @description("Embed resource type that should exist in the concepts.") embedResource: Option[String],
+  @description("Embed resource type that should exist in the concepts.") embedResource: Option[List[String]],
   @description("Embed id attribute that should exist in the concepts.") embedId: Option[String],
   @description("A comma-separated list of NDLA IDs to filter the search by.") responsibleIds: Option[List[String]],
   @description("The type of concepts to return.") conceptType: Option[String],

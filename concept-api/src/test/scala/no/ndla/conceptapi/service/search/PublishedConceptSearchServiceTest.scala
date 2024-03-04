@@ -203,7 +203,7 @@ class PublishedConceptSearchServiceTest
     tagsToFilterBy = Set.empty,
     exactTitleMatch = false,
     shouldScroll = false,
-    embedResource = None,
+    embedResource = List.empty,
     embedId = None,
     conceptType = None,
     aggregatePaths = List.empty
@@ -638,7 +638,7 @@ class PublishedConceptSearchServiceTest
   test("that search on embedResource matches visual element") {
     val Success(search) =
       publishedConceptSearchService.all(
-        searchSettings.copy(embedResource = Some("brightcove"), searchLanguage = Language.AllLanguages)
+        searchSettings.copy(embedResource = List("brightcove"), searchLanguage = Language.AllLanguages)
       )
 
     search.totalCount should be(1)
@@ -703,7 +703,7 @@ class PublishedConceptSearchServiceTest
     val Success(search) =
       publishedConceptSearchService.all(
         searchSettings
-          .copy(embedId = Some("test.url2"), embedResource = Some("image"), searchLanguage = Language.AllLanguages)
+          .copy(embedId = Some("test.url2"), embedResource = List("image"), searchLanguage = Language.AllLanguages)
       )
 
     search.totalCount should be(1)

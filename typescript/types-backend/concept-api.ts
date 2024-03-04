@@ -57,7 +57,7 @@ export interface IConceptSearchParams {
   subjects?: string[]
   tags?: string[]
   exactMatch?: boolean
-  embedResource?: string
+  embedResource?: string[]
   embedId?: string
   conceptType?: string
   aggregatePaths?: string[]
@@ -119,7 +119,7 @@ export interface IDraftConceptSearchParams {
   tags?: string[]
   status?: string[]
   users?: string[]
-  embedResource?: string
+  embedResource?: string[]
   embedId?: string
   responsibleIds?: string[]
   conceptType?: string

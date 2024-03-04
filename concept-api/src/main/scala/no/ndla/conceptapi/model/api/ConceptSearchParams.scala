@@ -25,7 +25,7 @@ case class ConceptSearchParams(
   @description("A comma-separated list of subjects that should appear in the search.") subjects: Option[Set[String]],
   @description("A comma-separated list of tags to filter the search by.") tags: Option[Set[String]],
   @description("If provided, only return concept where query matches title exactly.") exactMatch: Option[Boolean],
-  @description("Embed resource type that should exist in the concepts.") embedResource: Option[String],
+  @description("Embed resource type that should exist in the concepts.") embedResource: Option[List[String]],
   @description("Embed id attribute that should exist in the concepts.") embedId: Option[String],
   @description("The type of concepts to return.") conceptType: Option[String],
   @description("A list of index paths to aggregate over") aggregatePaths: Option[List[String]],

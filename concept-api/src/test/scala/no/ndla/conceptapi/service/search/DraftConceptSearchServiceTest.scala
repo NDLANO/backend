@@ -225,7 +225,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     statusFilter = Set.empty,
     userFilter = Seq.empty,
     shouldScroll = false,
-    embedResource = None,
+    embedResource = List.empty,
     embedId = None,
     responsibleIdFilter = List.empty,
     conceptType = None,
@@ -745,7 +745,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("that search on embedResource matches visual element") {
     val Success(search) =
       draftConceptSearchService.all(
-        searchSettings.copy(embedResource = Some("brightcove"), searchLanguage = Language.AllLanguages)
+        searchSettings.copy(embedResource = List("brightcove"), searchLanguage = Language.AllLanguages)
       )
 
     search.totalCount should be(1)
@@ -810,7 +810,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(search) =
       draftConceptSearchService.all(
         searchSettings
-          .copy(embedId = Some("test.url2"), embedResource = Some("image"), searchLanguage = Language.AllLanguages)
+          .copy(embedId = Some("test.url2"), embedResource = List("image"), searchLanguage = Language.AllLanguages)
       )
 
     search.totalCount should be(1)

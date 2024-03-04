@@ -10,10 +10,9 @@ package no.ndla.conceptapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
-import com.sksamuel.elastic4s.requests.searches.queries.NestedQuery
+import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
-import com.sksamuel.elastic4s.requests.searches.term.TermQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain.Sort._
@@ -58,50 +57,34 @@ trait SearchService {
 
     def buildTermQueryForEmbed(
         path: String,
-        resource: Option[String],
+        resource: List[String],
         id: Option[String],
         language: String,
         fallback: Boolean
-    ): List[TermQuery] = {
-      val queries = (resource, id) match {
-        case (Some("") | None, Some("") | None) => List.empty
-        case (Some(q), Some("") | None)         => List(termQuery(s"$path.resource", q))
-        case (Some("") | None, Some(q))         => List(termQuery(s"$path.id", q))
-        case (Some(q1), Some(q2))               => List(termQuery(s"$path.resource", q1), termQuery(s"$path.id", q2))
-      }
-      if (queries.isEmpty) return queries
-      if (language == AllLanguages || fallback) queries
+    ): List[Query] = {
+      val resourceQueries = boolQuery().should(resource.map(q => termQuery(s"$path.resource", q)))
+      val idQuery         = id.map(q => termQuery(s"$path.id", q))
+
+      val queries = idQuery.toList :+ resourceQueries
+      if (queries.isEmpty || language == Language.AllLanguages || fallback) queries
       else queries :+ termQuery(s"$path.language", language)
     }
 
     def buildNestedEmbedField(
-        resource: Option[String],
+        resource: List[String],
         id: Option[String],
         language: String,
         fallback: Boolean
     ): Option[NestedQuery] = {
-      if ((resource == Some("") || resource.isEmpty) && (id == Some("") || id.isEmpty)) {
-        return None
-      }
-      if (language == AllLanguages || fallback) {
-        Some(
-          nestedQuery(
-            "embedResourcesAndIds",
-            boolQuery().must(
-              buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)
-            )
+      val emptyInput = (resource.contains("") || resource.isEmpty) && (id.contains("") || id.isEmpty)
+      Option.when(!emptyInput)(
+        nestedQuery(
+          "embedResourcesAndIds",
+          boolQuery().must(
+            buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)
           )
         )
-      } else {
-        Some(
-          nestedQuery(
-            "embedResourcesAndIds",
-            boolQuery().must(
-              buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)
-            )
-          )
-        )
-      }
+      )
     }
 
     def getHits(response: SearchResponse, language: String): Seq[T] = {
