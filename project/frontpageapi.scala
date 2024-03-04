@@ -14,11 +14,9 @@ object frontpageapi extends Module {
       enumeratum,
       enumeratumCirce,
       catsEffect,
-      "org.flywaydb"   % "flyway-core"             % FlywayV,
       "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
-      "javax.servlet"  % "javax.servlet-api"       % JavaxServletV
+      "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
     ),
     database,
     vulnerabilityOverrides,

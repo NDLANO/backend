@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.*
 import sbt.Keys.libraryDependencies
@@ -17,8 +16,7 @@ object myndlaapi extends Module {
       sttp,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
       "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
-      "org.flywaydb"   % "flyway-core"             % FlywayV
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test"
     ),
     tapirHttp4sCirce,
     database,
@@ -76,7 +74,6 @@ object myndlaapi extends Module {
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
-    JettyPlugin,
     ScalaTsiPlugin
   )
 }

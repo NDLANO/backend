@@ -13,8 +13,6 @@ import no.ndla.network.{ApplicationUrl, AuthUser, TaxonomyData}
 import org.http4s.Request
 import sttp.tapir.model.ServerRequest
 
-import javax.servlet.http.HttpServletRequest
-
 /** Helper class to help keep Thread specific request information in futures. */
 case class RequestInfo(
     correlationId: Option[String],
@@ -51,16 +49,6 @@ object RequestInfo {
 
   def set(v: RequestInfo): IO[Unit] = requestLocalState.set(Some(v))
   def reset: IO[Unit]               = requestLocalState.reset
-
-  def fromRequest(request: HttpServletRequest): RequestInfo = {
-    val ndlaRequest = NdlaHttpRequest(request)
-    new RequestInfo(
-      correlationId = CorrelationID.fromRequest(request),
-      authUser = AuthUser.fromRequest(ndlaRequest),
-      taxonomyVersion = TaxonomyData.fromRequest(ndlaRequest),
-      applicationUrl = ApplicationUrl.fromRequest(ndlaRequest)
-    )
-  }
 
   def fromRequest(request: Request[IO]): RequestInfo = {
     val ndlaRequest = NdlaHttpRequest.from(request)

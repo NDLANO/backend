@@ -15,8 +15,7 @@ object myndlalib extends Module {
       sttp,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
       "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
-      "org.flywaydb"   % "flyway-core"             % FlywayV
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test"
     ),
     tapirHttp4sCirce,
     database,

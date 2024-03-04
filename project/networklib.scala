@@ -15,9 +15,8 @@ object networklib extends Module {
       "org.scalatest"        %% "scalatest"               % ScalaTestV % "test",
       "org.mockito"          %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"          %% "mockito-scala-scalatest" % MockitoV   % "test",
-      "javax.servlet"         % "javax.servlet-api"       % "4.0.1"    % "provided;test",
       "com.github.jwt-scala" %% "jwt-json4s-native"       % "9.2.0",
-      "redis.clients"         % "jedis"                   % "4.4.0"
+      "redis.clients"         % "jedis"                   % "5.1.1"
     ),
     vulnerabilityOverrides,
     tapirHttp4sCirce

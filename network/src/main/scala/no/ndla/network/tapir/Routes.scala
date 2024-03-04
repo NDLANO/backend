@@ -7,23 +7,16 @@
 
 package no.ndla.network.tapir
 
-import cats.data.Kleisli
-import cats.effect.IO
 import io.circe.generic.auto._
 import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter._
-import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
-import org.http4s.headers.`Content-Type`
-import org.http4s.server.Router
-import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}
 import org.log4s.{Logger, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.model.ServerRequest
-import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
 import sttp.tapir.server.interceptor.RequestInterceptor.RequestResultEffectTransform
 import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
@@ -90,35 +83,6 @@ trait Routes[F[_]] {
       }
     }
 
-    private def swaggerServicesToRoutes(services: List[Service[IO]]): HttpRoutes[IO] = {
-      val swaggerEndpoints = services.flatMap(_.builtEndpoints)
-      val options = Http4sServerOptions
-        .customiseInterceptors[IO]
-        .defaultHandlers(err => failureResponse(err, None))
-        .rejectHandler(NdlaRejectHandler[IO]())
-        .exceptionHandler(NdlaExceptionHandler[IO]())
-        .decodeFailureHandler(decodeFailureHandler[IO])
-        .serverLog(None)
-        .options
-      Http4sServerInterpreter[IO](options).toRoutes(swaggerEndpoints)
-    }
-
-    private def getFallbackRoute: Response[IO] = {
-      val headers = Headers(`Content-Type`(MediaType.application.json))
-      Response.notFound[IO].withEntity(ErrorHelpers.notFound).withHeaders(headers)
-    }
-
-    private def build(routes: List[Service[IO]]): Kleisli[IO, Request[IO], Response[IO]] = {
-      logger.info("Building swagger service")
-      val bindings = "/" -> swaggerServicesToRoutes(routes)
-      val router   = Router[IO](bindings)
-      Kleisli[IO, Request[IO], Response[IO]](req => {
-        val ran = router.run(req)
-        val res = ran.getOrElse { getFallbackRoute }
-        NdlaMiddleware(req, res)
-      })
-    }
-
     object JDKMiddleware {
       private def shouldLogRequest(req: ServerRequest): Boolean = s"/${req.uri.path.mkString("/")}" != "/health"
 
@@ -167,13 +131,6 @@ trait Routes[F[_]] {
           result
         }
       }
-    }
-
-    def startHttp4sServer(name: String, port: Int)(warmupFunc: => Unit): IO[Unit] = {
-      val app: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services.asInstanceOf[List[Service[IO]]])
-      val server: TapirServer                         = TapirServer(name, port, app, enableMelody = true)(warmupFunc)
-      logger.info(s"Starting $name on port $port")
-      server.as(())
     }
 
     def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {

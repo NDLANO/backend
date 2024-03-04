@@ -8,7 +8,6 @@
 
 package no.ndla.network
 
-import javax.servlet.http.HttpServletRequest
 import no.ndla.network.model.NdlaHttpRequest
 import scala.util.Properties.propOrNone
 
@@ -24,9 +23,8 @@ object ApplicationUrl {
 
   val applicationUrl = new ThreadLocal[String]
 
-  def set(request: HttpServletRequest): Unit = set(NdlaHttpRequest(request))
-  def set(str: String): Unit                 = applicationUrl.set(str)
-  def set(request: NdlaHttpRequest): Unit    = set(fromRequest(request))
+  def set(str: String): Unit              = applicationUrl.set(str)
+  def set(request: NdlaHttpRequest): Unit = set(fromRequest(request))
 
   def fromRequest(request: NdlaHttpRequest): String = {
     propOrNone("NDLA_ENVIRONMENT") match {

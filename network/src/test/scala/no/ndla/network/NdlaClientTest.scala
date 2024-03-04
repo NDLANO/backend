@@ -12,9 +12,7 @@ import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
 import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.DefaultFormats
-import org.mockito.Strictness
 
-import javax.servlet.http.HttpServletRequest
 import org.scalatest.TryValues._
 import sttp.client3.{Response, SimpleHttpClient, SpecifyAuthScheme, UriContext}
 import sttp.model.StatusCode
@@ -137,17 +135,14 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That Authorization header is added to request if set on Thread") {
-    val servletRequestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
-    val httpRequestMock    = mock[NdlaRequest]
-    val httpResponseMock   = mock[Response[String]]
+    val httpRequestMock  = mock[NdlaRequest]
+    val httpResponseMock = mock[Response[String]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
 
     val authHeaderKey   = "Authorization"
     val authHeader      = "abc"
     val authHeaderValue = s"Bearer $authHeader"
     val user            = TokenUser("id", Set.empty, Some(authHeader))
-
-    when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeader)
 
     doReturn(httpRequestMock).when(httpRequestMock).header(eqTo(authHeaderKey), eqTo(authHeaderValue), any)
     when(httpResponseMock.isSuccess).thenReturn(true)
@@ -162,9 +157,8 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {
-    val servletRequestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
-    val httpRequestMock    = mock[NdlaRequest]
-    val httpResponseMock   = mock[Response[String]]
+    val httpRequestMock  = mock[NdlaRequest]
+    val httpResponseMock = mock[Response[String]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
     val authHeaderKey   = "Authorization"
     val authHeader      = "abc"
@@ -173,9 +167,6 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.body).thenReturn("")
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.code).thenReturn(StatusCode(204))
-
-    when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeaderValue)
-    AuthUser.set(servletRequestMock)
 
     when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeaderValue), any)).thenReturn(httpRequestMock)
 

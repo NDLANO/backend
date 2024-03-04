@@ -15,12 +15,12 @@ import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain}
 import no.ndla.network.ApplicationUrl
+import no.ndla.network.model.NdlaHttpRequest
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.{Outcome, PrivateMethodTester}
 
-import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
 class ImageSearchServiceTest
@@ -183,10 +183,10 @@ class ImageSearchServiceTest
       imageIndexService.indexDocument(image4).get
       imageIndexService.indexDocument(image5).get
 
-      val servletRequest = mock[HttpServletRequest]
-      when(servletRequest.getHeader(any[String])).thenReturn("http")
-      when(servletRequest.getServerName).thenReturn("localhost")
-      when(servletRequest.getServletPath).thenReturn("/image-api/v2/images/")
+      val servletRequest = mock[NdlaHttpRequest]
+      when(servletRequest.getHeader(any[String])).thenReturn(Some("http"))
+      when(servletRequest.serverName).thenReturn("localhost")
+      when(servletRequest.servletPath).thenReturn("/image-api/v2/images/")
       ApplicationUrl.set(servletRequest)
 
       blockUntil(() => imageSearchService.countDocuments() == 5)
@@ -221,7 +221,7 @@ class ImageSearchServiceTest
   }
 
   test("That all returns all documents ordered by id ascending") {
-    val Success(searchResult) = imageSearchService.matchingQuery(searchSettings.copy(), None)
+    val searchResult = imageSearchService.matchingQuery(searchSettings.copy(), None).get
     searchResult.totalCount should be(5)
     searchResult.results.size should be(5)
     searchResult.page.get should be(1)

@@ -13,28 +13,16 @@ import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import no.ndla.network.ApplicationUrl
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonParser
 import scalikejdbc.DBSession
 
-import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
   override val readService      = new ReadService
   override val converterService = new ConverterService
-
-  override def beforeEach() = {
-    val applicationUrl = mock[HttpServletRequest]
-    when(applicationUrl.getServerPort).thenReturn(80)
-    when(applicationUrl.getHeader(any[String])).thenReturn(null)
-    when(applicationUrl.getScheme).thenReturn("http")
-    when(applicationUrl.getServerName).thenReturn("test.test")
-    when(applicationUrl.getServletPath).thenReturn("/image-api/v2/images")
-    ApplicationUrl.set(applicationUrl)
-  }
 
   test("That path to id conversion works as expected for id paths") {
     val id                = 1234L

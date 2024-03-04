@@ -1,4 +1,3 @@
-import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys.libraryDependencies
@@ -17,16 +16,11 @@ object audioapi extends Module {
       sttp,
       catsEffect,
       jsoup,
-      "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",
-      "javax.servlet"     % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
-      "org.json4s"       %% "json4s-native"                   % Json4SV,
-      "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalatest"    %% "scalatest"                       % ScalaTestV % "test",
-      "org.mockito"      %% "mockito-scala"                   % MockitoV   % "test",
-      "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test",
-      "org.flywaydb"      % "flyway-core"                     % FlywayV
+      "org.json4s"    %% "json4s-native"           % Json4SV,
+      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
+      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
+      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test"
     ),
     flexmark,
     awsS3,
@@ -66,7 +60,6 @@ object audioapi extends Module {
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
-    JettyPlugin,
     ScalaTsiPlugin
   )
 }
