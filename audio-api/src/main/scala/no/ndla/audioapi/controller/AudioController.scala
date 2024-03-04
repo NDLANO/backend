@@ -55,6 +55,7 @@ trait AudioController {
 
     private val queryString = query[Option[NonEmptyString]]("query")
       .description("Return only results with titles or tags matching the specified query.")
+      .schema(NonEmptyString.schemaOpt)
     private val language =
       query[Option[String]]("language").description("The ISO 639-1 language code describing language.")
     private val license = query[Option[String]]("license").description("Return only audio with provided license.")
