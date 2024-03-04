@@ -98,8 +98,10 @@ trait ConceptControllerHelpers {
       )
       .default(Delimited[",", String](List.empty))
 
-    val embedResource = query[Option[String]]("embed-resource").description("Return concepts with matching embed type.")
-    val embedId       = query[Option[String]]("embed-id").description("Return concepts with matching embed id.")
+    val embedResource = query[CommaSeparated[String]]("embed-resource")
+      .description("Return concepts with matching embed type.")
+      .default(Delimited[",", String](List.empty))
+    val embedId = query[Option[String]]("embed-id").description("Return concepts with matching embed id.")
 
     val exactTitleMatch =
       query[Boolean]("exact-match")

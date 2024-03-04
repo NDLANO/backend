@@ -79,7 +79,7 @@ trait PublishedConceptController {
         tagsToFilterBy: Set[String],
         exactTitleMatch: Boolean,
         shouldScroll: Boolean,
-        embedResource: Option[String],
+        embedResource: List[String],
         embedId: Option[String],
         conceptType: Option[String],
         aggregatePaths: List[String]
@@ -187,7 +187,7 @@ trait PublishedConceptController {
               tagsToFilterBy.values.toSet,
               exactTitleMatch,
               shouldScroll,
-              embedResource,
+              embedResource.values,
               embedId,
               conceptType,
               aggregatePaths.values
@@ -233,7 +233,7 @@ trait PublishedConceptController {
             tagsToFilterBy.getOrElse(Set.empty),
             exactTitleMatch,
             shouldScroll,
-            embedResource,
+            embedResource.getOrElse(List.empty),
             embedId,
             conceptType,
             aggregatePaths.getOrElse(List.empty)

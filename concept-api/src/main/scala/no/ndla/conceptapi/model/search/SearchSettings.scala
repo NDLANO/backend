@@ -22,7 +22,7 @@ case class SearchSettings(
     tagsToFilterBy: Set[String],
     exactTitleMatch: Boolean,
     shouldScroll: Boolean,
-    embedResource: Option[String],
+    embedResource: List[String],
     embedId: Option[String],
     conceptType: Option[String],
     aggregatePaths: List[String]
@@ -43,7 +43,7 @@ trait SearchSettingsHelper {
         tagsToFilterBy = Set.empty,
         exactTitleMatch = false,
         shouldScroll = false,
-        embedResource = None,
+        embedResource = List.empty,
         embedId = None,
         conceptType = None,
         aggregatePaths = List.empty

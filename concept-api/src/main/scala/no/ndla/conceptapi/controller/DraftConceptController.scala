@@ -97,7 +97,7 @@ trait DraftConceptController {
         statusFilter: Set[String],
         userFilter: Seq[String],
         shouldScroll: Boolean,
-        embedResource: Option[String],
+        embedResource: List[String],
         embedId: Option[String],
         responsibleId: List[String],
         conceptType: Option[String],
@@ -216,7 +216,7 @@ trait DraftConceptController {
               statusesToFilterBy.values.toSet,
               usersToFilterBy.values,
               shouldScroll,
-              embedResource,
+              embedResource.values,
               embedId,
               responsibleIds.values,
               conceptType,
@@ -293,7 +293,7 @@ trait DraftConceptController {
           val statusFilter   = searchParams.status
           val userFilter     = searchParams.users
           val shouldScroll   = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
-          val embedResource  = searchParams.embedResource
+          val embedResource  = searchParams.embedResource.getOrElse(List.empty)
           val embedId        = searchParams.embedId
           val responsibleId  = searchParams.responsibleIds
           val conceptType    = searchParams.conceptType
