@@ -36,7 +36,6 @@ case class FeideExtendedUserInfo(
     mail: Seq[String]
 ) {
 
-  private def isStudentAffiliation: Boolean = this.eduPersonAffiliation.contains("student")
   private def isTeacherAffiliation: Boolean = {
     this.eduPersonAffiliation.contains("staff") ||
     this.eduPersonAffiliation.contains("faculty") ||
@@ -44,8 +43,7 @@ case class FeideExtendedUserInfo(
   }
 
   def isTeacher: Boolean = {
-    if (this.isStudentAffiliation) false
-    else if (this.isTeacherAffiliation) true
+    if (this.isTeacherAffiliation) true
     else false
   }
 
