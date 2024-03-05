@@ -303,14 +303,14 @@ trait FolderRepository {
           Success(resourceId)
       }
 
-    def numberOfFavouritesForResource(resourceId: String, resourceType: String)(implicit
+    def numberOfFavouritesForResource(resourceId: String, resourceTypes: List[String])(implicit
         session: DBSession
     ): Try[Long] = Try {
       sql"""
             select count(*) as count from ${DBFolderResource.table} fr
             inner join ${DBResource.table} r on fr.resource_id = r.id
             where r.document->>'resourceId' = $resourceId
-            and r.resource_type = $resourceType
+            and r.resource_type in ($resourceTypes)
          """
         .map(rs => rs.long("count"))
         .single()
