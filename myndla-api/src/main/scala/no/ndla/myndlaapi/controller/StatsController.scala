@@ -18,6 +18,7 @@ import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir._
 import sttp.tapir.generic.auto._
+import sttp.tapir.model.CommaSeparated
 
 trait StatsController {
   this: FolderReadService with TapirErrorHelpers =>
@@ -36,8 +37,9 @@ trait StatsController {
           case None    => returnLeftError(NotFoundException("No stats found"))
         }
       }
-    private val pathResourceType = path[String]("resourceType").description("The type of the resource to look up")
-    private val pathResourceId   = path[String]("resourceId").description("ID of the resource to look up")
+    private val pathResourceType =
+      path[CommaSeparated[String]]("resourceType").description("The type of the resource to look up")
+    private val pathResourceId = path[String]("resourceId").description("ID of the resource to look up")
 
     def getFolderResourceFavorites: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get folder resource favorites")
@@ -46,7 +48,7 @@ trait StatsController {
       .out(jsonBody[SingleResourceStats])
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { case (resourceType, resourceId) =>
-        folderReadService.getFavouriteStatsForResource(resourceId, resourceType).handleErrorsOrOk
+        folderReadService.getFavouriteStatsForResource(resourceId, resourceType.values).handleErrorsOrOk
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
