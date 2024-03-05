@@ -107,7 +107,13 @@ trait ConverterService {
           gloss = glossData.gloss,
           wordClass = glossData.wordClass.entryName,
           examples = glossData.examples.map(ge =>
-            ge.map(g => api.GlossExample(example = g.example, language = g.language, transcriptions = g.transcriptions))
+            ge.map(g =>
+              api.GlossExample(
+                example = g.example,
+                language = g.language,
+                transcriptions = g.transcriptions
+              )
+            )
           ),
           originalLanguage = glossData.originalLanguage,
           transcriptions = glossData.transcriptions

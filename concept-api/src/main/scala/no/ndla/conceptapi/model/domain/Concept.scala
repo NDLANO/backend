@@ -43,8 +43,7 @@ case class Concept(
     glossData: Option[GlossData],
     editorNotes: Seq[EditorNote]
 ) {
-
-  lazy val supportedLanguages: Set[String] =
+  def supportedLanguages: Set[String] =
     getSupportedLanguages(title, content, tags, visualElement, metaImage).toSet
 }
 object Concept extends SQLSyntaxSupport[Concept] {
