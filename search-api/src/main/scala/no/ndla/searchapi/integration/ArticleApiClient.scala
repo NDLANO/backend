@@ -8,10 +8,6 @@
 package no.ndla.searchapi.integration
 
 import no.ndla.network.NdlaClient
-import no.ndla.searchapi.model.domain.{ArticleApiSearchResults, SearchParams}
-
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 trait ArticleApiClient {
   this: NdlaClient with SearchApiClient =>
@@ -21,10 +17,5 @@ trait ArticleApiClient {
     override val searchPath     = "article-api/v2/articles"
     override val name           = "articles"
     override val dumpDomainPath = "intern/dump/article"
-
-    def search(searchParams: SearchParams)(implicit
-        executionContext: ExecutionContext
-    ): Future[Try[ArticleApiSearchResults]] =
-      search[ArticleApiSearchResults](searchParams)
   }
 }

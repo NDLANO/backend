@@ -26,7 +26,7 @@ import no.ndla.searchapi.controller.{InternController, SearchController, Swagger
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.service.search._
-import no.ndla.searchapi.service.{ApiSearchService, ConverterService, SearchClients}
+import no.ndla.searchapi.service.ConverterService
 
 class ComponentRegistry(properties: SearchApiProperties)
     extends BaseComponentRegistry[SearchApiProperties]
@@ -38,21 +38,17 @@ class ComponentRegistry(properties: SearchApiProperties)
     with ErrorHelpers
     with Clock
     with MultiDraftSearchService
-    with AudioApiClient
     with ConverterService
     with DraftApiClient
     with Elastic4sClient
     with TaxonomyApiClient
-    with ImageApiClient
     with IndexService
     with BaseIndexService
     with StrictLogging
     with LearningPathApiClient
     with NdlaClient
-    with SearchClients
     with SearchConverterService
     with SearchService
-    with ApiSearchService
     with SearchController
     with FeideApiClient
     with RedisClient
@@ -77,19 +73,10 @@ class ComponentRegistry(properties: SearchApiProperties)
 
   lazy val draftApiClient        = new DraftApiClient(DraftApiUrl)
   lazy val learningPathApiClient = new LearningPathApiClient(LearningpathApiUrl)
-  lazy val imageApiClient        = new ImageApiClient(ImageApiUrl)
-  lazy val audioApiClient        = new AudioApiClient(AudioApiUrl)
   lazy val articleApiClient      = new ArticleApiClient(ArticleApiUrl)
   lazy val feideApiClient        = new FeideApiClient
   lazy val redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
-  lazy val SearchClients = Map[String, SearchApiClient](
-    draftApiClient.name        -> draftApiClient,
-    learningPathApiClient.name -> learningPathApiClient,
-    imageApiClient.name        -> imageApiClient,
-    audioApiClient.name        -> audioApiClient
-  )
 
-  lazy val searchService            = new ApiSearchService
   lazy val converterService         = new ConverterService
   lazy val searchConverterService   = new SearchConverterService
   lazy val multiSearchService       = new MultiSearchService

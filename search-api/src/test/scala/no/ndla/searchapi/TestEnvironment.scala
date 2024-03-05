@@ -18,7 +18,7 @@ import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.service.search._
-import no.ndla.searchapi.service.{ApiSearchService, ConverterService, SearchClients}
+import no.ndla.searchapi.service.ConverterService
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -28,23 +28,19 @@ trait TestEnvironment
     with MultiSearchService
     with DraftIndexService
     with MultiDraftSearchService
-    with AudioApiClient
     with ConverterService
     with DraftApiClient
     with FeideApiClient
     with RedisClient
     with Elastic4sClient
-    with ImageApiClient
     with TaxonomyApiClient
     with IndexService
     with BaseIndexService
     with StrictLogging
     with LearningPathApiClient
     with NdlaClient
-    with SearchClients
     with SearchConverterService
     with SearchService
-    with ApiSearchService
     with SearchController
     with LearningPathIndexService
     with InternController
@@ -68,22 +64,12 @@ trait TestEnvironment
 
   val draftApiClient        = mock[DraftApiClient]
   val learningPathApiClient = mock[LearningPathApiClient]
-  val imageApiClient        = mock[ImageApiClient]
-  val audioApiClient        = mock[AudioApiClient]
   val articleApiClient      = mock[ArticleApiClient]
   val feideApiClient        = mock[FeideApiClient]
   val redisClient           = mock[RedisClient]
 
   val clock = mock[SystemClock]
 
-  val SearchClients = Map[String, SearchApiClient](
-    "articles"      -> draftApiClient,
-    "learningpaths" -> learningPathApiClient,
-    "images"        -> imageApiClient,
-    "audios"        -> audioApiClient
-  )
-
-  val searchService            = mock[ApiSearchService]
   val converterService         = mock[ConverterService]
   val searchConverterService   = mock[SearchConverterService]
   val multiSearchService       = mock[MultiSearchService]
