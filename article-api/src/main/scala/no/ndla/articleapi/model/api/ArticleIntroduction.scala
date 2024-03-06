@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 @description("Description of the article introduction")
@@ -18,3 +20,8 @@ case class ArticleIntroduction(
       "The ISO 639-1 language code describing which article translation this introduction belongs to"
     ) language: String
 )
+
+object ArticleIntroduction {
+  implicit val encoder: Encoder[ArticleIntroduction] = deriveEncoder
+  implicit val decoder: Decoder[ArticleIntroduction] = deriveDecoder
+}

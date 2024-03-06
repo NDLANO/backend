@@ -8,8 +8,11 @@
 
 package no.ndla.articleapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.implicits._
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{Copyright, RelatedContent}
+import no.ndla.common.model.api.{Copyright, RelatedContent, RelatedContentLink}
 import sttp.tapir.Schema.annotations.description
 
 // format: off
@@ -41,3 +44,10 @@ case class ArticleV2(
     @description("The path to the frontpage article") slug: Option[String],
 )
 // format: on
+
+object ArticleV2 {
+  implicit def eitherEnc: Encoder[Either[RelatedContentLink, Long]] = eitherEncoder[RelatedContentLink, Long]
+  implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
+  implicit val encoder: Encoder[ArticleV2]                          = deriveEncoder
+  implicit val decoder: Decoder[ArticleV2]                          = deriveDecoder
+}
