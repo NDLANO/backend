@@ -8,6 +8,7 @@
 package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.domain.Availability
+import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 
@@ -35,3 +36,30 @@ case class SearchSettings(
     articleTypes: List[String],
     filterInactive: Boolean
 )
+
+object SearchSettings {
+  def default: SearchSettings = SearchSettings(
+    query = None,
+    fallback = false,
+    language = Language.AllLanguages,
+    license = None,
+    page = 1,
+    pageSize = 10,
+    sort = Sort.ByRelevanceDesc,
+    withIdIn = List.empty,
+    subjects = List.empty,
+    resourceTypes = List.empty,
+    learningResourceTypes = List.empty,
+    supportedLanguages = List.empty,
+    relevanceIds = List.empty,
+    grepCodes = List.empty,
+    shouldScroll = false,
+    filterByNoResourceType = false,
+    aggregatePaths = List.empty,
+    embedResource = List.empty,
+    embedId = None,
+    availability = List.empty,
+    articleTypes = List.empty,
+    filterInactive = false
+  )
+}

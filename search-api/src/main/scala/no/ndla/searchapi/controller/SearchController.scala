@@ -19,7 +19,7 @@ import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import no.ndla.searchapi.controller.parameters.DraftSearchParams
+import no.ndla.searchapi.controller.parameters.{DraftSearchParams, SearchParams}
 import no.ndla.searchapi.{Eff, Props}
 import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult}
@@ -31,7 +31,6 @@ import no.ndla.searchapi.service.search.{
   SearchConverterService,
   SearchService
 }
-import no.ndla.searchapi.service.{ApiSearchService, SearchClients}
 import sttp.model.QueryParams
 
 import java.util.concurrent.Executors
@@ -45,9 +44,7 @@ import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
-  this: ApiSearchService
-    with SearchClients
-    with SearchApiClient
+  this: SearchApiClient
     with MultiSearchService
     with SearchConverterService
     with SearchService
@@ -179,7 +176,8 @@ trait SearchController {
       groupSearch,
       searchLearningResources,
       searchDraftLearningResources,
-      searchDraftLearningResourcesGet
+      searchDraftLearningResourcesGet,
+      postSearchLearningResources
     )
 
     def groupSearch: ServerEndpoint[Any, Eff] = endpoint.get
@@ -452,6 +450,29 @@ trait SearchController {
 
       }
 
+    def postSearchLearningResources: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Find learning resources")
+      .description("Shows all learning resources. You can search too.")
+      .errorOut(errorOutputsFor(400))
+      .out(jsonBody[MultiSearchResult])
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .in(jsonBody[Option[SearchParams]].schema(SearchParams.schema.asOption))
+      .in(feideHeader)
+      .serverLogicPure { case (searchParams, feideToken) =>
+        getAvailability(feideToken)
+          .flatMap(availability => {
+            val settings = asSettings(searchParams, availability)
+            scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiSearchService) {
+              multiSearchService.matchingQuery(settings).map { searchResult =>
+                val result  = searchConverterService.toApiMultiSearchResult(searchResult)
+                val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+                (result, headers)
+              }
+            }
+          })
+          .handleErrorsOrOk
+      }
+
     def intParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Int] = {
       queryParams
         .get(name)
@@ -546,7 +567,7 @@ trait SearchController {
               )
             )
 
-            val settings = asSettings(searchParams)
+            val settings = asDraftSettings(searchParams)
             scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiDraftSearchService) {
               multiDraftSearchService.matchingQuery(settings).map { searchResult =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
@@ -567,7 +588,7 @@ trait SearchController {
       .out(EndpointOutput.derived[DynamicHeaders])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => searchParams =>
-        val settings = asSettings(searchParams)
+        val settings = asDraftSettings(searchParams)
         scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiDraftSearchService) {
           multiDraftSearchService.matchingQuery(settings).map { searchResult =>
             val result  = searchConverterService.toApiMultiSearchResult(searchResult)
@@ -593,7 +614,41 @@ trait SearchController {
       }
     }
 
-    def asSettings(p: Option[DraftSearchParams]): MultiDraftSearchSettings = {
+    def asSettings(p: Option[SearchParams], availability: List[Availability.Value]): SearchSettings = {
+      p match {
+        case None => SearchSettings.default
+        case Some(params) =>
+          val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
+          SearchSettings(
+            query = params.query,
+            fallback = params.fallback.getOrElse(false),
+            language = params.language.getOrElse(AllLanguages),
+            license = params.license,
+            page = params.page.getOrElse(1),
+            pageSize = params.pageSize.getOrElse(10),
+            sort = params.sort.flatMap(Sort.valueOf).getOrElse(Sort.ByRelevanceDesc),
+            withIdIn = params.ids.getOrElse(List.empty),
+            subjects = params.subjects.getOrElse(List.empty),
+            resourceTypes = params.resourceTypes.getOrElse(List.empty),
+            learningResourceTypes = params.contextTypes.getOrElse(List.empty).flatMap(LearningResourceType.valueOf),
+            supportedLanguages = params.languageFilter.getOrElse(List.empty),
+            relevanceIds = params.relevance.getOrElse(List.empty),
+            grepCodes = params.grepCodes.getOrElse(List.empty),
+            shouldScroll = shouldScroll,
+            filterByNoResourceType = false,
+            aggregatePaths = params.aggregatePaths.getOrElse(List.empty),
+            embedResource = params.embedResource.getOrElse(List.empty),
+            embedId = params.embedId,
+            availability = availability,
+            articleTypes = params.articleTypes.getOrElse(List.empty),
+            filterInactive = params.filterInactive.getOrElse(false)
+          )
+
+      }
+
+    }
+
+    def asDraftSettings(p: Option[DraftSearchParams]): MultiDraftSearchSettings = {
       p match {
         case None => MultiDraftSearchSettings.default
         case Some(params) =>

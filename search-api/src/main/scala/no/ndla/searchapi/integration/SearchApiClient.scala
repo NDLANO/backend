@@ -17,15 +17,13 @@ import no.ndla.common.model.domain.{ArticleType, Availability, Priority}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.ApiSearchException
 import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, LearningResourceType, SearchParams}
+import no.ndla.searchapi.model.domain.{DomainDumpResults, LearningResourceType}
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import sttp.client3.quick._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 import scala.math.ceil
 import scala.util.{Failure, Success, Try}
 
@@ -90,8 +88,6 @@ trait SearchApiClient {
       }
     }
 
-    def search(searchParams: SearchParams)(implicit executionContext: ExecutionContext): Future[Try[ApiSearchResults]]
-
     def get[T](path: String, params: Map[String, String], timeout: Int = 5000)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats =
         org.json4s.DefaultFormats +
@@ -113,22 +109,5 @@ trait SearchApiClient {
       val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)
       ndlaClient.fetchWithForwardedAuth[T](request, None)
     }
-
-    protected def search[T <: ApiSearchResults](
-        searchParams: SearchParams
-    )(implicit mf: Manifest[T], executionContext: ExecutionContext): Future[Try[T]] = {
-      val queryParams = searchParams.remaindingParams ++ Map(
-        "language"  -> searchParams.language.getOrElse("*"),
-        "sort"      -> searchParams.sort.entryName,
-        "page"      -> searchParams.page.toString,
-        "page-size" -> searchParams.pageSize.toString
-      )
-
-      Future { get(searchPath, queryParams) }.map {
-        case Success(a)  => Success(a)
-        case Failure(ex) => Failure(new ApiSearchException(name, ex.getMessage))
-      }
-    }
-
   }
 }
