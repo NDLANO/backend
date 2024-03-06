@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.common.model.NDLADate
+import no.ndla.myndla.model.api.SingleResourceStats
 import no.ndla.myndla.model.domain.{
   DBFolder,
   DBFolderResource,
@@ -303,18 +304,18 @@ trait FolderRepository {
           Success(resourceId)
       }
 
-    def numberOfFavouritesForResource(resourceId: String, resourceTypes: List[String])(implicit
+    def numberOfFavouritesForResources(resourceIds: List[String], resourceTypes: List[String])(implicit
         session: DBSession
-    ): Try[Long] = Try {
+    ): Try[List[SingleResourceStats]] = Try {
       sql"""
-            select count(*) as count from ${DBFolderResource.table} fr
-            inner join ${DBResource.table} r on fr.resource_id = r.id
-            where r.document->>'resourceId' = $resourceId
-            and r.resource_type in ($resourceTypes)
+            select count(*) as count, document->>'resourceId' as resourceId, resource_type from ${DBFolderResource.table} fr
+            inner join  ${DBResource.table} r on fr.resource_id = r.id
+            where r.document->>'resourceId' in ($resourceIds)
+            and resource_type in ($resourceTypes)
+            group by document->>'resourceId',resource_type
          """
-        .map(rs => rs.long("count"))
-        .single()
-        .getOrElse(0L)
+        .map(rs => SingleResourceStats(rs.string("resourceid"), rs.long("count"), rs.string("resource_type")))
+        .list()
     }
 
     def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {

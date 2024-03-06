@@ -266,11 +266,13 @@ trait FolderReadService {
       withFeideId(maybeFeideToken)(feideId => exportUserDataAuthenticated(maybeFeideToken, feideId))
     }
 
-    def getFavouriteStatsForResource(resourceId: String, resourceTypes: List[String]): Try[SingleResourceStats] = {
+    def getFavouriteStatsForResource(
+        resourceIds: List[String],
+        resourceTypes: List[String]
+    ): Try[List[SingleResourceStats]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       folderRepository
-        .numberOfFavouritesForResource(resourceId, resourceTypes)
-        .map(totalCount => api.SingleResourceStats(totalCount))
+        .numberOfFavouritesForResources(resourceIds, resourceTypes)
     }
 
     private def exportUserDataAuthenticated(
