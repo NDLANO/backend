@@ -729,11 +729,11 @@ class MultiDraftSearchServiceAtomicTest
       ctxs.head
     }
 
-    ctxFor(1).isPrimaryConnection should be(true)
-    ctxFor(2).isPrimaryConnection should be(true)
-    ctxFor(3).isPrimaryConnection should be(true)
-    ctxFor(4).isPrimaryConnection should be(true)
-    ctxsFor(5).map(_.isPrimaryConnection) should be(Seq(true, true, false)) // Sorted with primary first
+    ctxFor(1).isPrimary should be(true)
+    ctxFor(2).isPrimary should be(true)
+    ctxFor(3).isPrimary should be(true)
+    ctxFor(4).isPrimary should be(true)
+    ctxsFor(5).map(_.isPrimary) should be(Seq(true, true, false)) // Sorted with primary first
 
   }
 

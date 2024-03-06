@@ -282,7 +282,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
       .get
 
-    result.results.head.contexts.map(_.id) should be(Seq("urn:resource:2"))
+    result.results.head.contexts.map(_.publicId) should be(Seq("urn:resource:2"))
   }
 
   test("That topic taxonomy contexts with hidden elements are ignored") {
@@ -410,7 +410,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
       .get
 
-    result.results.head.contexts.map(_.id) should be(Seq("urn:topic:3"))
+    result.results.head.contexts.map(_.publicId) should be(Seq("urn:topic:3"))
   }
   test("That aggregating rootId works as expected") {
     val article1 = TestData.article1.copy(id = Some(1))
