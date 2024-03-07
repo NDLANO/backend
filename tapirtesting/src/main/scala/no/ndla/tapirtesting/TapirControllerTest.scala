@@ -7,12 +7,13 @@
 
 package no.ndla.tapirtesting
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirErrorHelpers}
 import no.ndla.scalatestsuite.UnitTestSuite
+
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 trait TapirControllerTest[F[_]]
     extends UnitTestSuite
@@ -26,7 +27,8 @@ trait TapirControllerTest[F[_]]
   override def services: List[Service[F]] = List(controller)
 
   override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(s"TapirControllerTest:${this.getClass.getName}", serverPort) {} }.unsafeRunAndForget()
+    implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
+    Future { Routes.startJdkServer(s"TapirControllerTest:${this.getClass.getName}", serverPort) {} }: Unit
     Thread.sleep(1000)
   }
 

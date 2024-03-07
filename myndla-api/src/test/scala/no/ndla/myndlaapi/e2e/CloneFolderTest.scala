@@ -8,8 +8,6 @@
 
 package no.ndla.myndlaapi.e2e
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.api
@@ -27,6 +25,8 @@ import org.testcontainers.containers.PostgreSQLContainer
 import sttp.client3.quick._
 
 import java.util.UUID
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
 
@@ -89,8 +89,9 @@ class CloneFolderTest
   val myndlaApiFolderUrl = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
 
   override def beforeAll(): Unit = {
-    IO { myndlaApi.run() }.unsafeRunAndForget()
-    Thread.sleep(1000)
+    implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    Future { myndlaApi.run() }: Unit
+    Thread.sleep(4000)
   }
 
   override def beforeEach(): Unit = {
