@@ -1,21 +1,16 @@
 // DO NOT EDIT: generated file by scala-tsi
 
 export interface IApiTaxonomyContext {
-  id: string
   publicId: string
-  subject: string
   root: string
-  subjectId: string
   rootId: string
   relevance: string
   relevanceId: string
   path: string
   breadcrumbs: string[]
-  learningResourceType: string
   contextType: string
   resourceTypes: ITaxonomyResourceType[]
   language: string
-  isPrimaryConnection: boolean
   isPrimary: boolean
   isActive: boolean
 }
