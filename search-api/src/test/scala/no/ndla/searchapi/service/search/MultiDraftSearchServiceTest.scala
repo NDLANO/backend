@@ -218,7 +218,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
         multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("Pingvinen").get), sort = Sort.ByTitleAsc)
       )
 
-    results.results.map(_.contexts.head.learningResourceType) should be(Seq("learningpath", "standard"))
+    results.results.map(_.contexts.head.contextType) should be(Seq("learningpath", "standard"))
     results.results.map(_.id) should be(Seq(1, 2))
     results.totalCount should be(2)
   }
@@ -231,7 +231,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     val hits = results.results
     results.totalCount should be(12)
     hits.head.id should be(1)
-    hits.head.contexts.head.learningResourceType should be("standard")
+    hits.head.contexts.head.contextType should be("standard")
     hits(1).id should be(2)
   }
 
@@ -243,7 +243,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(5)
-    hits.head.contexts.head.learningResourceType should be("standard")
+    hits.head.contexts.head.contextType should be("standard")
   }
 
   test("That search matches tags") {
@@ -255,7 +255,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     results.totalCount should be(2)
     hits.head.id should be(3)
     hits(1).id should be(3)
-    hits(1).contexts.head.learningResourceType should be("learningpath")
+    hits(1).contexts.head.contextType should be("learningpath")
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
@@ -791,7 +791,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
 
   test("Filtering for statuses should also filter learningPaths") {
     val expectedArticleIds = List(10, 11).map(_.toLong)
-    val expectedIds        = (expectedArticleIds).sorted
+    val expectedIds        = expectedArticleIds.sorted
 
     val Success(search1) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(language = AllLanguages, statusFilter = List(DraftStatus.IN_PROGRESS))

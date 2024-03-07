@@ -223,7 +223,7 @@ class MultiSearchServiceTest
         searchSettings.copy(Some(NonEmptyString.fromString("Pingvinen").get), sort = Sort.ByTitleAsc)
       )
     val hits = results.results
-    hits.map(_.contexts.head.learningResourceType) should be(Seq("learningpath", "standard"))
+    hits.map(_.contexts.head.contextType) should be(Seq("learningpath", "standard"))
     hits.map(_.id) should be(Seq(1, 2))
   }
 
@@ -235,7 +235,7 @@ class MultiSearchServiceTest
     results.totalCount should be(2)
     hits.head.id should be(3)
     hits(1).id should be(3)
-    hits(1).contexts.head.learningResourceType should be("learningpath")
+    hits(1).contexts.head.contextType should be("learningpath")
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
@@ -433,7 +433,7 @@ class MultiSearchServiceTest
     search.totalCount should be(7)
     search.results.head.contexts.length should be(2)
     search.results.head.contexts
-      .map(_.subjectId) should be(List("urn:subject:1", "urn:subject:2")) // urn:subject:3 is not visible
+      .map(_.rootId) should be(List("urn:subject:1", "urn:subject:2")) // urn:subject:3 is not visible
     search.results.map(_.id) should be(Seq(1, 5, 5, 6, 7, 11, 12))
   }
 
@@ -531,7 +531,7 @@ class MultiSearchServiceTest
 
     search.totalCount should be(5)
     search.results.map(_.id) should be(Seq(1, 2, 3, 4, 5))
-    search.results.filter(_.contexts.nonEmpty).map(_.contexts.head.learningResourceType) should be(
+    search.results.filter(_.contexts.nonEmpty).map(_.contexts.head.contextType) should be(
       Seq.fill(5) { LearningResourceType.LearningPath.toString }
     )
   }

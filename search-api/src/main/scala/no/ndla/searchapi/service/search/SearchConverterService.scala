@@ -695,21 +695,16 @@ trait SearchConverterService {
       val relevance = findByLanguageOrBestEffort(context.relevance.languageValues, language).map(_.value).getOrElse("")
 
       ApiTaxonomyContext(
-        id = context.publicId,
         publicId = context.publicId,
-        subject = subjectName,
         root = subjectName,
-        subjectId = context.rootId,
         rootId = context.rootId,
         relevance = relevance,
         relevanceId = context.relevanceId,
         path = context.path,
         breadcrumbs = breadcrumbs,
-        learningResourceType = context.contextType,
         contextType = context.contextType,
         resourceTypes = resourceTypes,
         language = language,
-        isPrimaryConnection = context.isPrimary,
         isPrimary = context.isPrimary,
         isActive = context.isActive
       )
