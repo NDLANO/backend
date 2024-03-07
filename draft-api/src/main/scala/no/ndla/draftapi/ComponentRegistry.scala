@@ -143,5 +143,5 @@ class ComponentRegistry(properties: DraftApiProperties)
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )
-  override val services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[Service[Eff]] = swagger.getServices()
 }

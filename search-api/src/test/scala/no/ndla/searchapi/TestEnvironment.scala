@@ -78,5 +78,5 @@ trait TestEnvironment
   val draftIndexService        = mock[DraftIndexService]
   val multiDraftSearchService  = mock[MultiDraftSearchService]
 
-  override val services: List[Service[Eff]] = List()
+  override def services: List[Service[Eff]] = List()
 }

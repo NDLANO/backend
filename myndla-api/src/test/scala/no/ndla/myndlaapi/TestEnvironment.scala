@@ -100,7 +100,7 @@ trait TestEnvironment
   val importService: ImportService                   = mock[ImportService]
   val nodebb: NodeBBClient                           = mock[NodeBBClient]
 
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = reset(
     clock,

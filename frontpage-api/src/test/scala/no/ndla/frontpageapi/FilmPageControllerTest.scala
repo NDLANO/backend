@@ -7,21 +7,11 @@
 
 package no.ndla.frontpageapi
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
-class FilmPageControllerTest extends UnitSuite with TestEnvironment {
-
-  val serverPort: Int = findFreePort
-
-  override val filmPageController = new FilmPageController()
-  override val services           = List(filmPageController)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class FilmPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  override val controller = new FilmPageController()
 
   test("Should return 200 when frontpage exist") {
     when(readService.filmFrontPage(None)).thenReturn(Some(TestData.apiFilmFrontPage))

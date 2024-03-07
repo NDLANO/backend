@@ -8,26 +8,17 @@
 
 package no.ndla.oembedproxy.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.OEmbed
-import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
+import no.ndla.oembedproxy.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.anyString
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment {
-  val controller        = new OEmbedProxyController
-  override val services = List(controller)
-
-  val serverPort: Int = findFreePort
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  val controller = new OEmbedProxyController
 
   val oembed: OEmbed = OEmbed(
     `type` = "rich",
@@ -90,14 +81,5 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment {
     val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
     val response      = simpleHttpClient.send(quickRequest.get(url))
     response.code.code should be(500)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

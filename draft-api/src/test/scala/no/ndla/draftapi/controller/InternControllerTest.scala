@@ -7,28 +7,19 @@
 
 package no.ndla.draftapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain.ImportId
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: Formats = org.json4s.DefaultFormats
-  val serverPort: Int           = findFreePort
 
-  val controller                            = new InternController
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+  val controller = new InternController
 
   override def beforeEach(): Unit = {
     reset(clock)
@@ -184,14 +175,5 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     verify(tagIndexService).deleteIndexWithName(Some("index8"))
     verify(grepCodesIndexService).deleteIndexWithName(Some("index9"))
     verify(grepCodesIndexService).deleteIndexWithName(Some("index10"))
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

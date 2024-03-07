@@ -8,8 +8,6 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import io.circe.parser
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
@@ -17,7 +15,7 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.common.model.api.{Copyright, License}
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers._
 import org.mockito.{ArgumentCaptor, Strictness}
 import org.scalatest.tagobjects.Retryable
@@ -27,18 +25,10 @@ import sttp.client3.quick._
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
-class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
-  val serverPort: Int = findFreePort
+class AudioControllerTest extends UnitSuite with TestEnvironment with Retries with TapirControllerTest[Eff] {
   val controller = new AudioController {
     // NOTE: Small max file size when testing to test the failure in the controller without using a bunch of memory
     override val maxAudioFileSizeBytes: Int = 10
-  }
-
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("AudioControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
   }
 
   val maxRetries = 5
@@ -419,14 +409,5 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries {
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
     )
     response.code.code should be(413)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

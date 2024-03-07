@@ -6,16 +6,13 @@
  */
 package no.ndla.conceptapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
-import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
-import no.ndla.conceptapi.model.search
+import no.ndla.conceptapi.model.{api, search}
 import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers._
@@ -23,16 +20,9 @@ import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class DraftConceptControllerTest extends UnitSuite with TestEnvironment {
-  implicit val formats: Formats             = org.json4s.DefaultFormats
-  val serverPort: Int                       = findFreePort
-  val controller                            = new DraftConceptController
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class DraftConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  implicit val formats: Formats = org.json4s.DefaultFormats
+  val controller                = new DraftConceptController
 
   override def beforeEach(): Unit = {
     reset(clock, searchConverterService)
@@ -130,7 +120,6 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment {
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    import io.circe.generic.auto._
     import io.circe.syntax._
     val body = TestData.updatedConcept.asJson.deepDropNullValues.noSpaces
 
@@ -313,14 +302,4 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment {
 
     verify(draftConceptSearchService, times(1)).all(eqTo(expectedSettings))
   }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
-  }
-
 }

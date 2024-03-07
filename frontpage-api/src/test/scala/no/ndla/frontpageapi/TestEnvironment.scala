@@ -54,5 +54,5 @@ trait TestEnvironment
   override val readService             = mock[ReadService]
   override val writeService            = mock[WriteService]
 
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 }

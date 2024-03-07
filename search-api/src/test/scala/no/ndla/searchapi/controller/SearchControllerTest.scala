@@ -8,32 +8,23 @@
 
 package no.ndla.searchapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
+import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.{Eff, TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.clients.FeideExtendedUserInfo
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentCaptor
+import sttp.client3.quick._
 
 import java.time.Month
 import scala.util.Success
-import sttp.client3.quick._
 
-class SearchControllerTest extends UnitSuite with TestEnvironment {
-  val serverPort: Int                       = findFreePort
-  override val converterService             = new ConverterService
-  val controller                            = new SearchController()
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("SearchControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class SearchControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  override val converterService = new ConverterService
+  val controller                = new SearchController()
 
   override def beforeEach(): Unit = {
     reset(clock, searchConverterService)

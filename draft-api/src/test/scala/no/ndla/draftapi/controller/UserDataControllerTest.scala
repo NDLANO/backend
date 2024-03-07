@@ -7,29 +7,19 @@
 
 package no.ndla.draftapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.draftapi.model.api.UpdatedUserData
 import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.DefaultFormats
 import org.postgresql.util.{PSQLException, PSQLState}
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class UserDataControllerTest extends UnitSuite with TestEnvironment {
+class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val serverPort: Int                       = findFreePort
-
   val controller                            = new UserDataController()
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
 
   override def beforeEach(): Unit = {
     reset(clock, readService)
@@ -88,14 +78,4 @@ class UserDataControllerTest extends UnitSuite with TestEnvironment {
     )
     res.code.code should be(403)
   }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
-  }
-
 }

@@ -7,8 +7,6 @@
 
 package no.ndla.draftapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
@@ -19,25 +17,18 @@ import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
-import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.native.Serialization
 import org.json4s.{DefaultFormats, Formats}
-import sttp.client3.quick._
 import org.mockito.ArgumentMatchers._
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class DraftControllerTest extends UnitSuite with TestEnvironment {
-  implicit val formats: Formats             = DefaultFormats + NDLADate.Json4sSerializer
-  val serverPort: Int                       = findFreePort
-  val controller                            = new DraftController
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  implicit val formats: Formats = DefaultFormats + NDLADate.Json4sSerializer
+  val controller                = new DraftController
 
   override def beforeEach(): Unit = {
     reset(clock, searchConverterService)
@@ -572,14 +563,5 @@ class DraftControllerTest extends UnitSuite with TestEnvironment {
     resp.code.code should be(200)
     verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
     verify(articleSearchService, times(0)).scroll(any[String], any[String])
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

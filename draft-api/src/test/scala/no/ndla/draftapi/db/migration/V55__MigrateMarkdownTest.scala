@@ -55,7 +55,7 @@ class V55__MigrateMarkdownTest extends UnitSuite with TestEnvironment {
         |Også her et linjeskift.
         |
         |""".stripMargin + "Linje med to mellomrom  \n" +
-        """som blir til en br
+          """som blir til en br
         |
         |* liste
         |* skal

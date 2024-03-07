@@ -7,27 +7,18 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.{errors => common}
 import no.ndla.frontpageapi.model.api
-import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
+import no.ndla.frontpageapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-class FrontPageControllerTest extends UnitSuite with TestEnvironment {
-
-  val serverPort: Int = findFreePort
-  val controller      = new FrontPageController
+class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  val controller = new FrontPageController
   when(clock.now()).thenCallRealMethod()
-  override val services = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("FrontPageControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
 
   val authHeaderWithAdminRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiZnJvbnRwYWdlOmFkbWluIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIiwicGVybWlzc2lvbnMiOlsiZnJvbnRwYWdlOmFkbWluIl19.A0qr0MgRH3O_jUODzN2Py13QL2R5FHdE3lZ2x-3ZTjA"
@@ -146,14 +137,5 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment {
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(404)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

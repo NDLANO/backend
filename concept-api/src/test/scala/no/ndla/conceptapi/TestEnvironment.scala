@@ -97,5 +97,5 @@ trait TestEnvironment
   val ndlaClient: NdlaClient             = mock[NdlaClient]
   val articleApiClient: ArticleApiClient = mock[ArticleApiClient]
 
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 }

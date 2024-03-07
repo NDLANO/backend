@@ -13,7 +13,8 @@ lazy val `article-api`: Project = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -27,7 +28,8 @@ lazy val `draft-api`: Project = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -40,7 +42,8 @@ lazy val `audio-api` = Module.setup(
     language,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -54,7 +57,8 @@ lazy val `concept-api` = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -66,7 +70,8 @@ lazy val `frontpage-api` = Module.setup(
     mapping,
     language,
     common,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -79,7 +84,8 @@ lazy val `image-api` = Module.setup(
     language,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -93,14 +99,15 @@ lazy val `learningpath-api` = Module.setup(
     common,
     search,
     myndla,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
 lazy val `oembed-proxy` = Module.setup(
   project in file("./oembed-proxy/"),
   oembedproxy,
-  deps = Seq(network, common, testWith(scalatestsuite))
+  deps = Seq(network, common, testWith(scalatestsuite), testWith(tapirtesting))
 )
 
 lazy val `search-api` = Module.setup(
@@ -112,7 +119,8 @@ lazy val `search-api` = Module.setup(
     language,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -125,7 +133,8 @@ lazy val `myndla-api` = Module.setup(
     language,
     common,
     myndla,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    testWith(tapirtesting)
   )
 )
 
@@ -146,10 +155,12 @@ lazy val constants = Module.setup(
 // Libraries
 lazy val common = Module.setup(project in file("./common/"), commonlib, deps = Seq(testWith(scalatestsuite), language))
 lazy val scalatestsuite = Module.setup(project in file("./scalatestsuite/"), scalatestsuitelib)
-lazy val network        = Module.setup(project in file("./network/"), networklib, deps = Seq(common))
-lazy val language       = Module.setup(project in file("./language/"), languagelib)
-lazy val mapping        = Module.setup(project in file("./mapping/"), mappinglib)
-lazy val validation     = Module.setup(project in file("./validation/"), validationlib, deps = Seq(common))
+lazy val tapirtesting =
+  Module.setup(project in file("./tapirtesting/"), tapirtestinglib, deps = Seq(common, network, scalatestsuite))
+lazy val network    = Module.setup(project in file("./network/"), networklib, deps = Seq(common))
+lazy val language   = Module.setup(project in file("./language/"), languagelib)
+lazy val mapping    = Module.setup(project in file("./mapping/"), mappinglib)
+lazy val validation = Module.setup(project in file("./validation/"), validationlib, deps = Seq(common))
 lazy val search =
   Module.setup(project in file("./search/"), searchlib, deps = Seq(testWith(scalatestsuite), language, common, mapping))
 lazy val myndla =

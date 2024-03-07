@@ -10,26 +10,15 @@ package no.ndla.myndlaapi.controller
 import no.ndla.myndla.model.api.Folder
 import no.ndla.myndla.model.domain.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
-import no.ndla.network.tapir.Service
 import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
 import java.util.UUID
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
-class FolderControllerTest extends UnitTestSuite with TestEnvironment {
-  val serverPort: Int = findFreePort
-
-  val controller                            = new FolderController()
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
-    Future { Routes.startJdkServer(this.getClass.getName, serverPort) {} }
-    Thread.sleep(1000)
-  }
+class FolderControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
+  val controller = new FolderController()
 
   override def beforeEach(): Unit = {
     resetMocks()
@@ -97,14 +86,4 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment {
     verify(folderReadService, times(1)).getSingleFolder(eqTo(someId), any, any, any)
     response.code.code should be(200)
   }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
-  }
-
 }

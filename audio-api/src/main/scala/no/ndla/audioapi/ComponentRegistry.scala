@@ -108,5 +108,5 @@ class ComponentRegistry(properties: AudioApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override val services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[Service[Eff]] = swagger.getServices()
 }

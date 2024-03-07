@@ -6,28 +6,19 @@
  */
 package no.ndla.conceptapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.conceptapi.model.api.{ConceptSummary, NotFoundException}
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.DefaultFormats
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class PublishedConceptControllerTest extends UnitSuite with TestEnvironment {
+class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val serverPort: Int                       = findFreePort
   val controller                            = new PublishedConceptController
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
 
   override def beforeEach(): Unit = {
     reset(clock, searchConverterService)
@@ -103,14 +94,4 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment {
       .code should be(200)
     verify(publishedConceptSearchService, times(1)).all(eqTo(expectedSettings))
   }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
-  }
-
 }

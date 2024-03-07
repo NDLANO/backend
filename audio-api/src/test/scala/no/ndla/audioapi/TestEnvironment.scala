@@ -89,6 +89,6 @@ trait TestEnvironment
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
   val clock: SystemClock           = mock[SystemClock]
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 
 }

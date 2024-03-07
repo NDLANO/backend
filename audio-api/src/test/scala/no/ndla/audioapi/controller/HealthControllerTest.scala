@@ -8,35 +8,25 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import sttp.client3.Response
-import sttp.model.StatusCode
 import sttp.client3.quick._
+import sttp.model.StatusCode
 
-class HealthControllerTest extends UnitSuite with TestEnvironment {
+class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: Formats = org.json4s.DefaultFormats
-
-  val serverPort: Int = findFreePort
 
   val httpResponseMock: Response[String] = mock[Response[String]]
 
   lazy val controller = new HealthController {
     override def getApiResponse(url: String): Response[String] = httpResponseMock
-  }
-
-  override val services: List[Service[Eff]] = List(controller)
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("HealthControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
   }
 
   controller.setWarmedUp()
@@ -101,15 +91,6 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 
 }

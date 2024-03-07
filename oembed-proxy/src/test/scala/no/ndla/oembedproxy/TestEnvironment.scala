@@ -39,7 +39,7 @@ trait TestEnvironment
   val healthController: TapirHealthController[Eff] = mock[TapirHealthController[Eff]]
   val clock: SystemClock                           = mock[SystemClock]
 
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = {
     reset(oEmbedService, oEmbedProxyController, ndlaClient, providerService)

@@ -116,5 +116,5 @@ trait TestEnvironment
   val taxonomyApiClient = mock[TaxonomyApiClient]
   val h5pApiClient      = mock[H5PApiClient]
 
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 }

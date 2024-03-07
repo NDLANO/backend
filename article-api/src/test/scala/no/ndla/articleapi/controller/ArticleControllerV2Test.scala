@@ -8,12 +8,11 @@
 
 package no.ndla.articleapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
-import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.search.SearchResult
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.model.{api, domain}
+import no.ndla.articleapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.Availability
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.mockito.ArgumentMatchers._
@@ -21,7 +20,7 @@ import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
+class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
 
   val legacyAuthHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfbWV0YWRhdGEiOnsicm9sZXMiOlsiYXJ0aWNsZXM6d3JpdGUiXSwibmRsYV9pZCI6ImFiYzEyMyJ9LCJuYW1lIjoiRG9uYWxkIER1Y2siLCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYWJjIiwiZXhwIjoxNDg2MDcwMDYzLCJpYXQiOjE0ODYwMzQwNjN9.VxqM2bu2UF8IAalibIgdRdmsTDDWKEYpKzHPbCJcFzA"
@@ -44,15 +43,6 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
   implicit val formats: Formats = DefaultFormats + new EnumNameSerializer(Availability)
 
   lazy val controller = new ArticleControllerV2
-
-  val serverPort: Int = findFreePort
-
-  override val services = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
 
   override def beforeEach(): Unit = {
     reset(clock, searchConverterService)
@@ -282,15 +272,6 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment {
     verify(readService, never).getArticleBySlug(any, any, any)
     verify(readService, never).withIdV2(any, any, any, any, any)
     response.code.code should be(200)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 
 }

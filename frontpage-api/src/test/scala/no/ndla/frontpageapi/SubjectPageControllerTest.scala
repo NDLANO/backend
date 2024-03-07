@@ -7,23 +7,13 @@
 
 package no.ndla.frontpageapi
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
-class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
-
-  val serverPort: Int = findFreePort
-
-  override val subjectPageController = new SubjectPageController()
-  override val services              = List(subjectPageController)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class SubjectPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  override val controller = new SubjectPageController()
 
   test("Should return 400 with cool custom message if bad request") {
     when(clock.now()).thenReturn(NDLADate.now())
