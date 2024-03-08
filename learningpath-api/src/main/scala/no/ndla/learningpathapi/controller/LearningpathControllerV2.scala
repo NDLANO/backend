@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.common.model.api.{Author, License}
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
@@ -30,7 +31,6 @@ import no.ndla.network.tapir.{DynamicHeaders, Service}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -84,11 +84,10 @@ trait LearningpathControllerV2 {
       path[Long]("learningstep_id").description("Id of the learningstep.")
     private val tag =
       query[Option[String]]("tag").description("Return only Learningpaths that are tagged with this exact tag.")
-    private val learningpathIds = query[CommaSeparated[Long]]("ids")
+    private val learningpathIds = listQuery[Long]("ids")
       .description(
         "Return only Learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-      .default(Delimited[",", Long](List.empty))
     private val licenseFilter =
       query[Option[String]]("filter")
         .description("Query for filtering licenses. Only licenses containing filter-string are returned.")
@@ -110,11 +109,10 @@ trait LearningpathControllerV2 {
       )
     private val verificationStatus = query[Option[String]]("verificationStatus")
       .description("Return only learning paths that have this verification status.")
-    private val ids = query[CommaSeparated[Long]]("ids")
+    private val ids = listQuery[Long]("ids")
       .description(
         "Return only learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-      .default(Delimited[",", Long](List.empty))
 
     /** Does a scroll with [[SearchService]] If no scrollId is specified execute the function @orFunction in the second
       * parameter list.

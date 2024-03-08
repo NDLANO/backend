@@ -10,6 +10,7 @@ package no.ndla.draftapi.controller
 import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.common.model.api.License
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
@@ -29,7 +30,6 @@ import no.ndla.network.tapir.{DynamicHeaders, Service}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -57,23 +57,20 @@ trait DraftController {
         .description("The ID of the article to generate a status state machine for")
     private val pathArticleId = path[Long]("article_id").description("Id of the article that is to be fetched")
     private val pathNodeId    = path[String]("node_id").description("Id of the taxonomy node to process")
-    private val articleTypes = query[CommaSeparated[String]]("articleTypes")
+    private val articleTypes = listQuery[String]("articleTypes")
       .description("Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
-      .default(Delimited[",", String](List.empty))
-    private val articleIds = query[CommaSeparated[Long]]("ids")
+    private val articleIds = listQuery[Long]("ids")
       .description(
         "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-      .default(Delimited[",", Long](List.empty))
     private val filter     = query[Option[String]]("filter").description("A filter to include a specific entry")
     private val filterNot  = query[Option[String]]("filterNot").description("A filter to remove a specific entry")
     private val pathStatus = path[String]("STATUS").description("An article status")
     private val copiedTitleFlag = query[Boolean]("copied-title-postfix")
       .description("Add a string to the title marking this article as a copy, defaults to 'true'.")
       .default(true)
-    private val grepCodes = query[CommaSeparated[String]]("grep-codes")
+    private val grepCodes = listQuery[String]("grep-codes")
       .description("A comma separated list of codes from GREP API the resources should be filtered by.")
-      .default(Delimited[",", String](List.empty))
     private val articleSlug = path[String]("slug").description("Slug of the article that is to be fecthed.")
     private val pageNo = query[Int]("page")
       .description("The page number of the search hits to display.")
@@ -104,12 +101,11 @@ trait DraftController {
          |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
     )
-    private val externalIds    = query[CommaSeparated[String]]("externalId").default(Delimited[",", String](List.empty))
-    private val oldCreatedDate = query[Option[String]]("oldNdlaCreatedDate")
-    private val oldUpdatedDate = query[Option[String]]("oldNdlaUpdatedDate")
-    private val externalSubjects = query[CommaSeparated[String]]("externalSubjectIds")
-      .default(Delimited[",", String](List.empty))
-    private val importId = query[Option[String]]("importId")
+    private val externalIds      = listQuery[String]("externalId")
+    private val oldCreatedDate   = query[Option[String]]("oldNdlaCreatedDate")
+    private val oldUpdatedDate   = query[Option[String]]("oldNdlaUpdatedDate")
+    private val externalSubjects = listQuery[String]("externalSubjectIds")
+    private val importId         = query[Option[String]]("importId")
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getLicenses,

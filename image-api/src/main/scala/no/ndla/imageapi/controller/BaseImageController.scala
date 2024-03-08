@@ -9,13 +9,13 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.errors.FileTooBigException
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, Sort}
 import no.ndla.language.Language
 import sttp.model.Part
 import sttp.tapir._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 
 import java.io.File
 import scala.util.{Failure, Try}
@@ -81,18 +81,16 @@ trait BaseImageController {
          |""".stripMargin
     )
 
-    val modelReleased = query[CommaSeparated[String]]("model-released")
+    val modelReleased = listQuery[String]("model-released")
       .description(
         s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values
             .mkString(",")}"
       )
-      .default(Delimited[",", String](List.empty))
 
-    val imageIds = query[CommaSeparated[Long]]("ids")
+    val imageIds = listQuery[Long]("ids")
       .description(
         "Return only images that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-      .default(Delimited[",", Long](List.empty))
     val podcastFriendly =
       query[Option[Boolean]]("podcast-friendly")
         .description("Filter images that are podcast friendly. Width==heigth and between 1400 and 3000.")

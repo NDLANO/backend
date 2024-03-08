@@ -7,11 +7,11 @@
 
 package no.ndla.conceptapi.controller
 
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain.{ConceptType, Sort}
 import no.ndla.language.Language
 import sttp.tapir._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 
 trait ConceptControllerHelpers {
   this: Props =>
@@ -26,16 +26,14 @@ trait ConceptControllerHelpers {
     val queryParam =
       query[Option[String]]("query").description("Return only concepts with content matching the specified query.")
 
-    val conceptIds = query[CommaSeparated[Long]]("ids")
+    val conceptIds = listQuery[Long]("ids")
       .description(
         "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-      .default(Delimited[",", Long](List.empty))
 
     val aggregatePaths =
-      query[CommaSeparated[String]]("aggregate-paths")
+      listQuery[String]("aggregate-paths")
         .description("List of index-paths that should be term-aggregated and returned in result.")
-        .default(Delimited[",", String](List.empty))
 
     val conceptType =
       query[Option[String]]("concept-type")
@@ -82,34 +80,28 @@ trait ConceptControllerHelpers {
        |""".stripMargin
         )
     val subjects =
-      query[CommaSeparated[String]]("subjects")
+      listQuery[String]("subjects")
         .description("A comma-separated list of subjects that should appear in the search.")
-        .default(Delimited[",", String](List.empty))
 
     val tagsToFilterBy =
-      query[CommaSeparated[String]]("tags")
+      listQuery[String]("tags")
         .description("A comma-separated list of tags to filter the search by.")
-        .default(Delimited[",", String](List.empty))
 
-    val userFilter = query[CommaSeparated[String]]("users")
+    val userFilter = listQuery[String]("users")
       .description(
         s"""List of users to filter by.
        |The value to search for is the user-id from Auth0.""".stripMargin
       )
-      .default(Delimited[",", String](List.empty))
 
-    val embedResource = query[CommaSeparated[String]]("embed-resource")
+    val embedResource = listQuery[String]("embed-resource")
       .description("Return concepts with matching embed type.")
-      .default(Delimited[",", String](List.empty))
     val embedId = query[Option[String]]("embed-id").description("Return concepts with matching embed id.")
 
     val exactTitleMatch =
       query[Boolean]("exact-match")
         .description("If provided, only return concept where query matches title exactly.")
         .default(false)
-    val responsibleIdFilter =
-      query[CommaSeparated[String]]("responsible-ids")
-        .description("List of responsible ids to filter by (OR filter)")
-        .default(Delimited[",", String](List.empty))
+    val responsibleIdFilter = listQuery[String]("responsible-ids")
+      .description("List of responsible ids to filter by (OR filter)")
   }
 }

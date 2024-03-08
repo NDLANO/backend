@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.catsSyntaxEitherId
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.common.implicits._
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.Sort
