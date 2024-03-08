@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.learningpathapi.model.api.{ErrorHelpers, LearningPathDomainDump, LearningPathSummaryV2}
 import no.ndla.learningpathapi.{Eff, Props}
 import no.ndla.learningpathapi.model.domain
@@ -21,7 +22,6 @@ import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
@@ -142,7 +142,7 @@ trait InternController {
 
     def containsArticle: ServerEndpoint[Any, Eff] = endpoint.get
       .in("containsArticle")
-      .in(query[CommaSeparated[String]]("paths").default(Delimited[",", String](List.empty)))
+      .in(listQuery[String]("paths"))
       .out(jsonBody[Seq[LearningPathSummaryV2]])
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { paths =>

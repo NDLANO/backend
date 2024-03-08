@@ -18,6 +18,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -27,7 +28,6 @@ import no.ndla.network.tapir.{Service, TapirErrorHelpers}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -167,7 +167,7 @@ trait InternController {
 
     def updateArticle: ServerEndpoint[Any, Eff] = endpoint.post
       .in("article" / path[Long]("id"))
-      .in(query[CommaSeparated[String]]("external-id").default(Delimited[",", String](List.empty)))
+      .in(listQuery[String]("external-id"))
       .in(query[Boolean]("use-import-validation").default(false))
       .in(query[Boolean]("use-soft-validation").default(false))
       .in(jsonBody[Article])

@@ -18,6 +18,7 @@ import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.{Eff, Props}
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
@@ -26,7 +27,6 @@ import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -71,16 +71,14 @@ trait ArticleControllerV2 {
     private val revision =
       query[Option[Int]]("revision")
         .description("Revision of article to fetch. If not provided the current revision is returned.")
-    private val articleTypes = query[CommaSeparated[String]]("articleTypes")
+    private val articleTypes = listQuery[String]("articleTypes")
       .description(
         "Return only articles of specific type(s). To provide multiple types, separate by comma (,)."
       )
-      .default(Delimited[",", String](List.empty[String]))
-    private val articleIds = query[CommaSeparated[Long]]("ids")
+    private val articleIds = listQuery[Long]("ids")
       .description(
         "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-      .default(Delimited[",", Long](List.empty[Long]))
     private val deprecatedNodeId = path[String]("deprecated_node_id").description("Id of deprecated NDLA node")
     private val fallback =
       query[Boolean]("fallback").description("Fallback to existing language if language is specified.").default(false)
@@ -92,11 +90,10 @@ trait ArticleControllerV2 {
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
     )
-    private val grepCodes = query[CommaSeparated[String]]("grep-codes")
+    private val grepCodes = listQuery[String]("grep-codes")
       .description(
         "A comma separated list of codes from GREP API the resources should be filtered by."
       )
-      .default(Delimited[",", String](List.empty))
 
     private case class SummaryWithHeader(
         @jsonbody

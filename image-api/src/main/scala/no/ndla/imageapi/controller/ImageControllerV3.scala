@@ -9,22 +9,23 @@
 package no.ndla.imageapi.controller
 
 import cats.implicits._
-import no.ndla.language.Language
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
-import no.ndla.imageapi.{Eff, Props}
-import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaInformationV3, SearchParams, SearchResultV3, TagsSearchResult}
+import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
+import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.imageapi.{Eff, Props}
+import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.{DynamicHeaders, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.tapir.{DynamicHeaders, Service}
+import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
 
 import scala.util.{Failure, Success, Try}
 

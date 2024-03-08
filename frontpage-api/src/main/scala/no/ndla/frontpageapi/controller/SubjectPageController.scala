@@ -8,6 +8,7 @@
 package no.ndla.frontpageapi.controller
 
 import io.circe.generic.auto._
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.frontpageapi.{Eff, Props}
 import no.ndla.frontpageapi.model.api.{
   ErrorHelpers,
@@ -23,7 +24,6 @@ import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_WRITE
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.CommaSeparated
 import sttp.tapir.server.ServerEndpoint
 
 trait SubjectPageController {
@@ -66,7 +66,7 @@ trait SubjectPageController {
     def getSubjectPagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch subject pages that matches ids parameter")
       .in("ids")
-      .in(query[CommaSeparated[Long]]("ids"))
+      .in(listQuery[Long]("ids"))
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
       .in(query[Int]("page-size").default(props.DefaultPageSize))

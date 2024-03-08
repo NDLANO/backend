@@ -9,6 +9,7 @@ package no.ndla.conceptapi.controller
 
 import cats.implicits._
 import no.ndla.common.implicits._
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{ConceptStatus, Sort}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
@@ -24,7 +25,6 @@ import sttp.model.headers.CacheDirective
 import sttp.model.{HeaderNames, StatusCode}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -47,13 +47,12 @@ trait DraftConceptController {
     override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
     private val pathStatus = path[String]("STATUS").description("Concept status")
-    private val statusFilter = query[CommaSeparated[String]]("status")
+    private val statusFilter = listQuery[String]("status")
       .description(
         s"""List of statuses to filter by.
          |A draft only needs to have one of the available statuses to appear in result (OR).
        """.stripMargin
       )
-      .default(Delimited[",", String](List.empty))
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getStatusStateMachine,

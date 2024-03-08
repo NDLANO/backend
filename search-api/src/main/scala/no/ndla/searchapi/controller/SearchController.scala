@@ -10,6 +10,7 @@ package no.ndla.searchapi.controller
 
 import cats.implicits._
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.CommaSeparatedList._
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
@@ -40,7 +41,6 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorServic
 import scala.util.{Failure, Success, Try}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
@@ -84,70 +84,58 @@ trait SearchController {
       .default(DefaultPageSize)
       .validate(Validator.inRange(1, MaxPageSize))
     private val resourceTypes =
-      query[CommaSeparated[String]]("resource-types")
+      listQuery[String]("resource-types")
         .description(
           "Return only learning resources of specific type(s). To provide multiple types, separate by comma (,)."
         )
-        .default(Delimited[",", String](List.empty))
     private val learningResourceIds =
-      query[CommaSeparated[Long]]("ids")
+      listQuery[Long]("ids")
         .description(
           "Return only learning resources that have one of the provided ids. To provide multiple ids, separate by comma (,)."
         )
-        .default(Delimited[",", Long](List.empty))
     private val fallback =
       query[Boolean]("fallback")
         .description("Fallback to existing language if language is specified.")
         .default(false)
     private val subjects =
-      query[CommaSeparated[String]]("subjects")
+      listQuery[String]("subjects")
         .description("A comma separated list of subjects the learning resources should be filtered by.")
-        .default(Delimited[",", String](List.empty))
     private val articleTypes =
-      query[CommaSeparated[String]]("article-types")
+      listQuery[String]("article-types")
         .description(
           s"A comma separated list of article-types the search should be filtered by. Available values is ${ArticleType.all
               .mkString(", ")}"
         )
-        .default(Delimited[",", String](List.empty))
     private val contextTypes =
-      query[CommaSeparated[String]]("context-types")
+      listQuery[String]("context-types")
         .description(
           s"A comma separated list of context-types the learning resources should be filtered by. Available values is ${LearningResourceType.values
               .mkString(", ")}"
         )
-        .default(Delimited[",", String](List.empty))
     private val groupTypes =
-      query[CommaSeparated[String]]("resource-types")
+      listQuery[String]("resource-types")
         .description("A comma separated list of resource-types the learning resources should be grouped by.")
-        .default(Delimited[",", String](List.empty))
-    private val languageFilter = query[CommaSeparated[String]]("language-filter")
-      .description(
-        "A comma separated list of ISO 639-1 language codes that the learning resource can be available in."
-      )
-      .default(Delimited[",", String](List.empty))
-    private val relevanceFilter = query[CommaSeparated[String]]("relevance")
+    private val languageFilter = listQuery[String]("language-filter")
+      .description("A comma separated list of ISO 639-1 language codes that the learning resource can be available in.")
+    private val relevanceFilter = listQuery[String]("relevance")
       .description(
         """A comma separated list of relevances the learning resources should be filtered by.
         |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
         |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin
       )
-      .default(Delimited[",", String](List.empty))
-    private val contextFilters = query[CommaSeparated[String]]("context-filters")
+    private val contextFilters = listQuery[String]("context-filters")
       .description(
         """A comma separated list of resource-types the learning resources should be filtered by.
         |Used in conjunction with the parameter resource-types to filter additional resource-types.
       """.stripMargin
       )
-      .default(Delimited[",", String](List.empty))
     private val includeMissingResourceTypeGroup = query[Boolean]("missing-group")
       .description(
         "Whether to include group without resource-types for group-search. Defaults to false."
       )
       .default(false)
-    private val grepCodes = query[CommaSeparated[String]]("grep-codes")
+    private val grepCodes = listQuery[String]("grep-codes")
       .description("A comma separated list of codes from GREP API the resources should be filtered by.")
-      .default(Delimited[",", String](List.empty))
     private val scrollId = query[Option[String]]("search-context")
       .description(
         s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
@@ -157,15 +145,13 @@ trait SearchController {
           |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
           |""".stripMargin
       )
-    private val aggregatePaths = query[CommaSeparated[String]]("aggregate-paths")
+    private val aggregatePaths = listQuery[String]("aggregate-paths")
       .description("List of index-paths that should be term-aggregated and returned in result.")
-      .default(Delimited[",", String](List.empty))
     private val embedResource =
-      query[CommaSeparated[String]]("embed-resource")
+      listQuery[String]("embed-resource")
         .description(
           "Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types."
         )
-        .default(Delimited[",", String](List.empty))
     private val embedId =
       query[Option[String]]("embed-id")
         .description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
