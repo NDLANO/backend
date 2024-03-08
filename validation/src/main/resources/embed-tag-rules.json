@@ -1136,7 +1136,15 @@
         {
           "name": "data-url-text",
           "validation": {
-            "required": false
+            "required": false,
+            "allowedHtml": [
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
+            ]
           }
         },
         {
