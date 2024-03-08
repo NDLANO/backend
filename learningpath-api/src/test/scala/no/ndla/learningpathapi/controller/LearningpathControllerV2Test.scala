@@ -8,38 +8,29 @@
 
 package no.ndla.learningpathapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.{NDLADate, api => commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.Node
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
-import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import no.ndla.myndla.model.domain.InvalidStatusException
-import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
 import org.mockito.ArgumentMatchers._
-
-import scala.util.{Failure, Success}
 import sttp.client3.quick._
 
-class LearningpathControllerV2Test extends UnitSuite with TestEnvironment {
+import scala.util.{Failure, Success}
+
+class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
 
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-  val serverPort: Int           = findFreePort
   val controller                = new LearningpathControllerV2
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("LearningpathControllerV2Test", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
 
   override def beforeEach(): Unit = {
     resetMocks()
@@ -356,14 +347,5 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment {
       quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/contains-article/")
     )
     res2.code.code should be(400)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

@@ -7,7 +7,6 @@
 
 package no.ndla.integrationtests.searchapi.draftapi
 
-import cats.effect.{IO, unsafe}
 import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
@@ -24,7 +23,8 @@ import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
-import scala.concurrent.Future
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Success, Try}
 
 class DraftApiClientTest
@@ -60,13 +60,14 @@ class DraftApiClientTest
     override def SearchServer: String = esHost
   }
 
-  var draftApi: draftapi.MainClass   = null
-  var cancelFunc: () => Future[Unit] = null
-  val draftApiBaseUrl                = s"http://localhost:$draftApiPort"
+  var draftApi: draftapi.MainClass = null
+  val draftApiBaseUrl              = s"http://localhost:$draftApiPort"
 
   override def beforeAll(): Unit = {
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     draftApi = new draftapi.MainClass(draftApiProperties)
-    cancelFunc = IO { draftApi.run() }.unsafeRunCancelable()(unsafe.IORuntime.global)
+    Future { draftApi.run() }: Unit
     blockUntil(() => {
       import sttp.client3.quick._
       val req = quickRequest.get(uri"$draftApiBaseUrl/health")

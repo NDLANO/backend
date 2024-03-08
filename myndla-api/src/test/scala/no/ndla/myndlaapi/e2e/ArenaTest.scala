@@ -8,8 +8,6 @@
 
 package no.ndla.myndlaapi.e2e
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
@@ -26,6 +24,8 @@ import org.testcontainers.containers.PostgreSQLContainer
 import sttp.client3.Response
 import sttp.client3.quick._
 
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.DurationInt
 import scala.util.Success
 
@@ -83,7 +83,8 @@ class ArenaTest
   val myndlaApiArenaUrl = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
 
   override def beforeAll(): Unit = {
-    IO { myndlaApi.run() }.unsafeRunAndForget()
+    implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    Future { myndlaApi.run() }: Unit
     Thread.sleep(1000)
   }
 

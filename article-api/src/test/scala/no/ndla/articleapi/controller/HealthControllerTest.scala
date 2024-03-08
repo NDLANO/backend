@@ -8,36 +8,17 @@
 
 package no.ndla.articleapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.articleapi.{Eff, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
-class HealthControllerTest extends UnitSuite with TestEnvironment {
-  val serverPort: Int = findFreePort
-
-  override val healthController = new TapirHealthController[Eff]()
-  healthController.setWarmedUp()
-  override val services: List[Service[Eff]] = List(healthController)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  override val controller = new TapirHealthController[Eff]()
+  controller.setWarmedUp()
 
   test("That /health returns 200 ok") {
     val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/health"))
     response.code.code should be(200)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(healthController.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${healthController.serviceName} controller:$errString")
-    }
   }
 
 }

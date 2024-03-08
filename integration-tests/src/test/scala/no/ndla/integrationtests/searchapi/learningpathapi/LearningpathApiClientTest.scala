@@ -7,7 +7,6 @@
 
 package no.ndla.integrationtests.searchapi.learningpathapi
 
-import cats.effect.{IO, unsafe}
 import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftStatus
@@ -25,7 +24,8 @@ import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
-import scala.concurrent.Future
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Success, Try}
 
 class LearningpathApiClientTest
@@ -63,12 +63,13 @@ class LearningpathApiClientTest
   }
 
   var learningpathApi: learningpathapi.MainClass = null
-  var cancelFunc: () => Future[Unit]             = null
   val learningpathApiBaseUrl                     = s"http://localhost:$learningpathApiPort"
 
   override def beforeAll(): Unit = {
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
-    cancelFunc = IO { learningpathApi.run() }.unsafeRunCancelable()(unsafe.IORuntime.global)
+    Future { learningpathApi.run() }: Unit
     blockUntil(() => {
       import sttp.client3.quick._
       val req = quickRequest.get(uri"$learningpathApiBaseUrl/health")

@@ -89,7 +89,7 @@ trait TestEnvironment
   val redisClient: RedisClient                                         = mock[RedisClient]
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
 
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = {
     reset(

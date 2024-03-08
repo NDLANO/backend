@@ -8,16 +8,14 @@
 
 package no.ndla.imageapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
-import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.{api => commonApi}
+import no.ndla.common.model.{NDLADate, api => commonApi}
+import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
-import no.ndla.imageapi.model.api
-import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.jackson.Serialization._
@@ -25,17 +23,9 @@ import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment {
-
-  val serverPort: Int                           = findFreePort
-  override val converterService                 = new ConverterService
-  val controller                                = new InternController
-  override val services: List[InternController] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("InternControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  override val converterService = new ConverterService
+  val controller                = new InternController
 
   val updated = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val BySa    = getLicense(CC_BY.toString).get
@@ -177,14 +167,5 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     verify(imageIndexService).deleteIndexWithName(Some("index1"))
     verify(imageIndexService).deleteIndexWithName(Some("index2"))
     verify(imageIndexService).deleteIndexWithName(Some("index3"))
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

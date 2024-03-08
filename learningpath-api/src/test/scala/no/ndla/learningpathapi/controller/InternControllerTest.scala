@@ -7,27 +7,18 @@
 
 package no.ndla.learningpathapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.learningpathapi.{Eff, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import scalikejdbc.DBSession
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
 
-  implicit val jsonFormats: Formats         = org.json4s.DefaultFormats
-  val serverPort: Int                       = findFreePort
-  val controller                            = new InternController
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("InternControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+  implicit val jsonFormats: Formats = org.json4s.DefaultFormats
+  val controller                    = new InternController
 
   test("that id with value 404 gives OK") {
     resetMocks()
@@ -96,14 +87,5 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     verify(searchIndexService).deleteIndexWithName(Some("index1"))
     verify(searchIndexService).deleteIndexWithName(Some("index2"))
     verify(searchIndexService).deleteIndexWithName(Some("index3"))
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

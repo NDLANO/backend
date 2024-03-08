@@ -7,7 +7,6 @@
 
 package no.ndla.integrationtests.draftapi.articleapi
 
-import cats.effect.{IO, unsafe}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
@@ -23,8 +22,9 @@ import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.UUID
+import java.util.concurrent.Executors
 import scala.annotation.unused
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
@@ -55,16 +55,18 @@ class ArticleApiClientTest
   }
 
   var articleApi: articleapi.MainClass = null
-  var cancelFunc: () => Future[Unit]   = null
   val articleApiBaseUrl                = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
-    cancelFunc = IO { articleApi.run() }.unsafeRunCancelable()(unsafe.IORuntime.global)
+    Future { articleApi.run() }: Unit
     blockUntil(() => {
       import sttp.client3.quick._
       val req = quickRequest.get(uri"$articleApiBaseUrl/health")
       val res = Try(simpleHttpClient.send(req))
+      println(res)
       res.map(_.code.code) == Success(200)
     })
   }

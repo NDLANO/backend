@@ -31,7 +31,7 @@ import java.util.concurrent.{ExecutorService, Executors}
 trait Routes[F[_]] {
   this: NdlaMiddleware with TapirErrorHelpers with HasBaseProps =>
 
-  val services: List[Service[F]]
+  def services: List[Service[F]]
 
   object Routes {
     val logger: Logger = getLogger

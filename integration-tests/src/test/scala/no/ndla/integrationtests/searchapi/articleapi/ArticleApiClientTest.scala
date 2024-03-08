@@ -7,7 +7,6 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
-import cats.effect.{IO, unsafe}
 import enumeratum.Json4s
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.NDLADate
@@ -26,7 +25,8 @@ import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
-import scala.concurrent.Future
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
@@ -65,12 +65,13 @@ class ArticleApiClientTest
   }
 
   var articleApi: articleapi.MainClass = null
-  var cancelFunc: () => Future[Unit]   = null
   val articleApiBaseUrl                = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
-    cancelFunc = IO { articleApi.run() }.unsafeRunCancelable()(unsafe.IORuntime.global)
+    Future { articleApi.run() }: Unit
 
     blockUntil(() => {
       import sttp.client3.quick._

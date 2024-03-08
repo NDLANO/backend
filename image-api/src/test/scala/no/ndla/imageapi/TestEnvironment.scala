@@ -104,5 +104,5 @@ trait TestEnvironment
   val clock  = mock[SystemClock]
   val random = mock[Random]
 
-  val services: List[Service[Eff]] = List.empty
+  def services: List[Service[Eff]] = List.empty
 }

@@ -8,8 +8,6 @@
 
 package no.ndla.imageapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Copyright
@@ -21,8 +19,9 @@ import no.ndla.imageapi.model.api.{
 }
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
-import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonParser
 import org.json4s.{DefaultFormats, Formats}
@@ -32,7 +31,7 @@ import sttp.client3.quick._
 
 import scala.util.{Failure, Success, Try}
 
-class ImageControllerV2Test extends UnitSuite with TestEnvironment {
+class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJpbWFnZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.1_j9R9KML2LTqeAE4bpRByJcR6m6Tv3pTOozpYCnTC8"
 
@@ -42,16 +41,9 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment {
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJzb21lOm90aGVyIl0sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.u8o7-FXyVzWurle2tP1pngad8KRja6VjFdmy71T4m0k"
 
-  val serverPort: Int           = findFreePort
   override val converterService = new ConverterService
   val controller = new ImageControllerV2 {
     override val maxImageFileSizeBytes: Int = 10
-  }
-  override val services = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("ImageControllerV2Test", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
   }
 
   override def beforeEach(): Unit = {
@@ -480,14 +472,4 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment {
     verify(imageSearchService, times(0)).scrollV2(any[String], any[String], any)
 
   }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
-  }
-
 }

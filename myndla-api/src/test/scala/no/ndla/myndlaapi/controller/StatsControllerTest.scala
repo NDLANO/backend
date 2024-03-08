@@ -7,26 +7,16 @@
 
 package no.ndla.myndlaapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.myndla.model.api.{SingleResourceStats, Stats}
 import no.ndla.myndlaapi.{Eff, TestEnvironment}
-import no.ndla.network.tapir.Service
 import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
 import scala.util.Success
 
-class StatsControllerTest extends UnitTestSuite with TestEnvironment {
-  val serverPort: Int = findFreePort
-
-  val controller                            = new StatsController()
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
+  val controller = new StatsController()
 
   test("That getting stats returns in fact stats") {
     when(folderReadService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty)))
@@ -43,15 +33,6 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment {
     response.code.code should be(200)
 
     verify(folderReadService, times(1)).getFavouriteStatsForResource("123", List("article", "multidisciplinary"))
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 
 }

@@ -8,29 +8,20 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.audioapi.TestData._
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
-import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{domain => common}
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment {
-
-  val serverPort: Int                           = findFreePort
-  override val converterService                 = new ConverterService
-  val controller                                = new InternController
-  override val services: List[InternController] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("InternControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+  override val converterService = new ConverterService
+  override val controller       = new InternController
 
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
@@ -130,14 +121,4 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     verify(audioIndexService).deleteIndexWithName(Some("index2"))
     verify(audioIndexService).deleteIndexWithName(Some("index3"))
   }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
-  }
-
 }

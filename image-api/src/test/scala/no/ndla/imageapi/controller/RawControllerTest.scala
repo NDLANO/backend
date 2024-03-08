@@ -7,37 +7,27 @@
 
 package no.ndla.imageapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Strictness
+import sttp.client3.quick._
 
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
-import sttp.client3.quick._
 
-class RawControllerTest extends UnitSuite with TestEnvironment {
-  val serverPort: Int = findFreePort
-
+class RawControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
   val imageName    = "ndla_logo.jpg"
   val imageGifName = "ndla_logo.gif"
   val imageSvgName = "logo.svg"
 
-  override val imageConverter               = new ImageConverter
-  val controller                            = new RawController
-  override val services: List[Service[Eff]] = List(controller)
+  override val imageConverter = new ImageConverter
+  val controller              = new RawController
 
   val id    = 1L
   val idGif = 1L
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer("RawControllerTest", serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
 
   def req = basicRequest.response(asByteArrayAlways)
 
@@ -297,14 +287,5 @@ class RawControllerTest extends UnitSuite with TestEnvironment {
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(189)
     image.getHeight should equal(60)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }

@@ -12,26 +12,15 @@ import no.ndla.myndla.model.api.config.{ConfigMeta, ConfigMetaValue}
 import no.ndla.myndla.model.domain.config.ConfigKey
 import no.ndla.myndlaapi.TestData.{adminAndWriteScopeClientToken, adminScopeClientToken}
 import no.ndla.myndlaapi.{Eff, TestEnvironment}
-import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
-class ConfigControllerTest extends UnitTestSuite with TestEnvironment {
-  val serverPort: Int = findFreePort
-
-  val controller                            = new ConfigController()
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
-    Future { Routes.startJdkServer(this.getClass.getName, serverPort) {} }
-    Thread.sleep(1000)
-  }
+class ConfigControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
+  val controller = new ConfigController()
 
   test("That updating config returns 200 if all is good") {
     when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValue], any[TokenUser]))
@@ -62,14 +51,4 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment {
     )
     response2.code.code should be(200)
   }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
-  }
-
 }

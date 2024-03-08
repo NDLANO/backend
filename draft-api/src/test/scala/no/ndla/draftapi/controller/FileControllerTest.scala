@@ -7,30 +7,20 @@
 
 package no.ndla.draftapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.domain
 import no.ndla.draftapi.model.api.UploadedFile
 import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
+import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.read
 import sttp.client3.quick._
 
 import scala.util.Success
 
-class FileControllerTest extends UnitSuite with TestEnvironment {
+class FileControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  val serverPort: Int = findFreePort
-
-  val controller                            = new FileController
-  override val services: List[Service[Eff]] = List(controller)
-
-  override def beforeAll(): Unit = {
-    IO { Routes.startJdkServer(this.getClass.getName, serverPort) {} }.unsafeRunAndForget()
-    Thread.sleep(1000)
-  }
+  val controller = new FileController
 
   override def beforeEach(): Unit = {
     reset(clock)
@@ -74,14 +64,5 @@ class FileControllerTest extends UnitSuite with TestEnvironment {
         .multipartBody[Any](multipart("file", exampleFileBody))
     )
     resp.code.code should be(401)
-  }
-
-  test("That no endpoints are shadowed") {
-    import sttp.tapir.testing.EndpointVerifier
-    val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
-    if (errors.nonEmpty) {
-      val errString = errors.map(e => e.toString).mkString("\n\t- ", "\n\t- ", "")
-      fail(s"Got errors when verifying ${controller.serviceName} controller:$errString")
-    }
   }
 }
