@@ -105,22 +105,17 @@ object DBConfigMeta extends SQLSyntaxSupport[ConfigMeta] with StrictLogging {
 
   override val tableName = "configtable"
 
-  def fromResultSet(c: SyntaxProvider[ConfigMeta])(rs: WrappedResultSet): ConfigMeta = fromResultSet(c.resultName)(rs)
+  def fromResultSet(c: SyntaxProvider[ConfigMeta])(rs: WrappedResultSet): Try[ConfigMeta] =
+    fromResultSet(c.resultName)(rs)
   import ConfigMetaValue._
 
   implicit val enc: Encoder[ConfigMeta] = deriveEncoder[ConfigMeta]
   implicit val dec: Decoder[ConfigMeta] = deriveDecoder[ConfigMeta]
 
-  def fromResultSet(c: ResultName[ConfigMeta])(rs: WrappedResultSet): ConfigMeta = {
+  def fromResultSet(c: ResultName[ConfigMeta])(rs: WrappedResultSet): Try[ConfigMeta] = {
     val dbStr  = rs.string(c.column("value"))
     val parsed = parse(dbStr)
-    parsed.flatMap(_.as[ConfigMeta]) match {
-      case Right(json) => json
-      case Left(err) =>
-        logger.error(s"Could not parse json from database: '$dbStr'", err)
-        // TODO: Would love to propagate these errors via `Try/Either` instead of throwing an exception
-        throw new RuntimeException("Could not parse json from database")
-    }
+    parsed.flatMap(_.as[ConfigMeta]).toTry
   }
 
 }

@@ -25,32 +25,38 @@ trait ConfigService {
 
   class ConfigService {
 
-    def isWriteRestricted: Boolean = getConfigBoolean(ConfigKey.LearningpathWriteRestricted)
+    def isWriteRestricted: Try[Boolean] = getConfigBoolean(ConfigKey.LearningpathWriteRestricted)
 
-    def isMyNDLAWriteRestricted: Boolean = getConfigBoolean(ConfigKey.MyNDLAWriteRestricted)
+    def isMyNDLAWriteRestricted: Try[Boolean] = getConfigBoolean(ConfigKey.MyNDLAWriteRestricted)
 
     def getMyNDLAEnabledOrgs: Try[List[String]] = getConfigStringList(ConfigKey.ArenaEnabledOrgs)
 
     def getMyNDLAEnabledUsers: Try[List[String]] = getConfigStringList(ConfigKey.ArenaEnabledUsers)
 
-    private def getConfigBoolean(configKey: ConfigKey): Boolean = {
+    private def getConfigBoolean(configKey: ConfigKey): Try[Boolean] = {
       configRepository
         .getConfigWithKey(configKey)
-        .map(_.value)
-        .collectFirst { case BooleanValue(value) => value }
-        .getOrElse(false)
+        .map(config =>
+          config
+            .map(_.value)
+            .collectFirst { case BooleanValue(value) => value }
+            .getOrElse(false)
+        )
     }
 
-    private def getConfigStringList(configKey: ConfigKey): Try[List[String]] = Try {
+    private def getConfigStringList(configKey: ConfigKey): Try[List[String]] = {
       configRepository
         .getConfigWithKey(configKey)
-        .map(_.value)
-        .collectFirst { case StringListValue(value) => value }
-        .getOrElse(List.empty)
+        .map(config =>
+          config
+            .map(_.value)
+            .collectFirst { case StringListValue(value) => value }
+            .getOrElse(List.empty)
+        )
     }
 
     def getConfig(configKey: ConfigKey): Try[ConfigMetaRestricted] = {
-      configRepository.getConfigWithKey(configKey) match {
+      configRepository.getConfigWithKey(configKey).flatMap {
         case None      => Failure(NotFoundException(s"Configuration with key $configKey does not exist"))
         case Some(key) => Success(asApiConfigRestricted(key))
       }

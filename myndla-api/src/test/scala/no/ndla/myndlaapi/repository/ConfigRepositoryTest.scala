@@ -15,7 +15,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 import scalikejdbc._
 
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 class ConfigRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "myndlaapi_test")
@@ -77,7 +77,7 @@ class ConfigRepositoryTest
     repository.updateConfigParam(newConfig)
 
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Some(newConfig))
+    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Success(Some(newConfig)))
   }
 
   test("That updating config works as expected") {
@@ -90,7 +90,7 @@ class ConfigRepositoryTest
 
     repository.updateConfigParam(originalConfig)
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Some(originalConfig))
+    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Success(Some(originalConfig)))
 
     val updatedConfig = ConfigMeta(
       key = ConfigKey.LearningpathWriteRestricted,
@@ -101,6 +101,6 @@ class ConfigRepositoryTest
 
     repository.updateConfigParam(updatedConfig)
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Some(updatedConfig))
+    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Success(Some(updatedConfig)))
   }
 }

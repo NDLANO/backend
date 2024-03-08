@@ -51,14 +51,19 @@ trait FolderWriteService {
       getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
         if (myNDLAUser.isStudent && updatedFolder.status.contains(domain.FolderStatus.SHARED.toString))
           Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
-        else if (!canWriteNow(myNDLAUser))
-          Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-        else Success(())
+        else
+          canWriteNow(myNDLAUser).flatMap {
+            case true => Success(())
+            case false =>
+              Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+          }
       })
     }
 
-    private def canWriteNow(myNDLAUser: domain.MyNDLAUser): Boolean =
-      myNDLAUser.isTeacher || !configService.isMyNDLAWriteRestricted
+    private def canWriteNow(myNDLAUser: domain.MyNDLAUser): Try[Boolean] = {
+      if (myNDLAUser.isTeacher) return Success(true)
+      configService.isMyNDLAWriteRestricted.map(!_)
+    }
 
     def changeStatusOfFolderAndItsSubfolders(
         folderId: UUID,
@@ -627,10 +632,13 @@ trait FolderWriteService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[_] = {
       getMyNDLAUser(feideId, feideAccessToken)
-        .flatMap(myNDLAUser => {
-          if (canWriteNow(myNDLAUser)) Success(())
-          else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-        })
+        .flatMap(myNDLAUser =>
+          canWriteNow(myNDLAUser).flatMap {
+            case true => Success(())
+            case false =>
+              Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+          }
+        )
     }
 
     private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[_] = {
