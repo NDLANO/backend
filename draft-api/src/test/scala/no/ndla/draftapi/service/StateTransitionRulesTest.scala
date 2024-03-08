@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Priority, Responsible, Status}
 import no.ndla.common.model.domain.draft.Draft
@@ -391,7 +390,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           TestData.userWithPublishAccess,
           false
         )
-        .unsafeRunSync()
     )
     verify(articleApiClient, times(transitionsToTest.size))
       .validateArticle(any[common.article.Article], any[Boolean], any)
@@ -486,7 +484,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result = StateTransitionRules
         .doTransition(fromDraft, PUBLISHED, TestData.userWithAdminAccess, isImported = false)
-        .unsafeRunSync()
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -546,7 +543,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result = StateTransitionRules
         .doTransition(fromDraft, ARCHIVED, TestData.userWithAdminAccess, isImported = false)
-        .unsafeRunSync()
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -609,7 +605,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result = StateTransitionRules
         .doTransition(fromDraft, UNPUBLISHED, TestData.userWithAdminAccess, isImported = false)
-        .unsafeRunSync()
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -671,7 +666,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val fromDraft = draft.copy(status = status.copy(current = transitionToTest.from))
     val result = StateTransitionRules
       .doTransition(fromDraft, IN_PROGRESS, TestData.userWithAdminAccess, isImported = false)
-      .unsafeRunSync()
 
     result.get.responsible.get.responsibleId should be(expected)
   }

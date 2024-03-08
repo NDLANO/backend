@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.service
 
 import cats.implicits._
-import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
@@ -333,7 +332,7 @@ trait ConverterService {
       )
     }
 
-    def updateStatus(status: ConceptStatus, concept: domain.Concept, user: TokenUser): IO[Try[domain.Concept]] =
+    def updateStatus(status: ConceptStatus, concept: domain.Concept, user: TokenUser): Try[domain.Concept] =
       StateTransitionRules.doTransition(concept, status, user)
 
     def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: TokenUser): domain.Concept = {

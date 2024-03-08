@@ -7,7 +7,6 @@
 
 package no.ndla.conceptapi.service
 
-import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -113,12 +112,7 @@ trait WriteService {
         val newStatusIfNotDefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
         val newStatus             = updateStatus.flatMap(ConceptStatus.valueOf).getOrElse(newStatusIfNotDefined)
 
-        converterService
-          .updateStatus(newStatus, changed, user)
-          .attempt
-          .unsafeRunSync()
-          .toTry
-          .flatten
+        converterService.updateStatus(newStatus, changed, user)
       }
     }
 
@@ -255,12 +249,7 @@ trait WriteService {
         case None => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
-            convertedConceptT <- converterService
-              .updateStatus(status, draft, user)
-              .attempt
-              .unsafeRunSync()
-              .toTry
-            convertedConcept <- convertedConceptT
+            convertedConcept <- converterService.updateStatus(status, draft, user)
             updatedConcept   <- updateConcept(convertedConcept)
             _                <- draftConceptIndexService.indexDocument(updatedConcept)
             apiConcept <- converterService.toApiConcept(

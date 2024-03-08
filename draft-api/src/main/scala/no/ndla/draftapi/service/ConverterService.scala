@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
@@ -348,7 +347,7 @@ trait ConverterService {
         draft: Draft,
         user: TokenUser,
         isImported: Boolean
-    ): IO[Try[Draft]] = StateTransitionRules.doTransition(draft, status, user, isImported)
+    ): Try[Draft] = StateTransitionRules.doTransition(draft, status, user, isImported)
 
     private def toApiResponsible(responsible: Responsible): api.DraftResponsible =
       api.DraftResponsible(

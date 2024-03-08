@@ -1,6 +1,5 @@
 package no.ndla.conceptapi.service
 
-import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
@@ -54,9 +53,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     )
     for (t <- transitionsToTest) {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result = StateTransitionRules
-        .doTransition(fromDraft, ConceptStatus.PUBLISHED, TestData.userWithWriteAndPublishAccess)
-        .unsafeRunSync()
+      val result =
+        StateTransitionRules.doTransition(fromDraft, ConceptStatus.PUBLISHED, TestData.userWithWriteAndPublishAccess)
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -109,7 +107,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result = StateTransitionRules
         .doTransition(fromDraft, ConceptStatus.ARCHIVED, TestData.userWithWriteAndPublishAccess)
-        .unsafeRunSync()
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -162,7 +159,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result = StateTransitionRules
         .doTransition(fromDraft, ConceptStatus.UNPUBLISHED, TestData.userWithWriteAndPublishAccess)
-        .unsafeRunSync()
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -215,7 +211,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val fromConcept = concept.copy(status = status.copy(current = transitionToTest.from))
     val result = StateTransitionRules
       .doTransition(fromConcept, ConceptStatus.IN_PROGRESS, TestData.userWithWriteAndPublishAccess)
-      .unsafeRunSync()
 
     result.get.responsible.get.responsibleId should be(expected)
   }

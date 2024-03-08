@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import cats.effect.unsafe.implicits.global
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
@@ -458,10 +457,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val user = TokenUser("Pelle", Set(DRAFT_API_WRITE), None)
     val updatedArticle = converterService
       .updateStatus(DraftStatus.IN_PROGRESS, articleToUpdate, user, isImported = false)
-      .attempt
-      .unsafeRunSync()
-      .toTry
-      .get
       .get
     val updatedAndInserted = updatedArticle
       .copy(

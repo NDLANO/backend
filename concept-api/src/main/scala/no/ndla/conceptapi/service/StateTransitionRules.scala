@@ -7,7 +7,6 @@
 
 package no.ndla.conceptapi.service
 
-import cats.effect.IO
 import no.ndla.common.model.domain.Responsible
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain
@@ -17,7 +16,6 @@ import no.ndla.conceptapi.model.domain.{ConceptStatus, StateTransition}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation.ContentValidator
-import no.ndla.network.model.RequestInfo
 import no.ndla.common.Clock
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
@@ -180,20 +178,13 @@ trait StateTransitionRules {
         current: domain.Concept,
         to: ConceptStatus,
         user: TokenUser
-    ): IO[Try[domain.Concept]] = {
+    ): Try[domain.Concept] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user)
-      val requestInfo                     = RequestInfo.fromThreadContext()
-      requestInfo.setRequestInfo() >>
-        IO {
-          // TODO: This can be removed once the `IO` is returned all the way to the runtime so IOLocal context works
-          requestInfo.setThreadContextRequestInfo()
-
-          convertedArticle.flatMap(conceptBeforeSideEffect => {
-            sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {
-              accumulatedConcept.flatMap(c => sideEffect(c, user))
-            })
-          })
-        }
+      convertedArticle.flatMap(conceptBeforeSideEffect => {
+        sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {
+          accumulatedConcept.flatMap(c => sideEffect(c, user))
+        })
+      })
     }
   }
 }
