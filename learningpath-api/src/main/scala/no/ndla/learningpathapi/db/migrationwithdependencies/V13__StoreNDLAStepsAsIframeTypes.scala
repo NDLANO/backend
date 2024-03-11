@@ -11,7 +11,7 @@ import io.lemonlabs.uri.Url
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.domain.InvalidOembedResponse
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.Formats
+import org.json4s.*
 import org.json4s.JsonAST.{JArray, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.read

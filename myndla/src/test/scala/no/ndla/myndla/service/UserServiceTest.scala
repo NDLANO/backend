@@ -15,6 +15,8 @@ import no.ndla.myndla.model.domain.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument,
 import no.ndla.myndla.model.api
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
 import no.ndla.scalatestsuite.UnitTestSuite
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{doReturn, spy, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 

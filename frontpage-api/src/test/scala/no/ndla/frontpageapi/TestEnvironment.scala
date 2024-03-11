@@ -16,7 +16,7 @@ import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, 
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends MockitoSugar

@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.{api => commonApi, domain => common}
+import no.ndla.common.model.{api as commonApi, domain as common}
 import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.domain.{ConceptType, VisualElement, WordClass}
 import no.ndla.conceptapi.model.{api, domain}
@@ -19,6 +19,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
+import org.mockito.Mockito.when
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 

@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.ArticleType
 import java.time.LocalDateTime
 import no.ndla.draftapi.db.migration.V17__MoveTopicArticleEmbedToVisualElement
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
-import org.json4s.Formats
+import org.json4s.*
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write

@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ArticleSummaryV2
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.configuration.Constants.EmbedTagName
@@ -18,6 +18,8 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{ArticleContent, ArticleType, Availability, VisualElement}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.{ResourceType, TagAttribute}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}

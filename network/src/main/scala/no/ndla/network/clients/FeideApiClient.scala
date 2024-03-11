@@ -13,9 +13,9 @@ import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.implicits.TryQuestionMark
 import org.json4s.native.JsonMethods
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.*
 import sttp.client3.Response
-import sttp.client3.quick._
+import sttp.client3.quick.*
 import sttp.model.Uri
 
 import scala.concurrent.duration.DurationInt

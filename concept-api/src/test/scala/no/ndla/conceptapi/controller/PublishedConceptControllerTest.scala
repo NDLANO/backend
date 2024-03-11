@@ -12,16 +12,19 @@ import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.DefaultFormats
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, times, verify, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val controller                            = new PublishedConceptController
+  val controller: PublishedConceptController = new PublishedConceptController
 
   override def beforeEach(): Unit = {
-    reset(clock, searchConverterService)
+    reset(clock)
+    reset(searchConverterService)
     when(clock.now()).thenCallRealMethod()
   }
 

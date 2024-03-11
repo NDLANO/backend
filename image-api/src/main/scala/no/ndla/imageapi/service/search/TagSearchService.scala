@@ -35,9 +35,9 @@ trait TagSearchService {
 
   class TagSearchService extends StrictLogging with SearchService[String] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, TagSearchIndex}
-    implicit val formats: Formats    = DefaultFormats
-    override val searchIndex: String = TagSearchIndex
-    override val indexService        = tagIndexService
+    implicit val formats: Formats              = DefaultFormats
+    override val searchIndex: String           = TagSearchIndex
+    override val indexService: TagIndexService = tagIndexService
 
     override def hitToApiModel(hit: String, language: String): Try[String] = {
       Try(read[SearchableTag](hit)).map(_.tag)

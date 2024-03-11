@@ -8,9 +8,9 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
-import no.ndla.common.model.{api => commonApi}
+import no.ndla.common.model.api as commonApi
 import no.ndla.conceptapi.model.api.ConceptResponsible
-import no.ndla.conceptapi.model.domain._
+import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
@@ -21,7 +21,9 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{Missing, UpdateWith}
-import org.mockito.stubbing.ScalaOngoingStubbing
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.stubbing.OngoingStubbing
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
@@ -45,7 +47,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     responsible = Some(Responsible("hei", TestData.today))
   )
 
-  def mockWithConcept(concept: domain.Concept): ScalaOngoingStubbing[NDLADate] = {
+  def mockWithConcept(concept: domain.Concept): OngoingStubbing[NDLADate] = {
     when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
     when(draftConceptRepository.update(any[Concept])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))
@@ -225,7 +227,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
-    when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
+    when(draftConceptRepository.withId(any)).thenReturn(Some(concept))
 
     val updated = service.deleteLanguage(concept.id.get, "nn", userInfo).get
     verify(draftConceptRepository).update(conceptCaptor.capture())

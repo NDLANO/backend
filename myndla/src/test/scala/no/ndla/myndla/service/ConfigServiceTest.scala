@@ -14,6 +14,8 @@ import no.ndla.myndla.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.UnitTestSuite
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}

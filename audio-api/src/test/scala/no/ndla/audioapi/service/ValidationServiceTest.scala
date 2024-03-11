@@ -14,6 +14,7 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.mapping.License.CC_BY
+import org.mockito.Mockito.{doReturn, reset, spy, when}
 
 import java.awt.image.BufferedImage
 

@@ -9,27 +9,28 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.domain
-import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
-import sttp.client3.Response
-import sttp.client3.quick._
-import sttp.model.StatusCode
+import org.mockito.Mockito.when
+import sttp.client3.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: Formats = org.json4s.DefaultFormats
 
-  val httpResponseMock: Response[String] = mock[Response[String]]
-
-  lazy val controller: HealthController = new HealthController {
-    override def getApiResponse(url: String): Response[String] = httpResponseMock
+  var healthControllerResponse: Int = 200
+  val controller: HealthController = new HealthController {
+    override def getApiResponse(url: String): Int = healthControllerResponse
   }
-
   controller.setWarmedUp()
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+  }
 
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
@@ -54,11 +55,11 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     None
   )
 
-  when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
+  healthControllerResponse = 404
   when(audioRepository.getRandomAudio()).thenReturn(None)
 
   test("that /health returns 200 on success") {
-    when(httpResponseMock.code).thenReturn(StatusCode.Ok)
+    healthControllerResponse = 200
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
     val request =
@@ -70,7 +71,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("that /health returns 500 on failure") {
-    when(httpResponseMock.code).thenReturn(StatusCode.InternalServerError)
+    healthControllerResponse = 500
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
     val request =
@@ -82,7 +83,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("that /health returns 200 on no images") {
-    when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
+    healthControllerResponse = 404
     when(audioRepository.getRandomAudio()).thenReturn(None)
 
     val request =

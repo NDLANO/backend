@@ -13,11 +13,14 @@ import no.ndla.articleapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Author, Availability}
+import no.ndla.network.tapir.Service
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.{DefaultFormats, Formats}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
 import org.mockito.invocation.InvocationOnMock
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -31,7 +34,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   val author: Author = Author("forfatter", "Henrik")
 
-  val controller = new InternController
+  val controller: Service[Eff] = new InternController
 
   when(clock.now()).thenCallRealMethod()
 

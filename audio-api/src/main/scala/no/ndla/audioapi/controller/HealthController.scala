@@ -11,7 +11,6 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.network.tapir.TapirHealthController
-import sttp.client3.Response
 import sttp.client3.quick._
 
 trait HealthController {
@@ -22,12 +21,12 @@ trait HealthController {
     private val localhost = "localhost"
     private val localport = props.ApplicationPort
 
-    def getApiResponse(url: String): Response[String] = {
-      simpleHttpClient.send(quickRequest.get(uri"$url"))
+    def getApiResponse(url: String): Int = {
+      simpleHttpClient.send(quickRequest.get(uri"$url")).code.code
     }
 
-    private def getReturnCode(imageResponse: Response[String]) = {
-      imageResponse.code.code match {
+    private def getReturnCode(imageResponse: Int) = {
+      imageResponse match {
         case 200 => Right("Healthy")
         case _   => Left("Internal server error")
       }

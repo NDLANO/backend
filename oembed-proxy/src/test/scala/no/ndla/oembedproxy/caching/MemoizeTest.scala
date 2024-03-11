@@ -10,6 +10,7 @@ package no.ndla.oembedproxy.caching
 
 import no.ndla.oembedproxy.UnitSuite
 import no.ndla.oembedproxy.model.DoNotUpdateMemoizeException
+import org.mockito.Mockito.{times, verify, when}
 
 class MemoizeTest extends UnitSuite {
 
@@ -62,7 +63,7 @@ class MemoizeTest extends UnitSuite {
 
     when(targetMock.targetMethod())
       .thenReturn("Hello from mock")
-      .andThenThrow(new DoNotUpdateMemoizeException("Woop"))
+      .thenThrow(new DoNotUpdateMemoizeException("Woop"))
 
     memoizedTarget() should equal("Hello from mock")
     Thread.sleep(cacheMaxAgeInMs)

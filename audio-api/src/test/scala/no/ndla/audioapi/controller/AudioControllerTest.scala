@@ -9,18 +9,20 @@
 package no.ndla.audioapi.controller
 
 import io.circe.parser
-import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.common.model.api.{Copyright, License}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.mockito.ArgumentMatchers._
-import org.mockito.{ArgumentCaptor, Strictness}
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.{doNothing, reset, times, verify, when, withSettings}
+import org.mockito.quality.Strictness
 import org.scalatest.tagobjects.Retryable
 import org.scalatest.{Canceled, Failed, Outcome, Retries}
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -139,7 +141,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
-    val runtimeMock = mock[RuntimeException](withSettings.strictness(Strictness.Lenient))
+    val runtimeMock = mock[RuntimeException](withSettings.strictness(Strictness.LENIENT))
     doNothing.when(runtimeMock).printStackTrace()
     when(runtimeMock.getMessage).thenReturn("Something (not really) wrong (this is a test hehe)")
 

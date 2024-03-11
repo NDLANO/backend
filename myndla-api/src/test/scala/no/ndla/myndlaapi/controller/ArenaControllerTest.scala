@@ -13,12 +13,14 @@ import no.ndla.myndlaapi.model.arena.api.PaginatedTopics
 import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{times, verify, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class ArenaControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
-  val controller = new ArenaController()
+  val controller: ArenaController = new ArenaController()
 
   override def beforeEach(): Unit = {
     resetMocks()

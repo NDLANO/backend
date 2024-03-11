@@ -7,19 +7,21 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi._
+import no.ndla.draftapi.*
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: Formats = org.json4s.DefaultFormats
 
-  val controller = new InternController
+  val controller: InternController = new InternController
 
   override def beforeEach(): Unit = {
     reset(clock)
@@ -41,7 +43,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
         .delete(uri"http://localhost:$serverPort/intern/article/10/")
         .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
     )
-    verify(articleApiClient, times(4)).deleteArticle(eqTo(10), any)
+    verify(articleApiClient, times(4)).deleteArticle(eqTo(10L), any)
   }
 
   test("that getting ids returns 404 for missing and 200 for existing") {

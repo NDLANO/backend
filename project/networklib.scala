@@ -10,12 +10,13 @@ object networklib extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       sttp,
-      "org.json4s"           %% "json4s-jackson"          % Json4SV,
-      "org.json4s"           %% "json4s-native"           % Json4SV,
-      "org.scalatest"        %% "scalatest"               % ScalaTestV % "test",
-      "com.github.jwt-scala" %% "jwt-json4s-native"       % "9.2.0",
-      "redis.clients"         % "jedis"                   % "5.1.1"
+      "org.json4s"           %% "json4s-jackson"    % Json4SV,
+      "org.json4s"           %% "json4s-native"     % Json4SV,
+      "org.scalatest"        %% "scalatest"         % ScalaTestV % "test",
+      "com.github.jwt-scala" %% "jwt-json4s-native" % "9.2.0",
+      "redis.clients"         % "jedis"             % "5.1.1"
     ),
+    mockito,
     vulnerabilityOverrides,
     tapirHttp4sCirce
   )

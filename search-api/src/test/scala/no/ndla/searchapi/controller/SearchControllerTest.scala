@@ -17,17 +17,20 @@ import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, Search
 import no.ndla.searchapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentCaptor
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{never, reset, times, verify, when}
+import sttp.client3.quick.*
 
 import java.time.Month
 import scala.util.Success
 
 class SearchControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   override val converterService = new ConverterService
-  val controller                = new SearchController()
+  val controller: SearchController = new SearchController()
 
   override def beforeEach(): Unit = {
-    reset(clock, searchConverterService)
+    reset(clock)
+    reset(searchConverterService)
     when(searchConverterService.toApiMultiSearchResult(any)).thenCallRealMethod()
     when(clock.now()).thenCallRealMethod()
   }

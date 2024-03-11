@@ -40,9 +40,9 @@ trait ImageSearchService {
   val imageSearchService: ImageSearchService
   class ImageSearchService extends StrictLogging with SearchService[(SearchableImage, MatchedLanguage)] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-    private val noCopyright          = boolQuery().not(termQuery("license", "copyrighted"))
-    override val searchIndex: String = props.SearchIndex
-    override val indexService        = imageIndexService
+    private val noCopyright                      = boolQuery().not(termQuery("license", "copyrighted"))
+    override val searchIndex: String             = props.SearchIndex
+    override val indexService: ImageIndexService = imageIndexService
 
     def hitToApiModel(hit: String, matchedLanguage: String): Try[(SearchableImage, MatchedLanguage)] = {
       implicit val formats: Formats =

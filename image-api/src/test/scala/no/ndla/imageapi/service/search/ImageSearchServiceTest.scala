@@ -10,8 +10,8 @@ package no.ndla.imageapi.service.search
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.{api => commonApi}
-import no.ndla.imageapi.model.domain._
+import no.ndla.common.model.api as commonApi
+import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain}
 import no.ndla.network.ApplicationUrl
@@ -19,6 +19,8 @@ import no.ndla.network.model.NdlaHttpRequest
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.{Outcome, PrivateMethodTester}
 
 import scala.util.Success

@@ -19,7 +19,7 @@ import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.service.search._
 import no.ndla.searchapi.service.ConverterService
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends ArticleApiClient

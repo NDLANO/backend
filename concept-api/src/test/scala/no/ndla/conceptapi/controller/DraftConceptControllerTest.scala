@@ -7,7 +7,7 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
-import no.ndla.conceptapi.model.api._
+import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.{api, search}
 import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
@@ -15,17 +15,19 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
-import org.mockito.ArgumentMatchers._
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.{reset, times, verify, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class DraftConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: Formats = org.json4s.DefaultFormats
-  val controller                = new DraftConceptController
+  val controller: DraftConceptController = new DraftConceptController
 
   override def beforeEach(): Unit = {
-    reset(clock, searchConverterService)
+    reset(clock)
+    reset(searchConverterService)
     when(clock.now()).thenCallRealMethod()
   }
 
@@ -179,7 +181,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
         )
         .code
         .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[TokenUser])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
     }
 
     {
@@ -192,7 +194,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
         )
         .code
         .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[TokenUser])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(nullExpected), any[TokenUser])
     }
 
     {
@@ -205,7 +207,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
         )
         .code
         .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[TokenUser])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(existingExpected), any[TokenUser])
     }
   }
 
@@ -250,7 +252,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
         )
         .code
         .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[TokenUser])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
     }
 
     {
@@ -263,7 +265,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
         )
         .code
         .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[TokenUser])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(nullExpected), any[TokenUser])
     }
 
     {
@@ -276,7 +278,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
         )
         .code
         .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[TokenUser])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(existingExpected), any[TokenUser])
     }
   }
 

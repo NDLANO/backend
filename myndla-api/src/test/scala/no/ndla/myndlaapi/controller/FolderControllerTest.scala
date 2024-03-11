@@ -12,13 +12,15 @@ import no.ndla.myndla.model.domain.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{times, verify, when}
+import sttp.client3.quick.*
 
 import java.util.UUID
 import scala.util.Success
 
 class FolderControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
-  val controller = new FolderController()
+  val controller: FolderController = new FolderController()
 
   override def beforeEach(): Unit = {
     resetMocks()

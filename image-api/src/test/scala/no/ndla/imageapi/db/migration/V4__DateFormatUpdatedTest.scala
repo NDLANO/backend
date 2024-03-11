@@ -9,6 +9,7 @@ package no.ndla.imageapi.db.migration
 
 import no.ndla.imageapi.UnitSuite
 import no.ndla.imageapi.db.migration.{TimeService2, V4__DBImageMetaInformation, V4__DateFormatUpdated}
+import org.mockito.Mockito.when
 
 class V4__DateFormatUpdatedTest extends UnitSuite {
 

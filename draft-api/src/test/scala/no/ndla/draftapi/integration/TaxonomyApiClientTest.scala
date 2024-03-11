@@ -7,12 +7,13 @@
 
 package no.ndla.draftapi.integration
 
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.common.model.domain.Title
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
 
 import scala.concurrent.TimeoutException

@@ -13,7 +13,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  override val controller = new TapirHealthController[Eff]()
+  override val controller: TapirHealthController[Eff] = new TapirHealthController[Eff]()
   controller.setWarmedUp()
 
   test("That /health returns 200 ok") {

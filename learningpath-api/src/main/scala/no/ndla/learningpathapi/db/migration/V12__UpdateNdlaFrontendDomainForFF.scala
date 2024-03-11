@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.db.migration
 
 import io.lemonlabs.uri.Url
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.Formats
+import org.json4s.*
 import org.json4s.JsonAST.{JArray, JObject, JString}
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.{compact, parse, render}

@@ -9,7 +9,7 @@ package no.ndla.audioapi.service
 
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.TestData.testUser
-import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
@@ -17,9 +17,11 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model
 import no.ndla.common.model.api.{Copyright, License}
 import no.ndla.common.model.domain.UploadedFile
-import no.ndla.common.model.{NDLADate, domain => common}
-import org.mockito.Strictness
+import no.ndla.common.model.{NDLADate, domain as common}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, times, verify, when, withSettings}
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.quality.Strictness
 import scalikejdbc.DBSession
 
 import java.io.FileInputStream
@@ -113,7 +115,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(s3ObjectMock.getContentLength).thenReturn(1024)
     when(s3ObjectMock.getContentType).thenReturn("audio/mp3")
 
-    reset(audioRepository, audioIndexService, tagIndexService, audioStorage)
+    reset(audioRepository)
+    reset(audioIndexService)
+    reset(tagIndexService)
+    reset(audioStorage)
 
     when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession]))
@@ -210,7 +215,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
       .thenReturn(Failure(new ValidationException(errors = Seq())))
     when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.Lenient))))
+      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
     verify(audioRepository, times(0)).insert(any[domain.AudioMetaInformation])(any[DBSession])
@@ -230,7 +235,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
       .thenReturn(Success(domainAudioMeta))
     when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.Lenient))))
+      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession])).thenThrow(new RuntimeException)
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
@@ -250,7 +255,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
       .thenReturn(Success(domainAudioMeta))
     when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.Lenient))))
+      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
 
@@ -271,7 +276,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
       .thenReturn(Success(domainAudioMeta))
     when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.Lenient))))
+      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(audioRepository.setSeriesId(any, any)(any)).thenReturn(Success(1))
@@ -641,11 +646,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That failed insertion does not updates episodes series id") {
-    reset(
-      validationService,
-      audioRepository,
-      seriesRepository
-    )
+    reset(validationService)
+    reset(audioRepository)
+    reset(seriesRepository)
 
     val series = TestData.SampleSeries
 
@@ -675,13 +678,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That failed updating does not updates episodes series id") {
-    reset(
-      validationService,
-      audioRepository,
-      seriesRepository,
-      audioIndexService,
-      seriesIndexService
-    )
+    reset(validationService)
+    reset(audioRepository)
+    reset(seriesRepository)
+    reset(audioIndexService)
+    reset(seriesIndexService)
 
     val series = TestData.SampleSeries
 
@@ -717,13 +718,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That successful insertion updates episodes series id") {
-    reset(
-      validationService,
-      audioRepository,
-      seriesRepository,
-      audioIndexService,
-      seriesIndexService
-    )
+    reset(validationService)
+    reset(audioRepository)
+    reset(seriesRepository)
+    reset(audioIndexService)
+    reset(seriesIndexService)
 
     val series = TestData.SampleSeries
 
@@ -771,13 +770,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That successful updating updates episodes series id") {
-    reset(
-      validationService,
-      audioRepository,
-      seriesRepository,
-      audioIndexService,
-      seriesIndexService
-    )
+    reset(validationService)
+    reset(audioRepository)
+    reset(seriesRepository)
+    reset(audioIndexService)
+    reset(seriesIndexService)
 
     val episodesMap = Map(
       1L -> TestData.samplePodcast.copy(id = Some(1)),
@@ -817,16 +814,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.updateSeries(1, updateSeries)
     result.isSuccess should be(true)
 
-    verify(audioRepository, times(1)).setSeriesId(eqTo(1), eqTo(None))(any[DBSession])
-    verify(audioRepository, times(1)).setSeriesId(eqTo(2), eqTo(Some(1)))(any[DBSession])
+    verify(audioRepository, times(1)).setSeriesId(eqTo(1L), eqTo(None))(any[DBSession])
+    verify(audioRepository, times(1)).setSeriesId(eqTo(2L), eqTo(Some(1L)))(any[DBSession])
   }
 
   test("That successful updating doesnt update existing episodes") {
-    reset(
-      validationService,
-      audioRepository,
-      seriesRepository
-    )
+    reset(validationService)
+    reset(audioRepository)
+    reset(seriesRepository)
 
     val episodesMap = Map(
       1L -> TestData.samplePodcast.copy(id = Some(1))

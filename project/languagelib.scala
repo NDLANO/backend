@@ -9,8 +9,7 @@ object languagelib extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       "org.json4s"    %% "json4s-native" % Json4SV,
-      "org.scalatest" %% "scalatest"     % ScalaTestV % "test",
-      "org.mockito"    % "mockito-all"   % "1.10.19"  % "test"
+      "org.scalatest" %% "scalatest"     % ScalaTestV % "test"
     )
   )
 

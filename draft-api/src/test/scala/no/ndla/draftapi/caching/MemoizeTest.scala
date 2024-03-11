@@ -8,6 +8,7 @@
 package no.ndla.draftapi.caching
 
 import no.ndla.draftapi.UnitSuite
+import org.mockito.Mockito.{times, verify, when}
 
 class MemoizeTest extends UnitSuite {
 

@@ -9,6 +9,7 @@
 package no.ndla.searchapi.caching
 
 import no.ndla.searchapi.UnitSuite
+import org.mockito.Mockito.{times, verify, when}
 
 class MemoizeTest extends UnitSuite {
 

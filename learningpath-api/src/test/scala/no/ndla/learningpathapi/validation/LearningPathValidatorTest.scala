@@ -11,9 +11,10 @@ package no.ndla.learningpathapi.validation
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
-import no.ndla.learningpathapi._
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.*
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License.PublicDomain
+import org.mockito.Mockito.when
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 

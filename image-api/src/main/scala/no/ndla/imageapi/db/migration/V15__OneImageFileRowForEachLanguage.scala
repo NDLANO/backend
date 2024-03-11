@@ -12,7 +12,7 @@ import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer.ignore
 import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization
-import org.json4s.{FieldSerializer, Formats}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc._
 

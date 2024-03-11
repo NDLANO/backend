@@ -12,10 +12,11 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model
-import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi}
+import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{License, UpdateWith}
 import no.ndla.common.model.domain.{Author, Availability, Description, Introduction, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
+import org.mockito.Mockito.when
 
 import scala.util.Success
 

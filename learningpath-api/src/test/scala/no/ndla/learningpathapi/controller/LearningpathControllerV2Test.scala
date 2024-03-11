@@ -8,11 +8,11 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.model.{NDLADate, api => commonApi}
+import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.Node
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
@@ -21,16 +21,17 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.Serialization._
-import org.mockito.ArgumentMatchers._
-import sttp.client3.quick._
+import org.json4s.native.Serialization.*
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.{reset, times, verify, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
 
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-  val controller                = new LearningpathControllerV2
+  val controller: LearningpathControllerV2 = new LearningpathControllerV2
 
   override def beforeEach(): Unit = {
     resetMocks()

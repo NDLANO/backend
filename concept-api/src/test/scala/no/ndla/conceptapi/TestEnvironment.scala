@@ -26,7 +26,7 @@ import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends DraftConceptRepository

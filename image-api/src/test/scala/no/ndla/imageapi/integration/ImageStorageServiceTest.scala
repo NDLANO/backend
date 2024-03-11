@@ -11,6 +11,8 @@ package no.ndla.imageapi.integration
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectMetadata, S3Object}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 

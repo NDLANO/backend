@@ -17,8 +17,8 @@ import no.ndla.myndla.service.{
   UserService
 }
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import org.mockito.Mockito.spy
-import org.mockito.MockitoSugar.{mock, reset}
+import org.mockito.Mockito.{reset, spy}
+import org.scalatestplus.mockito.MockitoSugar.mock
 
 trait TestEnvironment
     extends UserService
@@ -46,19 +46,17 @@ trait TestEnvironment
   val folderConverterService: FolderConverterService = spy(new FolderConverterService)
 
   def resetMocks(): Unit = {
-    reset(
-      userService,
-      clock,
-      redisClient,
-      feideApiClient,
-      configService,
-      configRepository,
-      folderRepository,
-      userRepository,
-      folderReadService,
-      folderWriteService,
-      folderConverterService
-    )
+    reset(userService)
+    reset(clock)
+    reset(redisClient)
+    reset(feideApiClient)
+    reset(configService)
+    reset(configRepository)
+    reset(folderRepository)
+    reset(userRepository)
+    reset(folderReadService)
+    reset(folderWriteService)
+    reset(folderConverterService)
   }
 
 }

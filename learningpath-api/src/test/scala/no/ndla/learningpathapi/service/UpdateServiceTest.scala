@@ -8,20 +8,14 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
-import no.ndla.learningpathapi._
-import no.ndla.learningpathapi.model._
-import no.ndla.learningpathapi.model.api.{
-  NewCopyLearningPathV2,
-  NewLearningPathV2,
-  NewLearningStepV2,
-  UpdatedLearningPathV2,
-  UpdatedLearningStepV2
-}
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.*
+import no.ndla.learningpathapi.model.*
+import no.ndla.learningpathapi.model.api.{NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2, UpdatedLearningPathV2, UpdatedLearningStepV2}
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
@@ -29,6 +23,8 @@ import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
 import no.ndla.learningpathapi.model.api.Copyright
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{never, times, verify, when}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _

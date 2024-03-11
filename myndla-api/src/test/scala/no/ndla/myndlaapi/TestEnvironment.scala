@@ -40,7 +40,8 @@ import no.ndla.network.tapir.{
   TapirErrorHelpers,
   TapirHealthController
 }
-import org.mockito.MockitoSugar.{mock, reset}
+import org.mockito.Mockito.reset
+import org.scalatestplus.mockito.MockitoSugar.mock
 
 trait TestEnvironment
     extends Props
@@ -102,27 +103,26 @@ trait TestEnvironment
 
   def services: List[Service[Eff]] = List.empty
 
-  def resetMocks(): Unit = reset(
-    clock,
-    migrator,
-    dataSource,
-    arenaReadService,
-    folderRepository,
-    folderReadService,
-    folderWriteService,
-    folderConverterService,
-    userService,
-    configService,
-    userRepository,
-    configRepository,
-    feideApiClient,
-    configController,
-    redisClient,
-    folderController,
-    userController,
-    arenaController,
-    arenaRepository,
-    converterService
-  )
-
+  def resetMocks(): Unit = {
+    reset(clock)
+    reset(migrator)
+    reset(dataSource)
+    reset(arenaReadService)
+    reset(folderRepository)
+    reset(folderReadService)
+    reset(folderWriteService)
+    reset(folderConverterService)
+    reset(userService)
+    reset(configService)
+    reset(userRepository)
+    reset(configRepository)
+    reset(feideApiClient)
+    reset(configController)
+    reset(redisClient)
+    reset(folderController)
+    reset(userController)
+    reset(arenaController)
+    reset(arenaRepository)
+    reset(converterService)
+  }
 }

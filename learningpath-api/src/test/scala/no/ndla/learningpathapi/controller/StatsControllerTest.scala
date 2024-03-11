@@ -16,7 +16,7 @@ import sttp.client3.quick._
 class StatsControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val controller                            = new StatsController
+  val controller: StatsController           = new StatsController
   override def services: List[Service[Eff]] = List(controller)
 
   override def beforeEach(): Unit = {

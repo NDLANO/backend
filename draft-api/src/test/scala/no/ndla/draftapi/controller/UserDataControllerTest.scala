@@ -12,17 +12,20 @@ import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.DefaultFormats
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
 import org.postgresql.util.{PSQLException, PSQLState}
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val controller                            = new UserDataController()
+  val controller: UserDataController        = new UserDataController()
 
   override def beforeEach(): Unit = {
-    reset(clock, readService)
+    reset(clock)
+    reset(readService)
     when(clock.now()).thenCallRealMethod()
   }
 

@@ -9,6 +9,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.mockito.Mockito.when
 import org.scalactic.{Equality, TolerantNumerics}
 
 import java.awt.image.BufferedImage

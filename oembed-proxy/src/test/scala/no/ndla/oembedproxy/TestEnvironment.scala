@@ -15,7 +15,8 @@ import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.OEmbedProxyController
 import no.ndla.oembedproxy.model.ErrorHelpers
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
-import org.mockito.scalatest.MockitoSugar
+import org.mockito.Mockito.reset
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends OEmbedProxyController
@@ -42,6 +43,9 @@ trait TestEnvironment
   def services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = {
-    reset(oEmbedService, oEmbedProxyController, ndlaClient, providerService)
+    reset(oEmbedService)
+    reset(oEmbedProxyController)
+    reset(ndlaClient)
+    reset(providerService)
   }
 }

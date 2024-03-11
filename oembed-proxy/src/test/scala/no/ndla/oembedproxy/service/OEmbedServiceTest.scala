@@ -10,9 +10,11 @@ package no.ndla.oembedproxy.service
 
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.oembedproxy.caching.Memoize
-import no.ndla.oembedproxy.model._
+import no.ndla.oembedproxy.model.*
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
-import org.scalatest.TryValues._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatest.TryValues.*
 
 import scala.util.{Failure, Success}
 
