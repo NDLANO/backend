@@ -7,13 +7,11 @@
 
 package no.ndla.tapirtesting
 
+import com.sun.net.httpserver.HttpServer
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirErrorHelpers}
 import no.ndla.scalatestsuite.UnitTestSuite
-
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 trait TapirControllerTest[F[_]]
     extends UnitTestSuite
@@ -26,11 +24,14 @@ trait TapirControllerTest[F[_]]
   val controller: Service[F]
   override def services: List[Service[F]] = List(controller)
 
+  var server: HttpServer = _
+
   override def beforeAll(): Unit = {
-    implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
-    Future { Routes.startJdkServer(s"TapirControllerTest:${this.getClass.getName}", serverPort) {} }: Unit
+    server = Routes.startJdkServerAsync(s"TapirControllerTest:${this.getClass.getName}", serverPort) {}
     Thread.sleep(1000)
   }
+
+  override def afterAll(): Unit = server.stop(0)
 
   test("That no endpoints are shadowed") {
     import sttp.tapir.testing.EndpointVerifier
