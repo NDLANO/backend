@@ -43,8 +43,8 @@ trait InternController {
   class InternController extends Service[Eff] {
     import ErrorHelpers._
 
-    override val prefix        = "intern"
-    override val enableSwagger = false
+    override val prefix: EndpointInput[Unit] = "intern"
+    override val enableSwagger               = false
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       postIndex,

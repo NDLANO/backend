@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.controller.parameters
 
-import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.NonEmptyString
@@ -128,9 +128,8 @@ import sttp.tapir.Schema.annotations.description
 )
 
 object DraftSearchParams {
-  import no.ndla.network.tapir.NoNullJsonPrinter._
-  implicit val encoder: Encoder[DraftSearchParams] = deriveConfiguredEncoder
-  implicit val decoder: Decoder[DraftSearchParams] = deriveConfiguredDecoder
+  implicit val encoder: Encoder[DraftSearchParams] = deriveEncoder
+  implicit val decoder: Decoder[DraftSearchParams] = deriveDecoder
 
   implicit val schema: Schema[DraftSearchParams] = Schema.derived
 }

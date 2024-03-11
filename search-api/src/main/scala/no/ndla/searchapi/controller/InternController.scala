@@ -31,7 +31,7 @@ import no.ndla.searchapi.model.domain.learningpath.{
   StepType
 }
 import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
-import org.json4s.Formats
+import org.json4s.*
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.JsonMethods
 import sttp.model.StatusCode
@@ -78,9 +78,9 @@ trait InternController {
     implicit val ec: ExecutionContext =
       ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
-    override val prefix                   = "intern"
-    override val enableSwagger            = false
-    private val stringInternalServerError = statusCode(StatusCode.InternalServerError).and(stringBody)
+    override val prefix: EndpointInput[Unit] = "intern"
+    override val enableSwagger               = false
+    private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
     private def resolveResultFutures(
         indexResults: List[Future[(String, Try[ReindexResult])]]

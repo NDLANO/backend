@@ -82,7 +82,6 @@ object Dependencies {
 
     lazy val circe: Seq[ModuleID] = Seq(
       "io.circe"  %% "circe-generic"        % CirceV,
-      ("io.circe" %% "circe-generic-extras" % "0.14.3").cross(CrossVersion.for3Use2_13),
       "io.circe"  %% "circe-literal"        % CirceV,
       "io.circe"  %% "circe-parser"         % CirceV
     )

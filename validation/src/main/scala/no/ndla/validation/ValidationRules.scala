@@ -1,7 +1,7 @@
 package no.ndla.validation
 import enumeratum.Json4s
 import no.ndla.validation.model.{HtmlRulesFile, MathMLRulesFile}
-import org.json4s.Formats
+import org.json4s._
 import org.json4s.native.JsonMethods.parse
 
 import scala.io.Source

@@ -10,7 +10,7 @@ package no.ndla.draftapi.db.migration
 import java.time.LocalDateTime
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
-import org.json4s.{Formats, JValue}
+import org.json4s.*
 import org.json4s.JsonAST.JObject
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject

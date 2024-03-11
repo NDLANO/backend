@@ -15,7 +15,7 @@ import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
 /** Class that cannot be constructed with an empty string (""), therefore it means that if you have one of these the
   * underlying string is not empty
   */
-case class NonEmptyString private (underlying: String)
+case class NonEmptyString(underlying: String)
 
 object NonEmptyString {
   def apply(underlying: String): Option[NonEmptyString]        = fromString(underlying)

@@ -8,7 +8,7 @@
 package no.ndla.articleapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.*
 import org.json4s.JsonAST.{JField, JObject}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}

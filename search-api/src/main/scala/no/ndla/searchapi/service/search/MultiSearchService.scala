@@ -32,6 +32,7 @@ trait MultiSearchService {
   this: Elastic4sClient
     with SearchConverterService
     with SearchService
+    with IndexService
     with ArticleIndexService
     with LearningPathIndexService
     with Props
@@ -44,7 +45,7 @@ trait MultiSearchService {
 
     override val searchIndex: List[String] =
       List(SearchIndexes(SearchType.Articles), SearchIndexes(SearchType.LearningPaths))
-    override val indexServices: List[MultiSearchService.this.IndexService[_ <: Content]] =
+    override val indexServices: List[IndexService[_ <: Content]] =
       List(articleIndexService, learningPathIndexService)
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {

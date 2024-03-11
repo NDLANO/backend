@@ -9,7 +9,7 @@
 package no.ndla.audioapi.controller
 
 import cats.implicits._
-import io.circe.generic.extras.auto._
+import io.circe.generic.auto._
 import no.ndla.audioapi.controller.multipart.{MetaDataAndFileForm, MetaDataAndOptFileForm}
 import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.model.Sort

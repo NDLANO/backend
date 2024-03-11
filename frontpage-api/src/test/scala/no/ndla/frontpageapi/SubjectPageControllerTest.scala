@@ -10,10 +10,11 @@ package no.ndla.frontpageapi
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import org.mockito.Mockito.when
+import sttp.client3.quick.*
 
 class SubjectPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  override val controller = new SubjectPageController()
+  override val controller: SubjectPageController = new SubjectPageController()
 
   test("Should return 400 with cool custom message if bad request") {
     when(clock.now()).thenReturn(NDLADate.now())

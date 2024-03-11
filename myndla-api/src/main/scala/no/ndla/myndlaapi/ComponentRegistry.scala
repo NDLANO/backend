@@ -80,7 +80,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with InternController {
   override val props: MyNdlaApiProperties = properties
 
-  lazy val healthController                               = new TapirHealthController[Eff]
+  lazy val healthController: TapirHealthController[Eff]   = new TapirHealthController[Eff]
   lazy val clock: SystemClock                             = new SystemClock
   lazy val migrator                                       = new DBMigrator
   lazy val folderController: FolderController             = new FolderController

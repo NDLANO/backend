@@ -15,7 +15,8 @@ import no.ndla.frontpageapi.model.api.{FrontPage, Menu}
 
 class FrontPageTest extends UnitSuite with TestEnvironment {
   test("test that circe encoding and decoding works for recursive types") {
-    val before     = FrontPage(1, List(Menu(2, List(Menu(3, List(Menu(4, List(), false)), false)), false)))
+    val before =
+      FrontPage(1, List(Menu(2, List(Menu(3, List(Menu(4, List(), Some(false))), Some(false))), Some(false))))
     val jsonString = before.asJson.noSpaces
     val parsed     = parse(jsonString).toTry.get
     val converted  = parsed.as[FrontPage].toTry.get

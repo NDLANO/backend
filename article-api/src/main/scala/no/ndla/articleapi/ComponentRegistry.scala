@@ -72,9 +72,9 @@ class ComponentRegistry(properties: ArticleApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  lazy val internController    = new InternController
-  lazy val articleControllerV2 = new ArticleControllerV2
-  lazy val healthController    = new TapirHealthController[Eff]
+  lazy val internController                             = new InternController
+  lazy val articleControllerV2                          = new ArticleControllerV2
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
 
   lazy val articleRepository    = new ArticleRepository
   lazy val articleSearchService = new ArticleSearchService

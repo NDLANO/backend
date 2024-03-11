@@ -12,7 +12,7 @@ import org.json4s.JsonAST.{JField, JObject}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.read
-import org.json4s.{Extraction, Formats}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 

@@ -85,10 +85,10 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val draftIndexService        = new DraftIndexService
   lazy val multiDraftSearchService  = new MultiDraftSearchService
 
-  lazy val searchController   = new SearchController
-  lazy val healthController   = new TapirHealthController[Eff]
-  lazy val internController   = new InternController
-  lazy val clock: SystemClock = new SystemClock
+  lazy val searchController                             = new SearchController
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
+  lazy val internController                             = new InternController
+  lazy val clock: SystemClock                           = new SystemClock
 
   private val swagger = new SwaggerController(
     List[Service[Eff]](

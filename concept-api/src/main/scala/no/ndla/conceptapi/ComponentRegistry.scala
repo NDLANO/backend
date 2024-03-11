@@ -100,10 +100,10 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val clock            = new SystemClock
   lazy val contentValidator = new ContentValidator
 
-  lazy val draftConceptController     = new DraftConceptController
-  lazy val publishedConceptController = new PublishedConceptController
-  lazy val healthController           = new TapirHealthController[Eff]
-  lazy val internController           = new InternController
+  lazy val draftConceptController                       = new DraftConceptController
+  lazy val publishedConceptController                   = new PublishedConceptController
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
+  lazy val internController                             = new InternController
 
   private val swagger = new SwaggerController(
     List[Service[Eff]](

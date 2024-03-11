@@ -330,10 +330,10 @@ trait DraftController {
             license,
             page,
             pageSize,
-            idList,
-            articleTypesFilter,
+            idList.getOrElse(List.empty),
+            articleTypesFilter.getOrElse(List.empty),
             fallback,
-            grepCodes,
+            grepCodes.getOrElse(List.empty),
             shouldScroll
           )
         }.handleErrorsOrOk

@@ -9,7 +9,7 @@ package no.ndla.articleapi.db.migration
 
 import no.ndla.common.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.Formats
+import org.json4s._
 import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject

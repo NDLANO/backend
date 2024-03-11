@@ -1,7 +1,7 @@
 package no.ndla.validation
 
 import enumeratum.{Json4s, _}
-import org.json4s.Formats
+import org.json4s._
 import org.json4s.JsonAST.JObject
 import org.json4s.native.JsonMethods._
 

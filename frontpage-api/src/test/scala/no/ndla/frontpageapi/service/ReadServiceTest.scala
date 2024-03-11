@@ -10,6 +10,8 @@ package no.ndla.frontpageapi.service
 import no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.model.domain.VisualElementType
 import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 
 import scala.util.Success
 

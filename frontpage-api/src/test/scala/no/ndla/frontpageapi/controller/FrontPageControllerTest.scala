@@ -7,17 +7,19 @@
 
 package no.ndla.frontpageapi.controller
 
-import no.ndla.common.{errors => common}
+import no.ndla.common.errors as common
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import sttp.client3.quick.*
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  val controller = new FrontPageController
+  val controller: FrontPageController = new FrontPageController
   when(clock.now()).thenCallRealMethod()
 
   val authHeaderWithAdminRole =
