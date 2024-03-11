@@ -7,6 +7,7 @@
 
 package no.ndla.myndla.repository
 
+import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax._
 import no.ndla.myndla.model.domain.config.{ConfigKey, ConfigMeta, DBConfigMeta}
@@ -62,26 +63,18 @@ trait ConfigRepository {
       }
     }
 
-    def getConfigWithKey(key: ConfigKey)(implicit session: DBSession = ReadOnlyAutoSession): Option[ConfigMeta] = {
-      val keyName = key.entryName
-      val c       = DBConfigMeta.syntax("c")
-      sql"""
+    def getConfigWithKey(key: ConfigKey)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[ConfigMeta]] =
+      Try {
+        val keyName = key.entryName
+        val c       = DBConfigMeta.syntax("c")
+        sql"""
            select ${c.result.*}
            from ${DBConfigMeta.as(c)}
            where configkey = $keyName;
         """
-        .map(DBConfigMeta.fromResultSet(c))
-        .single()
-    }
-
-    def getAllConfigs(implicit session: DBSession): List[ConfigMeta] = {
-      val c = DBConfigMeta.syntax("c")
-      sql"""
-           select ${c.result.*}
-           from ${DBConfigMeta.as(c)}
-         """
-        .map(DBConfigMeta.fromResultSet(c))
-        .list()
-    }
+          .map(DBConfigMeta.fromResultSet(c))
+          .single()
+          .sequence
+      }.flatten
   }
 }

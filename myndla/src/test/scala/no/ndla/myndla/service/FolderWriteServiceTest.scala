@@ -884,7 +884,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
 
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(configService.isWriteRestricted).thenReturn(true)
+    when(configService.isWriteRestricted).thenReturn(Success(true))
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)
@@ -896,7 +896,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(configService.isMyNDLAWriteRestricted).thenReturn(true)
+    when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result should be(Failure(AccessDeniedException("You do not have write access while write restriction is active.")))
@@ -908,7 +908,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(configService.isMyNDLAWriteRestricted).thenReturn(false)
+    when(configService.isMyNDLAWriteRestricted).thenReturn(Success(false))
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)
@@ -928,7 +928,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(configService.isMyNDLAWriteRestricted).thenReturn(true)
+    when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
     val updatedFolder   = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
     val Failure(result) = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
@@ -938,7 +938,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   test("that isOperationAllowedOrAccessDenied allows student to update a folder outside of the examination time") {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(configService.isMyNDLAWriteRestricted).thenReturn(false)
+    when(configService.isMyNDLAWriteRestricted).thenReturn(Success(false))
 
     val updatedFolder = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
     val result        = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
@@ -950,7 +950,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(configService.isMyNDLAWriteRestricted).thenReturn(true)
+    when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
     val folderWithUpdatedName   = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
     val folderWithUpdatedStatus = api.UpdatedFolder(name = None, status = Some("shared"), description = None)
