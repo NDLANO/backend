@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import cats.effect.unsafe.implicits.global
 import no.ndla.common
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
@@ -154,9 +153,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("updateStatus should return an IO[Failure] if the status change is illegal") {
     val Failure(res: IllegalStatusStateTransition) =
-      service
-        .updateStatus(PUBLISHED, TestData.sampleArticleWithByNcSa, TestData.userWithWriteAccess, false)
-        .unsafeRunSync()
+      service.updateStatus(PUBLISHED, TestData.sampleArticleWithByNcSa, TestData.userWithWriteAccess, false)
     res.getMessage should equal(
       s"Cannot go to PUBLISHED when article is ${TestData.sampleArticleWithByNcSa.status.current}"
     )
@@ -584,7 +581,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article =
       TestData.sampleDomainArticle.copy(status = status, responsible = Some(Responsible("hei", clock.now())))
     val Failure(res: IllegalStatusStateTransition) =
-      service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess, isImported = false).unsafeRunSync()
+      service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess, isImported = false)
 
     res.getMessage should equal(s"Cannot go to ARCHIVED when article contains ${status.other}")
   }

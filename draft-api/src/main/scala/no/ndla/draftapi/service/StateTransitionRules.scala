@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import cats.effect.IO
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Responsible
@@ -21,7 +20,6 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.SideEffect.SideEffect
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
-import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import scalikejdbc.ReadOnlyAutoSession
 
@@ -280,20 +278,14 @@ trait StateTransitionRules {
         to: DraftStatus,
         user: TokenUser,
         isImported: Boolean
-    ): IO[Try[Draft]] = {
+    ): Try[Draft] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
-      val requestInfo                     = RequestInfo.fromThreadContext()
-      requestInfo.setRequestInfo() >>
-        IO {
-          // TODO: This can be removed once the `IO` is returned all the way to the runtime so IOLocal context works
-          requestInfo.setThreadContextRequestInfo()
-          convertedArticle.flatMap(articleBeforeSideEffect => {
-            sideEffects
-              .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
-                accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
-              })
+      convertedArticle.flatMap(articleBeforeSideEffect => {
+        sideEffects
+          .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
+            accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
           })
-        }
+      })
     }
 
     private[this] def learningPathsUsingArticle(articleId: Long, user: TokenUser): Seq[LearningPath] = {

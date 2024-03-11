@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import cats.effect.unsafe.implicits.global
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.Path
@@ -216,12 +215,7 @@ trait WriteService {
         case None => Failure(api.NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
-            convertedArticle <- converterService
-              .updateStatus(status, draft, user, isImported)
-              .attempt
-              .unsafeRunSync()
-              .toTry
-              .flatten
+            convertedArticle <- converterService.updateStatus(status, draft, user, isImported)
             updatedArticle <- updateArticleAndStoreAsNewIfPublished(
               convertedArticle,
               isImported,
@@ -554,12 +548,7 @@ trait WriteService {
       val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
       val newStatus            = newManualStatus.getOrElse(newStatusIfUndefined)
 
-      converterService
-        .updateStatus(newStatus, convertedArticle, user, isImported = false)
-        .attempt
-        .unsafeRunSync()
-        .toTry
-        .flatten
+      converterService.updateStatus(newStatus, convertedArticle, user, isImported = false)
     }
 
     def updateArticle(
