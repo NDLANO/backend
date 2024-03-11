@@ -7,6 +7,7 @@
 
 package no.ndla.network.tapir
 
+import com.sun.net.httpserver.HttpServer
 import io.circe.generic.auto._
 import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.HasBaseProps
@@ -133,7 +134,7 @@ trait Routes[F[_]] {
       }
     }
 
-    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
+    def startJdkServerAsync(name: String, port: Int)(warmupFunc: => Unit): HttpServer = {
       // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
       val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
 
@@ -149,17 +150,22 @@ trait Routes[F[_]] {
 
       val endpoints = services.asInstanceOf[List[Service[Id]]].flatMap(_.builtEndpoints)
 
-      JdkHttpServer()
+      val server = JdkHttpServer()
         .options(options)
         .executor(executor)
         .addEndpoints(endpoints)
         .port(port)
-        .start(): Unit
+        .start()
 
       logger.info(s"Starting $name on port $port")
 
       warmupFunc
 
+      server
+    }
+
+    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
+      startJdkServerAsync(name, port)(warmupFunc): Unit
       // NOTE: Since JdkHttpServer does not block, we need to block the main thread to keep the application alive
       synchronized { wait() }
     }
