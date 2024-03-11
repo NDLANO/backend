@@ -19,9 +19,7 @@ object draftapi extends Module {
       "org.json4s"      %% "json4s-native"           % Json4SV,
       "org.scalikejdbc" %% "scalikejdbc"             % ScalikeJDBCV,
       "org.scalatest"   %% "scalatest"               % ScalaTestV % "test",
-      "com.amazonaws"    % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.mockito"     %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"     %% "mockito-scala-scalatest" % MockitoV   % "test"
+      "com.amazonaws"    % "aws-java-sdk-cloudwatch" % AwsSdkV
     ),
     flexmark,
     awsS3,

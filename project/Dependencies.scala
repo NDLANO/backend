@@ -42,6 +42,11 @@ object Dependencies {
 
     lazy val sttp = "com.softwaremill.sttp.client3" %% "core" % SttpV
 
+    lazy val mockito = Seq(
+      ("org.mockito" %% "mockito-scala"           % MockitoV).cross(CrossVersion.for3Use2_13),
+      ("org.mockito" %% "mockito-scala-scalatest" % MockitoV).cross(CrossVersion.for3Use2_13)
+    )
+
     // Maybe remove flexmark when markdown migration is complete
     lazy val flexmark: Seq[ModuleID] = Seq(
       "com.vladsch.flexmark" % "flexmark"                       % FlexmarkV,
@@ -50,9 +55,9 @@ object Dependencies {
       "com.vladsch.flexmark" % "flexmark-ext-superscript"       % FlexmarkV
     )
 
-    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % EnumeratumV
-    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % EnumeratumV
-    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % EnumeratumV
+    lazy val enumeratum       = "com.beachape"  %% "enumeratum"        % EnumeratumV
+    lazy val enumeratumJson4s = ("com.beachape" %% "enumeratum-json4s" % EnumeratumV).cross(CrossVersion.for3Use2_13)
+    lazy val enumeratumCirce  = "com.beachape"  %% "enumeratum-circe"  % EnumeratumV
 
     lazy val database: Seq[ModuleID] = Seq(
       scalikejdbc,
@@ -79,10 +84,10 @@ object Dependencies {
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
     lazy val circe: Seq[ModuleID] = Seq(
-      "io.circe" %% "circe-generic"        % CirceV,
-      "io.circe" %% "circe-generic-extras" % "0.14.3",
-      "io.circe" %% "circe-literal"        % CirceV,
-      "io.circe" %% "circe-parser"         % CirceV
+      "io.circe"  %% "circe-generic"        % CirceV,
+      ("io.circe" %% "circe-generic-extras" % "0.14.3").cross(CrossVersion.for3Use2_13),
+      "io.circe"  %% "circe-literal"        % CirceV,
+      "io.circe"  %% "circe-parser"         % CirceV
     )
 
     lazy val http4s: Seq[ModuleID] = Seq(

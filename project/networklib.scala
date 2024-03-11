@@ -13,8 +13,6 @@ object networklib extends Module {
       "org.json4s"           %% "json4s-jackson"          % Json4SV,
       "org.json4s"           %% "json4s-native"           % Json4SV,
       "org.scalatest"        %% "scalatest"               % ScalaTestV % "test",
-      "org.mockito"          %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"          %% "mockito-scala-scalatest" % MockitoV   % "test",
       "com.github.jwt-scala" %% "jwt-json4s-native"       % "9.2.0",
       "redis.clients"         % "jedis"                   % "5.1.1"
     ),

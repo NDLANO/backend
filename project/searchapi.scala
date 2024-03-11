@@ -17,9 +17,7 @@ object searchapi extends Module {
       "org.json4s"    %% "json4s-native"           % Json4SV,
       "org.json4s"    %% "json4s-ext"              % Json4SV,
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
-      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test"
+      "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
     ),
     melody,
     elastic4s,
