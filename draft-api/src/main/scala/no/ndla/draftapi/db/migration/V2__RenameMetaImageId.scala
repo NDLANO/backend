@@ -18,7 +18,7 @@ class V2__RenameMetaImageId extends BaseJavaMigration {
 
   implicit val formats: Formats = DefaultFormats
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       migrateArticles
@@ -38,7 +38,7 @@ class V2__RenameMetaImageId extends BaseJavaMigration {
     }
   }
 
-  def countAllArticles(implicit session: DBSession) = {
+  def countAllArticles(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from articledata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
@@ -64,7 +64,7 @@ class V2__RenameMetaImageId extends BaseJavaMigration {
     compact(render(newArticle))
   }
 
-  def updateArticle(document: String, id: Long)(implicit session: DBSession) = {
+  def updateArticle(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

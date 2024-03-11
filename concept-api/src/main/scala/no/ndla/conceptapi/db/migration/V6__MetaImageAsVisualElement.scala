@@ -106,7 +106,7 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
     (toKeep ++ updated).filterNot(_.visualElement.isEmpty)
   }
 
-  def convertMetaImageToVisualElement(image: OldMetaImage) = {
+  def convertMetaImageToVisualElement(image: OldMetaImage): NewVisualElement = {
     val embedString =
       s"""<embed data-resource="image" data-resource_id="${image.imageId}" data-alt="${image.altText}" data-size="full" data-align="" />"""
     NewVisualElement(embedString, image.language)

@@ -58,7 +58,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
 
   object ConceptErrorHelpers {
     val OPERATION_NOT_ALLOWED = "OPERATION_NOT_ALLOWED"
-    val WINDOW_TOO_LARGE_DESCRIPTION =
+    val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 
   }

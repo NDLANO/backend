@@ -41,18 +41,18 @@ trait TestEnvironment
     with Routes[Eff] {
   override val props = new FrontpageApiProperties
 
-  override val clock      = mock[SystemClock]
-  override val migrator   = mock[DBMigrator]
-  override val dataSource = mock[HikariDataSource]
+  override val clock: SystemClock           = mock[SystemClock]
+  override val migrator: DBMigrator         = mock[DBMigrator]
+  override val dataSource: HikariDataSource = mock[HikariDataSource]
 
-  override val filmPageController      = mock[FilmPageController]
-  override val subjectPageController   = mock[SubjectPageController]
-  override val frontPageController     = mock[FrontPageController]
-  override val subjectPageRepository   = mock[SubjectPageRepository]
-  override val frontPageRepository     = mock[FrontPageRepository]
-  override val filmFrontPageRepository = mock[FilmFrontPageRepository]
-  override val readService             = mock[ReadService]
-  override val writeService            = mock[WriteService]
+  override val filmPageController: FilmPageController           = mock[FilmPageController]
+  override val subjectPageController: SubjectPageController     = mock[SubjectPageController]
+  override val frontPageController: FrontPageController         = mock[FrontPageController]
+  override val subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
+  override val frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
+  override val filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
+  override val readService: ReadService                         = mock[ReadService]
+  override val writeService: WriteService                       = mock[WriteService]
 
   def services: List[Service[Eff]] = List.empty
 }

@@ -19,7 +19,7 @@ class V3__ConvertCoverPhotoUrlToID extends BaseJavaMigration {
 
   implicit val formats: Formats = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       allLearningPaths.flatMap(convertCoverPhotoUrl).foreach(update)
@@ -51,7 +51,7 @@ class V3__ConvertCoverPhotoUrlToID extends BaseJavaMigration {
     pattern.findFirstMatchIn(oldCoverPhotoUrl.path.toString).map(_.group(1)).get
   }
 
-  def update(learningPath: V3_DBLearningPath)(implicit session: DBSession) = {
+  def update(learningPath: V3_DBLearningPath)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(learningPath.document)

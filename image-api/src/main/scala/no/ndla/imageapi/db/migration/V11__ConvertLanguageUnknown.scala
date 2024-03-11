@@ -68,7 +68,7 @@ class V11__ConvertLanguageUnknown extends BaseJavaMigration {
     compact(render(updated))
   }
 
-  def update(imagemetadata: String, id: Long)(implicit session: DBSession) = {
+  def update(imagemetadata: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imagemetadata)

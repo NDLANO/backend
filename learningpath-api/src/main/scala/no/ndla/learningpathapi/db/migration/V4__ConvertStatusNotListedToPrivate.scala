@@ -18,7 +18,7 @@ class V4__ConvertStatusNotListedToPrivate extends BaseJavaMigration {
 
   implicit val formats: Formats = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       allLearningPaths.map(convertLearningPathStatus).foreach(update)
@@ -39,7 +39,7 @@ class V4__ConvertStatusNotListedToPrivate extends BaseJavaMigration {
     learningPath.copy(document = compact(render(updatedDocument)))
   }
 
-  def update(learningPath: V4_DBLearningPath)(implicit session: DBSession) = {
+  def update(learningPath: V4_DBLearningPath)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(learningPath.document)

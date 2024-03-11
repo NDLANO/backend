@@ -26,6 +26,7 @@ import no.ndla.searchapi.model.search.settings.SearchSettings
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
+import no.ndla.common.model.domain.Content
 
 trait MultiSearchService {
   this: Elastic4sClient
@@ -41,8 +42,10 @@ trait MultiSearchService {
   class MultiSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
 
-    override val searchIndex   = List(SearchIndexes(SearchType.Articles), SearchIndexes(SearchType.LearningPaths))
-    override val indexServices = List(articleIndexService, learningPathIndexService)
+    override val searchIndex: List[String] =
+      List(SearchIndexes(SearchType.Articles), SearchIndexes(SearchType.LearningPaths))
+    override val indexServices: List[MultiSearchService.this.IndexService[_ <: Content]] =
+      List(articleIndexService, learningPathIndexService)
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
 

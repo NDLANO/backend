@@ -61,33 +61,33 @@ trait TestEnvironment
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
-  val TestData: TestData = new TestData
-  val migrator           = mock[DBMigrator]
+  val TestData: TestData   = new TestData
+  val migrator: DBMigrator = mock[DBMigrator]
 
-  val articleSearchService = mock[ArticleSearchService]
-  val articleIndexService  = mock[ArticleIndexService]
+  val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
+  val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]
 
-  val internController    = mock[InternController]
-  val articleControllerV2 = mock[ArticleControllerV2]
+  val internController: InternController       = mock[InternController]
+  val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
 
   val healthController = mock[TapirHealthController[Eff]]
 
-  val dataSource        = mock[HikariDataSource]
-  val articleRepository = mock[ArticleRepository]
+  val dataSource: HikariDataSource         = mock[HikariDataSource]
+  val articleRepository: ArticleRepository = mock[ArticleRepository]
 
-  val converterService = mock[ConverterService]
-  val readService      = mock[ReadService]
-  val writeService     = mock[WriteService]
-  val contentValidator = mock[ContentValidator]
+  val converterService: ConverterService = mock[ConverterService]
+  val readService: ReadService           = mock[ReadService]
+  val writeService: WriteService         = mock[WriteService]
+  val contentValidator: ContentValidator = mock[ContentValidator]
 
-  val ndlaClient             = mock[NdlaClient]
-  val searchConverterService = mock[SearchConverterService]
-  var e4sClient              = mock[NdlaE4sClient]
-  val searchApiClient        = mock[SearchApiClient]
-  val feideApiClient         = mock[FeideApiClient]
-  val redisClient            = mock[RedisClient]
+  val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
+  val searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
+  val redisClient: RedisClient                       = mock[RedisClient]
 
-  val clock = mock[SystemClock]
+  val clock: SystemClock = mock[SystemClock]
 
   def services: List[Service[Eff]] = List.empty
 }

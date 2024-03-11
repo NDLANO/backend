@@ -19,6 +19,7 @@ import sttp.tapir._
 
 import java.io.File
 import scala.util.{Failure, Try}
+import sttp.tapir.model.Delimited
 
 trait BaseImageController {
   this: Props =>
@@ -28,51 +29,52 @@ trait BaseImageController {
 
     import props._
 
-    val queryParam =
+    val queryParam: EndpointInput.Query[Option[String]] =
       query[Option[String]]("query")
         .description("Return only images with titles, alt-texts or tags matching the specified query.")
-    val minSize =
+    val minSize: EndpointInput.Query[Option[Int]] =
       query[Option[Int]]("minimum-size")
         .description("Return only images with full size larger than submitted value in bytes.")
-    val language =
+    val language: EndpointInput.Query[String] =
       query[String]("language")
         .description("The ISO 639-1 language code describing language.")
         .default(Language.AllLanguages)
-    val languageOpt =
+    val languageOpt: EndpointInput.Query[Option[String]] =
       query[Option[String]]("language")
         .description("The ISO 639-1 language code describing language.")
-    val fallback =
+    val fallback: EndpointInput.Query[Boolean] =
       query[Boolean]("fallback")
         .description("Fallback to existing language if language is specified.")
         .default(false)
-    val license =
+    val license: EndpointInput.Query[Option[String]] =
       query[Option[String]]("license")
         .description("Return only images with provided license.")
-    val includeCopyrighted =
+    val includeCopyrighted: EndpointInput.Query[Boolean] =
       query[Boolean]("includeCopyrighted")
         .description("Return copyrighted images. May be omitted.")
         .default(false)
-    val sort = query[Option[String]]("sort")
+    val sort: EndpointInput.Query[Option[String]] = query[Option[String]]("sort")
       .description(
         s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
       )
-    val pageNo =
+    val pageNo: EndpointInput.Query[Option[Int]] =
       query[Option[Int]]("page")
         .description("The page number of the search hits to display.")
-    val pageSize = query[Option[Int]]("page-size")
+    val pageSize: EndpointInput.Query[Option[Int]] = query[Option[Int]]("page-size")
       .description(
         s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
       )
 
-    val pathImageId = path[Long]("image_id").description("Image_id of the image that needs to be fetched.")
-    val pathLanguage =
+    val pathImageId: EndpointInput.PathCapture[Long] =
+      path[Long]("image_id").description("Image_id of the image that needs to be fetched.")
+    val pathLanguage: EndpointInput.PathCapture[String] =
       path[String]("language").description("The ISO 639-1 language code describing language.")
-    val pathExternalId =
+    val pathExternalId: EndpointInput.PathCapture[String] =
       path[String]("external_id").description("External node id of the image that needs to be fetched.")
 
-    val scrollId = query[Option[String]]("search-context").description(
+    val scrollId: EndpointInput.Query[Option[String]] = query[Option[String]]("search-context").description(
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
           .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}'.
@@ -81,17 +83,17 @@ trait BaseImageController {
          |""".stripMargin
     )
 
-    val modelReleased = listQuery[String]("model-released")
+    val modelReleased: EndpointInput.Query[Option[Delimited[",", String]]] = listQuery[String]("model-released")
       .description(
         s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values
             .mkString(",")}"
       )
 
-    val imageIds = listQuery[Long]("ids")
+    val imageIds: EndpointInput.Query[Option[Delimited[",", Long]]] = listQuery[Long]("ids")
       .description(
         "Return only images that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-    val podcastFriendly =
+    val podcastFriendly: EndpointInput.Query[Option[Boolean]] =
       query[Option[Boolean]]("podcast-friendly")
         .description("Filter images that are podcast friendly. Width==heigth and between 1400 and 3000.")
 

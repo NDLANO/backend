@@ -105,11 +105,11 @@ object LearningStep extends SQLSyntaxSupport[LearningStep] {
     new EnumNameSerializer(EmbedType)
   )
 
-  val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningStep](
+  val repositorySerializer: List[Object] = jsonSerializer :+ FieldSerializer[LearningStep](
     serializer = ignore("id").orElse(ignore("learningPathId")).orElse(ignore("externalId")).orElse(ignore("revision"))
   )
 
-  val jsonEncoder = DefaultFormats ++ jsonSerializer
+  val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer
 
   override val tableName = "learningsteps"
 

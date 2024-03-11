@@ -20,16 +20,16 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   import props.externalApiUrls
 
   val externalImageApiUrl: String = externalApiUrls("image")
-  val resourceIdAttr              = s"${TagAttribute.DataResource_Id}"
-  val resourceAttr                = s"${TagAttribute.DataResource}"
-  val imageType                   = s"${ResourceType.Image}"
-  val h5pType                     = s"${ResourceType.H5P}"
-  val urlAttr                     = s"${TagAttribute.DataUrl}"
+  val resourceIdAttr: String      = s"${TagAttribute.DataResource_Id}"
+  val resourceAttr: String        = s"${TagAttribute.DataResource}"
+  val imageType: String           = s"${ResourceType.Image}"
+  val h5pType: String             = s"${ResourceType.H5P}"
+  val urlAttr: String             = s"${TagAttribute.DataUrl}"
 
-  val content1 =
+  val content1: String =
     s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=1234 $resourceAttr="$imageType" />"""
 
-  val content2 =
+  val content2: String =
     s"""<$EmbedTagName $resourceIdAttr="321" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=4321 $resourceAttr="$imageType" />"""
   val articleContent1: ArticleContent = ArticleContent(content1, "und")
 

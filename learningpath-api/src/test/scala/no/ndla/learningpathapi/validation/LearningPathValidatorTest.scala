@@ -21,17 +21,17 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   override val clock = new SystemClock
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new LearningPathValidator
     resetMocks()
 
   }
 
-  val trump     = Author("author", "Donald Drumpf")
-  val license   = PublicDomain.toString
-  val copyright = LearningpathCopyright(license, List(trump))
+  val trump: Author                    = Author("author", "Donald Drumpf")
+  val license                          = PublicDomain.toString
+  val copyright: LearningpathCopyright = LearningpathCopyright(license, List(trump))
 
-  val ValidLearningPath = LearningPath(
+  val ValidLearningPath: LearningPath = LearningPath(
     id = None,
     title = List(Title("Gyldig tittel", "nb")),
     description = List(Description("Gyldig beskrivelse", "nb")),

@@ -21,7 +21,7 @@ import scalikejdbc.{DB, DBSession, _}
 class V24__RemoveDomainFromH5PUrl extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) =
+  override def migrate(context: Context): Unit =
     DB(context.getConnection)
       .autoClose(false)
       .withinTx { implicit session =>

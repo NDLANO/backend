@@ -16,6 +16,7 @@ import no.ndla.common.model.domain._
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{DefaultFormats, Formats}
+import org.json4s.Serializer
 
 case class Draft(
     id: Option[Long],
@@ -60,7 +61,7 @@ object Draft {
   implicit val encoder: Encoder[Draft]                              = deriveEncoder
   implicit val decoder: Decoder[Draft]                              = deriveDecoder
 
-  val serializers = Seq(
+  val serializers: Seq[Serializer[_]] = Seq(
     new EnumNameSerializer(Availability),
     Json4s.serializer(DraftStatus),
     Json4s.serializer(ArticleType),

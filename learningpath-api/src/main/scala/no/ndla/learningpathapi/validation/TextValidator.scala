@@ -19,7 +19,7 @@ trait TextValidator {
   class TextValidator(allowHtml: Boolean) {
     import props._
 
-    val IllegalContentInBasicText =
+    val IllegalContentInBasicText: String =
       s"The content contains illegal html-characters. Allowed characters are ${BasicHtmlTags.mkString(", ")}"
 
     val IllegalContentInPlainText =

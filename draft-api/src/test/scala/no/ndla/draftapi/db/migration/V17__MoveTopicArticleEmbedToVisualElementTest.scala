@@ -21,14 +21,15 @@ import org.json4s.native.Serialization.write
 class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestEnvironment {
   val migration = new V17__MoveTopicArticleEmbedToVisualElement
 
-  val embed1 = """<embed data-resource=\"image\" data-resource_id=\"1\">"""
-  val embed2 = """<embed data-resource=\"image\" data-resource_id=\"2\">"""
-  val embed3 = """<embed data-resource=\"image\" data-resource_id=\"3\">"""
-  val ve1    = s"""{"resource":"$embed1","language":"nb"}"""
-  val ve2    = s"""{"resource":"$embed2","language":"nn"}"""
-  val ve3    = s"""{"resource":"$embed3","language":"nn"}"""
-  val co1    = """{"content":"<section><h1>No extract anything here brother</h1></section>","language":"nb"}"""
-  val co2    = s"""{"content":"<section>$embed3<h1>Extract something here brother</h1></section>","language":"nn"}"""
+  val embed1      = """<embed data-resource=\"image\" data-resource_id=\"1\">"""
+  val embed2      = """<embed data-resource=\"image\" data-resource_id=\"2\">"""
+  val embed3      = """<embed data-resource=\"image\" data-resource_id=\"3\">"""
+  val ve1: String = s"""{"resource":"$embed1","language":"nb"}"""
+  val ve2: String = s"""{"resource":"$embed2","language":"nn"}"""
+  val ve3: String = s"""{"resource":"$embed3","language":"nn"}"""
+  val co1         = """{"content":"<section><h1>No extract anything here brother</h1></section>","language":"nb"}"""
+  val co2: String =
+    s"""{"content":"<section>$embed3<h1>Extract something here brother</h1></section>","language":"nn"}"""
 
   test("embed should be extracted if before all text") {
     val old =

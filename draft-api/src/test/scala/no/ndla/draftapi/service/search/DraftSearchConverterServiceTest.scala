@@ -12,13 +12,14 @@ import no.ndla.draftapi.model.search._
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.draftapi.TestData
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.common.model.domain.draft.Draft
 
 class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
-  val sampleArticle                   = TestData.sampleArticleWithPublicDomain.copy()
+  val sampleArticle: Draft            = TestData.sampleArticleWithPublicDomain.copy()
 
-  val titles = List(
+  val titles: List[Title] = List(
     Title("Bokmål tittel", "nb"),
     Title("Nynorsk tittel", "nn"),
     Title("English title", "en"),
@@ -28,7 +29,7 @@ class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Title("Nekonata titolo", "und")
   )
 
-  val articles = Seq(
+  val articles: Seq[ArticleContent] = Seq(
     ArticleContent("Bokmål artikkel", "nb"),
     ArticleContent("Nynorsk artikkel", "nn"),
     ArticleContent("English article", "en"),
@@ -38,7 +39,7 @@ class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleContent("Nekonata artikolo", "und")
   )
 
-  val articleTags = Seq(
+  val articleTags: Seq[Tag] = Seq(
     Tag(Seq("fugl", "fisk"), "nb"),
     Tag(Seq("fugl", "fisk"), "nn"),
     Tag(Seq("bird", "fish"), "en"),

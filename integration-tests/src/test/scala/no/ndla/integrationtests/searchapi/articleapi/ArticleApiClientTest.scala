@@ -65,7 +65,7 @@ class ArticleApiClientTest
   }
 
   var articleApi: articleapi.MainClass = null
-  val articleApiBaseUrl                = s"http://localhost:$articleApiPort"
+  val articleApiBaseUrl: String        = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
     implicit val ec: ExecutionContextExecutorService =

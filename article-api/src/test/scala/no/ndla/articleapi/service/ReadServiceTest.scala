@@ -25,29 +25,29 @@ import scala.util.{Failure, Success, Try}
 class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val externalImageApiUrl: String = props.externalApiUrls("image")
-  val resourceIdAttr              = s"${TagAttribute.DataResource_Id}"
-  val resourceAttr                = s"${TagAttribute.DataResource}"
-  val imageType                   = s"${ResourceType.Image}"
-  val h5pType                     = s"${ResourceType.H5P}"
-  val urlAttr                     = s"${TagAttribute.DataUrl}"
+  val resourceIdAttr: String      = s"${TagAttribute.DataResource_Id}"
+  val resourceAttr: String        = s"${TagAttribute.DataResource}"
+  val imageType: String           = s"${ResourceType.Image}"
+  val h5pType: String             = s"${ResourceType.H5P}"
+  val urlAttr: String             = s"${TagAttribute.DataUrl}"
 
-  val content1 =
+  val content1: String =
     s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=1234 $resourceAttr="$imageType" />"""
 
-  val content2 =
+  val content2: String =
     s"""<$EmbedTagName $resourceIdAttr="321" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=4321 $resourceAttr="$imageType" />"""
-  val articleContent1 = ArticleContent(content1, "und")
+  val articleContent1: ArticleContent = ArticleContent(content1, "und")
 
   val expectedArticleContent1: ArticleContent = articleContent1.copy(content =
     s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123" /><$EmbedTagName $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234" />"""
   )
 
-  val articleContent2 = ArticleContent(content2, "und")
+  val articleContent2: ArticleContent = ArticleContent(content2, "und")
 
   override val readService      = new ReadService
   override val converterService = new ConverterService
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     reset(feideApiClient)
   }
 

@@ -41,7 +41,7 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(EmbedType)
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       allLearningPaths.foreach(update)
@@ -82,7 +82,7 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       .list()
   }
 
-  def update(learningPath: V5_LearningPath)(implicit session: DBSession) = {
+  def update(learningPath: V5_LearningPath)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(learningPath))
@@ -91,7 +91,7 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       .update()
   }
 
-  def update(learningStep: V5_LearningStep)(implicit session: DBSession) = {
+  def update(learningStep: V5_LearningStep)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(learningStep))

@@ -22,15 +22,16 @@ import org.json4s.jackson.Serialization._
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
+import no.ndla.mapping.LicenseDefinition
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   override val converterService = new ConverterService
   val controller                = new InternController
 
-  val updated = NDLADate.of(2017, 4, 1, 12, 15, 32)
-  val BySa    = getLicense(CC_BY.toString).get
+  val updated: NDLADate       = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  val BySa: LicenseDefinition = getLicense(CC_BY.toString).get
 
-  val DefaultApiImageMetaInformation = api.ImageMetaInformationV2(
+  val DefaultApiImageMetaInformation: api.ImageMetaInformationV2 = api.ImageMetaInformationV2(
     "1",
     s"${props.ImageApiV2UrlBase}1",
     ImageTitle("", "nb"),
@@ -84,7 +85,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     editorNotes = Seq.empty
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     reset(clock, imageRepository, imageIndexService)
     when(clock.now()).thenCallRealMethod()
   }

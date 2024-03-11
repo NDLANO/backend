@@ -144,9 +144,10 @@ trait UserRepository {
           Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
       }
 
-    def userWithUsername(username: String)(implicit session: DBSession = ReadOnlyAutoSession) = userWhere(
-      sqls"u.document->>'username'=$username"
-    )
+    def userWithUsername(username: String)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[MyNDLAUser]] =
+      userWhere(
+        sqls"u.document->>'username'=$username"
+      )
 
     def deleteUser(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[FeideID] = {
       Try(sql"delete from ${DBMyNDLAUser.table} where feide_id = $feideId".update()) match {

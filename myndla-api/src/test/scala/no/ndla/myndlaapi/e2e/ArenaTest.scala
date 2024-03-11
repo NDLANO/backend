@@ -79,8 +79,8 @@ class ArenaTest
 
   val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
 
-  val myndlaApiBaseUrl  = s"http://localhost:$myndlaApiPort"
-  val myndlaApiArenaUrl = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
+  val myndlaApiBaseUrl: String  = s"http://localhost:$myndlaApiPort"
+  val myndlaApiArenaUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
 
   override def beforeAll(): Unit = {
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

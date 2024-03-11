@@ -13,7 +13,7 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 class V2__AddUpdatedColoumsTest extends UnitSuite with TestEnvironment {
 
   class V2__MockedTest extends V2__AddUpdatedColoums {
-    override val timeService = mock[TimeService]
+    override val timeService: TimeService = mock[TimeService]
   }
 
   val migration = new V2__MockedTest

@@ -12,6 +12,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
 import scala.util.Success
+import no.ndla.common.model.domain.draft.Draft
 
 class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
 
@@ -31,23 +32,23 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val article1 = TestData.sampleDomainArticle.copy(
+  val article1: Draft = TestData.sampleDomainArticle.copy(
     grepCodes = Seq("KE101", "KE115", "TT555")
   )
 
-  val article2 = TestData.sampleDomainArticle.copy(
+  val article2: Draft = TestData.sampleDomainArticle.copy(
     grepCodes = Seq("KE105")
   )
 
-  val article3 = TestData.sampleDomainArticle.copy(
+  val article3: Draft = TestData.sampleDomainArticle.copy(
     grepCodes = Seq("KM105")
   )
 
-  val article4 = TestData.sampleDomainArticle.copy(
+  val article4: Draft = TestData.sampleDomainArticle.copy(
     grepCodes = Seq()
   )
 
-  val articlesToIndex = Seq(article1, article2, article3, article4)
+  val articlesToIndex: Seq[Draft] = Seq(article1, article2, article3, article4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     tagIndexService.createIndexWithName(props.DraftGrepCodesSearchIndex)

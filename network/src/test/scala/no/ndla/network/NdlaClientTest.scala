@@ -21,7 +21,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
   case class TestObject(id: String, verdi: String)
 
-  val ParseableContent =
+  val ParseableContent: String =
     """
       |{
       |  "id": "1",
@@ -29,12 +29,12 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
       |}
     """.stripMargin
 
-  val httpClientMock = mock[SimpleHttpClient]
+  val httpClientMock: SimpleHttpClient = mock[SimpleHttpClient]
   val ndlaClient: NdlaClient = new NdlaClient {
     override val client = httpClientMock
   }
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     CorrelationID.clear()
     reset(httpClientMock)
   }

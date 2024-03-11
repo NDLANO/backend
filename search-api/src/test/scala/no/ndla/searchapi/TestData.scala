@@ -1654,37 +1654,37 @@ object TestData {
     singleSearchableTaxonomyContext
   )
 
-  val searchableTitles = SearchableLanguageValues.from(
+  val searchableTitles: SearchableLanguageValues = SearchableLanguageValues.from(
     "nb" -> "Christian Tut",
     "en" -> "Christian Honk"
   )
 
-  val searchableContents = SearchableLanguageValues.from(
+  val searchableContents: SearchableLanguageValues = SearchableLanguageValues.from(
     "nn" -> "Eg kjøyrar rundt i min fine bil",
     "nb" -> "Jeg kjører rundt i tutut",
     "en" -> "I'm in my mums car wroomwroom"
   )
 
-  val searchableVisualElements = SearchableLanguageValues.from(
+  val searchableVisualElements: SearchableLanguageValues = SearchableLanguageValues.from(
     "nn" -> "image",
     "nb" -> "image"
   )
 
-  val searchableIntroductions    = SearchableLanguageValues.from("en" -> "Wroom wroom")
-  val searchableMetaDescriptions = SearchableLanguageValues.from("nb" -> "Mammas bil")
-  val searchableTags             = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
-  val searchableEmbedAttrs = SearchableLanguageList.from(
+  val searchableIntroductions: SearchableLanguageValues    = SearchableLanguageValues.from("en" -> "Wroom wroom")
+  val searchableMetaDescriptions: SearchableLanguageValues = SearchableLanguageValues.from("nb" -> "Mammas bil")
+  val searchableTags: SearchableLanguageList = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
+  val searchableEmbedAttrs: SearchableLanguageList = SearchableLanguageList.from(
     "nb" -> Seq("En norsk", "To norsk"),
     "en" -> Seq("One english")
   )
 
-  val searchableEmbedResourcesAndIds = List(
+  val searchableEmbedResourcesAndIds: List[EmbedValues] = List(
     EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb")
   )
 
-  val olddate = today.minusDays(5)
+  val olddate: NDLADate = today.minusDays(5)
 
-  val searchableRevisionMeta = List(
+  val searchableRevisionMeta: List[RevisionMeta] = List(
     RevisionMeta(
       id = UUID.randomUUID(),
       revisionDate = today,
@@ -1698,7 +1698,7 @@ object TestData {
       status = RevisionStatus.NeedsRevision
     )
   )
-  val searchableDraft = SearchableDraft(
+  val searchableDraft: SearchableDraft = SearchableDraft(
     id = 100,
     draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
     title = searchableTitles,

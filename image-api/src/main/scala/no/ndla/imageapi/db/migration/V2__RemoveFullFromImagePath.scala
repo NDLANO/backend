@@ -19,7 +19,7 @@ class V2__RemoveFullFromImagePath extends BaseJavaMigration with StrictLogging {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       logger.info("Starting V2__RemoveFullFromImagePath DB Migration")
@@ -46,7 +46,7 @@ class V2__RemoveFullFromImagePath extends BaseJavaMigration with StrictLogging {
     imageMeta.copy(document = compact(render(updatedDocument)))
   }
 
-  def update(imageMeta: V2_DBImageMetaInformation)(implicit session: DBSession) = {
+  def update(imageMeta: V2_DBImageMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imageMeta.document)

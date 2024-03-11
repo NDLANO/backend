@@ -16,12 +16,12 @@ class TitleValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: TitleValidator = _
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new TitleValidator
     resetMocks()
   }
 
-  val DefaultTitle = Title("Some title", "nb")
+  val DefaultTitle: Title = Title("Some title", "nb")
 
   test("That TitleValidator.validate returns error message when no titles are defined") {
     val errorMessages = validator.validate(List(), false)

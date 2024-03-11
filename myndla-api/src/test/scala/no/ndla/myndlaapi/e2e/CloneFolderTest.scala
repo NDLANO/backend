@@ -85,8 +85,8 @@ class CloneFolderTest
 
   val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
 
-  val myndlaApiBaseUrl   = s"http://localhost:$myndlaApiPort"
-  val myndlaApiFolderUrl = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
+  val myndlaApiBaseUrl: String   = s"http://localhost:$myndlaApiPort"
+  val myndlaApiFolderUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
 
   override def beforeAll(): Unit = {
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

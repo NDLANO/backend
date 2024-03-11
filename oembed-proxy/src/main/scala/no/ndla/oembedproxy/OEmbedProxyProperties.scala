@@ -21,7 +21,7 @@ class OEmbedProxyProperties extends BaseProps {
   def ApplicationName: String = "oembed-proxy"
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
 
-  val Auth0LoginEndpoint =
+  val Auth0LoginEndpoint: String =
     s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val JSonProviderUrl                 = "https://oembed.com/providers.json"

@@ -34,8 +34,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     super.withFixture(test)
   }
 
-  val indexName = UUID.randomUUID().toString
-  override val draftConceptSearchService = new DraftConceptSearchService {
+  val indexName: String = UUID.randomUUID().toString
+  override val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {
     override val searchIndex = indexName
   }
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {

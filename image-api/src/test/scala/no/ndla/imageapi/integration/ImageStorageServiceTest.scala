@@ -20,7 +20,7 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   val ContentType           = "image/jpeg"
   override val imageStorage = new AmazonImageStorageService
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     reset(amazonClient)
   }
 

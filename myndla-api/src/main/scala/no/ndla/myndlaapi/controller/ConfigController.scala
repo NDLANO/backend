@@ -34,7 +34,7 @@ trait ConfigController {
 
     import ErrorHelpers._
 
-    val pathConfigKey =
+    val pathConfigKey: EndpointInput.PathCapture[ConfigKey] =
       path[ConfigKey]("config-key")
         .description(s"The of configuration value. Can only be one of '${ConfigKey.all.mkString("', '")}'")
 

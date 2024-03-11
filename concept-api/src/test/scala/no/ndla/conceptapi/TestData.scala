@@ -37,13 +37,13 @@ object TestData {
   val today: NDLADate     = NDLADate.now().minusDays(0)
   val yesterday: NDLADate = NDLADate.now().minusDays(1)
 
-  val visualElementString =
+  val visualElementString: String =
     s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
 
-  val visualElementStringWithUrl =
+  val visualElementStringWithUrl: String =
     s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" data-url="http://api-gateway.ndla-local/image-api/v2/images/1" />"""
 
-  val sampleNbApiConcept = api.Concept(
+  val sampleNbApiConcept: api.Concept = api.Concept(
     1.toLong,
     1,
     api.ConceptTitle("Tittel", "nb"),
@@ -69,7 +69,7 @@ object TestData {
     editorNotes = Some(Seq.empty)
   )
 
-  val sampleNbDomainConcept = domain.Concept(
+  val sampleNbDomainConcept: domain.Concept = domain.Concept(
     id = Some(1),
     revision = Some(1),
     title = Seq(common.Title("Tittel", "nb")),
@@ -90,7 +90,7 @@ object TestData {
     editorNotes = Seq.empty
   )
 
-  val sampleConcept = domain.Concept(
+  val sampleConcept: domain.Concept = domain.Concept(
     id = Some(1),
     revision = Some(1),
     title = Seq(common.Title("Tittel for begrep", "nb")),
@@ -113,7 +113,7 @@ object TestData {
     editorNotes = Seq.empty
   )
 
-  val domainConcept = domain.Concept(
+  val domainConcept: domain.Concept = domain.Concept(
     id = Some(1),
     revision = Some(1),
     title = Seq(common.Title("Tittel", "nb"), common.Title("Tittelur", "nn")),
@@ -134,7 +134,7 @@ object TestData {
     editorNotes = Seq.empty
   )
 
-  val domainConcept_toDomainUpdateWithId = domain.Concept(
+  val domainConcept_toDomainUpdateWithId: domain.Concept = domain.Concept(
     id = None,
     revision = None,
     title = Seq.empty,
@@ -155,7 +155,7 @@ object TestData {
     editorNotes = Seq.empty
   )
 
-  val sampleNnApiConcept = api.Concept(
+  val sampleNnApiConcept: api.Concept = api.Concept(
     1.toLong,
     1,
     api.ConceptTitle("Tittelur", "nn"),
@@ -181,7 +181,7 @@ object TestData {
     editorNotes = Some(Seq.empty)
   )
 
-  val emptyApiUpdatedConcept = api.UpdatedConcept(
+  val emptyApiUpdatedConcept: api.UpdatedConcept = api.UpdatedConcept(
     language = "",
     title = None,
     content = None,
@@ -197,7 +197,7 @@ object TestData {
     glossData = None
   )
 
-  val sampleNewConcept =
+  val sampleNewConcept: api.NewConcept =
     api.NewConcept(
       "nb",
       "Tittel",
@@ -213,7 +213,7 @@ object TestData {
       None
     )
 
-  val emptyApiNewConcept = api.NewConcept(
+  val emptyApiNewConcept: api.NewConcept = api.NewConcept(
     language = "",
     title = "",
     content = None,
@@ -228,7 +228,7 @@ object TestData {
     glossData = None
   )
 
-  val updatedConcept =
+  val updatedConcept: api.UpdatedConcept =
     api.UpdatedConcept(
       "nb",
       None,
@@ -244,5 +244,5 @@ object TestData {
       conceptType = None,
       glossData = None
     )
-  val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+  val sampleApiTagsSearchResult: api.TagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }

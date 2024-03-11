@@ -42,7 +42,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     super.withFixture(test)
   }
 
-  def emptyTestDatabase = {
+  def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
       sql"delete from ${PublishedConcept.table};".execute()(session)
     })

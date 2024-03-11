@@ -19,7 +19,7 @@ object Status {
   implicit val encoder: Encoder[Status] = deriveEncoder
   implicit val decoder: Decoder[Status] = deriveDecoder
 
-  def default = {
+  def default: Status = {
     Status(
       current = ConceptStatus.IN_PROGRESS,
       other = Set.empty

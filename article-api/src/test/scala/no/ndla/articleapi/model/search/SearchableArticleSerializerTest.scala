@@ -17,7 +17,7 @@ import org.json4s.native.Serialization.{read, writePretty}
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
-  val searchableArticle1 = SearchableArticle(
+  val searchableArticle1: SearchableArticle = SearchableArticle(
     id = 10.toLong,
     title = SearchableLanguageValues(Vector(LanguageValue("nb", "tittel"), LanguageValue("en", "title"))),
     content = SearchableLanguageValues(Vector(LanguageValue("nb", "innhold"), LanguageValue("en", "content"))),

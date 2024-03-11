@@ -66,7 +66,7 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
       .list()
   }
 
-  def update(document: String, id: Long)(implicit session: DBSession) = {
+  def update(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

@@ -117,7 +117,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration with StrictLogging {
 
   val Brightcove = new BrightcoveApiClient
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       migrateArticles

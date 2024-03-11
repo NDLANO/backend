@@ -91,8 +91,8 @@ class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
 }
 
 object V11_EmbedType extends Enumeration {
-  val OEmbed = Value("oembed")
-  val LTI    = Value("lti")
+  val OEmbed: Value = Value("oembed")
+  val LTI: Value    = Value("lti")
 }
 case class V11_LearningStep(embedUrl: Seq[V11_EmbedUrl])
 case class V11_EmbedUrl(url: String, language: String, embedType: V11_EmbedType.Value)

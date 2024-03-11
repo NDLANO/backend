@@ -21,13 +21,13 @@ import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  val service         = new ConverterService
-  val contentTitle    = Title("", "und")
-  val author          = Author("forfatter", "Henrik")
-  val tag             = Tag(List("asdf"), "nb")
-  val requiredLibrary = RequiredLibrary("", "", "")
-  val nodeId          = "1234"
-  val sampleAlt       = "Fotografi"
+  val service                          = new ConverterService
+  val contentTitle: Title              = Title("", "und")
+  val author: Author                   = Author("forfatter", "Henrik")
+  val tag: Tag                         = Tag(List("asdf"), "nb")
+  val requiredLibrary: RequiredLibrary = RequiredLibrary("", "", "")
+  val nodeId                           = "1234"
+  val sampleAlt                        = "Fotografi"
 
   test("toApiLicense defaults to unknown if the license was not found") {
     service.toApiLicense("invalid") should equal(License("unknown", None, None))

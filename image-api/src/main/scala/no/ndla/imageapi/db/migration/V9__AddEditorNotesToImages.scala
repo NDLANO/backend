@@ -20,7 +20,7 @@ class V9__AddEditorNotesToImages extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   val timeService                           = new TimeService()
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       imagesToUpdate.foreach { case (id, document) =>
@@ -52,7 +52,7 @@ class V9__AddEditorNotesToImages extends BaseJavaMigration {
     compact(render(mergedDoc))
   }
 
-  def update(imagemetadata: String, id: Long)(implicit session: DBSession) = {
+  def update(imagemetadata: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imagemetadata)

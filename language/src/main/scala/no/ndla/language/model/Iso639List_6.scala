@@ -11,7 +11,7 @@ import CodeLists.Iso639Val
 
 object Iso639List_6 {
 
-  val items = Seq(
+  val items: Seq[Iso639Val] = Seq(
     Iso639Val("mig", None, None, None, Some("I"), Some("L"), "San Miguel El Grande Mixtec", None, None),
     Iso639Val("mih", None, None, None, Some("I"), Some("L"), "Chayuco Mixtec", None, None),
     Iso639Val("mii", None, None, None, Some("I"), Some("L"), "Chigmecatitlán Mixtec", None, None),

@@ -24,8 +24,8 @@ trait Props extends HasBaseProps {
 class AudioApiProperties extends BaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  val ApplicationName    = "audio-api"
-  val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  val ApplicationName            = "audio-api"
+  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
@@ -33,13 +33,13 @@ class AudioApiProperties extends BaseProps with StrictLogging {
   val AudioControllerPath  = "/audio-api/v1/audio/"
   val SeriesControllerPath = "/audio-api/v1/series/"
 
-  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   val MaxAudioFileSizeBytes: Int = 1024 * 1024 * 100 // 100 MiB
 
@@ -58,15 +58,15 @@ class AudioApiProperties extends BaseProps with StrictLogging {
   val MaxPageSize                          = 10000
   val IndexBulkSize                        = 200
 
-  val IsoMappingCacheAgeInMs: Int       = 1000 * 60 * 60 // 1 hour caching
-  val LicenseMappingCacheAgeInMs: Int   = 1000 * 60 * 60 // 1 hour caching
-  val ElasticSearchIndexMaxResultWindow = 10000
-  val ElasticSearchScrollKeepAlive      = "1m"
-  val InitialScrollContextKeywords      = List("0", "initial", "start", "first")
+  val IsoMappingCacheAgeInMs: Int                = 1000 * 60 * 60 // 1 hour caching
+  val LicenseMappingCacheAgeInMs: Int            = 1000 * 60 * 60 // 1 hour caching
+  val ElasticSearchIndexMaxResultWindow          = 10000
+  val ElasticSearchScrollKeepAlive               = "1m"
+  val InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
   val AudioFilesUrlSuffix = "audio/files"
 
-  val creatorTypeMap = Map(
+  val creatorTypeMap: Map[String, String] = Map(
     "opphavsmann"    -> "originator",
     "fotograf"       -> "photographer",
     "kunstner"       -> "artist",
@@ -80,7 +80,7 @@ class AudioApiProperties extends BaseProps with StrictLogging {
     "komponist"      -> "composer"
   )
 
-  val processorTypeMap = Map(
+  val processorTypeMap: Map[String, String] = Map(
     "bearbeider"     -> "processor",
     "tilrettelegger" -> "facilitator",
     "redaksjonelt"   -> "editorial",
@@ -90,7 +90,7 @@ class AudioApiProperties extends BaseProps with StrictLogging {
     "korrektur"      -> "correction"
   )
 
-  val rightsholderTypeMap = Map(
+  val rightsholderTypeMap: Map[String, String] = Map(
     "rettighetshaver" -> "rightsholder",
     "forlag"          -> "publisher",
     "distributør"     -> "distributor",
@@ -99,6 +99,6 @@ class AudioApiProperties extends BaseProps with StrictLogging {
 
   lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
-  lazy val RawImageApiUrl = s"$Domain/image-api/raw/id"
+  lazy val RawImageApiUrl: String = s"$Domain/image-api/raw/id"
 
 }

@@ -11,7 +11,7 @@ import CodeLists.Iso639Val
 
 object Iso639List_8 {
 
-  val items = Seq(
+  val items: Seq[Iso639Val] = Seq(
     Iso639Val("roc", None, None, None, Some("I"), Some("L"), "Cacgia Roglai", None, None),
     Iso639Val("rod", None, None, None, Some("I"), Some("L"), "Rogo", None, None),
     Iso639Val("roe", None, None, None, Some("I"), Some("L"), "Ronji", None, None),

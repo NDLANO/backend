@@ -13,7 +13,7 @@ import no.ndla.imageapi.db.migration.{TimeService2, V4__DBImageMetaInformation, 
 class V4__DateFormatUpdatedTest extends UnitSuite {
 
   class V4__MockedMigration extends V4__DateFormatUpdated {
-    override val timeService = mock[TimeService2]
+    override val timeService: TimeService2 = mock[TimeService2]
   }
 
   val migration = new V4__MockedMigration

@@ -128,5 +128,5 @@ object TestData {
     updated
   )
 
-  val testUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE), None)
+  val testUser: TokenUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE), None)
 }

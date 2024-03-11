@@ -15,7 +15,7 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V6__UpdateDuration extends BaseJavaMigration {
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       allLearningPaths
@@ -46,7 +46,7 @@ class V6__UpdateDuration extends BaseJavaMigration {
     compact(render(newLearningPath))
   }
 
-  def update(id: Long, document: String)(implicit session: DBSession) = {
+  def update(id: Long, document: String)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

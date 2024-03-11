@@ -31,7 +31,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newFileName               = "AbCdeF.mp3"
   val fileMock1: UploadedFile   = mock[UploadedFile]
 
-  val newImageMeta = NewImageMetaInformationV2(
+  val newImageMeta: NewImageMetaInformationV2 = NewImageMetaInformationV2(
     "title",
     Some("alt text"),
     Copyright(License("by", None, None), None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
@@ -40,12 +40,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     "en",
     Some(ModelReleasedStatus.YES.toString)
   )
-  val userId             = "ndla124"
-  val userWithWriteScope = TokenUser(userId, Set(IMAGE_API_WRITE), None)
+  val userId                        = "ndla124"
+  val userWithWriteScope: TokenUser = TokenUser(userId, Set(IMAGE_API_WRITE), None)
 
-  def updated() = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val domainImageMeta =
+  val domainImageMeta: ImageMetaInformation =
     converterService
       .asDomainImageMetaInformationV2(newImageMeta, TokenUser.SystemUser)
       .get

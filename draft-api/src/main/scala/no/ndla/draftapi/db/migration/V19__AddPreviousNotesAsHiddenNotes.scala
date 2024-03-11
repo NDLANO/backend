@@ -56,7 +56,7 @@ class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
       .list()
   }
 
-  def allArticlesWithArticleId(articleId: Long)(implicit session: DBSession) = {
+  def allArticlesWithArticleId(articleId: Long)(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, document from articledata where document is not null and article_id=${articleId} order by id"
       .map(rs => {
         (rs.long("id"), rs.string("document"))

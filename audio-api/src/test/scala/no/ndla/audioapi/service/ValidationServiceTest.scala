@@ -27,7 +27,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   val audioType: AudioType.Value = AudioType.Podcast
   val enCoverPhoto: CoverPhoto   = CoverPhoto("1", "alt")
   val nbCoverPhoto: CoverPhoto   = CoverPhoto("2", "alt")
-  val meta = Seq(PodcastMeta("intro", enCoverPhoto, "en"), PodcastMeta("intro", nbCoverPhoto, "nb"))
+  val meta: Seq[PodcastMeta] = Seq(PodcastMeta("intro", enCoverPhoto, "en"), PodcastMeta("intro", nbCoverPhoto, "nb"))
 
   test("validatePodcastMeta is empty when cover photo is squared") {
     val enImageMock = mock[BufferedImage]

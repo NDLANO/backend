@@ -82,7 +82,7 @@ trait ArticleControllerV2 {
     private val deprecatedNodeId = path[String]("deprecated_node_id").description("Id of deprecated NDLA node")
     private val fallback =
       query[Boolean]("fallback").description("Fallback to existing language if language is specified.").default(false)
-    protected val scrollId = query[Option[String]]("search-context").description(
+    protected val scrollId: EndpointInput.Query[Option[String]] = query[Option[String]]("search-context").description(
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
           .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}' and '${this.fallback.name}'.

@@ -68,7 +68,7 @@ class V8__MoveManuscriptFromPodcastToAudio extends BaseJavaMigration {
     compact(render(newArticle))
   }
 
-  def update(document: String, id: Long)(implicit session: DBSession) = {
+  def update(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

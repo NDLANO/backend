@@ -16,6 +16,7 @@ import sttp.client3.quick._
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
+import sttp.client3.{Empty, RequestT}
 
 class RawControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
@@ -29,7 +30,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   val id    = 1L
   val idGif = 1L
 
-  def req = basicRequest.response(asByteArrayAlways)
+  def req: RequestT[Empty, Array[Byte], Any with Any] = basicRequest.response(asByteArrayAlways)
 
   override def beforeEach(): Unit = {
     reset(clock)

@@ -18,8 +18,8 @@ import no.ndla.mapping.License.CC_BY
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
   override val validationService = new ValidationService
 
-  val fileMock  = mock[UploadedFile]
-  def updated() = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  val fileMock: UploadedFile = mock[UploadedFile]
+  def updated(): NDLADate    = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val sampleImageMeta = new ImageMetaInformation(
     id = Some(1),
@@ -48,7 +48,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     editorNotes = Seq.empty
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     reset(fileMock)
   }
 

@@ -61,7 +61,7 @@ class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJa
     )
   }
 
-  def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession) = {
+  def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))

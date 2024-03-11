@@ -28,7 +28,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
   val feideToken = "aec48787-36b7-4d04-8c11-40e374256f1e"
   val feideId    = "someid"
 
-  val testUser = MyNDLAUser(
+  val testUser: MyNDLAUser = MyNDLAUser(
     id = 1,
     feideId = feideId,
     favoriteSubjects = Seq.empty,

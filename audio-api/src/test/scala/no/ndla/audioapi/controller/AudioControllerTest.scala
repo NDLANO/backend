@@ -26,7 +26,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 class AudioControllerTest extends UnitSuite with TestEnvironment with Retries with TapirControllerTest[Eff] {
-  val controller = new AudioController {
+  val controller: AudioController = new AudioController {
     // NOTE: Small max file size when testing to test the failure in the controller without using a bunch of memory
     override val maxAudioFileSizeBytes: Int = 10
   }

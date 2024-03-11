@@ -120,7 +120,7 @@ trait FolderController {
       }
 
     val defaultSize = 5
-    val size = query[Int]("size")
+    val size: EndpointInput.Query[Int] = query[Int]("size")
       .description("Limit the number of results to this many elements")
       .default(defaultSize)
 
@@ -186,7 +186,8 @@ trait FolderController {
         folderReadService.getSharedFolder(folderId, feideHeader).handleErrorsOrOk
       }
 
-    val folderStatus = query[FolderStatus.Value]("folder-status").description("Status of the folder")
+    val folderStatus: EndpointInput.Query[FolderStatus.Value] =
+      query[FolderStatus.Value]("folder-status").description("Status of the folder")
     private def changeStatusForFolderAndSubFolders: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Change status for given folder and all its subfolders")
       .description("Change status for given folder and all its subfolders")

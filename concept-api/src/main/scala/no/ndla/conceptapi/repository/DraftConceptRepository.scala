@@ -95,7 +95,7 @@ trait DraftConceptRepository {
         .toSet
     }
 
-    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
+    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
       sql"""
            select distinct id, document#>'{tags}' as tags
            from ${Concept.table}
@@ -109,7 +109,7 @@ trait DraftConceptRepository {
         .list()
     }
 
-    def withListingId(listingId: Long) =
+    def withListingId(listingId: Long): Option[Concept] =
       conceptWhere(sqls"co.listing_id=$listingId")
 
     def insertWithId(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {

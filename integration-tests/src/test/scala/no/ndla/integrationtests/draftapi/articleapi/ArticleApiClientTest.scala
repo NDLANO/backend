@@ -55,7 +55,7 @@ class ArticleApiClientTest
   }
 
   var articleApi: articleapi.MainClass = null
-  val articleApiBaseUrl                = s"http://localhost:$articleApiPort"
+  val articleApiBaseUrl: String        = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
     implicit val ec: ExecutionContextExecutorService =
@@ -132,7 +132,7 @@ class ArticleApiClientTest
   val exampleToken =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJhcnRpY2xlczpwdWJsaXNoIiwiZHJhZnRzOndyaXRlIiwiZHJhZnRzOnNldF90b19wdWJsaXNoIiwiYXJ0aWNsZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.v6q6y6owx9VXri1h4FJJHDAnMllmNYFAAT2b9CJLm88"
   val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
-  val authUser                           = TokenUser.SystemUser.copy(originalToken = Some(exampleToken))
+  val authUser: TokenUser                = TokenUser.SystemUser.copy(originalToken = Some(exampleToken))
 
   class LocalArticleApiTestData extends articleapi.Props with articleapi.TestData {
     override val props: ArticleApiProperties = articleApiProperties

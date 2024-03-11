@@ -71,7 +71,7 @@ class V8__UpdateLicenses extends BaseJavaMigration {
     compact(render(newArticle))
   }
 
-  def update(imagemetadata: String, id: Long)(implicit session: DBSession) = {
+  def update(imagemetadata: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imagemetadata)

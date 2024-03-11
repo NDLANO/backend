@@ -41,7 +41,7 @@ trait ReindexClient {
       simpleHttpClient.send(req)
     }
 
-    def reindexAll() = {
+    def reindexAll(): Future[Unit] = {
       logger.info("Calling for API's to reindex")
       Future {
         reindexArticles(): Unit

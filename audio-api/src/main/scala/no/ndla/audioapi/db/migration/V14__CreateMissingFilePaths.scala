@@ -41,7 +41,7 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
       .orElse(sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).lastOption)
   }
 
-  val languagePriority = List(
+  val languagePriority: List[String] = List(
     "nb",
     "nn",
     "unknown",

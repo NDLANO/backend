@@ -13,12 +13,12 @@ import sttp.tapir._
 trait ImageControllerHelpers {
   this: Props =>
   object ImageControllerHelpers {
-    val pageNo =
+    val pageNo: EndpointInput.Query[Int] =
       query[Int]("page")
         .description("The page number of the search hits to display.")
         .default(1)
 
-    val pageSize =
+    val pageSize: EndpointInput.Query[Int] =
       query[Int]("page-size")
         .description("The number of search hits to display for each page.")
         .default(props.DefaultPageSize)

@@ -11,7 +11,7 @@ import CodeLists.Iso639Val
 
 object Iso639List_1 {
 
-  val items = Seq(
+  val items: Seq[Iso639Val] = Seq(
     Iso639Val(
       "Id",
       Some("Part2B"),

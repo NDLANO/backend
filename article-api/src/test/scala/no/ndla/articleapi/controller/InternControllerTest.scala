@@ -29,7 +29,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       Json4s.serializer(ArticleType) +
       NDLADate.Json4sSerializer
 
-  val author = Author("forfatter", "Henrik")
+  val author: Author = Author("forfatter", "Henrik")
 
   val controller = new InternController
 
