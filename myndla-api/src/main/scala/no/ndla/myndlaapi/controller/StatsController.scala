@@ -39,16 +39,17 @@ trait StatsController {
       }
     private val pathResourceType =
       path[CommaSeparated[String]]("resourceType").description("The type of the resource to look up")
-    private val pathResourceId = path[String]("resourceId").description("ID of the resource to look up")
+    private val pathResourceIds =
+      path[CommaSeparated[String]]("resourceIds").description("IDs of the resources to look up")
 
     def getFolderResourceFavorites: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get folder resource favorites")
       .description("Get folder resource favorites")
-      .in("favorites" / pathResourceType / pathResourceId)
-      .out(jsonBody[SingleResourceStats])
+      .in("favorites" / pathResourceType / pathResourceIds)
+      .out(jsonBody[List[SingleResourceStats]])
       .errorOut(errorOutputsFor(404))
-      .serverLogicPure { case (resourceType, resourceId) =>
-        folderReadService.getFavouriteStatsForResource(resourceId, resourceType.values).handleErrorsOrOk
+      .serverLogicPure { case (resourceType, resourceIds) =>
+        folderReadService.getFavouriteStatsForResource(resourceIds.values, resourceType.values).handleErrorsOrOk
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
