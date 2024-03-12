@@ -12,7 +12,6 @@ object commonlib extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       enumeratum,
-      enumeratumJson4s,
       enumeratumCirce,
       sttp,
       scalikejdbc,
