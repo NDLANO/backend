@@ -27,7 +27,7 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
 
   test("That getting multiple resourceTypes for id works") {
     when(folderReadService.getFavouriteStatsForResource(any, any))
-      .thenReturn(Success(List(SingleResourceStats("1", 21, "article"))))
+      .thenReturn(Success(List(SingleResourceStats("1", 21))))
     val response = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats/favorites/article,multidisciplinary/123")
     )
