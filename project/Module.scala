@@ -88,11 +88,12 @@ trait Module {
   }
 
   val scalacOptions: Set[ScalacOption] = {
+    Set.empty
     // scala-tsi leaves some unused imports and such in src_managed, lets not care about linting scala-tsi code.
-    val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _ => true)
-    val source3                        = ScalacOption("-Xsource:3", _ => true)
-
-    Set(silentSrcManaged, source3)
+//    val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _ => true)
+//    val source3                        = ScalacOption("-Xsource:3", _ => true)
+//
+//    Set(silentSrcManaged, source3)
   }
 
   def withLogging(libs: Seq[ModuleID], extraLibs: Seq[ModuleID]*): Seq[ModuleID] = {
