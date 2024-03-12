@@ -81,9 +81,9 @@ object Dependencies {
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
     lazy val circe: Seq[ModuleID] = Seq(
-      "io.circe"  %% "circe-generic"        % CirceV,
-      "io.circe"  %% "circe-literal"        % CirceV,
-      "io.circe"  %% "circe-parser"         % CirceV
+      "io.circe" %% "circe-generic" % CirceV,
+      "io.circe" %% "circe-literal" % CirceV,
+      "io.circe" %% "circe-parser"  % CirceV
     )
 
     lazy val http4s: Seq[ModuleID] = Seq(

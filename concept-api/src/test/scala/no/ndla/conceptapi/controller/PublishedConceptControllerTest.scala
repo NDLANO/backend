@@ -19,7 +19,7 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type  = org.json4s.DefaultFormats
   val controller: PublishedConceptController = new PublishedConceptController
 
   override def beforeEach(): Unit = {

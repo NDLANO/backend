@@ -14,7 +14,13 @@ import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.*
-import no.ndla.learningpathapi.model.api.{NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2, UpdatedLearningPathV2, UpdatedLearningStepV2}
+import no.ndla.learningpathapi.model.api.{
+  NewCopyLearningPathV2,
+  NewLearningPathV2,
+  NewLearningStepV2,
+  UpdatedLearningPathV2,
+  UpdatedLearningStepV2
+}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser

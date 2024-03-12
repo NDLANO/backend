@@ -27,7 +27,7 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  override val converterService = new ConverterService
+  override val converterService    = new ConverterService
   val controller: InternController = new InternController
 
   val updated: NDLADate       = NDLADate.of(2017, 4, 1, 12, 15, 32)

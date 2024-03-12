@@ -28,7 +28,7 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  implicit val formats: Formats = DefaultFormats + NDLADate.Json4sSerializer
+  implicit val formats: Formats   = DefaultFormats + NDLADate.Json4sSerializer
   val controller: DraftController = new DraftController
 
   override def beforeEach(): Unit = {

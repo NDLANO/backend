@@ -11,7 +11,12 @@ package no.ndla.imageapi.controller
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.imageapi.model.api.{ImageMetaSummary, NewImageMetaInformationV2, SearchResult, UpdateImageMetaInformation}
+import no.ndla.imageapi.model.api.{
+  ImageMetaSummary,
+  NewImageMetaInformationV2,
+  SearchResult,
+  UpdateImageMetaInformation
+}
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
 import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}

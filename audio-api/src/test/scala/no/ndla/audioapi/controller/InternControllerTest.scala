@@ -22,7 +22,7 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  override val converterService = new ConverterService
+  override val converterService             = new ConverterService
   override val controller: InternController = new InternController
 
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(

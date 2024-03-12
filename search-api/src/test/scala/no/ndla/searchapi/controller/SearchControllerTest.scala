@@ -25,7 +25,7 @@ import java.time.Month
 import scala.util.Success
 
 class SearchControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  override val converterService = new ConverterService
+  override val converterService    = new ConverterService
   val controller: SearchController = new SearchController()
 
   override def beforeEach(): Unit = {
