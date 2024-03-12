@@ -203,6 +203,7 @@ export interface IResourceStats {
 }
 
 export interface ISingleResourceStats {
+  id: string
   favourites: number
 }
 
