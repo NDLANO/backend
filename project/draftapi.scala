@@ -12,7 +12,6 @@ object draftapi extends Module {
       scalaTsi,
       scalaUri,
       enumeratum,
-      enumeratumJson4s,
       sttp,
       catsEffect,
       jsoup,
