@@ -7,9 +7,9 @@
 
 package no.ndla.common.model.domain.draft
 
-import enumeratum.Json4s
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.Json4s
 import no.ndla.common.implicits._
 import no.ndla.common.model.{NDLADate, RelatedContentLink}
 import no.ndla.common.model.domain._
@@ -41,7 +41,7 @@ case class Draft(
     editorLabels: Seq[String],
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
-    availability: Availability.Value = Availability.everyone,
+    availability: Availability = Availability.everyone,
     relatedContent: Seq[RelatedContent],
     revisionMeta: Seq[RevisionMeta],
     responsible: Option[Responsible],
@@ -62,7 +62,7 @@ object Draft {
   implicit val decoder: Decoder[Draft]                              = deriveDecoder
 
   val serializers: Seq[Serializer[_]] = Seq(
-    new EnumNameSerializer(Availability),
+    Json4s.serializer(Availability),
     Json4s.serializer(DraftStatus),
     Json4s.serializer(ArticleType),
     Json4s.serializer(RevisionStatus),
