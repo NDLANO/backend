@@ -121,7 +121,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
     val httpRequestMock  = mock[NdlaRequest]
     val httpResponseMock = mock[Response[String]]
-    val authMock         = mock[SpecifyAuthScheme[Any, String, Any]]
+    val authMock         = mock[SpecifyAuthScheme[sttp.client3.Empty, String, Any]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
     doReturn(authMock).when(httpRequestMock).auth
 
