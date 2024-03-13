@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits._
 import org.json4s.native.JsonMethods
 import org.json4s.*
 import sttp.client3.Response
@@ -47,7 +47,7 @@ case class FeideExtendedUserInfo(
     else false
   }
 
-  def availabilities: Seq[Availability.Value] = {
+  def availabilities: Seq[Availability] = {
     if (this.isTeacher) {
       Seq(
         Availability.everyone,
@@ -173,7 +173,7 @@ trait FeideApiClient {
       } yield feideId
     }
 
-    def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = {
+    def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = permitTry {
       val accessToken    = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeFeideUser = redisClient.getFeideUserFromCache(accessToken).?
       val feideExtendedUser = (maybeFeideUser match {
@@ -183,7 +183,7 @@ trait FeideApiClient {
       redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
     }
 
-    def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = {
+    def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = permitTry {
       val accessToken      = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeFeideGroups = redisClient.getGroupsFromCache(accessToken).?
       val feideGroups = (maybeFeideGroups match {
@@ -193,7 +193,7 @@ trait FeideApiClient {
       redisClient.updateCacheAndReturnGroups(accessToken, feideGroups)
     }
 
-    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = {
+    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = permitTry {
       val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?
       val organization = (maybeOrganization match {
