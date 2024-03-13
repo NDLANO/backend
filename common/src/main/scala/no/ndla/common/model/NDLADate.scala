@@ -10,7 +10,6 @@ package no.ndla.common.model
 import com.scalatsi.TSType
 import io.circe.{Decoder, Encoder, FailedCursor}
 import io.circe.syntax._
-import org.json4s.{CustomSerializer, JString, MappingException}
 import scalikejdbc.ParameterBinderFactory
 import sttp.tapir.Schema
 
@@ -190,26 +189,6 @@ object NDLADate {
   }
 
   implicit val schema: Schema[NDLADate] = Schema.schemaForLocalDateTime.as[NDLADate]
-
-  class NDLADateJson4sSerializer
-      extends CustomSerializer[NDLADate](_ =>
-        (
-          {
-            // NOTE: Unsafe as everything json4s :^)
-            case JString(s) =>
-              NDLADate.fromString(s) match {
-                case Success(date) => date
-                case Failure(exception) =>
-                  throw new MappingException(
-                    exception.getMessage,
-                    NDLADateError(exception.getMessage)
-                  )
-              }
-          },
-          { case x: NDLADate => JString(NDLADate.asString(x)) }
-        )
-      )
-  val Json4sSerializer = new NDLADateJson4sSerializer
 
   implicit val parameterBinderFactory: ParameterBinderFactory[NDLADate] = ParameterBinderFactory[NDLADate] {
     v => (ps, idx) =>

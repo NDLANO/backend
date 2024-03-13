@@ -59,6 +59,11 @@ package object implicits {
       case _ => c.abort(c.enclosingPosition, "This is a bug with the tryQuestionMarkOperator macro")
     }
   }
+
+  // NOTE: This is just a helper to make scala3 migration easier
+  //       In scala 2 this does nothing at all, but in scala 3 it will be used to permit the use of .? without magic macros
+  def permitTry[A](f: => A): A = { f }
+
   implicit class TryQuestionMark[A](private val self: Try[A]) extends AnyVal {
 
     /** See [[tryQuestionMarkOperator]] docs above */

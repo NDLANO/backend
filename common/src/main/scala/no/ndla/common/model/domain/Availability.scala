@@ -8,7 +8,6 @@
 package no.ndla.common.model.domain
 
 import enumeratum._
-import io.circe.{Decoder, Encoder}
 
 sealed trait Availability extends EnumEntry
 object Availability extends Enum[Availability] with CirceEnum[Availability] {

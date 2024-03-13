@@ -8,12 +8,13 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.CirceUtil
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.implicits.*
-import org.json4s.native.JsonMethods
-import org.json4s.*
 import sttp.client3.Response
 import sttp.client3.quick.*
 import sttp.model.Uri
@@ -22,12 +23,25 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class Membership(primarySchool: Option[Boolean])
+
+object Membership {
+  implicit val encoder: Encoder[Membership] = deriveEncoder
+  implicit val decoder: Decoder[Membership] = deriveDecoder
+}
 case class FeideGroup(id: String, `type`: String, displayName: String, membership: Membership, parent: Option[String])
 object FeideGroup {
   val FC_ORG = "fc:org"
+
+  implicit val encoder: Encoder[FeideGroup] = deriveEncoder
+  implicit val decoder: Decoder[FeideGroup] = deriveDecoder
 }
 
 case class FeideOpenIdUserInfo(sub: String)
+
+object FeideOpenIdUserInfo {
+  implicit val encoder: Encoder[FeideOpenIdUserInfo] = deriveEncoder
+  implicit val decoder: Decoder[FeideOpenIdUserInfo] = deriveDecoder
+}
 
 case class FeideExtendedUserInfo(
     displayName: String,
@@ -62,6 +76,11 @@ case class FeideExtendedUserInfo(
   def username: String = this.eduPersonPrincipalName
 }
 
+object FeideExtendedUserInfo {
+  implicit val decoder: Decoder[FeideExtendedUserInfo] = deriveDecoder
+  implicit val encoder: Encoder[FeideExtendedUserInfo] = deriveEncoder
+}
+
 trait FeideApiClient {
   this: RedisClient =>
   val feideApiClient: FeideApiClient
@@ -80,22 +99,21 @@ trait FeideApiClient {
     private def fetchFeideGroupInfo(accessToken: FeideAccessToken): Try[Seq[FeideGroup]] =
       fetchAndParse[Seq[FeideGroup]](accessToken, feideGroupEndpoint)
 
-    private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: Uri)(implicit mf: Manifest[T]): Try[T] = {
+    private def fetchAndParse[T: Decoder](accessToken: FeideAccessToken, endpoint: Uri): Try[T] = {
       val request =
         quickRequest
           .get(endpoint)
           .readTimeout(feideTimeout)
           .header("Authorization", s"Bearer $accessToken")
 
-      implicit val formats: DefaultFormats.type = DefaultFormats
       for {
         response <- doRequest(request)
         parsed   <- parseResponse[T](response)
       } yield parsed
     }
 
-    private def parseResponse[T](response: Response[String])(implicit mf: Manifest[T], formats: Formats): Try[T] = {
-      Try(JsonMethods.parse(response.body).camelizeKeys.extract[T]) match {
+    private def parseResponse[T: Decoder](response: Response[String]): Try[T] = {
+      CirceUtil.tryParseAs[T](response.body) match {
         case Success(extracted) => Success(extracted)
         case Failure(ex) =>
           logger.error("Could not parse response from feide.", ex)

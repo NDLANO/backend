@@ -8,7 +8,8 @@
 package no.ndla.network.jwt
 
 import no.ndla.network.model.{JWTClaims, NdlaHttpRequest}
-import pdi.jwt.{JwtJson4s, JwtOptions}
+import pdi.jwt.{JwtCirce, JwtOptions}
+
 import scala.util.{Failure, Success}
 
 class JWTExtractor(jwtClaims: Option[JWTClaims]) {
@@ -29,7 +30,7 @@ object JWTExtractor {
       .flatMap(authHeader => {
         val jwt = authHeader.replace("Bearer ", "")
         // Leaning on token validation being done somewhere else...
-        JwtJson4s.decode(jwt, JwtOptions(signature = false, expiration = false)) match {
+        JwtCirce.decode(jwt, JwtOptions(signature = false, expiration = false)) match {
           case Success(claims) => Some(JWTClaims(claims))
           case Failure(_)      => None
         }
@@ -38,7 +39,7 @@ object JWTExtractor {
   }
 
   def apply(token: String): JWTExtractor = {
-    val claims = JwtJson4s.decode(token, JwtOptions(signature = false, expiration = false)) match {
+    val claims = JwtCirce.decode(token, JwtOptions(signature = false, expiration = false)) match {
       case Failure(_)      => None
       case Success(claims) => Some(JWTClaims(claims))
     }

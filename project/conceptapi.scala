@@ -15,7 +15,6 @@ object conceptapi extends Module {
       scalaUri,
       enumeratum,
       catsEffect,
-      "org.json4s"    %% "json4s-native"           % Json4SV,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.typelevel" %% "cats-core"               % "2.10.0"

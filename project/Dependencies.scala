@@ -18,7 +18,6 @@ object Dependencies {
     val Elastic4sV            = "8.11.5"
     val JacksonV              = "2.16.1"
     val CatsEffectV           = "3.5.3"
-    val Json4SV               = "4.0.7"
     val FlywayV               = "10.8.1"
     val PostgresV             = "42.7.2"
     val ScalaTsiV             = "0.8.2"

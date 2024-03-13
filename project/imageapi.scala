@@ -15,7 +15,6 @@ object imageapi extends Module {
       enumeratum,
       sttp,
       jsoup,
-      "org.json4s"    %% "json4s-native"           % Json4SV,
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
       "org.imgscalr"   % "imgscalr-lib"            % "4.2",

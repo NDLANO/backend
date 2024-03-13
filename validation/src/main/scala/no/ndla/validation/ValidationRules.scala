@@ -1,8 +1,9 @@
 package no.ndla.validation
-import enumeratum.Json4s
+
+import no.ndla.common.json.Json4s
 import no.ndla.validation.model.{HtmlRulesFile, MathMLRulesFile}
-import org.json4s._
-import org.json4s.native.JsonMethods.parse
+import org.json4s.*
+import org.json4s.jackson.JsonMethods.parse
 
 import scala.io.Source
 

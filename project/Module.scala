@@ -96,9 +96,13 @@ trait Module {
     // NOTE: scala-tsi leaves some unused imports and such in src_managed, lets not care about linting scala-tsi code.
     val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _.major == 2)
 
+    // TODO: Remove this when on scala 3
+    val xsource: ScalacOption = ScalacOption("-Xsource:3", _.major == 2)
+
     Set(
       maxInlines,
-      silentSrcManaged
+      silentSrcManaged,
+      xsource
     )
   }
 
