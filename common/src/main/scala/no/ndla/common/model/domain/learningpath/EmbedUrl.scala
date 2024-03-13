@@ -14,7 +14,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.model.LanguageField
 import enumeratum._
 
-case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField[String] {
+case class EmbedUrl(url: String, language: String, embedType: EmbedType) extends LanguageField[String] {
   override def value: String    = url
   override def isEmpty: Boolean = url.isEmpty
 }
@@ -31,7 +31,7 @@ object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
   case object LTI    extends EmbedType("lti")
   case object IFrame extends EmbedType("iframe")
 
-  def valueOf(s: String): Option[EmbedType] = EmbedType.values.find(_.toString == s)
+  def valueOf(s: String): Option[EmbedType]  = EmbedType.values.find(_.toString == s)
   def valueOfOrDefault(s: String): EmbedType = valueOf(s).getOrElse(EmbedType.OEmbed)
   def valueOfOrError(embedType: String): EmbedType = {
     valueOf(embedType) match {
@@ -42,7 +42,6 @@ object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
         )
     }
   }
-
 
   override def values: IndexedSeq[EmbedType] = findValues
 }

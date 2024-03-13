@@ -33,7 +33,7 @@ case class Article(
     articleType: ArticleType,
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
-    availability: Availability.Value = Availability.everyone,
+    availability: Availability = Availability.everyone,
     relatedContent: Seq[RelatedContent],
     revisionDate: Option[NDLADate],
     slug: Option[String]
