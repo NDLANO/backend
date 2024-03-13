@@ -10,15 +10,15 @@
         },
         {
           "name": "data-title",
-            "validation": {
-              "required": false,
+          "validation": {
+            "required": false
           }
         },
         {
           "name": "data-copyright",
-            "validation": {
-              "required": true,
-              "dataType": "JSON"
+          "validation": {
+            "required": true,
+            "dataType": "JSON"
           }
         }
       ],
@@ -826,9 +826,10 @@
       "mustBeDirectChildOf": {
         "name": "div",
         "requiredAttr": [
-          {
-            "data-type": "related-content"
-          }
+          [
+            "data-type",
+            "related-content"
+          ]
         ]
       }
     },
@@ -874,9 +875,10 @@
       "mustBeDirectChildOf": {
         "name": "div",
         "requiredAttr": [
-          {
-            "data-type": "file"
-          }
+          [
+            "data-type",
+            "file"
+          ]
         ]
       }
     },
