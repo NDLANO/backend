@@ -1,8 +1,15 @@
+/*
+ * Part of NDLA common
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.common
 
 import io.circe.DecodingFailure.Reason
-import io.circe.{Decoder, DecodingFailure, Encoder}
 import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, DecodingFailure, Encoder}
 
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}

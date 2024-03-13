@@ -90,20 +90,15 @@ trait Module {
   val scalacOptions: Set[ScalacOption] = {
     // TODO: We need this because of some circe encoder/decoder deriving.
     //       May not be needed in the future, lets explore it when scala 3 is in place.
-    val maxInlines = ScalacOption("-Xmax-inlines", List("50"), _ => true)
-
-    // TODO: This is because json4s still uses manifests while they are deprecated.
-    //       We silence the warnings for now, but i think in the future we should move away from json4s
-    val noManifestWarnings = ScalacOption("-Wconf:msg=Compiler synthesis of Manifest and OptManifest is deprecated:s", _ => true)
+    val maxInlines = ScalacOption("-Xmax-inlines", List("50"), _.major >= 3)
 
     // TODO: Scala 3 does not have this option yet. See: https://github.com/scala/scala3/issues/18782
     // NOTE: scala-tsi leaves some unused imports and such in src_managed, lets not care about linting scala-tsi code.
-    // val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _ => true)
+    val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _.major == 2)
 
     Set(
       maxInlines,
-      noManifestWarnings,
-//      silentSrcManaged
+      silentSrcManaged
     )
   }
 

@@ -8,7 +8,7 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "3.4.0"
+    val ScalaV                = "2.13.13"
     val HikariConnectionPoolV = "5.1.0"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.18"
@@ -52,8 +52,8 @@ object Dependencies {
       "com.vladsch.flexmark" % "flexmark-ext-superscript"       % FlexmarkV
     )
 
-    lazy val enumeratum       = "com.beachape"  %% "enumeratum"        % EnumeratumV
-    lazy val enumeratumCirce  = "com.beachape"  %% "enumeratum-circe"  % EnumeratumV
+    lazy val enumeratum      = "com.beachape" %% "enumeratum"       % EnumeratumV
+    lazy val enumeratumCirce = "com.beachape" %% "enumeratum-circe" % EnumeratumV
 
     lazy val database: Seq[ModuleID] = Seq(
       scalikejdbc,
