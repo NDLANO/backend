@@ -14,8 +14,6 @@ object searchapi extends Module {
       scalaUri,
       enumeratum,
       jsoup,
-      "org.json4s"    %% "json4s-native"           % Json4SV,
-      "org.json4s"    %% "json4s-ext"              % Json4SV,
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
     ),

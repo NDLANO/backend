@@ -24,7 +24,7 @@ object EmbedUrl {
   implicit val decoder: Decoder[EmbedUrl] = deriveDecoder
 }
 
-sealed abstract class EmbedType(entryName: String) extends EnumEntry {}
+sealed abstract class EmbedType(override val entryName: String) extends EnumEntry {}
 
 object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
   case object OEmbed extends EmbedType("oembed")

@@ -1,9 +1,10 @@
 package no.ndla.validation
 
-import enumeratum.{Json4s, _}
-import org.json4s._
+import enumeratum.*
+import no.ndla.common.json.Json4s
+import org.json4s.*
 import org.json4s.JsonAST.JObject
-import org.json4s.native.JsonMethods._
+import org.json4s.native.JsonMethods.*
 
 object TagRules {
   case class TagAttributeRules(

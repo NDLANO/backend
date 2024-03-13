@@ -75,48 +75,6 @@ class NDLADateTest extends UnitTestSuite {
     dates.sorted should be(List(a, b, c))
   }
 
-  test("That json4s parsing works like before") {
-    import org.json4s.native.Serialization.{read, write}
-    val formats = org.json4s.DefaultFormats + NDLADate.Json4sSerializer
-
-    val dateString       = "2023-08-03T06:01:31.000Z"
-    val objectJsonString = s"""{"date":"$dateString","unrelatedField":"test"}"""
-
-    val timestamp    = 1691042491L
-    val expectedDate = new NDLADate(ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault()))
-
-    val result = read[TestObjectWithDate](objectJsonString)(formats, implicitly[Manifest[TestObjectWithDate]])
-    result.date should be(expectedDate)
-    result.unrelatedField should be("test")
-
-    val jsonStringResult = write(result)(formats)
-    jsonStringResult should be(objectJsonString)
-  }
-
-  test("That json4s parsing returns some sensible errors") {
-    import org.json4s.native.Serialization.read
-    val formats = org.json4s.DefaultFormats + NDLADate.Json4sSerializer
-
-    val dateString       = ""
-    val objectJsonString = s"""{"date":"$dateString","unrelatedField":"test"}"""
-
-    val result = Try(read[TestObjectWithDate](objectJsonString)(formats, implicitly[Manifest[TestObjectWithDate]]))
-    val Failure(ex: org.json4s.MappingException) = result
-    ex.msg should be("No usable value for date\nWas unable to parse '' as a date.")
-  }
-
-  test("That json4s weird optional parsing returns valid") {
-    import org.json4s.native.Serialization.read
-    val formats = org.json4s.DefaultFormats + NDLADate.Json4sSerializer
-
-    val dateString       = ""
-    val objectJsonString = s"""{"optDate":"$dateString"}"""
-
-    val result =
-      read[TestObjectWithOptionalDate](objectJsonString)(formats, implicitly[Manifest[TestObjectWithOptionalDate]])
-    result should be(TestObjectWithOptionalDate(None))
-  }
-
   test("That circe parses empty string as `None` for optional NDLADates") {
     import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
     import io.circe.parser.parse

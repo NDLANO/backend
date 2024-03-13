@@ -10,8 +10,6 @@ object searchlib extends Module {
     scalaUri,
     catsEffect,
     jsoup,
-    "org.json4s" %% "json4s-native" % Json4SV,
-    "org.json4s" %% "json4s-ext"    % Json4SV
   ) ++ elastic4s
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     libraryDependencies ++= dependencies

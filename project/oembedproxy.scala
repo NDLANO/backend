@@ -13,7 +13,6 @@ object oembedproxy extends Module {
       sttp,
       jsoup,
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.json4s"    %% "json4s-native"           % Json4SV,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
     ),
     vulnerabilityOverrides,
