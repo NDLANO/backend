@@ -43,7 +43,7 @@ export interface IFrontPage {
 export interface IMenu {
   articleId: number
   menu: IMenuData[]
-  hideLevel: boolean
+  hideLevel?: boolean
 }
 
 export type IMenuData = IMenu
