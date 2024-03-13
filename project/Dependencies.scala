@@ -53,7 +53,6 @@ object Dependencies {
     )
 
     lazy val enumeratum       = "com.beachape"  %% "enumeratum"        % EnumeratumV
-    lazy val enumeratumJson4s = ("com.beachape" %% "enumeratum-json4s" % EnumeratumV).cross(CrossVersion.for3Use2_13)
     lazy val enumeratumCirce  = "com.beachape"  %% "enumeratum-circe"  % EnumeratumV
 
     lazy val database: Seq[ModuleID] = Seq(
