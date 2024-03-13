@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import org.json4s.native.JsonMethods
 import org.json4s.*
 import sttp.client3.Response

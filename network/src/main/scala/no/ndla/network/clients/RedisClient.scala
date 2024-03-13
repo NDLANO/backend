@@ -8,10 +8,10 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import org.json4s.DefaultFormats
-import org.json4s.native.Serialization._
+import org.json4s.native.Serialization.*
 
 import scala.util.{Failure, Success, Try}
 
