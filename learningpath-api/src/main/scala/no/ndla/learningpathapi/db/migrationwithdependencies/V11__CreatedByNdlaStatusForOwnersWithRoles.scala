@@ -13,7 +13,7 @@ import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.domain.LearningPathVerificationStatus
 import no.ndla.network.AuthUser
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.DefaultFormats
+import org.json4s.*
 import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.{read, write}

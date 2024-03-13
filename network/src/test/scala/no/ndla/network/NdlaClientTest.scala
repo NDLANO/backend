@@ -12,16 +12,17 @@ import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
 import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.DefaultFormats
-
-import org.scalatest.TryValues._
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{doReturn, never, reset, times, verify, when}
+import org.scalatest.TryValues.*
 import sttp.client3.{Response, SimpleHttpClient, SpecifyAuthScheme, UriContext}
-import sttp.model.StatusCode
+import sttp.model.{Method, RequestMetadata, StatusCode}
 
 class NdlaClientTest extends UnitSuite with NdlaClient {
 
   case class TestObject(id: String, verdi: String)
 
-  val ParseableContent =
+  val ParseableContent: String =
     """
       |{
       |  "id": "1",
@@ -29,26 +30,30 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
       |}
     """.stripMargin
 
-  val httpClientMock = mock[SimpleHttpClient]
+  val httpClientMock: SimpleHttpClient = mock[SimpleHttpClient]
   val ndlaClient: NdlaClient = new NdlaClient {
     override val client = httpClientMock
   }
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     CorrelationID.clear()
     reset(httpClientMock)
   }
 
   test("That a HttpRequestException is returned when receiving an http-error") {
-    val httpRequestMock  = mock[NdlaRequest]
-    val httpResponseMock = mock[Response[String]]
+    val httpRequestMock = mock[NdlaRequest]
+    val httpResponseMock = new Response(
+      body = "body-with-error",
+      code = StatusCode(123),
+      statusText = "status",
+      headers = Seq.empty,
+      history = List.empty,
+      request = RequestMetadata(Method.GET, uri"someUrl", List.empty)
+    )
+
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
 
     when(httpRequestMock.uri).thenReturn(uri"someUrl")
-    when(httpResponseMock.isSuccess).thenReturn(false)
-    when(httpResponseMock.code).thenReturn(StatusCode(123))
-    when(httpResponseMock.statusText).thenReturn("status")
-    when(httpResponseMock.body).thenReturn("body-with-error")
 
     implicit val formats = DefaultFormats
     val result           = ndlaClient.fetch[TestObject](httpRequestMock)
@@ -157,16 +162,20 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {
-    val httpRequestMock  = mock[NdlaRequest]
-    val httpResponseMock = mock[Response[String]]
+    val httpRequestMock = mock[NdlaRequest]
+    val httpResponseMock = new Response(
+      body = "",
+      code = StatusCode(204),
+      statusText = "status",
+      headers = Seq.empty,
+      history = List.empty,
+      request = RequestMetadata(Method.GET, uri"someUrl", List.empty)
+    )
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
     val authHeaderKey   = "Authorization"
     val authHeader      = "abc"
     val authHeaderValue = s"Bearer $authHeader"
     val user            = TokenUser("id", Set.empty, Some(authHeader))
-    when(httpResponseMock.body).thenReturn("")
-    when(httpResponseMock.isSuccess).thenReturn(true)
-    when(httpResponseMock.code).thenReturn(StatusCode(204))
 
     when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeaderValue), any)).thenReturn(httpRequestMock)
 

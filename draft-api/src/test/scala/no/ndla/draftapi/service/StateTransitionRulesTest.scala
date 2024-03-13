@@ -10,13 +10,15 @@ package no.ndla.draftapi.service
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Priority, Responsible, Status}
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.domain.draft.DraftStatus.*
+import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.integration.{SearchHit, Title}
 import no.ndla.draftapi.model.domain.StateTransition
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -267,7 +269,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("unpublishArticle should succeed if article is not used in a learningstep") {
-    reset(articleApiClient, taxonomyApiClient, learningpathApiClient)
+    reset(articleApiClient)
+    reset(taxonomyApiClient)
+    reset(learningpathApiClient)
     val articleId = 7L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(learningpathApiClient.getLearningpathsWithId(eqTo(articleId), any)).thenReturn(Success(Seq.empty))
@@ -306,7 +310,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("checkIfArticleIsUsedInLearningStep should succeed if article is not used in a learningstep") {
-    reset(articleApiClient, taxonomyApiClient, learningpathApiClient)
+    reset(articleApiClient)
+    reset(taxonomyApiClient)
+    reset(learningpathApiClient)
     val articleId = 7L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(learningpathApiClient.getLearningpathsWithId(eqTo(articleId), any)).thenReturn(Success(Seq.empty))

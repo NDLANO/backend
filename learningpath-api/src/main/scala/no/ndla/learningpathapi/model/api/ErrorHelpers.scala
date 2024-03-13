@@ -55,7 +55,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
   }
 
   object LearningpathHelpers {
-    val WINDOW_TOO_LARGE_DESCRIPTION =
+    val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
     case class ResultWindowTooLargeException(message: String = LearningpathHelpers.WINDOW_TOO_LARGE_DESCRIPTION)
         extends RuntimeException(message)

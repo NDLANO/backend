@@ -63,7 +63,7 @@ class LearningpathApiClientTest
   }
 
   var learningpathApi: learningpathapi.MainClass = null
-  val learningpathApiBaseUrl                     = s"http://localhost:$learningpathApiPort"
+  val learningpathApiBaseUrl: String             = s"http://localhost:$learningpathApiPort"
 
   override def beforeAll(): Unit = {
     implicit val ec: ExecutionContextExecutorService =

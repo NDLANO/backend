@@ -76,7 +76,9 @@ trait ArenaRepository {
       })
     }
 
-    def getNotificationsForTopic(user: MyNDLAUser, topicId: Long)(implicit session: DBSession) = {
+    def getNotificationsForTopic(user: MyNDLAUser, topicId: Long)(implicit
+        session: DBSession
+    ): Try[List[CompiledNotification]] = {
       val n  = domain.Notification.syntax("n")
       val ns = SubQuery.syntax("ns").include(n)
       val p  = domain.Post.syntax("p")
@@ -115,7 +117,9 @@ trait ArenaRepository {
 
     }
 
-    def getNotifications(user: MyNDLAUser, offset: Long, limit: Long)(implicit session: DBSession) = {
+    def getNotifications(user: MyNDLAUser, offset: Long, limit: Long)(implicit
+        session: DBSession
+    ): Try[List[CompiledNotification]] = {
       val n  = domain.Notification.syntax("n")
       val ns = SubQuery.syntax("ns").include(n)
       val p  = domain.Post.syntax("p")

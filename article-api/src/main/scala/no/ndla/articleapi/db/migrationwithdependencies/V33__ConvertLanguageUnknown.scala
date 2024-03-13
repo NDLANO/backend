@@ -11,7 +11,7 @@ import no.ndla.articleapi.{ArticleApiProperties, Props}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction, Formats}
+import org.json4s._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
 

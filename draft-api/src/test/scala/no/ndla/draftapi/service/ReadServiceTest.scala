@@ -12,6 +12,8 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{ArticleContent, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttribute}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, times, verify, when}
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
@@ -20,16 +22,16 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   import props.externalApiUrls
 
   val externalImageApiUrl: String = externalApiUrls("image")
-  val resourceIdAttr              = s"${TagAttribute.DataResource_Id}"
-  val resourceAttr                = s"${TagAttribute.DataResource}"
-  val imageType                   = s"${ResourceType.Image}"
-  val h5pType                     = s"${ResourceType.H5P}"
-  val urlAttr                     = s"${TagAttribute.DataUrl}"
+  val resourceIdAttr: String      = s"${TagAttribute.DataResource_Id}"
+  val resourceAttr: String        = s"${TagAttribute.DataResource}"
+  val imageType: String           = s"${ResourceType.Image}"
+  val h5pType: String             = s"${ResourceType.H5P}"
+  val urlAttr: String             = s"${TagAttribute.DataUrl}"
 
-  val content1 =
+  val content1: String =
     s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=1234 $resourceAttr="$imageType" />"""
 
-  val content2 =
+  val content2: String =
     s"""<$EmbedTagName $resourceIdAttr="321" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=4321 $resourceAttr="$imageType" />"""
   val articleContent1: ArticleContent = ArticleContent(content1, "und")
 
@@ -52,7 +54,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Seq(VisualElement(visualElementBefore, "nb"))
     )
 
-    when(draftRepository.withId(eqTo(1))(any)).thenReturn(Option(article))
+    when(draftRepository.withId(eqTo(1L))(any)).thenReturn(Option(article))
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult = converterService

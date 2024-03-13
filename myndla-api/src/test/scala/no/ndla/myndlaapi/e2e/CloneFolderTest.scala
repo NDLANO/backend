@@ -12,17 +12,19 @@ import enumeratum.Json4s
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.api
 import no.ndla.myndla.model.api.Breadcrumb
-import no.ndla.myndla.model.domain._
+import no.ndla.myndla.model.domain.*
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.JsonMethods
-import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.native.Serialization.*
+import org.json4s.*
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.containers.PostgreSQLContainer
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -85,8 +87,8 @@ class CloneFolderTest
 
   val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
 
-  val myndlaApiBaseUrl   = s"http://localhost:$myndlaApiPort"
-  val myndlaApiFolderUrl = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
+  val myndlaApiBaseUrl: String   = s"http://localhost:$myndlaApiPort"
+  val myndlaApiFolderUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
 
   override def beforeAll(): Unit = {
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
@@ -492,9 +494,9 @@ class CloneFolderTest
     // We want to fail on the next to last insertion to ensure that the previous insertions will be rollbacked
     when(myndlaApi.componentRegistry.folderRepository.insertFolder(any, any)(any))
       .thenCallRealMethod()
-      .andThenCallRealMethod()
-      .andThen(Failure(new RuntimeException("bad")))
-      .andThenCallRealMethod()
+      .thenCallRealMethod()
+      .thenReturn(Failure(new RuntimeException("bad")))
+      .thenCallRealMethod()
 
     val destinationFoldersBefore   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     val destinationResourcesBefore = folderRepository.resourcesWithFeideId(destinationFeideId, 10)

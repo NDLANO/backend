@@ -85,10 +85,10 @@ trait ImageConverter {
       }
 
       new ImageStream {
-        override def stream              = new ByteArrayInputStream(outputStream.toByteArray)
-        override def contentType: String = originalImage.contentType
-        override def fileName: String    = originalImage.fileName
-        override lazy val sourceImage    = ImageIO.read(stream)
+        override def stream: ByteArrayInputStream = new ByteArrayInputStream(outputStream.toByteArray)
+        override def contentType: String          = originalImage.contentType
+        override def fileName: String             = originalImage.fileName
+        override lazy val sourceImage             = ImageIO.read(stream)
       }
     }
 

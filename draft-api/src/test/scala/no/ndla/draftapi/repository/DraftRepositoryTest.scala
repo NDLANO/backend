@@ -11,12 +11,13 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
-import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.*
+import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
-import scalikejdbc._
+import scalikejdbc.*
 
 import java.net.Socket
 import java.util.UUID

@@ -14,8 +14,9 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
-import no.ndla.searchapi.model.taxonomy._
+import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.Mockito.when
 
 import scala.util.{Success, Try}
 

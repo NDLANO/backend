@@ -249,13 +249,12 @@ trait ConverterService {
       )
     }
 
-    def findAndConvertDomainToApiField[DomainType <: WithLanguage, ApiType](
+    def findAndConvertDomainToApiField[DomainType <: WithLanguage](
         fields: Seq[DomainType],
-        language: Option[String],
-        toApiFunc: DomainType => ApiType
-    )(implicit mf: Manifest[DomainType]): Try[ApiType] = {
+        language: Option[String]
+    )(implicit mf: Manifest[DomainType]): Try[DomainType] = {
       findByLanguageOrBestEffort(fields, language.getOrElse(DefaultLanguage)) match {
-        case Some(field) => Success(toApiFunc(field))
+        case Some(field) => Success(field)
         case None =>
           Failure(
             CouldNotFindLanguageException(
@@ -267,8 +266,8 @@ trait ConverterService {
 
     def toApiSeries(series: domain.Series, language: Option[String]): Try[api.Series] = {
       for {
-        title       <- findAndConvertDomainToApiField(series.title, language, toApiTitle)
-        description <- findAndConvertDomainToApiField(series.description, language, toApiDescription)
+        title       <- findAndConvertDomainToApiField(series.title, language).map(toApiTitle)
+        description <- findAndConvertDomainToApiField(series.description, language).map(toApiDescription)
         coverPhoto = toApiCoverPhoto(series.coverPhoto)
         episodes <- series.episodes.traverse(eps => eps.traverse(toApiAudioMetaInformation(_, language)))
       } yield api.Series(

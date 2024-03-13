@@ -61,7 +61,7 @@ class DraftApiClientTest
   }
 
   var draftApi: draftapi.MainClass = null
-  val draftApiBaseUrl              = s"http://localhost:$draftApiPort"
+  val draftApiBaseUrl: String      = s"http://localhost:$draftApiPort"
 
   override def beforeAll(): Unit = {
     implicit val ec: ExecutionContextExecutorService =

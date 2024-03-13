@@ -11,10 +11,10 @@ import no.ndla.common
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
-import no.ndla.common.model.domain._
-import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, DraftStatus}
-import no.ndla.common.model.{NDLADate, api => commonApi}
+import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{NewComment, UpdatedComment}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -22,6 +22,8 @@ import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
 import java.util.UUID

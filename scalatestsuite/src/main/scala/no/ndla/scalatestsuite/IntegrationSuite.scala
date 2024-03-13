@@ -8,6 +8,8 @@
 package no.ndla.scalatestsuite
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.testcontainers.containers.{GenericContainer, PostgreSQLContainer}
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.elasticsearch.ElasticsearchContainer

@@ -73,7 +73,7 @@ class V7__TranslateUntranslatedAuthors(props: ImageApiProperties) extends BaseJa
     )
   }
 
-  def update(imagemetadata: V6_ImageMetaInformation)(implicit session: DBSession) = {
+  def update(imagemetadata: V6_ImageMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(imagemetadata))

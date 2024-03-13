@@ -13,6 +13,8 @@ import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.Formats
 import org.json4s.jackson.JsonMethods._
+import org.json4s.jvalue2monadic
+import org.json4s.jvalue2extractable
 import sttp.client3.{Response, SimpleHttpClient}
 import sttp.client3.quick._
 

@@ -11,8 +11,9 @@ package no.ndla.learningpathapi.validation
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.common.model.domain.Title
-import no.ndla.learningpathapi._
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.*
+import no.ndla.learningpathapi.model.domain.*
+import org.mockito.Mockito.when
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
@@ -20,7 +21,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   val license = "publicdomain"
 
-  val ValidLearningStep = LearningStep(
+  val ValidLearningStep: LearningStep = LearningStep(
     id = None,
     revision = None,
     externalId = None,
@@ -35,7 +36,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new LearningStepValidator
     resetMocks()
   }

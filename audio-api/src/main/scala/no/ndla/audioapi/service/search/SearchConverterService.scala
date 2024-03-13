@@ -96,17 +96,13 @@ trait SearchConverterService {
 
     def asSeriesSummary(searchable: SearchableSeries, language: String): Try[api.SeriesSummary] = {
       for {
-        title <- converterService.findAndConvertDomainToApiField(
-          searchable.titles.languageValues,
-          Some(language),
-          (lv: LanguageValue[String]) => api.Title(lv.value, lv.language)
-        )
+        title <- converterService
+          .findAndConvertDomainToApiField(searchable.titles.languageValues, Some(language))
+          .map(lv => api.Title(lv.value, lv.language))
 
-        description <- converterService.findAndConvertDomainToApiField(
-          searchable.descriptions.languageValues,
-          Some(language),
-          (lv: LanguageValue[String]) => api.Description(lv.value, lv.language)
-        )
+        description <- converterService
+          .findAndConvertDomainToApiField(searchable.descriptions.languageValues, Some(language))
+          .map(lv => api.Description(lv.value, lv.language))
 
         episodes <- searchable.episodes.traverse(eps =>
           eps.traverse(ep => searchConverterService.asAudioSummary(ep, language))

@@ -23,6 +23,7 @@ import no.ndla.myndla.model.domain.{
   UserRole
 }
 import no.ndla.scalatestsuite.UnitTestSuite
+import org.mockito.Mockito.when
 
 import java.util.UUID
 import scala.util.Success

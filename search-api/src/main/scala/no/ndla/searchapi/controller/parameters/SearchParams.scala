@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.controller.parameters
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
 import no.ndla.network.tapir.NonEmptyString
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
@@ -84,9 +84,8 @@ case class SearchParams (
 )
 
 object SearchParams {
-  import no.ndla.network.tapir.NoNullJsonPrinter._
-  implicit val encoder: Encoder[SearchParams] = deriveConfiguredEncoder
-  implicit val decoder: Decoder[SearchParams] = deriveConfiguredDecoder
+  implicit val encoder: Encoder[SearchParams] = deriveEncoder
+  implicit val decoder: Decoder[SearchParams] = deriveDecoder
 
   implicit val schema: Schema[SearchParams] = Schema.derived
 }

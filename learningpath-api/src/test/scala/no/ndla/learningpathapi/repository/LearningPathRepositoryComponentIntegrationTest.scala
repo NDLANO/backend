@@ -10,13 +10,14 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.{LearningpathCopyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.learningpathapi._
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.*
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Try}
 

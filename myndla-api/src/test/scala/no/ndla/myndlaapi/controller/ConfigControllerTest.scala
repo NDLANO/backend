@@ -15,12 +15,14 @@ import no.ndla.myndlaapi.{Eff, TestEnvironment}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import sttp.client3.quick.*
 
 import scala.util.Success
 
 class ConfigControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
-  val controller = new ConfigController()
+  val controller: ConfigController = new ConfigController()
 
   test("That updating config returns 200 if all is good") {
     when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValue], any[TokenUser]))

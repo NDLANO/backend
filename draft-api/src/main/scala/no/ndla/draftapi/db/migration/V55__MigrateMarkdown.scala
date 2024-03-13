@@ -15,7 +15,7 @@ import com.vladsch.flexmark.util.data.MutableDataSet
 import com.vladsch.flexmark.util.misc.Extension
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s
-import org.json4s.DefaultFormats
+import org.json4s.*
 import org.json4s.JsonAST.{JArray, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.jsoup.Jsoup

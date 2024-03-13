@@ -24,7 +24,7 @@ class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMi
   implicit val formats: Formats =
     org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       migrateArticles
@@ -46,7 +46,7 @@ class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMi
     }
   }
 
-  def countAllArticles(implicit session: DBSession) = {
+  def countAllArticles(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
@@ -118,7 +118,7 @@ class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMi
 
   }
 
-  def updateArticle(articleMeta: V7_Article)(implicit session: DBSession) = {
+  def updateArticle(articleMeta: V7_Article)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))

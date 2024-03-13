@@ -55,9 +55,9 @@ trait InternController {
     import props.{DraftSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
     import ErrorHelpers._
 
-    override val prefix                   = "intern"
-    override val enableSwagger            = false
-    private val stringInternalServerError = statusCode(StatusCode.InternalServerError).and(stringBody)
+    override val prefix: EndpointInput[Unit] = "intern"
+    override val enableSwagger               = false
+    private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
     def createIndexFuture(
         indexService: IndexService[_, _],

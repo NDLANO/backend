@@ -13,14 +13,16 @@ import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.read
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
+import sttp.client3.quick.*
 
 import scala.util.Success
 
 class FileControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  val controller = new FileController
+  val controller: FileController = new FileController
 
   override def beforeEach(): Unit = {
     reset(clock)

@@ -12,22 +12,23 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model
-import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi}
+import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{License, UpdateWith}
 import no.ndla.common.model.domain.{Author, Availability, Description, Introduction, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
+import org.mockito.Mockito.when
 
 import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  val service         = new ConverterService
-  val contentTitle    = Title("", "und")
-  val author          = Author("forfatter", "Henrik")
-  val tag             = Tag(List("asdf"), "nb")
-  val requiredLibrary = RequiredLibrary("", "", "")
-  val nodeId          = "1234"
-  val sampleAlt       = "Fotografi"
+  val service                          = new ConverterService
+  val contentTitle: Title              = Title("", "und")
+  val author: Author                   = Author("forfatter", "Henrik")
+  val tag: Tag                         = Tag(List("asdf"), "nb")
+  val requiredLibrary: RequiredLibrary = RequiredLibrary("", "", "")
+  val nodeId                           = "1234"
+  val sampleAlt                        = "Fotografi"
 
   test("toApiLicense defaults to unknown if the license was not found") {
     service.toApiLicense("invalid") should equal(License("unknown", None, None))

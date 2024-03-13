@@ -8,21 +8,23 @@
 
 package no.ndla.myndlaapi.e2e
 
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla
 import no.ndla.myndla.model.api.ArenaUser
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api
-import no.ndla.myndlaapi._
+import no.ndla.myndlaapi.*
 import no.ndla.myndlaapi.model.arena.api.PaginatedNewPostNotifications
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.containers.PostgreSQLContainer
 import sttp.client3.Response
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, Future}
@@ -79,8 +81,8 @@ class ArenaTest
 
   val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
 
-  val myndlaApiBaseUrl  = s"http://localhost:$myndlaApiPort"
-  val myndlaApiArenaUrl = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
+  val myndlaApiBaseUrl: String  = s"http://localhost:$myndlaApiPort"
+  val myndlaApiArenaUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
 
   override def beforeAll(): Unit = {
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
@@ -166,8 +168,8 @@ class ArenaTest
       api.NewTopic(
         title = title,
         initialPost = api.NewPost(content = content),
-        isLocked = false,
-        isPinned = false
+        isLocked = Some(false),
+        isPinned = Some(false)
       )
     val inBody = newTopic.asJson.noSpaces
     val res = simpleHttpClient.send(

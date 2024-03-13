@@ -24,7 +24,7 @@ class V3__AddUpdatedColoums extends BaseJavaMigration with StrictLogging {
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
   val timeService               = new TimeService()
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       logger.info("Starting V3__AddUpdatedColoums DB Migration")
@@ -48,7 +48,7 @@ class V3__AddUpdatedColoums extends BaseJavaMigration with StrictLogging {
     imageMeta.copy(document = compact(render(mergedDoc)))
   }
 
-  def update(imageMeta: V3__DBImageMetaInformation)(implicit session: DBSession) = {
+  def update(imageMeta: V3__DBImageMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imageMeta.document)

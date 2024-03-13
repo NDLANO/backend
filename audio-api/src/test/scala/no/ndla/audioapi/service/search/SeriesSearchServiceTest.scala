@@ -36,7 +36,7 @@ class SeriesSearchServiceTest
     super.withFixture(test)
   }
 
-  val seriesToIndex = Seq(
+  val seriesToIndex: Seq[Series] = Seq(
     TestData.SampleSeries.copy(
       id = 1,
       title = Seq(common.Title("Lyd med epler", "nb"), common.Title("Sound with apples", "en")),

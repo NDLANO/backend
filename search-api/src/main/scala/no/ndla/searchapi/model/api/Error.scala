@@ -64,10 +64,10 @@ trait ErrorHelpers extends TapirErrorHelpers {
     val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
     val ACCESS_DENIED          = "ACCESS DENIED"
 
-    val GENERIC_DESCRIPTION =
+    val GENERIC_DESCRIPTION: String =
       s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
 
-    val WINDOW_TOO_LARGE_DESCRIPTION =
+    val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 
     val INVALID_BODY_DESCRIPTION =

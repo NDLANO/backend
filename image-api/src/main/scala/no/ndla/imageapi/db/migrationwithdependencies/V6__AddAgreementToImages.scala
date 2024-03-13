@@ -116,7 +116,7 @@ class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigrat
     }
   }
 
-  def update(imagemetadata: V6_ImageMetaInformation)(implicit session: DBSession) = {
+  def update(imagemetadata: V6_ImageMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(imagemetadata))

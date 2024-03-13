@@ -26,8 +26,8 @@ trait InternController {
   val internController: InternController
 
   class InternController extends Service[Eff] {
-    override val prefix        = "intern"
-    override val enableSwagger = false
+    override val prefix: EndpointInput[Unit] = "intern"
+    override val enableSwagger               = false
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       endpoint.get

@@ -51,18 +51,18 @@ trait TapirErrorHelpers extends StrictLogging {
 
     val PUBLISH = "PUBLISH"
 
-    val GENERIC_DESCRIPTION =
+    val GENERIC_DESCRIPTION: String =
       s"Ooops. Something we didn't anticipate occurred. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-    val NOT_FOUND_DESCRIPTION            = s"The page you requested does not exist"
-    val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
-    val UNAUTHORIZED_DESCRIPTION         = "Missing user/client-id or role"
-    val FORBIDDEN_DESCRIPTION            = "You do not have the required permissions to access that resource"
-    val RESOURCE_OUTDATED_DESCRIPTION    = "The resource is outdated. Please try fetching before submitting again."
-    val METHOD_NOT_ALLOWED_DESCRIPTION   = "You requested a unsupported method on this endpoint."
-    val VALIDATION_DESCRIPTION           = "Validation Error"
+    val NOT_FOUND_DESCRIPTION: String            = s"The page you requested does not exist"
+    val DATABASE_UNAVAILABLE_DESCRIPTION: String = s"Database seems to be unavailable, retrying connection."
+    val UNAUTHORIZED_DESCRIPTION                 = "Missing user/client-id or role"
+    val FORBIDDEN_DESCRIPTION                    = "You do not have the required permissions to access that resource"
+    val RESOURCE_OUTDATED_DESCRIPTION  = "The resource is outdated. Please try fetching before submitting again."
+    val METHOD_NOT_ALLOWED_DESCRIPTION = "You requested a unsupported method on this endpoint."
+    val VALIDATION_DESCRIPTION         = "Validation Error"
     val INVALID_SEARCH_CONTEXT_DESCRIPTION =
       "The search-context specified was not expected. Please create one by searching from page 1."
-    val INDEX_MISSING_DESCRIPTION =
+    val INDEX_MISSING_DESCRIPTION: String =
       s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
 
     val ILLEGAL_STATUS_TRANSITION: String = "Illegal status transition"

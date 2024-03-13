@@ -14,6 +14,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
 import scala.util.Success
+import no.ndla.imageapi.model.domain.ImageMetaInformation
 
 class TagSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -29,7 +30,7 @@ class TagSearchServiceTest
   }
 
   val indexName = "tags-testing"
-  override val tagSearchService = new TagSearchService {
+  override val tagSearchService: TagSearchService = new TagSearchService {
     override val searchIndex: String = indexName
   }
   override val tagIndexService: TagIndexService = new TagIndexService {
@@ -39,7 +40,7 @@ class TagSearchServiceTest
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val image1 = TestData.elg.copy(
+  val image1: ImageMetaInformation = TestData.elg.copy(
     tags = Seq(
       common.Tag(
         Seq("test", "testing", "testemer"),
@@ -48,7 +49,7 @@ class TagSearchServiceTest
     )
   )
 
-  val image2 = TestData.elg.copy(
+  val image2: ImageMetaInformation = TestData.elg.copy(
     tags = Seq(
       common.Tag(
         Seq("test"),
@@ -57,7 +58,7 @@ class TagSearchServiceTest
     )
   )
 
-  val image3 = TestData.elg.copy(
+  val image3: ImageMetaInformation = TestData.elg.copy(
     tags = Seq(
       common.Tag(
         Seq("hei", "test", "testing"),
@@ -70,7 +71,7 @@ class TagSearchServiceTest
     )
   )
 
-  val image4 = TestData.elg.copy(
+  val image4: ImageMetaInformation = TestData.elg.copy(
     tags = Seq(
       common.Tag(
         Seq("kyllingfilet", "filetkylling"),
@@ -79,7 +80,7 @@ class TagSearchServiceTest
     )
   )
 
-  val imagesToIndex = Seq(image1, image2, image3, image4)
+  val imagesToIndex: Seq[ImageMetaInformation] = Seq(image1, image2, image3, image4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     tagIndexService.createIndexAndAlias().get

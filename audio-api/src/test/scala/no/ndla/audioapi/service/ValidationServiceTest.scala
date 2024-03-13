@@ -14,6 +14,7 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.mapping.License.CC_BY
+import org.mockito.Mockito.{doReturn, reset, spy, when}
 
 import java.awt.image.BufferedImage
 
@@ -27,7 +28,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   val audioType: AudioType.Value = AudioType.Podcast
   val enCoverPhoto: CoverPhoto   = CoverPhoto("1", "alt")
   val nbCoverPhoto: CoverPhoto   = CoverPhoto("2", "alt")
-  val meta = Seq(PodcastMeta("intro", enCoverPhoto, "en"), PodcastMeta("intro", nbCoverPhoto, "nb"))
+  val meta: Seq[PodcastMeta] = Seq(PodcastMeta("intro", enCoverPhoto, "en"), PodcastMeta("intro", nbCoverPhoto, "nb"))
 
   test("validatePodcastMeta is empty when cover photo is squared") {
     val enImageMock = mock[BufferedImage]

@@ -43,9 +43,10 @@ trait ErrorHelpers extends TapirErrorHelpers {
   }
 
   object ImageErrorHelpers {
-    val INVALID_URL     = "INVALID_URL"
-    val fileTooBigError = s"The file is too big. Max file size is ${props.MaxImageFileSizeBytes / 1024 / 1024} MiB"
-    val WINDOW_TOO_LARGE_DESCRIPTION =
+    val INVALID_URL = "INVALID_URL"
+    val fileTooBigError: String =
+      s"The file is too big. Max file size is ${props.MaxImageFileSizeBytes / 1024 / 1024} MiB"
+    val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
   }
 }

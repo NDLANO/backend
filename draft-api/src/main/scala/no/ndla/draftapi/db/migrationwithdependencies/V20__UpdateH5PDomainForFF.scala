@@ -9,7 +9,7 @@ package no.ndla.draftapi.db.migrationwithdependencies
 
 import no.ndla.draftapi.DraftApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.DefaultFormats
+import org.json4s.*
 import org.json4s.JsonAST.{JArray, JObject, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
@@ -57,7 +57,7 @@ class V20__UpdateH5PDomainForFF(props: DraftApiProperties) extends BaseJavaMigra
       .list()
   }
 
-  def allArticlesWithArticleId(articleId: Long)(implicit session: DBSession) = {
+  def allArticlesWithArticleId(articleId: Long)(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, document from articledata where document is not null and article_id=${articleId} order by id"
       .map(rs => {
         (rs.long("id"), rs.string("document"))

@@ -15,7 +15,12 @@ import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
 /** Class that cannot be constructed with an empty string (""), therefore it means that if you have one of these the
   * underlying string is not empty
   */
-case class NonEmptyString private (underlying: String)
+class NonEmptyString private (val underlying: String) {
+  override def equals(obj: Any): Boolean = obj match {
+    case other: NonEmptyString => other.underlying == underlying
+    case _                     => false
+  }
+}
 
 object NonEmptyString {
   def apply(underlying: String): Option[NonEmptyString]        = fromString(underlying)

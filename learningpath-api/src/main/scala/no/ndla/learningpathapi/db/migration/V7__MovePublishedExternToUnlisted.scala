@@ -17,7 +17,7 @@ class V7__MovePublishedExternToUnlisted extends BaseJavaMigration {
 
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       allLearningPaths
@@ -53,7 +53,7 @@ class V7__MovePublishedExternToUnlisted extends BaseJavaMigration {
     compact(render(newLearningPath))
   }
 
-  def update(id: Long, document: String)(implicit session: DBSession) = {
+  def update(id: Long, document: String)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

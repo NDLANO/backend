@@ -8,12 +8,12 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
-import no.ndla.learningpathapi._
-import no.ndla.learningpathapi.model._
+import no.ndla.learningpathapi.*
+import no.ndla.learningpathapi.model.*
 import no.ndla.learningpathapi.model.api.{
   NewCopyLearningPathV2,
   NewLearningPathV2,
@@ -21,13 +21,16 @@ import no.ndla.learningpathapi.model.api.{
   UpdatedLearningPathV2,
   UpdatedLearningStepV2
 }
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
+import no.ndla.learningpathapi.model.api.Copyright
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{never, times, verify, when}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _
@@ -38,7 +41,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_OWNER: TokenUser = TokenUser("eier1", Set.empty, None)
   val PRIVATE_OWNER: TokenUser   = TokenUser("eier2", Set.empty, None)
 
-  val STEP1 = domain.LearningStep(
+  val STEP1: LearningStep = domain.LearningStep(
     Some(1),
     Some(1),
     None,
@@ -53,7 +56,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP2 = domain.LearningStep(
+  val STEP2: LearningStep = domain.LearningStep(
     Some(2),
     Some(1),
     None,
@@ -68,7 +71,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP3 = domain.LearningStep(
+  val STEP3: LearningStep = domain.LearningStep(
     Some(3),
     Some(1),
     None,
@@ -83,7 +86,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP4 = domain.LearningStep(
+  val STEP4: LearningStep = domain.LearningStep(
     Some(4),
     Some(1),
     None,
@@ -98,7 +101,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP5 = domain.LearningStep(
+  val STEP5: LearningStep = domain.LearningStep(
     Some(5),
     Some(1),
     None,
@@ -113,7 +116,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP6 = domain.LearningStep(
+  val STEP6: LearningStep = domain.LearningStep(
     Some(6),
     Some(1),
     None,
@@ -128,21 +131,21 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val NEW_STEPV2 =
+  val NEW_STEPV2: NewLearningStepV2 =
     NewLearningStepV2("Tittel", Some("Beskrivelse"), "nb", Some(api.EmbedUrlV2("", "oembed")), true, "TEXT", None)
 
-  val UPDATED_STEPV2 =
+  val UPDATED_STEPV2: UpdatedLearningStepV2 =
     UpdatedLearningStepV2(1, Option("Tittel"), "nb", Some("Beskrivelse"), None, Some(false), None, None)
 
-  val rubio     = Author("author", "Little Marco")
-  val license   = "publicdomain"
-  val copyright = LearningpathCopyright(license, List(rubio))
-  val apiRubio  = commonApi.Author("author", "Little Marco")
-  val apiLicense =
+  val rubio: Author                    = Author("author", "Little Marco")
+  val license                          = "publicdomain"
+  val copyright: LearningpathCopyright = LearningpathCopyright(license, List(rubio))
+  val apiRubio: commonApi.Author       = commonApi.Author("author", "Little Marco")
+  val apiLicense: commonApi.License =
     commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
-  val apiCopyright = api.Copyright(apiLicense, List(apiRubio))
+  val apiCopyright: Copyright = api.Copyright(apiLicense, List(apiRubio))
 
-  val PUBLISHED_LEARNINGPATH = domain.LearningPath(
+  val PUBLISHED_LEARNINGPATH: LearningPath = domain.LearningPath(
     Some(PUBLISHED_ID),
     Some(1),
     Some("1"),
@@ -160,7 +163,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
 
-  val PUBLISHED_LEARNINGPATH_NO_STEPS = domain.LearningPath(
+  val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = domain.LearningPath(
     Some(PUBLISHED_ID),
     Some(1),
     Some("1"),
@@ -178,7 +181,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None
   )
 
-  val PRIVATE_LEARNINGPATH = domain.LearningPath(
+  val PRIVATE_LEARNINGPATH: LearningPath = domain.LearningPath(
     Some(PRIVATE_ID),
     Some(1),
     None,
@@ -196,7 +199,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
 
-  val PRIVATE_LEARNINGPATH_NO_STEPS = domain.LearningPath(
+  val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = domain.LearningPath(
     Some(PRIVATE_ID),
     Some(1),
     None,
@@ -214,7 +217,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None
   )
 
-  val DELETED_LEARNINGPATH = domain.LearningPath(
+  val DELETED_LEARNINGPATH: LearningPath = domain.LearningPath(
     Some(PRIVATE_ID),
     Some(1),
     None,
@@ -231,13 +234,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright,
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
-  val NEW_PRIVATE_LEARNINGPATHV2 = NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
-  val NEW_COPIED_LEARNINGPATHV2  = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
+  val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2 =
+    NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+  val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2 =
+    NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
-  val UPDATED_PRIVATE_LEARNINGPATHV2 =
+  val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2 =
     UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
-  val UPDATED_PUBLISHED_LEARNINGPATHV2 =
+  val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2 =
     UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
   override def beforeEach(): Unit = {

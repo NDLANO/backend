@@ -12,7 +12,7 @@ import no.ndla.common.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{Extraction, Formats}
+import org.json4s.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Entities.EscapeMode
 import org.jsoup.nodes.TextNode

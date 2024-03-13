@@ -43,8 +43,8 @@ trait InternController {
   class InternController extends Service[Eff] {
     import ErrorHelpers._
 
-    override val prefix        = "intern"
-    override val enableSwagger = false
+    override val prefix: EndpointInput[Unit] = "intern"
+    override val enableSwagger               = false
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       postIndex,
@@ -88,7 +88,7 @@ trait InternController {
         }
       }
 
-    def deleteIndexes[T <: IndexService](indexService: T) = {
+    def deleteIndexes[T <: IndexService](indexService: T): Try[String] = {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
       indexService.findAllIndexes match {
         case Failure(ex) =>

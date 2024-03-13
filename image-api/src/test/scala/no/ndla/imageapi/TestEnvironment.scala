@@ -34,7 +34,7 @@ import no.ndla.imageapi.service.search.{
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends Elastic4sClient
@@ -74,35 +74,35 @@ trait TestEnvironment
   val props    = new ImageApiProperties
   val TestData = new TestData
 
-  val migrator     = mock[DBMigrator]
-  val amazonClient = mock[AmazonS3]
+  val migrator: DBMigrator   = mock[DBMigrator]
+  val amazonClient: AmazonS3 = mock[AmazonS3]
 
-  val dataSource         = mock[HikariDataSource]
-  val imageIndexService  = mock[ImageIndexService]
-  val imageSearchService = mock[ImageSearchService]
+  val dataSource: HikariDataSource           = mock[HikariDataSource]
+  val imageIndexService: ImageIndexService   = mock[ImageIndexService]
+  val imageSearchService: ImageSearchService = mock[ImageSearchService]
 
-  val tagIndexService  = mock[TagIndexService]
-  val tagSearchService = mock[TagSearchService]
+  val tagIndexService: TagIndexService   = mock[TagIndexService]
+  val tagSearchService: TagSearchService = mock[TagSearchService]
 
-  val imageRepository = mock[ImageRepository]
-  val readService     = mock[ReadService]
-  val writeService    = mock[WriteService]
-  val imageStorage    = mock[AmazonImageStorageService]
+  val imageRepository: ImageRepository        = mock[ImageRepository]
+  val readService: ReadService                = mock[ReadService]
+  val writeService: WriteService              = mock[WriteService]
+  val imageStorage: AmazonImageStorageService = mock[AmazonImageStorageService]
 
-  val ndlaClient             = mock[NdlaClient]
-  val rawController          = mock[RawController]
-  val internController       = mock[InternController]
-  val imageControllerV2      = mock[ImageControllerV2]
-  val imageControllerV3      = mock[ImageControllerV3]
-  val converterService       = mock[ConverterService]
-  val validationService      = mock[ValidationService]
-  val tagsService            = mock[TagsService]
-  var e4sClient              = mock[NdlaE4sClient]
-  val searchConverterService = mock[SearchConverterService]
-  val imageConverter         = mock[ImageConverter]
+  val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  val rawController: RawController                   = mock[RawController]
+  val internController: InternController             = mock[InternController]
+  val imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
+  val imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
+  val converterService: ConverterService             = mock[ConverterService]
+  val validationService: ValidationService           = mock[ValidationService]
+  val tagsService: TagsService                       = mock[TagsService]
+  var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
+  val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  val imageConverter: ImageConverter                 = mock[ImageConverter]
 
-  val clock  = mock[SystemClock]
-  val random = mock[Random]
+  val clock: SystemClock = mock[SystemClock]
+  val random: Random     = mock[Random]
 
   def services: List[Service[Eff]] = List.empty
 }

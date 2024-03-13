@@ -51,7 +51,7 @@ case class ImageParams(
 // format: on
 
 object ImageParams {
-  def empty = ImageParams(
+  def empty: ImageParams = ImageParams(
     appKey = None,
     width = None,
     height = None,

@@ -8,11 +8,13 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain as common
 import no.ndla.conceptapi.model.domain.VisualElement
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
@@ -60,7 +62,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       ),
       VisualElement(s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" />", "nn")
     )
-    when(publishedConceptRepository.withId(anyLong))
+    when(publishedConceptRepository.withId(any))
       .thenReturn(Some(TestData.sampleConcept.copy(visualElement = visualElements)))
     val concept = service.publishedConceptWithId(id = 1L, language = "nb", fallback = true, Some(userInfo))
     concept.get.visualElement.get.visualElement should equal(

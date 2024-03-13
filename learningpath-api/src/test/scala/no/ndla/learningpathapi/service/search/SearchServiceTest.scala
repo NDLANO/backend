@@ -8,15 +8,17 @@
 
 package no.ndla.learningpathapi.service.search
 
-import no.ndla.common.model.{NDLADate, api => commonApi}
-import no.ndla.common.model.domain.learningpath.{LearningpathCopyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.{NDLADate, api as commonApi}
+import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.doReturn
 import org.scalatest.Outcome
 
 import scala.util.Success

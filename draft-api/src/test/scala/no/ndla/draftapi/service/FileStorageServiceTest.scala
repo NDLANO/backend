@@ -9,6 +9,8 @@ package no.ndla.draftapi.service
 import com.amazonaws.AmazonServiceException
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, verify, when}
 
 class FileStorageServiceTest extends UnitSuite with TestEnvironment {
   override lazy val fileStorage = new FileStorageService

@@ -9,11 +9,12 @@ package no.ndla.audioapi.db.migration
 
 import no.ndla.audioapi.db.migration.{TimeService, V2_DBAudioMetaInformation, V2__AddUpdatedColoums}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import org.mockito.Mockito.when
 
 class V2__AddUpdatedColoumsTest extends UnitSuite with TestEnvironment {
 
   class V2__MockedTest extends V2__AddUpdatedColoums {
-    override val timeService = mock[TimeService]
+    override val timeService: TimeService = mock[TimeService]
   }
 
   val migration = new V2__MockedTest

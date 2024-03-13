@@ -12,9 +12,10 @@ import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPA
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success}
+import scala.util.Try
 
 object UserInfo {
-  def getWithUserIdOrAdmin(user: TokenUser) =
+  def getWithUserIdOrAdmin(user: TokenUser): Try[TokenUser] =
     user match {
       case user if user.isAdmin               => Success(user)
       case user if user.jwt.ndla_id.isDefined => Success(user)

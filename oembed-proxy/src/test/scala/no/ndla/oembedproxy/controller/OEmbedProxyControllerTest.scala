@@ -12,13 +12,14 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.OEmbed
 import no.ndla.oembedproxy.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.mockito.ArgumentMatchers.anyString
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{any, anyString}
+import org.mockito.Mockito.when
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  val controller = new OEmbedProxyController
+  val controller: OEmbedProxyController = new OEmbedProxyController
 
   val oembed: OEmbed = OEmbed(
     `type` = "rich",

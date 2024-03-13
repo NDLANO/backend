@@ -218,8 +218,8 @@ trait ArenaReadService {
           topicId = topicId,
           title = newTopic.title,
           updated = updatedTime,
-          locked = if (user.isAdmin) newTopic.isLocked else topic.topic.locked,
-          pinned = if (user.isAdmin) newTopic.isPinned else topic.topic.pinned
+          locked = if (user.isAdmin) newTopic.isLocked.getOrElse(false) else topic.topic.locked,
+          pinned = if (user.isAdmin) newTopic.isPinned.getOrElse(false) else topic.topic.pinned
         )(session)
         mainPostId <- posts.headOption
           .map(_.post.id)
@@ -281,8 +281,8 @@ trait ArenaReadService {
             ownerId = user.id,
             created = created,
             updated = created,
-            locked = if (user.isAdmin) newTopic.isLocked else false,
-            pinned = if (user.isAdmin) newTopic.isPinned else false
+            locked = if (user.isAdmin) newTopic.isLocked.getOrElse(false) else false,
+            pinned = if (user.isAdmin) newTopic.isPinned.getOrElse(false) else false
           )(session)
           _ <- followTopic(topic.id, user)(session)
           _ <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created)(session)

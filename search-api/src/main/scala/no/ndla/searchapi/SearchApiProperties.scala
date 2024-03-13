@@ -20,8 +20,8 @@ trait Props extends HasBaseProps {
 }
 
 class SearchApiProperties extends BaseProps with StrictLogging {
-  def ApplicationName    = "search-api"
-  def Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName            = "search-api"
+  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
@@ -44,7 +44,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
 
   def DefaultPageSize                            = 10
   def MaxPageSize                                = 10000
-  def IndexBulkSize                              = propOrElse("INDEX_BULK_SIZE", "100").toInt
+  def IndexBulkSize: Int                         = propOrElse("INDEX_BULK_SIZE", "100").toInt
   def ElasticSearchIndexMaxResultWindow          = 10000
   def ElasticSearchScrollKeepAlive               = "1m"
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")

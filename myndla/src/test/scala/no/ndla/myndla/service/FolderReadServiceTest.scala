@@ -13,6 +13,8 @@ import no.ndla.myndla.{TestData, TestEnvironment}
 import no.ndla.myndla.model.domain.{Folder, FolderStatus, MyNDLAGroup, MyNDLAUser, Resource, ResourceType, UserRole}
 import no.ndla.myndla.model.api
 import no.ndla.scalatestsuite.UnitTestSuite
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -21,8 +23,8 @@ import scala.util.{Failure, Success, Try}
 
 class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
-  val service                         = new FolderReadService
-  override val folderConverterService = org.mockito.Mockito.spy(new FolderConverterService)
+  val service                                                 = new FolderReadService
+  override val folderConverterService: FolderConverterService = org.mockito.Mockito.spy(new FolderConverterService)
 
   override def beforeEach(): Unit = {
     super.beforeEach()

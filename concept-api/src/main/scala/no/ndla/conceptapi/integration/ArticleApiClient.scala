@@ -32,8 +32,8 @@ trait ArticleApiClient {
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient {
-    val baseUrl        = s"http://${props.ArticleApiHost}/intern"
-    val dumpDomainPath = "dump/concepts"
+    val baseUrl: String = s"http://${props.ArticleApiHost}/intern"
+    val dumpDomainPath  = "dump/concepts"
 
     def getChunks(user: TokenUser): Iterator[Try[Seq[domain.Concept]]] = {
       getChunk(0, 0, user) match {

@@ -18,8 +18,6 @@ object imageapi extends Module {
       "org.json4s"    %% "json4s-native"           % Json4SV,
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
-      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
       "org.imgscalr"   % "imgscalr-lib"            % "4.2",
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.10.1",

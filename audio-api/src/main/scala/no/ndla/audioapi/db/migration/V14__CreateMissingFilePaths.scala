@@ -8,7 +8,7 @@
 package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.{Extraction, Formats}
+import org.json4s.*
 import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
@@ -41,7 +41,7 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
       .orElse(sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).lastOption)
   }
 
-  val languagePriority = List(
+  val languagePriority: List[String] = List(
     "nb",
     "nn",
     "unknown",

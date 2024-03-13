@@ -48,8 +48,8 @@ trait DBArticle {
           ignore("slug")
       )
 
-    override val tableName       = "articledata"
-    override lazy val schemaName = Some(props.MetaSchema)
+    override val tableName                     = "articledata"
+    override lazy val schemaName: Some[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[Draft])(rs: WrappedResultSet): Draft = fromResultSet(lp.resultName)(rs)
 
@@ -71,9 +71,9 @@ trait DBArticle {
       JavaTimeSerializers.all +
       NDLADate.Json4sSerializer
 
-    implicit val formats: Formats = JSonSerializer
-    override val tableName        = "agreementdata"
-    override val schemaName       = Some(props.MetaSchema)
+    implicit val formats: Formats         = JSonSerializer
+    override val tableName                = "agreementdata"
+    override val schemaName: Some[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
 
@@ -93,11 +93,11 @@ trait DBArticle {
   }
 
   object DBUserData extends SQLSyntaxSupport[UserData] {
-    implicit val formats: Formats = org.json4s.DefaultFormats
-    override val tableName        = "userdata"
-    lazy override val schemaName  = Some(props.MetaSchema)
+    implicit val formats: Formats              = org.json4s.DefaultFormats
+    override val tableName                     = "userdata"
+    lazy override val schemaName: Some[String] = Some(props.MetaSchema)
 
-    val JSonSerializer = FieldSerializer[UserData](
+    val JSonSerializer: FieldSerializer[UserData] = FieldSerializer[UserData](
       ignore("id")
     )
 

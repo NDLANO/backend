@@ -12,7 +12,7 @@ import org.json4s.JsonAST.{JField, JObject}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.read
-import org.json4s.{Extraction, Formats}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
@@ -56,7 +56,7 @@ class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
       .list()
   }
 
-  def allArticlesWithArticleId(articleId: Long)(implicit session: DBSession) = {
+  def allArticlesWithArticleId(articleId: Long)(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, document from articledata where document is not null and article_id=${articleId} order by id"
       .map(rs => {
         (rs.long("id"), rs.string("document"))

@@ -24,24 +24,24 @@ trait Props extends HasBaseProps {
 class ImageApiProperties extends BaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  val ApplicationName    = "image-api"
-  val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  val ApplicationName            = "image-api"
+  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val RoleWithWriteAccess = "images:write"
 
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  val HealthControllerPath  = "/health"
-  val ImageApiBasePath      = "/image-api"
-  val ApiDocsPath           = s"$ImageApiBasePath/api-docs"
-  val ImageControllerV2Path = s"$ImageApiBasePath/v2/images"
-  val ImageControllerV3Path = s"$ImageApiBasePath/v3/images"
-  val RawControllerPath     = s"$ImageApiBasePath/raw"
+  val HealthControllerPath          = "/health"
+  val ImageApiBasePath              = "/image-api"
+  val ApiDocsPath: String           = s"$ImageApiBasePath/api-docs"
+  val ImageControllerV2Path: String = s"$ImageApiBasePath/v2/images"
+  val ImageControllerV3Path: String = s"$ImageApiBasePath/v3/images"
+  val RawControllerPath: String     = s"$ImageApiBasePath/raw"
 
-  val ValidFileExtensions = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg", ".jfif")
+  val ValidFileExtensions: Seq[String] = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg", ".jfif")
 
-  val ValidMimeTypes = Seq(
+  val ValidMimeTypes: Seq[String] = Seq(
     "image/bmp",
     "image/gif",
     "image/jpeg",
@@ -53,7 +53,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
     "image/svg+xml"
   )
 
-  val oldCreatorTypes = List(
+  val oldCreatorTypes: List[String] = List(
     "opphavsmann",
     "fotograf",
     "kunstner",
@@ -67,7 +67,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
     "komponist"
   )
 
-  val creatorTypes = List(
+  val creatorTypes: List[String] = List(
     "originator",
     "photographer",
     "artist",
@@ -81,12 +81,13 @@ class ImageApiProperties extends BaseProps with StrictLogging {
     "composer"
   )
 
-  val oldProcessorTypes =
+  val oldProcessorTypes: List[String] =
     List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
-  val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
+  val processorTypes: List[String] =
+    List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
 
-  val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
-  val rightsholderTypes    = List("rightsholder", "publisher", "distributor", "supplier")
+  val oldRightsholderTypes: List[String] = List("rettighetshaver", "forlag", "distributør", "leverandør")
+  val rightsholderTypes: List[String]    = List("rightsholder", "publisher", "distributor", "supplier")
 
   val allowedAuthors: Seq[String] = creatorTypes ++ processorTypes ++ rightsholderTypes
 
@@ -97,13 +98,13 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val ImageScalingUltraMinSize: Int = 640
   val ImageScalingUltraMaxSize: Int = 2080
 
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
-  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
 
   val StorageName: String    = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
   val StorageRegion: Regions = propToAwsRegion("IMAGE_FILE_S3_BUCKET_REGION")
@@ -115,13 +116,13 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val TagSearchIndex: String = propOrElse("TAG_SEARCH_INDEX_NAME", "tags")
   val TagSearchDocument      = "tag"
 
-  val DefaultPageSize: Int              = 10
-  val MaxPageSize: Int                  = 10000
-  val IndexBulkSize                     = 1000
-  val SearchServer: String              = propOrElse("SEARCH_SERVER", "http://search-image-api.ndla-local")
-  val ElasticSearchIndexMaxResultWindow = 10000
-  val ElasticSearchScrollKeepAlive      = "1m"
-  val InitialScrollContextKeywords      = List("0", "initial", "start", "first")
+  val DefaultPageSize: Int                       = 10
+  val MaxPageSize: Int                           = 10000
+  val IndexBulkSize                              = 1000
+  val SearchServer: String                       = propOrElse("SEARCH_SERVER", "http://search-image-api.ndla-local")
+  val ElasticSearchIndexMaxResultWindow          = 10000
+  val ElasticSearchScrollKeepAlive               = "1m"
+  val InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
   lazy val Domain: String       = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ImageApiV2UrlBase: String = Domain + ImageControllerV2Path + "/"

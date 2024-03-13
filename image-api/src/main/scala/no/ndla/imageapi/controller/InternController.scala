@@ -43,9 +43,9 @@ trait InternController {
   class InternController extends Service[Eff] with StrictLogging {
     import ErrorHelpers._
 
-    override val prefix                   = "intern"
-    override val enableSwagger            = false
-    private val stringInternalServerError = statusCode(StatusCode.InternalServerError).and(stringBody)
+    override val prefix: EndpointInput[Unit] = "intern"
+    override val enableSwagger               = false
+    private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       postIndex,
@@ -86,7 +86,7 @@ trait InternController {
         }
       }
 
-    def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+    def pluralIndex(n: Int): String = if (n == 1) "1 index" else s"$n indexes"
 
     def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
       .in("index")
@@ -126,7 +126,7 @@ trait InternController {
         }
       }
 
-    val urlQueryParam = query[Option[String]]("url")
+    val urlQueryParam: EndpointInput.Query[Option[String]] = query[Option[String]]("url")
     def getDomainImageFromUrl: ServerEndpoint[Any, Eff] = endpoint.get
       .in("domain_image_from_url")
       .in(urlQueryParam)

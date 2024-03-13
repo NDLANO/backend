@@ -7,13 +7,11 @@ object scalatestsuitelib extends Module {
   override val moduleName: String      = "scalatestsuite"
   override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = Seq(
-    "org.scalatest"     %% "scalatest"               % ScalaTestV,
-    "org.mockito"       %% "mockito-scala"           % MockitoV,
-    "org.mockito"       %% "mockito-scala-scalatest" % MockitoV,
-    "org.testcontainers" % "elasticsearch"           % TestContainersV,
-    "org.testcontainers" % "testcontainers"          % TestContainersV,
-    "org.testcontainers" % "postgresql"              % TestContainersV
-  ) ++ database ++ vulnerabilityOverrides
+    "org.scalatest"     %% "scalatest"      % ScalaTestV,
+    "org.testcontainers" % "elasticsearch"  % TestContainersV,
+    "org.testcontainers" % "testcontainers" % TestContainersV,
+    "org.testcontainers" % "postgresql"     % TestContainersV
+  ) ++ database ++ vulnerabilityOverrides ++ mockito
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     libraryDependencies ++= dependencies

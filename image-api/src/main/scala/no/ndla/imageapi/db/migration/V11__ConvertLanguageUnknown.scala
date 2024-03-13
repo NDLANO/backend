@@ -9,7 +9,7 @@ package no.ndla.imageapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
 
@@ -68,7 +68,7 @@ class V11__ConvertLanguageUnknown extends BaseJavaMigration {
     compact(render(updated))
   }
 
-  def update(imagemetadata: String, id: Long)(implicit session: DBSession) = {
+  def update(imagemetadata: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imagemetadata)

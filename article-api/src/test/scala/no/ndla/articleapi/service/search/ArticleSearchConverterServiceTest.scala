@@ -19,7 +19,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
   override val searchConverterService = new SearchConverterService
   val sampleArticle: Article          = TestData.sampleArticleWithPublicDomain.copy()
 
-  val titles = List(
+  val titles: List[Title] = List(
     Title("Bokmål tittel", "nb"),
     Title("Nynorsk tittel", "nn"),
     Title("English title", "en"),

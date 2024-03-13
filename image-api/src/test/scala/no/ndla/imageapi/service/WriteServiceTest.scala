@@ -11,14 +11,16 @@ package no.ndla.imageapi.service
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.{Copyright, License, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
-import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
-import no.ndla.common.model.domain.article.{Copyright => DomainCopyright}
-import no.ndla.imageapi.model.api._
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
+import no.ndla.common.model.domain.article.Copyright as DomainCopyright
+import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -31,7 +33,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newFileName               = "AbCdeF.mp3"
   val fileMock1: UploadedFile   = mock[UploadedFile]
 
-  val newImageMeta = NewImageMetaInformationV2(
+  val newImageMeta: NewImageMetaInformationV2 = NewImageMetaInformationV2(
     "title",
     Some("alt text"),
     Copyright(License("by", None, None), None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
@@ -40,12 +42,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     "en",
     Some(ModelReleasedStatus.YES.toString)
   )
-  val userId             = "ndla124"
-  val userWithWriteScope = TokenUser(userId, Set(IMAGE_API_WRITE), None)
+  val userId                        = "ndla124"
+  val userWithWriteScope: TokenUser = TokenUser(userId, Set(IMAGE_API_WRITE), None)
 
-  def updated() = NDLADate.of(2017, 4, 1, 12, 15, 32)
+  def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val domainImageMeta =
+  val domainImageMeta: ImageMetaInformation =
     converterService
       .asDomainImageMetaInformationV2(newImageMeta, TokenUser.SystemUser)
       .get
@@ -85,7 +87,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock1.fileName).thenReturn(Some("file.jpg"))
     when(random.string(any)).thenCallRealMethod()
 
-    reset(imageRepository, imageIndexService, imageStorage, tagIndexService)
+    reset(imageRepository)
+    reset(imageIndexService)
+    reset(imageStorage)
+    reset(tagIndexService)
     when(imageRepository.insert(any[ImageMetaInformation])(any[DBSession]))
       .thenReturn(domainImageMeta.copy(id = Some(1)))
   }
@@ -214,7 +219,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(any[DBSession])
     verify(imageStorage, times(1)).deleteObject(any[String])
-    verify(imageIndexService, times(1)).deleteDocument(eqTo(1))
+    verify(imageIndexService, times(1)).deleteDocument(eqTo(1L))
   }
 
   test("storeNewImage should return Success if creation of new image file succeeded") {
@@ -536,7 +541,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updating image file with multiple same filepaths does not override filepath") {
-    reset(validationService, imageRepository, imageStorage)
+    reset(validationService)
+    reset(imageRepository)
+    reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
     val upd = UpdateImageMetaInformation(
@@ -624,7 +631,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That uploading image for a new language just adds a new one") {
-    reset(validationService, imageRepository, imageStorage)
+    reset(validationService)
+    reset(imageRepository)
+    reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
     val upd = UpdateImageMetaInformation(
@@ -719,7 +728,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Deleting language version should delete file if only used by that language") {
-    reset(validationService, imageRepository, imageStorage)
+    reset(validationService)
+    reset(imageRepository)
+    reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
 
@@ -789,7 +800,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Deleting language version should not delete file if it used by more languages") {
-    reset(validationService, imageRepository, imageStorage)
+    reset(validationService)
+    reset(imageRepository)
+    reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
 

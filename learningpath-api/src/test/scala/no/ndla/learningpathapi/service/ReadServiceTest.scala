@@ -12,9 +12,11 @@ import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Author, Title}
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.network.tapir.auth.TokenUser
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.when
 import scalikejdbc.DBSession
 
 import scala.util.Failure

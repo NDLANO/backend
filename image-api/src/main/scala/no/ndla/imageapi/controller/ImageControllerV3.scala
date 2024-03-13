@@ -374,15 +374,15 @@ trait ImageControllerV3 {
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getImagesV3,
+      getImagesByIds,
+      getTagsSearchableV3,
       getImagesPostV3,
       findByImageIdV3,
-      getImagesByIds,
       findImageByExternalIdV3,
       newImageV3,
       deleteImageV3,
       deleteLanguageV3,
-      editImageV3,
-      getTagsSearchableV3
+      editImageV3
     )
 
   }

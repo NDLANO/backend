@@ -10,9 +10,9 @@ package no.ndla.conceptapi.service.search
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
-import no.ndla.conceptapi._
+import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.api.SubjectTags
-import no.ndla.conceptapi.model.domain._
+import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -21,6 +21,7 @@ import org.scalatest.Outcome
 import scala.util.Success
 import no.ndla.common.model.NDLADate
 import no.ndla.conceptapi.integration.model.TaxonomyData
+import org.mockito.Mockito.when
 
 import java.util.UUID
 
@@ -34,8 +35,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     super.withFixture(test)
   }
 
-  val indexName = UUID.randomUUID().toString
-  override val draftConceptSearchService = new DraftConceptSearchService {
+  val indexName: String = UUID.randomUUID().toString
+  override val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {
     override val searchIndex = indexName
   }
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {

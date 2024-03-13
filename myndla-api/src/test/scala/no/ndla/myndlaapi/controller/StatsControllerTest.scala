@@ -11,12 +11,14 @@ import no.ndla.myndla.model.api.{SingleResourceStats, Stats}
 import no.ndla.myndlaapi.{Eff, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
+import sttp.client3.quick.*
 
 import scala.util.Success
 
 class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
-  val controller = new StatsController()
+  val controller: StatsController = new StatsController()
 
   test("That getting stats returns in fact stats") {
     when(folderReadService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty)))

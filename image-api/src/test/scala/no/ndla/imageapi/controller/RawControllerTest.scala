@@ -10,12 +10,14 @@ package no.ndla.imageapi.controller
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.mockito.Strictness
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
+import sttp.client3.quick.*
 
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
+import sttp.client3.{Empty, RequestT}
 
 class RawControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
@@ -23,13 +25,13 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   val imageGifName = "ndla_logo.gif"
   val imageSvgName = "logo.svg"
 
-  override val imageConverter = new ImageConverter
-  val controller              = new RawController
+  override val imageConverter   = new ImageConverter
+  val controller: RawController = new RawController
 
   val id    = 1L
   val idGif = 1L
 
-  def req = basicRequest.response(asByteArrayAlways)
+  def req: RequestT[Empty, Array[Byte], Any with Any] = basicRequest.response(asByteArrayAlways)
 
   override def beforeEach(): Unit = {
     reset(clock)
@@ -51,8 +53,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /image.jpg returns 404 if image was not found") {
-    when(imageStorage.get(any[String]))
-      .thenReturn(Failure(mock[ImageNotFoundException](withSettings.strictness(Strictness.Lenient))))
+    when(imageStorage.get(any[String])).thenReturn(Failure(new ImageNotFoundException("Image not found")))
     val res = simpleHttpClient.send[Array[Byte]](
       req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName")
     )
@@ -119,8 +120,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /id/1 returns 404 if image was not found") {
-    when(imageStorage.get(any[String]))
-      .thenReturn(Failure(mock[ImageNotFoundException](withSettings.strictness(Strictness.Lenient))))
+    when(imageStorage.get(any[String])).thenReturn(Failure(new ImageNotFoundException("Image not found")))
     val res = simpleHttpClient.send(
       req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id")
     )

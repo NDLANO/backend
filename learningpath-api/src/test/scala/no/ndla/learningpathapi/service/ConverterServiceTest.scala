@@ -11,28 +11,31 @@ package no.ndla.learningpathapi.service
 import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
 import no.ndla.common.model.domain.{Tag, Title}
-import no.ndla.common.model.{NDLADate, api => commonApi}
+import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.NdlaHttpRequest
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
-import org.mockito.Strictness
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{when, withSettings}
+import org.mockito.quality.Strictness
 
 import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
-  val clinton = commonApi.Author("author", "Crooked Hillary")
-  val license = commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
-  val copyright = api.Copyright(license, List(clinton))
+  val clinton: commonApi.Author = commonApi.Author("author", "Crooked Hillary")
+  val license: commonApi.License =
+    commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+  val copyright: api.Copyright = api.Copyright(license, List(clinton))
 
-  val apiLearningPath = api.LearningPathV2(
+  val apiLearningPath: api.LearningPathV2 = api.LearningPathV2(
     1,
     1,
     None,
@@ -53,9 +56,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None
   )
-  val domainLearningStep = LearningStep(None, None, None, None, 1, List(), List(), List(), StepType.INTRODUCTION, None)
+  val domainLearningStep: LearningStep =
+    LearningStep(None, None, None, None, 1, List(), List(), List(), StepType.INTRODUCTION, None)
 
-  val domainLearningStep2 = LearningStep(
+  val domainLearningStep2: LearningStep = LearningStep(
     Some(1),
     Some(1),
     None,
@@ -67,12 +71,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     StepType.INTRODUCTION,
     None
   )
-  val apiTags = List(api.LearningPathTags(Seq("tag"), DefaultLanguage))
+  val apiTags: List[api.LearningPathTags] = List(api.LearningPathTags(Seq("tag"), DefaultLanguage))
 
-  val randomDate                = NDLADate.now()
+  val randomDate: NDLADate      = NDLADate.now()
   var service: ConverterService = _
 
-  val domainLearningPath = LearningPath(
+  val domainLearningPath: LearningPath = LearningPath(
     Some(1),
     Some(1),
     None,
@@ -90,7 +94,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     service = new ConverterService
   }
 
@@ -337,7 +341,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That createUrlToLearningPath does not include private in path for private learningpath") {
-    val httpServletRequest = mock[NdlaHttpRequest](withSettings.strictness(Strictness.Lenient))
+    val httpServletRequest = mock[NdlaHttpRequest](withSettings.strictness(Strictness.LENIENT))
     when(httpServletRequest.serverPort).thenReturn(80)
     when(httpServletRequest.getScheme).thenReturn("http")
     when(httpServletRequest.serverName).thenReturn("api-gateway.ndla-local")

@@ -108,10 +108,10 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val redisClient            = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val myndlaApiClient        = new MyNDLAApiClient
 
-  lazy val learningpathControllerV2 = new LearningpathControllerV2
-  lazy val internController         = new InternController
-  lazy val statsController          = new StatsController
-  lazy val healthController         = new TapirHealthController[Eff]
+  lazy val learningpathControllerV2                     = new LearningpathControllerV2
+  lazy val internController                             = new InternController
+  lazy val statsController                              = new StatsController
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
 
   private val swagger = new SwaggerController[Eff](
     List[Service[Eff]](

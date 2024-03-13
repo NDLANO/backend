@@ -11,9 +11,9 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.conceptapi.model.api.SubjectTags
-import no.ndla.conceptapi.model.domain._
+import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search
-import no.ndla.conceptapi._
+import no.ndla.conceptapi.*
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -23,6 +23,7 @@ import scala.util.Success
 import no.ndla.common.model.NDLADate
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
+import org.mockito.Mockito.when
 
 class PublishedConceptSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)

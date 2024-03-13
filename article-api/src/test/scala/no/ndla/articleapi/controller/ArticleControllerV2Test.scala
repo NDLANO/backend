@@ -15,8 +15,9 @@ import no.ndla.common.model.domain.Availability
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
-import org.mockito.ArgumentMatchers._
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.{never, reset, times, verify, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -42,10 +43,11 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
 
   implicit val formats: Formats = DefaultFormats + new EnumNameSerializer(Availability)
 
-  lazy val controller = new ArticleControllerV2
+  lazy val controller: ArticleControllerV2 = new ArticleControllerV2
 
   override def beforeEach(): Unit = {
-    reset(clock, searchConverterService)
+    reset(clock)
+    reset(searchConverterService)
     when(clock.now()).thenCallRealMethod()
   }
 

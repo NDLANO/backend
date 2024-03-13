@@ -10,8 +10,7 @@ package no.ndla.learningpathapi.db.migrationwithdependencies
 import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
 import no.ndla.learningpathapi.model.domain.LearningStep
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.Formats
-import org.json4s.JsonAST._
+import org.json4s.*
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}

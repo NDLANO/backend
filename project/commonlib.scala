@@ -17,10 +17,9 @@ object commonlib extends Module {
       sttp,
       scalikejdbc,
       scalaTsi,
-      "org.json4s"    %% "json4s-native"   % Json4SV,
-      "org.json4s"    %% "json4s-ext"      % Json4SV,
-      "org.scala-lang" % "scala-compiler"  % ScalaV,
-      "com.amazonaws"  % "aws-java-sdk-s3" % AwsSdkV
+      "org.json4s"   %% "json4s-native"   % Json4SV,
+      "org.json4s"   %% "json4s-ext"      % Json4SV,
+      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV
     ),
     melody,
     tapirHttp4sCirce

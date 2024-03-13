@@ -9,13 +9,15 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.TestData.searchSettings
-import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
 
 import scala.util.Success
@@ -223,7 +225,7 @@ class AudioSearchServiceTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(converterService.findAndConvertDomainToApiField(any, any, any)(any)).thenCallRealMethod()
+    when(converterService.findAndConvertDomainToApiField(any, any)(any)).thenCallRealMethod()
     when(converterService.toApiManuscript(any)).thenCallRealMethod()
     when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()

@@ -8,20 +8,22 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.TestData._
+import no.ndla.audioapi.TestData.*
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain as common
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  override val converterService = new ConverterService
-  override val controller       = new InternController
+  override val converterService             = new ConverterService
+  override val controller: InternController = new InternController
 
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),

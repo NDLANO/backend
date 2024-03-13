@@ -9,6 +9,7 @@ package no.ndla.network.model
 
 import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods.parse
+import org.json4s.*
 import pdi.jwt.JwtClaim
 
 case class JWTClaims(

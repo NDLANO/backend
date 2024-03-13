@@ -10,7 +10,7 @@ package no.ndla.conceptapi.db.migration
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JObject
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
@@ -106,7 +106,7 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
     (toKeep ++ updated).filterNot(_.visualElement.isEmpty)
   }
 
-  def convertMetaImageToVisualElement(image: OldMetaImage) = {
+  def convertMetaImageToVisualElement(image: OldMetaImage): NewVisualElement = {
     val embedString =
       s"""<embed data-resource="image" data-resource_id="${image.imageId}" data-alt="${image.altText}" data-size="full" data-align="" />"""
     NewVisualElement(embedString, image.language)

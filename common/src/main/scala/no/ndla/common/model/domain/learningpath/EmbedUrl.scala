@@ -25,9 +25,9 @@ object EmbedUrl {
 
 object EmbedType extends Enumeration {
 
-  val OEmbed = Value("oembed")
-  val LTI    = Value("lti")
-  val IFrame = Value("iframe")
+  val OEmbed: Value = Value("oembed")
+  val LTI: Value    = Value("lti")
+  val IFrame: Value = Value("iframe")
 
   def valueOf(s: String): Option[EmbedType.Value] = {
     EmbedType.values.find(_.toString == s)

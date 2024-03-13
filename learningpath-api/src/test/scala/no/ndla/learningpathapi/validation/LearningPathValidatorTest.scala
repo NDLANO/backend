@@ -11,9 +11,10 @@ package no.ndla.learningpathapi.validation
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
-import no.ndla.learningpathapi._
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.*
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License.PublicDomain
+import org.mockito.Mockito.when
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
@@ -21,17 +22,17 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   override val clock = new SystemClock
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new LearningPathValidator
     resetMocks()
 
   }
 
-  val trump     = Author("author", "Donald Drumpf")
-  val license   = PublicDomain.toString
-  val copyright = LearningpathCopyright(license, List(trump))
+  val trump: Author                    = Author("author", "Donald Drumpf")
+  val license                          = PublicDomain.toString
+  val copyright: LearningpathCopyright = LearningpathCopyright(license, List(trump))
 
-  val ValidLearningPath = LearningPath(
+  val ValidLearningPath: LearningPath = LearningPath(
     id = None,
     title = List(Title("Gyldig tittel", "nb")),
     description = List(Description("Gyldig beskrivelse", "nb")),

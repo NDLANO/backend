@@ -57,7 +57,7 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
   object ArticleErrorHelpers {
     val ARTICLE_GONE = "ARTICLE_GONE"
 
-    val WINDOW_TOO_LARGE_DESCRIPTION =
+    val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 
     val ARTICLE_GONE_DESCRIPTION = "The article you are searching for seems to have vanished 👻"

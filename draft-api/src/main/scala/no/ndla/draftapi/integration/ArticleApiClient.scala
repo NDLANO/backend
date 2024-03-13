@@ -23,7 +23,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.native.Serialization
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.*
 import sttp.client3.quick._
 
 import scala.concurrent.duration.DurationInt

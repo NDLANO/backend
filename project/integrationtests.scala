@@ -7,9 +7,7 @@ object integrationtests extends Module {
   override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
-      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test"
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test"
     )
   )
 

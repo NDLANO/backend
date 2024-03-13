@@ -25,20 +25,20 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
 
   def ApplicationName = "concept-api"
 
-  def Auth0LoginEndpoint =
+  def Auth0LoginEndpoint: String =
     s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   def ConceptRoleWithWriteAccess = "concept:write"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def SearchServer: String                = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
   def DraftConceptSearchIndex: String     = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
@@ -49,7 +49,7 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
   def IndexBulkSize                       = 250
   def ElasticSearchIndexMaxResultWindow   = 10000
   def ElasticSearchScrollKeepAlive        = "1m"
-  def InitialScrollContextKeywords        = List("0", "initial", "start", "first")
+  def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
   def IntroductionHtmlTags: Set[String] =
     if (booleanPropOrFalse("ALLOW_HTML")) Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
@@ -57,7 +57,7 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
-  def H5PAddress = propOrElse(
+  def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",
     Map(
       "test"    -> "https://h5p-test.ndla.no",

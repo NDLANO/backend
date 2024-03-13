@@ -9,7 +9,7 @@ package no.ndla.draftapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s
-import org.json4s.DefaultFormats
+import org.json4s.*
 import org.json4s.JsonAST.{JArray, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.jsoup.Jsoup
@@ -21,7 +21,7 @@ import scalikejdbc.{DB, DBSession, _}
 class V25__RemoveDomainFromH5PUrl extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       migrateArticles

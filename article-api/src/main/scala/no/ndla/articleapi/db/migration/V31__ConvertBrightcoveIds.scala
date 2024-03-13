@@ -12,7 +12,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s._
 import org.json4s.JsonAST.{JArray, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.read
@@ -117,7 +117,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
 
   val Brightcove = new BrightcoveApiClient
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       migrateArticles

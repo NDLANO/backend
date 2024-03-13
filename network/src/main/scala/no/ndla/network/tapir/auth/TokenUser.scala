@@ -32,7 +32,7 @@ case class TokenUser(
 object TokenUser {
 
   /** Constructor to simplify creating testdata */
-  def apply(id: String, scopes: Set[Permission], token: Option[String]) = {
+  def apply(id: String, scopes: Set[Permission], token: Option[String]): TokenUser = {
     new TokenUser(
       id = id,
       permissions = scopes,

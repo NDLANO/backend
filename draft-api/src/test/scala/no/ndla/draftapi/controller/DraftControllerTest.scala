@@ -10,7 +10,7 @@ package no.ndla.draftapi.controller
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
-import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.model.api.ArticleSearchResult
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
@@ -21,17 +21,19 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.json4s.native.Serialization
 import org.json4s.{DefaultFormats, Formats}
-import org.mockito.ArgumentMatchers._
-import sttp.client3.quick._
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.{reset, times, verify, when}
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  implicit val formats: Formats = DefaultFormats + NDLADate.Json4sSerializer
-  val controller                = new DraftController
+  implicit val formats: Formats   = DefaultFormats + NDLADate.Json4sSerializer
+  val controller: DraftController = new DraftController
 
   override def beforeEach(): Unit = {
-    reset(clock, searchConverterService)
+    reset(clock)
+    reset(searchConverterService)
     when(clock.now()).thenCallRealMethod()
   }
 
@@ -483,7 +485,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
 
       resp.code.code should be(200)
       verify(writeService, times(1)).updateArticle(
-        eqTo(1),
+        eqTo(1L),
         eqTo(missingExpected),
         any[List[String]],
         any[Seq[String]],
@@ -503,7 +505,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       resp.code.code should be(200)
 
       verify(writeService, times(1)).updateArticle(
-        eqTo(1),
+        eqTo(1L),
         eqTo(nullExpected),
         any[List[String]],
         any[Seq[String]],
@@ -522,7 +524,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       )
       resp.code.code should be(200)
       verify(writeService, times(1)).updateArticle(
-        eqTo(1),
+        eqTo(1L),
         eqTo(existingExpected),
         any[List[String]],
         any[Seq[String]],

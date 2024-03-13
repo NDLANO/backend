@@ -91,7 +91,7 @@ trait BaseIndexService {
       } yield contentId
     }
 
-    def getNewIndexName() = s"${searchIndex}_$getTimestamp"
+    def getNewIndexName(): String = s"${searchIndex}_$getTimestamp"
 
     def createIndexWithGeneratedName(numShards: Option[Int]): Try[String] =
       createIndexWithName(getNewIndexName(), numShards)

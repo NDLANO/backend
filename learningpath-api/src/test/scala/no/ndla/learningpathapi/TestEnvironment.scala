@@ -11,17 +11,18 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
-import no.ndla.learningpathapi.integration._
+import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.ErrorHelpers
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.learningpathapi.service._
+import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
-import no.ndla.learningpathapi.validation._
+import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
-import org.mockito.scalatest.MockitoSugar
+import org.mockito.Mockito.reset
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends LearningpathControllerV2
@@ -92,21 +93,19 @@ trait TestEnvironment
   def services: List[Service[Eff]] = List.empty
 
   def resetMocks(): Unit = {
-    reset(
-      dataSource,
-      learningPathRepository,
-      readService,
-      updateService,
-      searchService,
-      searchIndexService,
-      converterService,
-      searchConverterService,
-      languageValidator,
-      titleValidator,
-      e4sClient,
-      oembedProxyClient,
-      feideApiClient,
-      myndlaApiClient
-    )
+    reset(dataSource)
+    reset(learningPathRepository)
+    reset(readService)
+    reset(updateService)
+    reset(searchService)
+    reset(searchIndexService)
+    reset(converterService)
+    reset(searchConverterService)
+    reset(languageValidator)
+    reset(titleValidator)
+    reset(e4sClient)
+    reset(oembedProxyClient)
+    reset(feideApiClient)
+    reset(myndlaApiClient)
   }
 }

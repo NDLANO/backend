@@ -5,6 +5,8 @@ import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptStatus, ConceptType, StateTransition, Status}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
 import scala.util.Success

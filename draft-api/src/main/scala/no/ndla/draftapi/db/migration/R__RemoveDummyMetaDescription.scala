@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{Formats, JArray, JValue}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc._
 

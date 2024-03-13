@@ -128,7 +128,7 @@ object NDLADate {
       hour: Int,
       minute: Int,
       second: Int
-  ) = fromUtcDate(LocalDateTime.of(year, month, dayOfMonth, hour, minute, second))
+  ): NDLADate = fromUtcDate(LocalDateTime.of(year, month, dayOfMonth, hour, minute, second))
 
   def fromDate(date: ZonedDateTime): NDLADate = new NDLADate(date)
 

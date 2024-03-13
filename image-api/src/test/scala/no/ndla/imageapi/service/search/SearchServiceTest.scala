@@ -8,6 +8,8 @@
 package no.ndla.imageapi.service.search
 
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{never, verify, when}
 
 import scala.util.Success
 

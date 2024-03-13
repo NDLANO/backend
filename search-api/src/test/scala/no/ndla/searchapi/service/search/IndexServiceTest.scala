@@ -32,7 +32,7 @@ class IndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = t
 
   val testIndexPrefix = "searchapi-index-service-test"
 
-  val searchIndexService = new ArticleIndexService {
+  val searchIndexService: ArticleIndexService = new ArticleIndexService {
     override val searchIndex = s"${testIndexPrefix}_article"
   }
 

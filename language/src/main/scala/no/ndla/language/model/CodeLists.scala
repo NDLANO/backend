@@ -56,7 +56,7 @@ object CodeLists {
   ) extends Iso15924
   case class Iso3166Val(code: String, name: String) extends Iso3166
 
-  val rtlLanguageCodes = Seq(
+  val rtlLanguageCodes: Seq[String] = Seq(
     "ae",
     "ar",
     "arc",
@@ -78,7 +78,7 @@ object CodeLists {
     "yi"
   )
 
-  val iso15924Definitions = Seq(
+  val iso15924Definitions: Seq[Iso15924Val] = Seq(
     Iso15924Val("Adlm", 166, "Adlam", "adlam", Some("Adlam"), "2016-12-05"),
     Iso15924Val("Afak", 439, "Afaka", "afaka", None, "2010-12-21"),
     Iso15924Val("Aghb", 239, "Caucasian Albanian", "aghbanien", Some("Caucasian_Albanian"), "2014-11-15"),
@@ -443,7 +443,7 @@ object CodeLists {
     Iso15924Val("Zzzz", 999, "Code for uncoded script", "codet pour écriture non codée", Some("Unknown"), "2006-10-10")
   )
 
-  val iso3166Definitions = Seq(
+  val iso3166Definitions: Seq[Iso3166Val] = Seq(
     Iso3166Val("AF", "Afghanistan"),
     Iso3166Val("AX", "Åland Islands"),
     Iso3166Val("AL", "Albania"),

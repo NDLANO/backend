@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.db.migration
 
 import io.lemonlabs.uri.Url
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.Formats
+import org.json4s.*
 import org.json4s.JsonAST.{JArray, JObject, JString}
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.{compact, parse, render}
@@ -91,8 +91,8 @@ class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
 }
 
 object V11_EmbedType extends Enumeration {
-  val OEmbed = Value("oembed")
-  val LTI    = Value("lti")
+  val OEmbed: Value = Value("oembed")
+  val LTI: Value    = Value("lti")
 }
 case class V11_LearningStep(embedUrl: Seq[V11_EmbedUrl])
 case class V11_EmbedUrl(url: String, language: String, embedType: V11_EmbedType.Value)

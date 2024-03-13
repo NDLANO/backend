@@ -81,7 +81,7 @@ trait PublishedConceptRepository {
         .toSet
     }
 
-    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
+    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
       sql"""
            select distinct id, document#>'{tags}' as tags
            from ${PublishedConcept.table}

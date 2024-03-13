@@ -23,8 +23,8 @@ trait Props extends HasBaseProps {
 class LearningpathApiProperties extends BaseProps with StrictLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  def ApplicationName    = "learningpath-api"
-  def Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName            = "learningpath-api"
+  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
@@ -38,7 +38,7 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
   def MaxPageSize         = 10000
   def IndexBulkSize       = 1000
 
-  def InternalImageApiUrl = s"$ImageApiHost/image-api/v2/images"
+  def InternalImageApiUrl: String = s"$ImageApiHost/image-api/v2/images"
 
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt

@@ -7,14 +7,15 @@
 
 package no.ndla.myndlaapi.repository
 
-import cats.implicits._
+import cats.implicits.*
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain._
+import no.ndla.myndla.model.domain.*
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
-import scalikejdbc._
+import scalikejdbc.*
 
 import java.net.Socket
 import java.util.UUID
@@ -41,7 +42,7 @@ class FolderRepositoryTest
     super.withFixture(test)
   }
 
-  def emptyTestDatabase = {
+  def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
       sql"delete from folders;".execute()(session)
       sql"delete from resources;".execute()(session)

@@ -9,6 +9,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.mockito.Mockito.when
 import org.scalactic.{Equality, TolerantNumerics}
 
 import java.awt.image.BufferedImage
@@ -20,7 +21,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   val (imageWidth, imageHeight) = (1000, 1000)
   val image: BufferedImage      = mock[BufferedImage]
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     when(image.getWidth).thenReturn(imageWidth)
     when(image.getHeight).thenReturn(imageHeight)
   }

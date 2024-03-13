@@ -18,8 +18,6 @@ object conceptapi extends Module {
       "org.json4s"    %% "json4s-native"           % Json4SV,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
       "org.typelevel" %% "cats-core"               % "2.10.0"
     ),
     melody,

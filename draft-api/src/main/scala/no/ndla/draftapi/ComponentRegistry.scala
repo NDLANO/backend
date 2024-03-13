@@ -126,12 +126,12 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val learningpathApiClient = new LearningpathApiClient
   lazy val h5pApiClient          = new H5PApiClient
 
-  lazy val internController   = new InternController
-  lazy val draftController    = new DraftController
-  lazy val fileController     = new FileController
-  lazy val ruleController     = new RuleController
-  lazy val userDataController = new UserDataController
-  lazy val healthController   = new TapirHealthController[Eff]
+  lazy val internController                             = new InternController
+  lazy val draftController                              = new DraftController
+  lazy val fileController                               = new FileController
+  lazy val ruleController                               = new RuleController
+  lazy val userDataController                           = new UserDataController
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
 
   private val swagger = new SwaggerController(
     List[Service[Eff]](

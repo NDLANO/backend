@@ -46,7 +46,7 @@ class DraftConceptRepositoryTest
     super.withFixture(test)
   }
 
-  def emptyTestDatabase = {
+  def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
       sql"delete from conceptdata;".execute()(session)
     })

@@ -33,11 +33,11 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
     with SwaggerDocControllerConfig {
   override val props: OEmbedProxyProperties = properties
 
-  lazy val providerService       = new ProviderService
-  lazy val oEmbedService         = new OEmbedService
-  lazy val ndlaClient            = new NdlaClient
-  lazy val oEmbedProxyController = new OEmbedProxyController
-  lazy val healthController      = new TapirHealthController[Eff]
+  lazy val providerService                              = new ProviderService
+  lazy val oEmbedService                                = new OEmbedService
+  lazy val ndlaClient                                   = new NdlaClient
+  lazy val oEmbedProxyController                        = new OEmbedProxyController
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
 
   lazy val clock = new SystemClock
 

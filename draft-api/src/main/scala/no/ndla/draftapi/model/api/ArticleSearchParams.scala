@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
@@ -19,16 +19,15 @@ case class ArticleSearchParams(
     @description("Return only articles with provided license.") license: Option[String],
     @description("The page number of the search hits to display.") page: Option[Int],
     @description("The number of search hits to display for each page.") pageSize: Option[Int],
-    @description("Return only articles that have one of the provided ids") ids: List[Long] = List.empty,
-    @description("Return only articles of specific type(s)") articleTypes: List[String] = List.empty,
+    @description("Return only articles that have one of the provided ids") ids: Option[List[Long]],
+    @description("Return only articles of specific type(s)") articleTypes: Option[List[String]],
     @description("The sorting used on results. Default is by -relevance.") sort: Option[String],
     @description("A search context retrieved from the response header of a previous search.") scrollId: Option[String],
     @description("Fallback to some existing language if language is specified.") fallback: Option[Boolean],
-    @description("Return only articles containing codes from GREP API") grepCodes: List[String] = List.empty
+    @description("Return only articles containing codes from GREP API") grepCodes: Option[List[String]]
 )
 
 object ArticleSearchParams {
-  import no.ndla.network.tapir.NoNullJsonPrinter._
-  implicit def encoder: Encoder[ArticleSearchParams] = deriveConfiguredEncoder
-  implicit def decoder: Decoder[ArticleSearchParams] = deriveConfiguredDecoder
+  implicit def encoder: Encoder[ArticleSearchParams] = deriveEncoder
+  implicit def decoder: Decoder[ArticleSearchParams] = deriveDecoder
 }

@@ -9,7 +9,7 @@ package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
@@ -66,7 +66,7 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
       .list()
   }
 
-  def update(document: String, id: Long)(implicit session: DBSession) = {
+  def update(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

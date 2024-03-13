@@ -14,9 +14,7 @@ object myndlaapi extends Module {
       scalaUri,
       enumeratum,
       sttp,
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
-      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test"
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test"
     ),
     tapirHttp4sCirce,
     database,

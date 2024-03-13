@@ -11,7 +11,7 @@ import no.ndla.imageapi.model.domain.ModelReleasedStatus
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.{JField, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, JArray, JObject}
+import org.json4s.*
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
@@ -20,7 +20,7 @@ class V9__AddEditorNotesToImages extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   val timeService                           = new TimeService()
 
-  override def migrate(context: Context) = DB(context.getConnection)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
       imagesToUpdate.foreach { case (id, document) =>
@@ -52,7 +52,7 @@ class V9__AddEditorNotesToImages extends BaseJavaMigration {
     compact(render(mergedDoc))
   }
 
-  def update(imagemetadata: String, id: Long)(implicit session: DBSession) = {
+  def update(imagemetadata: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imagemetadata)

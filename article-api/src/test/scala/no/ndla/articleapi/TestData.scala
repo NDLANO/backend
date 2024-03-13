@@ -49,7 +49,7 @@ trait TestData {
 
     val (articleId, externalId) = (1L, "751234")
 
-    val sampleArticleV2 = api.ArticleV2(
+    val sampleArticleV2: api.ArticleV2 = api.ArticleV2(
       id = 1,
       oldNdlaUrl = None,
       revision = 1,
@@ -85,7 +85,7 @@ trait TestData {
       slug = None
     )
 
-    val apiArticleV2 = api.ArticleV2(
+    val apiArticleV2: api.ArticleV2 = api.ArticleV2(
       articleId,
       Some(s"//red.ndla.no/node/$externalId"),
       2,
@@ -125,7 +125,7 @@ trait TestData {
       slug = None
     )
 
-    val sampleArticleWithPublicDomain = Article(
+    val sampleArticleWithPublicDomain: Article = Article(
       Option(1),
       Option(1),
       Seq(Title("test", "en")),
@@ -155,7 +155,7 @@ trait TestData {
       slug = None
     )
 
-    val sampleDomainArticle = Article(
+    val sampleDomainArticle: Article = Article(
       Option(articleId),
       Option(2),
       Seq(Title("title", "nb")),
@@ -180,7 +180,7 @@ trait TestData {
       slug = None
     )
 
-    val sampleDomainArticle2 = Article(
+    val sampleDomainArticle2: Article = Article(
       None,
       None,
       Seq(Title("test", "en")),
@@ -208,7 +208,7 @@ trait TestData {
     val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
     val sampleArticleWithCopyrighted: Article = sampleArticleWithPublicDomain.copy(copyright = copyrighted)
 
-    val sampleDomainArticleWithHtmlFault = Article(
+    val sampleDomainArticleWithHtmlFault: Article = Article(
       Option(articleId),
       Option(2),
       Seq(Title("test", "en")),
@@ -242,7 +242,7 @@ trait TestData {
       slug = None
     )
 
-    val apiArticleWithHtmlFaultV2 = api.ArticleV2(
+    val apiArticleWithHtmlFaultV2: api.ArticleV2 = api.ArticleV2(
       1,
       None,
       1,
@@ -276,10 +276,10 @@ trait TestData {
       slug = None
     )
 
-    val (nodeId, nodeId2) = ("1234", "4321")
-    val sampleTitle       = Title("title", "en")
+    val (nodeId, nodeId2)  = ("1234", "4321")
+    val sampleTitle: Title = Title("title", "en")
 
-    val visualElement = VisualElement(
+    val visualElement: VisualElement = VisualElement(
       s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
       "nb"
     )
@@ -311,9 +311,9 @@ trait TestData {
       )
     }
 
-    val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+    val sampleApiTagsSearchResult: api.TagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 
-    val testSettings = SearchSettings(
+    val testSettings: SearchSettings = SearchSettings(
       query = None,
       withIdIn = List(),
       language = "nb",

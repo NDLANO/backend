@@ -9,7 +9,7 @@ object Language {
   val AllLanguages                 = "*"
   val Nynorsk                      = "nynorsk"
 
-  val languagePriority = Seq(
+  val languagePriority: Seq[String] = Seq(
     "nb",
     "nn",
     "sma",

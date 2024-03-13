@@ -22,7 +22,7 @@ class MyNdlaApiProperties extends BaseProps {
   override def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   override def ApplicationName: String = "myndla-api"
 
-  def Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)

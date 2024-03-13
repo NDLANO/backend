@@ -88,7 +88,7 @@ trait Routes[F[_]] {
       private def shouldLogRequest(req: ServerRequest): Boolean = s"/${req.uri.path.mkString("/")}" != "/health"
 
       val beforeTime = new AttributeKey[Long]("beforeTime")
-      def before(req: ServerRequest) = {
+      def before(req: ServerRequest): ServerRequest = {
         val requestInfo = RequestInfo.fromRequest(req)
         requestInfo.setThreadContextRequestInfo()
         val startTime = System.currentTimeMillis()

@@ -17,7 +17,7 @@ import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s
 import org.json4s.JsonAST.{JArray, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.DefaultFormats
+import org.json4s._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode

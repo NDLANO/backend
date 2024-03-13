@@ -72,7 +72,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
     )
   )
 
-  val audiosToIndex = Seq(audio1, audio2, audio3, audio4)
+  val audiosToIndex: Seq[AudioMetaInformation] = Seq(audio1, audio2, audio3, audio4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     super.beforeAll()

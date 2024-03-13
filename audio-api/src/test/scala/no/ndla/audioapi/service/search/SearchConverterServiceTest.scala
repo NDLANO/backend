@@ -26,7 +26,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   def created(): NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
-  val domainTitles = List(
+  val domainTitles: List[Title] = List(
     Title("Bokmål tittel", "nb"),
     Title("Nynorsk tittel", "nn"),
     Title("English title", "en"),
@@ -36,7 +36,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Title("Nekonata titolo", "unknown")
   )
 
-  val apiTitles = List(
+  val apiTitles: List[api.Title] = List(
     api.Title("Bokmål tittel", "nb"),
     api.Title("Nynorsk tittel", "nn"),
     api.Title("English title", "en"),
@@ -46,14 +46,14 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     api.Title("Nekonata titolo", "unknown")
   )
 
-  val audioFiles = Seq(
+  val audioFiles: Seq[Audio] = Seq(
     Audio("file.mp3", "audio/mpeg", 1024, "nb"),
     Audio("file2.mp3", "audio/mpeg", 2048, "nb"),
     Audio("file3.mp3", "audio/mpeg", 4096, "nb"),
     Audio("file4.mp3", "audio/mpeg", 8192, "nb")
   )
 
-  val audioTags = Seq(
+  val audioTags: Seq[Tag] = Seq(
     Tag(Seq("fugl", "fisk"), "nb"),
     Tag(Seq("fugl", "fisk"), "nn"),
     Tag(Seq("bird", "fish"), "en"),

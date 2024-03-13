@@ -54,7 +54,7 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
       .list()
   }
 
-  def update(audioMeta: V4_AudioMetaInformation)(implicit session: DBSession) = {
+  def update(audioMeta: V4_AudioMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))
