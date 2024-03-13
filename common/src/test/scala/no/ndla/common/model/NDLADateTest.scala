@@ -14,7 +14,7 @@ import no.ndla.scalatestsuite.UnitTestSuite
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
 import scala.annotation.unused
-import scala.util.{Failure, Success, Try}
+import scala.util.Success
 
 class NDLADateTest extends UnitTestSuite {
 

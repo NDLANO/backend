@@ -1,10 +1,9 @@
 package no.ndla.validation
 
 import enumeratum.*
-import no.ndla.common.json.Json4s
-import org.json4s.*
-import org.json4s.JsonAST.JObject
-import org.json4s.native.JsonMethods.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder, parser}
+import no.ndla.common.CirceUtil.getOrDefault
 
 object TagRules {
   case class TagAttributeRules(
@@ -40,37 +39,74 @@ object TagRules {
       allowedDomains: Set[String] = Set.empty,
       mustCoexistWith: List[TagAttribute] = List.empty
   )
-  case class Field(name: TagAttribute, validation: Validation = Validation()) {
+
+  object Validation {
+    implicit val encoder: Encoder[Validation] = deriveEncoder
+    implicit val decoder: Decoder[Validation] = Decoder.instance { cur =>
+      for {
+        dataType        <- getOrDefault[AttributeType](cur, "dataType", AttributeType.STRING)
+        required        <- getOrDefault(cur, "required", false)
+        allowedHtml     <- getOrDefault(cur, "allowedHtml", Set.empty[String])
+        allowedDomains  <- getOrDefault(cur, "allowedDomains", Set.empty[String])
+        mustCoexistWith <- getOrDefault(cur, "mustCoexistWith", List.empty[TagAttribute])
+      } yield Validation(
+        dataType = dataType,
+        required = required,
+        allowedHtml = allowedHtml,
+        allowedDomains = allowedDomains,
+        mustCoexistWith = mustCoexistWith
+      )
+    }
+
+    def default: Validation = Validation()
+  }
+  case class Field(name: TagAttribute, validation: Validation) {
     override def toString: String = name.entryName
+  }
+  object Field {
+    implicit val encoder: Encoder[Field] = deriveEncoder
+    implicit val decoder: Decoder[Field] = Decoder.instance(cur => {
+      for {
+        name       <- cur.downField("name").as[TagAttribute]
+        validation <- cur.downField("validation").as[Option[Validation]].map(_.getOrElse(Validation.default))
+      } yield Field(name, validation)
+    })
   }
 
   case class ParentTag(name: String, requiredAttr: List[(String, String)], conditions: Option[Condition])
+  object ParentTag {
+    implicit val encoder: Encoder[ParentTag] = deriveEncoder
+    implicit val decoder: Decoder[ParentTag] = deriveDecoder
+  }
   case class ChildrenRule(required: Boolean, allowedChildren: List[String])
   object ChildrenRule {
     def default: ChildrenRule = ChildrenRule(required = false, allowedChildren = List.empty)
+
+    implicit val encoder: Encoder[ChildrenRule] = deriveEncoder
+    implicit val decoder: Decoder[ChildrenRule] = deriveDecoder
   }
   case class Condition(childCount: String)
+  object Condition {
+    implicit val encoder: Encoder[Condition] = deriveEncoder
+    implicit val decoder: Decoder[Condition] = deriveDecoder
+  }
 
   object TagAttributeRules {
     def empty: TagAttributeRules = TagAttributeRules(Set.empty, None, None, None)
+
+    implicit val encoder: Encoder[TagAttributeRules] = deriveEncoder
+    implicit val decoder: Decoder[TagAttributeRules] = deriveDecoder
   }
 
   def convertJsonStrToAttributeRules(jsonStr: String): Map[String, TagAttributeRules] = {
-    implicit val formats: Formats =
-      org.json4s.DefaultFormats + Json4s.serializer(TagAttribute) + Json4s.serializer(AttributeType)
-
-    (parse(jsonStr) \ "attributes")
-      .extract[JObject]
-      .obj
-      .map { case (fieldName, fieldValue) =>
-        fieldName -> fieldValue.extract[TagAttributeRules]
-      }
-      .toMap
+    val parsed = parser.parse(jsonStr).toTry
+    val result = parsed.get.hcursor.downField("attributes").as[Map[String, TagAttributeRules]].toTry
+    result.get
   }
 }
 
 sealed abstract class AttributeType extends EnumEntry
-object AttributeType extends Enum[AttributeType] {
+object AttributeType extends Enum[AttributeType] with CirceEnum[AttributeType] {
   val values: IndexedSeq[AttributeType] = findValues
   case object BOOLEAN extends AttributeType
   case object EMAIL   extends AttributeType
