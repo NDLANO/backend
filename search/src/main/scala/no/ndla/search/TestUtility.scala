@@ -8,7 +8,6 @@
 package no.ndla.search
 
 import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField}
-import org.json4s.JsonAST.{JArray, JObject, JValue}
 
 import scala.annotation.tailrec
 
