@@ -8,5 +8,4 @@
 package no.ndla.articleapi.db.migration
 
 class V37__AddDataTypeToExternalEmbed extends V35__AddDataTypeToIframeEmbed {
-  override val resource = "external"
 }

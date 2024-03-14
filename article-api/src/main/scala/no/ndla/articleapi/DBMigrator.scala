@@ -23,11 +23,11 @@ trait DBMigrator {
         .configure()
         .javaMigrations(
           new R__SetArticleLanguageFromTaxonomy(props),
-          new R__SetArticleTypeFromTaxonomy(props),
-          new V8__CopyrightFormatUpdated(props),
-          new V9__TranslateUntranslatedAuthors(props),
+          new R__SetArticleTypeFromTaxonomy,
+          new V8__CopyrightFormatUpdated,
+          new V9__TranslateUntranslatedAuthors,
           new V20__UpdateH5PDomainForFF(props),
-          new V22__UpdateH5PDomainForFFVisualElement(props),
+          new V22__UpdateH5PDomainForFFVisualElement,
           new V33__ConvertLanguageUnknown(props)
         )
         .locations("no/ndla/articleapi/db/migration")
