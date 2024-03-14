@@ -98,6 +98,29 @@ class NDLADateTest extends UnitTestSuite {
     }
   }
 
+  test("That circe parses null as `None` for optional NDLADates") {
+    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+    import io.circe.parser.parse
+    import io.circe.syntax._
+
+    implicit val decoder: Decoder[TestObjectWithOptionalDate] = deriveDecoder[TestObjectWithOptionalDate]
+    implicit val encoder: Encoder[TestObjectWithOptionalDate] = deriveEncoder[TestObjectWithOptionalDate]
+
+    {
+      val objectJsonString = s"""{"optDate":null}"""
+      val parsed           = parse(objectJsonString).toTry.get
+
+      val result         = parsed.as[TestObjectWithOptionalDate].toTry.get
+      val expectedObject = TestObjectWithOptionalDate(None)
+
+      result should be(expectedObject)
+
+      val jsonStringResult   = result.asJson.dropNullValues.noSpaces
+      val expectedJsonString = s"""{}"""
+      jsonStringResult should be(expectedJsonString)
+    }
+  }
+
   test("That nested circe empty string parsing works as expected") {
     import io.circe.generic.semiauto.deriveDecoder
     import io.circe.parser.parse
