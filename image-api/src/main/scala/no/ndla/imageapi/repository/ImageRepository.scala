@@ -8,17 +8,15 @@
 
 package no.ndla.imageapi.repository
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.imageapi.integration.DataSource
-import no.ndla.imageapi.model.domain._
+import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.service.ConverterService
-import org.json4s.Formats
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.Try
 
@@ -27,9 +25,6 @@ trait ImageRepository {
   val imageRepository: ImageRepository
 
   class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
-    implicit val formats: Formats =
-      ImageMetaInformation.repositorySerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-
     def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${ImageMetaInformation.table}"
         .map(rs => rs.long("count"))
@@ -57,7 +52,7 @@ trait ImageRepository {
     def insert(imageMeta: ImageMetaInformation)(implicit session: DBSession = AutoSession): ImageMetaInformation = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(imageMeta))
+      dataObject.setValue(CirceUtil.toJsonString(imageMeta))
 
       val imageId =
         sql"insert into imagemetadata(metadata) values ($dataObject)".updateAndReturnGeneratedKey()
@@ -68,7 +63,7 @@ trait ImageRepository {
         session: DBSession = AutoSession
     ): Try[ImageMetaInformation] = {
       Try {
-        val json       = write(imageMetaInformation)
+        val json       = CirceUtil.toJsonString(imageMetaInformation)
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
         dataObject.setValue(json)
@@ -85,7 +80,7 @@ trait ImageRepository {
       Try {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
-        val jsonString = write(imageFileData.toDocument())
+        val jsonString = CirceUtil.toJsonString(imageFileData.toDocument())
         dataObject.setValue(jsonString)
         sql"""
             update imagefiledata
@@ -126,7 +121,7 @@ trait ImageRepository {
     ): Try[ImageFileData] = Try {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      val jsonString = write(document)
+      val jsonString = CirceUtil.toJsonString(document)
       dataObject.setValue(jsonString)
 
       val insertedId =
