@@ -11,7 +11,7 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.{Eff, Props}
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ArticleDomainDump, ArticleDump, ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain.{ArticleIds, DBArticle, ImportId, ReindexResult}
+import no.ndla.draftapi.model.domain.{ArticleIds, ImportId, ReindexResult}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
@@ -47,7 +47,6 @@ trait InternController {
     with GrepCodesIndexService
     with ArticleApiClient
     with TapirErrorHelpers
-    with DBArticle
     with Props =>
   val internController: InternController
 

@@ -15,7 +15,6 @@ import no.ndla.draftapi.model.api.H5PException
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.DefaultFormats
 import sttp.client3.quick._
 
 import java.util.concurrent.Executors
@@ -28,9 +27,8 @@ trait H5PApiClient {
   val h5pApiClient: H5PApiClient
 
   class H5PApiClient extends StrictLogging {
-    private val H5PApi                        = s"${props.H5PAddress}/v1"
-    private val h5pTimeout                    = 20.seconds
-    implicit val formats: DefaultFormats.type = DefaultFormats
+    private val H5PApi     = s"${props.H5PAddress}/v1"
+    private val h5pTimeout = 20.seconds
 
     def publishH5Ps(paths: Seq[String], user: TokenUser): Try[Unit] = {
       if (paths.isEmpty) {

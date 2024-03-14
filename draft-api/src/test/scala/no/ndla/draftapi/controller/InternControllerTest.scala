@@ -11,7 +11,6 @@ import no.ndla.draftapi.*
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.Formats
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
 import sttp.client3.quick.*
@@ -19,8 +18,6 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  implicit val formats: Formats = org.json4s.DefaultFormats
-
   val controller: InternController = new InternController
 
   override def beforeEach(): Unit = {

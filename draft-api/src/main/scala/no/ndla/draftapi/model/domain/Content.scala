@@ -7,16 +7,13 @@
 
 package no.ndla.draftapi.model.domain
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Content
-import no.ndla.common.model.domain.draft.Draft.jsonEncoder
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright}
-import no.ndla.draftapi.Props
-import org.json4s.FieldSerializer._
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.Serialization._
-import org.json4s.{FieldSerializer, Formats}
-import scalikejdbc._
+import scalikejdbc.*
 
 case class Agreement(
     id: Option[Long],
@@ -37,78 +34,57 @@ case class UserData(
     favoriteSubjects: Option[Seq[String]]
 )
 
-trait DBArticle {
-  this: Props =>
+object DBArticle extends SQLSyntaxSupport[Draft] {
+  override val tableName = "articledata"
 
-  object DBArticle extends SQLSyntaxSupport[Draft] {
-    val repositorySerializer: Formats = jsonEncoder +
-      FieldSerializer[Draft](
-        ignore("id") orElse
-          ignore("revision") orElse
-          ignore("slug")
-      )
+  def fromResultSet(lp: SyntaxProvider[Draft])(rs: WrappedResultSet): Draft = fromResultSet(lp.resultName)(rs)
 
-    override val tableName                     = "articledata"
-    override lazy val schemaName: Some[String] = Some(props.MetaSchema)
-
-    def fromResultSet(lp: SyntaxProvider[Draft])(rs: WrappedResultSet): Draft = fromResultSet(lp.resultName)(rs)
-
-    def fromResultSet(lp: ResultName[Draft])(rs: WrappedResultSet): Draft = {
-      implicit val formats = jsonEncoder
-      val meta             = read[Draft](rs.string(lp.c("document")))
-      val slug             = rs.stringOpt(lp.c("slug"))
-      meta.copy(
-        id = Some(rs.long(lp.c("article_id"))),
-        revision = Some(rs.int(lp.c("revision"))),
-        slug = slug
-      )
-    }
-  }
-
-  object DBAgreement extends SQLSyntaxSupport[Agreement] {
-    val JSonSerializer: Formats = org.json4s.DefaultFormats +
-      FieldSerializer[Agreement](ignore("id")) ++
-      JavaTimeSerializers.all +
-      NDLADate.Json4sSerializer
-
-    implicit val formats: Formats         = JSonSerializer
-    override val tableName                = "agreementdata"
-    override val schemaName: Some[String] = Some(props.MetaSchema)
-
-    def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
-
-    def fromResultSet(lp: ResultName[Agreement])(rs: WrappedResultSet): Agreement = {
-      val meta = read[Agreement](rs.string(lp.c("document")))
-      Agreement(
-        id = Some(rs.long(lp.c("id"))),
-        title = meta.title,
-        content = meta.content,
-        copyright = meta.copyright,
-        created = meta.created,
-        updated = meta.updated,
-        updatedBy = meta.updatedBy
-      )
-    }
-
-  }
-
-  object DBUserData extends SQLSyntaxSupport[UserData] {
-    implicit val formats: Formats              = org.json4s.DefaultFormats
-    override val tableName                     = "userdata"
-    lazy override val schemaName: Some[String] = Some(props.MetaSchema)
-
-    val JSonSerializer: FieldSerializer[UserData] = FieldSerializer[UserData](
-      ignore("id")
+  def fromResultSet(lp: ResultName[Draft])(rs: WrappedResultSet): Draft = {
+    val meta = CirceUtil.unsafeParseAs[Draft](rs.string(lp.c("document")))
+    val slug = rs.stringOpt(lp.c("slug"))
+    meta.copy(
+      id = Some(rs.long(lp.c("article_id"))),
+      revision = Some(rs.int(lp.c("revision"))),
+      slug = slug
     )
+  }
+}
 
-    def fromResultSet(lp: SyntaxProvider[UserData])(rs: WrappedResultSet): UserData =
-      fromResultSet(lp.resultName)(rs)
+object Agreement extends SQLSyntaxSupport[Agreement] {
+  override val tableName                   = "agreementdata"
+  implicit val encoder: Encoder[Agreement] = deriveEncoder
+  implicit val decoder: Decoder[Agreement] = deriveDecoder
 
-    def fromResultSet(lp: ResultName[UserData])(rs: WrappedResultSet): UserData = {
-      val userData = read[UserData](rs.string(lp.c("document")))
-      userData.copy(
-        id = Some(rs.long(lp.c("id")))
-      )
-    }
+  def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
+
+  def fromResultSet(lp: ResultName[Agreement])(rs: WrappedResultSet): Agreement = {
+    val meta = CirceUtil.unsafeParseAs[Agreement](rs.string(lp.c("document")))
+    Agreement(
+      id = Some(rs.long(lp.c("id"))),
+      title = meta.title,
+      content = meta.content,
+      copyright = meta.copyright,
+      created = meta.created,
+      updated = meta.updated,
+      updatedBy = meta.updatedBy
+    )
+  }
+
+}
+
+object UserData extends SQLSyntaxSupport[UserData] {
+  override val tableName = "userdata"
+
+  implicit val encoder: Encoder[UserData] = deriveEncoder
+  implicit val decoder: Decoder[UserData] = deriveDecoder
+
+  def fromResultSet(lp: SyntaxProvider[UserData])(rs: WrappedResultSet): UserData =
+    fromResultSet(lp.resultName)(rs)
+
+  def fromResultSet(lp: ResultName[UserData])(rs: WrappedResultSet): UserData = {
+    val userData = CirceUtil.unsafeParseAs[UserData](rs.string(lp.c("document")))
+    userData.copy(
+      id = Some(rs.long(lp.c("id")))
+    )
   }
 }

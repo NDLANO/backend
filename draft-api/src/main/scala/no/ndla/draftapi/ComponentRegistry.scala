@@ -16,7 +16,6 @@ import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
 import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.ErrorHelpers
-import no.ndla.draftapi.model.domain.DBArticle
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
@@ -36,7 +35,6 @@ class ComponentRegistry(properties: DraftApiProperties)
     extends BaseComponentRegistry[DraftApiProperties]
     with DataSource
     with InternController
-    with DBArticle
     with ConverterService
     with StateTransitionRules
     with LearningpathApiClient
