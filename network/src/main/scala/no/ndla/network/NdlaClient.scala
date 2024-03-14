@@ -49,7 +49,7 @@ trait NdlaClient {
       } yield bodyObject
     }
 
-    private def doRequest(request: NdlaRequest): Try[Response[String]] = {
+    def doRequest(request: NdlaRequest): Try[Response[String]] = {
       Try(client.send(request)).flatMap { response =>
         if (response.isSuccess) {
           Success(response)

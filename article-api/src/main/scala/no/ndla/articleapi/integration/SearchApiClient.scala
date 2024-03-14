@@ -8,17 +8,15 @@
 package no.ndla.articleapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
-import enumeratum.Json4s
+import io.circe.{Decoder, Encoder}
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.NdlaClient
-import org.json4s.{DefaultFormats, Formats}
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
-import org.json4s.native.Serialization.write
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
@@ -35,13 +33,6 @@ trait SearchApiClient {
     private val indexTimeout     = 30.seconds
 
     def indexArticle(article: Article): Article = {
-      implicit val formats: Formats =
-        org.json4s.DefaultFormats.withLong +
-          new EnumNameSerializer(Availability) +
-          NDLADate.Json4sSerializer ++
-          JavaTimeSerializers.all +
-          Json4s.serializer(ArticleType)
-
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
 
@@ -67,16 +58,14 @@ trait SearchApiClient {
       article
     }
 
-    private def postWithData[A, B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(implicit
-        mf: Manifest[A],
-        format: org.json4s.Formats,
-        executionContext: ExecutionContext
+    private def postWithData[A: Decoder, B <: AnyRef: Encoder](endpointUrl: String, data: B, params: (String, String)*)(
+        implicit executionContext: ExecutionContext
     ): Future[Try[A]] = {
       Future {
         ndlaClient.fetch[A](
           quickRequest
             .post(uri"$endpointUrl".withParams(params.toMap))
-            .body(write(data))
+            .body(CirceUtil.toJsonString(data))
             .readTimeout(indexTimeout)
             .header("content-type", "application/json", replaceExisting = true)
         )
@@ -84,8 +73,7 @@ trait SearchApiClient {
     }
 
     def deleteArticle(id: Long): Long = {
-      implicit val formats = DefaultFormats
-      ndlaClient.fetch(
+      ndlaClient.doRequest(
         quickRequest
           .delete(uri"$InternalEndpoint/article/$id")
           .readTimeout(indexTimeout)

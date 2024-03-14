@@ -12,13 +12,13 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
-import no.ndla.common.{Clock, model}
-import no.ndla.common.model.{RelatedContentLink, api => commonApi}
+import no.ndla.common.{CirceUtil, Clock, model}
+import no.ndla.common.model.{RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{Delete, License, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -36,9 +36,6 @@ import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageO
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
-import no.ndla.search.model.SearchableLanguageFormats
-import org.json4s._
-import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
 
 import scala.util.{Failure, Success, Try}
@@ -50,7 +47,6 @@ trait ConverterService {
   import props._
 
   class ConverterService extends StrictLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     /** Attempts to extract language that hit from highlights in elasticsearch response.
       * @param result
@@ -95,9 +91,7 @@ trait ConverterService {
       *   Article summary extracted from hitString in specified language.
       */
     def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
-
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      val searchableArticle         = read[SearchableArticle](hitString)
+      val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
       val titles = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
       val introductions =

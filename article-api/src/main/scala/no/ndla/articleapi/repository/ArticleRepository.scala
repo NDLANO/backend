@@ -12,11 +12,10 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleRow, DBArticle}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,14 +24,13 @@ trait ArticleRepository {
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging with Repository[Article] {
-    implicit val formats: Formats = Article.repositorySerializer
-
     def updateArticleFromDraftApi(article: Article, externalIds: List[String])(implicit
         session: DBSession = AutoSession
     ): Try[Article] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(article))
+      val jsonString = CirceUtil.toJsonString(article)
+      dataObject.setValue(jsonString)
       val slug = article.slug.map(_.toLowerCase)
 
       Try {

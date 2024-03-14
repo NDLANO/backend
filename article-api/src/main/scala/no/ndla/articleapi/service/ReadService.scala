@@ -239,7 +239,7 @@ trait ReadService {
         Cachable.yes(result)
     }
 
-    private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability.Value] = {
+    private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability] = {
       feideApiClient.getFeideExtendedUser(feideAccessToken) match {
         case Success(user) if user.isTeacher => None
         case _                               => Some(Availability.everyone)
