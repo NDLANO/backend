@@ -8,15 +8,14 @@
 package no.ndla.conceptapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain
 import no.ndla.network.NdlaClient
-import org.json4s.Formats
-import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.common.model.NDLADate
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.ext.JavaTimeSerializers
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.math.ceil
@@ -26,6 +25,11 @@ case class ConceptDomainDumpResults(
     totalCount: Long,
     results: List[domain.Concept]
 )
+
+object ConceptDomainDumpResults {
+  implicit val encoder: Encoder[ConceptDomainDumpResults] = deriveEncoder
+  implicit val decoder: Decoder[ConceptDomainDumpResults] = deriveDecoder
+}
 
 trait ArticleApiClient {
   this: NdlaClient with StrictLogging with Props =>
@@ -54,10 +58,7 @@ trait ArticleApiClient {
       }
     }
 
-    def get[T](path: String, params: Map[String, String], timeout: Int, user: TokenUser)(implicit
-        mf: Manifest[T]
-    ): Try[T] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
+    def get[T: Decoder](path: String, params: Map[String, String], timeout: Int, user: TokenUser): Try[T] = {
       ndlaClient.fetchWithForwardedAuth[T](
         quickRequest.get(uri"$baseUrl/$path".withParams(params)).readTimeout(timeout.millis),
         Some(user)
