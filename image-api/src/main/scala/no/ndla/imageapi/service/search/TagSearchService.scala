@@ -7,10 +7,11 @@
 
 package no.ndla.imageapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.ErrorHelpers
@@ -18,8 +19,6 @@ import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient
-import org.json4s._
-import org.json4s.native.Serialization.read
 
 import scala.util.{Failure, Success, Try}
 
@@ -35,12 +34,11 @@ trait TagSearchService {
 
   class TagSearchService extends StrictLogging with SearchService[String] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, TagSearchIndex}
-    implicit val formats: Formats              = DefaultFormats
     override val searchIndex: String           = TagSearchIndex
     override val indexService: TagIndexService = tagIndexService
 
     override def hitToApiModel(hit: String, language: String): Try[String] = {
-      Try(read[SearchableTag](hit)).map(_.tag)
+      CirceUtil.tryParseAs[SearchableTag](hit).map(_.tag)
     }
 
     override def getSortDefinition(sort: Sort, language: String): FieldSort = {

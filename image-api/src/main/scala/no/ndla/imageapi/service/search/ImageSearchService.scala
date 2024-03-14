@@ -8,25 +8,23 @@
 
 package no.ndla.imageapi.service.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.Elastic4sClient
-import no.ndla.search.model.SearchableLanguageFormats
-import org.json4s.Formats
-import org.json4s.native.Serialization.read
 
 import scala.util.{Failure, Success, Try}
 
@@ -45,9 +43,7 @@ trait ImageSearchService {
     override val indexService: ImageIndexService = imageIndexService
 
     def hitToApiModel(hit: String, matchedLanguage: String): Try[(SearchableImage, MatchedLanguage)] = {
-      implicit val formats: Formats =
-        SearchableLanguageFormats.JSonFormats ++ ImageMetaInformation.jsonEncoders
-      val searchableImage = Try(read[SearchableImage](hit))
+      val searchableImage = CirceUtil.tryParseAs[SearchableImage](hit)
       searchableImage.map(image => (image, matchedLanguage))
     }
 
