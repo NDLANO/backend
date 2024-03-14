@@ -17,9 +17,6 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, Searchabl
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.json4s.native.Serialization.read
-import org.json4s.{Extraction, Formats}
-import org.scalatest.Outcome
 
 import scala.util.{Failure, Success}
 
@@ -30,7 +27,7 @@ class ArticleIndexServiceTest
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
+  override def withFixture(test: NoArgTest) = {
     elasticSearchContainer match {
       case Failure(ex) =>
         println(s"Elasticsearch container not running, cancelling '${this.getClass.getName}'")
