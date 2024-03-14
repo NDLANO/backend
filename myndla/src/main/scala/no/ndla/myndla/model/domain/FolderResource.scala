@@ -7,8 +7,9 @@
 
 package no.ndla.myndla.model.domain
 
-import org.json4s.{DefaultFormats, Formats}
-import scalikejdbc._
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import scalikejdbc.*
 
 import java.util.UUID
 import scala.util.Try
@@ -18,9 +19,11 @@ case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int) extends R
   override val sortRank: Option[Int] = Some(rank)
 }
 
-object DBFolderResource extends SQLSyntaxSupport[FolderResource] {
-  implicit val formats: Formats = DefaultFormats
-  override val tableName        = "folder_resources"
+object FolderResource extends SQLSyntaxSupport[FolderResource] {
+  implicit val encoder: Encoder[FolderResource] = deriveEncoder
+  implicit val decoder: Decoder[FolderResource] = deriveDecoder
+
+  override val tableName = "folder_resources"
 
   def fromResultSet(lp: SyntaxProvider[FolderResource])(rs: WrappedResultSet): Try[FolderResource] =
     fromResultSet(s => lp.resultName.c(s), rs)

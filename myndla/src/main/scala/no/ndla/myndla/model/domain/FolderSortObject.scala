@@ -13,7 +13,7 @@ import java.util.UUID
 
 sealed trait FolderSortObject extends EnumEntry
 
-object FolderSortObject extends Enum[FolderSortObject] {
+object FolderSortObject extends Enum[FolderSortObject] with CirceEnum[FolderSortObject] {
   val values: IndexedSeq[FolderSortObject] = findValues
   case class ResourceSorting(parentId: UUID) extends FolderSortObject
   case class FolderSorting(parentId: UUID)   extends FolderSortObject

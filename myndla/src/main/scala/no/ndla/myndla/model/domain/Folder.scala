@@ -9,9 +9,6 @@ package no.ndla.myndla.model.domain
 
 import no.ndla.common.model.NDLADate
 import no.ndla.network.model.FeideID
-import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumNameSerializer
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
 import java.util.UUID
@@ -78,15 +75,8 @@ case class Folder(
   }
 }
 
-object DBFolder extends SQLSyntaxSupport[Folder] {
-  implicit val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(FolderStatus)
+object Folder extends SQLSyntaxSupport[Folder] {
   override val tableName            = "folders"
-
-  val repositorySerializer: Formats = jsonEncoder + FieldSerializer[Folder](
-    ignore("id") orElse
-      ignore("feideId") orElse
-      ignore("parentId")
-  )
 
   def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Try[Folder] =
     fromResultSet((s: String) => lp.resultName.c(s))(rs)

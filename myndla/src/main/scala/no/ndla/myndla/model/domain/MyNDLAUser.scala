@@ -9,16 +9,20 @@ package no.ndla.myndla.model.domain
 
 import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import com.scalatsi.{TSNamedType, TSType}
-import enumeratum._
+import enumeratum.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.network.model.FeideID
-import org.json4s.FieldSerializer._
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
-import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
-import scalikejdbc._
+import scalikejdbc.*
 
 case class MyNDLAGroup(id: String, displayName: String, isPrimarySchool: Boolean, parentId: Option[String])
+object MyNDLAGroup {
+  implicit val encoder: Encoder[MyNDLAGroup] = deriveEncoder
+  implicit val decoder: Decoder[MyNDLAGroup] = deriveDecoder
+}
+
 case class MyNDLAUserDocument(
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
@@ -49,6 +53,11 @@ case class MyNDLAUserDocument(
       arenaGroups = arenaGroups
     )
   }
+}
+
+object MyNDLAUserDocument {
+  implicit val encoder: Encoder[MyNDLAUserDocument] = deriveEncoder
+  implicit val decoder: Decoder[MyNDLAUserDocument] = deriveDecoder
 }
 
 sealed trait ArenaGroup extends EnumEntry
@@ -84,20 +93,11 @@ case class MyNDLAUser(
   def isAdmin: Boolean   = arenaGroups.contains(ArenaGroup.ADMIN)
 }
 
-object DBMyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
-  implicit val jsonEncoder: Formats =
-    DefaultFormats +
-      new EnumNameSerializer(UserRole) ++
-      JavaTimeSerializers.all +
-      NDLADate.Json4sSerializer +
-      Json4s.serializer(ArenaGroup)
+object MyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
+  implicit val encoder: Encoder[MyNDLAUser] = deriveEncoder
+  implicit val decoder: Decoder[MyNDLAUser] = deriveDecoder
 
   override val tableName = "my_ndla_users"
-
-  val repositorySerializer: Formats = jsonEncoder + FieldSerializer[MyNDLAUser](
-    ignore("id") orElse
-      ignore("feideId")
-  )
 
   def fromResultSet(lp: SyntaxProvider[MyNDLAUser])(rs: WrappedResultSet): MyNDLAUser =
     fromResultSet((s: String) => lp.resultName.c(s))(rs)
@@ -106,7 +106,7 @@ object DBMyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
 
   def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): MyNDLAUser = {
     val jsonString = rs.string(colNameWrapper("document"))
-    val metaData   = read[MyNDLAUserDocument](jsonString)
+    val metaData   = CirceUtil.unsafeParseAs[MyNDLAUserDocument](jsonString)
     val id         = rs.long(colNameWrapper("id"))
     val feideId    = rs.string(colNameWrapper("feide_id"))
 
