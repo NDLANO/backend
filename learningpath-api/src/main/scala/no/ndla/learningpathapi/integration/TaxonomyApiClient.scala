@@ -11,15 +11,16 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.model.domain.{LearningPath, TaxonomyUpdateException}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
-import org.json4s.native.Serialization.write
-import sttp.client3.quick._
-import cats.implicits._
+import sttp.client3.quick.*
+import cats.implicits.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Title
 import no.ndla.language.Language
 import no.ndla.learningpathapi.Props
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.DefaultFormats
 import sttp.client3.Response
 
 import scala.concurrent.duration.DurationInt
@@ -31,10 +32,9 @@ trait TaxonomyApiClient {
 
   class TaxonomyApiClient extends StrictLogging {
     import props.{TaxonomyUrl, DefaultLanguage}
-    implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-    private val taxonomyTimeout               = 20.seconds
-    private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
-    private val LearningPathResourceTypeId    = "urn:resourcetype:learningPath"
+    private val taxonomyTimeout            = 20.seconds
+    private val TaxonomyApiEndpoint        = s"$TaxonomyUrl/v1"
+    private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"
 
     def updateTaxonomyForLearningPath(
         learningPath: LearningPath,
@@ -248,9 +248,7 @@ trait TaxonomyApiClient {
     def queryNodes(articleId: Long): Try[List[Node]] =
       get[List[Node]](s"$TaxonomyApiEndpoint/nodes", None, "contentURI" -> s"urn:article:$articleId")
 
-    private def get[A](url: String, user: Option[TokenUser], params: (String, String)*)(implicit
-        mf: Manifest[A]
-    ): Try[A] = {
+    private def get[A: Decoder](url: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       val request = quickRequest
         .get(uri"$url".withParams(params: _*))
         .readTimeout(taxonomyTimeout)
@@ -258,30 +256,30 @@ trait TaxonomyApiClient {
       ndlaClient.fetchWithForwardedAuth[A](request, user)
     }
 
-    private def put[A, B <: AnyRef](url: String, data: B, user: Option[TokenUser], params: (String, String)*)(implicit
-        mf: Manifest[A],
-        format: org.json4s.Formats
-    ): Try[A] = {
-      val request = quickRequest
-        .put(uri"$url".withParams(params: _*))
-        .readTimeout(taxonomyTimeout)
-        .body(write(data)(format))
-        .header("content-type", "application/json", replaceExisting = true)
-      ndlaClient.fetchWithForwardedAuth[A](request, user)
-    }
-
-    private[integration] def putRaw[B <: AnyRef](
+    private def put[A: Decoder, B <: AnyRef: Encoder](
         url: String,
         data: B,
         user: Option[TokenUser],
         params: (String, String)*
-    )(implicit
-        formats: org.json4s.Formats
+    ): Try[A] = {
+      val request = quickRequest
+        .put(uri"$url".withParams(params: _*))
+        .readTimeout(taxonomyTimeout)
+        .body(CirceUtil.toJsonString(data))
+        .header("content-type", "application/json", replaceExisting = true)
+      ndlaClient.fetchWithForwardedAuth[A](request, user)
+    }
+
+    private[integration] def putRaw[B <: AnyRef: Encoder](
+        url: String,
+        data: B,
+        user: Option[TokenUser],
+        params: (String, String)*
     ): Try[B] = {
       logger.info(s"Doing call to $url")
       val request = quickRequest
         .put(uri"$url".withParams(params: _*))
-        .body(write(data))
+        .body(CirceUtil.toJsonString(data))
         .readTimeout(taxonomyTimeout)
         .header("content-type", "application/json", replaceExisting = true)
       ndlaClient.fetchRawWithForwardedAuth(request, user) match {
@@ -290,7 +288,7 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def postRaw[B <: AnyRef](
+    private def postRaw[B <: AnyRef: Encoder](
         endpointUrl: String,
         data: B,
         user: Option[TokenUser],
@@ -299,7 +297,7 @@ trait TaxonomyApiClient {
       ndlaClient.fetchRawWithForwardedAuth(
         quickRequest
           .post(uri"$endpointUrl".withParams(params.toMap))
-          .body(write(data))
+          .body(CirceUtil.toJsonString(data))
           .readTimeout(taxonomyTimeout)
           .header("content-type", "application/json", replaceExisting = true),
         user
@@ -324,18 +322,34 @@ trait TaxonomyApiClient {
 }
 
 case class Translation(name: String, language: Option[String] = None)
+object Translation {
+  implicit val encoder: Encoder[Translation] = deriveEncoder
+  implicit val decoder: Decoder[Translation] = deriveDecoder
+}
 
 case class NewOrUpdatedNode(
     nodeType: String,
     name: String,
     contentUri: String
 )
+object NewOrUpdatedNode {
+  implicit val encoder: Encoder[NewOrUpdatedNode] = deriveEncoder
+  implicit val decoder: Decoder[NewOrUpdatedNode] = deriveDecoder
+}
 
 case class ResourceResourceType(
     resourceId: String,
     resourceTypeId: String
 )
+object ResourceResourceType {
+  implicit val encoder: Encoder[ResourceResourceType] = deriveEncoder
+  implicit val decoder: Decoder[ResourceResourceType] = deriveDecoder
+}
 
 case class Node(id: String, name: String, contentUri: Option[String], paths: List[String]) {
   def withName(name: String): Node = this.copy(name = name)
+}
+object Node {
+  implicit val encoder: Encoder[Node] = deriveEncoder
+  implicit val decoder: Decoder[Node] = deriveDecoder
 }

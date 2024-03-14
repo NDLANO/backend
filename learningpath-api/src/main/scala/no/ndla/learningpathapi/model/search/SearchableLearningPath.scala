@@ -8,6 +8,8 @@
 
 package no.ndla.learningpathapi.model.search
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.learningpathapi.model.api.Copyright
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
@@ -27,3 +29,8 @@ case class SearchableLearningPath(
     copyright: Copyright,
     isBasedOn: Option[Long]
 )
+
+object SearchableLearningPath {
+  implicit val encoder: Encoder[SearchableLearningPath] = deriveEncoder
+  implicit val decoder: Decoder[SearchableLearningPath] = deriveDecoder
+}

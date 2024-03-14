@@ -8,24 +8,22 @@
 
 package no.ndla.learningpathapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.implicits._
+import no.ndla.common.CirceUtil
+import no.ndla.common.implicits.*
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.{ErrorHelpers, LearningPathSummaryV2}
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
-import org.json4s.Formats
-import org.json4s.native.Serialization._
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -77,8 +75,8 @@ trait SearchService extends StrictLogging {
     }
 
     def hitAsLearningPathSummaryV2(hitString: String, language: String): LearningPathSummaryV2 = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      searchConverterService.asApiLearningPathSummaryV2(read[SearchableLearningPath](hitString), language)
+      val searchable = CirceUtil.unsafeParseAs[SearchableLearningPath](hitString)
+      searchConverterService.asApiLearningPathSummaryV2(searchable, language)
     }
 
     def containsPath(paths: List[String]): Try[SearchResult] = {

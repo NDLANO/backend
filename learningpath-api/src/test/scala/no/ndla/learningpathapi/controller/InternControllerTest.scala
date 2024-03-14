@@ -9,7 +9,6 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.Formats
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
 import scalikejdbc.DBSession
@@ -18,9 +17,7 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-
-  implicit val jsonFormats: Formats = org.json4s.DefaultFormats
-  val controller: InternController  = new InternController
+  val controller: InternController = new InternController
 
   test("that id with value 404 gives OK") {
     resetMocks()

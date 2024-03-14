@@ -9,18 +9,14 @@
 package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.NDLADate
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.DataSource
-import no.ndla.learningpathapi.model.domain._
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.JsonMethods._
-import org.json4s.native.Serialization._
-import org.json4s.*
+import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import java.util.UUID
 import scala.util.Try
@@ -40,13 +36,6 @@ trait LearningPathRepositoryComponent extends StrictLogging {
   }
 
   class LearningPathRepository {
-    implicit val formats: Formats =
-      DefaultFormats ++
-        LearningPath.jsonSerializer ++
-        LearningStep.jsonSerializer ++
-        JavaTimeSerializers.all +
-        NDLADate.Json4sSerializer
-
     def withId(id: Long)(implicit session: DBSession = AutoSession): Option[LearningPath] = {
       learningPathWhere(sqls"lp.id = $id AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString}")
     }
@@ -108,7 +97,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       val startRevision = 1
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(learningpath))
+      dataObject.setValue(CirceUtil.toJsonString(learningpath))
 
       val learningPathId: Long =
         sql"insert into learningpaths(external_id, document, revision) values(${learningpath.externalId}, $dataObject, $startRevision)"
@@ -130,7 +119,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       val startRevision = 1
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(learningpath))
+      dataObject.setValue(CirceUtil.toJsonString(learningpath))
 
       val importIdUUID = Try(UUID.fromString(importId)).toOption
       val learningPathId: Long =
@@ -161,7 +150,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       val startRevision = 1
       val stepObject    = new PGobject()
       stepObject.setType("jsonb")
-      stepObject.setValue(write(learningStep))
+      stepObject.setValue(CirceUtil.toJsonString(learningStep))
 
       val learningStepId: Long =
         sql"insert into learningsteps(learning_path_id, external_id, document, revision) values (${learningStep.learningPathId}, ${learningStep.externalId}, $stepObject, $startRevision)"
@@ -177,7 +166,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(learningpath))
+      dataObject.setValue(CirceUtil.toJsonString(learningpath))
 
       val newRevision = learningpath.revision.getOrElse(0) + 1
       val count =
@@ -204,7 +193,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(learningpath))
+      dataObject.setValue(CirceUtil.toJsonString(learningpath))
 
       val importIdUUID = Try(UUID.fromString(importId)).toOption
       val newRevision  = learningpath.revision.getOrElse(0) + 1
@@ -230,7 +219,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(learningStep))
+      dataObject.setValue(CirceUtil.toJsonString(learningStep))
 
       val newRevision = learningStep.revision.getOrElse(0) + 1
       val count =
@@ -295,7 +284,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       allTags
         .flatMap(tag => {
-          parse(tag).extract[List[Tag]]
+          CirceUtil.unsafeParseAs[List[Tag]](tag)
         })
         .groupBy(_.language)
         .map(entry => Tag(entry._2.flatMap(_.tags).distinct.sorted, entry._1))
@@ -312,7 +301,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       allCopyrights
         .map(copyright => {
-          parse(copyright).extract[LearningpathCopyright]
+          CirceUtil.unsafeParseAs[LearningpathCopyright](copyright)
         })
         .flatMap(_.contributors)
         .distinct

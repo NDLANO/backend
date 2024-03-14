@@ -31,7 +31,7 @@ object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
   case object LTI    extends EmbedType("lti")
   case object IFrame extends EmbedType("iframe")
 
-  def valueOf(s: String): Option[EmbedType]  = EmbedType.values.find(_.toString == s)
+  def valueOf(s: String): Option[EmbedType]  = EmbedType.values.find(_.entryName == s)
   def valueOfOrDefault(s: String): EmbedType = valueOf(s).getOrElse(EmbedType.OEmbed)
   def valueOfOrError(embedType: String): EmbedType = {
     valueOf(embedType) match {

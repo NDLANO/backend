@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.model.domain
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.errors.{AccessDeniedException, ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
@@ -18,11 +19,7 @@ import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.validation.DurationValidator
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.FieldSerializer._
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
-import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats, Serializer}
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -157,25 +154,14 @@ object LearningPath extends SQLSyntaxSupport[LearningPath] {
   implicit val encoder: Encoder[LearningPath] = deriveEncoder
   implicit val decoder: Decoder[LearningPath] = deriveDecoder
 
-  val jsonSerializer: List[Serializer[_]] = List(
-    new EnumNameSerializer(LearningPathStatus),
-    new EnumNameSerializer(LearningPathVerificationStatus)
-  )
-
-  val repositorySerializer: List[Object] = jsonSerializer :+ FieldSerializer[LearningPath](
-    ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
-  )
-
-  val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-
   override val tableName = "learningpaths"
 
   def fromResultSet(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath =
     fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[LearningPath])(rs: WrappedResultSet): LearningPath = {
-    implicit val formats: Formats = jsonEncoder ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-    val meta                      = read[LearningPath](rs.string(lp.c("document")))
+    val jsonStr = rs.string(lp.c("document"))
+    val meta    = CirceUtil.unsafeParseAs[LearningPath](jsonStr)
     meta.copy(
       id = Some(rs.long(lp.c("id"))),
       revision = Some(rs.int(lp.c("revision"))),
