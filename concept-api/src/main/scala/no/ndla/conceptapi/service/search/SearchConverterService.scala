@@ -9,13 +9,14 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title}
-import no.ndla.common.model.{api => commonApi}
+import no.ndla.common.model.api as commonApi
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Concept, ConceptType, SearchResult}
-import no.ndla.conceptapi.model.search._
+import no.ndla.conceptapi.model.search.*
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
@@ -23,9 +24,7 @@ import no.ndla.mapping.ISO639
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import org.json4s._
-import org.json4s.native.Serialization.read
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
@@ -124,8 +123,7 @@ trait SearchConverterService {
     }
 
     def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummary = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ Concept.serializers
-      val searchableConcept         = read[SearchableConcept](hitString)
+      val searchableConcept         = CirceUtil.unsafeParseAs[SearchableConcept](hitString)
       val titles                    = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
       val tags     = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))

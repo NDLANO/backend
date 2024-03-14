@@ -7,19 +7,16 @@
 
 package no.ndla.conceptapi.model.domain
 
-import enumeratum._
+import enumeratum.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.language.Language.getSupportedLanguages
-import org.json4s.FieldSerializer._
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
-import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats, Serializer}
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -56,13 +53,12 @@ object Concept extends SQLSyntaxSupport[Concept] {
     fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
-    implicit val formats: Formats = this.repositorySerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
 
     val id       = rs.long(lp.c("id"))
     val revision = rs.int(lp.c("revision"))
     val jsonStr  = rs.string(lp.c("document"))
 
-    val meta = read[Concept](jsonStr)
+    val meta = CirceUtil.unsafeParseAs[Concept](jsonStr)
 
     new Concept(
       id = Some(id),
@@ -85,20 +81,6 @@ object Concept extends SQLSyntaxSupport[Concept] {
       meta.editorNotes
     )
   }
-  val serializers: List[Serializer[_]] = List(
-    Json4s.serializer(ConceptStatus),
-    Json4s.serializer(WordClass),
-    new EnumNameSerializer(ConceptType),
-    NDLADate.Json4sSerializer
-  ) ++ JavaTimeSerializers.all
-
-  val jsonEncoder: Formats = DefaultFormats ++ serializers
-
-  val repositorySerializer: Formats = jsonEncoder +
-    FieldSerializer[Concept](
-      ignore("id") orElse
-        ignore("revision")
-    )
 }
 
 object PublishedConcept extends SQLSyntaxSupport[Concept] {

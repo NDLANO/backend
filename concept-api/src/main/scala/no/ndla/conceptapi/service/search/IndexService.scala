@@ -7,14 +7,15 @@
 
 package no.ndla.conceptapi.service.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.analysis.{Analysis, CustomNormalizer}
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.integration.model.TaxonomyData
@@ -22,17 +23,13 @@ import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ElasticIndexingE
 import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
   this: Elastic4sClient with BaseIndexService with Props with TaxonomyApiClient with SearchConverterService =>
   trait IndexService extends BaseIndexService with StrictLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ Concept.serializers
     val repository: Repository[Concept]
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
@@ -53,7 +50,8 @@ trait IndexService {
     ): Try[IndexRequest] = {
       concept.id match {
         case Some(id) =>
-          val source = write(searchConverterService.asSearchableConcept(concept, taxonomyData))
+          val searchable = searchConverterService.asSearchableConcept(concept, taxonomyData)
+          val source     = CirceUtil.toJsonString(searchable)
           Success(
             indexInto(indexName).doc(source).id(id.toString)
           )

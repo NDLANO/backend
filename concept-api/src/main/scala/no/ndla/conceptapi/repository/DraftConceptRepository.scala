@@ -8,15 +8,14 @@
 package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHelpers, NotFoundException}
 import no.ndla.conceptapi.model.domain.Concept
-import org.json4s.Formats
-import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,12 +24,10 @@ trait DraftConceptRepository {
   val draftConceptRepository: DraftConceptRepository
 
   class DraftConceptRepository extends StrictLogging with Repository[Concept] {
-    implicit val formats: Formats = Concept.repositorySerializer
-
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(concept))
+      dataObject.setValue(CirceUtil.toJsonString(concept))
 
       val newRevision = 1
 
@@ -50,7 +47,7 @@ trait DraftConceptRepository {
     def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(concept))
+      dataObject.setValue(CirceUtil.toJsonString(concept))
 
       val newRevision = 1
 
@@ -69,7 +66,7 @@ trait DraftConceptRepository {
     ): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(concept))
+      dataObject.setValue(CirceUtil.toJsonString(concept))
 
       Try(
         sql"""
@@ -104,7 +101,7 @@ trait DraftConceptRepository {
          """
         .map(rs => {
           val jsonStr = rs.string("tags")
-          read[List[Tag]](jsonStr)
+          CirceUtil.unsafeParseAs[List[Tag]](jsonStr)
         })
         .list()
     }
@@ -117,7 +114,7 @@ trait DraftConceptRepository {
         case Some(id) =>
           val dataObject = new PGobject()
           dataObject.setType("jsonb")
-          dataObject.setValue(write(concept))
+          dataObject.setValue(CirceUtil.toJsonString(concept))
 
           val newRevision = 1
 
@@ -138,7 +135,7 @@ trait DraftConceptRepository {
     def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(concept))
+      dataObject.setValue(CirceUtil.toJsonString(concept))
 
       concept.id match {
         case None => Failure(new NotFoundException("Can not update "))

@@ -7,11 +7,12 @@
 
 package no.ndla.conceptapi.model.search
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.conceptapi.model.domain
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-
 import no.ndla.common.model.NDLADate
 
 case class SearchableConcept(
@@ -41,3 +42,8 @@ case class SearchableConcept(
     defaultSortableSubject: Option[String],
     defaultSortableConceptType: Option[String]
 )
+
+object SearchableConcept {
+  implicit val encoder: Encoder[SearchableConcept] = deriveEncoder
+  implicit val decoder: Decoder[SearchableConcept] = deriveDecoder
+}
