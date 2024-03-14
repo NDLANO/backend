@@ -19,7 +19,7 @@ import sttp.tapir.Schema.annotations.description
 // format: off
 @description("Partial data about article to publish independently")
 case class PartialPublishArticle(
-    @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[Availability.Value],
+    @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[Availability],
     @description("A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
     @description("The name of the license") license: Option[String],
     @description("A list of meta description objects") metaDescription: Option[Seq[ArticleMetaDescription]],

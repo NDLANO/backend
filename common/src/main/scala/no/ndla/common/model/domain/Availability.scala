@@ -7,7 +7,9 @@
 
 package no.ndla.common.model.domain
 
-import enumeratum._
+import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
+import com.scalatsi.{TSNamedType, TSType}
+import enumeratum.*
 
 sealed trait Availability extends EnumEntry
 object Availability extends Enum[Availability] with CirceEnum[Availability] {
@@ -26,4 +28,7 @@ object Availability extends Enum[Availability] with CirceEnum[Availability] {
   }
 
   def values: IndexedSeq[Availability] = findValues
+
+  implicit val availability: TSNamedType[Availability] =
+    TSType.alias[Availability]("Availability", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 }

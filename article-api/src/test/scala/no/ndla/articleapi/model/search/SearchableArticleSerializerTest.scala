@@ -7,16 +7,13 @@
 
 package no.ndla.articleapi.model.search
 
-import no.ndla.articleapi._
+import no.ndla.articleapi.*
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import org.json4s.Formats
-import org.json4s.native.Serialization.{read, writePretty}
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
-  implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-
   val searchableArticle1: SearchableArticle = SearchableArticle(
     id = 10.toLong,
     title = SearchableLanguageValues(Vector(LanguageValue("nb", "tittel"), LanguageValue("en", "title"))),
@@ -42,8 +39,8 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {
-    val json         = writePretty(searchableArticle1)
-    val deserialized = read[SearchableArticle](json)
+    val json         = CirceUtil.toJsonString(searchableArticle1)
+    val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
 
     deserialized should be(searchableArticle1)
   }
