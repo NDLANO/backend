@@ -7,5 +7,4 @@
 
 package no.ndla.articleapi.db.migration
 
-class V37__AddDataTypeToExternalEmbed extends V35__AddDataTypeToIframeEmbed {
-}
+class V37__AddDataTypeToExternalEmbed extends V35__AddDataTypeToIframeEmbed {}

@@ -13,7 +13,6 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.model.api.ErrorHelpers
-import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
@@ -25,8 +24,6 @@ import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends DataSource
-    with DBAudioMetaInformation
-    with DBSeries
     with AudioRepository
     with SeriesRepository
     with NdlaClient

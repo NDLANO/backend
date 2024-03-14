@@ -19,9 +19,7 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.ReindexResult
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import no.ndla.search.SearchLanguage.languageAnalyzers
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import org.json4s.Formats
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
@@ -30,7 +28,6 @@ trait IndexService {
   this: Elastic4sClient with BaseIndexService with SearchConverterService with AudioRepository with Props =>
 
   trait IndexService[D, T] extends BaseIndexService with StrictLogging {
-    implicit val formats: Formats           = SearchableLanguageFormats.JSonFormats
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     val documentType: String

@@ -7,17 +7,16 @@
 
 package no.ndla.audioapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.{SearchResult, SearchableTag}
+import no.ndla.common.CirceUtil
 import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient
-import org.json4s._
-import org.json4s.native.Serialization.read
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -37,10 +36,9 @@ trait TagSearchService {
     import props._
 
     override val searchIndex: String = AudioTagSearchIndex
-    implicit val formats: Formats    = DefaultFormats
 
     override def hitToApiModel(hit: String, language: String): Try[String] = {
-      Try(read[SearchableTag](hit)).map(_.tag)
+      CirceUtil.tryParseAs[SearchableTag](hit).map(_.tag)
     }
 
     def matchingQuery(query: String, searchLanguage: String, page: Int, pageSize: Int): Try[SearchResult[String]] = {

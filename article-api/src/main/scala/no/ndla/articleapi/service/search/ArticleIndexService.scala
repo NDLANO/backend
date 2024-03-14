@@ -29,7 +29,7 @@ trait ArticleIndexService {
 
     override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
       val searchable = searchConverterService.asSearchableArticle(domainModel)
-      val source = CirceUtil.toJsonString(searchable)
+      val source     = CirceUtil.toJsonString(searchable)
       indexInto(indexName).doc(source).id(domainModel.id.get.toString)
     }
 

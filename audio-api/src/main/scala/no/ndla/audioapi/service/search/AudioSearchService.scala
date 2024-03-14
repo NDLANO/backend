@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
@@ -16,12 +16,10 @@ import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.model.{api, domain}
-import no.ndla.common.implicits._
+import no.ndla.common.CirceUtil
+import no.ndla.common.implicits.*
 import no.ndla.language.Language.AllLanguages
 import no.ndla.search.Elastic4sClient
-import no.ndla.search.model.SearchableLanguageFormats
-import org.json4s._
-import org.json4s.native.Serialization
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -42,9 +40,10 @@ trait AudioSearchService {
     override val searchIndex: String = SearchIndex
 
     override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummary] = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      val searchable                = Serialization.read[SearchableAudioInformation](hitString)
-      searchConverterService.asAudioSummary(searchable, language)
+      for {
+        searchable <- CirceUtil.tryParseAs[SearchableAudioInformation](hitString)
+        result     <- searchConverterService.asAudioSummary(searchable, language)
+      } yield result
     }
 
     def matchingQuery(settings: SearchSettings): Try[domain.SearchResult[api.AudioSummary]] = {

@@ -8,18 +8,15 @@
 
 package no.ndla.audioapi.model.domain
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.audioapi.Props
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
-import org.json4s.FieldSerializer._
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
-import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
-import scalikejdbc._
+import scalikejdbc.*
 
 case class AudioMetaInformation(
     id: Option[Long],
@@ -56,50 +53,43 @@ case class Manuscript(manuscript: String, language: String) extends LanguageFiel
   override def value: String    = manuscript
   override def isEmpty: Boolean = manuscript.isEmpty
 }
+
+object Manuscript {
+  implicit val encoder: Encoder[Manuscript] = deriveEncoder
+  implicit val decoder: Decoder[Manuscript] = deriveDecoder
+}
 case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] {
   override def value: Audio     = this
   override def isEmpty: Boolean = false
 }
-trait DBAudioMetaInformation {
-  this: Props =>
 
-  object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
-    override val tableName                  = "audiodata"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
+object Audio {
+  implicit val encoder: Encoder[Audio] = deriveEncoder
+  implicit val decoder: Decoder[Audio] = deriveDecoder
+}
 
-    val jsonEncoder: Formats =
-      DefaultFormats +
-        new EnumNameSerializer(AudioType) ++
-        JavaTimeSerializers.all +
-        NDLADate.Json4sSerializer
+object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
+  override val tableName = "audiodata"
 
-    val repositorySerializer: Formats = jsonEncoder +
-      FieldSerializer[AudioMetaInformation](
-        ignore("id") orElse
-          ignore("revision") orElse
-          ignore("external_id") orElse
-          ignore("seriesId") orElse
-          ignore("series")
-      )
+  implicit val encoder: Encoder[AudioMetaInformation] = deriveEncoder
+  implicit val decoder: Decoder[AudioMetaInformation] = deriveDecoder
 
-    def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
-      fromResultSet(au.resultName)(rs)
+  def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
+    fromResultSet(au.resultName)(rs)
 
-    def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
-      implicit val formats: Formats = jsonEncoder
-      val meta                      = read[AudioMetaInformation](rs.string(au.c("document")))
-      meta.copy(
-        id = Some(rs.long(au.c("id"))),
-        revision = Some(rs.int(au.c("revision"))),
-        seriesId = rs.longOpt(au.c("series_id"))
-      )
-    }
-
-    def fromResultSetOpt(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): Option[AudioMetaInformation] = {
-      rs.longOpt(au.c("id")).map(_ => fromResultSet(au)(rs))
-    }
+  def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
+    val jsonStr = rs.string(au.c("document"))
+    val meta    = CirceUtil.unsafeParseAs[AudioMetaInformation](jsonStr)
+    meta.copy(
+      id = Some(rs.long(au.c("id"))),
+      revision = Some(rs.int(au.c("revision"))),
+      seriesId = rs.longOpt(au.c("series_id"))
+    )
   }
 
+  def fromResultSetOpt(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): Option[AudioMetaInformation] = {
+    rs.longOpt(au.c("id")).map(_ => fromResultSet(au)(rs))
+  }
 }
 
 case class ReindexResult(totalIndexed: Int, millisUsed: Long)

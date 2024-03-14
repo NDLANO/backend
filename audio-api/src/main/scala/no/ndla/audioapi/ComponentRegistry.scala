@@ -13,7 +13,6 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller._
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.model.api.ErrorHelpers
-import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
@@ -28,8 +27,6 @@ class ComponentRegistry(properties: AudioApiProperties)
     with DataSource
     with AudioRepository
     with SeriesRepository
-    with DBSeries
-    with DBAudioMetaInformation
     with NdlaClient
     with AmazonClient
     with ReadService

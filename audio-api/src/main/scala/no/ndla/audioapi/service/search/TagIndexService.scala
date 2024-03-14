@@ -7,14 +7,14 @@
 
 package no.ndla.audioapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
-import org.json4s.native.Serialization.write
+import no.ndla.common.CirceUtil
 
 import scala.util.{Success, Try}
 
@@ -34,7 +34,7 @@ trait TagIndexService {
 
       Success(
         tags.map(t => {
-          val source = write(t)
+          val source = CirceUtil.toJsonString(t)
           indexInto(indexName).doc(source).id(s"${t.language}.${t.tag}")
         })
       )
