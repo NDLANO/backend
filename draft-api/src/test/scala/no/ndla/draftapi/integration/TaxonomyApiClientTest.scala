@@ -32,7 +32,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
     val article = TestData.sampleDomainArticle.copy(
       title = Seq(
         Title("Norsk", "nb"),
-        Title("Engelsk", "en")
+        Title("<strong>Engelsk</strong>", "en")
       )
     )
     val id = article.id.get
@@ -50,7 +50,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
 
     verify(taxonomyApiClient, times(1)).updateNode(eqTo(node.copy(name = "Norsk")), any)(any[Formats])
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node.id), eqTo("nb"), eqTo("Norsk"), any)
-    verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node.id), eqTo("en"), eqTo("Engelsk"), any)
+    verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node.id), eqTo("en"), eqTo("Engelsk"), any) // HTML is stripped
     verify(taxonomyApiClient, times(2)).updateNodeTranslation(anyString, anyString, anyString, any)
     // format: on
   }

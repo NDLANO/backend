@@ -18,6 +18,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.network.{NdlaClient, TaxonomyData}
 import org.json4s.jackson.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
+import org.jsoup.Jsoup
 import sttp.client3.quick._
 
 import scala.concurrent.duration.DurationInt
@@ -69,12 +70,13 @@ trait TaxonomyApiClient {
         titles: Seq[Title],
         user: TokenUser
     ) = {
-      val nodeResult        = updateNode(node.withName(defaultTitle.title), user)
-      val translationResult = updateTranslations(node.id, titles, user)
+      val strippedTitles = titles.map(title => title.copy(title = Jsoup.parseBodyFragment(title.title).body().text()))
+      val nodeResult     = updateNode(node.withName(Jsoup.parseBodyFragment(defaultTitle.title).body().text()), user)
+      val translationResult = updateTranslations(node.id, strippedTitles, user)
 
       val deleteResult = getTranslations(node.id).flatMap(translations => {
         val translationsToDelete = translations.filterNot(trans => {
-          titles.exists(title => trans.language.contains(title.language))
+          strippedTitles.exists(title => trans.language.contains(title.language))
         })
 
         translationsToDelete.traverse(deleteTranslation(node.id, _, user))
