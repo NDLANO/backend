@@ -10,25 +10,23 @@ package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.integration.DataSource
-import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries, Series}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
 import no.ndla.audioapi.model.domain
-import org.json4s.Formats
-import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
-import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
-import cats.implicits._
+import scalikejdbc.{DBSession, ReadOnlyAutoSession, *}
+import cats.implicits.*
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 
 import scala.util.{Failure, Success, Try}
 
 trait SeriesRepository {
-  this: DataSource with Props with DBSeries with DBAudioMetaInformation with ErrorHelpers =>
+  this: DataSource with Props with ErrorHelpers =>
   val seriesRepository: SeriesRepository
 
   class SeriesRepository extends StrictLogging with Repository[Series] {
-    val formats: Formats = Series.repositorySerializer
 
     /** Method to fetch single series from database
       * @param id
@@ -59,7 +57,7 @@ trait SeriesRepository {
     def update(series: domain.Series)(implicit session: DBSession = AutoSession): Try[domain.Series] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(series)(formats))
+      dataObject.setValue(CirceUtil.toJsonString(series))
 
       val newRevision = series.revision + 1
 
@@ -87,7 +85,7 @@ trait SeriesRepository {
       val startRevision = 1
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(newSeries)(formats))
+      dataObject.setValue(CirceUtil.toJsonString(newSeries))
 
       Try(
         sql"""

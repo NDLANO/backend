@@ -7,7 +7,7 @@
 
 package no.ndla.search.model
 
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, FailedCursor}
 import io.circe.syntax.*
 import no.ndla.language.model.LanguageField
 import no.ndla.mapping.ISO639
@@ -37,10 +37,12 @@ object SearchableLanguageValues {
     val mapToEncode = value.languageValues.map(lv => lv.language -> lv.value).toMap
     mapToEncode.asJson
   }
-  implicit val decoder: Decoder[SearchableLanguageValues] = Decoder.instance { cursor =>
-    cursor.as[Map[String, String]].map { map =>
-      SearchableLanguageValues(map.map { case (language, value) => LanguageValue(language, value) }.toSeq)
-    }
+  implicit val decoder: Decoder[SearchableLanguageValues] = Decoder.withReattempt {
+    case c: FailedCursor if !c.incorrectFocus => Right(SearchableLanguageValues(Seq.empty))
+    case c =>
+      c.as[Map[String, String]].map { map =>
+        SearchableLanguageValues.from(map.toSeq: _*)
+      }
   }
 
   def empty: SearchableLanguageValues = SearchableLanguageValues(Seq.empty)

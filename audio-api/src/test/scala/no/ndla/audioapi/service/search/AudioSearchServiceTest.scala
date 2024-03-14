@@ -431,7 +431,7 @@ class AudioSearchServiceTest
     val tag                = "synge"
     val supportedLanguages = Seq("nb")
     val hitString =
-      s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"], "lastUpdated": "2018-12-07T17:35:51Z"}"""
+      s"""{"podcastMeta":[],"filePaths":[],"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"], "lastUpdated": "2018-12-07T17:35:51Z"}"""
 
     val result = audioSearchService.hitToApiModel(hitString, "nb")
 

@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
@@ -19,8 +19,8 @@ import no.ndla.audioapi.model.api.MissingIdException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.common.CirceUtil
 import no.ndla.search.Elastic4sClient
-import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Try}
 
@@ -48,7 +48,7 @@ trait AudioIndexService {
           searchConverterService
             .asSearchableAudioInformation(domainModel)
             .map(sai => {
-              val source = write(sai)
+              val source = CirceUtil.toJsonString(sai)
               Seq(indexInto(indexName).doc(source).id(domainId.toString))
             })
       }

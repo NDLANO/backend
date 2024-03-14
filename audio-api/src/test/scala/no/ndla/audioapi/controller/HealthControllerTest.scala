@@ -15,13 +15,10 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.Formats
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  implicit val formats: Formats = org.json4s.DefaultFormats
-
   var healthControllerResponse: Int = 200
   val controller: HealthController = new HealthController {
     override def getApiResponse(url: String): Int = healthControllerResponse

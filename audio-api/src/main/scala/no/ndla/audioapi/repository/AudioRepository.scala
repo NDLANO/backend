@@ -12,20 +12,18 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api.ErrorHelpers
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, DBAudioMetaInformation, DBSeries}
-import org.json4s.Formats
-import org.json4s.native.Serialization._
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
+import no.ndla.common.CirceUtil
 import org.postgresql.util.PGobject
-import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
+import scalikejdbc.{DBSession, ReadOnlyAutoSession, *}
 
 import scala.util.{Failure, Success, Try}
 
 trait AudioRepository {
-  this: DataSource with SeriesRepository with DBSeries with DBAudioMetaInformation with Props with ErrorHelpers =>
+  this: DataSource with SeriesRepository with Props with ErrorHelpers =>
   val audioRepository: AudioRepository
 
   class AudioRepository extends StrictLogging with Repository[AudioMetaInformation] {
-    implicit val formats: Formats = AudioMetaInformation.repositorySerializer
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
     def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
@@ -57,7 +55,7 @@ trait AudioRepository {
     )(implicit session: DBSession = AutoSession): AudioMetaInformation = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(audioMetaInformation))
+      dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
 
       val startRevision = 1
       val audioId =
@@ -69,7 +67,7 @@ trait AudioRepository {
     def insertFromImport(audioMetaInformation: AudioMetaInformation, externalId: String): Try[AudioMetaInformation] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(audioMetaInformation))
+      dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
 
       DB localTx { implicit session =>
         val startRevision = 1
@@ -83,7 +81,7 @@ trait AudioRepository {
     def update(audioMetaInformation: AudioMetaInformation, id: Long): Try[AudioMetaInformation] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(audioMetaInformation))
+      dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
 
       DB localTx { implicit session =>
         val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
