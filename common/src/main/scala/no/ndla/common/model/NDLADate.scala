@@ -182,7 +182,7 @@ object NDLADate {
           cur.value.asString match {
             case Some(value) if value.isBlank => Success(None)
             case Some(value)                  => fromString(value).map(Some(_))
-            case None                         => Failure(NDLADateError(s"Failed to decode ${cur.value} as `NDLADate`"))
+            case None                         => Success(None)
           }
         })
         .tryDecode(c)
