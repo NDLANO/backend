@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.CirceUtil
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
@@ -19,8 +20,6 @@ import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.native.Serialization
-import org.json4s.{DefaultFormats, Formats}
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
 import sttp.client3.quick.*
@@ -28,7 +27,6 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  implicit val formats: Formats   = DefaultFormats + NDLADate.Json4sSerializer
   val controller: DraftController = new DraftController
 
   override def beforeEach(): Unit = {
@@ -83,7 +81,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses?filter=by")
     )
     resp.code.code should be(200)
-    val convertedBody = Serialization.read[Set[commonApi.License]](resp.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](resp.body)
     convertedBody should equal(creativeCommonlicenses)
   }
 
@@ -93,7 +91,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses")
     )
     resp.code.code should be(200)
-    val convertedBody = Serialization.read[Set[commonApi.License]](resp.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](resp.body)
     convertedBody should equal(allLicenses)
   }
 
@@ -153,7 +151,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
         )
     )
       .thenReturn(Success(TestData.sampleArticleV2))
-    val bodyStr = Serialization.write(TestData.newArticle)
+    val bodyStr = CirceUtil.toJsonString(TestData.newArticle)
     val resp = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
@@ -280,7 +278,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     val resp = simpleHttpClient.send(
       quickRequest
         .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/123")
-        .body(Serialization.write(TestData.sampleApiUpdateArticle))
+        .body(CirceUtil.toJsonString(TestData.sampleApiUpdateArticle))
     )
     resp.code.code should be(401)
   }

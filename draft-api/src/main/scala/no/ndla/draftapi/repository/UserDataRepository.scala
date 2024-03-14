@@ -8,32 +8,29 @@
 package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.draftapi.integration.DataSource
-import no.ndla.draftapi.model.domain.{DBArticle, UserData}
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
+import no.ndla.draftapi.model.domain.UserData
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 import scalikejdbc.interpolation.SQLSyntax
 
 import scala.util.{Success, Try}
 
 trait UserDataRepository {
-  this: DataSource with DBArticle =>
+  this: DataSource =>
   val userDataRepository: UserDataRepository
 
   class UserDataRepository extends StrictLogging {
-    implicit val formats: Formats = org.json4s.DefaultFormats + DBUserData.JSonSerializer
-
     def insert(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
       Try {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
-        dataObject.setValue(write(userData))
+        dataObject.setValue(CirceUtil.toJsonString(userData))
 
         val userDataId: Long =
           sql"""
-        insert into ${DBUserData.table} (user_id, document) values (${userData.userId}, $dataObject)
+        insert into ${UserData.table} (user_id, document) values (${userData.userId}, $dataObject)
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new user data: $userDataId")
@@ -44,10 +41,10 @@ trait UserDataRepository {
     def update(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(userData))
+      dataObject.setValue(CirceUtil.toJsonString(userData))
 
       sql"""
-          update ${DBUserData.table}
+          update ${UserData.table}
           set document=$dataObject
           where user_id=${userData.userId}
       """.update(): Unit
@@ -57,7 +54,7 @@ trait UserDataRepository {
     }
 
     def userDataCount(implicit session: DBSession = AutoSession): Long = {
-      sql"select count(distinct user_id) from ${DBUserData.table} where document is not NULL"
+      sql"select count(distinct user_id) from ${UserData.table} where document is not NULL"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
@@ -73,9 +70,9 @@ trait UserDataRepository {
   private def userDataWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Option[UserData] = {
-    val ud = DBUserData.syntax("ud")
-    sql"select ${ud.result.*} from ${DBUserData.as(ud)} where $whereClause"
-      .map(DBUserData.fromResultSet(ud))
+    val ud = UserData.syntax("ud")
+    sql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause"
+      .map(UserData.fromResultSet(ud))
       .single()
   }
 

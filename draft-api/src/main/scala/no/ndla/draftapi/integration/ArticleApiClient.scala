@@ -7,12 +7,16 @@
 
 package no.ndla.draftapi.integration
 
-import cats.implicits._
-import enumeratum.Json4s
+import cats.implicits.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
+import no.ndla.common.implicits.*
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.api.{Delete, Missing, UpdateOrDelete, UpdateWith}
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.common.model.domain.{ArticleType, Availability}
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.{NDLADate, RelatedContentLink, domain as common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
@@ -20,11 +24,7 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
-import org.json4s.jackson.JsonMethods.parse
-import org.json4s.native.Serialization
-import org.json4s.*
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
@@ -37,12 +37,6 @@ trait ArticleApiClient {
     private val InternalEndpoint = s"$ArticleBaseUrl/intern"
     private val deleteTimeout    = 10.seconds
     private val timeout          = 15.seconds
-    private implicit val format: Formats =
-      DefaultFormats.withLong +
-        new EnumNameSerializer(Availability) ++
-        JavaTimeSerializers.all +
-        Json4s.serializer(ArticleType) +
-        NDLADate.Json4sSerializer
 
     def partialPublishArticle(
         id: Long,
@@ -101,7 +95,7 @@ trait ArticleApiClient {
         ("import_validate", importValidate.toString)
       ) match {
         case Failure(ex: HttpRequestException) =>
-          val validationError = ex.httpResponse.map(r => parse(r.body).extract[ArticleApiValidationError])
+          val validationError = ex.httpResponse.map(r => CirceUtil.unsafeParseAs[ArticleApiValidationError](r.body))
           Failure(
             new ValidationException(
               "Failed to validate article in article-api",
@@ -112,55 +106,43 @@ trait ArticleApiClient {
       }
     }
 
-    private def post[A](endpointUrl: String, user: Option[TokenUser], params: (String, String)*)(implicit
-        mf: Manifest[A],
-        format: org.json4s.Formats
-    ): Try[A] = {
+    private def post[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params: _*)), user)
     }
 
-    private def delete[A](endpointUrl: String, user: Option[TokenUser], params: (String, String)*)(implicit
-        mf: Manifest[A],
-        format: org.json4s.Formats
-    ): Try[A] = {
+    private def delete[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest.delete(uri"$endpointUrl".withParams(params: _*)).readTimeout(deleteTimeout),
         user
       )
     }
 
-    private def patchWithData[A, B <: AnyRef](
+    private def patchWithData[A: Decoder, B <: AnyRef: Encoder](
         endpointUrl: String,
         data: B,
         user: Option[TokenUser],
         params: (String, String)*
-    )(implicit
-        mf: Manifest[A],
-        format: org.json4s.Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
           .patch(uri"$endpointUrl".withParams(params: _*))
-          .body(Serialization.write(data))
+          .body(CirceUtil.toJsonString(data))
           .header("content-type", "application/json", replaceExisting = true)
           .readTimeout(timeout),
         user
       )
     }
 
-    private def postWithData[A, B <: AnyRef](
+    private def postWithData[A: Decoder, B <: AnyRef: Encoder](
         endpointUrl: String,
         data: B,
         user: Option[TokenUser],
         params: (String, String)*
-    )(implicit
-        mf: Manifest[A],
-        format: org.json4s.Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
           .post(uri"$endpointUrl".withParams(params: _*))
-          .body(Serialization.write(data))
+          .body(CirceUtil.toJsonString(data))
           .header("content-type", "application/json", replaceExisting = true),
         user
       )
@@ -168,13 +150,13 @@ trait ArticleApiClient {
   }
 
   case class PartialPublishArticle(
-      availability: Option[Availability.Value],
+      availability: Option[Availability],
       grepCodes: Option[Seq[String]],
       license: Option[String],
       metaDescription: Option[Seq[api.ArticleMetaDescription]],
       relatedContent: Option[Seq[common.RelatedContent]],
       tags: Option[Seq[api.ArticleTag]],
-      revisionDate: Either[Null, Option[NDLADate]] // Left means `null` which deletes `revisionDate`
+      revisionDate: UpdateOrDelete[NDLADate]
   ) {
     def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
     def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
@@ -200,21 +182,32 @@ trait ArticleApiClient {
       )
     def withMetaDescription(meta: Seq[common.Description]): PartialPublishArticle =
       copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
-    def withAvailability(availability: Availability.Value): PartialPublishArticle =
+    def withAvailability(availability: Availability): PartialPublishArticle =
       copy(availability = availability.some)
 
     def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticle = {
       val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
       val newRev = earliestRevisionDate match {
-        case Some(value) => Right(Some(value))
-        case None        => Left(null)
+        case Some(value) => UpdateWith(value)
+        case None        => Delete
       }
       copy(revisionDate = newRev)
     }
   }
 
   object PartialPublishArticle {
-    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Right(None))
+    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Missing)
+
+    implicit def eitherEnc: Encoder[Either[RelatedContentLink, Long]] = eitherEncoder[RelatedContentLink, Long]
+    implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
+
+    implicit val encoder: Encoder[PartialPublishArticle] = UpdateOrDelete.filterMarkers(deriveEncoder)
+    implicit val decoder: Decoder[PartialPublishArticle] = deriveDecoder[PartialPublishArticle]
   }
 }
 case class ArticleApiId(id: Long)
+
+object ArticleApiId {
+  implicit val encoder: Encoder[ArticleApiId] = deriveEncoder
+  implicit val decoder: Decoder[ArticleApiId] = deriveDecoder
+}

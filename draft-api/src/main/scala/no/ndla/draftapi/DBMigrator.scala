@@ -33,7 +33,7 @@ trait DBMigrator {
           new R__RemoveStatusPublishedArticles(props),
           new R__SetArticleLanguageFromTaxonomy(props),
           new R__SetArticleTypeFromTaxonomy(props),
-          new V20__UpdateH5PDomainForFF(props),
+          new V20__UpdateH5PDomainForFF,
           new V23__UpdateH5PDomainForFFVisualElement,
           new V33__ConvertLanguageUnknown(props)
         )

@@ -7,12 +7,13 @@
 
 package no.ndla.draftapi.integration
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.Formats
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.util.Try
 
@@ -21,17 +22,13 @@ trait LearningpathApiClient {
   val learningpathApiClient: LearningpathApiClient
 
   class LearningpathApiClient {
-    implicit val format: Formats = org.json4s.DefaultFormats
-    private val Endpoint         = s"http://${props.LearningpathApiHost}/learningpath-api/v2/learningpaths"
+    private val Endpoint = s"http://${props.LearningpathApiHost}/learningpath-api/v2/learningpaths"
 
     def getLearningpathsWithId(articleId: Long, user: TokenUser): Try[Seq[LearningPath]] = {
       get[Seq[LearningPath]](s"$Endpoint/contains-article/$articleId", user)
     }
 
-    private def get[A](endpointUrl: String, user: TokenUser, params: (String, String)*)(implicit
-        mf: Manifest[A],
-        format: org.json4s.Formats
-    ): Try[A] = {
+    private def get[A: Decoder](endpointUrl: String, user: TokenUser, params: (String, String)*): Try[A] = {
       val request = quickRequest.get(uri"$endpointUrl".withParams(params: _*))
       ndlaClient.fetchWithForwardedAuth[A](request, Some(user))
     }
@@ -39,3 +36,8 @@ trait LearningpathApiClient {
   }
 }
 case class LearningPath(id: Long, title: Title)
+
+object LearningPath {
+  implicit val encoder: Encoder[LearningPath] = deriveEncoder
+  implicit val decoder: Decoder[LearningPath] = deriveDecoder
+}

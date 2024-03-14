@@ -7,18 +7,17 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.ErrorHelpers
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.*
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.search.Elastic4sClient
-import org.json4s._
-import org.json4s.native.Serialization.read
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -37,10 +36,9 @@ trait GrepCodesSearchService {
   class GrepCodesSearchService extends StrictLogging with BasicSearchService[String] {
     import props._
     override val searchIndex: String = DraftGrepCodesSearchIndex
-    implicit val formats: Formats    = DefaultFormats
 
     def getHits(response: SearchResponse): Seq[String] = {
-      response.hits.hits.toList.map(hit => read[SearchableGrepCode](hit.sourceAsString).grepCode)
+      response.hits.hits.toList.map(hit => CirceUtil.unsafeParseAs[SearchableGrepCode](hit.sourceAsString).grepCode)
     }
 
     def matchingQuery(query: String, page: Int, pageSize: Int): Try[LanguagelessSearchResult[String]] = {

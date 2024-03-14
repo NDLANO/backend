@@ -11,7 +11,6 @@ import cats.implicits.*
 import no.ndla.common.model.domain.Title
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.Formats
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
@@ -40,15 +39,15 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
 
     // format: off
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any[Formats])
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any)
     doReturn(Success(List(node)), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any, any[(String, String)])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getTranslations(any[String])
 
     taxonomyApiClient.updateTaxonomyIfExists(id, article, TokenUser.SystemUser) should be(Success(id))
 
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(node.copy(name = "Norsk")), any)(any[Formats])
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(node.copy(name = "Norsk")), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node.id), eqTo("nb"), eqTo("Norsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node.id), eqTo("en"), eqTo("Engelsk"), any) // HTML is stripped
     verify(taxonomyApiClient, times(2)).updateNodeTranslation(anyString, anyString, anyString, any)
@@ -74,17 +73,17 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       )
 
     // format: off
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any[Formats])
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any)
     doReturn(Success(List(node, node2)), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any, any[(String, String)])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getTranslations(any[String])
 
     taxonomyApiClient.updateTaxonomyIfExists(id, article, TokenUser.SystemUser) should be(Success(id))
 
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(node.copy(name = "Norsk")), any)(any[Formats])
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(node2.copy(name = "Norsk")), any)(any[Formats])
-    verify(taxonomyApiClient, times(2)).updateNode(any[Node], any)(any[Formats])
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(node.copy(name = "Norsk")), any)
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(node2.copy(name = "Norsk")), any)
+    verify(taxonomyApiClient, times(2)).updateNode(any[Node], any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node.id), eqTo("nb"), eqTo("Norsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node.id), eqTo("en"), eqTo("Engelsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(node2.id), eqTo("nb"), eqTo("Norsk"), any)
@@ -119,29 +118,29 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       Node("urn:topic:1:99551", "Outdated other top name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
 
     // format: off
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any[Formats])
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any)
     doReturn(Success(List(resource1, resource2, topic1, topic2)), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any, any[(String, String)])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getTranslations(any[String])
 
     taxonomyApiClient.updateTaxonomyIfExists(id, article, TokenUser.SystemUser) should be(Success(id))
 
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(topic1.copy(name = "Norsk")), any)(any[Formats])
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(topic2.copy(name = "Norsk")), any)(any[Formats])
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(topic1.copy(name = "Norsk")), any)
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(topic2.copy(name = "Norsk")), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(topic1.id), eqTo("nb"), eqTo("Norsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(topic1.id), eqTo("en"), eqTo("Engelsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(topic2.id), eqTo("nb"), eqTo("Norsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(topic2.id), eqTo("en"), eqTo("Engelsk"), any)
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(resource1.copy(name = "Norsk")), any)(any[Formats])
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(resource2.copy(name = "Norsk")), any)(any[Formats])
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(resource1.copy(name = "Norsk")), any)
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(resource2.copy(name = "Norsk")), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(resource1.id), eqTo("nb"), eqTo("Norsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(resource1.id), eqTo("en"), eqTo("Engelsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(resource2.id), eqTo("nb"), eqTo("Norsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(resource2.id), eqTo("en"), eqTo("Engelsk"), any)
 
-    verify(taxonomyApiClient, times(4)).updateNode(any[Node], any)(any[Formats])
+    verify(taxonomyApiClient, times(4)).updateNode(any[Node], any)
     verify(taxonomyApiClient, times(8)).updateNodeTranslation(anyString, anyString, anyString, any)
     // format: on
   }
@@ -174,8 +173,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
     // format: off
     doReturn(Success(List(resource1, resource2, topic1, topic2)), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
 
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doReturn(Failure(new TimeoutException), Failure(new TimeoutException)).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any[Formats])
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doReturn(Failure(new TimeoutException), Failure(new TimeoutException)).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any)
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any, any[(String, String)])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getTranslations(any[String])
     // format: on
@@ -195,8 +194,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
     // format: off
     doReturn(Failure(new RuntimeException("woawiwa")), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
 
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any[Formats])
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any)
 
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any, any[(String, String)])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getTranslations(any[String])
@@ -217,16 +216,16 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
     // format: off
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
 
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any[Formats])
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any)
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any, any[(String, String)])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getTranslations(any[String])
 
     taxonomyApiClient.updateTaxonomyIfExists(id, article, TokenUser.SystemUser).isSuccess should be(true)
 
-    verify(taxonomyApiClient, times(0)).updateNode(any[Node], any)(any[Formats])
+    verify(taxonomyApiClient, times(0)).updateNode(any[Node], any)
     verify(taxonomyApiClient, times(0)).updateNodeTranslation(anyString, anyString, anyString, any)
-    verify(taxonomyApiClient, times(0)).putRaw(anyString, any, any)(any[Formats])
+    verify(taxonomyApiClient, times(0)).putRaw[Node](any, any, any)(any)
     // format: on
   }
 
@@ -242,15 +241,15 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
 
     // format: off
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any[Formats])
-    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any[Formats])
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(any)
+    doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any)(any)
     doReturn(Success(List(resource)), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any, any[(String, String)])
     doReturn(Success(List(Translation("yolo", "nn".some))), Success(Translation("yolo", "nn".some))).when(taxonomyApiClient).getTranslations(any[String])
 
     taxonomyApiClient.updateTaxonomyIfExists(id, article, TokenUser.SystemUser) should be(Success(id))
 
-    verify(taxonomyApiClient, times(1)).updateNode(eqTo(resource.copy(name = "Norsk")), any)(any[Formats])
+    verify(taxonomyApiClient, times(1)).updateNode(eqTo(resource.copy(name = "Norsk")), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(resource.id), eqTo("nb"), eqTo("Norsk"), any)
     verify(taxonomyApiClient, times(1)).updateNodeTranslation(eqTo(resource.id), eqTo("en"), eqTo("Engelsk"), any)
     verify(taxonomyApiClient, times(2)).updateNodeTranslation(anyString, anyString, anyString, any)

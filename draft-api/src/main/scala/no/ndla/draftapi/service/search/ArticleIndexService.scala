@@ -7,32 +7,29 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
-import enumeratum.Json4s
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.CirceUtil
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
-import no.ndla.search.model.SearchableLanguageFormats
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 
 trait ArticleIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends StrictLogging with IndexService[Draft, SearchableArticle] {
-    implicit val formats: Formats              = SearchableLanguageFormats.JSonFormats + Json4s.serializer(DraftStatus)
     override val documentType: String          = props.DraftSearchDocument
     override val searchIndex: String           = props.DraftSearchIndex
     override val repository: Repository[Draft] = draftRepository
 
     override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
-      val source = write(searchConverterService.asSearchableArticle(domainModel))
+      val searchable = searchConverterService.asSearchableArticle(domainModel)
+      val source     = CirceUtil.toJsonString(searchable)
       Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
     }
 
