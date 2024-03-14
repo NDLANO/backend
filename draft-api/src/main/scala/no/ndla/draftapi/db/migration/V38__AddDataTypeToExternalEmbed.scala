@@ -7,8 +7,4 @@
 
 package no.ndla.draftapi.db.migration
 
-class V38__AddDataTypeToExternalEmbed extends V35__AddDataTypeToIframeEmbed {
-
-  override val resource = "external"
-
-}
+class V38__AddDataTypeToExternalEmbed extends V35__AddDataTypeToIframeEmbed {}
