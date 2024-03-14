@@ -10,12 +10,10 @@ package no.ndla.learningpathapi.controller
 import no.ndla.learningpathapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.Service
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.DefaultFormats
 import sttp.client3.quick._
 
 class StatsControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
 
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   val controller: StatsController           = new StatsController
   override def services: List[Service[Eff]] = List(controller)
 

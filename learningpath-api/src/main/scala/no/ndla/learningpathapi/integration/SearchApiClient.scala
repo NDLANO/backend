@@ -8,17 +8,13 @@
 package no.ndla.learningpathapi.integration
 import java.util.concurrent.Executors
 import com.typesafe.scalalogging.StrictLogging
-import enumeratum.Json4s
-import no.ndla.common.model.domain.learningpath.EmbedType
+import no.ndla.common.CirceUtil
 import no.ndla.network.NdlaClient
-import sttp.client3.quick._
+import sttp.client3.quick.*
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.network.model.NdlaRequest
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
-import org.json4s.native.Serialization.write
 import sttp.client3.Response
 
 import scala.annotation.unused
@@ -35,13 +31,6 @@ trait SearchApiClient {
     private val IndexTimeout = 90.seconds
     @unused
     private val SearchApiBaseUrl = s"http://$SearchApiHost"
-    implicit val formats: Formats =
-      org.json4s.DefaultFormats +
-        new EnumNameSerializer(LearningPathStatus) +
-        new EnumNameSerializer(LearningPathVerificationStatus) +
-        new EnumNameSerializer(StepType) +
-        Json4s.serializer(StepStatus) +
-        new EnumNameSerializer(EmbedType)
 
     def deleteLearningPathDocument(id: Long, user: Option[TokenUser]): Try[_] = {
       val req = quickRequest
@@ -55,7 +44,7 @@ trait SearchApiClient {
       val idString    = document.id.map(_.toString).getOrElse("<missing id>")
       implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
       val future = Future {
-        val body = write(document)
+        val body = CirceUtil.toJsonString(document)
 
         val req = quickRequest
           .post(uri"http://$SearchApiHost/intern/learningpath/")

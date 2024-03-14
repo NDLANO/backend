@@ -8,6 +8,8 @@
 
 package no.ndla.learningpathapi.model.search
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.search.model.SearchableLanguageValues
 
 case class SearchableLearningStep(
@@ -17,3 +19,8 @@ case class SearchableLearningStep(
     titles: SearchableLanguageValues,
     descriptions: SearchableLanguageValues
 )
+
+object SearchableLearningStep {
+  implicit val encoder: Encoder[SearchableLearningStep] = deriveEncoder
+  implicit val decoder: Decoder[SearchableLearningStep] = deriveDecoder
+}

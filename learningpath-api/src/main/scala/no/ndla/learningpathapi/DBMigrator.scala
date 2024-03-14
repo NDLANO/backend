@@ -30,12 +30,12 @@ trait DBMigrator {
         .configure()
         .table("schema_version")
         .javaMigrations(
-          new V11__CreatedByNdlaStatusForOwnersWithRoles(props),
-          new V13__StoreNDLAStepsAsIframeTypes(props),
-          new V14__ConvertLanguageUnknown(props),
-          new V15__MergeDuplicateLanguageFields(props),
-          new V31__ArenaDefaultEnabledOrgs(props),
-          new V33__AiDefaultEnabledOrgs(props)
+          new V11__CreatedByNdlaStatusForOwnersWithRoles,
+          new V13__StoreNDLAStepsAsIframeTypes,
+          new V14__ConvertLanguageUnknown,
+          new V15__MergeDuplicateLanguageFields,
+          new V31__ArenaDefaultEnabledOrgs,
+          new V33__AiDefaultEnabledOrgs
         )
         .locations("no/ndla/learningpathapi/db/migration")
         .dataSource(dataSource)

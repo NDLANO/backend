@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestSuccess
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
@@ -19,14 +19,12 @@ import no.ndla.learningpathapi.integration.SearchApiClient
 import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, LearningPath, ReindexResult}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.search.SearchLanguage.languageAnalyzers
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import org.json4s.Formats
-import org.json4s.native.Serialization._
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
+import cats.implicits.*
+import no.ndla.common.CirceUtil
 import no.ndla.network.tapir.auth.TokenUser
 
 trait SearchIndexService {
@@ -40,7 +38,6 @@ trait SearchIndexService {
 
   class SearchIndexService extends BaseIndexService with StrictLogging {
     import props.{SearchDocument, SearchIndex, ElasticSearchIndexMaxResultWindow}
-    implicit val formats: Formats           = SearchableLanguageFormats.JSonFormats
     override val documentType: String       = SearchDocument
     override val searchIndex: String        = SearchIndex
     override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
@@ -68,7 +65,8 @@ trait SearchIndexService {
 
     def indexDocument(learningPath: LearningPath): Try[LearningPath] = for {
       _ <- createIndexIfNotExists()
-      source = write(searchConverterService.asSearchableLearningpath(learningPath))
+      searchable = searchConverterService.asSearchableLearningpath(learningPath)
+      source     = CirceUtil.toJsonString(searchable)
       _ <- e4sClient.execute(deleteById(searchIndex, learningPath.id.get.toString))
       _ <- e4sClient.execute(
         indexInto(searchIndex)
@@ -134,7 +132,7 @@ trait SearchIndexService {
       } else {
         val searchables = learningPaths.map(searchConverterService.asSearchableLearningpath)
         val requests = searchables.map(lp => {
-          val source = write(lp)
+          val source = CirceUtil.toJsonString(lp)
 
           indexInto(indexName)
             .doc(source)
