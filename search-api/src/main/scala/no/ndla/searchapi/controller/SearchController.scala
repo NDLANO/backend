@@ -587,7 +587,7 @@ trait SearchController {
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the
       * feide api and should be used sparingly.
       */
-    private def getAvailability(feideToken: Option[String]): Try[List[Availability.Value]] = {
+    private def getAvailability(feideToken: Option[String]): Try[List[Availability]] = {
       feideToken match {
         case None => Success(List.empty)
         case Some(token) =>
@@ -600,7 +600,7 @@ trait SearchController {
       }
     }
 
-    def asSettings(p: Option[SearchParams], availability: List[Availability.Value]): SearchSettings = {
+    def asSettings(p: Option[SearchParams], availability: List[Availability]): SearchSettings = {
       p match {
         case None => SearchSettings.default
         case Some(params) =>

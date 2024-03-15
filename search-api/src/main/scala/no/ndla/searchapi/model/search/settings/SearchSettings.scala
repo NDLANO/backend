@@ -32,7 +32,7 @@ case class SearchSettings(
     aggregatePaths: List[String],
     embedResource: List[String],
     embedId: Option[String],
-    availability: List[Availability.Value],
+    availability: List[Availability],
     articleTypes: List[String],
     filterInactive: Boolean
 )

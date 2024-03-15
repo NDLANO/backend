@@ -9,7 +9,7 @@ object searchlib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
     scalaUri,
     catsEffect,
-    jsoup,
+    jsoup
   ) ++ elastic4s
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     libraryDependencies ++= dependencies

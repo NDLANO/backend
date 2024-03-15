@@ -7,14 +7,16 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import io.circe.syntax._
+import com.sksamuel.elastic4s.ElasticDsl.*
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.TestData._
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
@@ -52,7 +54,6 @@ class ArticleIndexServiceTest
 
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
-  implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That articles are indexed correctly") {
     articleIndexService.indexDocument(article5, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
@@ -66,7 +67,7 @@ class ArticleIndexServiceTest
     }
 
     val sources  = response.result.hits.hits.map(_.sourceAsString)
-    val articles = sources.map(source => read[SearchableArticle](source))
+    val articles = sources.map(source => CirceUtil.unsafeParseAs[SearchableArticle](source))
 
     val Success(expectedArticle5) =
       searchConverterService.asSearchableArticle(
@@ -128,7 +129,7 @@ class ArticleIndexServiceTest
       )
     )
 
-    val searchableFields = Extraction.decompose(searchableToTestWith)
+    val searchableFields = searchableToTestWith.asJson
     val fields           = getFields(searchableFields, None)
     val mapping          = articleIndexService.getMapping
 

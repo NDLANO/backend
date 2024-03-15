@@ -123,8 +123,8 @@ trait SearchConverterService {
     }
 
     def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummary = {
-      val searchableConcept         = CirceUtil.unsafeParseAs[SearchableConcept](hitString)
-      val titles                    = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
+      val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hitString)
+      val titles            = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
       val tags     = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
       val visualElements =

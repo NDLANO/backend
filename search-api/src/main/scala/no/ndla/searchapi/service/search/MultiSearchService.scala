@@ -179,7 +179,7 @@ trait MultiSearchService {
 
       val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
 
-      val availsToFilterOut = Availability.values -- (settings.availability.toSet + Availability.everyone)
+      val availsToFilterOut = Availability.values.toSet -- (settings.availability.toSet + Availability.everyone)
       val availabilityFilter = Some(
         not(availsToFilterOut.toSeq.map(a => termQuery("availability", a.toString)))
       )

@@ -7,20 +7,17 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.{Author, License}
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.Copyright
 import no.ndla.searchapi.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.searchapi.TestData._
-import org.json4s.Formats
-import org.json4s.native.Serialization.{read, write}
+import no.ndla.searchapi.TestData.*
 
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableLearningPath to json and deserializing back to object does not change content") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))
 
@@ -68,8 +65,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       license = "by-sa"
     )
 
-    val json         = write(original)
-    val deserialized = read[SearchableLearningPath](json)
+    val json         = CirceUtil.toJsonString(original)
+    val deserialized = CirceUtil.unsafeParseAs[SearchableLearningPath](json)
 
     deserialized should be(original)
   }

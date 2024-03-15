@@ -8,17 +8,18 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.analysis._
+import com.sksamuel.elastic4s.ElasticDsl.*
+import com.sksamuel.elastic4s.analysis.*
 import com.sksamuel.elastic4s.fields.{ElasticField, NestedField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.Decoder
 import no.ndla.common.model.domain.Content
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration._
+import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.ElasticIndexingException
 import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.model.grep.GrepBundle
@@ -67,13 +68,13 @@ trait IndexService {
         }
       } yield imported
     }
-    def indexDocuments(shouldUsePublishedTax: Boolean)(implicit mf: Manifest[D]): Try[ReindexResult] =
+    def indexDocuments(shouldUsePublishedTax: Boolean)(implicit d: Decoder[D]): Try[ReindexResult] =
       indexDocuments(shouldUsePublishedTax, None)
 
     def indexDocuments(
         shouldUsePublishedTax: Boolean,
         numShards: Option[Int]
-    )(implicit mf: Manifest[D]): Try[ReindexResult] = {
+    )(implicit d: Decoder[D]): Try[ReindexResult] = {
       val bundles = for {
         taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(shouldUsePublishedTax)
         grepBundle     <- grepApiClient.getGrepBundle()
@@ -86,7 +87,7 @@ trait IndexService {
       }
     }
 
-    def reindexDocument(id: Long)(implicit mf: Manifest[D]): Try[D] = {
+    def reindexDocument(id: Long)(implicit d: Decoder[D]): Try[D] = {
       for {
         grepBundle <- grepApiClient.getGrepBundle()
         _          <- createIndexIfNotExists()
@@ -101,10 +102,10 @@ trait IndexService {
     def indexDocuments(
         taxonomyBundle: TaxonomyBundle,
         grepBundle: GrepBundle
-    )(implicit mf: Manifest[D]): Try[ReindexResult] = indexDocuments(taxonomyBundle, grepBundle, None)
+    )(implicit d: Decoder[D]): Try[ReindexResult] = indexDocuments(taxonomyBundle, grepBundle, None)
 
     def indexDocuments(taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle, numShards: Option[Int])(implicit
-        mf: Manifest[D]
+        d: Decoder[D]
     ): Try[ReindexResult] = {
       val start = System.currentTimeMillis()
       createIndexWithGeneratedName(numShards).flatMap(indexName => {
@@ -142,7 +143,7 @@ trait IndexService {
         indexName: String,
         taxonomyBundle: TaxonomyBundle,
         grepBundle: GrepBundle
-    )(implicit mf: Manifest[D]): Try[(Int, Int)] = {
+    )(implicit d: Decoder[D]): Try[(Int, Int)] = {
 
       val chunks = apiClient.getChunks[D]
       val results = chunks

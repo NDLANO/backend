@@ -9,21 +9,21 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticApi.indexInto
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.TestData._
+import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.ApiTaxonomyContext
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.grep.GrepBundle
-import no.ndla.searchapi.model.taxonomy._
+import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
-import org.json4s.native.Serialization
 import org.scalatest.Outcome
 
 import java.util.UUID
@@ -922,7 +922,7 @@ class MultiDraftSearchServiceAtomicTest
           case _ => fail("Unexpected id, this is a bug with the test")
         }
 
-        val source = Serialization.write(draft)
+        val source = CirceUtil.toJsonString(draft)
         Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
       }
     }

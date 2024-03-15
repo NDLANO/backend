@@ -7,14 +7,13 @@
 
 package no.ndla.searchapi.service.search
 
+import io.circe.syntax._
 import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.model.domain.learningpath.{Description, LearningStep, StepStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.json4s.{Extraction, Formats}
 import org.scalatest.Outcome
 
 import scala.util.Failure
@@ -51,7 +50,6 @@ class LearningPathIndexServiceTest
 
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
-  implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That mapping contains every field after serialization") {
     val domainLearningPath = TestData.learningPath1.copy(
@@ -79,7 +77,7 @@ class LearningPathIndexServiceTest
       )
       .get
 
-    val searchableFields = Extraction.decompose(searchableToTestWith)
+    val searchableFields = searchableToTestWith.asJson
     val fields           = getFields(searchableFields, None, Seq("domainObject"))
     val mapping          = learningPathIndexService.getMapping
 

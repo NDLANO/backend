@@ -7,17 +7,13 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.search.model.SearchableLanguageFormats
+import no.ndla.common.CirceUtil
 import no.ndla.searchapi.model.domain.learningpath.StepType
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
-import org.json4s.Formats
-import org.json4s.native.Serialization.{read, write}
 
 class SearchableLearningStepTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableLearningStep to json and deserializing back to object does not change content") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-
     val original1 = SearchableLearningStep(
       stepType = StepType.INTRODUCTION.toString
     )
@@ -28,12 +24,12 @@ class SearchableLearningStepTest extends UnitSuite with TestEnvironment {
       stepType = StepType.TEXT.toString
     )
 
-    val json1         = write(original1)
-    val json2         = write(original2)
-    val json3         = write(original3)
-    val deserialized1 = read[SearchableLearningStep](json1)
-    val deserialized2 = read[SearchableLearningStep](json2)
-    val deserialized3 = read[SearchableLearningStep](json3)
+    val json1         = CirceUtil.toJsonString(original1)
+    val json2         = CirceUtil.toJsonString(original2)
+    val json3         = CirceUtil.toJsonString(original3)
+    val deserialized1 = CirceUtil.unsafeParseAs[SearchableLearningStep](json1)
+    val deserialized2 = CirceUtil.unsafeParseAs[SearchableLearningStep](json2)
+    val deserialized3 = CirceUtil.unsafeParseAs[SearchableLearningStep](json3)
 
     deserialized1 should be(original1)
     deserialized2 should be(original2)
