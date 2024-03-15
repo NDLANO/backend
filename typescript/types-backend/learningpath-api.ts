@@ -245,4 +245,4 @@ export interface IUpdatedResource {
   resourceId?: string
 }
 
-export type ResourceType = ("concept" | "image" | "audio" | "multidisciplinary" | "article" | "learningpath" | "video")
+export type ResourceType = ("concept" | "image" | "audio" | "multidisciplinary" | "article" | "learningpath" | "video" | "folder")
