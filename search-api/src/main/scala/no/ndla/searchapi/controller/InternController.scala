@@ -11,11 +11,9 @@ import cats.implicits.{catsSyntaxEitherId, toTraverseOps}
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleType, Availability, Content, Priority}
-import no.ndla.common.model.domain.learningpath.EmbedType
+import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.Content
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, Service}
@@ -23,14 +21,8 @@ import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.searchapi.{Eff, Props}
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.model.domain.{LearningResourceType, ReindexResult}
-import no.ndla.searchapi.model.domain.learningpath.{
-  LearningPath,
-  LearningPathStatus,
-  LearningPathVerificationStatus,
-  StepStatus,
-  StepType
-}
+import no.ndla.searchapi.model.domain.ReindexResult
+import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
 import sttp.model.StatusCode
 

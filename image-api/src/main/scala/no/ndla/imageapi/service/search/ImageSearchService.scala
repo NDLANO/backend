@@ -17,7 +17,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
-import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.common.implicits.*
 import no.ndla.language.Language

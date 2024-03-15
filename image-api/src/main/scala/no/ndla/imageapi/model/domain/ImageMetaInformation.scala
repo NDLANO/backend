@@ -16,8 +16,6 @@ import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Copyright
 import scalikejdbc.*
 
-import scala.util.Try
-
 case class ImageMetaInformation(
     id: Option[Long],
     titles: Seq[ImageTitle],

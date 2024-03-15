@@ -11,7 +11,6 @@ package no.ndla.imageapi.repository
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.NDLADate
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.service.ConverterService
