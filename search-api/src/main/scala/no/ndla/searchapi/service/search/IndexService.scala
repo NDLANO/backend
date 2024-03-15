@@ -316,6 +316,7 @@ trait IndexService {
     protected def getTaxonomyContextMapping: NestedField = {
       nestedField("contexts").fields(
         keywordField("publicId"),
+        keywordField("contextId"),
         keywordField("path"),
         keywordField("contextType"),
         keywordField("rootId"),

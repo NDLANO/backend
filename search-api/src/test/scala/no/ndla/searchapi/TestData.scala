@@ -1633,6 +1633,7 @@ object TestData {
   val singleSearchableTaxonomyContext: SearchableTaxonomyContext =
     SearchableTaxonomyContext(
       publicId = "urn:resource:101",
+      contextId = "contextId",
       rootId = "urn:subject:1",
       root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
       path = "/subject:3/topic:1/topic:151/resource:101",

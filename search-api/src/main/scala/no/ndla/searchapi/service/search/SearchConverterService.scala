@@ -144,6 +144,7 @@ trait SearchConverterService {
       taxonomyContexts.map(context =>
         SearchableTaxonomyContext(
           publicId = context.publicId,
+          contextId = context.contextId,
           rootId = context.rootId,
           root = context.root,
           path = context.path,

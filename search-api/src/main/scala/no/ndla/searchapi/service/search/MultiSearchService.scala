@@ -71,6 +71,7 @@ trait MultiSearchService {
               langQueryFunc("embedAttributes", 1),
               simpleStringQuery(q.underlying).field("authors", 1),
               simpleStringQuery(q.underlying).field("grepContexts.title", 1),
+              nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
               idsQuery(q.underlying)
             ) ++
               buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++

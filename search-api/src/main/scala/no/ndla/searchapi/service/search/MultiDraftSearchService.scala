@@ -71,6 +71,7 @@ trait MultiDraftSearchService {
             langQueryFunc("embedAttributes", 1),
             simpleStringQuery(queryString.underlying).field("authors", 1),
             simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
+            nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", queryString.underlying))),
             idsQuery(queryString.underlying),
             nestedQuery("revisionMeta", simpleStringQuery(queryString.underlying).field("revisionMeta.note"))
               .ignoreUnmapped(true)
