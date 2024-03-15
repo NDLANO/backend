@@ -7,22 +7,14 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
-import enumeratum.Json4s
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.model.domain.LearningResourceType
-import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
-import org.json4s.Formats
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
@@ -33,19 +25,6 @@ class ArticleApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
     with searchapi.TestEnvironment {
-  implicit val formats: Formats =
-    org.json4s.DefaultFormats +
-      Json4s.serializer(DraftStatus) +
-      new EnumNameSerializer(LearningPathStatus) +
-      new EnumNameSerializer(LearningPathVerificationStatus) +
-      new EnumNameSerializer(StepType) +
-      new EnumNameSerializer(StepStatus) +
-      new EnumNameSerializer(EmbedType) +
-      new EnumNameSerializer(LearningResourceType) +
-      new EnumNameSerializer(Availability) ++
-      JavaTimeSerializers.all +
-      NDLADate.Json4sSerializer
-
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService

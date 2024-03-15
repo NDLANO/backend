@@ -78,7 +78,7 @@ trait GrepApiClient {
       }
     }
 
-    private def get[A: Decoder](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
+    private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
       val request = quickRequest.get(uri"$url?$params").readTimeout(60.seconds)
       ndlaClient.fetch[A](request)
     }

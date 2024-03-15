@@ -21,6 +21,7 @@ import no.ndla.searchapi.model.taxonomy.*
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
+import scala.annotation.unused
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.*
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -146,6 +147,6 @@ trait TaxonomyApiClient {
 }
 case class PaginationPage[T](totalCount: Long, results: List[T])
 object PaginationPage {
-  implicit def encoder[T: Encoder]: Encoder[PaginationPage[T]] = deriveEncoder
-  implicit def decoder[T: Decoder]: Decoder[PaginationPage[T]] = deriveDecoder
+  implicit def encoder[T](implicit @unused e: Encoder[T]): Encoder[PaginationPage[T]] = deriveEncoder
+  implicit def decoder[T](implicit @unused d: Decoder[T]): Decoder[PaginationPage[T]] = deriveDecoder
 }

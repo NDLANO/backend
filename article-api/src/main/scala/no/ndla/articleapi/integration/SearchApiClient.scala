@@ -12,9 +12,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 

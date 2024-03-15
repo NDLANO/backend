@@ -20,7 +20,7 @@ import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait DraftIndexService {
   this: SearchConverterService with IndexService with DraftApiClient with Props =>
