@@ -8,22 +8,15 @@
 package no.ndla.searchapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
-import enumeratum.Json4s
-import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
-import no.ndla.common.model.domain.learningpath.EmbedType
-import no.ndla.common.model.domain.{ArticleType, Availability, Priority}
+import io.circe.Decoder
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.{DomainDumpResults, LearningResourceType}
-import org.json4s.Formats
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
-import sttp.client3.quick._
+import no.ndla.searchapi.model.domain.DomainDumpResults
+import sttp.client3.quick.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.math.ceil
 import scala.util.{Failure, Success, Try}
 
@@ -36,7 +29,7 @@ trait SearchApiClient {
     val searchPath: String
     val dumpDomainPath: String = s"intern/dump/$name"
 
-    def getSingle[T](id: Long)(implicit mf: Manifest[T]): Try[T] = {
+    def getSingle[T: Decoder](id: Long): Try[T] = {
       val path = s"$dumpDomainPath/$id"
       get[T](path, Map.empty, timeout = 120000) match {
         case Failure(ex) =>
@@ -48,7 +41,7 @@ trait SearchApiClient {
       }
     }
 
-    def getChunks[T](implicit mf: Manifest[T]): Iterator[Try[Seq[T]]] = {
+    def getChunks[T: Decoder]: Iterator[Try[Seq[T]]] = {
       val initial = getChunk(0, 0)
 
       initial match {
@@ -69,7 +62,7 @@ trait SearchApiClient {
       }
     }
 
-    private def getChunk[T](page: Int, pageSize: Int)(implicit mf: Manifest[T]): Try[DomainDumpResults[T]] = {
+    private def getChunk[T: Decoder](page: Int, pageSize: Int): Try[DomainDumpResults[T]] = {
       val params = Map(
         "page"      -> page.toString,
         "page-size" -> pageSize.toString
@@ -88,23 +81,7 @@ trait SearchApiClient {
       }
     }
 
-    def get[T](path: String, params: Map[String, String], timeout: Int = 5000)(implicit mf: Manifest[T]): Try[T] = {
-      implicit val formats: Formats =
-        org.json4s.DefaultFormats +
-          new EnumNameSerializer(LearningPathStatus) +
-          new EnumNameSerializer(LearningPathVerificationStatus) +
-          new EnumNameSerializer(StepType) +
-          new EnumNameSerializer(StepStatus) +
-          new EnumNameSerializer(EmbedType) +
-          new EnumNameSerializer(LearningResourceType) +
-          new EnumNameSerializer(Availability) +
-          NDLADate.Json4sSerializer ++
-          JavaTimeSerializers.all ++
-          JavaTypesSerializers.all +
-          Json4s.serializer(ArticleType) +
-          Json4s.serializer(DraftStatus) +
-          Json4s.serializer(RevisionStatus) +
-          Json4s.serializer(Priority)
+    def get[T: Decoder](path: String, params: Map[String, String], timeout: Int = 5000): Try[T] = {
       val url     = s"$baseUrl/$path"
       val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)
       ndlaClient.fetchWithForwardedAuth[T](request, None)

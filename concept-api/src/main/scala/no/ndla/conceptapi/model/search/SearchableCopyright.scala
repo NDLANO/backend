@@ -22,4 +22,3 @@ object SearchableCopyright {
   implicit val encoder: Encoder[SearchableCopyright] = deriveEncoder
   implicit val decoder: Decoder[SearchableCopyright] = deriveDecoder
 }
-

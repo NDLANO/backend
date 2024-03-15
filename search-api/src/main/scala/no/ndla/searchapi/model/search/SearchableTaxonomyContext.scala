@@ -7,6 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 // NOTE: This will need to match `TaxonomyContextDTO` in `taxonomy-api`
@@ -25,3 +27,8 @@ case class SearchableTaxonomyContext(
     isPrimary: Boolean,
     isActive: Boolean
 )
+
+object SearchableTaxonomyContext {
+  implicit val encoder: Encoder[SearchableTaxonomyContext] = deriveEncoder
+  implicit val decoder: Decoder[SearchableTaxonomyContext] = deriveDecoder
+}

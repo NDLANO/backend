@@ -173,7 +173,9 @@ trait TaxonomyApiClient {
         case Success(_)  => Success(())
       }
 
-    private[integration] def putRaw[B <: AnyRef](url: String, data: B, user: TokenUser)(implicit d: Encoder[B]): Try[B] = {
+    private[integration] def putRaw[B <: AnyRef](url: String, data: B, user: TokenUser)(implicit
+        d: Encoder[B]
+    ): Try[B] = {
       val uri = uri"$url"
       logger.info(s"Doing call to $uri")
       val request = quickRequest

@@ -13,7 +13,16 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.{Folder, FolderResource, FolderStatus, NDLASQLException, NewFolderData, Resource, ResourceDocument, ResourceType}
+import no.ndla.myndla.model.domain.{
+  Folder,
+  FolderResource,
+  FolderStatus,
+  NDLASQLException,
+  NewFolderData,
+  Resource,
+  ResourceDocument,
+  ResourceType
+}
 import no.ndla.myndla.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject

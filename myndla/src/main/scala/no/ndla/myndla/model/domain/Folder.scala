@@ -76,7 +76,7 @@ case class Folder(
 }
 
 object Folder extends SQLSyntaxSupport[Folder] {
-  override val tableName            = "folders"
+  override val tableName = "folders"
 
   def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Try[Folder] =
     fromResultSet((s: String) => lp.resultName.c(s))(rs)

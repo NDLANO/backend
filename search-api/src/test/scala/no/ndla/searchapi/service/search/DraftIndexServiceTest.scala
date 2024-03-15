@@ -7,14 +7,13 @@
 
 package no.ndla.searchapi.service.search
 
+import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, Author, EditorNote, Status}
+import no.ndla.common.model.domain.{ArticleContent, Author, EditorNote, Responsible, Status}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.json4s.{Extraction, Formats}
 import org.scalatest.Outcome
 
 import java.util.UUID
@@ -52,7 +51,6 @@ class DraftIndexServiceTest
 
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
-  implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That mapping contains every field after serialization") {
     val now = NDLADate.now()
@@ -79,6 +77,12 @@ class DraftIndexServiceTest
           validTo = Some(now),
           false
         )
+      ),
+      responsible = Some(
+        Responsible(
+          "yolo",
+          now
+        )
       )
     )
     val searchableToTestWith = searchConverterService
@@ -89,7 +93,7 @@ class DraftIndexServiceTest
       )
       .get
 
-    val searchableFields = Extraction.decompose(searchableToTestWith)
+    val searchableFields = searchableToTestWith.asJson
     val fields           = getFields(searchableFields, None, Seq("domainObject"))
     val mapping          = draftIndexService.getMapping
 

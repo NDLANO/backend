@@ -7,21 +7,17 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.search.model.SearchableLanguageFormats
-import no.ndla.searchapi.TestData._
+import no.ndla.common.CirceUtil
+import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
-import org.json4s.Formats
-import org.json4s.native.Serialization.{read, write}
 
 class SearchableTaxonomyContextTest extends UnitSuite with TestEnvironment {
 
   test(
     "That serializing a SearchableTaxonomyContext to json and deserializing back to object does not change content"
   ) {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-
-    val json         = write(searchableTaxonomyContexts)
-    val deserialized = read[List[SearchableTaxonomyContext]](json)
+    val json         = CirceUtil.toJsonString(searchableTaxonomyContexts)
+    val deserialized = CirceUtil.unsafeParseAs[List[SearchableTaxonomyContext]](json)
 
     deserialized should be(searchableTaxonomyContexts)
   }

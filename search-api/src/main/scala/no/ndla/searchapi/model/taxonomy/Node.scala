@@ -7,12 +7,14 @@
 
 package no.ndla.searchapi.model.taxonomy
 
-import enumeratum._
+import enumeratum.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.search.SearchableTaxonomyResourceType
 
 sealed trait NodeType extends EnumEntry {}
-object NodeType extends Enum[NodeType] {
+object NodeType extends Enum[NodeType] with CirceEnum[NodeType] {
   case object NODE      extends NodeType
   case object SUBJECT   extends NodeType
   case object TOPIC     extends NodeType
@@ -33,6 +35,11 @@ case class Node(
     var contexts: List[TaxonomyContext]
 )
 
+object Node {
+  implicit val encoder: Encoder[Node] = deriveEncoder
+  implicit val decoder: Decoder[Node] = deriveDecoder
+}
+
 case class TaxonomyContext(
     publicId: String,
     rootId: String,
@@ -50,4 +57,14 @@ case class TaxonomyContext(
     isActive: Boolean
 )
 
+object TaxonomyContext {
+  implicit val encoder: Encoder[TaxonomyContext] = deriveEncoder
+  implicit val decoder: Decoder[TaxonomyContext] = deriveDecoder
+}
+
 case class TaxonomyTranslation(name: String, language: String)
+
+object TaxonomyTranslation {
+  implicit val encoder: Encoder[TaxonomyTranslation] = deriveEncoder
+  implicit val decoder: Decoder[TaxonomyTranslation] = deriveDecoder
+}
