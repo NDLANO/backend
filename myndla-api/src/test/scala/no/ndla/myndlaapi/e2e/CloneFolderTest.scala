@@ -8,7 +8,8 @@
 
 package no.ndla.myndlaapi.e2e
 
-import enumeratum.Json4s
+import io.circe.parser
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.api
 import no.ndla.myndla.model.api.Breadcrumb
@@ -16,10 +17,6 @@ import no.ndla.myndla.model.domain.*
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
-import org.json4s.native.JsonMethods
-import org.json4s.native.Serialization.*
-import org.json4s.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
@@ -39,14 +36,6 @@ class CloneFolderTest
       EnableRedisContainer = true
     )
     with UnitSuite {
-
-  implicit val formats: Formats =
-    DefaultFormats ++
-      JavaTimeSerializers.all ++
-      JavaTypesSerializers.all +
-      new EnumNameSerializer(UserRole) +
-      NDLADate.Json4sSerializer +
-      Json4s.serializer(ResourceType)
 
   val myndlaApiPort: Int          = findFreePort
   val pgc: PostgreSQLContainer[_] = postgresContainer.get
@@ -246,7 +235,7 @@ class CloneFolderTest
     destinationFoldersAfter.get.length should be(1)
 
     val bod          = response.body
-    val deserialized = read[api.Folder](bod)
+    val deserialized = CirceUtil.unsafeParseAs[api.Folder](bod)
     val result       = replaceIdRecursively(deserialized, customId)
     result should be(expectedFolder)
   }
@@ -356,7 +345,7 @@ class CloneFolderTest
     val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersAfter.get.length should be(1)
 
-    val deserialized = read[api.Folder](response.body)
+    val deserialized = CirceUtil.unsafeParseAs[api.Folder](response.body)
     val result       = replaceIdRecursively(deserialized, customId)
     result should be(expectedFolder)
   }
@@ -458,7 +447,7 @@ class CloneFolderTest
         .header("FeideAuthorization", s"Bearer asd")
     )
 
-    val deserialized = read[api.Folder](response.body)
+    val deserialized = CirceUtil.unsafeParseAs[api.Folder](response.body)
     val result       = replaceIdRecursively(deserialized, customId)
     result should be(parent)
   }
@@ -479,9 +468,9 @@ class CloneFolderTest
           .readTimeout(10.seconds)
       )
 
-    val error = JsonMethods.parse(response.body)
-    (error \ "code").extract[String] should be("NOT_FOUND")
-    (error \ "description").extract[String] should be(s"Folder with id ${wrongId.toString} does not exist")
+    val error = parser.parse(response.body).toTry.get
+    error.hcursor.downField("code").as[String].toTry.get should be("NOT_FOUND")
+    error.hcursor.downField("description").as[String].toTry.get should be(s"Folder with id ${wrongId.toString} does not exist")
   }
 
   test(
@@ -541,7 +530,7 @@ class CloneFolderTest
         .body("""{"status":"shared"}""")
     )
 
-    val result = read[api.Folder](response.body)
+    val result = CirceUtil.unsafeParseAs[api.Folder](response.body)
     result.shared should be(Some(shareTime))
   }
 
@@ -623,7 +612,7 @@ class CloneFolderTest
         .header("FeideAuthorization", s"Bearer asd")
     )
 
-    val results            = read[List[UUID]](response.body)
+    val results            = CirceUtil.unsafeParseAs[List[UUID]](response.body)
     val resultParentId     = results.find(uuid => uuid == parentId).get
     val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId)(session).get.get
 
@@ -655,7 +644,7 @@ class CloneFolderTest
         .body("""{"name":"newname1"}""")
     )
 
-    val result = read[api.Folder](response.body)
+    val result = CirceUtil.unsafeParseAs[api.Folder](response.body)
     result.updated should not be result.created
     result.updated should be(updated)
   }
