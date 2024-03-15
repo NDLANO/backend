@@ -8,6 +8,9 @@
 
 package no.ndla.oembedproxy.model
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+
 case class OEmbedEndpoint(
     schemes: Option[List[String]],
     url: Option[String],
@@ -28,4 +31,9 @@ case class OEmbedEndpoint(
     val regex = scheme.replace(".", "\\.").replace("*", ".*")
     url.matches(regex)
   }
+}
+
+object OEmbedEndpoint {
+  implicit val encoder: Encoder[OEmbedEndpoint] = deriveEncoder
+  implicit val decoder: Decoder[OEmbedEndpoint] = deriveDecoder
 }

@@ -20,7 +20,6 @@ import no.ndla.oembedproxy.service.OEmbedConverterService.{
   removeQueryString,
   removeQueryStringAndFragment
 }
-import org.json4s.DefaultFormats
 
 import scala.util.{Failure, Success}
 import sttp.client3.quick._
@@ -30,8 +29,6 @@ trait ProviderService {
   val providerService: ProviderService
 
   class ProviderService extends StrictLogging {
-    implicit val formats: DefaultFormats = org.json4s.DefaultFormats
-
     val NdlaFrontendEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(
         Some(props.NdlaApprovedUrl),

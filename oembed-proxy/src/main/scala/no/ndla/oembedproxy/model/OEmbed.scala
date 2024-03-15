@@ -8,6 +8,8 @@
 
 package no.ndla.oembedproxy.model
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import sttp.tapir.Schema.annotations.description
 
 // format: off
@@ -31,3 +33,8 @@ case class OEmbed(
     @description("The HTML required to embed a video player. The HTML should have no padding or margins. Consumers may wish to load the HTML in an off-domain iframe to avoid XSS vulnerabilities. Required if type is video/rich.") html: Option[String]
 )
 // format: on
+
+object OEmbed {
+  implicit val encoder: Encoder[OEmbed] = deriveEncoder
+  implicit val decoder: Decoder[OEmbed] = deriveDecoder
+}

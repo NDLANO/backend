@@ -8,6 +8,7 @@
 
 package no.ndla.oembedproxy.model
 
+import io.circe.Decoder
 import io.lemonlabs.uri.Url
 import io.lemonlabs.uri.typesafe.dsl._
 
@@ -44,4 +45,15 @@ case class OEmbedProvider(
 
   def requestUrl(url: String, maxWidth: Option[String], maxHeight: Option[String]): String =
     _requestUrl(urlParser(url), maxWidth, maxHeight)
+}
+
+object OEmbedProvider {
+  implicit val decoder: Decoder[OEmbedProvider] = Decoder.instance { cur =>
+    for {
+      providerName <- cur.downField("providerName").as[String]
+      providerUrl  <- cur.downField("providerUrl").as[String]
+      endpoints    <- cur.downField("endpoints").as[List[OEmbedEndpoint]]
+    } yield OEmbedProvider(providerName, providerUrl, endpoints)
+
+  }
 }
