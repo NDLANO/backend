@@ -29,7 +29,6 @@ class SearchableLanguageValuesTest extends UnitTestSuite {
   }
 
   test("That no SearchableLanguageValues deserialization to something") {
-    import io.circe.syntax._
     case class TestClass(someField: SearchableLanguageValues)
     implicit val decoder: Decoder[TestClass] = io.circe.generic.semiauto.deriveDecoder[TestClass]
     val expected                             = SearchableLanguageValues(Seq())
