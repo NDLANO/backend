@@ -11,7 +11,7 @@ package no.ndla.myndla.service
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.myndla.FavoriteFolderDefaultName
 import no.ndla.myndla.model.api.{Folder, SingleResourceStats}
 import no.ndla.myndla.model.domain.FolderStatus

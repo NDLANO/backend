@@ -85,29 +85,29 @@ class ComponentRegistry(properties: ImageApiProperties)
       .withRegion(props.StorageRegion)
       .build()
 
-  lazy val imageIndexService      = new ImageIndexService
-  lazy val imageSearchService     = new ImageSearchService
-  lazy val tagIndexService        = new TagIndexService
-  lazy val tagSearchService       = new TagSearchService
-  lazy val imageRepository        = new ImageRepository
-  lazy val readService            = new ReadService
-  lazy val writeService           = new WriteService
-  lazy val validationService      = new ValidationService
-  lazy val imageStorage           = new AmazonImageStorageService
-  lazy val ndlaClient             = new NdlaClient
-  lazy val converterService       = new ConverterService
+  val imageIndexService      = new ImageIndexService
+  val imageSearchService     = new ImageSearchService
+  val tagIndexService        = new TagIndexService
+  val tagSearchService       = new TagSearchService
+  val imageRepository        = new ImageRepository
+  val readService            = new ReadService
+  val writeService           = new WriteService
+  val validationService      = new ValidationService
+  val imageStorage           = new AmazonImageStorageService
+  val ndlaClient             = new NdlaClient
+  val converterService       = new ConverterService
   var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
-  lazy val searchConverterService = new SearchConverterService
+  val searchConverterService = new SearchConverterService
 
-  lazy val imageConverter = new ImageConverter
-  lazy val clock          = new SystemClock
-  lazy val random         = new Random
+  val imageConverter = new ImageConverter
+  val clock          = new SystemClock
+  val random         = new Random
 
-  lazy val imageControllerV2                            = new ImageControllerV2
-  lazy val imageControllerV3                            = new ImageControllerV3
-  lazy val rawController                                = new RawController
-  lazy val internController                             = new InternController
-  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
+  val imageControllerV2                            = new ImageControllerV2
+  val imageControllerV3                            = new ImageControllerV3
+  val rawController                                = new RawController
+  val internController                             = new InternController
+  val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
 
   private val swagger = new SwaggerController(
     List[Service[Eff]](

@@ -101,7 +101,7 @@ trait WriteService {
         imageId: Long,
         language: String,
         user: TokenUser
-    ): Try[Option[ImageMetaInformation]] =
+    ): Try[Option[ImageMetaInformation]] = permitTry {
       imageRepository.withId(imageId) match {
         case Some(existing) if converterService.getSupportedLanguages(existing).contains(language) =>
           val newImage = converterService.withoutLanguage(existing, language, user)
@@ -120,6 +120,7 @@ trait WriteService {
         case None =>
           Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
       }
+    }
 
     def deleteImageAndFiles(imageId: Long): Try[Long] = {
       imageRepository.withId(imageId) match {
@@ -144,7 +145,7 @@ trait WriteService {
         newImage: NewImageMetaInformationV2,
         file: UploadedFile,
         user: TokenUser
-    ): Try[ImageMetaInformation] = {
+    ): Try[ImageMetaInformation] = permitTry {
       validationService.validateImageFile(file) match {
         case Some(validationMessage) => return Failure(new ValidationException(errors = Seq(validationMessage)))
         case _                       =>
@@ -301,7 +302,7 @@ trait WriteService {
         oldImage: ImageMetaInformation,
         language: String,
         user: TokenUser
-    ): Try[ImageMetaInformation] = {
+    ): Try[ImageMetaInformation] = permitTry {
       val imageForLang  = oldImage.images.find(_.language == language)
       val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
 

@@ -28,7 +28,7 @@ case class ImageMetaInformation(
     updated: NDLADate,
     created: NDLADate,
     createdBy: String,
-    modelReleased: ModelReleasedStatus.Value,
+    modelReleased: ModelReleasedStatus,
     editorNotes: Seq[EditorNote]
 )
 

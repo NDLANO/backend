@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.model.domain
 
+import enumeratum._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
@@ -75,13 +76,15 @@ object ImageDimensions {
   implicit val decoder: Decoder[ImageDimensions] = deriveDecoder
 }
 
-object ModelReleasedStatus extends Enumeration {
-  val YES: Value            = Value("yes")
-  val NO: Value             = Value("no")
-  val NOT_APPLICABLE: Value = Value("not-applicable")
-  val NOT_SET: Value        = Value("not-set")
+sealed abstract class ModelReleasedStatus(override val entryName: String) extends EnumEntry
 
-  def valueOfOrError(s: String): Try[this.Value] =
+object ModelReleasedStatus extends Enum[ModelReleasedStatus] with CirceEnum[ModelReleasedStatus] {
+  case object YES            extends ModelReleasedStatus("yes")
+  case object NO             extends ModelReleasedStatus("no")
+  case object NOT_APPLICABLE extends ModelReleasedStatus("not-applicable")
+  case object NOT_SET        extends ModelReleasedStatus("not-set")
+
+  def valueOfOrError(s: String): Try[ModelReleasedStatus] =
     valueOf(s) match {
       case Some(st) => Success(st)
       case None =>
@@ -98,10 +101,9 @@ object ModelReleasedStatus extends Enumeration {
         )
     }
 
-  def valueOf(s: String): Option[this.Value] = values.find(_.toString == s)
+  def valueOf(s: String): Option[ModelReleasedStatus] = values.find(_.toString == s)
 
-  implicit val encoder: Encoder[ModelReleasedStatus.Value] = Encoder.encodeEnumeration(ModelReleasedStatus)
-  implicit val decoder: Decoder[ModelReleasedStatus.Value] = Decoder.decodeEnumeration(ModelReleasedStatus)
+  override def values: IndexedSeq[ModelReleasedStatus] = findValues
 }
 
 case class ReindexResult(totalIndexed: Int, millisUsed: Long)

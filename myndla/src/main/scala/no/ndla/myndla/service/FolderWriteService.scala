@@ -10,7 +10,7 @@ package no.ndla.myndla.service
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.myndla.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.myndla.model.domain.{CopyableFolder, FolderSortException, FolderStatus, Rankable}
 import no.ndla.myndla.model.{api, domain}

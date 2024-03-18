@@ -17,7 +17,7 @@ import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 
 import java.text.SimpleDateFormat
@@ -99,7 +99,7 @@ trait BaseIndexService {
     def createIndexWithGeneratedName: Try[String] =
       createIndexWithName(getNewIndexName())
 
-    def reindexWithShards(numShards: Int): Try[_] = {
+    def reindexWithShards(numShards: Int): Try[_] = permitTry {
       logger.info(s"Internal reindexing $searchIndex with $numShards shards...")
       val maybeAliasTarget = getAliasTarget.?
       val currentIndex = maybeAliasTarget match {

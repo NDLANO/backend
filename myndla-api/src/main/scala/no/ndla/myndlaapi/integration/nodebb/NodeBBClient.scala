@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.integration.nodebb
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto._
 import io.circe.parser.parse
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.myndlaapi.Props
 import sttp.client3.Response
 import sttp.client3.quick._

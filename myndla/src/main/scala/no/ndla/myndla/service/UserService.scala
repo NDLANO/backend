@@ -9,7 +9,7 @@ package no.ndla.myndla.service
 
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.myndla.model.api.{ArenaUser, PaginatedArenaUsers}
 import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndla.model.{api, domain}

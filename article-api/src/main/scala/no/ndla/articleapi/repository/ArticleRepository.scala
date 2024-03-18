@@ -188,7 +188,7 @@ trait ArticleRepository {
     private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
       Option(wrappedResultSet.array("external_id"))
         .map(_.getArray.asInstanceOf[Array[String]])
-        .getOrElse(Array.empty)
+        .getOrElse(Array.empty[String])
         .toList
     }
 

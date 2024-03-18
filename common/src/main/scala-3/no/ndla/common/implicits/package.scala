@@ -55,6 +55,12 @@ package object implicits {
         case Success(value) => value
       }
     }
+    def ??(using PermittedTryContext): Unit = {
+      self match {
+        case Failure(ex)    => throw ControlFlowException(ex)
+        case Success(_) => ()
+      }
+    }
   }
 
   extension [T](opt: Option[T]) {

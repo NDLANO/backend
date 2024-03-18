@@ -94,7 +94,7 @@ trait ImageControllerV2 {
         podcastFriendly: Option[Boolean],
         includeCopyrighted: Boolean,
         shouldScroll: Boolean,
-        modelReleasedStatus: Seq[ModelReleasedStatus.Value],
+        modelReleasedStatus: Seq[ModelReleasedStatus],
         user: Option[TokenUser]
     ) = {
       val settings = query match {

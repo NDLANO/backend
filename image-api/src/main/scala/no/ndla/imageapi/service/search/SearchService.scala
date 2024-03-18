@@ -25,9 +25,9 @@ import cats.implicits._
 trait SearchService {
   this: Elastic4sClient with IndexService with SearchConverterService with Props =>
 
-  trait SearchService[T] extends StrictLogging {
+  trait SearchService[T, A, B <: AnyRef] extends StrictLogging {
     val searchIndex: String
-    val indexService: IndexService[_, _]
+    val indexService: IndexService[A, B]
 
     def hitToApiModel(hit: String, language: String): Try[T]
 

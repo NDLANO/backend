@@ -15,7 +15,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.ErrorHelpers
-import no.ndla.imageapi.model.domain.{SearchResult, Sort}
+import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult, Sort}
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient
@@ -32,7 +32,7 @@ trait TagSearchService {
     with ErrorHelpers =>
   val tagSearchService: TagSearchService
 
-  class TagSearchService extends StrictLogging with SearchService[String] {
+  class TagSearchService extends StrictLogging with SearchService[String, ImageMetaInformation, SearchableTag] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, TagSearchIndex}
     override val searchIndex: String           = TagSearchIndex
     override val indexService: TagIndexService = tagIndexService
