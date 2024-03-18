@@ -33,15 +33,17 @@ trait TestData {
       id = Some(1),
       titles = List(ImageTitle("Elg i busk", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        ImageFileData(
-          id = 123,
-          fileName = "Elg.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          1
+      images = Some(
+        Seq(
+          ImageFileData(
+            id = 123,
+            fileName = "Elg.jpg",
+            size = 2865539,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            1
+          )
         )
       ),
       copyright = Copyright(
@@ -132,15 +134,17 @@ trait TestData {
       id = Some(2),
       titles = List(ImageTitle("Bjørn i busk", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 333,
-          fileName = "Bjørn.jpg",
-          size = 14113,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          2
+      images = Some(
+        Seq(
+          new ImageFileData(
+            id = 333,
+            fileName = "Bjørn.jpg",
+            size = 14113,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            2
+          )
         )
       ),
       copyright = Copyright(
@@ -167,15 +171,17 @@ trait TestData {
       id = Some(3),
       titles = List(ImageTitle("Jerv på stein", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 444,
-          fileName = "Jerv.jpg",
-          size = 39061,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          3
+      images = Some(
+        Seq(
+          new ImageFileData(
+            id = 444,
+            fileName = "Jerv.jpg",
+            size = 39061,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            3
+          )
         )
       ),
       copyright = Copyright(
@@ -202,15 +208,17 @@ trait TestData {
       id = Some(4),
       titles = List(ImageTitle("Overrasket mink", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 555,
-          fileName = "Mink.jpg",
-          size = 102559,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          4
+      images = Some(
+        Seq(
+          new ImageFileData(
+            id = 555,
+            fileName = "Mink.jpg",
+            size = 102559,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            4
+          )
         )
       ),
       copyright = Copyright(
@@ -237,15 +245,17 @@ trait TestData {
       id = Some(5),
       titles = List(ImageTitle("Rein har fanget rødtopp", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 667,
-          fileName = "Rein.jpg",
-          size = 504911,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          5
+      images = Some(
+        Seq(
+          new ImageFileData(
+            id = 667,
+            fileName = "Rein.jpg",
+            size = 504911,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            5
+          )
         )
       ),
       copyright = Copyright(
@@ -272,15 +282,17 @@ trait TestData {
       id = Some(6),
       titles = List(ImageTitle("Krokodille på krok", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 777,
-          fileName = "Krokodille.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          6
+      images = Some(
+        Seq(
+          new ImageFileData(
+            id = 777,
+            fileName = "Krokodille.jpg",
+            size = 2865539,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            6
+          )
         )
       ),
       copyright = Copyright(
@@ -307,15 +319,17 @@ trait TestData {
       id = Some(6),
       titles = List(ImageTitle("Bison på sletten", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 888,
-          fileName = "Bison.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          6
+      images = Some(
+        Seq(
+          new ImageFileData(
+            id = 888,
+            fileName = "Bison.jpg",
+            size = 2865539,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            6
+          )
         )
       ),
       copyright = Copyright(

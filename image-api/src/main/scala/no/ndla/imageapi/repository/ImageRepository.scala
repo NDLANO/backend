@@ -17,7 +17,7 @@ import no.ndla.imageapi.service.ConverterService
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 trait ImageRepository {
   this: DataSource with ConverterService =>
@@ -68,10 +68,14 @@ trait ImageRepository {
         dataObject.setValue(json)
         sql"update imagemetadata set metadata = $dataObject where id = $id".update()
       }.flatMap(_ =>
-        imageMetaInformation.images
-          .map(updateImageFileMeta)
-          .sequence
-          .map(_ => imageMetaInformation.copy(id = Some(id)))
+        imageMetaInformation.images match {
+          case Some(images) =>
+            images
+              .map(updateImageFileMeta)
+              .sequence
+              .map(_ => imageMetaInformation.copy(id = Some(id)))
+          case None => Success(imageMetaInformation.copy(id = Some(id)))
+        }
       )
     }
 
@@ -149,7 +153,7 @@ trait ImageRepository {
          """
         .one(ImageMetaInformation.fromResultSet(im.resultName))
         .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption.flatten)
-        .map((meta, images) => meta.copy(images = images.toSeq))
+        .map((meta, images) => meta.copy(images = Some(images.toSeq)))
         .single()
     }
 
@@ -166,7 +170,7 @@ trait ImageRepository {
          """
         .one(ImageMetaInformation.fromResultSet(im.resultName))
         .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption.flatten)
-        .map((meta, files) => meta.copy(images = files.toSeq))
+        .map((meta, files) => meta.copy(images = Some(files.toSeq)))
         .list()
     }
 

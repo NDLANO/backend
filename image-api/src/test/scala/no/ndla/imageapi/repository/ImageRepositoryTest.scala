@@ -63,17 +63,17 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("That inserting and retrieving images works as expected") {
     assume(databaseIsAvailable)
     postgresContainer.map(x => println(x.getJdbcUrl))
-    val image1 = TestData.bjorn.copy(id = None, images = Seq.empty, titles = Seq(ImageTitle("KyllingFisk", "nb")))
+    val image1 = TestData.bjorn.copy(id = None, images = None, titles = Seq(ImageTitle("KyllingFisk", "nb")))
 
     val inserted1     = repository.insert(image1)
-    val imageFile1    = TestData.bjorn.images.head
+    val imageFile1    = TestData.bjorn.images.get.head
     val insertedFile1 = repository.insertImageFile(inserted1.id.get, imageFile1.fileName, imageFile1.toDocument())
-    val expected1     = inserted1.copy(images = Seq(insertedFile1.get))
+    val expected1     = inserted1.copy(images = Some(Seq(insertedFile1.get)))
 
-    val image2    = TestData.bjorn.copy(id = None, images = Seq.empty, titles = Seq(ImageTitle("Apekatter", "nb")))
+    val image2    = TestData.bjorn.copy(id = None, images = Some(List()), titles = Seq(ImageTitle("Apekatter", "nb")))
     val inserted2 = repository.insert(image2)
 
-    val image3    = TestData.bjorn.copy(id = None, images = Seq.empty, titles = Seq(ImageTitle("Ruslebiff", "nb")))
+    val image3    = TestData.bjorn.copy(id = None, images = Some(List()), titles = Seq(ImageTitle("Ruslebiff", "nb")))
     val inserted3 = repository.insert(image3)
 
     repository.withId(inserted1.id.get).get should be(expected1)
@@ -87,9 +87,9 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val path2 = "/some-path123.png"
     val path3 = "/some-path555.png"
 
-    val image = TestData.bjorn.images.head
+    val image = TestData.bjorn.images.get.head
 
-    val imageMeta1 = TestData.bjorn.copy(images = Seq.empty)
+    val imageMeta1 = TestData.bjorn.copy(images = None)
     val meta1      = repository.insert(imageMeta1)
     val meta2      = repository.insert(imageMeta1)
     val meta3      = repository.insert(imageMeta1)
@@ -98,27 +98,27 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val image2 = repository.insertImageFile(meta2.id.get, path2, image.copy(fileName = path2).toDocument()).get
     val image3 = repository.insertImageFile(meta3.id.get, path3, image.copy(fileName = path3).toDocument()).get
 
-    repository.getImageFromFilePath(path1).get should be(meta1.copy(images = Seq(image1)))
-    repository.getImageFromFilePath(path2).get should be(meta2.copy(images = Seq(image2)))
-    repository.getImageFromFilePath(path3).get should be(meta3.copy(images = Seq(image3)))
+    repository.getImageFromFilePath(path1).get should be(meta1.copy(images = Some(Seq(image1))))
+    repository.getImageFromFilePath(path2).get should be(meta2.copy(images = Some(Seq(image2))))
+    repository.getImageFromFilePath(path3).get should be(meta3.copy(images = Some(Seq(image3))))
     repository.getImageFromFilePath("/nonexistant.png") should be(None)
   }
 
   test("that fetching based on path works with and without slash") {
     assume(databaseIsAvailable)
     val path1         = "/slash-path1.jpg"
-    val imageFile1    = TestData.bjorn.images.head.copy(fileName = path1)
-    val image1        = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
+    val imageFile1    = TestData.bjorn.images.get.head.copy(fileName = path1)
+    val image1        = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile1)))
     val inserted1     = repository.insert(image1)
     val insertedFile1 = repository.insertImageFile(inserted1.id.get, path1, imageFile1.toDocument()).get
-    val expected1     = inserted1.copy(images = Seq(insertedFile1))
+    val expected1     = inserted1.copy(images = Some(Seq(insertedFile1)))
 
     val path2         = "no-slash-path2.jpg"
-    val imageFile2    = TestData.bjorn.images.head.copy(fileName = path2)
-    val image2        = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
+    val imageFile2    = TestData.bjorn.images.get.head.copy(fileName = path2)
+    val image2        = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile2)))
     val inserted2     = repository.insert(image2)
     val insertedFile2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2.toDocument()).get
-    val expected2     = inserted2.copy(images = Seq(insertedFile2))
+    val expected2     = inserted2.copy(images = Some(Seq(insertedFile2)))
 
     repository.getImageFromFilePath(path1).get should be(expected1)
     repository.getImageFromFilePath("/" + path1).get should be(expected1)
@@ -130,12 +130,12 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("That fetching image from url where there exists multiple works") {
     assume(databaseIsAvailable)
     val path1        = "/fetch-path1.jpg"
-    val imageFile1   = TestData.bjorn.images.head.copy(fileName = path1)
-    val image1       = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
+    val imageFile1   = TestData.bjorn.images.get.head.copy(fileName = path1)
+    val image1       = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile1)))
     val inserted     = repository.insert(image1)
     val insertedFile = repository.insertImageFile(inserted.id.get, path1, imageFile1.toDocument()).get
 
-    val expected = inserted.copy(images = Seq(insertedFile))
+    val expected = inserted.copy(images = Some(Seq(insertedFile)))
 
     repository.getImageFromFilePath(path1).get should be(expected)
   }
@@ -143,18 +143,18 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("That fetching image from url with special characters are escaped") {
     assume(databaseIsAvailable)
     val path1        = "/path1.jpg"
-    val imageFile1   = TestData.bjorn.images.head.copy(fileName = path1)
-    val image1       = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
+    val imageFile1   = TestData.bjorn.images.get.head.copy(fileName = path1)
+    val image1       = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile1)))
     val inserted1    = repository.insert(image1)
     val insertedImg1 = repository.insertImageFile(inserted1.id.get, path1, imageFile1.toDocument()).get
-    val expected1    = inserted1.copy(images = Seq(insertedImg1))
+    val expected1    = inserted1.copy(images = Some(Seq(insertedImg1)))
 
     val path2        = "/pa%h1.jpg"
-    val imageFile2   = TestData.bjorn.images.head.copy(fileName = path2)
-    val image2       = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
+    val imageFile2   = TestData.bjorn.images.get.head.copy(fileName = path2)
+    val image2       = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile2)))
     val inserted2    = repository.insert(image2)
     val insertedImg2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2.toDocument()).get
-    val expected2    = inserted2.copy(images = Seq(insertedImg2))
+    val expected2    = inserted2.copy(images = Some(Seq(insertedImg2)))
 
     repository.getImageFromFilePath(path1).get should be(expected1)
     repository.getImageFromFilePath(path2).get should be(expected2)

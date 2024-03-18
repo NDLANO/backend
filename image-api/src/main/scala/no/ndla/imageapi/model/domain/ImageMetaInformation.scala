@@ -20,7 +20,7 @@ case class ImageMetaInformation(
     id: Option[Long],
     titles: Seq[ImageTitle],
     alttexts: Seq[ImageAltText],
-    images: Seq[ImageFileData],
+    images: Option[Seq[ImageFileData]],
     copyright: Copyright,
     tags: Seq[Tag],
     captions: Seq[ImageCaption],

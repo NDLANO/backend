@@ -158,7 +158,7 @@ trait ConverterService {
     }
 
     private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[ImageFileData] = {
-      findByLanguageOrBestEffort(meta.images, language) match {
+      findByLanguageOrBestEffort(meta.images.getOrElse(Seq.empty), language) match {
         case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
         case Some(image) => Success(image)
       }
@@ -246,7 +246,7 @@ trait ConverterService {
     ): ImageMetaInformation = {
       val now       = clock.now()
       val newNote   = domain.EditorNote(now, user.id, s"Updated image file for '$language' language.")
-      val newImages = imageMeta.images.filterNot(_.language == language) :+ image
+      val newImages = imageMeta.images.map(_.filterNot(_.language == language) :+ image)
       imageMeta.copy(
         images = newImages,
         editorNotes = imageMeta.editorNotes :+ newNote
@@ -269,7 +269,7 @@ trait ConverterService {
           id = None,
           titles = Seq(asDomainTitle(imageMeta.title, imageMeta.language)),
           alttexts = imageMeta.alttext.map(at => asDomainAltText(at, imageMeta.language)).toSeq,
-          images = Seq.empty,
+          images = None,
           copyright = toDomainCopyright(imageMeta.copyright),
           tags = if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language)) else Seq.empty,
           captions = Seq(domain.ImageCaption(imageMeta.caption, imageMeta.language)),
@@ -325,7 +325,7 @@ trait ConverterService {
         tags = domainMetaInformation.tags.filterNot(_.language == languageToRemove),
         captions = domainMetaInformation.captions.filterNot(_.language == languageToRemove),
         editorNotes = domainMetaInformation.editorNotes :+ newNote,
-        images = domainMetaInformation.images.filterNot(_.language == languageToRemove)
+        images = domainMetaInformation.images.map(_.filterNot(_.language == languageToRemove))
       )
     }
 
@@ -335,7 +335,7 @@ trait ConverterService {
         domainImageMetaInformation.alttexts,
         domainImageMetaInformation.tags,
         domainImageMetaInformation.captions,
-        domainImageMetaInformation.images
+        domainImageMetaInformation.images.getOrElse(Seq.empty)
       )
     }
 

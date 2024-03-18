@@ -111,7 +111,7 @@ trait WriteService {
           if (isLastLanguage) {
             deleteImageAndFiles(imageId).map(_ => None)
           } else {
-            deleteFileForLanguageIfUnused(imageId, existing.images, language).??
+            deleteFileForLanguageIfUnused(imageId, existing.images.getOrElse(Seq.empty), language).??
             updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
           }
 
@@ -125,9 +125,11 @@ trait WriteService {
       imageRepository.withId(imageId) match {
         case Some(toDelete) =>
           val metaDeleted = imageRepository.delete(imageId)
-          val filesDeleted = toDelete.images.traverse(image => {
-            imageStorage.deleteObject(image.fileName)
-          })
+          val filesDeleted = toDelete.images
+            .getOrElse(Seq.empty)
+            .traverse(image => {
+              imageStorage.deleteObject(image.fileName)
+            })
           val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
 
           if (metaDeleted < 1) {
@@ -160,11 +162,11 @@ trait WriteService {
 
       val imageDocument = converterService.toImageDocument(uploadedImage, newImage.language)
       val image         = imageRepository.insertImageFile(imageId, uploadedImage.fileName, imageDocument).?
-      val imageMeta     = insertedMeta.copy(images = Seq(image))
+      val imageMeta     = insertedMeta.copy(images = Some(Seq(image)))
 
       val deleteUploadedImages = (reason: Throwable) => {
         logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
-        imageMeta.images.traverse(image => imageStorage.deleteObject(image.fileName))
+        imageMeta.images.getOrElse(Seq.empty).traverse(image => imageStorage.deleteObject(image.fileName))
       }
 
       imageIndexService
@@ -190,7 +192,7 @@ trait WriteService {
     private def hasChangedMetadata(lhs: ImageMetaInformation, rhs: ImageMetaInformation): Boolean = {
       val withoutMetas = (i: ImageMetaInformation) =>
         i.copy(
-          images = Seq.empty,
+          images = None,
           updated = NDLADate.MIN,
           updatedBy = ""
         )
@@ -251,12 +253,14 @@ trait WriteService {
         else existing.editorNotes
       }
 
-      insertImageCopyIfNoImage(existing.images, toMerge.language).map(newImages =>
-        newImageMeta.copy(
-          images = newImages,
-          editorNotes = newEditorNotes
+      existing.images
+        .traverse(ims => insertImageCopyIfNoImage(ims, toMerge.language))
+        .map(newImages =>
+          newImageMeta.copy(
+            images = newImages,
+            editorNotes = newEditorNotes
+          )
         )
-      )
     }
 
     private def insertImageCopyIfNoImage(
@@ -302,8 +306,8 @@ trait WriteService {
         language: String,
         user: TokenUser
     ): Try[ImageMetaInformation] = {
-      val imageForLang  = oldImage.images.find(_.language == language)
-      val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
+      val imageForLang  = oldImage.images.getOrElse(Seq.empty).find(_.language == language)
+      val allOtherPaths = oldImage.images.getOrElse(Seq.empty).filterNot(_.language == language).map(_.fileName)
 
       val uploaded = uploadImage(newFile).?
 

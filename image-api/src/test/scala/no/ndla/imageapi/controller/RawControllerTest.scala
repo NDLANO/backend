@@ -37,7 +37,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     reset(clock)
     when(imageRepository.withId(id)).thenReturn(Some(TestData.bjorn))
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoImage))
-    when(readService.getImageFileName(id, None)).thenReturn(Some(TestData.bjorn.images.head.fileName))
+    when(readService.getImageFileName(id, None)).thenReturn(Some(TestData.bjorn.images.get.head.fileName))
     when(clock.now()).thenCallRealMethod()
   }
 

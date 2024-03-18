@@ -28,8 +28,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("That path to id conversion works as expected for id paths") {
     val id                = 1234L
     val imageUrl          = "apekatt.jpg"
-    val expectedImageFile = TestData.bjorn.images.head.copy(fileName = "/" + imageUrl)
-    val expectedImage     = TestData.bjorn.copy(id = Some(id), images = Seq(expectedImageFile))
+    val expectedImageFile = TestData.bjorn.images.get.head.copy(fileName = "/" + imageUrl)
+    val expectedImage     = TestData.bjorn.copy(id = Some(id), images = Some(Seq(expectedImageFile)))
 
     when(imageRepository.withId(id)).thenReturn(Some(expectedImage))
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/id/$id") should be(Success(expectedImage))
@@ -57,15 +57,17 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       id = Some(1),
       titles = List(domain.ImageTitle("Elg i busk", "nb")),
       alttexts = List(domain.ImageAltText("Elg i busk", "nb")),
-      images = Seq(
-        new ImageFileData(
-          id = 1,
-          fileName = "Elg.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          language = "nb",
-          imageMetaId = 1
+      images = Some(
+        Seq(
+          new ImageFileData(
+            id = 1,
+            fileName = "Elg.jpg",
+            size = 2865539,
+            contentType = "image/jpeg",
+            dimensions = None,
+            language = "nb",
+            imageMetaId = 1
+          )
         )
       ),
       copyright = Copyright(
@@ -97,8 +99,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val id            = 1234L
     val imageUrl      = "Jordbær.jpg"
     val encodedPath   = "Jordb%C3%A6r.jpg"
-    val expectedFile  = TestData.bjorn.images.head.copy(fileName = imageUrl)
-    val expectedImage = TestData.bjorn.copy(id = Some(id), images = Seq(expectedFile))
+    val expectedFile  = TestData.bjorn.images.get.head.copy(fileName = imageUrl)
+    val expectedImage = TestData.bjorn.copy(id = Some(id), images = Some(Seq(expectedFile)))
 
     doReturn(Some(expectedImage), Some(expectedImage))
       .when(imageRepository)
