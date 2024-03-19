@@ -136,6 +136,7 @@ class ComponentRegistry(properties: DraftApiProperties)
   private val swagger = new SwaggerController(
     List[Service[Eff]](
       draftController,
+      fileController,
       ruleController,
       userDataController,
       internController,
