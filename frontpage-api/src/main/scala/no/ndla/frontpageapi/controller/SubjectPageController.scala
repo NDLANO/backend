@@ -39,7 +39,7 @@ trait SubjectPageController {
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all subjectpages")
       .in(query[Int]("page").default(1).validate(Validator.min(1)))
-      .in(query[Int]("page-size").default(props.DefaultPageSize).validate(Validator.min(1)))
+      .in(query[Int]("page-size").default(props.DefaultPageSize).validate(Validator.min(0)))
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
       .errorOut(errorOutputsFor(400, 404))
