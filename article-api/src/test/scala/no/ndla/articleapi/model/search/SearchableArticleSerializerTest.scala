@@ -34,7 +34,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     authors = Seq("Jonas Natty"),
     articleType = "standard",
     defaultTitle = Some("tjuppidu"),
-    grepCodes = Seq("testelitt", "testemye"),
+    grepCodes = Some(Seq("testelitt", "testemye")),
     availability = Availability.everyone.toString
   )
 

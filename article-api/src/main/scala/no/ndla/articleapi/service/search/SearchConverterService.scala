@@ -54,7 +54,7 @@ trait SearchConverterService {
           .map(_.name) ++ ai.copyright.rightsholders.map(_.name),
         articleType = ai.articleType.entryName,
         defaultTitle = defaultTitle.map(t => t.title),
-        grepCodes = ai.grepCodes,
+        grepCodes = Some(ai.grepCodes),
         availability = ai.availability.toString
       )
     }

@@ -127,7 +127,7 @@ trait ConverterService {
         searchableArticle.articleType,
         lastUpdated,
         supportedLanguages,
-        searchableArticle.grepCodes,
+        searchableArticle.grepCodes.getOrElse(List.empty),
         availability
       )
     }
