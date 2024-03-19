@@ -22,7 +22,7 @@ trait FileStorageService {
   class FileStorageService extends StrictLogging {
     import props.AttachmentStorageName
 
-    private val resourceDirectory = "resources"
+    val resourceDirectory = "resources"
 
     def uploadResourceFromStream(
         stream: UploadedFile,
