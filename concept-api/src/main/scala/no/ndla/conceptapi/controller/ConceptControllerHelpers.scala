@@ -43,13 +43,13 @@ trait ConceptControllerHelpers {
     val pageNo: EndpointInput.Query[Int] =
       query[Int]("page")
         .description("The page number of the search hits to display.")
-        .validate(Validator.min(1))
+        .validate(Validator.min(0))
         .default(1)
 
     val pageSize: EndpointInput.Query[Int] =
       query[Int]("page-size")
         .description("The number of search hits to display for each page.")
-        .validate(Validator.min(1))
+        .validate(Validator.min(0))
         .default(props.DefaultPageSize)
 
     val sort: EndpointInput.Query[Option[String]] =

@@ -79,7 +79,7 @@ trait DraftController {
     private val pageSize = query[Int]("page-size")
       .description("The number of search hits to display for each page.")
       .default(DefaultPageSize)
-      .validate(Validator.min(1))
+      .validate(Validator.min(0))
     private val sort = query[Option[String]]("sort").description(
       """The sorting used on results.
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.

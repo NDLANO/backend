@@ -82,7 +82,7 @@ trait SearchController {
         s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
       )
       .default(DefaultPageSize)
-      .validate(Validator.inRange(1, MaxPageSize))
+      .validate(Validator.inRange(0, MaxPageSize))
     private val resourceTypes =
       listQuery[String]("resource-types")
         .description(
