@@ -712,7 +712,7 @@ trait WriteService {
         .map(_ =>
           domain.UploadedFile(
             fileName = fileName,
-            filePath = fileName,
+            filePath = s"${fileStorage.resourceDirectory}/$fileName",
             size = file.fileSize,
             contentType = contentType,
             fileExtension = fileExtension
