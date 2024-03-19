@@ -8,9 +8,9 @@
 
 package no.ndla.searchapi.controller
 
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
@@ -20,18 +20,13 @@ import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import no.ndla.searchapi.controller.parameters.{DraftSearchParams, SearchParams}
+import no.ndla.searchapi.controller.parameters.{DraftSearchParams, SearchParams, SubjectAggsInput}
 import no.ndla.searchapi.{Eff, Props}
 import no.ndla.searchapi.integration.SearchApiClient
-import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult}
+import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.service.search.{
-  MultiDraftSearchService,
-  MultiSearchService,
-  SearchConverterService,
-  SearchService
-}
+import no.ndla.searchapi.service.search.{MultiDraftSearchService, MultiSearchService, SearchConverterService, SearchService}
 import sttp.model.QueryParams
 
 import java.util.concurrent.Executors
@@ -39,8 +34,8 @@ import java.util.concurrent.TimeUnit.MINUTES
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
@@ -163,8 +158,22 @@ trait SearchController {
       searchLearningResources,
       searchDraftLearningResources,
       searchDraftLearningResourcesGet,
-      postSearchLearningResources
+      postSearchLearningResources,
+      subjectAggs
     )
+
+    def subjectAggs: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("List subjects with aggregated data about their contents")
+      .description("List subjects with aggregated data about their contents")
+      .in("subjects")
+      .in(jsonBody[SubjectAggsInput])
+      .out(jsonBody[SubjectAggregations])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { user =>  input =>
+        val subjects = input.subjects.getOrElse(List.empty)
+        multiDraftSearchService.aggregateSubjects(subjects).handleErrorsOrOk
+      }
 
     def groupSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Search across multiple groups of learning resources")

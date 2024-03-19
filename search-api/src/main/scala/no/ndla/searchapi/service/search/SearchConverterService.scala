@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.{Author, License}
+import no.ndla.common.model.api.{Author, License, MyNDLABundle}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
@@ -45,7 +45,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Success, Try}
 
 trait SearchConverterService {
-  this: DraftApiClient with TaxonomyApiClient with ConverterService with Props =>
+  this: DraftApiClient with TaxonomyApiClient with ConverterService with Props with MyNDLAApiClient =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
@@ -238,7 +238,8 @@ trait SearchConverterService {
 
     def asSearchableLearningPath(
         lp: LearningPath,
-        taxonomyBundle: Option[TaxonomyBundle]
+        taxonomyBundle: Option[TaxonomyBundle],
+        myndlaBundle: Option[MyNDLABundle]
     ): Try[SearchableLearningPath] = {
       val taxonomyContexts = taxonomyBundle match {
         case Some(bundle) =>
@@ -250,6 +251,11 @@ trait SearchConverterService {
             filterContexts = true,
             shouldUsePublishedTax = true
           )
+      }
+
+      val favorited = myndlaBundle match {
+        case Some(value) => value.getFavorites(lp.id.get.toString, "learningpath")
+        case None => myndlaApiClient
       }
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
@@ -281,7 +287,8 @@ trait SearchConverterService {
           isBasedOn = lp.isBasedOn,
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
-          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
+          favorited =
         )
       )
     }

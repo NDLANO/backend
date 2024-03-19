@@ -8,7 +8,8 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.errors.NotFoundException
-import no.ndla.myndla.model.api.{SingleResourceStats, Stats}
+import no.ndla.common.model.api.SingleResourceStats
+import no.ndla.myndla.model.api.Stats
 import no.ndla.myndla.service.FolderReadService
 import no.ndla.myndlaapi.Eff
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -52,8 +53,19 @@ trait StatsController {
         folderReadService.getFavouriteStatsForResource(resourceIds.values, resourceType.values).handleErrorsOrOk
       }
 
+    def getAllTheFavorites: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Get number of favorites for favorited resources")
+      .description("Get number of favorites for favorited resources")
+      .in("favorites")
+      .out(jsonBody[Map[String, Map[String, Long]]])
+      .errorOut(errorOutputsFor(400))
+      .serverLogicPure { _ =>
+        folderReadService.getAllTheFavorites.handleErrorsOrOk
+      }
+
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getStats,
+      getAllTheFavorites,
       getFolderResourceFavorites
     )
   }

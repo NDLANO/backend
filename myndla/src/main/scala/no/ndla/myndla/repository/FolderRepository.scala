@@ -296,6 +296,23 @@ trait FolderRepository {
           Success(resourceId)
       }
 
+    def getAllFavorites(implicit session: DBSession): Try[Map[String, Map[String, Long]]] = Try {
+      sql"""
+          select count(*) as count, document->>'resourceId' as resource_id, resource_type
+          from ${FolderResource.table} fr
+          inner join ${Resource.table} r on fr.resource_id = r.id
+          group by document->>'resourceId',resource_type
+         """
+        .foldLeft(Map.empty[String, Map[String, Long]]) { case (acc, rs) =>
+          val count        = rs.long("count")
+          val resourceId   = rs.string("resource_id")
+          val resourceType = rs.string("resource_type")
+          val rtMap        = acc.getOrElse(resourceType, Map.empty)
+          val newRtMap     = rtMap + (resourceId -> count)
+          acc + (resourceType -> newRtMap)
+        }
+    }
+
     def numberOfFavouritesForResource(resourceId: String, resourceType: String)(implicit
         session: DBSession
     ): Try[Long] = Try {

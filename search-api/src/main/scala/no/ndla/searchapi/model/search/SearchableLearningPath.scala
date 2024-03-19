@@ -31,7 +31,8 @@ case class SearchableLearningPath(
     isBasedOn: Option[Long],
     supportedLanguages: List[String],
     authors: List[String],
-    contexts: List[SearchableTaxonomyContext]
+    contexts: List[SearchableTaxonomyContext],
+    favorited: Long
 )
 
 object SearchableLearningPath {

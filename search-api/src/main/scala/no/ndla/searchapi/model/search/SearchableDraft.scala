@@ -49,7 +49,8 @@ case class SearchableDraft(
     primaryRoot: SearchableLanguageValues,
     resourceTypeName: SearchableLanguageValues,
     defaultResourceTypeName: Option[String],
-    published: NDLADate
+    published: NDLADate,
+    favorited: Long
 )
 
 object SearchableDraft {
