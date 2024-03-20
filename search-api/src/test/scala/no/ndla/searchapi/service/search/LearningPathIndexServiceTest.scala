@@ -73,7 +73,8 @@ class LearningPathIndexServiceTest
     val searchableToTestWith = searchConverterService
       .asSearchableLearningPath(
         domainLearningPath,
-        Some(TestData.taxonomyTestBundle)
+        Some(TestData.taxonomyTestBundle),
+        None
       )
       .get
 

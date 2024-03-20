@@ -347,7 +347,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableDraft(
         TestData.draft1,
         Some(TestData.taxonomyTestBundle),
-        Some(TestData.emptyGrepBundle)
+        Some(TestData.emptyGrepBundle),
+        None
       )
 
     searchable1.contexts.size should be(3)
@@ -394,7 +395,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       SearchableGrepContext("TT2", None)
     )
     val Success(searchableArticle) =
-      searchConverterService.asSearchableDraft(draft, Some(emptyBundle), Some(TestData.emptyGrepBundle))
+      searchConverterService.asSearchableDraft(draft, Some(emptyBundle), Some(TestData.emptyGrepBundle), None)
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -414,7 +415,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       SearchableGrepContext("TT2", Some("tittel2"))
     )
     val Success(searchableArticle) =
-      searchConverterService.asSearchableDraft(draft, Some(emptyBundle), Some(grepBundle))
+      searchConverterService.asSearchableDraft(draft, Some(emptyBundle), Some(grepBundle), None)
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -431,7 +432,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val grepContexts = List.empty
 
     val Success(searchableArticle) =
-      searchConverterService.asSearchableDraft(draft, Some(emptyBundle), Some(grepBundle))
+      searchConverterService.asSearchableDraft(draft, Some(emptyBundle), Some(grepBundle), None)
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -479,7 +480,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That asSearchableDraft extracts all users from notes correctly") {
     val draft =
-      searchConverterService.asSearchableDraft(TestData.draft5, Some(emptyBundle), Some(TestData.emptyGrepBundle))
+      searchConverterService.asSearchableDraft(TestData.draft5, Some(emptyBundle), Some(TestData.emptyGrepBundle), None)
     draft.get.users.length should be(2)
     draft.get.users should be(List("ndalId54321", "ndalId12345"))
   }

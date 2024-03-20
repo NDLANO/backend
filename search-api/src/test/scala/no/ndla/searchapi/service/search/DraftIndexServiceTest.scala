@@ -89,7 +89,8 @@ class DraftIndexServiceTest
       .asSearchableDraft(
         domainDraft,
         Some(TestData.taxonomyTestBundle),
-        Some(TestData.emptyGrepBundle)
+        Some(TestData.emptyGrepBundle),
+        None
       )
       .get
 

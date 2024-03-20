@@ -8,6 +8,7 @@
 package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.api.MyNDLABundle
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -27,16 +28,16 @@ import no.ndla.common.model.domain.{
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain._
+import no.ndla.searchapi.model.domain.*
 import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningPathVerificationStatus}
 import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
-import no.ndla.searchapi.model.search._
+import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.model.taxonomy._
+import no.ndla.searchapi.model.taxonomy.*
 
 import java.net.URI
 import java.util.UUID
@@ -1537,6 +1538,8 @@ object TestData {
 
   val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
 
+  val myndlaTestBundle: MyNDLABundle = MyNDLABundle(Map.empty)
+
   val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
@@ -1746,6 +1749,7 @@ object TestData {
     defaultRoot = searchableTitles.defaultValue,
     resourceTypeName = searchableTitles,
     defaultResourceTypeName = searchableTitles.defaultValue,
-    published = TestData.today
+    published = TestData.today,
+    favorited = 0
   )
 }

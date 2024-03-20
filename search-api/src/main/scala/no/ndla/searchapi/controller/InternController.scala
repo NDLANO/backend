@@ -19,7 +19,7 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.searchapi.{Eff, Props}
-import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
@@ -43,7 +43,8 @@ trait InternController {
     with TaxonomyApiClient
     with GrepApiClient
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with MyNDLAApiClient =>
   val internController: InternController
 
   class InternController extends Service[Eff] with StrictLogging {
@@ -285,13 +286,14 @@ trait InternController {
           taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
           taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
           grepBundle              <- grepApiClient.getGrepBundle()
-        } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
+          myndlaBundle            <- myndlaapiClient.getMyNDLABundle
+        } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
 
         val start = System.currentTimeMillis()
 
         bundles match {
           case Failure(ex) => returnLeftError(ex)
-          case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
+          case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
             logger.info("Cleaning up unreferenced indexes before reindexing...")
             learningPathIndexService.cleanupIndexes(): Unit
             articleIndexService.cleanupIndexes(): Unit
@@ -303,16 +305,19 @@ trait InternController {
                 requestInfo.setThreadContextRequestInfo()
                 (
                   "learningpaths",
-                  learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards)
+                  learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards, myndlaBundle)
                 )
               },
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
+                (
+                  "articles",
+                  articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards, myndlaBundle)
+                )
               },
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle, numShards))
+                ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle, numShards, myndlaBundle))
               }
             )
             if (runInBackground) {

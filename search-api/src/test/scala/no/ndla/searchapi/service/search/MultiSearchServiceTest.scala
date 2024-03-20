@@ -65,11 +65,21 @@ class MultiSearchServiceTest
       learningPathIndexService.createIndexAndAlias()
 
       articlesToIndex.map(article =>
-        articleIndexService.indexDocument(article, Some(taxonomyTestBundle), Some(grepBundle))
+        articleIndexService.indexDocument(
+          article,
+          Some(taxonomyTestBundle),
+          Some(grepBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
 
       learningPathsToIndex.map(lp =>
-        learningPathIndexService.indexDocument(lp, Some(taxonomyTestBundle), Some(emptyGrepBundle))
+        learningPathIndexService.indexDocument(
+          lp,
+          Some(taxonomyTestBundle),
+          Some(emptyGrepBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
 
       blockUntil(() => {

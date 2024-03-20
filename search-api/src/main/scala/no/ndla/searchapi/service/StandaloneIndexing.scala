@@ -92,13 +92,14 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       taxonomyBundleDraft     <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(false)
       taxonomyBundlePublished <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(true)
       grepBundle              <- componentRegistry.grepApiClient.getGrepBundle()
-    } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
+      myndlaBundle            <- componentRegistry.myndlaapiClient.getMyNDLABundle
+    } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
 
     val start = System.currentTimeMillis()
 
     val reindexResult = bundles match {
       case Failure(ex) => Seq(Failure(ex))
-      case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
+      case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
@@ -108,7 +109,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         )(implicit d: Decoder[C]): Future[Try[ReindexResult]] = {
           val taxonomyBundle = if (shouldUsePublishedTax) taxonomyBundlePublished else taxonomyBundleDraft
           val reindexFuture = Future {
-            indexService.indexDocuments(taxonomyBundle, grepBundle)
+            indexService.indexDocuments(taxonomyBundle, grepBundle, myndlaBundle)
           }
           reindexFuture.onComplete {
             case Success(Success(reindexResult: ReindexResult)) =>

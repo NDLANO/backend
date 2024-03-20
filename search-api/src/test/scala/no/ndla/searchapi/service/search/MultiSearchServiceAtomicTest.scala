@@ -85,9 +85,9 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
     )
     val article3 = TestData.article1.copy(id = Some(3))
-    articleIndexService.indexDocument(article1, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article2, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article3, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle)).get
+    articleIndexService.indexDocument(article1, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
+    articleIndexService.indexDocument(article2, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
+    articleIndexService.indexDocument(article3, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 3
@@ -269,7 +269,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       TaxonomyBundle(nodes = nodes)
     }
 
-    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle)).get
+    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 1
@@ -397,7 +397,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       TaxonomyBundle(nodes = nodes)
     }
 
-    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle)).get
+    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 1
@@ -596,11 +596,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       TaxonomyBundle(nodes = nodes)
     }
 
-    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article2, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article3, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article4, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article5, Some(taxonomyBundle), Some(TestData.grepBundle)).get
+    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
+    articleIndexService.indexDocument(article2, Some(taxonomyBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
+    articleIndexService.indexDocument(article3, Some(taxonomyBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
+    articleIndexService.indexDocument(article4, Some(taxonomyBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
+    articleIndexService.indexDocument(article5, Some(taxonomyBundle), Some(TestData.grepBundle), Some(TestData.myndlaTestBundle)).get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 5

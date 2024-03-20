@@ -129,7 +129,8 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       defaultRoot = titles.defaultValue,
       resourceTypeName = titles,
       defaultResourceTypeName = titles.defaultValue,
-      published = TestData.today
+      published = TestData.today,
+      favorited = 0
     )
 
     val json         = CirceUtil.toJsonString(original)

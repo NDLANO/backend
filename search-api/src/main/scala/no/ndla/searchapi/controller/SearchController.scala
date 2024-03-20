@@ -26,7 +26,12 @@ import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.service.search.{MultiDraftSearchService, MultiSearchService, SearchConverterService, SearchService}
+import no.ndla.searchapi.service.search.{
+  MultiDraftSearchService,
+  MultiSearchService,
+  SearchConverterService,
+  SearchService
+}
 import sttp.model.QueryParams
 
 import java.util.concurrent.Executors
@@ -170,7 +175,7 @@ trait SearchController {
       .out(jsonBody[SubjectAggregations])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { user =>  input =>
+      .serverLogicPure { _ => input =>
         val subjects = input.subjects.getOrElse(List.empty)
         multiDraftSearchService.aggregateSubjects(subjects).handleErrorsOrOk
       }

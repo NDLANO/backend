@@ -87,7 +87,11 @@ class LearningpathApiClientTest
     val fetchedLearningPath = chunks.head.get.head
 
     val searchable =
-      searchConverterService.asSearchableLearningPath(fetchedLearningPath, Some(searchapi.TestData.taxonomyTestBundle))
+      searchConverterService.asSearchableLearningPath(
+        fetchedLearningPath,
+        Some(searchapi.TestData.taxonomyTestBundle),
+        None
+      )
 
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "tittel")))

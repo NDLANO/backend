@@ -13,8 +13,8 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.TestEnvironment
+import no.ndla.searchapi.TestData.*
+import no.ndla.searchapi.{TestData, TestEnvironment}
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import org.scalatest.Outcome
@@ -59,11 +59,11 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       learningPathIndexService.createIndexAndAlias()
 
       draftsToIndex.map(draft =>
-        draftIndexService.indexDocument(draft, Some(taxonomyTestBundle), Some(emptyGrepBundle))
+        draftIndexService.indexDocument(draft, Some(taxonomyTestBundle), Some(emptyGrepBundle), Some(TestData.myndlaTestBundle))
       )
 
       learningPathsToIndex.map(lp =>
-        learningPathIndexService.indexDocument(lp, Some(taxonomyTestBundle), Some(emptyGrepBundle))
+        learningPathIndexService.indexDocument(lp, Some(taxonomyTestBundle), Some(emptyGrepBundle), Some(TestData.myndlaTestBundle))
       )
 
       blockUntil(() => {

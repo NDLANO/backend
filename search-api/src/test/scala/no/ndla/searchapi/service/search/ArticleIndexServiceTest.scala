@@ -56,9 +56,30 @@ class ArticleIndexServiceTest
   override val searchConverterService = new SearchConverterService
 
   test("That articles are indexed correctly") {
-    articleIndexService.indexDocument(article5, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
-    articleIndexService.indexDocument(article6, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
-    articleIndexService.indexDocument(article7, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
+    articleIndexService
+      .indexDocument(
+        article5,
+        Some(TestData.taxonomyTestBundle),
+        Some(TestData.emptyGrepBundle),
+        Some(TestData.myndlaTestBundle)
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article6,
+        Some(TestData.taxonomyTestBundle),
+        Some(TestData.emptyGrepBundle),
+        Some(TestData.myndlaTestBundle)
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article7,
+        Some(TestData.taxonomyTestBundle),
+        Some(TestData.emptyGrepBundle),
+        Some(TestData.myndlaTestBundle)
+      )
+      .get
 
     blockUntil(() => { articleIndexService.countDocuments == 3 })
 

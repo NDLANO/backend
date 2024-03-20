@@ -94,7 +94,8 @@ class DraftApiClientTest
       .asSearchableDraft(
         fetchedDraft,
         Some(searchapi.TestData.taxonomyTestBundle),
-        Some(searchapi.TestData.emptyGrepBundle)
+        Some(searchapi.TestData.emptyGrepBundle),
+        None
       )
 
     searchable.isSuccess should be(true)

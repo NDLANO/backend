@@ -13,6 +13,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.MyNDLABundle
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
@@ -35,11 +36,13 @@ trait LearningPathIndexService {
         domainModel: LearningPath,
         indexName: String,
         taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle]
+        grepBundle: Option[GrepBundle],
+        myndlaBundle: Option[MyNDLABundle]
     ): Try[IndexRequest] = {
-      searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle).map { searchableLearningPath =>
-        val source = CirceUtil.toJsonString(searchableLearningPath)
-        indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+      searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle, myndlaBundle).map {
+        searchableLearningPath =>
+          val source = CirceUtil.toJsonString(searchableLearningPath)
+          indexInto(indexName).doc(source).id(domainModel.id.get.toString)
       }
     }
 

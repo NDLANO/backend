@@ -13,6 +13,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.MyNDLABundle
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.DraftApiClient
@@ -35,11 +36,13 @@ trait DraftIndexService {
         domainModel: Draft,
         indexName: String,
         taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle]
+        grepBundle: Option[GrepBundle],
+        myndlaBundle: Option[MyNDLABundle]
     ): Try[IndexRequest] = {
-      searchConverterService.asSearchableDraft(domainModel, taxonomyBundle, grepBundle).map { searchableDraft =>
-        val source = CirceUtil.toJsonString(searchableDraft)
-        indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+      searchConverterService.asSearchableDraft(domainModel, taxonomyBundle, grepBundle, myndlaBundle).map {
+        searchableDraft =>
+          val source = CirceUtil.toJsonString(searchableDraft)
+          indexInto(indexName).doc(source).id(domainModel.id.get.toString)
       }
     }
 

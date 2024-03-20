@@ -12,6 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.implicits._
 import no.ndla.common.model.api.{Author, License, MyNDLABundle}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
@@ -253,10 +254,10 @@ trait SearchConverterService {
           )
       }
 
-      val favorited = myndlaBundle match {
-        case Some(value) => value.getFavorites(lp.id.get.toString, "learningpath")
-        case None => myndlaApiClient
-      }
+      val favorited = (myndlaBundle match {
+        case Some(value) => Success(value.getFavorites(lp.id.get.toString, "learningpath"))
+        case None => myndlaapiClient.getStatsFor(lp.id.get.toString, List("learningpath")).map(_.map(_.favourites).sum)
+      }).?
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
@@ -288,7 +289,7 @@ trait SearchConverterService {
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
-          favorited =
+          favorited = favorited
         )
       )
     }
@@ -296,7 +297,8 @@ trait SearchConverterService {
     def asSearchableDraft(
         draft: Draft,
         taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle]
+        grepBundle: Option[GrepBundle],
+        myndlaBundle: Option[MyNDLABundle]
     ): Try[SearchableDraft] = {
       val taxonomyContexts = {
         val draftId = draft.id.get
@@ -362,6 +364,14 @@ trait SearchConverterService {
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
+      val favorited = (myndlaBundle match {
+        case Some(value) => Success(value.getFavorites(draft.id.get.toString, List("article", "multidisciplinary")))
+        case None =>
+          myndlaapiClient
+            .getStatsFor(draft.id.get.toString, List("article", "multidisciplinary"))
+            .map(_.map(_.favourites).sum)
+      }).?
+
       val title           = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
       val content         = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
       val visualElement   = model.SearchableLanguageValues.fromFields(draft.visualElement)
@@ -403,7 +413,8 @@ trait SearchConverterService {
           defaultRoot = primaryRoot.defaultValue,
           resourceTypeName = sortableResourceTypeName,
           defaultResourceTypeName = sortableResourceTypeName.defaultValue,
-          published = draft.published
+          published = draft.published,
+          favorited = favorited
         )
       )
     }
