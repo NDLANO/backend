@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Author, License, MyNDLABundle}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
@@ -30,7 +30,7 @@ import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
-import no.ndla.searchapi.model.domain.LearningResourceType
+import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType}
 import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
@@ -164,11 +164,10 @@ trait SearchConverterService {
 
     def asSearchableArticle(
         ai: Article,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle]
+        indexingBundle: IndexingBundle
     ): Try[SearchableArticle] = {
       val articleId = ai.id.get
-      val taxonomyContexts = taxonomyBundle match {
+      val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
           Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = true))
         case None =>
@@ -227,7 +226,7 @@ trait SearchConverterService {
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
-          grepContexts = getGrepContexts(ai.grepCodes, grepBundle),
+          grepContexts = getGrepContexts(ai.grepCodes, indexingBundle.grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
@@ -237,12 +236,8 @@ trait SearchConverterService {
 
     }
 
-    def asSearchableLearningPath(
-        lp: LearningPath,
-        taxonomyBundle: Option[TaxonomyBundle],
-        myndlaBundle: Option[MyNDLABundle]
-    ): Try[SearchableLearningPath] = {
-      val taxonomyContexts = taxonomyBundle match {
+    def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] = {
+      val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
           Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = true))
         case None =>
@@ -254,7 +249,7 @@ trait SearchConverterService {
           )
       }
 
-      val favorited = (myndlaBundle match {
+      val favorited = (indexingBundle.myndlaBundle match {
         case Some(value) => Success(value.getFavorites(lp.id.get.toString, "learningpath"))
         case None => myndlaapiClient.getStatsFor(lp.id.get.toString, List("learningpath")).map(_.map(_.favourites).sum)
       }).?
@@ -294,15 +289,10 @@ trait SearchConverterService {
       )
     }
 
-    def asSearchableDraft(
-        draft: Draft,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle],
-        myndlaBundle: Option[MyNDLABundle]
-    ): Try[SearchableDraft] = {
+    def asSearchableDraft(draft: Draft, indexingBundle: IndexingBundle): Try[SearchableDraft] = {
       val taxonomyContexts = {
         val draftId = draft.id.get
-        taxonomyBundle match {
+        indexingBundle.taxonomyBundle match {
           case Some(bundle) =>
             Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = true))
           case None =>
@@ -364,7 +354,7 @@ trait SearchConverterService {
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
-      val favorited = (myndlaBundle match {
+      val favorited = (indexingBundle.myndlaBundle match {
         case Some(value) => Success(value.getFavorites(draft.id.get.toString, List("article", "multidisciplinary")))
         case None =>
           myndlaapiClient
@@ -398,7 +388,7 @@ trait SearchConverterService {
           contexts = asSearchableTaxonomyContexts(taxonomyContexts),
           users = users.distinct,
           previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
-          grepContexts = getGrepContexts(draft.grepCodes, grepBundle),
+          grepContexts = getGrepContexts(draft.grepCodes, indexingBundle.grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,

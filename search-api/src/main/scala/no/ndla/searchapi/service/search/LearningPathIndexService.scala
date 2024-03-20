@@ -13,13 +13,11 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.api.MyNDLABundle
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.LearningPathApiClient
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
-import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.search.SearchType
-import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 
 import scala.util.Try
 
@@ -35,14 +33,11 @@ trait LearningPathIndexService {
     override def createIndexRequest(
         domainModel: LearningPath,
         indexName: String,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle],
-        myndlaBundle: Option[MyNDLABundle]
+        indexingBundle: IndexingBundle
     ): Try[IndexRequest] = {
-      searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle, myndlaBundle).map {
-        searchableLearningPath =>
-          val source = CirceUtil.toJsonString(searchableLearningPath)
-          indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+      searchConverterService.asSearchableLearningPath(domainModel, indexingBundle).map { searchableLearningPath =>
+        val source = CirceUtil.toJsonString(searchableLearningPath)
+        indexInto(indexName).doc(source).id(domainModel.id.get.toString)
       }
     }
 

@@ -13,10 +13,10 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.searchapi.TestData._
+import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
-import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
+import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatest.Outcome
 
@@ -67,18 +67,22 @@ class MultiSearchServiceTest
       articlesToIndex.map(article =>
         articleIndexService.indexDocument(
           article,
-          Some(taxonomyTestBundle),
-          Some(grepBundle),
-          Some(TestData.myndlaTestBundle)
+          IndexingBundle(
+            Some(grepBundle),
+            Some(taxonomyTestBundle),
+            Some(TestData.myndlaTestBundle)
+          )
         )
       )
 
       learningPathsToIndex.map(lp =>
         learningPathIndexService.indexDocument(
           lp,
-          Some(taxonomyTestBundle),
-          Some(emptyGrepBundle),
-          Some(TestData.myndlaTestBundle)
+          IndexingBundle(
+            Some(emptyGrepBundle),
+            Some(taxonomyTestBundle),
+            Some(TestData.myndlaTestBundle)
+          )
         )
       )
 

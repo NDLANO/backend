@@ -13,6 +13,7 @@ import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus, RevisionM
 import no.ndla.common.model.domain.{ArticleContent, Author, EditorNote, Responsible, Status}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatest.Outcome
 
@@ -88,9 +89,11 @@ class DraftIndexServiceTest
     val searchableToTestWith = searchConverterService
       .asSearchableDraft(
         domainDraft,
-        Some(TestData.taxonomyTestBundle),
-        Some(TestData.emptyGrepBundle),
-        None
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          None
+        )
       )
       .get
 

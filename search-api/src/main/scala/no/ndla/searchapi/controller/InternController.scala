@@ -21,7 +21,7 @@ import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.searchapi.{Eff, Props}
 import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.model.domain.ReindexResult
+import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
 import sttp.model.StatusCode
@@ -299,25 +299,31 @@ trait InternController {
             articleIndexService.cleanupIndexes(): Unit
             draftIndexService.cleanupIndexes(): Unit
 
+            val publishedIndexingBundle = IndexingBundle(
+              grepBundle = Some(grepBundle),
+              taxonomyBundle = Some(taxonomyBundlePublished),
+              myndlaBundle = Some(myndlaBundle)
+            )
+
+            val draftIndexingBundle = IndexingBundle(
+              grepBundle = Some(grepBundle),
+              taxonomyBundle = Some(taxonomyBundleDraft),
+              myndlaBundle = Some(myndlaBundle)
+            )
+
             val requestInfo = RequestInfo.fromThreadContext()
             val indexes = List(
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                (
-                  "learningpaths",
-                  learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards, myndlaBundle)
-                )
+                ("learningpaths", learningPathIndexService.indexDocuments(numShards, publishedIndexingBundle))
               },
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                (
-                  "articles",
-                  articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards, myndlaBundle)
-                )
+                ("articles", articleIndexService.indexDocuments(numShards, publishedIndexingBundle))
               },
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle, numShards, myndlaBundle))
+                ("drafts", draftIndexService.indexDocuments(numShards, draftIndexingBundle))
               }
             )
             if (runInBackground) {

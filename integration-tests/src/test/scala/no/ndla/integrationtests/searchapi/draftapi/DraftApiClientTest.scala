@@ -14,6 +14,7 @@ import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{draftapi, searchapi}
 import org.testcontainers.containers.PostgreSQLContainer
 
@@ -93,9 +94,11 @@ class DraftApiClientTest
     val searchable = searchConverterService
       .asSearchableDraft(
         fetchedDraft,
-        Some(searchapi.TestData.taxonomyTestBundle),
-        Some(searchapi.TestData.emptyGrepBundle),
-        None
+        IndexingBundle(
+          Some(searchapi.TestData.emptyGrepBundle),
+          Some(searchapi.TestData.taxonomyTestBundle),
+          None
+        )
       )
 
     searchable.isSuccess should be(true)

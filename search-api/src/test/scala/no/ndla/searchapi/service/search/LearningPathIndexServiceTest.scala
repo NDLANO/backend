@@ -7,11 +7,12 @@
 
 package no.ndla.searchapi.service.search
 
-import io.circe.syntax._
+import io.circe.syntax.*
 import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.domain.learningpath.{Description, LearningStep, StepStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatest.Outcome
@@ -73,8 +74,11 @@ class LearningPathIndexServiceTest
     val searchableToTestWith = searchConverterService
       .asSearchableLearningPath(
         domainLearningPath,
-        Some(TestData.taxonomyTestBundle),
-        None
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          None
+        )
       )
       .get
 

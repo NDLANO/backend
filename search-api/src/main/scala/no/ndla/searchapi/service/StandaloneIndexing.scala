@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.Environment.{booleanPropOrFalse, prop}
 import no.ndla.common.model.domain.Content
-import no.ndla.searchapi.model.domain.ReindexResult
+import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import sttp.client3.quick.*
 
@@ -108,9 +108,13 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
             shouldUsePublishedTax: Boolean
         )(implicit d: Decoder[C]): Future[Try[ReindexResult]] = {
           val taxonomyBundle = if (shouldUsePublishedTax) taxonomyBundlePublished else taxonomyBundleDraft
-          val reindexFuture = Future {
-            indexService.indexDocuments(taxonomyBundle, grepBundle, myndlaBundle)
-          }
+          val indexingBundle = IndexingBundle(
+            grepBundle = Some(grepBundle),
+            taxonomyBundle = Some(taxonomyBundle),
+            myndlaBundle = Some(myndlaBundle)
+          )
+          val reindexFuture = Future { indexService.indexDocuments(indexingBundle) }
+
           reindexFuture.onComplete {
             case Success(Success(reindexResult: ReindexResult)) =>
               logger.info(

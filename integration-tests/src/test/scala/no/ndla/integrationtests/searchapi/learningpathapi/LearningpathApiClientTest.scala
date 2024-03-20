@@ -14,6 +14,7 @@ import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{learningpathapi, searchapi}
 import org.testcontainers.containers.PostgreSQLContainer
 
@@ -89,8 +90,11 @@ class LearningpathApiClientTest
     val searchable =
       searchConverterService.asSearchableLearningPath(
         fetchedLearningPath,
-        Some(searchapi.TestData.taxonomyTestBundle),
-        None
+        IndexingBundle(
+          None,
+          Some(searchapi.TestData.taxonomyTestBundle),
+          None
+        )
       )
 
     searchable.isSuccess should be(true)

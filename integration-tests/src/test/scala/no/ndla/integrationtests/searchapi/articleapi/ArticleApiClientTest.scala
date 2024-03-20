@@ -13,6 +13,7 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -101,7 +102,7 @@ class ArticleApiClientTest
     val chunks         = articleApiClient.getChunks[Article].toList
     val fetchedArticle = chunks.head.get.head
     val searchable = searchConverterService
-      .asSearchableArticle(fetchedArticle, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle))
+      .asSearchableArticle(fetchedArticle, IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), None))
 
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))

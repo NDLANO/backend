@@ -15,16 +15,13 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
-import no.ndla.common.model.api.MyNDLABundle
 import no.ndla.common.model.domain.Content
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.ElasticIndexingException
-import no.ndla.searchapi.model.domain.ReindexResult
-import no.ndla.searchapi.model.grep.GrepBundle
-import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
+import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 
 import scala.util.{Failure, Success, Try}
 
@@ -41,13 +38,7 @@ trait IndexService {
     val apiClient: SearchApiClient
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
-    def createIndexRequest(
-        domainModel: D,
-        indexName: String,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle],
-        myndlaBundle: Option[MyNDLABundle]
-    ): Try[IndexRequest]
+    def createIndexRequest(domainModel: D, indexName: String, indexingBundle: IndexingBundle): Try[IndexRequest]
 
     def indexDocument(imported: D): Try[D] = {
       val grepBundle = grepApiClient.getGrepBundle() match {
@@ -59,74 +50,65 @@ trait IndexService {
           None
       }
 
-      indexDocument(imported, None, grepBundle, None)
+      val indexingBundle = IndexingBundle(grepBundle = grepBundle, taxonomyBundle = None, myndlaBundle = None)
+      indexDocument(imported, indexingBundle)
     }
 
     def indexDocument(
         imported: D,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle],
-        myndlaBundle: Option[MyNDLABundle]
+        indexingBundle: IndexingBundle
     ): Try[D] = {
       for {
         _       <- createIndexIfNotExists()
-        request <- createIndexRequest(imported, searchIndex, taxonomyBundle, grepBundle, myndlaBundle)
-        _ <- e4sClient.execute {
-          request
-        }
+        request <- createIndexRequest(imported, searchIndex, indexingBundle)
+        _       <- e4sClient.execute(request)
       } yield imported
     }
     def indexDocuments(shouldUsePublishedTax: Boolean)(implicit d: Decoder[D]): Try[ReindexResult] =
       indexDocuments(shouldUsePublishedTax, None)
 
-    def indexDocuments(
-        shouldUsePublishedTax: Boolean,
-        numShards: Option[Int]
-    )(implicit d: Decoder[D]): Try[ReindexResult] = {
+    def indexDocuments(shouldUsePublishedTax: Boolean, numShards: Option[Int])(implicit
+        d: Decoder[D]
+    ): Try[ReindexResult] = {
       val bundles = for {
         taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(shouldUsePublishedTax)
         grepBundle     <- grepApiClient.getGrepBundle()
         myndlaBundle   <- myndlaapiClient.getMyNDLABundle
-      } yield (taxonomyBundle, grepBundle, myndlaBundle)
+      } yield IndexingBundle(Some(grepBundle), Some(taxonomyBundle), Some(myndlaBundle))
       bundles match {
         case Failure(ex) =>
           logger.error(s"Grep and/or Taxonomy could not be fetched when reindexing all $documentType")
           Failure(ex)
-        case Success((taxonomyBundle, grepBundle, myndlabundle)) =>
-          indexDocuments(taxonomyBundle, grepBundle, numShards, myndlabundle)
+        case Success(indexingBundle) =>
+          indexDocuments(numShards, indexingBundle)
       }
     }
 
     def reindexDocument(id: Long)(implicit d: Decoder[D]): Try[D] = {
       for {
         grepBundle <- grepApiClient.getGrepBundle()
-        _          <- createIndexIfNotExists()
-        toIndex    <- apiClient.getSingle[D](id)
-        request    <- createIndexRequest(toIndex, searchIndex, None, Some(grepBundle), None)
+        indexingBundle = IndexingBundle(grepBundle = Some(grepBundle), None, None)
+        _       <- createIndexIfNotExists()
+        toIndex <- apiClient.getSingle[D](id)
+        request <- createIndexRequest(toIndex, searchIndex, indexingBundle)
         _ <- e4sClient.execute {
           request
         }
       } yield toIndex
     }
 
-    def indexDocuments(
-        taxonomyBundle: TaxonomyBundle,
-        grepBundle: GrepBundle,
-        myndlaBundle: MyNDLABundle
-    )(implicit d: Decoder[D]): Try[ReindexResult] =
-      indexDocuments(taxonomyBundle, grepBundle, None, myndlaBundle)
+    def indexDocuments(indexingBundle: IndexingBundle)(implicit d: Decoder[D]): Try[ReindexResult] =
+      indexDocuments(None, indexingBundle)
 
     def indexDocuments(
-        taxonomyBundle: TaxonomyBundle,
-        grepBundle: GrepBundle,
         numShards: Option[Int],
-        myndlaBundle: MyNDLABundle
+        indexingBundle: IndexingBundle
     )(implicit
         d: Decoder[D]
     ): Try[ReindexResult] = {
       val start = System.currentTimeMillis()
       createIndexWithGeneratedName(numShards).flatMap(indexName => {
-        sendToElastic(indexName, taxonomyBundle, grepBundle, myndlaBundle) match {
+        sendToElastic(indexName, indexingBundle) match {
           case Failure(ex) =>
             deleteIndexWithName(Some(indexName)): Unit
             Failure(ex)
@@ -156,21 +138,15 @@ trait IndexService {
       })
     }
 
-    def sendToElastic(
-        indexName: String,
-        taxonomyBundle: TaxonomyBundle,
-        grepBundle: GrepBundle,
-        myndlaBundle: MyNDLABundle
-    )(implicit d: Decoder[D]): Try[(Int, Int)] = {
+    def sendToElastic(indexName: String, indexingBundle: IndexingBundle)(implicit d: Decoder[D]): Try[(Int, Int)] = {
 
       val chunks = apiClient.getChunks[D]
       val results = chunks
         .map({
           case Failure(ex) => Failure(ex)
           case Success(c) =>
-            indexDocuments(c, indexName, taxonomyBundle, grepBundle, myndlaBundle).map(numIndexed =>
-              (numIndexed, c.size)
-            )
+            indexDocuments(c, indexName, indexingBundle)
+              .map(numIndexed => (numIndexed, c.size))
         })
         .toList
 
@@ -195,16 +171,12 @@ trait IndexService {
     def indexDocuments(
         contents: Seq[D],
         indexName: String,
-        taxonomyBundle: TaxonomyBundle,
-        grepBundle: GrepBundle,
-        myndlaBundle: MyNDLABundle
+        indexingBundle: IndexingBundle
     ): Try[Int] = {
       if (contents.isEmpty) {
         Success(0)
       } else {
-        val req = contents.map(content => {
-          createIndexRequest(content, indexName, Some(taxonomyBundle), Some(grepBundle), Some(myndlaBundle))
-        })
+        val req                    = contents.map(content => createIndexRequest(content, indexName, indexingBundle))
         val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
         val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 

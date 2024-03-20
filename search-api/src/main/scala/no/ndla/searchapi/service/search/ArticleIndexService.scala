@@ -16,6 +16,7 @@ import no.ndla.common.model.api.MyNDLABundle
 import no.ndla.common.model.domain.article.Article
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.ArticleApiClient
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
@@ -34,11 +35,9 @@ trait ArticleIndexService {
     override def createIndexRequest(
         domainModel: Article,
         indexName: String,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle],
-        myndlaBundle: Option[MyNDLABundle]
+        indexingBundle: IndexingBundle
     ): Try[IndexRequest] = {
-      searchConverterService.asSearchableArticle(domainModel, taxonomyBundle, grepBundle).map { searchableArticle =>
+      searchConverterService.asSearchableArticle(domainModel, indexingBundle).map { searchableArticle =>
         val source = CirceUtil.toJsonString(searchableArticle)
         indexInto(indexName).doc(source).id(domainModel.id.get.toString)
       }
