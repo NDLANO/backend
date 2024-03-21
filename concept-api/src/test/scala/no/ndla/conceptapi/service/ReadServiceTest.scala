@@ -70,7 +70,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     )
     val concept2 = service.publishedConceptWithId(id = 1L, language = "nn", fallback = true, Some(userInfo))
     concept2.get.visualElement.get.visualElement should equal(
-      s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p.ndla.no/resource/uuid\" />"
+      s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p-test.ndla.no/resource/uuid\" />"
     )
 
   }
