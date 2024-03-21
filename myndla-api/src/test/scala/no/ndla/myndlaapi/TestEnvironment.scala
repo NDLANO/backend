@@ -9,15 +9,6 @@ package no.ndla.myndlaapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.myndla.MyNDLAAuthHelpers
-import no.ndla.myndla.repository.{ConfigRepository, FolderRepository, UserRepository}
-import no.ndla.myndla.service.{
-  ConfigService,
-  FolderConverterService,
-  FolderReadService,
-  FolderWriteService,
-  UserService
-}
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
@@ -29,8 +20,8 @@ import no.ndla.myndlaapi.controller.{
 }
 import no.ndla.myndlaapi.integration.DataSource
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.repository.ArenaRepository
-import no.ndla.myndlaapi.service.{ArenaReadService, ConverterService, ImportService}
+import no.ndla.myndlaapi.repository.{ArenaRepository, ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndlaapi.service.{ArenaReadService, ConfigService, ConverterService, FolderConverterService, FolderReadService, FolderWriteService, ImportService, UserService}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   NdlaMiddleware,

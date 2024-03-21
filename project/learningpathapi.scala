@@ -31,8 +31,7 @@ object learningpathapi extends Module {
     imports = Seq(
       "no.ndla.learningpathapi.model.api._",
       "no.ndla.common.model.api._",
-      "no.ndla.myndla.model.api.config._",
-      "no.ndla.myndla.model.api._"
+      "no.ndla.common.model.api.config._",
     ),
     exports = Seq(
       "Author",
@@ -48,14 +47,7 @@ object learningpathapi extends Module {
       "License",
       "SearchResultV2",
       "ConfigMetaRestricted",
-      "MyNDLAUser",
-      "config.ConfigMeta",
-      "Folder",
-      "FolderData",
-      "NewFolder",
-      "UpdatedFolder",
-      "NewResource",
-      "UpdatedResource"
+      "config.ConfigMeta"
     )
   )
 

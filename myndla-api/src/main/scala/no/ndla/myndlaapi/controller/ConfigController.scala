@@ -7,9 +7,6 @@
 
 package no.ndla.myndlaapi.controller
 
-import no.ndla.myndla.model.api.config.{ConfigMeta, ConfigMetaRestricted, ConfigMetaValue}
-import no.ndla.myndla.model.domain.config.ConfigKey
-import no.ndla.myndla.service.ConfigService
 import no.ndla.myndlaapi.Eff
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
@@ -20,6 +17,9 @@ import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.codec.enumeratum._
 import io.circe.generic.auto._
+import no.ndla.common.model.api.config.{ConfigMeta, ConfigMetaRestricted, ConfigMetaValue}
+import no.ndla.common.model.domain.config.ConfigKey
+import no.ndla.myndlaapi.service.ConfigService
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
 trait ConfigController {

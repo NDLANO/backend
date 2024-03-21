@@ -8,7 +8,7 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.api.SingleResourceStats
-import no.ndla.myndla.model.api.Stats
+import no.ndla.myndlaapi.model.api.Stats
 import no.ndla.myndlaapi.{Eff, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest

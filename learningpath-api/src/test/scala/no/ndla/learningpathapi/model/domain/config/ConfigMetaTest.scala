@@ -7,8 +7,8 @@
 
 package no.ndla.learningpathapi.model.domain.config
 
+import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
-import no.ndla.myndla.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 
 class ConfigMetaTest extends UnitSuite with UnitTestEnvironment {
 

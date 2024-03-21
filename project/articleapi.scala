@@ -38,7 +38,7 @@ object articleapi extends Module {
       "ArticleV2",
       "ArticleSearchParams",
       "ArticleSummaryV2",
-      "Availability.type",
+      "Availability",
       "SearchResultV2",
       "TagsSearchResult",
       "ArticleDump",

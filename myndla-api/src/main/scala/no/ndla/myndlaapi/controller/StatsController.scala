@@ -9,9 +9,9 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.api.SingleResourceStats
-import no.ndla.myndla.model.api.Stats
-import no.ndla.myndla.service.FolderReadService
 import no.ndla.myndlaapi.Eff
+import no.ndla.myndlaapi.model.api.Stats
+import no.ndla.myndlaapi.service.FolderReadService
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{Service, TapirErrorHelpers}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor

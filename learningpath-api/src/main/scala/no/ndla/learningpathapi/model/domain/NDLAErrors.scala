@@ -14,3 +14,4 @@ case class ElasticIndexingException(message: String) extends RuntimeException(me
 case class SearchException(message: String)          extends RuntimeException(message)
 case class TaxonomyUpdateException(message: String)  extends RuntimeException(message)
 case class InvalidOembedResponse(message: String)    extends RuntimeException(message)
+case class InvalidLpStatusException(message: String) extends RuntimeException(message)

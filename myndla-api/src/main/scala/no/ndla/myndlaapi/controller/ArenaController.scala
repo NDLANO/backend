@@ -8,10 +8,8 @@
 package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto._
-import no.ndla.myndla.MyNDLAAuthHelpers
-import no.ndla.myndla.model.api.{ArenaUser, MyNDLAUser, PaginatedArenaUsers, UpdatedMyNDLAUser}
-import no.ndla.myndla.service.UserService
-import no.ndla.myndlaapi.Eff
+import no.ndla.myndlaapi.model.api.{ArenaUser, MyNDLAUser, PaginatedArenaUsers, UpdatedMyNDLAUser}
+import no.ndla.myndlaapi.{Eff, MyNDLAAuthHelpers}
 import no.ndla.myndlaapi.model.arena.api.{
   Category,
   CategorySort,
@@ -28,7 +26,7 @@ import no.ndla.myndlaapi.model.arena.api.{
   Topic,
   TopicWithPosts
 }
-import no.ndla.myndlaapi.service.ArenaReadService
+import no.ndla.myndlaapi.service.{ArenaReadService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor

@@ -8,9 +8,8 @@
 package no.ndla.myndlaapi
 
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.api
-import no.ndla.myndla.model.domain.{
-  Folder,
+import no.ndla.myndlaapi.model.api
+import no.ndla.myndlaapi.model.domain.{
   FolderStatus,
   MyNDLAUser,
   NewFolderData,
@@ -19,6 +18,7 @@ import no.ndla.myndla.model.domain.{
   ResourceType,
   UserRole
 }
+import no.ndla.myndlaapi.model.domain
 
 import java.util.UUID
 
@@ -48,7 +48,7 @@ object TestData {
     connection = None
   )
 
-  val emptyDomainFolder: Folder = Folder(
+  val emptyDomainFolder: domain.Folder = domain.Folder(
     id = UUID.randomUUID(),
     feideId = "",
     parentId = None,
