@@ -37,7 +37,19 @@ case class Node(
 
 object Node {
   implicit val encoder: Encoder[Node] = deriveEncoder
-  implicit val decoder: Decoder[Node] = deriveDecoder
+  implicit val decoder: Decoder[Node] = Decoder.instance(c => {
+    for {
+      id           <- c.downField("id").as[String]
+      name         <- c.downField("name").as[Option[String]].map(_.getOrElse(""))
+      contentUri   <- c.downField("contentUri").as[Option[String]]
+      path         <- c.downField("path").as[Option[String]]
+      metadata     <- c.downField("metadata").as[Option[Metadata]]
+      translations <- c.downField("translations").as[List[TaxonomyTranslation]]
+      nodeType     <- c.downField("nodeType").as[NodeType]
+      contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
+    } yield Node(id, name, contentUri, path, metadata, translations, nodeType, contexts)
+
+  })
 }
 
 case class TaxonomyContext(
@@ -66,5 +78,10 @@ case class TaxonomyTranslation(name: String, language: String)
 
 object TaxonomyTranslation {
   implicit val encoder: Encoder[TaxonomyTranslation] = deriveEncoder
-  implicit val decoder: Decoder[TaxonomyTranslation] = deriveDecoder
+  implicit val decoder: Decoder[TaxonomyTranslation] = Decoder.instance(c => {
+    for {
+      name     <- c.downField("name").as[Option[String]].map(_.getOrElse(""))
+      language <- c.downField("language").as[String]
+    } yield TaxonomyTranslation(name, language)
+  })
 }
