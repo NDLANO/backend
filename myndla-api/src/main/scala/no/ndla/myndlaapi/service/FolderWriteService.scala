@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.myndlaapi.model.api.{
   ExportedUserData,
@@ -29,7 +30,8 @@ import no.ndla.myndlaapi.model.domain.{
   FolderAndDirectChildren,
   FolderSortException,
   FolderStatus,
-  Rankable
+  Rankable,
+  ResourceType
 }
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
@@ -48,7 +50,9 @@ trait FolderWriteService {
     with FolderConverterService
     with UserRepository
     with ConfigService
-    with UserService =>
+    with UserService
+    with SearchApiClient =>
+
   val folderWriteService: FolderWriteService
   class FolderWriteService {
 
@@ -339,6 +343,7 @@ trait FolderWriteService {
         parent   <- getFolderWithDirectChildren(folder.id.some, feideId)
         siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
         sortRequest    = api.FolderSortRequest(sortedIds = siblingsToSort.map(_.resourceId))
+        _              = updateSearchApi(resource)
         _ <- performSort(siblingsToSort, sortRequest, feideId)
       } yield id
     }
@@ -584,7 +589,17 @@ trait FolderWriteService {
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
         siblings          <- getFolderWithDirectChildren(folderId.some, feideId)
         insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, feideId)
+        _ = updateSearchApi(insertedOrUpdated)
       } yield insertedOrUpdated
+
+    private def updateSearchApi(resource: domain.Resource): Unit = {
+      resource.resourceType match {
+        case ResourceType.Multidisciplinary => searchApiClient.reindexDraft(resource.resourceId)
+        case ResourceType.Article           => searchApiClient.reindexDraft(resource.resourceId)
+        case ResourceType.Learningpath      => searchApiClient.reindexLearningpath(resource.resourceId)
+        case _                              =>
+      }
+    }
 
     def newFolderResourceConnection(
         folderId: UUID,

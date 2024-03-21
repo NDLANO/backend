@@ -10,7 +10,6 @@ package no.ndla.myndlaapi.repository
 import cats.implicits.*
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.myndlaapi.model.domain.*
 import no.ndla.myndlaapi.model.domain.{
   Folder,
   FolderResource,

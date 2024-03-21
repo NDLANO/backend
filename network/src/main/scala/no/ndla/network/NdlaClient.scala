@@ -37,6 +37,9 @@ trait NdlaClient {
       doFetch(addCorrelationId(addForwardedAuth(request, tokenUser)))
     }
 
+    def fetchRaw(request: NdlaRequest): Try[Response[String]] =
+      doRequest(addCorrelationId(request))
+
     /** Useful if response body is not json. */
     def fetchRawWithForwardedAuth(request: NdlaRequest, tokenUser: Option[TokenUser]): Try[Response[String]] = {
       doRequest(addCorrelationId(addForwardedAuth(request, tokenUser)))

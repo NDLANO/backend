@@ -18,10 +18,20 @@ import no.ndla.myndlaapi.controller.{
   SwaggerDocControllerConfig,
   UserController
 }
-import no.ndla.myndlaapi.integration.DataSource
+import no.ndla.myndlaapi.integration.{DataSource, SearchApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ArenaRepository, ConfigRepository, FolderRepository, UserRepository}
-import no.ndla.myndlaapi.service.{ArenaReadService, ConfigService, ConverterService, FolderConverterService, FolderReadService, FolderWriteService, ImportService, UserService}
+import no.ndla.myndlaapi.service.{
+  ArenaReadService,
+  ConfigService,
+  ConverterService,
+  FolderConverterService,
+  FolderReadService,
+  FolderWriteService,
+  ImportService,
+  UserService
+}
+import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
@@ -66,7 +76,9 @@ trait TestEnvironment
     with NdlaMiddleware
     with TapirErrorHelpers
     with ImportService
-    with NodeBBClient {
+    with NodeBBClient
+    with SearchApiClient
+    with NdlaClient {
   val props                                          = new MyNdlaApiProperties
   lazy val clock: SystemClock                        = mock[SystemClock]
   val dataSource: HikariDataSource                   = mock[HikariDataSource]
@@ -91,6 +103,8 @@ trait TestEnvironment
   val converterService: ConverterService             = mock[ConverterService]
   val importService: ImportService                   = mock[ImportService]
   val nodebb: NodeBBClient                           = mock[NodeBBClient]
+  val searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  val ndlaClient: NdlaClient                         = mock[NdlaClient]
 
   def services: List[Service[Eff]] = List.empty
 
@@ -115,5 +129,7 @@ trait TestEnvironment
     reset(arenaController)
     reset(arenaRepository)
     reset(converterService)
+    reset(ndlaClient)
+    reset(searchApiClient)
   }
 }

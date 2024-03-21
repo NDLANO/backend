@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.{Author, License, MyNDLABundle}
+import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}

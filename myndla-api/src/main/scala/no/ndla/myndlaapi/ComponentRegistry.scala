@@ -20,10 +20,20 @@ import no.ndla.myndlaapi.controller.{
   SwaggerDocControllerConfig,
   UserController
 }
-import no.ndla.myndlaapi.integration.DataSource
+import no.ndla.myndlaapi.integration.{DataSource, SearchApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ArenaRepository, ConfigRepository, FolderRepository, UserRepository}
-import no.ndla.myndlaapi.service.{ArenaReadService, ConfigService, ConverterService, FolderConverterService, FolderReadService, FolderWriteService, ImportService, UserService}
+import no.ndla.myndlaapi.service.{
+  ArenaReadService,
+  ConfigService,
+  ConverterService,
+  FolderConverterService,
+  FolderReadService,
+  FolderWriteService,
+  ImportService,
+  UserService
+}
+import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   NdlaMiddleware,
@@ -68,7 +78,9 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with ArenaRepository
     with ImportService
     with NodeBBClient
-    with InternController {
+    with InternController
+    with SearchApiClient
+    with NdlaClient {
   override val props: MyNdlaApiProperties = properties
 
   lazy val healthController: TapirHealthController[Eff]   = new TapirHealthController[Eff]
@@ -95,6 +107,8 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val importService: ImportService                   = new ImportService
   lazy val nodebb: NodeBBClient                           = new NodeBBClient
   lazy val internController: InternController             = new InternController
+  lazy val searchApiClient: SearchApiClient               = new SearchApiClient
+  lazy val ndlaClient: NdlaClient = new NdlaClient
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
@@ -112,4 +126,5 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
   override def services: List[Service[Eff]] = swagger.getServices()
+
 }
