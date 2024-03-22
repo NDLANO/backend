@@ -69,5 +69,6 @@ object ResourceType extends Enum[ResourceType] {
   case object NRKContent      extends ResourceType("nrk")
   case object RelatedContent  extends ResourceType("related-content")
   case object UuDisclaimer    extends ResourceType("uu-disclaimer")
+  case object Comment         extends ResourceType("comment")
 
 }
