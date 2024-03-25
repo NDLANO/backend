@@ -117,6 +117,12 @@
           "validation": {
             "required": true
           }
+        },
+        {
+          "name": "data-is-standalone",
+          "validation": {
+            "required": false
+          }
         }
       ],
       "children": {
