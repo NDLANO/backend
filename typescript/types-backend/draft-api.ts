@@ -1,7 +1,5 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type Availability = ("everyone" | "teacher")
-
 export interface IArticle {
   id: number
   oldNdlaUrl?: string
