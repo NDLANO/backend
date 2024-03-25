@@ -12,7 +12,6 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.MyNDLABundle
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
@@ -22,7 +21,6 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.ApiTaxonomyContext
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
-import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome

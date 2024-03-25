@@ -31,7 +31,7 @@ object learningpathapi extends Module {
     imports = Seq(
       "no.ndla.learningpathapi.model.api._",
       "no.ndla.common.model.api._",
-      "no.ndla.common.model.api.config._",
+      "no.ndla.common.model.api.config._"
     ),
     exports = Seq(
       "Author",

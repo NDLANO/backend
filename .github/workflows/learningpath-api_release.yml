@@ -20,10 +20,10 @@ on:
       - project/common*.scala
       - search/**
       - project/search*.scala
-      - myndla/**
-      - project/myndla*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
+      - tapirtesting/**
+      - project/tapirtesting*.scala
       - project/Dependencies.scala
       - project/Module.scala
 env:
