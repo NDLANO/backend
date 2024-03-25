@@ -111,9 +111,9 @@ class ArticleApiProperties extends BaseProps {
   private def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",
     Map(
+      "local"   -> "https://h5p-test.ndla.no",
       "test"    -> "https://h5p-test.ndla.no",
-      "staging" -> "https://h5p-staging.ndla.no",
-      "ff"      -> "https://h5p-ff.ndla.no"
+      "staging" -> "https://h5p-staging.ndla.no"
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
