@@ -16,6 +16,8 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{draftapi, searchapi}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
@@ -47,6 +49,7 @@ class DraftApiClientTest
   val draftApiBaseUrl: String      = s"http://localhost:$draftApiPort"
 
   override def beforeAll(): Unit = {
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     draftApi = new draftapi.MainClass(draftApiProperties)

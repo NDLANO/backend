@@ -16,6 +16,8 @@ import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{learningpathapi, searchapi}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
@@ -48,6 +50,7 @@ class LearningpathApiClientTest
   val learningpathApiBaseUrl: String             = s"http://localhost:$learningpathApiPort"
 
   override def beforeAll(): Unit = {
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
