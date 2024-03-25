@@ -22,14 +22,20 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   val IncompleteProvider: OEmbedProvider = OEmbedProvider(
     "gfycat",
     "https://gfycat.com",
-    List(OEmbedEndpoint(Some(List("http://gfycat.com/*")), None, None, None))
+    List(OEmbedEndpoint(Some(List("http://gfycat.com/*")), None, None, None, None))
   )
 
   val CompleteProvider: OEmbedProvider = OEmbedProvider(
     "IFTTT",
     "http://www.ifttt.com",
     List(
-      OEmbedEndpoint(Some(List("http://ifttt.com/recipes/*")), Some("http://www.ifttt.com/oembed/"), Some(true), None)
+      OEmbedEndpoint(
+        Some(List("http://ifttt.com/recipes/*")),
+        Some("http://www.ifttt.com/oembed/"),
+        Some(true),
+        None,
+        None
+      )
     )
   )
 

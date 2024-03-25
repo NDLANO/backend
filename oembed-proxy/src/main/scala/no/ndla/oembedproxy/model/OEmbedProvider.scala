@@ -38,7 +38,9 @@ case class OEmbedProvider(
         val embedUrl = endpoint.url.get.replace("{format}", "json") // Some providers have {format} instead of ?format=
         val width    = maxWidth.map(("maxwidth", _)).toList
         val height   = maxHeight.map(("maxheight", _)).toList
-        val params   = List(("url", url), ("format", "json")) ++ endpoint.mandatoryQueryParams ++ width ++ height
+        val params = List(("url", url), ("format", "json")) ++ endpoint.mandatoryQueryParams.getOrElse(
+          List.empty
+        ) ++ width ++ height
         Url.parse(embedUrl).addParams(params).toString
     }
   }
@@ -50,8 +52,8 @@ case class OEmbedProvider(
 object OEmbedProvider {
   implicit val decoder: Decoder[OEmbedProvider] = Decoder.instance { cur =>
     for {
-      providerName <- cur.downField("providerName").as[String]
-      providerUrl  <- cur.downField("providerUrl").as[String]
+      providerName <- cur.downField("provider_name").as[String]
+      providerUrl  <- cur.downField("provider_url").as[String]
       endpoints    <- cur.downField("endpoints").as[List[OEmbedEndpoint]]
     } yield OEmbedProvider(providerName, providerUrl, endpoints)
 

@@ -34,6 +34,7 @@ trait ProviderService {
         Some(props.NdlaApprovedUrl),
         Some(props.NdlaFrontendOembedServiceUrl),
         None,
+        None,
         None
       )
 
@@ -41,6 +42,7 @@ trait ProviderService {
       OEmbedEndpoint(
         Some(props.ListingFrontendApprovedUrls),
         Some(props.ListingFrontendOembedServiceUrl),
+        None,
         None,
         None
       )
@@ -56,6 +58,7 @@ trait ProviderService {
       Some(List("https://*.youtube.com/watch*", "https://*.youtube.com/v/*", "https://youtu.be/*")),
       Some("https://www.youtube.com/oembed"),
       None,
+      None,
       None
     )
 
@@ -70,7 +73,7 @@ trait ProviderService {
     val H5PApprovedUrls: List[String] = List(props.NdlaH5PApprovedUrl)
 
     val H5PEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(H5PApprovedUrls), Some(s"${props.NdlaH5POembedProvider}/oembed"), None, None)
+      OEmbedEndpoint(Some(H5PApprovedUrls), Some(s"${props.NdlaH5POembedProvider}/oembed"), None, None, None)
 
     val H5PProvider: OEmbedProvider =
       OEmbedProvider("H5P", props.NdlaH5POembedProvider, List(H5PEndpoint))
@@ -91,13 +94,19 @@ trait ProviderService {
     )
 
     val TedEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(TedApprovedUrls), Some("https://www.ted.com/services/v1/oembed.json"), None, None)
+      OEmbedEndpoint(Some(TedApprovedUrls), Some("https://www.ted.com/services/v1/oembed.json"), None, None, None)
     val TedProvider: OEmbedProvider = OEmbedProvider("Ted", "https://ted.com", List(TedEndpoint), removeQueryString)
 
     val IssuuApprovedUrls: List[String] = List("http://issuu.com/*", "https://issuu.com/*")
 
     val IssuuEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(IssuuApprovedUrls), Some("https://issuu.com/oembed"), None, None, List(("iframe", "true")))
+      OEmbedEndpoint(
+        Some(IssuuApprovedUrls),
+        Some("https://issuu.com/oembed"),
+        None,
+        None,
+        Some(List(("iframe", "true")))
+      )
 
     val IssuuProvider: OEmbedProvider =
       OEmbedProvider("Issuu", "https://issuu.com", List(IssuuEndpoint), removeQueryStringAndFragment)
@@ -108,9 +117,8 @@ trait ProviderService {
     })
 
     def _loadProviders(): List[OEmbedProvider] = {
-      NdlaApiProvider :: TedProvider :: H5PProvider :: YoutubeProvider :: IssuuProvider :: loadProvidersFromRequest(
-        quickRequest.get(uri"${props.JSonProviderUrl}")
-      )
+      val requestProviders = loadProvidersFromRequest(quickRequest.get(uri"${props.JSonProviderUrl}"))
+      NdlaApiProvider :: TedProvider :: H5PProvider :: YoutubeProvider :: IssuuProvider :: requestProviders
     }
 
     def loadProvidersFromRequest(request: NdlaRequest): List[OEmbedProvider] = {

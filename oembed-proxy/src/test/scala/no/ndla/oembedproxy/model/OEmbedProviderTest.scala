@@ -16,13 +16,13 @@ class OEmbedProviderTest extends UnitSuite {
     OEmbedProvider("youtube", "https://www.youtube.com", List())
 
   val ndlaEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(Some(List("https://ndla.no/*/123")), Some("https://ndla.no/oembed"), None, None)
+    OEmbedEndpoint(Some(List("https://ndla.no/*/123")), Some("https://ndla.no/oembed"), None, None, None)
 
   val ndlaListEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(Some(List("https://liste.ndla.no/*")), Some("https://liste.ndla.no/oembed"), None, None)
+    OEmbedEndpoint(Some(List("https://liste.ndla.no/*")), Some("https://liste.ndla.no/oembed"), None, None, None)
 
   val youtubeEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(Some(List("https://www.youtube.com/*")), Some("https://www.youtube.com/oembed"), None, None)
+    OEmbedEndpoint(Some(List("https://www.youtube.com/*")), Some("https://www.youtube.com/oembed"), None, None, None)
 
   test("That hostMatches returns true for same host, regardless of protocol") {
     youtubeProvider.hostMatches("https://www.youtube.com") should be(right = true)

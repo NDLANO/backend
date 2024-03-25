@@ -16,7 +16,7 @@ case class OEmbedEndpoint(
     url: Option[String],
     discovery: Option[Boolean],
     formats: Option[List[String]],
-    mandatoryQueryParams: List[(String, String)] = List()
+    mandatoryQueryParams: Option[List[(String, String)]]
 ) {
 
   def supports(url: String): Boolean = {
