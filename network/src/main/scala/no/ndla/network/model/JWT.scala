@@ -7,9 +7,9 @@
 
 package no.ndla.network.model
 
-import org.json4s.DefaultFormats
-import org.json4s.native.JsonMethods.parse
-import org.json4s.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import pdi.jwt.JwtClaim
 
 case class JWTClaims(
@@ -25,9 +25,20 @@ case class JWTClaims(
     jti: Option[String]
 )
 
-object JWTClaims {
-  implicit val formats: DefaultFormats = org.json4s.DefaultFormats
+case class ClaimsJSON(
+    azp: Option[String],
+    scope: Option[String],
+    `https://ndla.no/ndla_id`: Option[String],
+    `https://ndla.no/user_name`: Option[String],
+    permissions: Option[List[String]]
+)
 
+object ClaimsJSON {
+  implicit val encoder: Encoder[ClaimsJSON] = deriveEncoder
+  implicit val decoder: Decoder[ClaimsJSON] = deriveDecoder
+}
+
+object JWTClaims {
   def empty(): JWTClaims = {
     new JWTClaims(
       iss = None,
@@ -44,16 +55,8 @@ object JWTClaims {
 
   }
 
-  case class ClaimsJSON(
-      azp: Option[String],
-      scope: Option[String],
-      `https://ndla.no/ndla_id`: Option[String],
-      `https://ndla.no/user_name`: Option[String],
-      permissions: Option[List[String]]
-  )
-
   def apply(claims: JwtClaim): JWTClaims = {
-    val content        = parse(claims.content).extract[ClaimsJSON]
+    val content        = CirceUtil.unsafeParseAs[ClaimsJSON](claims.content)
     val oldScopes      = content.scope.map(_.split(' ').toList).getOrElse(List.empty)
     val newPermissions = content.permissions.getOrElse(List.empty)
     val mergedScopes   = (oldScopes ++ newPermissions).distinct

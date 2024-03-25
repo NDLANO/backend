@@ -9,21 +9,19 @@ package no.ndla.draftapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
-import enumeratum.Json4s
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain as common
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ArticleSearchResult
 import no.ndla.draftapi.model.domain.SearchResult
-import no.ndla.draftapi.model.search._
+import no.ndla.draftapi.model.search.*
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import org.json4s._
-import org.json4s.native.Serialization.read
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
@@ -31,9 +29,6 @@ trait SearchConverterService {
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
-    implicit val formats: Formats =
-      SearchableLanguageFormats.JSonFormats + Json4s.serializer(common.draft.DraftStatus)
-
     def asSearchableArticle(ai: Draft): SearchableArticle = {
 
       val defaultTitle = ai.title
@@ -72,7 +67,7 @@ trait SearchConverterService {
     }
 
     def hitAsArticleSummary(hitString: String, language: String): api.ArticleSummary = {
-      val searchableArticle = read[SearchableArticle](hitString)
+      val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
       val titles = searchableArticle.title.languageValues.map(lv => common.Title(lv.value, lv.language))
       val introductions =

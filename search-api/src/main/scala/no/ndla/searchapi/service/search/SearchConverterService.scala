@@ -7,9 +7,10 @@
 
 package no.ndla.searchapi.service.search
 
-import cats.implicits._
+import cats.implicits.*
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
@@ -23,26 +24,24 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration._
-import no.ndla.searchapi.model.api._
+import no.ndla.searchapi.integration.*
+import no.ndla.searchapi.model.api.*
 import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep}
-import no.ndla.searchapi.model.grep._
-import no.ndla.searchapi.model.search._
-import no.ndla.searchapi.model.taxonomy._
+import no.ndla.searchapi.model.grep.*
+import no.ndla.searchapi.model.search.*
+import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.model.{api, domain, search}
 import no.ndla.searchapi.service.ConverterService
-import org.json4s.Formats
-import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.collection.mutable.ListBuffer
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Success, Try}
 
 trait SearchConverterService {
@@ -501,8 +500,7 @@ trait SearchConverterService {
     }
 
     def articleHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-      val searchableArticle         = read[SearchableArticle](hit.sourceAsString)
+      val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hit.sourceAsString)
 
       val contexts = filterContexts(searchableArticle.contexts, language, filterInactive)
       val titles   = searchableArticle.title.languageValues.map(lv => api.Title(lv.value, lv.language))
@@ -557,8 +555,7 @@ trait SearchConverterService {
     }
 
     def draftHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-      val searchableDraft           = read[SearchableDraft](hit.sourceAsString)
+      val searchableDraft = CirceUtil.unsafeParseAs[SearchableDraft](hit.sourceAsString)
 
       val contexts = filterContexts(searchableDraft.contexts, language, filterInactive)
       val titles   = searchableDraft.title.languageValues.map(lv => api.Title(lv.value, lv.language))
@@ -622,8 +619,7 @@ trait SearchConverterService {
     }
 
     def learningpathHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-      val searchableLearningPath    = read[SearchableLearningPath](hit.sourceAsString)
+      val searchableLearningPath = CirceUtil.unsafeParseAs[SearchableLearningPath](hit.sourceAsString)
 
       val contexts = filterContexts(searchableLearningPath.contexts, language, filterInactive)
       val titles   = searchableLearningPath.title.languageValues.map(lv => api.Title(lv.value, lv.language))

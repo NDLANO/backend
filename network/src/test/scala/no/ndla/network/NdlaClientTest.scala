@@ -11,7 +11,6 @@ package no.ndla.network
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.DefaultFormats
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, when}
 import org.scalatest.TryValues.*
@@ -55,8 +54,8 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
     when(httpRequestMock.uri).thenReturn(uri"someUrl")
 
-    implicit val formats = DefaultFormats
-    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
+    import io.circe.generic.auto._
+    val result = ndlaClient.fetch[TestObject](httpRequestMock)
 
     result.isFailure should be(true)
     result.failure.exception.getMessage should equal(
@@ -73,8 +72,8 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(unparseableResponse)
 
-    implicit val formats = DefaultFormats
-    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
+    import io.circe.generic.auto._
+    val result = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isFailure should be(true)
     result.failure.exception.getMessage should equal(s"Could not parse response with body: $unparseableResponse")
   }
@@ -87,8 +86,8 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
-    implicit val formats = DefaultFormats
-    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
+    import io.circe.generic.auto._
+    val result = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
@@ -106,8 +105,8 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpRequestMock.header(eqTo("X-Correlation-ID"), eqTo("correlation-id"))).thenReturn(httpRequestMock)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
-    implicit val formats = DefaultFormats
-    val result           = ndlaClient.fetch[TestObject](httpRequestMock)
+    import io.circe.generic.auto._
+    val result = ndlaClient.fetch[TestObject](httpRequestMock)
     result.isSuccess should be(true)
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
@@ -121,7 +120,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
     val httpRequestMock  = mock[NdlaRequest]
     val httpResponseMock = mock[Response[String]]
-    val authMock         = mock[SpecifyAuthScheme[Any, String, Any]]
+    val authMock         = mock[SpecifyAuthScheme[sttp.client3.Empty, String, Any]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
     doReturn(authMock).when(httpRequestMock).auth
 
@@ -130,6 +129,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
+    import io.circe.generic.auto._
     val result = ndlaClient.fetchWithBasicAuth[TestObject](httpRequestMock, user, password)
     result.isSuccess should be(true)
     result.get.id should equal("1")
@@ -153,6 +153,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
+    import io.circe.generic.auto._
     val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock, Some(user))
     result.isSuccess should be(true)
     result.get.id should equal("1")
@@ -179,6 +180,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
     when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeaderValue), any)).thenReturn(httpRequestMock)
 
+    import io.circe.generic.auto._
     val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock, Some(user))
     result.isSuccess should be(false)
 

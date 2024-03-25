@@ -30,7 +30,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     id = Some(1),
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
-    images = Seq(full),
+    images = Some(Seq(full)),
     copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
@@ -46,7 +46,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     id = Some(1),
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
-    images = Seq(wanting),
+    images = Some(Seq(wanting)),
     copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
@@ -62,7 +62,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     id = Some(2),
     titles = List(ImageTitle("nynorsk", "nn"), ImageTitle("english", "en"), ImageTitle("norsk", "und")),
     alttexts = List(),
-    images = Seq(full.copy(language = "nn")),
+    images = Some(Seq(full.copy(language = "nn"))),
     copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
@@ -174,9 +174,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val result = converterService.withNewImage(MultiLangImage, newImage, "nb", TokenUser.SystemUser)
-    result.images.find(_.language == "nb").get.size should be(123)
-    result.images.find(_.language == "nb").get.dimensions should be(Some(ImageDimensions(123, 555)))
-    result.images.find(_.language == "nb").get.contentType should be("image/jpg")
+    result.images.get.find(_.language == "nb").get.size should be(123)
+    result.images.get.find(_.language == "nb").get.dimensions should be(Some(ImageDimensions(123, 555)))
+    result.images.get.find(_.language == "nb").get.contentType should be("image/jpg")
   }
 
 }

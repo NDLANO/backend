@@ -7,29 +7,26 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.DraftApiClient
 import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait DraftIndexService {
   this: SearchConverterService with IndexService with DraftApiClient with Props =>
   val draftIndexService: DraftIndexService
 
   class DraftIndexService extends StrictLogging with IndexService[Draft] {
-    implicit val formats: Formats          = SearchableLanguageFormats.JSonFormatsWithMillis
     override val documentType: String      = props.SearchDocuments(SearchType.Drafts)
     override val searchIndex: String       = props.SearchIndexes(SearchType.Drafts)
     override val apiClient: DraftApiClient = draftApiClient
@@ -40,12 +37,9 @@ trait DraftIndexService {
         taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[IndexRequest] = {
-      searchConverterService.asSearchableDraft(domainModel, taxonomyBundle, grepBundle) match {
-        case Success(searchableDraft) =>
-          val source = Try(write(searchableDraft))
-          source.map(s => indexInto(indexName).doc(s).id(domainModel.id.get.toString))
-        case Failure(ex) =>
-          Failure(ex)
+      searchConverterService.asSearchableDraft(domainModel, taxonomyBundle, grepBundle).map { searchableDraft =>
+        val source = CirceUtil.toJsonString(searchableDraft)
+        indexInto(indexName).doc(source).id(domainModel.id.get.toString)
       }
     }
 

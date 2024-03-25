@@ -23,8 +23,8 @@ trait DBMigrator {
         .configure()
         .table("schema_version")
         .javaMigrations(
-          new V6__AddAgreementToImages(props),
-          new V7__TranslateUntranslatedAuthors(props)
+          new V6__AddAgreementToImages,
+          new V7__TranslateUntranslatedAuthors
         )
         .locations("no/ndla/imageapi/db/migration")
         .dataSource(dataSource)

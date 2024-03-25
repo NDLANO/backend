@@ -9,12 +9,11 @@ package no.ndla.searchapi.controller
 
 import cats.implicits.{catsSyntaxEitherId, toTraverseOps}
 import com.typesafe.scalalogging.StrictLogging
-import enumeratum.Json4s
-import no.ndla.common.model.NDLADate
+import io.circe.Decoder
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleType, Availability, Content, Priority}
-import no.ndla.common.model.domain.learningpath.EmbedType
+import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.Content
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, Service}
@@ -22,27 +21,18 @@ import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.searchapi.{Eff, Props}
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.model.domain.{LearningResourceType, ReindexResult}
-import no.ndla.searchapi.model.domain.learningpath.{
-  LearningPath,
-  LearningPathStatus,
-  LearningPathVerificationStatus,
-  StepStatus,
-  StepType
-}
+import no.ndla.searchapi.model.domain.ReindexResult
+import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
-import org.json4s.*
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
-import org.json4s.native.JsonMethods
 import sttp.model.StatusCode
 
 import java.util.concurrent.{Executors, TimeUnit}
-import sttp.tapir.generic.auto._
+import sttp.tapir.generic.auto.*
 
-import scala.concurrent._
+import scala.concurrent.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
-import sttp.tapir._
+import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
@@ -58,22 +48,6 @@ trait InternController {
 
   class InternController extends Service[Eff] with StrictLogging {
     import ErrorHelpers._
-    protected implicit val jsonFormats: Formats =
-      org.json4s.DefaultFormats +
-        new EnumNameSerializer(LearningPathStatus) +
-        new EnumNameSerializer(LearningPathVerificationStatus) +
-        new EnumNameSerializer(StepType) +
-        new EnumNameSerializer(StepStatus) +
-        new EnumNameSerializer(EmbedType) +
-        new EnumNameSerializer(LearningResourceType) +
-        new EnumNameSerializer(Availability) ++
-        JavaTimeSerializers.all ++
-        JavaTypesSerializers.all +
-        Json4s.serializer(ArticleType) +
-        Json4s.serializer(RevisionStatus) +
-        Json4s.serializer(DraftStatus) +
-        Json4s.serializer(Priority) +
-        NDLADate.Json4sSerializer
 
     implicit val ec: ExecutionContext =
       ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
@@ -139,15 +113,16 @@ trait InternController {
         }).map(_ => ()).handleErrorsOrOk
       }
 
-    private def parseBody[T](body: String)(implicit mf: Manifest[T]): Try[T] = {
-      Try(JsonMethods.parse(body).camelizeKeys.extract[T])
+    private def parseBody[T: Decoder](body: String): Try[T] = {
+      CirceUtil
+        .tryParseAs[T](body)
         .recoverWith { case _ => Failure(InvalidIndexBodyException()) }
     }
 
-    private def indexRequestWithService[T <: Content](
+    private def indexRequestWithService[T <: Content: Decoder](
         indexService: IndexService[T],
         body: String
-    )(implicit mf: Manifest[T]): Either[AllErrors, T] = {
+    ): Either[AllErrors, T] = {
       parseBody[T](body).flatMap(x => indexService.indexDocument(x)) match {
         case Success(doc) => doc.asRight
         case Failure(ex) =>

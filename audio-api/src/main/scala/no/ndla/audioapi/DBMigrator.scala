@@ -22,8 +22,8 @@ trait DBMigrator {
       val flyway = Flyway
         .configure()
         .javaMigrations(
-          new V5__AddAgreementToAudio(props),
-          new V6__TranslateUntranslatedAuthors(props)
+          new V5__AddAgreementToAudio,
+          new V6__TranslateUntranslatedAuthors
         )
         .locations("no/ndla/audioapi/db/migration")
         .table("schema_version") // Flyway's default table name changed, so we specify the old one.

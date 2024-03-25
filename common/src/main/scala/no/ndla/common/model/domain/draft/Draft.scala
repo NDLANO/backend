@@ -7,16 +7,12 @@
 
 package no.ndla.common.model.domain.draft
 
-import enumeratum.Json4s
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.implicits._
 import no.ndla.common.model.{NDLADate, RelatedContentLink}
 import no.ndla.common.model.domain._
 import no.ndla.language.Language.getSupportedLanguages
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
-import org.json4s.{DefaultFormats, Formats}
-import org.json4s.Serializer
 
 case class Draft(
     id: Option[Long],
@@ -41,7 +37,7 @@ case class Draft(
     editorLabels: Seq[String],
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
-    availability: Availability.Value = Availability.everyone,
+    availability: Availability = Availability.everyone,
     relatedContent: Seq[RelatedContent],
     revisionMeta: Seq[RevisionMeta],
     responsible: Option[Responsible],
@@ -60,17 +56,4 @@ object Draft {
   implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
   implicit val encoder: Encoder[Draft]                              = deriveEncoder
   implicit val decoder: Decoder[Draft]                              = deriveDecoder
-
-  val serializers: Seq[Serializer[_]] = Seq(
-    new EnumNameSerializer(Availability),
-    Json4s.serializer(DraftStatus),
-    Json4s.serializer(ArticleType),
-    Json4s.serializer(RevisionStatus),
-    Json4s.serializer(Priority),
-    NDLADate.Json4sSerializer
-  ) ++
-    JavaTimeSerializers.all ++
-    JavaTypesSerializers.all
-
-  val jsonEncoder: Formats = DefaultFormats.withLong ++ serializers
 }

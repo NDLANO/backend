@@ -18,7 +18,6 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
-import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.UUID
@@ -31,8 +30,7 @@ class ArticleApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
     with draftapi.TestEnvironment {
-  implicit val formats: Formats = Draft.jsonEncoder
-  override val ndlaClient       = new NdlaClient
+  override val ndlaClient = new NdlaClient
 
   // NOTE: There is some weirdness with loading the resources in validation library if this isn't called.
   //       For some reason this fixes that.

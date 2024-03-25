@@ -8,16 +8,13 @@
 package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.NDLADate
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, PublishedConcept}
-import org.json4s.Formats
-import org.json4s.ext.JavaTimeSerializers
 import org.postgresql.util.PGobject
-import scalikejdbc._
-import org.json4s.native.Serialization.{read, write}
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -26,12 +23,10 @@ trait PublishedConceptRepository {
   val publishedConceptRepository: PublishedConceptRepository
 
   class PublishedConceptRepository extends StrictLogging with Repository[Concept] {
-    implicit val formats: Formats = Concept.repositorySerializer ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-
     def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(concept))
+      dataObject.setValue(CirceUtil.toJsonString(concept))
 
       Try {
         sql"""update ${PublishedConcept.table}
@@ -90,7 +85,7 @@ trait PublishedConceptRepository {
          """
         .map(rs => {
           val jsonStr = rs.string("tags")
-          read[List[Tag]](jsonStr)
+          CirceUtil.unsafeParseAs[List[Tag]](jsonStr)
         })
         .list()
     }

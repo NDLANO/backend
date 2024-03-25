@@ -6,6 +6,7 @@
  */
 package no.ndla.conceptapi.controller
 
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
@@ -13,8 +14,6 @@ import no.ndla.conceptapi.model.{api, search}
 import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
 import sttp.client3.quick.*
@@ -22,7 +21,6 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class DraftConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  implicit val formats: Formats          = org.json4s.DefaultFormats
   val controller: DraftConceptController = new DraftConceptController
 
   override def beforeEach(): Unit = {
@@ -91,7 +89,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       .send(
         quickRequest
           .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
-          .body(write(TestData.sampleNewConcept))
+          .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
           .header("Authorization", TestData.authHeaderWithWriteRole)
       )
       .code
@@ -108,7 +106,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       .send(
         quickRequest
           .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
-          .body(write(TestData.sampleNewConcept))
+          .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
           .header("Authorization", TestData.authHeaderWithWrongRole)
       )
       .code
@@ -146,7 +144,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       .send(
         quickRequest
           .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-          .body(write(TestData.updatedConcept))
+          .body(CirceUtil.toJsonString(TestData.updatedConcept))
           .header("Authorization", TestData.authHeaderWithoutAnyRoles)
       )
       .code

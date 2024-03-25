@@ -8,15 +8,12 @@
 
 package no.ndla.myndla.repository
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Clock
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.common.model.NDLADate
 import no.ndla.myndla.model.domain.{
-  DBFolder,
-  DBFolderResource,
-  DBResource,
   Folder,
   FolderResource,
   FolderStatus,
@@ -28,10 +25,8 @@ import no.ndla.myndla.model.domain.{
 }
 import no.ndla.myndla.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.network.model.FeideID
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 import scalikejdbc.interpolation.SQLSyntax
 
 import java.util.UUID
@@ -42,8 +37,6 @@ trait FolderRepository {
   val folderRepository: FolderRepository
 
   class FolderRepository extends StrictLogging {
-    implicit val formats: Formats = DBFolder.repositorySerializer + DBResource.JSonSerializer
-
     def getSession(readOnly: Boolean): DBSession =
       if (readOnly) ReadOnlyAutoSession
       else AutoSession
@@ -74,10 +67,10 @@ trait FolderRepository {
         val updated = created
         val shared  = if (folderData.status == FolderStatus.SHARED) Some(created) else None
 
-        val column = DBFolder.column.c _
+        val column = Folder.column.c _
         withSQL {
           insert
-            .into(DBFolder)
+            .into(Folder)
             .namedValues(
               column("id")          -> newId,
               column("parent_id")   -> folderData.parentId,
@@ -114,16 +107,16 @@ trait FolderRepository {
       val jsonDocument = {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
-        dataObject.setValue(write(document))
+        dataObject.setValue(CirceUtil.toJsonString(document))
         ParameterBinder(dataObject, (ps, idx) => ps.setObject(idx, dataObject))
       }
 
       val newId  = UUID.randomUUID()
-      val column = DBResource.column.c _
+      val column = Resource.column.c _
 
       withSQL {
         insert
-          .into(DBResource)
+          .into(Resource)
           .namedValues(
             column("id")            -> newId,
             column("feide_id")      -> feideId,
@@ -143,7 +136,7 @@ trait FolderRepository {
         resourceId: UUID,
         rank: Int
     )(implicit session: DBSession = AutoSession): Try[FolderResource] = Try {
-      sql"insert into ${DBFolderResource.table} (folder_id, resource_id, rank) values ($folderId, $resourceId, $rank)"
+      sql"insert into ${FolderResource.table} (folder_id, resource_id, rank) values ($folderId, $resourceId, $rank)"
         .update(): Unit
       logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
 
@@ -153,9 +146,9 @@ trait FolderRepository {
     def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
         session: DBSession = AutoSession
     ): Try[Folder] = Try {
-      val column = DBFolder.column.c _
+      val column = Folder.column.c _
       withSQL {
-        update(DBFolder)
+        update(Folder)
           .set(
             column("name")        -> folder.name,
             column("status")      -> folder.status.toString,
@@ -181,9 +174,9 @@ trait FolderRepository {
         session: DBSession = AutoSession
     ): Try[List[UUID]] = Try {
       val newSharedValue = if (newStatus == FolderStatus.SHARED) Some(clock.now()) else None
-      val column         = DBFolder.column.c _
+      val column         = Folder.column.c _
       withSQL {
-        update(DBFolder)
+        update(Folder)
           .set(
             column("status") -> newStatus.toString,
             column("shared") -> newSharedValue
@@ -206,10 +199,10 @@ trait FolderRepository {
     def updateResource(resource: Resource)(implicit session: DBSession = AutoSession): Try[Resource] = Try {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(resource))
+      dataObject.setValue(CirceUtil.toJsonString(resource))
 
       sql"""
-          update ${DBResource.table}
+          update ${Resource.table}
           set document=$dataObject
           where id=${resource.id}
       """.update()
@@ -224,7 +217,7 @@ trait FolderRepository {
 
     def folderResourceConnectionCount(resourceId: UUID)(implicit session: DBSession = AutoSession): Try[Long] = {
       Try(
-        sql"select count(*) from ${DBFolderResource.table} where resource_id=$resourceId"
+        sql"select count(*) from ${FolderResource.table} where resource_id=$resourceId"
           .map(rs => rs.long("count"))
           .single()
           .getOrElse(0)
@@ -235,7 +228,7 @@ trait FolderRepository {
         session: DBSession = AutoSession
     ): Try[Option[FolderResource]] = {
       Try(
-        sql"select resource_id, folder_id, rank from ${DBFolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
+        sql"select resource_id, folder_id, rank from ${FolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
           .map(rs => {
             for {
               resourceId <- rs.get[Try[UUID]]("resource_id")
@@ -251,7 +244,7 @@ trait FolderRepository {
 
     def getConnections(folderId: UUID)(implicit session: DBSession = AutoSession): Try[List[FolderResource]] = {
       Try(
-        sql"select resource_id, folder_id, rank from ${DBFolderResource.table} where folder_id=$folderId"
+        sql"select resource_id, folder_id, rank from ${FolderResource.table} where folder_id=$folderId"
           .map(rs => {
             for {
               resourceId <- rs.get[Try[UUID]]("resource_id")
@@ -266,7 +259,7 @@ trait FolderRepository {
     }
 
     def deleteFolder(id: UUID)(implicit session: DBSession = AutoSession): Try[UUID] = {
-      Try(sql"delete from ${DBFolder.table} where id = $id".update()) match {
+      Try(sql"delete from ${Folder.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Folder with id $id does not exist"))
         case Success(_) =>
@@ -276,7 +269,7 @@ trait FolderRepository {
     }
 
     def deleteResource(id: UUID)(implicit session: DBSession = AutoSession): Try[UUID] = {
-      Try(sql"delete from ${DBResource.table} where id = $id".update()) match {
+      Try(sql"delete from ${Resource.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Resource with id $id does not exist"))
         case Success(_) =>
@@ -289,7 +282,7 @@ trait FolderRepository {
         session: DBSession = AutoSession
     ): Try[UUID] =
       Try(
-        sql"delete from ${DBFolderResource.table} where folder_id=$folderId and resource_id=$resourceId".update()
+        sql"delete from ${FolderResource.table} where folder_id=$folderId and resource_id=$resourceId".update()
       ) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) if numRows != 1 =>
@@ -307,8 +300,8 @@ trait FolderRepository {
         session: DBSession
     ): Try[Long] = Try {
       sql"""
-            select count(*) as count from ${DBFolderResource.table} fr
-            inner join ${DBResource.table} r on fr.resource_id = r.id
+            select count(*) as count from ${FolderResource.table} fr
+            inner join ${Resource.table} r on fr.resource_id = r.id
             where r.document->>'resourceId' = $resourceId
             and r.resource_type = $resourceType
          """
@@ -318,7 +311,7 @@ trait FolderRepository {
     }
 
     def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
-      Try(sql"delete from ${DBFolder.table} where feide_id = $feideId".update()) match {
+      Try(sql"delete from ${Folder.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) =>
           logger.info(s"Deleted $numRows folders with feide_id = $feideId")
@@ -327,7 +320,7 @@ trait FolderRepository {
     }
 
     def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
-      Try(sql"delete from ${DBResource.table} where feide_id = $feideId".update()) match {
+      Try(sql"delete from ${Resource.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) =>
           logger.info(s"Deleted $numRows resources with feide_id = $feideId")
@@ -427,22 +420,22 @@ trait FolderRepository {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
                 SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created, updated as f_updated, shared as f_shared, description as f_description
-                FROM ${DBFolder.table} parent
+                FROM ${Folder.table} parent
                 WHERE id = $id
                 UNION ALL
                 SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created, child.updated as f_updated, child.shared as f_shared, child.description as f_description
-                FROM ${DBFolder.table} child
+                FROM ${Folder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
                 $sqlFilterClause
             )
             SELECT * FROM childs
             LEFT JOIN folder_resources fr ON fr.folder_id = f_id
-            LEFT JOIN ${DBResource.table} r ON r.id = fr.resource_id;
+            LEFT JOIN ${Resource.table} r ON r.id = fr.resource_id;
          """
         // We prefix the `folders` columns with `f_` to separate them
         // from the `folder_resources` columns  (both here and in sql).
-        .one(rs => DBFolder.fromResultSet(s => s"f_$s")(rs))
-        .toMany(rs => DBResource.fromResultSetOpt(rs, withConnection = true).sequence)
+        .one(rs => Folder.fromResultSet(s => s"f_$s")(rs))
+        .toMany(rs => Resource.fromResultSetOpt(rs, withConnection = true).sequence)
         .map((folder, resources) =>
           resources.toList.sequence.flatMap(resources => folder.map(f => f.copy(resources = resources)))
         )
@@ -454,16 +447,16 @@ trait FolderRepository {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
                 SELECT parent.*
-                FROM ${DBFolder.table} parent
+                FROM ${Folder.table} parent
                 WHERE id = $id
                 UNION ALL
                 SELECT child.*
-                FROM ${DBFolder.table} child
+                FROM ${Folder.table} child
                 JOIN childs AS parent ON parent.id = child.parent_id
             )
             SELECT * FROM childs;
          """
-        .map(rs => DBFolder.fromResultSet(rs))
+        .map(rs => Folder.fromResultSet(rs))
         .list()
         .sequence
     }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
@@ -472,11 +465,11 @@ trait FolderRepository {
       sql"""
            WITH RECURSIVE parents AS (
                 SELECT id AS f_id, parent_id AS f_parent_id, 0 dpth
-                FROM ${DBFolder.table} child
+                FROM ${Folder.table} child
                 WHERE id = $parentId
                 UNION ALL
                 SELECT parent.id AS f_id, parent.parent_id AS f_parent_id, dpth +1
-                FROM ${DBFolder.table} parent
+                FROM ${Folder.table} parent
                 JOIN parents AS child ON child.f_parent_id = parent.id
             )
             SELECT * FROM parents ORDER BY parents.dpth DESC
@@ -491,11 +484,11 @@ trait FolderRepository {
         sql"""
              WITH RECURSIVE parent (id) as (
                   SELECT id
-                  FROM ${DBFolder.table} child
+                  FROM ${Folder.table} child
                   WHERE id = $folderId
                   UNION ALL
                   SELECT child.id
-                  FROM ${DBFolder.table} child, parent
+                  FROM ${Folder.table} child, parent
                   WHERE child.parent_id = parent.id
             )
             SELECT * FROM parent
@@ -512,15 +505,15 @@ trait FolderRepository {
     def getFolderResources(
         folderId: UUID
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
-      val fr = DBFolderResource.syntax("fr")
-      val r  = DBResource.syntax("r")
-      sql"""select ${r.result.*}, ${fr.result.*} from ${DBFolderResource.as(fr)}
-            left join ${DBResource.as(r)}
+      val fr = FolderResource.syntax("fr")
+      val r  = Resource.syntax("r")
+      sql"""select ${r.result.*}, ${fr.result.*} from ${FolderResource.as(fr)}
+            left join ${Resource.as(r)}
                 on ${fr.resourceId} = ${r.id}
             where ${fr.folderId} = $folderId;
            """
-        .one(DBResource.fromResultSet(r, withConnection = false))
-        .toOne(rs => DBFolderResource.fromResultSet(fr)(rs).toOption)
+        .one(Resource.fromResultSet(r, withConnection = false))
+        .toOne(rs => FolderResource.fromResultSet(fr)(rs).toOption)
         .map((resource, connection) => resource.map(_.copy(connection = connection)))
         .list()
         .sequence
@@ -529,9 +522,9 @@ trait FolderRepository {
     private def folderWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession): Try[Option[Folder]] = Try {
-      val f = DBFolder.syntax("f")
-      sql"select ${f.result.*} from ${DBFolder.as(f)} where $whereClause"
-        .map(DBFolder.fromResultSet(f))
+      val f = Folder.syntax("f")
+      sql"select ${f.result.*} from ${Folder.as(f)} where $whereClause"
+        .map(Folder.fromResultSet(f))
         .single()
         .sequence
     }.flatten
@@ -539,9 +532,9 @@ trait FolderRepository {
     private def foldersWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession): Try[List[Folder]] = Try {
-      val f = DBFolder.syntax("f")
-      sql"select ${f.result.*} from ${DBFolder.as(f)} where $whereClause"
-        .map(DBFolder.fromResultSet(f))
+      val f = Folder.syntax("f")
+      sql"select ${f.result.*} from ${Folder.as(f)} where $whereClause"
+        .map(Folder.fromResultSet(f))
         .list()
         .sequence
     }.flatten
@@ -549,9 +542,9 @@ trait FolderRepository {
     private def resourcesWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession): Try[List[Resource]] = Try {
-      val r = DBResource.syntax("r")
-      sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
-        .map(DBResource.fromResultSet(r, withConnection = false))
+      val r = Resource.syntax("r")
+      sql"select ${r.result.*} from ${Resource.as(r)} where $whereClause"
+        .map(Resource.fromResultSet(r, withConnection = false))
         .list()
         .sequence
     }.flatten
@@ -559,9 +552,9 @@ trait FolderRepository {
     private def resourceWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession): Try[Option[Resource]] = Try {
-      val r = DBResource.syntax("r")
-      sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
-        .map(DBResource.fromResultSet(r, withConnection = false))
+      val r = Resource.syntax("r")
+      sql"select ${r.result.*} from ${Resource.as(r)} where $whereClause"
+        .map(Resource.fromResultSet(r, withConnection = false))
         .single()
         .sequence
     }.flatten
@@ -569,7 +562,7 @@ trait FolderRepository {
     def setFolderRank(folderId: UUID, rank: Int, feideId: FeideID)(implicit session: DBSession): Try[Unit] = {
       Try {
         sql"""
-          update ${DBFolder.table}
+          update ${Folder.table}
           set rank=$rank
           where id=$folderId and feide_id=$feideId
       """
@@ -587,7 +580,7 @@ trait FolderRepository {
     def setResourceConnectionRank(folderId: UUID, resourceId: UUID, rank: Int)(implicit session: DBSession): Try[Unit] =
       Try {
         sql"""
-          update ${DBFolderResource.table}
+          update ${FolderResource.table}
           set rank=$rank
           where folder_id=$folderId and resource_id=$resourceId
       """.update()
@@ -601,36 +594,36 @@ trait FolderRepository {
       }
 
     def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${DBResource.table}) as tag"
+      sql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${Resource.table}) as tag"
         .map(rs => rs.long("count"))
         .single()
     }
 
     def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(*) from ${DBResource.table}"
+      sql"select count(*) from ${Resource.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
     def numberOfFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(*) from ${DBFolder.table}"
+      sql"select count(*) from ${Folder.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
     def numberOfSharedFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(*) from ${DBFolder.table} where status = ${FolderStatus.SHARED.toString}"
+      sql"select count(*) from ${Folder.table} where status = ${FolderStatus.SHARED.toString}"
         .map(rs => rs.long("count"))
         .single()
     }
 
     def numberOfResourcesGrouped()(implicit session: DBSession = ReadOnlyAutoSession): List[(Long, String)] = {
-      sql"select count(*) as antall, resource_type from ${DBResource.table} group by resource_type"
+      sql"select count(*) as antall, resource_type from ${Resource.table} group by resource_type"
         .map(rs => (rs.long("antall"), rs.string("resource_type")))
         .list()
     }
     def getAllFolderRows(implicit session: DBSession): List[FolderRow] = {
-      sql"select * from ${DBFolder.table}"
+      sql"select * from ${Folder.table}"
         .map(rs => {
           FolderRow(
             id = UUID.fromString(rs.string("id")),
@@ -657,7 +650,7 @@ trait FolderRepository {
         document: String
     )
     def getAllResourceRows(implicit session: DBSession): List[ResourceRow] = {
-      sql"select * from ${DBResource.table}"
+      sql"select * from ${Resource.table}"
         .map(rs => {
           ResourceRow(
             id = UUID.fromString(rs.string("id")),
@@ -673,7 +666,7 @@ trait FolderRepository {
 
     case class FolderResourceRow(folder_id: UUID, resource_id: UUID, rank: Int)
     def getAllFolderResourceRows(implicit session: DBSession): List[FolderResourceRow] = {
-      sql"select * from ${DBFolderResource.table}"
+      sql"select * from ${FolderResource.table}"
         .map(rs => {
           FolderResourceRow(
             folder_id = UUID.fromString(rs.string("folder_id")),
@@ -685,10 +678,10 @@ trait FolderRepository {
     }
 
     def insertFolderRow(folderRow: FolderRow)(implicit session: DBSession): Unit = {
-      val column = DBFolder.column.c _
+      val column = Folder.column.c _
       withSQL {
         insert
-          .into(DBFolder)
+          .into(Folder)
           .namedValues(
             column("id")          -> folderRow.id,
             column("parent_id")   -> folderRow.parent_id,
@@ -712,10 +705,10 @@ trait FolderRepository {
         dataObject.setValue(resourceRow.document)
         ParameterBinder(dataObject, (ps, idx) => ps.setObject(idx, dataObject))
       }
-      val column = DBResource.column.c _
+      val column = Resource.column.c _
       withSQL {
         insert
-          .into(DBResource)
+          .into(Resource)
           .namedValues(
             column("id")            -> resourceRow.id,
             column("feide_id")      -> resourceRow.feide_id,
@@ -729,10 +722,10 @@ trait FolderRepository {
     }
 
     def insertFolderResourceRow(folderResourceRow: FolderResourceRow)(implicit session: DBSession): Unit = {
-      val column = DBFolderResource.column.c _
+      val column = FolderResource.column.c _
       withSQL {
         insert
-          .into(DBFolderResource)
+          .into(FolderResource)
           .namedValues(
             column("folder_id")   -> folderResourceRow.folder_id,
             column("resource_id") -> folderResourceRow.resource_id,

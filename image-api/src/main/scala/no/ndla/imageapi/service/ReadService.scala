@@ -96,7 +96,9 @@ trait ReadService {
       val encodedPath = urlEncodePath(path)
       imageRepository.getImageFromFilePath(encodedPath) match {
         case Some(image) =>
-          image.images.find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
+          image.images
+            .getOrElse(Seq.empty)
+            .find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
             case Some(img) => Success(img)
             case None =>
               Failure(
@@ -140,7 +142,7 @@ trait ReadService {
     def getImageFileName(imageId: Long, language: Option[String]): Option[String] = {
       for {
         imageMeta     <- imageRepository.withId(imageId)
-        imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images, language)
+        imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images.getOrElse(Seq.empty), language)
         imageName = Uri.parse(imageFileMeta.fileName).toStringRaw.dropWhile(_ == '/')
       } yield imageName
     }

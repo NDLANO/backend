@@ -12,11 +12,9 @@ object draftapi extends Module {
       scalaTsi,
       scalaUri,
       enumeratum,
-      enumeratumJson4s,
       sttp,
       catsEffect,
       jsoup,
-      "org.json4s"      %% "json4s-native"           % Json4SV,
       "org.scalikejdbc" %% "scalikejdbc"             % ScalikeJDBCV,
       "org.scalatest"   %% "scalatest"               % ScalaTestV % "test",
       "com.amazonaws"    % "aws-java-sdk-cloudwatch" % AwsSdkV

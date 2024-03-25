@@ -20,7 +20,7 @@ object Field {
 
 case class HtmlRulesAttribute(
     fields: List[Field],
-    mustContainAtLeastOneOptionalAttribute: Boolean = false
+    mustContainAtLeastOneOptionalAttribute: Option[Boolean]
 )
 
 object HtmlRulesAttribute {

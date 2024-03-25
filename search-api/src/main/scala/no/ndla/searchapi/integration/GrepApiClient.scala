@@ -9,14 +9,14 @@ package no.ndla.searchapi.integration
 
 import java.util.concurrent.Executors
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.Decoder
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.GrepException
-import no.ndla.searchapi.model.grep._
-import org.json4s.DefaultFormats
-import sttp.client3.quick._
+import no.ndla.searchapi.model.grep.*
+import sttp.client3.quick.*
 
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
@@ -28,8 +28,7 @@ trait GrepApiClient {
 
   class GrepApiClient extends StrictLogging {
     import props.GrepApiUrl
-    implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-    private val GrepApiEndpoint               = s"$GrepApiUrl/kl06/v201906"
+    private val GrepApiEndpoint = s"$GrepApiUrl/kl06/v201906"
 
     def getAllKjerneelementer: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/kjerneelementer-lk20/").map(_.distinct)
@@ -79,7 +78,7 @@ trait GrepApiClient {
       }
     }
 
-    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
+    private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
       val request = quickRequest.get(uri"$url?$params").readTimeout(60.seconds)
       ndlaClient.fetch[A](request)
     }

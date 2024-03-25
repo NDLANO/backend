@@ -56,7 +56,6 @@ class ComponentRegistry(properties: ImageApiProperties)
     with NdlaClient
     with ConverterService
     with ValidationService
-    with TagsService
     with BaseImageController
     with ImageControllerV2
     with ImageControllerV3
@@ -97,7 +96,6 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val imageStorage           = new AmazonImageStorageService
   lazy val ndlaClient             = new NdlaClient
   lazy val converterService       = new ConverterService
-  lazy val tagsService            = new TagsService
   var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchConverterService = new SearchConverterService
 

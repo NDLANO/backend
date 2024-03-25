@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service.search
 
+import no.ndla.common.CirceUtil
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
@@ -16,22 +17,19 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.repository.{ArticleRepository, Repository}
 import no.ndla.common.model.domain.article.Article
-import no.ndla.search.model.SearchableLanguageFormats
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 
 trait ArticleIndexService {
   this: SearchConverterService with IndexService with ArticleRepository with Props =>
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends StrictLogging with IndexService[Article, SearchableArticle] {
-    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
     override val documentType: String            = props.ArticleSearchDocument
     override val searchIndex: String             = props.ArticleSearchIndex
     override val repository: Repository[Article] = articleRepository
 
     override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
-      val source = write(searchConverterService.asSearchableArticle(domainModel))
+      val searchable = searchConverterService.asSearchableArticle(domainModel)
+      val source     = CirceUtil.toJsonString(searchable)
       indexInto(indexName).doc(source).id(domainModel.id.get.toString)
     }
 

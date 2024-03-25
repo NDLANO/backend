@@ -7,9 +7,7 @@ object validationlib extends Module {
   override val moduleName: String      = "validation"
   override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = Seq(
-    "org.scalatest" %% "scalatest"     % ScalaTestV % "test",
-    "org.json4s"    %% "json4s-native" % Json4SV,
-    "org.json4s"    %% "json4s-ext"    % Json4SV,
+    "org.scalatest" %% "scalatest" % ScalaTestV % "test",
     jsoup,
     scalaUri
   )

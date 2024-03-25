@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.Node
@@ -19,9 +20,6 @@ import no.ndla.mapping.License.getLicenses
 import no.ndla.myndla.model.domain.InvalidStatusException
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.Formats
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.Serialization.*
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
 import sttp.client3.quick.*
@@ -29,8 +27,6 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-
-  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
   val controller: LearningpathControllerV2 = new LearningpathControllerV2
 
   override def beforeEach(): Unit = {
@@ -102,7 +98,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths?$queryParams")
     )
     res.code.code should be(200)
-    val convertedBody = read[api.SearchResultV2](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2](res.body)
     convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
   }
 
@@ -130,7 +126,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths?$queryParams")
     )
     res.code.code should be(200)
-    val convertedBody = read[api.SearchResultV2](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2](res.body)
     convertedBody.totalCount should be(-1)
 
   }
@@ -165,7 +161,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
         .body(inputBody)
     )
     res.code.code should be(200)
-    val convertedBody = read[api.SearchResultV2](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2](res.body)
     convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
   }
 
@@ -179,7 +175,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
         .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/licenses/?filter=by")
     )
     res.code.code should be(200)
-    val convertedBody = read[Set[commonApi.License]](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](res.body)
     convertedBody should equal(creativeCommonlicenses)
   }
 
@@ -193,7 +189,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
         .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/licenses/")
     )
     res.code.code should be(200)
-    val convertedBody = read[Set[commonApi.License]](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](res.body)
     convertedBody should equal(allLicenses)
   }
 

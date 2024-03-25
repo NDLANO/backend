@@ -8,15 +8,13 @@
 
 package no.ndla.audioapi.model.domain
 
-import no.ndla.audioapi.Props
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Title
 import no.ndla.language.Language.getSupportedLanguages
-import org.json4s.FieldSerializer.ignore
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
-import org.json4s.native.Serialization
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.Try
 
@@ -30,6 +28,10 @@ class SeriesWithoutId(
     val description: Seq[Description],
     val hasRSS: Boolean
 )
+object SeriesWithoutId {
+  implicit val encoder: Encoder[SeriesWithoutId] = deriveEncoder
+  implicit val decoder: Decoder[SeriesWithoutId] = deriveDecoder
+}
 
 /** Series with database generated fields. Should match [[SeriesWithoutId]] exactly except for the fields added when
   * inserting into database.
@@ -48,54 +50,39 @@ case class Series(
   lazy val supportedLanguages: Seq[String] = getSupportedLanguages(title, description)
 }
 
-trait DBSeries {
-  this: Props =>
+object Series extends SQLSyntaxSupport[Series] {
+  override val tableName = "seriesdata"
 
-  object Series extends SQLSyntaxSupport[Series] {
-    val jsonEncoder: Formats =
-      DefaultFormats ++
-        JavaTimeSerializers.all +
-        NDLADate.Json4sSerializer
+  implicit val encoder: Encoder[Series] = deriveEncoder
+  implicit val decoder: Decoder[Series] = deriveDecoder
 
-    val repositorySerializer: Formats = jsonEncoder +
-      FieldSerializer[Series](
-        ignore("id") orElse
-          ignore("revision") orElse
-          ignore("episodes")
+  def fromId(id: Long, revision: Int, series: SeriesWithoutId): Series = {
+    new Series(
+      id = id,
+      revision = revision,
+      episodes = None,
+      title = series.title,
+      coverPhoto = series.coverPhoto,
+      updated = series.updated,
+      created = series.created,
+      description = series.description,
+      hasRSS = series.hasRSS
+    )
+  }
+
+  def fromResultSet(s: SyntaxProvider[Series])(rs: WrappedResultSet): Try[Series] =
+    fromResultSet(s.resultName)(rs)
+
+  def fromResultSet(s: ResultName[Series])(rs: WrappedResultSet): Try[Series] = {
+    val jsonStr = rs.string(s.c("document"))
+    val meta    = CirceUtil.tryParseAs[SeriesWithoutId](jsonStr)
+
+    meta.map(m =>
+      fromId(
+        id = rs.long(s.c("id")),
+        revision = rs.int(s.c("revision")),
+        series = m
       )
-
-    override val tableName                  = "seriesdata"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
-
-    def fromId(id: Long, revision: Int, series: SeriesWithoutId): Series = {
-      new Series(
-        id = id,
-        revision = revision,
-        episodes = None,
-        title = series.title,
-        coverPhoto = series.coverPhoto,
-        updated = series.updated,
-        created = series.created,
-        description = series.description,
-        hasRSS = series.hasRSS
-      )
-    }
-
-    def fromResultSet(s: SyntaxProvider[Series])(rs: WrappedResultSet): Try[Series] =
-      fromResultSet(s.resultName)(rs)
-
-    def fromResultSet(s: ResultName[Series])(rs: WrappedResultSet): Try[Series] = {
-      implicit val formats: Formats = jsonEncoder
-      val jsonStr                   = rs.string(s.c("document"))
-      val meta                      = Try(Serialization.read[SeriesWithoutId](jsonStr))
-
-      meta.map(m =>
-        fromId(
-          id = rs.long(s.c("id")),
-          revision = rs.int(s.c("revision")),
-          series = m
-        )
-      )
-    }
+    )
   }
 }

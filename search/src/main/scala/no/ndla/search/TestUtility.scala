@@ -8,59 +8,57 @@
 package no.ndla.search
 
 import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField}
-import org.json4s.JsonAST.{JArray, JObject, JValue}
-
-import scala.annotation.tailrec
+import io.circe.Json
 
 object TestUtility {
-  @tailrec
-  private def getArrayFields(json: JArray, prefix: String): Seq[String] = {
-    val firstElement =
-      json.arr.headOption.getOrElse(
-        throw new RuntimeException(s"Array '$prefix' seems to be empty, this makes checking subfields hard")
-      )
-    firstElement match {
-      case obj: JObject =>
-        getFields(obj, Some(prefix))
-      case arr: JArray =>
-        getArrayFields(arr, s"$prefix[0]")
-      case _ => Seq.empty
-    }
+  private def getArrayFields(json: Vector[Json], prefix: String): Seq[String] = {
+    val firstElement = json.headOption.getOrElse(
+      throw new RuntimeException(s"Array '$prefix' seems to be empty, this makes checking subfields hard")
+    )
+
+    firstElement.arrayOrObject(
+      or = { Seq.empty },
+      jsonObject = { obj => getFields(obj.toJson, Some(prefix)) },
+      jsonArray = { arr => getArrayFields(arr, s"$prefix[0]") }
+    )
   }
 
-  def getFields(json: JValue, prefix: Option[String], skipFields: Seq[String] = Seq.empty): Seq[String] = {
+  def getFields(json: Json, prefix: Option[String], skipFields: Seq[String] = Seq.empty): Seq[String] = {
     val pre = prefix.map(x => s"$x.").getOrElse("")
-    json match {
-      case arr: JArray =>
-        getArrayFields(arr, s"$pre")
-      case JObject(obj) =>
-        obj.foldLeft(List.empty[String]) {
-          case (acc, (name, value: JObject)) =>
-            if (skipFields.contains(name)) {
-              acc
-            } else {
+
+    json.asArray match {
+      case Some(value) => return getArrayFields(value, s"$pre")
+      case _           =>
+    }
+
+    json.arrayOrObject(
+      or = { List.empty },
+      jsonArray = { arr => getArrayFields(arr, s"$pre") },
+      jsonObject = { obj =>
+        obj.toMap.foldLeft(List.empty[String]) {
+          case (acc, (name, value)) if value.isObject =>
+            if (skipFields.contains(name)) acc
+            else {
               val fix       = s"$pre$name"
               val subfields = getFields(value, Some(fix), skipFields)
               acc ++ subfields
             }
-          case (acc, (name, value: JArray)) =>
-            if (skipFields.contains(name)) {
-              acc
-            } else {
+          case (acc, (name, value)) if value.isArray =>
+            if (skipFields.contains(name)) acc
+            else {
               val fix       = s"$pre$name"
-              val subfields = getArrayFields(value, fix)
+              val subfields = getArrayFields(value.asArray.getOrElse(Vector.empty), fix)
               acc ++ subfields
             }
           case (acc, (name, _)) =>
-            if (skipFields.contains(name)) {
-              acc
-            } else {
+            if (skipFields.contains(name)) acc
+            else {
               val fix = s"$pre$name"
               acc :+ fix
             }
         }
-      case _ => List.empty
-    }
+      }
+    )
   }
 
   def getMappingFields(fields: Seq[ElasticField], prefix: Option[String]): Seq[String] = {

@@ -8,18 +8,17 @@
 package no.ndla.draftapi.service.search
 
 import java.util.concurrent.Executors
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.ErrorHelpers
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.*
 import no.ndla.draftapi.model.search.SearchableTag
 import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
-import org.json4s._
-import org.json4s.native.Serialization.read
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
@@ -37,10 +36,9 @@ trait TagSearchService {
   class TagSearchService extends StrictLogging with SearchService[String] {
     import props._
     override val searchIndex: String = DraftTagSearchIndex
-    implicit val formats: Formats    = DefaultFormats
 
     override def hitToApiModel(hit: String, language: String): String = {
-      val searchableTag = read[SearchableTag](hit)
+      val searchableTag = CirceUtil.unsafeParseAs[SearchableTag](hit)
       searchableTag.tag
     }
 

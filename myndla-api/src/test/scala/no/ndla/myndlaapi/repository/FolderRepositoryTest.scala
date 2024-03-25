@@ -80,29 +80,29 @@ class FolderRepositoryTest
   }
 
   def folderCount(implicit session: DBSession = AutoSession): Long = {
-    sql"select count(id) from ${DBFolder.table}"
+    sql"select count(id) from ${Folder.table}"
       .map(rs => rs.long("count"))
       .single()
       .getOrElse(0)
   }
 
   def resourceCount(implicit session: DBSession = AutoSession): Long = {
-    sql"select count(id) from ${DBResource.table}"
+    sql"select count(id) from ${Resource.table}"
       .map(rs => rs.long("count"))
       .single()
       .getOrElse(0)
   }
 
   def folderResourcesCount(implicit session: DBSession = AutoSession): Long = {
-    sql"select count(folder_id) from ${DBFolderResource.table}"
+    sql"select count(folder_id) from ${FolderResource.table}"
       .map(rs => rs.long("count"))
       .single()
       .getOrElse(0)
   }
 
   def getAllFolders(implicit session: DBSession = AutoSession): List[Folder] = {
-    sql"select * from ${DBFolder.table}"
-      .map(rs => DBFolder.fromResultSet(rs))
+    sql"select * from ${Folder.table}"
+      .map(rs => Folder.fromResultSet(rs))
       .list()
       .sequence
       .get

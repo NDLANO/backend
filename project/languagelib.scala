@@ -8,8 +8,7 @@ object languagelib extends Module {
   override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      "org.json4s"    %% "json4s-native" % Json4SV,
-      "org.scalatest" %% "scalatest"     % ScalaTestV % "test"
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test"
     )
   )
 

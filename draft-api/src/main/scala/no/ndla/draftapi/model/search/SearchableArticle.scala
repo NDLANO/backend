@@ -7,6 +7,8 @@
 
 package no.ndla.draftapi.model.search
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
@@ -28,3 +30,8 @@ case class SearchableArticle(
     grepCodes: Seq[String],
     status: SearchableStatus
 )
+
+object SearchableArticle {
+  implicit val encoder: Encoder[SearchableArticle] = deriveEncoder
+  implicit val decoder: Decoder[SearchableArticle] = deriveDecoder
+}

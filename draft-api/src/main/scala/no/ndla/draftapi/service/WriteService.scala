@@ -656,7 +656,7 @@ trait WriteService {
       draftRepository
         .deleteArticle(id)(AutoSession)
         .flatMap(articleIndexService.deleteDocument)
-        .map(api.ContentId)
+        .map(id => api.ContentId(id))
     }
 
     def storeFile(file: UploadedFile): Try[api.UploadedFile] =

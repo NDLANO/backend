@@ -8,12 +8,13 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.CirceUtil
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.implicits.TryQuestionMark
-import org.json4s.native.JsonMethods
-import org.json4s.*
+import no.ndla.common.implicits.*
 import sttp.client3.Response
 import sttp.client3.quick.*
 import sttp.model.Uri
@@ -22,12 +23,25 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class Membership(primarySchool: Option[Boolean])
+
+object Membership {
+  implicit val encoder: Encoder[Membership] = deriveEncoder
+  implicit val decoder: Decoder[Membership] = deriveDecoder
+}
 case class FeideGroup(id: String, `type`: String, displayName: String, membership: Membership, parent: Option[String])
 object FeideGroup {
   val FC_ORG = "fc:org"
+
+  implicit val encoder: Encoder[FeideGroup] = deriveEncoder
+  implicit val decoder: Decoder[FeideGroup] = deriveDecoder
 }
 
 case class FeideOpenIdUserInfo(sub: String)
+
+object FeideOpenIdUserInfo {
+  implicit val encoder: Encoder[FeideOpenIdUserInfo] = deriveEncoder
+  implicit val decoder: Decoder[FeideOpenIdUserInfo] = deriveDecoder
+}
 
 case class FeideExtendedUserInfo(
     displayName: String,
@@ -47,7 +61,7 @@ case class FeideExtendedUserInfo(
     else false
   }
 
-  def availabilities: Seq[Availability.Value] = {
+  def availabilities: Seq[Availability] = {
     if (this.isTeacher) {
       Seq(
         Availability.everyone,
@@ -60,6 +74,11 @@ case class FeideExtendedUserInfo(
 
   def email: String    = this.mail.headOption.getOrElse(this.eduPersonPrincipalName)
   def username: String = this.eduPersonPrincipalName
+}
+
+object FeideExtendedUserInfo {
+  implicit val decoder: Decoder[FeideExtendedUserInfo] = deriveDecoder
+  implicit val encoder: Encoder[FeideExtendedUserInfo] = deriveEncoder
 }
 
 trait FeideApiClient {
@@ -80,22 +99,21 @@ trait FeideApiClient {
     private def fetchFeideGroupInfo(accessToken: FeideAccessToken): Try[Seq[FeideGroup]] =
       fetchAndParse[Seq[FeideGroup]](accessToken, feideGroupEndpoint)
 
-    private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: Uri)(implicit mf: Manifest[T]): Try[T] = {
+    private def fetchAndParse[T: Decoder](accessToken: FeideAccessToken, endpoint: Uri): Try[T] = {
       val request =
         quickRequest
           .get(endpoint)
           .readTimeout(feideTimeout)
           .header("Authorization", s"Bearer $accessToken")
 
-      implicit val formats: DefaultFormats.type = DefaultFormats
       for {
         response <- doRequest(request)
         parsed   <- parseResponse[T](response)
       } yield parsed
     }
 
-    private def parseResponse[T](response: Response[String])(implicit mf: Manifest[T], formats: Formats): Try[T] = {
-      Try(JsonMethods.parse(response.body).camelizeKeys.extract[T]) match {
+    private def parseResponse[T: Decoder](response: Response[String]): Try[T] = {
+      CirceUtil.tryParseAs[T](response.body) match {
         case Success(extracted) => Success(extracted)
         case Failure(ex) =>
           logger.error("Could not parse response from feide.", ex)
@@ -173,7 +191,7 @@ trait FeideApiClient {
       } yield feideId
     }
 
-    def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = {
+    def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = permitTry {
       val accessToken    = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeFeideUser = redisClient.getFeideUserFromCache(accessToken).?
       val feideExtendedUser = (maybeFeideUser match {
@@ -183,7 +201,7 @@ trait FeideApiClient {
       redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
     }
 
-    def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = {
+    def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = permitTry {
       val accessToken      = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeFeideGroups = redisClient.getGroupsFromCache(accessToken).?
       val feideGroups = (maybeFeideGroups match {
@@ -193,7 +211,7 @@ trait FeideApiClient {
       redisClient.updateCacheAndReturnGroups(accessToken, feideGroups)
     }
 
-    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = {
+    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = permitTry {
       val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?
       val organization = (maybeOrganization match {

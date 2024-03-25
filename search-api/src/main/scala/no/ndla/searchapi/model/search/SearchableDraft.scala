@@ -7,6 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
@@ -49,3 +51,8 @@ case class SearchableDraft(
     defaultResourceTypeName: Option[String],
     published: NDLADate
 )
+
+object SearchableDraft {
+  implicit val encoder: Encoder[SearchableDraft] = deriveEncoder
+  implicit val decoder: Decoder[SearchableDraft] = deriveDecoder
+}

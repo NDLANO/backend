@@ -12,8 +12,9 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.model.LanguageField
+import enumeratum._
 
-case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField[String] {
+case class EmbedUrl(url: String, language: String, embedType: EmbedType) extends LanguageField[String] {
   override def value: String    = url
   override def isEmpty: Boolean = url.isEmpty
 }
@@ -23,17 +24,16 @@ object EmbedUrl {
   implicit val decoder: Decoder[EmbedUrl] = deriveDecoder
 }
 
-object EmbedType extends Enumeration {
+sealed abstract class EmbedType(override val entryName: String) extends EnumEntry {}
 
-  val OEmbed: Value = Value("oembed")
-  val LTI: Value    = Value("lti")
-  val IFrame: Value = Value("iframe")
+object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
+  case object OEmbed extends EmbedType("oembed")
+  case object LTI    extends EmbedType("lti")
+  case object IFrame extends EmbedType("iframe")
 
-  def valueOf(s: String): Option[EmbedType.Value] = {
-    EmbedType.values.find(_.toString == s)
-  }
-
-  def valueOfOrError(embedType: String): EmbedType.Value = {
+  def valueOf(s: String): Option[EmbedType]  = EmbedType.values.find(_.entryName == s)
+  def valueOfOrDefault(s: String): EmbedType = valueOf(s).getOrElse(EmbedType.OEmbed)
+  def valueOfOrError(embedType: String): EmbedType = {
     valueOf(embedType) match {
       case Some(s) => s
       case None =>
@@ -43,10 +43,5 @@ object EmbedType extends Enumeration {
     }
   }
 
-  def valueOfOrDefault(s: String): EmbedType.Value = {
-    valueOf(s).getOrElse(EmbedType.OEmbed)
-  }
-
-  implicit val encoder: Encoder[EmbedType.Value] = Encoder.encodeEnumeration(EmbedType)
-  implicit val decoder: Decoder[EmbedType.Value] = Decoder.decodeEnumeration(EmbedType)
+  override def values: IndexedSeq[EmbedType] = findValues
 }

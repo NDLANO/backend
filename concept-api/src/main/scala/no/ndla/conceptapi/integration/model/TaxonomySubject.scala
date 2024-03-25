@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.integration.model
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.search.model.LanguageValue
 
 case class TaxonomyTranslation(
@@ -16,11 +18,21 @@ case class TaxonomyTranslation(
   def toLanguageValue: LanguageValue[String] = LanguageValue(language, name)
 }
 
+object TaxonomyTranslation {
+  implicit val encoder: Encoder[TaxonomyTranslation] = deriveEncoder
+  implicit val decoder: Decoder[TaxonomyTranslation] = deriveDecoder
+}
+
 case class TaxonomySubject(
     id: String,
     name: String,
     translations: List[TaxonomyTranslation]
 )
+
+object TaxonomySubject {
+  implicit val encoder: Encoder[TaxonomySubject] = deriveEncoder
+  implicit val decoder: Decoder[TaxonomySubject] = deriveDecoder
+}
 
 case class TaxonomyData(
     subjectsById: Map[String, TaxonomySubject]

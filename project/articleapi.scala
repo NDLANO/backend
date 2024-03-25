@@ -16,7 +16,6 @@ object articleapi extends Module {
       enumeratum,
       sttp,
       jsoup,
-      "org.json4s"    %% "json4s-native"           % Json4SV,
       "com.amazonaws"  % "aws-java-sdk-s3"         % AwsSdkV,
       "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test"

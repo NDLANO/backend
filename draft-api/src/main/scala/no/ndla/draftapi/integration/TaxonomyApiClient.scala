@@ -8,18 +8,19 @@
 package no.ndla.draftapi.integration
 
 import cats.Traverse
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.network.{NdlaClient, TaxonomyData}
-import org.json4s.jackson.Serialization.write
-import org.json4s.{DefaultFormats, Formats}
 import org.jsoup.Jsoup
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
@@ -30,9 +31,8 @@ trait TaxonomyApiClient {
   import props.{DefaultLanguage, TaxonomyUrl, TaxonomyVersionHeader}
 
   class TaxonomyApiClient extends StrictLogging {
-    private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
-    private val taxonomyTimeout               = 20.seconds
-    implicit val formats: DefaultFormats.type = DefaultFormats
+    private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
+    private val taxonomyTimeout     = 20.seconds
 
     def updateTaxonomyIfExists(articleId: Long, article: Draft, user: TokenUser): Try[Long] = {
       for {
@@ -100,9 +100,9 @@ trait TaxonomyApiClient {
     }
 
     private[integration] def updateNodeTranslation(nodeId: String, lang: String, name: String, user: TokenUser) =
-      putRaw(s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$lang", Translation(name), user)
+      putRaw[Translation](s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$lang", Translation(name), user)
 
-    private[integration] def updateNode(node: Node, user: TokenUser)(implicit formats: Formats) =
+    private[integration] def updateNode(node: Node, user: TokenUser) =
       putRaw[Node](s"$TaxonomyApiEndpoint/nodes/${node.id}", node, user)
 
     private[integration] def getTranslations(nodeId: String) =
@@ -141,7 +141,7 @@ trait TaxonomyApiClient {
       putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/nodes/$nodeId/metadata", body, user)
     }
 
-    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
+    private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
           .get(uri"$url".withParams(params: _*))
@@ -174,13 +174,13 @@ trait TaxonomyApiClient {
       }
 
     private[integration] def putRaw[B <: AnyRef](url: String, data: B, user: TokenUser)(implicit
-        formats: org.json4s.Formats
+        d: Encoder[B]
     ): Try[B] = {
       val uri = uri"$url"
       logger.info(s"Doing call to $uri")
       val request = quickRequest
         .put(uri)
-        .body(write(data))
+        .body(CirceUtil.toJsonString(data))
         .readTimeout(taxonomyTimeout)
         .header(TaxonomyVersionHeader, TaxonomyData.get)
         .header("Content-Type", "application/json", replaceExisting = true)
@@ -195,6 +195,19 @@ trait TaxonomyApiClient {
 case class Node(id: String, name: String, contentUri: Option[String], paths: List[String]) {
   def withName(name: String): Node = this.copy(name = name)
 }
+object Node {
+  implicit val encoder: Encoder[Node] = deriveEncoder
+  implicit val decoder: Decoder[Node] = deriveDecoder
+}
 
 case class TaxonomyMetadata(grepCodes: Seq[String], visible: Boolean)
+object TaxonomyMetadata {
+  implicit val encoder: Encoder[TaxonomyMetadata] = deriveEncoder
+  implicit val decoder: Decoder[TaxonomyMetadata] = deriveDecoder
+}
+
 case class Translation(name: String, language: Option[String] = None)
+object Translation {
+  implicit val encoder: Encoder[Translation] = deriveEncoder
+  implicit val decoder: Decoder[Translation] = deriveDecoder
+}

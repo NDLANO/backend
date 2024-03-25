@@ -10,7 +10,6 @@ package no.ndla.oembedproxy.service
 
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.model.{OEmbed, OEmbedProvider, ProviderNotSupportedException}
-import org.json4s.DefaultFormats
 import sttp.client3.quick._
 
 import scala.concurrent.duration.DurationInt
@@ -22,8 +21,6 @@ trait OEmbedServiceComponent {
   val oEmbedService: OEmbedService
 
   class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None) {
-    implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-
     val remoteTimeout: FiniteDuration = 10.seconds
 
     private lazy val providers = optionalProviders.toList.flatten ++ providerService

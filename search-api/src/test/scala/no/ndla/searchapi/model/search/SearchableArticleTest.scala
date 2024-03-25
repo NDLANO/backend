@@ -7,20 +7,17 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.searchapi.TestData._
-import org.json4s.native.Serialization.{read, write}
-import org.json4s.Formats
+import no.ndla.searchapi.TestData.*
 
 class SearchableArticleTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableArticle to json and deserializing back to object does not change content") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))
 
@@ -87,8 +84,8 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       embedResourcesAndIds = embedResourcesAndIds,
       availability = "everyone"
     )
-    val json         = write(original)
-    val deserialized = read[SearchableArticle](json)
+    val json         = CirceUtil.toJsonString(original)
+    val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
 
     deserialized should be(original)
   }
@@ -96,8 +93,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
   test(
     "That serializing a SearchableArticle with null values to json and deserializing back does not throw an exception"
   ) {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))
 
@@ -165,8 +160,8 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       availability = "everyone"
     )
 
-    val json         = write(original)
-    val deserialized = read[SearchableArticle](json)
+    val json         = CirceUtil.toJsonString(original)
+    val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
 
     val expected = original.copy(
       contexts = List(singleSearchableTaxonomyContext)

@@ -18,7 +18,7 @@ import no.ndla.common.DBUtil.buildWhereClause
 import no.ndla.common.errors.RollbackException
 import no.ndla.common.implicits._
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.{DBMyNDLAUser, MyNDLAUser, NDLASQLException}
+import no.ndla.myndla.model.domain.{MyNDLAUser, NDLASQLException}
 import no.ndla.myndlaapi.model.arena.api.CategorySort
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
@@ -83,7 +83,7 @@ trait ArenaRepository {
       val ns = SubQuery.syntax("ns").include(n)
       val p  = domain.Post.syntax("p")
       val t  = domain.Topic.syntax("t")
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
@@ -96,7 +96,7 @@ trait ArenaRepository {
              ) ns
              left join ${domain.Post.as(p)} on ${p.id} = ${ns(n).post_id}
              left join ${domain.Topic.as(t)} on ${t.id} = ${ns(n).topic_id}
-             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
+             left join ${MyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
              left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
              order by ${ns(n).notification_time} desc
            """
@@ -104,7 +104,7 @@ trait ArenaRepository {
           .toManies(
             rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
             rs => domain.Topic.fromResultSet(t.resultName)(rs).toOption,
-            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
           .map { (notification, post, topic, owner, flag) =>
@@ -124,7 +124,7 @@ trait ArenaRepository {
       val ns = SubQuery.syntax("ns").include(n)
       val p  = domain.Post.syntax("p")
       val t  = domain.Topic.syntax("t")
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
@@ -139,7 +139,7 @@ trait ArenaRepository {
              ) ns
              left join ${domain.Post.as(p)} on ${p.id} = ${ns(n).post_id}
              left join ${domain.Topic.as(t)} on ${t.id} = ${ns(n).topic_id}
-             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
+             left join ${MyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
              left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
              order by ${ns(n).notification_time} desc
            """
@@ -147,7 +147,7 @@ trait ArenaRepository {
           .toManies(
             rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
             rs => domain.Topic.fromResultSet(t.resultName)(rs).toOption,
-            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
           .map { (notification, post, topic, owner, flag) =>
@@ -348,14 +348,14 @@ trait ArenaRepository {
 
     def getTopicFollowers(topicId: Long)(implicit session: DBSession): Try[List[MyNDLAUser]] = Try {
       val tf = domain.TopicFollow.syntax("tf")
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       sql"""
            select ${tf.resultAll}, ${u.resultAll}
            from ${domain.TopicFollow.as(tf)}
-           left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${tf.user_id}
+           left join ${MyNDLAUser.as(u)} on ${u.id} = ${tf.user_id}
            where ${tf.topic_id} = $topicId
          """
-        .map(rs => DBMyNDLAUser.fromResultSet(u)(rs))
+        .map(rs => MyNDLAUser.fromResultSet(u)(rs))
         .list
         .apply()
     }
@@ -377,15 +377,15 @@ trait ArenaRepository {
 
     def getFlagsForPost(postId: Long)(implicit session: DBSession): Try[List[CompiledFlag]] = Try {
       val f = domain.Flag.syntax("f")
-      val u = DBMyNDLAUser.syntax("u")
+      val u = MyNDLAUser.syntax("u")
       sql"""
            select ${f.resultAll}, ${u.resultAll}
            from ${domain.Flag.as(f)}
-           left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${f.user_id}
+           left join ${MyNDLAUser.as(u)} on ${u.id} = ${f.user_id}
            where ${f.post_id} = $postId
          """
         .one(rs => domain.Flag.fromResultSet(f.resultName)(rs))
-        .toOptionalOne(rs => Option(DBMyNDLAUser.fromResultSet(u)(rs)))
+        .toOptionalOne(rs => Option(MyNDLAUser.fromResultSet(u)(rs)))
         .map { (flag, user) => flag.map(CompiledFlag(_, user)) }
         .list
         .apply()
@@ -418,15 +418,15 @@ trait ArenaRepository {
 
     def getFlag(flagId: Long)(implicit session: DBSession): Try[Option[CompiledFlag]] = Try {
       val f = domain.Flag.syntax("f")
-      val u = DBMyNDLAUser.syntax("u")
+      val u = MyNDLAUser.syntax("u")
       sql"""
            select ${f.resultAll}, ${u.resultAll}
            from ${domain.Flag.as(f)}
-           left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${f.user_id}
+           left join ${MyNDLAUser.as(u)} on ${u.id} = ${f.user_id}
            where ${f.id} = $flagId
          """
         .one(rs => domain.Flag.fromResultSet(f.resultName)(rs))
-        .toOptionalOne(rs => Option(DBMyNDLAUser.fromResultSet(u)(rs)))
+        .toOptionalOne(rs => Option(MyNDLAUser.fromResultSet(u)(rs)))
         .map { (flag, user) => flag.map(CompiledFlag(_, user)) }
         .single
         .apply()
@@ -498,16 +498,16 @@ trait ArenaRepository {
 
     def getPost(postId: Long)(implicit session: DBSession): Try[Option[(domain.Post, Option[MyNDLAUser])]] = {
       val p = domain.Post.syntax("p")
-      val u = DBMyNDLAUser.syntax("u")
+      val u = MyNDLAUser.syntax("u")
       Try {
         sql"""
                  select ${p.resultAll}, ${u.resultAll}
                  from ${domain.Post.as(p)}
-                 left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
+                 left join ${MyNDLAUser.as(u)} on ${u.id} = ${p.ownerId}
                  where ${p.id} = $postId
              """
           .one(rs => domain.Post.fromResultSet(p.resultName)(rs))
-          .toOptionalOne(rs => Option(DBMyNDLAUser.fromResultSet(u)(rs)))
+          .toOptionalOne(rs => Option(MyNDLAUser.fromResultSet(u)(rs)))
           .map { (post, user) => post.map(_ -> user) }
           .single
           .apply()
@@ -701,7 +701,7 @@ trait ArenaRepository {
 
     def getTopic(topicId: Long, requester: MyNDLAUser)(implicit session: DBSession): Try[Option[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       val tf = domain.TopicFollow.syntax("tf")
       val visibleSql =
         if (requester.isAdmin) sqls""
@@ -712,7 +712,7 @@ trait ArenaRepository {
                (select count(*) from ${domain.Post.table} where topic_id = ${t.id}) as postCount,
                (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${t.id} and user_id = ${requester.id}) as isFollowing
              from ${domain.Topic.as(t)}
-             left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${t.ownerId}
+             left join ${MyNDLAUser.as(u)} on ${u.id} = ${t.ownerId}
              left join ${domain.TopicFollow.as(tf)} on ${tf.topic_id} = ${t.id}
              where ${t.id} = $topicId
              $visibleSql
@@ -724,7 +724,7 @@ trait ArenaRepository {
               rs.boolean("isFollowing")
             )
           )
-          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
+          .toMany(rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption)
           .map { (topicAndCountAndFollowing, owners) =>
             {
               val (topic, postCount, isFollowing) = topicAndCountAndFollowing
@@ -858,7 +858,7 @@ trait ArenaRepository {
     def getFlaggedPosts(offset: Long, limit: Long)(implicit session: DBSession): Try[List[CompiledPost]] = {
       val p  = domain.Post.syntax("p")
       val ps = SubQuery.syntax("ps").include(p)
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
@@ -873,12 +873,12 @@ trait ArenaRepository {
                   offset $offset
                 ) ps
                left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id}
-               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
+               left join ${MyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
                order by ${ps(p).created} asc nulls last
            """
           .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
           .toManies(
-            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
           .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
@@ -907,7 +907,7 @@ trait ArenaRepository {
     ): Try[List[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       val visibleSql =
         if (requester.isAdmin) None
         else Some(sqls"(select visible from ${domain.Category.table} where id = ${t.category_id}) = true")
@@ -931,7 +931,7 @@ trait ArenaRepository {
                   limit $limit
                   offset $offset
                 ) ts
-               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
+               left join ${MyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
                order by newest_post_date desc nulls last, ${ts(t).id} asc
            """
           .one(rs => {
@@ -941,7 +941,7 @@ trait ArenaRepository {
               rs.boolean("isFollowing")
             )
           })
-          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
+          .toMany(rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption)
           .map { (topicAndCountAndFollowing, owners) =>
             val (topic, postCount, isFollowing) = topicAndCountAndFollowing
             compileTopic(topic, owners.toList, postCount, isFollowing)
@@ -957,7 +957,7 @@ trait ArenaRepository {
     ): Try[List[CompiledPost]] = {
       val p  = domain.Post.syntax("p")
       val ps = SubQuery.syntax("ps").include(p)
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
@@ -971,12 +971,12 @@ trait ArenaRepository {
                   offset $offset
                 ) ps
                left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id}
-               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
+               left join ${MyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
                order by ${ps(p).created} asc nulls last, ${ps(p).id} asc
            """
           .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
           .toManies(
-            rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
           .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
@@ -991,7 +991,7 @@ trait ArenaRepository {
     ): Try[List[CompiledTopic]] = {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
-      val u  = DBMyNDLAUser.syntax("u")
+      val u  = MyNDLAUser.syntax("u")
       Try {
         sql"""
               select
@@ -1009,7 +1009,7 @@ trait ArenaRepository {
                   limit $limit
                   offset $offset
                 ) ts
-               left join ${DBMyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
+               left join ${MyNDLAUser.as(u)} on ${u.id} = ${ts(t).ownerId}
                order by ${ts(t).pinned} desc, newest_post_date desc nulls last
            """
           .one(rs => {
@@ -1019,7 +1019,7 @@ trait ArenaRepository {
               rs.boolean("isFollowing")
             )
           })
-          .toMany(rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption)
+          .toMany(rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption)
           .map { (topicAndCountAndFollowing, owners) =>
             val (topic, postCount, isFollowing) = topicAndCountAndFollowing
             compileTopic(topic, owners.toList, postCount, isFollowing)

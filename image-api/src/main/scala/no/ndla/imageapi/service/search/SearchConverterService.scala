@@ -82,10 +82,10 @@ trait SearchConverterService {
         defaultTitle = defaultTitle.map(t => t.title),
         modelReleased = Some(image.modelReleased.toString),
         editorNotes = image.editorNotes.map(_.note),
-        imageFiles = asSearchableImageFiles(image.images),
-        podcastFriendly = image.images.exists(i =>
-          i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400)
-        ),
+        imageFiles = asSearchableImageFiles(image.images.getOrElse(Seq.empty)),
+        podcastFriendly = image.images
+          .getOrElse(Seq.empty)
+          .exists(i => i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400)),
         domainObject = image
       )
     }

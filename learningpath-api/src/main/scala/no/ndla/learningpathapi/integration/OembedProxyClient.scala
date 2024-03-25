@@ -8,17 +8,22 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.network.NdlaClient
-import org.json4s.Formats
 import org.jsoup.Jsoup
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class OembedResponse(html: String)
+object OembedResponse {
+  implicit val encoder: Encoder[OembedResponse] = deriveEncoder
+  implicit val decoder: Decoder[OembedResponse] = deriveDecoder
+}
 
 trait OembedProxyClient {
   this: NdlaClient with Props =>
@@ -28,7 +33,6 @@ trait OembedProxyClient {
     import props.ApiGatewayHost
     private val OembedProxyTimeout = 90.seconds
     private val OembedProxyBaseUrl = s"http://$ApiGatewayHost/oembed-proxy/v1"
-    implicit val formats: Formats  = org.json4s.DefaultFormats
 
     def getIframeUrl(url: String): Try[String] = {
       getOembed(url) match {
@@ -47,9 +51,7 @@ trait OembedProxyClient {
       get[OembedResponse](s"$OembedProxyBaseUrl/oembed", ("url" -> url))
     }
 
-    private def get[A](url: String, params: (String, String)*)(implicit
-        mf: Manifest[A]
-    ): Try[A] = {
+    private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
       val request = quickRequest.get(uri"$url".withParams(params.toMap)).readTimeout(OembedProxyTimeout)
       ndlaClient.fetchWithForwardedAuth[A](request, None)
     }

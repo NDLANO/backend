@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.imageapi.model.api
@@ -16,9 +17,6 @@ import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Model
 import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.json4s.Formats
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.jackson.Serialization.*
 import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
@@ -65,15 +63,17 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     id = Some(1),
     titles = List(),
     alttexts = List(),
-    images = Seq(
-      new ImageFileData(
-        id = 1,
-        fileName = "test.jpg",
-        size = 0,
-        contentType = "",
-        dimensions = None,
-        language = "und",
-        imageMetaId = 1
+    images = Some(
+      Seq(
+        new ImageFileData(
+          id = 1,
+          fileName = "test.jpg",
+          size = 0,
+          contentType = "",
+          dimensions = None,
+          language = "und",
+          imageMetaId = 1
+        )
       )
     ),
     copyright = Copyright(CC_BY.toString, None, List(), List(), List(), None, None, false),
@@ -115,13 +115,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That GET /extern/123 returns 200 and imagemeta when found") {
-    implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all + NDLADate.Json4sSerializer
-
     when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Some(DefaultDomainImageMetaInformation))
     val res = simpleHttpClient
       .send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123"))
     res.code.code should be(200)
-    res.body should equal(write(DefaultApiImageMetaInformation))
+    CirceUtil.unsafeParseAs[api.ImageMetaInformationV2](res.body) should equal(DefaultApiImageMetaInformation)
   }
 
   test("That DELETE /index removes all indexes") {

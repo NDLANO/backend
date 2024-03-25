@@ -8,54 +8,7 @@
 package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JsonAST.JField
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction, Formats, JObject}
-import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
-
-import java.time.LocalDateTime
 
 class V12__AddSeriesDateField extends BaseJavaMigration {
-  private implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
-  private val dateToUse                 = LocalDateTime.now()
-  private val jsonDate                  = Extraction.decompose(dateToUse)(formats)
-
-  override def migrate(context: Context): Unit = {
-    DB(context.getConnection)
-      .autoClose(false)
-      .withinTx { implicit session =>
-        allAudios.map { case (id: Long, document: String) =>
-          update(convertDocument(document), id)
-        }
-      }: Unit
-  }
-
-  def allAudios(implicit session: DBSession): List[(Long, String)] = {
-    sql"select id, document from seriesdata"
-      .map(rs => (rs.long("id"), rs.string("document")))
-      .list()
-  }
-
-  def convertDocument(document: String): String = {
-    val oldArticle = parse(document)
-
-    val objectToMerge = JObject(
-      JField("created", jsonDate),
-      JField("updated", jsonDate)
-    )
-
-    val newArticle = oldArticle.merge(objectToMerge)
-    compact(render(newArticle))
-  }
-
-  def update(document: String, id: Long)(implicit session: DBSession): Int = {
-    val dataObject = new PGobject()
-    dataObject.setType("jsonb")
-    dataObject.setValue(document)
-
-    sql"update seriesdata set document = ${dataObject} where id = $id".update()
-  }
-
+  override def migrate(context: Context): Unit = {}
 }

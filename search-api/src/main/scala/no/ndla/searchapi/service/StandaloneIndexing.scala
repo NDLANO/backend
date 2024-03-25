@@ -7,13 +7,14 @@
 package no.ndla.searchapi.service
 
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.Environment.{booleanPropOrFalse, prop}
 import no.ndla.common.model.domain.Content
 import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
-import org.json4s.{DefaultFormats, Formats}
-import org.json4s.native.Serialization
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
@@ -32,12 +33,21 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       ts: String,
       text: String
   )
+  object SlackAttachment {
+    implicit val encoder: Encoder[SlackAttachment] = deriveEncoder
+    implicit val decoder: Decoder[SlackAttachment] = deriveDecoder
+  }
 
   case class SlackPayload(
       channel: String,
       username: String,
       attachments: Seq[SlackAttachment]
   )
+
+  object SlackPayload {
+    implicit val encoder: Encoder[SlackPayload] = deriveEncoder
+    implicit val decoder: Decoder[SlackPayload] = deriveDecoder
+  }
 
   def sendSlackError(errors: Seq[String]): Unit = {
     val enableSlackMessageFlag = "SLACK_ERROR_ENABLED"
@@ -48,9 +58,8 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       logger.info("Sending message to slack...")
     }
 
-    implicit val formats: Formats = DefaultFormats
-    val errorTitle                = s"search-api ${props.Environment}"
-    val errorBody                 = s"Standalone indexing failed with:\n${errors.mkString("\n")}"
+    val errorTitle = s"search-api ${props.Environment}"
+    val errorBody  = s"Standalone indexing failed with:\n${errors.mkString("\n")}"
 
     val errorAttachment = SlackAttachment(
       color = "#ff0000",
@@ -65,7 +74,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       attachments = Seq(errorAttachment)
     )
 
-    val body = Serialization.write(payload)
+    val body = CirceUtil.toJsonString(payload)
 
     val url = propOrElse("SLACK_URL", "https://slack.com/api/chat.postMessage")
 
@@ -96,7 +105,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         def reindexWithIndexService[C <: Content](
             indexService: componentRegistry.IndexService[C],
             shouldUsePublishedTax: Boolean
-        )(implicit mf: Manifest[C]): Future[Try[ReindexResult]] = {
+        )(implicit d: Decoder[C]): Future[Try[ReindexResult]] = {
           val taxonomyBundle = if (shouldUsePublishedTax) taxonomyBundlePublished else taxonomyBundleDraft
           val reindexFuture = Future {
             indexService.indexDocuments(taxonomyBundle, grepBundle)

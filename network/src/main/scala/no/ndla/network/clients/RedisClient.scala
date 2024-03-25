@@ -8,10 +8,9 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.CirceUtil
+import no.ndla.common.implicits.*
 import no.ndla.network.model.{FeideAccessToken, FeideID}
-import org.json4s.DefaultFormats
-import org.json4s.native.Serialization._
 
 import scala.util.{Failure, Success, Try}
 
@@ -29,7 +28,7 @@ trait RedisClient {
     private val feideGroupField  = "feideGroup"
     private val feideGroupsField = "feideGroups"
 
-    private def getKeyExpireTime(key: String): Try[Long] = {
+    private def getKeyExpireTime(key: String): Try[Long] = permitTry {
       val existingExpireTime = jedis.ttl(key).?
       val newExpireTime      = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
       Success(newExpireTime)
@@ -44,10 +43,9 @@ trait RedisClient {
     }
 
     def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = {
-      implicit val formats: DefaultFormats.type = DefaultFormats
       jedis.hget(accessToken, feideUserField).map {
         case Some(feideUser) =>
-          Try(read[FeideExtendedUserInfo](feideUser)) match {
+          CirceUtil.tryParseAs[FeideExtendedUserInfo](feideUser) match {
             case Success(value) => Some(value)
             case Failure(ex) =>
               logger.warn(s"Failed to deserialize cached value from field $feideUserField. Updating cache.", ex)
@@ -61,8 +59,7 @@ trait RedisClient {
         accessToken: FeideAccessToken,
         feideExtendedUser: FeideExtendedUserInfo
     ): Try[FeideExtendedUserInfo] = {
-      implicit val formats: DefaultFormats.type = DefaultFormats
-      updateCache(accessToken, feideUserField, write(feideExtendedUser)).map(_ => feideExtendedUser)
+      updateCache(accessToken, feideUserField, CirceUtil.toJsonString(feideExtendedUser)).map(_ => feideExtendedUser)
     }
 
     def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] =
@@ -80,10 +77,9 @@ trait RedisClient {
     }
 
     def getGroupsFromCache(accessToken: FeideAccessToken): Try[Option[Seq[FeideGroup]]] = {
-      implicit val formats: DefaultFormats.type = DefaultFormats
       jedis.hget(accessToken, feideGroupsField).map {
         case Some(feideGroups) =>
-          Try(read[Seq[FeideGroup]](feideGroups)) match {
+          CirceUtil.tryParseAs[Seq[FeideGroup]](feideGroups) match {
             case Success(value) => Some(value)
             case Failure(ex) =>
               logger.warn(s"Failed to deserialize cached value from field $feideGroupsField. Updating cache.", ex)
@@ -97,8 +93,7 @@ trait RedisClient {
         accessToken: FeideAccessToken,
         feideGroups: Seq[FeideGroup]
     ): Try[Seq[FeideGroup]] = {
-      implicit val formats: DefaultFormats.type = DefaultFormats
-      updateCache(accessToken, feideGroupsField, write(feideGroups)).map(_ => feideGroups)
+      updateCache(accessToken, feideGroupsField, CirceUtil.toJsonString(feideGroups)).map(_ => feideGroups)
     }
 
   }

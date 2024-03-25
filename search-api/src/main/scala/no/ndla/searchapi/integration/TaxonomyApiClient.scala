@@ -9,21 +9,21 @@ package no.ndla.searchapi.integration
 
 import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
-import enumeratum.Json4s
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.network.NdlaClient
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.model.RequestInfo
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.TaxonomyException
-import no.ndla.searchapi.model.taxonomy._
-import org.json4s.Formats
-import sttp.client3.quick._
+import no.ndla.searchapi.model.taxonomy.*
+import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
+import scala.annotation.unused
 import scala.collection.mutable.ListBuffer
-import scala.concurrent._
+import scala.concurrent.*
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
@@ -34,7 +34,6 @@ trait TaxonomyApiClient {
   class TaxonomyApiClient extends StrictLogging {
     import props.TaxonomyUrl
 
-    implicit val formats: Formats   = SearchableLanguageFormats.JSonFormatsWithMillis + Json4s.serializer(NodeType)
     private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
     private val timeoutSeconds      = 600.seconds
     private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
@@ -112,19 +111,17 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def get[A](url: String, headers: Map[String, String], params: Seq[(String, String)])(implicit
-        mf: Manifest[A],
-        formats: Formats
-    ): Try[A] = {
+    private def get[A: Decoder](url: String, headers: Map[String, String], params: Seq[(String, String)]): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeoutSeconds),
         None
       )
     }
 
-    private def getPaginated[T](url: String, headers: Map[String, String], params: Seq[(String, String)])(implicit
-        mf: Manifest[T],
-        formats: Formats
+    private def getPaginated[T: Decoder](
+        url: String,
+        headers: Map[String, String],
+        params: Seq[(String, String)]
     ): Try[List[T]] = {
       def fetchPage(p: Seq[(String, String)]): Try[PaginationPage[T]] =
         get[PaginationPage[T]](url, headers, p)
@@ -149,3 +146,7 @@ trait TaxonomyApiClient {
   }
 }
 case class PaginationPage[T](totalCount: Long, results: List[T])
+object PaginationPage {
+  implicit def encoder[T](implicit @unused e: Encoder[T]): Encoder[PaginationPage[T]] = deriveEncoder
+  implicit def decoder[T](implicit @unused d: Decoder[T]): Decoder[PaginationPage[T]] = deriveDecoder
+}

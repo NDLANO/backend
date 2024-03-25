@@ -60,7 +60,6 @@ trait TestEnvironment
     with ImageControllerV2
     with ImageControllerV3
     with RawController
-    with TagsService
     with ImageConverter
     with MockitoSugar
     with Clock
@@ -96,7 +95,6 @@ trait TestEnvironment
   val imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
   val converterService: ConverterService             = mock[ConverterService]
   val validationService: ValidationService           = mock[ValidationService]
-  val tagsService: TagsService                       = mock[TagsService]
   var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
   val imageConverter: ImageConverter                 = mock[ImageConverter]

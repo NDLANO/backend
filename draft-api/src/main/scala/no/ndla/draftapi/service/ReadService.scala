@@ -50,7 +50,7 @@ trait ReadService {
   class ReadService {
 
     def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentId] =
-      draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(api.ContentId)
+      draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(id => api.ContentId(id))
 
     def withId(id: Long, language: String, fallback: Boolean = false): Try[api.Article] = {
       draftRepository.withId(id)(ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {

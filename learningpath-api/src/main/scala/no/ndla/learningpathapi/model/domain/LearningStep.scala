@@ -8,18 +8,15 @@
 
 package no.ndla.learningpathapi.model.domain
 
-import enumeratum._
+import enumeratum.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Title
-import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.learningpath.EmbedUrl
 import no.ndla.language.Language.getSupportedLanguages
-import org.json4s.FieldSerializer._
-import org.json4s._
-import org.json4s.ext.EnumNameSerializer
-import org.json4s.native.Serialization._
-import scalikejdbc._
+import scalikejdbc.*
 
 case class LearningStep(
     id: Option[Long],
@@ -99,27 +96,14 @@ object LearningStep extends SQLSyntaxSupport[LearningStep] {
   implicit val encoder: Encoder[LearningStep] = deriveEncoder
   implicit val decoder: Decoder[LearningStep] = deriveDecoder
 
-  val jsonSerializer: List[Serializer[_]] = List(
-    new EnumNameSerializer(StepType),
-    Json4s.serializer(StepStatus),
-    new EnumNameSerializer(EmbedType)
-  )
-
-  val repositorySerializer: List[Object] = jsonSerializer :+ FieldSerializer[LearningStep](
-    serializer = ignore("id").orElse(ignore("learningPathId")).orElse(ignore("externalId")).orElse(ignore("revision"))
-  )
-
-  val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer
-
   override val tableName = "learningsteps"
 
   def fromResultSet(ls: SyntaxProvider[LearningStep])(rs: WrappedResultSet): LearningStep =
     fromResultSet(ls.resultName)(rs)
 
   def fromResultSet(ls: ResultName[LearningStep])(rs: WrappedResultSet): LearningStep = {
-    implicit val formats = jsonEncoder
-
-    val meta = read[LearningStep](rs.string(ls.c("document")))
+    val jsonStr = rs.string(ls.c("document"))
+    val meta    = CirceUtil.unsafeParseAs[LearningStep](jsonStr)
     LearningStep(
       Some(rs.long(ls.c("id"))),
       Some(rs.int(ls.c("revision"))),

@@ -7,17 +7,17 @@
 
 package no.ndla.myndla.model.domain
 
-import cats.implicits._
+import cats.implicits.*
 import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import com.scalatsi.{TSNamedType, TSType}
-import enumeratum._
+import enumeratum.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.NDLADate
 import no.ndla.network.model.FeideID
-import org.json4s.FieldSerializer._
-import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
-import scalikejdbc._
+import scalikejdbc.*
 
 import java.util.UUID
 import scala.util.Try
@@ -41,6 +41,11 @@ case class ResourceDocument(tags: List[String], resourceId: String) {
       resourceId = resourceId,
       connection = connection
     )
+}
+
+object ResourceDocument {
+  implicit val encoder: Encoder[ResourceDocument] = deriveEncoder
+  implicit val decoder: Decoder[ResourceDocument] = deriveDecoder
 }
 
 sealed abstract class ResourceType(override val entryName: String) extends EnumEntry {}
@@ -77,15 +82,11 @@ case class Resource(
   override val sortRank: Option[Int] = connection.map(_.rank)
 }
 
-object DBResource extends SQLSyntaxSupport[Resource] {
-  implicit val formats: Formats = DefaultFormats
-  override val tableName        = "resources"
+object Resource extends SQLSyntaxSupport[Resource] {
+  override val tableName = "resources"
 
-  val JSonSerializer: FieldSerializer[Resource] = FieldSerializer[Resource](
-    ignore("id") orElse
-      ignore("feideId") orElse
-      ignore("created")
-  )
+  implicit val encoder: Encoder[Resource] = deriveEncoder
+  implicit val decoder: Decoder[Resource] = deriveDecoder
 
   def fromResultSet(lp: SyntaxProvider[Resource], withConnection: Boolean)(rs: WrappedResultSet): Try[Resource] =
     fromResultSet(s => lp.resultName.c(s), withConnection)(rs)
@@ -105,7 +106,7 @@ object DBResource extends SQLSyntaxSupport[Resource] {
     import no.ndla.myndla.uuidBinder
 
     val connection =
-      if (withConnection) DBFolderResource.fromResultSet(colNameWrapper, rs).toOption
+      if (withConnection) FolderResource.fromResultSet(colNameWrapper, rs).toOption
       else None
 
     for {
@@ -118,7 +119,7 @@ object DBResource extends SQLSyntaxSupport[Resource] {
       resourceType <- ResourceType
         .withNameOption(resourceTypeStr)
         .toTry(NDLASQLException(s"Invalid resource type when reading resource with id '$id' from database"))
-      metaData <- Try(read[ResourceDocument](jsonString))
+      metaData <- CirceUtil.tryParseAs[ResourceDocument](jsonString)
 
     } yield metaData.toFullResource(id, path, resourceType, feideId, created, connection)
   }

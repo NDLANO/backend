@@ -88,11 +88,22 @@ trait Module {
   }
 
   val scalacOptions: Set[ScalacOption] = {
-    // scala-tsi leaves some unused imports and such in src_managed, lets not care about linting scala-tsi code.
-    val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _ => true)
-    val source3                        = ScalacOption("-Xsource:3", _ => true)
+    // TODO: We need this because of some circe encoder/decoder deriving.
+    //       May not be needed in the future, lets explore it when scala 3 is in place.
+    val maxInlines = ScalacOption("-Xmax-inlines", List("50"), _.major >= 3)
 
-    Set(silentSrcManaged, source3)
+    // TODO: Scala 3 does not have this option yet. See: https://github.com/scala/scala3/issues/18782
+    // NOTE: scala-tsi leaves some unused imports and such in src_managed, lets not care about linting scala-tsi code.
+    val silentSrcManaged: ScalacOption = ScalacOption("-Wconf:src=src_managed/.*:silent", _.major == 2)
+
+    // TODO: Remove this when on scala 3
+    val xsource: ScalacOption = ScalacOption("-Xsource:3", _.major == 2)
+
+    Set(
+      maxInlines,
+      silentSrcManaged,
+      xsource
+    )
   }
 
   def withLogging(libs: Seq[ModuleID], extraLibs: Seq[ModuleID]*): Seq[ModuleID] = {

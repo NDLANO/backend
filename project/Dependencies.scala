@@ -18,7 +18,6 @@ object Dependencies {
     val Elastic4sV            = "8.11.5"
     val JacksonV              = "2.16.1"
     val CatsEffectV           = "3.5.3"
-    val Json4SV               = "4.0.7"
     val FlywayV               = "10.8.1"
     val PostgresV             = "42.7.2"
     val ScalaTsiV             = "0.8.2"
@@ -52,9 +51,8 @@ object Dependencies {
       "com.vladsch.flexmark" % "flexmark-ext-superscript"       % FlexmarkV
     )
 
-    lazy val enumeratum       = "com.beachape"  %% "enumeratum"        % EnumeratumV
-    lazy val enumeratumJson4s = ("com.beachape" %% "enumeratum-json4s" % EnumeratumV).cross(CrossVersion.for3Use2_13)
-    lazy val enumeratumCirce  = "com.beachape"  %% "enumeratum-circe"  % EnumeratumV
+    lazy val enumeratum      = "com.beachape" %% "enumeratum"       % EnumeratumV
+    lazy val enumeratumCirce = "com.beachape" %% "enumeratum-circe" % EnumeratumV
 
     lazy val database: Seq[ModuleID] = Seq(
       scalikejdbc,

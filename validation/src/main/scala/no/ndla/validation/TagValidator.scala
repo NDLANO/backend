@@ -7,16 +7,16 @@
 
 package no.ndla.validation
 
-import cats.implicits._
-import io.lemonlabs.uri.typesafe.dsl._
+import cats.implicits.*
+import io.circe.parser
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.validation.AttributeType._
+import no.ndla.validation.AttributeType.*
 import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
 import org.jsoup.nodes.{Element, Node}
-import org.json4s.native.JsonMethods.parseOpt
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Success, Try}
 
 object TagValidator {
@@ -504,18 +504,16 @@ object TagValidator {
       key: TagAttribute,
       value: String,
       field: TagRules.Field
-  ): Option[ValidationMessage] = {
-    parseOpt(value) match {
-      case Some(_)                                          => None
-      case _ if !field.validation.required && value.isEmpty => None
-      case _ =>
-        Some(
-          ValidationMessage(
-            fieldName,
-            s"$partialErrorMessage and attribute $key=$value must be valid json."
-          )
+  ): Option[ValidationMessage] = parser.parse(value) match {
+    case Right(_)                                         => None
+    case _ if !field.validation.required && value.isEmpty => None
+    case _ =>
+      Some(
+        ValidationMessage(
+          fieldName,
+          s"$partialErrorMessage and attribute $key=$value must be valid json."
         )
-    }
+      )
   }
 
   private def validateListField(

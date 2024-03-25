@@ -8,29 +8,25 @@
 package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Clock
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.errors.RollbackException
 import no.ndla.common.model.domain.{ArticleType, EditorNote, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, GenerateIDException, NotFoundException}
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.TokenUser
-import org.json4s.Formats
-import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
-  this: DataSource with DBArticle with ErrorHelpers with Clock =>
+  this: DataSource with ErrorHelpers with Clock =>
   val draftRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging with Repository[Draft] {
-    implicit val formats: Formats = DBArticle.repositorySerializer
-
     def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
       try {
         DB.localTx { session =>
@@ -54,7 +50,7 @@ trait DraftRepository {
       val startRevision = article.revision.getOrElse(1)
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(article))
+      dataObject.setValue(CirceUtil.toJsonString(article))
       val slug = article.slug.map(_.toLowerCase)
 
       val dbId = sql"""
@@ -75,7 +71,7 @@ trait DraftRepository {
       val startRevision = 1
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(article))
+      dataObject.setValue(CirceUtil.toJsonString(article))
 
       val uuid = Try(importId.map(UUID.fromString)).toOption.flatten
       val slug = article.slug.map(_.toLowerCase)
@@ -126,7 +122,7 @@ trait DraftRepository {
 
             val dataObject = new PGobject()
             dataObject.setType("jsonb")
-            dataObject.setValue(write(copiedArticle))
+            dataObject.setValue(CirceUtil.toJsonString(copiedArticle))
             val uuid = Try(importId.map(UUID.fromString)).toOption.flatten
             val slug = article.slug.map(_.toLowerCase)
 
@@ -182,7 +178,7 @@ trait DraftRepository {
     )(implicit session: DBSession): Try[Draft] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(article))
+      dataObject.setValue(CirceUtil.toJsonString(article))
 
       val newRevision = if (isImported) 1 else article.revision.getOrElse(0) + 1
       val oldRevision = if (isImported) 1 else article.revision.getOrElse(0)
@@ -228,7 +224,7 @@ trait DraftRepository {
     )(implicit session: DBSession): Try[Draft] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(article))
+      dataObject.setValue(CirceUtil.toJsonString(article))
 
       val uuid        = Try(importId.map(UUID.fromString)).toOption.flatten
       val newRevision = article.revision.getOrElse(0) + 1

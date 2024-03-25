@@ -7,6 +7,8 @@
 
 package no.ndla.search.model
 
+import io.circe.{Decoder, Encoder, FailedCursor}
+import io.circe.syntax.*
 import no.ndla.language.model.LanguageField
 import no.ndla.mapping.ISO639
 
@@ -31,6 +33,17 @@ case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]]) 
 }
 
 object SearchableLanguageValues {
+  implicit val encoder: Encoder[SearchableLanguageValues] = Encoder.instance { value =>
+    val mapToEncode = value.languageValues.map(lv => lv.language -> lv.value).toMap
+    mapToEncode.asJson
+  }
+  implicit val decoder: Decoder[SearchableLanguageValues] = Decoder.withReattempt {
+    case c: FailedCursor if !c.incorrectFocus => Right(SearchableLanguageValues(Seq.empty))
+    case c =>
+      c.as[Map[String, String]].map { map =>
+        SearchableLanguageValues.from(map.toSeq: _*)
+      }
+  }
 
   def empty: SearchableLanguageValues = SearchableLanguageValues(Seq.empty)
 
@@ -57,6 +70,15 @@ object SearchableLanguageValues {
 }
 
 object SearchableLanguageList {
+  implicit val encoder: Encoder[SearchableLanguageList] = Encoder.instance { value =>
+    val mapToEncode = value.languageValues.map(lv => lv.language -> lv.value).toMap
+    mapToEncode.asJson
+  }
+  implicit val decoder: Decoder[SearchableLanguageList] = Decoder.instance { cursor =>
+    cursor.as[Map[String, Seq[String]]].map { map =>
+      SearchableLanguageList(map.map { case (language, value) => LanguageValue(language, value) }.toSeq)
+    }
+  }
 
   def fromFields(fields: Seq[LanguageField[Seq[String]]]): SearchableLanguageList =
     SearchableLanguageList(fields.map(f => LanguageValue(f.language, f.value)))

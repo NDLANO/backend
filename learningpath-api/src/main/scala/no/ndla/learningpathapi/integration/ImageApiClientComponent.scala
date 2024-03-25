@@ -9,11 +9,13 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import no.ndla.learningpathapi.Props
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -41,3 +43,8 @@ trait ImageApiClientComponent {
 
 }
 case class ImageMetaInformation(id: String, metaUrl: String, imageUrl: String, size: Int, contentType: String)
+
+object ImageMetaInformation {
+  implicit val encoder: Encoder[ImageMetaInformation] = deriveEncoder
+  implicit val decoder: Decoder[ImageMetaInformation] = deriveDecoder
+}
