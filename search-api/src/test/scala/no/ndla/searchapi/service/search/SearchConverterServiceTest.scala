@@ -17,6 +17,7 @@ import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 import scala.util.{Success, Try}
@@ -98,6 +99,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     super.beforeAll()
     when(taxonomyApiClient.getTaxonomyBundle)
       .thenReturn(new Memoize[Boolean, Try[TaxonomyBundle]](0, _ => Success(emptyBundle)))
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
   test("That asSearchableArticle converts titles with correct language") {
@@ -147,17 +149,29 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(searchable2) =
       searchConverterService.asSearchableArticle(
         TestData.article2,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(searchable7) =
       searchConverterService.asSearchableArticle(
         TestData.article7,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
 
     searchable2.contexts.head.resourceTypes.map(_.id).sorted should be(
@@ -179,17 +193,29 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(searchable1) =
       searchConverterService.asSearchableArticle(
         TestData.article1,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(searchable6) =
       searchConverterService.asSearchableArticle(
         TestData.article6,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
 
     searchable1.contexts.size should be(2)
@@ -237,17 +263,29 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(searchable1) =
       searchConverterService.asSearchableArticle(
         TestData.article1,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(searchable5) =
       searchConverterService.asSearchableArticle(
         TestData.article5,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
 
     searchable1.contexts.size should be(2)

@@ -717,11 +717,11 @@ class MultiDraftSearchServiceAtomicTest
     }
 
     {
-      draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
-      draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
-      draftIndexService.indexDocument(draft3, indexingBundle).failIfFailure
-      draftIndexService.indexDocument(draft4, indexingBundle).failIfFailure
-      draftIndexService.indexDocument(draft5, indexingBundle).failIfFailure
+      draftIndexService.indexDocument(draft1, indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))).failIfFailure
+      draftIndexService.indexDocument(draft2, indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))).failIfFailure
+      draftIndexService.indexDocument(draft3, indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))).failIfFailure
+      draftIndexService.indexDocument(draft4, indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))).failIfFailure
+      draftIndexService.indexDocument(draft5, indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))).failIfFailure
       blockUntil(() => draftIndexService.countDocuments == 5)
     }
 

@@ -15,9 +15,11 @@ import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.domain.learningpath.{Description, LearningStep, StepStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
 
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class LearningPathIndexServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -47,6 +49,10 @@ class LearningPathIndexServiceTest
     super.beforeEach()
     learningPathIndexService.deleteIndexAndAlias()
     learningPathIndexService.createIndexWithGeneratedName
+  }
+
+  override def beforeAll(): Unit = {
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
   override val converterService       = new ConverterService

@@ -15,10 +15,12 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
 
 import java.util.UUID
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class DraftIndexServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -48,6 +50,11 @@ class DraftIndexServiceTest
     super.beforeEach()
     draftIndexService.deleteIndexAndAlias()
     draftIndexService.createIndexWithGeneratedName
+  }
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
   override val converterService       = new ConverterService

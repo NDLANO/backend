@@ -52,6 +52,7 @@ trait LearningPathIndexService {
         keywordField("defaultTitle"),
         textField("authors"),
         keywordField("license"),
+        keywordField("favorited"),
         nestedField("learningsteps").fields(
           textField("stepType")
         ),
