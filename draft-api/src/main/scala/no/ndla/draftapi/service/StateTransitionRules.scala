@@ -281,8 +281,11 @@ trait StateTransitionRules {
     ): Try[Draft] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
       convertedArticle.flatMap(articleBeforeSideEffect => {
+        val initialArticle = Try(articleBeforeSideEffect)
+        println(s"initialArticle: ${initialArticle}")
         sideEffects
-          .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
+          .foldLeft(initialArticle)((accumulatedArticle, sideEffect) => {
+            println(s"accumulatedArticle: ${accumulatedArticle} -> $sideEffect")
             accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
           })
       })
