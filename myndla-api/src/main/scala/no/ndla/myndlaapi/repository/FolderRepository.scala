@@ -14,7 +14,16 @@ import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
-import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, FolderStatus, NDLASQLException, NewFolderData, Resource, ResourceDocument, ResourceType}
+import no.ndla.myndlaapi.model.domain.{
+  Folder,
+  FolderResource,
+  FolderStatus,
+  NDLASQLException,
+  NewFolderData,
+  Resource,
+  ResourceDocument,
+  ResourceType
+}
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject
 import scalikejdbc.*

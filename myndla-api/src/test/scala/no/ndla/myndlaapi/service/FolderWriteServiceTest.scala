@@ -16,7 +16,14 @@ import no.ndla.myndlaapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
 import no.ndla.myndlaapi.model.api.{Folder, FolderSortRequest, NewFolder, NewResource}
-import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, FolderResource, FolderStatus, Resource, ResourceType, UserRole}
+import no.ndla.myndlaapi.model.domain.{
+  FolderAndDirectChildren,
+  FolderResource,
+  FolderStatus,
+  Resource,
+  ResourceType,
+  UserRole
+}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, spy, times, verify, when}
@@ -30,7 +37,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   val MaxFolderDepth = 5L
 
-  val service = new FolderWriteService
+  val service                                                 = new FolderWriteService
   override val folderConverterService: FolderConverterService = spy(new FolderConverterService)
 
   override def beforeEach(): Unit = {

@@ -7,8 +7,9 @@
 
 package no.ndla.searchapi.service.search
 
-import cats.implicits._
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, *}
+import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggResult, AggSerde}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.typesafe.scalalogging.StrictLogging
@@ -48,6 +49,26 @@ trait MultiDraftSearchService {
       List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
     override val indexServices: List[IndexService[_ <: Content]] = List(draftIndexService, learningPathIndexService)
 
+    case class SumAggResult(value: Long) extends AggResult
+
+    val sumAggsSerde: AggSerde[SumAggResult] = (_: String, data: Map[String, Any]) => {
+      val value = data("value").asInstanceOf[Double].toLong
+      SumAggResult(value)
+    }
+
+    def aggregateFavorites(subjectId: String): Try[Long] = {
+      val filter       = nestedQuery("contexts", boolQuery().should(termQuery("contexts.rootId", subjectId)))
+      val aggregations = sumAgg("favoritedCount", "favorited")
+      val searchToExecute = search(searchIndex)
+        .query(filter)
+        .trackTotalHits(true)
+        .size(0)
+        .aggs(aggregations)
+      e4sClient.execute(searchToExecute).map { res =>
+        res.result.aggregations.result("favoritedCount")(sumAggsSerde).value
+      }
+    }
+
     def aggregateSubjects(subjects: List[String]): Try[SubjectAggregations] = {
       val fiveYearsAgo        = NDLADate.now().minusYears(5)
       val inOneYear           = NDLADate.now().plusYears(1)
@@ -66,12 +87,14 @@ trait MultiDraftSearchService {
         inFlow <- filteredCountSearch(
           MultiDraftSearchSettings.default.copy(subjects = List(subjectId), statusFilter = flowStatuses)
         )
+        favorited <- aggregateFavorites(subjectId)
       } yield SubjectAggregation(
         subjectId = subjectId,
         totalArticleCount = allArticles,
         oldArticleCount = old,
         revisionCount = revisions,
-        flowCount = inFlow
+        flowCount = inFlow,
+        favoritedCount = favorited
       )
 
       subjects

@@ -34,7 +34,9 @@ case class SubjectAggregation(
     @description("Number of resources in subject with a revision date expiration in one year")
     revisionCount: Long,
     @description("Number of resources in 'flow' (Articles not in `PUBLISHED`, `UNPUBLISHED` or `ARCHIVED` status")
-    flowCount: Long
+    flowCount: Long,
+    @description("Number of favorited resources")
+    favoritedCount: Long
 )
 
 object SubjectAggregation {
