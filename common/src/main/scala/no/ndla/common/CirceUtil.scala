@@ -10,10 +10,23 @@ package no.ndla.common
 import io.circe.{Decoder, Encoder, HCursor, parser}
 import io.circe.syntax.*
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 object CirceUtil {
-  def tryParseAs[T](str: String)(implicit d: Decoder[T]): Try[T] = parser.parse(str).toTry.flatMap(_.as[T].toTry)
+  // NOTE: Circe's `DecodingFailure` does not include a stack trace, so we wrap it in our own exception
+  //       to make it more like other failures.
+  case class CirceFailure(message: String) extends RuntimeException(message)
+  object CirceFailure {
+    def apply(reason: Throwable): Throwable = new CirceFailure(reason.getMessage).initCause(reason)
+  }
+
+  def tryParseAs[T](str: String)(implicit d: Decoder[T]): Try[T] = {
+    parser
+      .parse(str)
+      .toTry
+      .flatMap(_.as[T].toTry)
+      .recoverWith { ex => Failure(CirceFailure(ex)) }
+  }
 
   /** This might throw an exception! Use with care, probably only use this in tests */
   def unsafeParseAs[T: Decoder](str: String): T = tryParseAs(str).get
