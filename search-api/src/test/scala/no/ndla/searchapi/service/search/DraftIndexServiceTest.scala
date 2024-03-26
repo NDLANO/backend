@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
@@ -13,11 +13,14 @@ import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus, RevisionM
 import no.ndla.common.model.domain.{ArticleContent, Author, EditorNote, Responsible, Status}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
 
 import java.util.UUID
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class DraftIndexServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -47,6 +50,11 @@ class DraftIndexServiceTest
     super.beforeEach()
     draftIndexService.deleteIndexAndAlias()
     draftIndexService.createIndexWithGeneratedName
+  }
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
   override val converterService       = new ConverterService
@@ -88,8 +96,11 @@ class DraftIndexServiceTest
     val searchableToTestWith = searchConverterService
       .asSearchableDraft(
         domainDraft,
-        Some(TestData.taxonomyTestBundle),
-        Some(TestData.emptyGrepBundle)
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          None
+        )
       )
       .get
 

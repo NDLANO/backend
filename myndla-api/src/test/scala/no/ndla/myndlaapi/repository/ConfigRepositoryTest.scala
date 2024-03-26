@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
+import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome

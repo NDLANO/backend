@@ -1,5 +1,5 @@
 /*
- * Part of NDLA learningpath-api.
+ * Part of NDLA learningpath-api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -17,7 +17,6 @@ import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{Eff, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
-import no.ndla.myndla.model.domain.InvalidStatusException
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
@@ -195,7 +194,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
 
   test("That /with-status returns 400 if invalid status is specified") {
     when(readService.learningPathWithStatus(any[String], any[TokenUser]))
-      .thenReturn(Failure(InvalidStatusException("Bad status")))
+      .thenReturn(Failure(InvalidLpStatusException("Bad status")))
 
     val res = simpleHttpClient.send(
       quickRequest

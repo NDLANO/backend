@@ -1,5 +1,5 @@
 /*
- * Part of NDLA backend.
+ * Part of NDLA backend
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE

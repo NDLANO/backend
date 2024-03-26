@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
@@ -40,6 +40,7 @@ trait TestEnvironment
     with LearningPathApiClient
     with NdlaClient
     with SearchConverterService
+    with MyNDLAApiClient
     with SearchService
     with SearchController
     with LearningPathIndexService
@@ -58,6 +59,8 @@ trait TestEnvironment
 
   val ndlaClient: NdlaClient   = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
+
+  val myndlaapiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
   val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
   val grepApiClient: GrepApiClient         = mock[GrepApiClient]

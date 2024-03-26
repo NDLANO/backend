@@ -18,10 +18,10 @@ import no.ndla.common.DBUtil.buildWhereClause
 import no.ndla.common.errors.RollbackException
 import no.ndla.common.implicits._
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.{MyNDLAUser, NDLASQLException}
 import no.ndla.myndlaapi.model.arena.api.CategorySort
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
+import no.ndla.myndlaapi.model.domain.{MyNDLAUser, NDLASQLException}
 
 trait ArenaRepository {
   this: Clock =>

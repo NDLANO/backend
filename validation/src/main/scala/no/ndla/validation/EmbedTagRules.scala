@@ -1,5 +1,5 @@
 /*
- * Part of NDLA validation.
+ * Part of NDLA validation
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE

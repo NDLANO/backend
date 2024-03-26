@@ -1,5 +1,5 @@
 /*
- * Part of NDLA myndla-api.
+ * Part of NDLA myndla-api
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
@@ -11,10 +11,10 @@ package no.ndla.myndlaapi.controller
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
-import no.ndla.myndla.model.domain.InvalidStatusException
 import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.DataSource
 import no.ndla.myndlaapi.model.arena.domain.TopicGoneException
+import no.ndla.myndlaapi.model.domain.InvalidStatusException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
 import org.postgresql.util.PSQLException
 

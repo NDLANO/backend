@@ -24,9 +24,9 @@ object myndlaapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq(
       "no.ndla.common.model.api._",
-      "no.ndla.myndla.model.api.config._",
-      "no.ndla.myndla.model.domain.config._",
-      "no.ndla.myndla.model.api._",
+      "no.ndla.common.model.api.config._",
+      "no.ndla.common.model.domain.config._",
+      "no.ndla.myndlaapi.model.api._",
       "no.ndla.myndlaapi.model.arena.api._"
     ),
     exports = Seq(
@@ -42,7 +42,7 @@ object myndlaapi extends Module {
       "UpdatedResource",
       "ArenaUser",
       "PaginatedArenaUsers",
-      "no.ndla.myndla.model.domain.ArenaGroup",
+      "no.ndla.myndlaapi.model.domain.ArenaGroup",
       "Category",
       "CategoryWithTopics",
       "Flag",

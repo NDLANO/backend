@@ -98,7 +98,6 @@ lazy val `learningpath-api` = Module.setup(
     language,
     common,
     search,
-    myndla,
     testWith(scalatestsuite),
     testWith(tapirtesting)
   )
@@ -132,7 +131,6 @@ lazy val `myndla-api` = Module.setup(
     mapping,
     language,
     common,
-    myndla,
     testWith(scalatestsuite),
     testWith(tapirtesting)
   )
@@ -146,7 +144,6 @@ lazy val constants = Module.setup(
     network,
     language,
     mapping,
-    myndla,
     `concept-api`,
     testWith(scalatestsuite)
   )
@@ -163,8 +160,6 @@ lazy val mapping    = Module.setup(project in file("./mapping/"), mappinglib)
 lazy val validation = Module.setup(project in file("./validation/"), validationlib, deps = Seq(common))
 lazy val search =
   Module.setup(project in file("./search/"), searchlib, deps = Seq(testWith(scalatestsuite), language, common, mapping))
-lazy val myndla =
-  Module.setup(project in file("./myndla/"), myndlalib, deps = Seq(common, network, testWith(scalatestsuite)))
 
 lazy val `integration-tests` = Module.setup(
   project in file("./integration-tests/"),

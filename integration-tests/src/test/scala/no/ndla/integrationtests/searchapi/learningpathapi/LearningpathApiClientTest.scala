@@ -1,5 +1,5 @@
 /*
- * Part of NDLA integration-tests.
+ * Part of NDLA integration-tests
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
@@ -14,7 +14,10 @@ import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{learningpathapi, searchapi}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
@@ -47,6 +50,7 @@ class LearningpathApiClientTest
   val learningpathApiBaseUrl: String             = s"http://localhost:$learningpathApiPort"
 
   override def beforeAll(): Unit = {
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
@@ -87,7 +91,14 @@ class LearningpathApiClientTest
     val fetchedLearningPath = chunks.head.get.head
 
     val searchable =
-      searchConverterService.asSearchableLearningPath(fetchedLearningPath, Some(searchapi.TestData.taxonomyTestBundle))
+      searchConverterService.asSearchableLearningPath(
+        fetchedLearningPath,
+        IndexingBundle(
+          None,
+          Some(searchapi.TestData.taxonomyTestBundle),
+          None
+        )
+      )
 
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "tittel")))

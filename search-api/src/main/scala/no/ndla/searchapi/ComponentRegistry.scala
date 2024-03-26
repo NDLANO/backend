@@ -1,5 +1,5 @@
 /*
- * Part of NDLA listing_api.
+ * Part of NDLA listing_api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -48,6 +48,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with LearningPathApiClient
     with NdlaClient
     with SearchConverterService
+    with MyNDLAApiClient
     with SearchService
     with SearchController
     with FeideApiClient
@@ -67,6 +68,8 @@ class ComponentRegistry(properties: SearchApiProperties)
 
   lazy val ndlaClient          = new NdlaClient
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+
+  lazy val myndlaapiClient: MyNDLAApiClient = new MyNDLAApiClient
 
   lazy val taxonomyApiClient = new TaxonomyApiClient
   lazy val grepApiClient     = new GrepApiClient

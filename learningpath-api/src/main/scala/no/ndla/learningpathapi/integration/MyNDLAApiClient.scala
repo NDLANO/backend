@@ -7,9 +7,9 @@
 
 package no.ndla.learningpathapi.integration
 
+import no.ndla.common.model.api.config.ConfigMetaRestricted
+import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.Props
-import no.ndla.myndla.model.api.config.ConfigMetaRestricted
-import no.ndla.myndla.model.domain.config.ConfigKey
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.NdlaRequest
 import sttp.client3.quick._

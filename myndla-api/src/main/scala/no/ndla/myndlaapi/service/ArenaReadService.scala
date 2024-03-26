@@ -12,15 +12,13 @@ import no.ndla.common.Clock
 import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.OptionImplicit
-import no.ndla.myndla.model.domain.MyNDLAUser
-import no.ndla.myndla.repository.{FolderRepository, UserRepository}
-import no.ndla.myndla.service.{ConfigService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
 import no.ndla.myndlaapi.model.arena.api.{Category, CategorySort, NewCategory, NewPost, NewTopic}
 import no.ndla.myndlaapi.model.arena.domain.{MissingPostException, TopicGoneException}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledPost, CompiledTopic}
-import no.ndla.myndlaapi.repository.ArenaRepository
+import no.ndla.myndlaapi.model.domain.MyNDLAUser
+import no.ndla.myndlaapi.repository.{ArenaRepository, FolderRepository, UserRepository}
 import no.ndla.network.model.FeideAccessToken
 import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 

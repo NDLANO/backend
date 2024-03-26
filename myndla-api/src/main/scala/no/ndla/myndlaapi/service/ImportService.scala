@@ -22,11 +22,10 @@ import no.ndla.common.Clock
 import scalikejdbc._
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.myndla.repository.UserRepository
 import no.ndla.myndlaapi.model.arena.domain.InsertCategory
 import no.ndla.myndlaapi.model.arena.domain
-import no.ndla.myndlaapi.repository.ArenaRepository
+import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
+import no.ndla.myndlaapi.repository.{ArenaRepository, UserRepository}
 import scalikejdbc.DBSession
 
 import scala.annotation.tailrec

@@ -1,5 +1,5 @@
 /*
- * Part of NDLA learningpath-api.
+ * Part of NDLA learningpath-api
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE

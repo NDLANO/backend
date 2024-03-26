@@ -1,5 +1,5 @@
 /*
- * Part of NDLA network.
+ * Part of NDLA network
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -36,6 +36,9 @@ trait NdlaClient {
     def fetchWithForwardedAuth[A: Decoder](request: NdlaRequest, tokenUser: Option[TokenUser]): Try[A] = {
       doFetch(addCorrelationId(addForwardedAuth(request, tokenUser)))
     }
+
+    def fetchRaw(request: NdlaRequest): Try[Response[String]] =
+      doRequest(addCorrelationId(request))
 
     /** Useful if response body is not json. */
     def fetchRawWithForwardedAuth(request: NdlaRequest, tokenUser: Option[TokenUser]): Try[Response[String]] = {

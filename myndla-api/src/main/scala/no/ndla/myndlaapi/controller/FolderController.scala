@@ -7,7 +7,8 @@
 
 package no.ndla.myndlaapi.controller
 
-import no.ndla.myndla.model.api.{
+import no.ndla.myndlaapi.Eff
+import no.ndla.myndlaapi.model.api.{
   Folder,
   FolderSortRequest,
   NewFolder,
@@ -16,16 +17,15 @@ import no.ndla.myndla.model.api.{
   UpdatedFolder,
   UpdatedResource
 }
-import no.ndla.myndla.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
-import no.ndla.myndla.model.domain.FolderStatus
-import no.ndla.myndla.service.{FolderReadService, FolderWriteService}
-import no.ndla.myndlaapi.Eff
+import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
+import no.ndla.myndlaapi.model.domain.FolderStatus
+import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import java.util.UUID

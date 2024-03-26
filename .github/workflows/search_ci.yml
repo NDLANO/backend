@@ -14,6 +14,8 @@ on:
       - project/language*.scala
       - common/**
       - project/common*.scala
+      - mapping/**
+      - project/mapping*.scala
       - project/Dependencies.scala
       - project/Module.scala
   pull_request:
@@ -26,6 +28,8 @@ on:
       - project/language*.scala
       - common/**
       - project/common*.scala
+      - mapping/**
+      - project/mapping*.scala
       - project/Dependencies.scala
       - project/Module.scala
 env:

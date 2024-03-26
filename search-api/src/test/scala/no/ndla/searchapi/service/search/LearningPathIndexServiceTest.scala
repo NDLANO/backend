@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
@@ -7,16 +7,19 @@
 
 package no.ndla.searchapi.service.search
 
-import io.circe.syntax._
+import io.circe.syntax.*
 import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.domain.learningpath.{Description, LearningStep, StepStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
 
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class LearningPathIndexServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -48,6 +51,10 @@ class LearningPathIndexServiceTest
     learningPathIndexService.createIndexWithGeneratedName
   }
 
+  override def beforeAll(): Unit = {
+    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
+  }
+
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -73,7 +80,11 @@ class LearningPathIndexServiceTest
     val searchableToTestWith = searchConverterService
       .asSearchableLearningPath(
         domainLearningPath,
-        Some(TestData.taxonomyTestBundle)
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          None
+        )
       )
       .get
 

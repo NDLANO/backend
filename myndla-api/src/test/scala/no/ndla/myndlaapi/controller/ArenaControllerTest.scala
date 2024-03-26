@@ -8,8 +8,8 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api.PaginatedTopics
+import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest

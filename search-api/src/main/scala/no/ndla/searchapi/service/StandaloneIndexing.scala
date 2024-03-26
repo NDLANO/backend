@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE
@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.Environment.{booleanPropOrFalse, prop}
 import no.ndla.common.model.domain.Content
-import no.ndla.searchapi.model.domain.ReindexResult
+import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import sttp.client3.quick.*
 
@@ -92,13 +92,14 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       taxonomyBundleDraft     <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(false)
       taxonomyBundlePublished <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(true)
       grepBundle              <- componentRegistry.grepApiClient.getGrepBundle()
-    } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
+      myndlaBundle            <- componentRegistry.myndlaapiClient.getMyNDLABundle
+    } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
 
     val start = System.currentTimeMillis()
 
     val reindexResult = bundles match {
       case Failure(ex) => Seq(Failure(ex))
-      case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
+      case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
@@ -107,9 +108,13 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
             shouldUsePublishedTax: Boolean
         )(implicit d: Decoder[C]): Future[Try[ReindexResult]] = {
           val taxonomyBundle = if (shouldUsePublishedTax) taxonomyBundlePublished else taxonomyBundleDraft
-          val reindexFuture = Future {
-            indexService.indexDocuments(taxonomyBundle, grepBundle)
-          }
+          val indexingBundle = IndexingBundle(
+            grepBundle = Some(grepBundle),
+            taxonomyBundle = Some(taxonomyBundle),
+            myndlaBundle = Some(myndlaBundle)
+          )
+          val reindexFuture = Future { indexService.indexDocuments(indexingBundle) }
+
           reindexFuture.onComplete {
             case Success(Success(reindexResult: ReindexResult)) =>
               logger.info(

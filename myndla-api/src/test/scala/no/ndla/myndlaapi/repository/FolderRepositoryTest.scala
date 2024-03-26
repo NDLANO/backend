@@ -1,5 +1,5 @@
 /*
- * Part of NDLA myndla-api.
+ * Part of NDLA myndla-api
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
@@ -10,7 +10,8 @@ package no.ndla.myndlaapi.repository
 import cats.implicits.*
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.domain.*
+import no.ndla.common.model.domain.ResourceType
+import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, FolderStatus, NewFolderData, Resource, ResourceDocument}
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.Mockito.when

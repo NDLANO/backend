@@ -1,5 +1,5 @@
 /*
- * Part of NDLA oembed-proxy.
+ * Part of NDLA oembed-proxy
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
