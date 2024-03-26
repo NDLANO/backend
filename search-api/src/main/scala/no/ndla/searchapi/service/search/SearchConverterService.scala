@@ -17,7 +17,14 @@ import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ArticleType, Priority, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  ArticleType,
+  Priority,
+  VisualElement,
+  ResourceType as MyNDLAResourceType
+}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
@@ -250,8 +257,12 @@ trait SearchConverterService {
       }
 
       val favorited = (indexingBundle.myndlaBundle match {
-        case Some(value) => Success(value.getFavorites(lp.id.get.toString, "learningpath"))
-        case None => myndlaapiClient.getStatsFor(lp.id.get.toString, List("learningpath")).map(_.map(_.favourites).sum)
+        case Some(value) =>
+          Success(value.getFavorites(lp.id.get.toString, MyNDLAResourceType.Learningpath))
+        case None =>
+          myndlaapiClient
+            .getStatsFor(lp.id.get.toString, List(MyNDLAResourceType.Learningpath))
+            .map(_.map(_.favourites).sum)
       }).?
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
@@ -355,10 +366,16 @@ trait SearchConverterService {
       val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
       val favorited = (indexingBundle.myndlaBundle match {
-        case Some(value) => Success(value.getFavorites(draft.id.get.toString, List("article", "multidisciplinary")))
+        case Some(value) =>
+          Success(
+            value.getFavorites(
+              draft.id.get.toString,
+              List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary)
+            )
+          )
         case None =>
           myndlaapiClient
-            .getStatsFor(draft.id.get.toString, List("article", "multidisciplinary"))
+            .getStatsFor(draft.id.get.toString, List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary))
             .map(_.map(_.favourites).sum)
       }).?
 

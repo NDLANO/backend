@@ -9,22 +9,21 @@ package no.ndla.common.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.domain.ResourceType
 
 /** Data to pass between search-api and myndla-api for indexing */
 case class MyNDLABundle(
     favorites: Map[String, Map[String, Long]]
 ) {
 
-  def getFavorites(id: String, resourceType: String): Long = {
-    favorites.getOrElse(resourceType, Map.empty).getOrElse(id, 0L)
+  def getFavorites(id: String, resourceType: ResourceType): Long = {
+    favorites.getOrElse(resourceType.entryName, Map.empty).getOrElse(id, 0L)
   }
 
-  def getFavorites(id: String, resourceType: List[String]): Long = {
-    val favs = resourceType
-      .map(rt => {
-        favorites.getOrElse(rt, Map.empty).getOrElse(id, 0L)
-      })
-    favs.foldLeft(0L) { case (acc, cur) => acc + cur }
+  def getFavorites(id: String, resourceType: List[ResourceType]): Long = {
+    resourceType
+      .map(rt => favorites.getOrElse(rt.entryName, Map.empty).getOrElse(id, 0L))
+      .foldLeft(0L) { case (acc, cur) => acc + cur }
   }
 }
 

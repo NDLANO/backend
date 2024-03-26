@@ -10,20 +10,14 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.TestData.{emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
 import no.ndla.myndlaapi.model.api.{Folder, FolderSortRequest, NewFolder, NewResource}
-import no.ndla.myndlaapi.model.domain.{
-  FolderAndDirectChildren,
-  FolderResource,
-  FolderStatus,
-  Resource,
-  ResourceType,
-  UserRole
-}
+import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, FolderResource, FolderStatus, Resource, UserRole}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, spy, times, verify, when}

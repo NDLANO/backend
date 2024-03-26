@@ -12,6 +12,7 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.myndlaapi.model.domain.{
@@ -21,8 +22,7 @@ import no.ndla.myndlaapi.model.domain.{
   NDLASQLException,
   NewFolderData,
   Resource,
-  ResourceDocument,
-  ResourceType
+  ResourceDocument
 }
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject

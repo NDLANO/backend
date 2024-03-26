@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.myndlaapi.model.api.{
@@ -30,8 +31,7 @@ import no.ndla.myndlaapi.model.domain.{
   FolderAndDirectChildren,
   FolderSortException,
   FolderStatus,
-  Rankable,
-  ResourceType
+  Rankable
 }
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient

@@ -8,16 +8,9 @@
 package no.ndla.myndlaapi
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.model.domain.{
-  FolderStatus,
-  MyNDLAUser,
-  NewFolderData,
-  Resource,
-  ResourceDocument,
-  ResourceType,
-  UserRole
-}
+import no.ndla.myndlaapi.model.domain.{FolderStatus, MyNDLAUser, NewFolderData, Resource, ResourceDocument, UserRole}
 import no.ndla.myndlaapi.model.domain
 
 import java.util.UUID

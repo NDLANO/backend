@@ -9,6 +9,7 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
@@ -20,7 +21,6 @@ import no.ndla.myndlaapi.model.domain.{
   NewFolderData,
   Resource,
   ResourceDocument,
-  ResourceType,
   UserRole
 }
 import no.ndla.scalatestsuite.UnitTestSuite

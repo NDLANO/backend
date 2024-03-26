@@ -14,7 +14,8 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.myndlaapi.model.domain.{CopyableFolder, CopyableResource, ResourceType}
+import no.ndla.common.model.domain.ResourceType
+import no.ndla.myndlaapi.model.domain.{CopyableFolder, CopyableResource}
 import sttp.tapir.Schema.annotations.description
 
 import scala.annotation.unused

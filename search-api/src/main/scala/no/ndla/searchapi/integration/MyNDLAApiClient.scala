@@ -8,6 +8,7 @@
 package no.ndla.searchapi.integration
 
 import no.ndla.common.model.api.{MyNDLABundle, SingleResourceStats}
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
 import sttp.client3.quick.*
@@ -22,8 +23,8 @@ trait MyNDLAApiClient {
   class MyNDLAApiClient {
     private val statsEndpoint = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
 
-    def getStatsFor(id: String, resourceTypes: List[String]): Try[List[SingleResourceStats]] = {
-      val url = uri"$statsEndpoint/favorites/${resourceTypes.mkString(",")}/$id"
+    def getStatsFor(id: String, resourceTypes: List[ResourceType]): Try[List[SingleResourceStats]] = {
+      val url = uri"$statsEndpoint/favorites/${resourceTypes.map(_.toString).mkString(",")}/$id"
       val req = quickRequest.get(url)
       ndlaClient.fetch[List[SingleResourceStats]](req)
     }
