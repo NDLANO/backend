@@ -1,5 +1,5 @@
 /*
- * Part of NDLA listing_api.
+ * Part of NDLA listing_api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE

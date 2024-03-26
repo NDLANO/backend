@@ -1,5 +1,5 @@
 /*
- * Part of NDLA integration-tests.
+ * Part of NDLA integration-tests
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE

@@ -1,5 +1,5 @@
 /*
- * Part of NDLA myndla-api.
+ * Part of NDLA myndla-api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE

@@ -1,5 +1,5 @@
 /*
- * Part of NDLA scalatestsuite.
+ * Part of NDLA scalatestsuite
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE

@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
