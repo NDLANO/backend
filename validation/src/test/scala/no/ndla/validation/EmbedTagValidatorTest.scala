@@ -289,10 +289,9 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if comment embed-tag is used correctly with html") {
     val tag = generateTagWithAttrsAndChildren(
       Map(
-        TagAttribute.DataResource     -> ResourceType.Comment.toString,
-        TagAttribute.DataText         -> "Min kommentar",
-        TagAttribute.DataType         -> "inline",
-        TagAttribute.DataIsStandalone -> "false"
+        TagAttribute.DataResource -> ResourceType.Comment.toString,
+        TagAttribute.DataText     -> "Min kommentar",
+        TagAttribute.DataType     -> "inline"
       ),
       """
         |<p>her</p>
