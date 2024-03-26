@@ -1211,4 +1211,48 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.updatedCommentToDomainNullDocument(updatedComments).isFailure should be(true)
   }
 
+  test("filterComments should remove comments") {
+    val content =
+      Seq(
+        ArticleContent(
+          s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="inline"><p>Litt tekst</p></$EmbedTagName>""",
+          "nb"
+        )
+      )
+    val expectedContent = Seq(ArticleContent(s"""<h1>hello</h1><p>Litt tekst</p>""", "nb"))
+
+    val blockContent =
+      Seq(
+        ArticleContent(
+          s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"/>""",
+          "nb"
+        ),
+        ArticleContent(
+          s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"/>""",
+          "nn"
+        )
+      )
+
+    val expectedBlockContent =
+      Seq(
+        ArticleContent(
+          s"""<h1>hello</h1>""",
+          "nb"
+        ),
+        ArticleContent(
+          s"""<h1>hello</h1>""",
+          "nn"
+        )
+      )
+
+    val expectedTime = TestData.today
+
+    when(clock.now()).thenReturn(expectedTime)
+
+    val result      = service.filterComments(content)
+    val blockResult = service.filterComments(blockContent)
+    result should be(expectedContent)
+    blockResult should be(expectedBlockContent)
+  }
+
 }
