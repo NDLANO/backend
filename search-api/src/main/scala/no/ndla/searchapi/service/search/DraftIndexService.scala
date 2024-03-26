@@ -60,7 +60,7 @@ trait DraftIndexService {
         keywordField("grepContexts.code"),
         textField("grepContexts.title"),
         keywordField("traits"),
-        keywordField("favorited"),
+        longField("favorited"),
         ObjectField(
           "responsible",
           properties = Seq(
