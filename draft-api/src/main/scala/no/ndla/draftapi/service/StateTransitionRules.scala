@@ -279,6 +279,7 @@ trait StateTransitionRules {
         user: TokenUser,
         isImported: Boolean
     ): Try[Draft] = {
+      println("------------")
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
       convertedArticle.flatMap(articleBeforeSideEffect => {
         println("We in the flatmap converting article")
@@ -296,6 +297,7 @@ trait StateTransitionRules {
             })
           })
       })
+      println("------------")
     }
 
     private[this] def learningPathsUsingArticle(articleId: Long, user: TokenUser): Seq[LearningPath] = {
