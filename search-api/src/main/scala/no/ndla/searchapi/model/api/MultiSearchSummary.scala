@@ -50,7 +50,8 @@ case class MultiSearchSummary(
     @description("A combined resource type name if a standard article, otherwise the article type name") resourceTypeName: Option[String],
     @description("Name of the parent topic if exists") parentTopicName: Option[String],
     @description("Name of the primary context root if exists") primaryRootName: Option[String],
-    @description("When the article was last published") published: Option[NDLADate]
+    @description("When the article was last published") published: Option[NDLADate],
+    @description("Number of times favorited in MyNDLA") favorited: Option[Long]
 )
 // format: on
 

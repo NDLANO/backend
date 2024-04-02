@@ -575,7 +575,8 @@ trait SearchConverterService {
         resourceTypeName = None,
         parentTopicName = None,
         primaryRootName = None,
-        published = None
+        published = None,
+        favorited = None
       )
     }
 
@@ -639,7 +640,8 @@ trait SearchConverterService {
         resourceTypeName = resourceTypeName,
         parentTopicName = parentTopicName,
         primaryRootName = primaryRootName,
-        published = Some(searchableDraft.published)
+        published = Some(searchableDraft.published),
+        favorited = Some(searchableDraft.favorited)
       )
     }
 
@@ -694,7 +696,8 @@ trait SearchConverterService {
         resourceTypeName = None,
         parentTopicName = None,
         primaryRootName = None,
-        published = None
+        published = None,
+        favorited = Some(searchableLearningPath.favorited)
       )
     }
 
