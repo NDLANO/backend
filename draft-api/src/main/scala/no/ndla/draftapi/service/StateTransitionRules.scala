@@ -285,7 +285,7 @@ trait StateTransitionRules {
         var idx = 0
         sideEffects
           .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
-            if(accumulatedArticle == null) {
+            if (accumulatedArticle == null) {
               println(s"Null article on sideEffect ${idx}")
             }
             idx += 1
