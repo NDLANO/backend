@@ -214,6 +214,7 @@ export interface IMultiSearchSummary {
   parentTopicName?: string
   primaryRootName?: string
   published?: string
+  favorited?: number
 }
 
 export interface IMultiSearchTermsAggregation {
