@@ -281,8 +281,14 @@ trait StateTransitionRules {
     ): Try[Draft] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
       convertedArticle.flatMap(articleBeforeSideEffect => {
+        println("We in the flatmap converting article")
+        var idx = 0
         sideEffects
           .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
+            if(accumulatedArticle == null) {
+              println(s"Null article on sideEffect ${idx}")
+            }
+            idx += 1
             accumulatedArticle.flatMap(a => {
               val result = sideEffect(a, isImported, user)
               println("sideeffect returned: " + result)
