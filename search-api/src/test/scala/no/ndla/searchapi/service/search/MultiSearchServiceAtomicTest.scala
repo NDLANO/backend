@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE
@@ -13,7 +13,8 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
-import no.ndla.searchapi.model.taxonomy._
+import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
 
@@ -65,6 +66,9 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
     }
   }
 
+  val indexingBundle: IndexingBundle =
+    IndexingBundle(Some(TestData.grepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle))
+
   test("That search on embed id supports embed with multiple resources") {
     val article1 = TestData.article1.copy(
       id = Some(1),
@@ -85,9 +89,9 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
     )
     val article3 = TestData.article1.copy(id = Some(3))
-    articleIndexService.indexDocument(article1, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article2, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article3, Some(TestData.taxonomyTestBundle), Some(TestData.grepBundle)).get
+    articleIndexService.indexDocument(article1, indexingBundle).get
+    articleIndexService.indexDocument(article2, indexingBundle).get
+    articleIndexService.indexDocument(article3, indexingBundle).get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 3
@@ -269,7 +273,16 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       TaxonomyBundle(nodes = nodes)
     }
 
-    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle)).get
+    articleIndexService
+      .indexDocument(
+        article1,
+        IndexingBundle(
+          Some(TestData.grepBundle),
+          Some(taxonomyBundle),
+          Some(TestData.myndlaTestBundle)
+        )
+      )
+      .get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 1
@@ -397,7 +410,16 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       TaxonomyBundle(nodes = nodes)
     }
 
-    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle)).get
+    articleIndexService
+      .indexDocument(
+        article1,
+        IndexingBundle(
+          Some(TestData.grepBundle),
+          Some(taxonomyBundle),
+          Some(TestData.myndlaTestBundle)
+        )
+      )
+      .get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 1
@@ -596,11 +618,36 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       TaxonomyBundle(nodes = nodes)
     }
 
-    articleIndexService.indexDocument(article1, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article2, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article3, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article4, Some(taxonomyBundle), Some(TestData.grepBundle)).get
-    articleIndexService.indexDocument(article5, Some(taxonomyBundle), Some(TestData.grepBundle)).get
+    articleIndexService
+      .indexDocument(
+        article1,
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article2,
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article3,
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article4,
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article5,
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+      )
+      .get
 
     blockUntil(() => {
       articleIndexService.countDocuments == 5

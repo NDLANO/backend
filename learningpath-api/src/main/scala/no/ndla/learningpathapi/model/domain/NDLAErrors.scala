@@ -1,5 +1,5 @@
 /*
- * Part of NDLA learningpath-api.
+ * Part of NDLA learningpath-api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -14,3 +14,4 @@ case class ElasticIndexingException(message: String) extends RuntimeException(me
 case class SearchException(message: String)          extends RuntimeException(message)
 case class TaxonomyUpdateException(message: String)  extends RuntimeException(message)
 case class InvalidOembedResponse(message: String)    extends RuntimeException(message)
+case class InvalidLpStatusException(message: String) extends RuntimeException(message)

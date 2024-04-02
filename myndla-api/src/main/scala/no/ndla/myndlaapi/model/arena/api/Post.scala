@@ -8,7 +8,7 @@
 package no.ndla.myndlaapi.model.arena.api
 
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.api.ArenaUser
+import no.ndla.myndlaapi.model.api.ArenaUser
 import sttp.tapir.Schema.annotations.description
 
 @description("Arena post data")

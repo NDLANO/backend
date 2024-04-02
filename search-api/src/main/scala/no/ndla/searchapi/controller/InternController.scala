@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -19,9 +19,9 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.searchapi.{Eff, Props}
-import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.model.domain.ReindexResult
+import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
 import sttp.model.StatusCode
@@ -43,7 +43,8 @@ trait InternController {
     with TaxonomyApiClient
     with GrepApiClient
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with MyNDLAApiClient =>
   val internController: InternController
 
   class InternController extends Service[Eff] with StrictLogging {
@@ -285,34 +286,44 @@ trait InternController {
           taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
           taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
           grepBundle              <- grepApiClient.getGrepBundle()
-        } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
+          myndlaBundle            <- myndlaapiClient.getMyNDLABundle
+        } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
 
         val start = System.currentTimeMillis()
 
         bundles match {
           case Failure(ex) => returnLeftError(ex)
-          case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
+          case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
             logger.info("Cleaning up unreferenced indexes before reindexing...")
             learningPathIndexService.cleanupIndexes(): Unit
             articleIndexService.cleanupIndexes(): Unit
             draftIndexService.cleanupIndexes(): Unit
 
+            val publishedIndexingBundle = IndexingBundle(
+              grepBundle = Some(grepBundle),
+              taxonomyBundle = Some(taxonomyBundlePublished),
+              myndlaBundle = Some(myndlaBundle)
+            )
+
+            val draftIndexingBundle = IndexingBundle(
+              grepBundle = Some(grepBundle),
+              taxonomyBundle = Some(taxonomyBundleDraft),
+              myndlaBundle = Some(myndlaBundle)
+            )
+
             val requestInfo = RequestInfo.fromThreadContext()
             val indexes = List(
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                (
-                  "learningpaths",
-                  learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards)
-                )
+                ("learningpaths", learningPathIndexService.indexDocuments(numShards, publishedIndexingBundle))
               },
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
+                ("articles", articleIndexService.indexDocuments(numShards, publishedIndexingBundle))
               },
               Future {
                 requestInfo.setThreadContextRequestInfo()
-                ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle, numShards))
+                ("drafts", draftIndexService.indexDocuments(numShards, draftIndexingBundle))
               }
             )
             if (runInBackground) {

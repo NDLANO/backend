@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -13,10 +13,10 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.TestEnvironment
+import no.ndla.searchapi.TestData.*
+import no.ndla.searchapi.{TestData, TestEnvironment}
 import no.ndla.searchapi.model.api.MetaImage
-import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
+import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
 import org.scalatest.Outcome
 
 import scala.util.{Failure, Success}
@@ -52,19 +52,18 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
   override val converterService        = new ConverterService
   override val searchConverterService  = new SearchConverterService
 
+  val indexingBundle: IndexingBundle =
+    IndexingBundle(Some(emptyGrepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle))
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
 
-      draftsToIndex.map(draft =>
-        draftIndexService.indexDocument(draft, Some(taxonomyTestBundle), Some(emptyGrepBundle))
-      )
+      draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
 
-      learningPathsToIndex.map(lp =>
-        learningPathIndexService.indexDocument(lp, Some(taxonomyTestBundle), Some(emptyGrepBundle))
-      )
+      learningPathsToIndex.map(lp => learningPathIndexService.indexDocument(lp, indexingBundle))
 
       blockUntil(() => {
         draftIndexService.countDocuments == draftsToIndex.size &&

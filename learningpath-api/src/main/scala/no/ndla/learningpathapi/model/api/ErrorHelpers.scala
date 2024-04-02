@@ -1,5 +1,5 @@
 /*
- * Part of NDLA learningpath-api.
+ * Part of NDLA learningpath-api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -12,8 +12,12 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.DataSource
-import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, ImportException, OptimisticLockException}
-import no.ndla.myndla.model.domain.InvalidStatusException
+import no.ndla.learningpathapi.model.domain.{
+  ElasticIndexingException,
+  ImportException,
+  InvalidLpStatusException,
+  OptimisticLockException
+}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -46,7 +50,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
     case _: PSQLException =>
       DataSource.connectToDatabase()
       errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
-    case mse: InvalidStatusException =>
+    case mse: InvalidLpStatusException =>
       errorBody(MISSING_STATUS, mse.getMessage, 400)
     case NdlaSearchException(_, Some(rf), _)
         if rf.error.rootCause

@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -12,11 +12,19 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ArticleType, Priority, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  ArticleType,
+  Priority,
+  VisualElement,
+  ResourceType as MyNDLAResourceType
+}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
@@ -29,7 +37,7 @@ import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
-import no.ndla.searchapi.model.domain.LearningResourceType
+import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType}
 import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
@@ -45,7 +53,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Success, Try}
 
 trait SearchConverterService {
-  this: DraftApiClient with TaxonomyApiClient with ConverterService with Props =>
+  this: DraftApiClient with TaxonomyApiClient with ConverterService with Props with MyNDLAApiClient =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
@@ -163,11 +171,10 @@ trait SearchConverterService {
 
     def asSearchableArticle(
         ai: Article,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle]
+        indexingBundle: IndexingBundle
     ): Try[SearchableArticle] = {
       val articleId = ai.id.get
-      val taxonomyContexts = taxonomyBundle match {
+      val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
           Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = true))
         case None =>
@@ -226,7 +233,7 @@ trait SearchConverterService {
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
-          grepContexts = getGrepContexts(ai.grepCodes, grepBundle),
+          grepContexts = getGrepContexts(ai.grepCodes, indexingBundle.grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
@@ -236,11 +243,8 @@ trait SearchConverterService {
 
     }
 
-    def asSearchableLearningPath(
-        lp: LearningPath,
-        taxonomyBundle: Option[TaxonomyBundle]
-    ): Try[SearchableLearningPath] = {
-      val taxonomyContexts = taxonomyBundle match {
+    def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] = {
+      val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
           Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = true))
         case None =>
@@ -251,6 +255,15 @@ trait SearchConverterService {
             shouldUsePublishedTax = true
           )
       }
+
+      val favorited = (indexingBundle.myndlaBundle match {
+        case Some(value) =>
+          Success(value.getFavorites(lp.id.get.toString, MyNDLAResourceType.Learningpath))
+        case None =>
+          myndlaapiClient
+            .getStatsFor(lp.id.get.toString, List(MyNDLAResourceType.Learningpath))
+            .map(_.map(_.favourites).sum)
+      }).?
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
@@ -281,19 +294,16 @@ trait SearchConverterService {
           isBasedOn = lp.isBasedOn,
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
-          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
+          favorited = favorited
         )
       )
     }
 
-    def asSearchableDraft(
-        draft: Draft,
-        taxonomyBundle: Option[TaxonomyBundle],
-        grepBundle: Option[GrepBundle]
-    ): Try[SearchableDraft] = {
+    def asSearchableDraft(draft: Draft, indexingBundle: IndexingBundle): Try[SearchableDraft] = {
       val taxonomyContexts = {
         val draftId = draft.id.get
-        taxonomyBundle match {
+        indexingBundle.taxonomyBundle match {
           case Some(bundle) =>
             Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = true))
           case None =>
@@ -355,6 +365,20 @@ trait SearchConverterService {
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
+      val favorited = (indexingBundle.myndlaBundle match {
+        case Some(value) =>
+          Success(
+            value.getFavorites(
+              draft.id.get.toString,
+              List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary)
+            )
+          )
+        case None =>
+          myndlaapiClient
+            .getStatsFor(draft.id.get.toString, List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary))
+            .map(_.map(_.favourites).sum)
+      }).?
+
       val title           = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
       val content         = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
       val visualElement   = model.SearchableLanguageValues.fromFields(draft.visualElement)
@@ -381,7 +405,7 @@ trait SearchConverterService {
           contexts = asSearchableTaxonomyContexts(taxonomyContexts),
           users = users.distinct,
           previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
-          grepContexts = getGrepContexts(draft.grepCodes, grepBundle),
+          grepContexts = getGrepContexts(draft.grepCodes, indexingBundle.grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
@@ -396,7 +420,8 @@ trait SearchConverterService {
           defaultRoot = primaryRoot.defaultValue,
           resourceTypeName = sortableResourceTypeName,
           defaultResourceTypeName = sortableResourceTypeName.defaultValue,
-          published = draft.published
+          published = draft.published,
+          favorited = favorited
         )
       )
     }
@@ -550,7 +575,8 @@ trait SearchConverterService {
         resourceTypeName = None,
         parentTopicName = None,
         primaryRootName = None,
-        published = None
+        published = None,
+        favorited = None
       )
     }
 
@@ -614,7 +640,8 @@ trait SearchConverterService {
         resourceTypeName = resourceTypeName,
         parentTopicName = parentTopicName,
         primaryRootName = primaryRootName,
-        published = Some(searchableDraft.published)
+        published = Some(searchableDraft.published),
+        favorited = Some(searchableDraft.favorited)
       )
     }
 
@@ -669,7 +696,8 @@ trait SearchConverterService {
         resourceTypeName = None,
         parentTopicName = None,
         primaryRootName = None,
-        published = None
+        published = None,
+        favorited = Some(searchableLearningPath.favorited)
       )
     }
 

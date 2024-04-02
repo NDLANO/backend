@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -7,7 +7,9 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, _}
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, *}
+import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggResult, AggSerde}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.typesafe.scalalogging.StrictLogging
@@ -20,7 +22,7 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.ErrorHelpers
+import no.ndla.searchapi.model.api.{ErrorHelpers, SubjectAggregation, SubjectAggregations}
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
@@ -46,6 +48,59 @@ trait MultiDraftSearchService {
     override val searchIndex: List[String] =
       List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
     override val indexServices: List[IndexService[_ <: Content]] = List(draftIndexService, learningPathIndexService)
+
+    case class SumAggResult(value: Long) extends AggResult
+
+    val sumAggsSerde: AggSerde[SumAggResult] = (_: String, data: Map[String, Any]) => {
+      val value = data("value").asInstanceOf[Double].toLong
+      SumAggResult(value)
+    }
+
+    def aggregateFavorites(subjectId: String): Try[Long] = {
+      val filter       = nestedQuery("contexts", boolQuery().should(termQuery("contexts.rootId", subjectId)))
+      val aggregations = sumAgg("favoritedCount", "favorited")
+      val searchToExecute = search(searchIndex)
+        .query(filter)
+        .trackTotalHits(true)
+        .size(0)
+        .aggs(aggregations)
+      e4sClient.execute(searchToExecute).map { res =>
+        res.result.aggregations.result("favoritedCount")(sumAggsSerde).value
+      }
+    }
+
+    def aggregateSubjects(subjects: List[String]): Try[SubjectAggregations] = {
+      val fiveYearsAgo        = NDLADate.now().minusYears(5)
+      val inOneYear           = NDLADate.now().plusYears(1)
+      val flowExcludeStatuses = List(DraftStatus.ARCHIVED, DraftStatus.PUBLISHED, DraftStatus.UNPUBLISHED)
+      val flowStatuses        = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
+      def aggregateSubject(subjectId: String): Try[SubjectAggregation] = for {
+        old <- filteredCountSearch(
+          MultiDraftSearchSettings.default.copy(subjects = List(subjectId), publishedFilterTo = Some(fiveYearsAgo))
+        )
+        revisions <- filteredCountSearch(
+          MultiDraftSearchSettings.default.copy(subjects = List(subjectId), revisionDateFilterTo = Some(inOneYear))
+        )
+        allArticles <- filteredCountSearch(
+          MultiDraftSearchSettings.default.copy(subjects = List(subjectId))
+        )
+        inFlow <- filteredCountSearch(
+          MultiDraftSearchSettings.default.copy(subjects = List(subjectId), statusFilter = flowStatuses)
+        )
+        favorited <- aggregateFavorites(subjectId)
+      } yield SubjectAggregation(
+        subjectId = subjectId,
+        totalArticleCount = allArticles,
+        oldArticleCount = old,
+        revisionCount = revisions,
+        flowCount = inFlow,
+        favoritedCount = favorited
+      )
+
+      subjects
+        .traverse(subjectId => aggregateSubject(subjectId))
+        .map(aggregations => SubjectAggregations(aggregations))
+    }
 
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
 
@@ -95,6 +150,19 @@ trait MultiDraftSearchService {
       val fullQuery                    = boolQuery().must(boolQueries)
 
       executeSearch(settings, fullQuery)
+    }
+
+    def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
+      val filteredSearch = boolQuery().filter(getSearchFilters(settings))
+      val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      val searchToExecute = search(searchIndex)
+        .query(filteredSearch)
+        .trackTotalHits(true)
+        .from(0)
+        .size(0)
+        .highlighting(highlight("*"))
+        .aggs(aggregations)
+      e4sClient.execute(searchToExecute).map(_.result.totalHits)
     }
 
     def executeSearch(settings: MultiDraftSearchSettings, baseQuery: BoolQuery): Try[SearchResult] = {

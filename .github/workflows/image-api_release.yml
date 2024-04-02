@@ -22,6 +22,8 @@ on:
       - project/search*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
+      - tapirtesting/**
+      - project/tapirtesting*.scala
       - project/Dependencies.scala
       - project/Module.scala
 env:

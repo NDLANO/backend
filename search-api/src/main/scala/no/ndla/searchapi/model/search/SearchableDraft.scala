@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -49,7 +49,8 @@ case class SearchableDraft(
     primaryRoot: SearchableLanguageValues,
     resourceTypeName: SearchableLanguageValues,
     defaultResourceTypeName: Option[String],
-    published: NDLADate
+    published: NDLADate,
+    favorited: Long
 )
 
 object SearchableDraft {

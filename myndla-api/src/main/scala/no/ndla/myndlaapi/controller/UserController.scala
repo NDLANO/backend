@@ -8,9 +8,7 @@
 package no.ndla.myndlaapi.controller
 
 import cats.implicits._
-import no.ndla.myndla.model.api.{ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser}
-import no.ndla.myndla.service.{FolderReadService, FolderWriteService, UserService}
-import no.ndla.myndlaapi.Eff
+import no.ndla.myndlaapi.{Eff, MyNDLAAuthHelpers}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{Service, TapirErrorHelpers}
@@ -21,8 +19,8 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import io.circe.generic.auto._
-import no.ndla.myndla.MyNDLAAuthHelpers
-import no.ndla.myndlaapi.service.ArenaReadService
+import no.ndla.myndlaapi.model.api.{ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser}
+import no.ndla.myndlaapi.service.{ArenaReadService, FolderReadService, FolderWriteService, UserService}
 import no.ndla.network.model.FeideID
 import no.ndla.network.tapir.auth.TokenUser
 

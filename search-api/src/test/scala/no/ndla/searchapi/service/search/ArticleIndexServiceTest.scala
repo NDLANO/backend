@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
-import io.circe.syntax._
+import io.circe.syntax.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
@@ -17,6 +17,7 @@ import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
@@ -56,9 +57,36 @@ class ArticleIndexServiceTest
   override val searchConverterService = new SearchConverterService
 
   test("That articles are indexed correctly") {
-    articleIndexService.indexDocument(article5, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
-    articleIndexService.indexDocument(article6, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
-    articleIndexService.indexDocument(article7, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
+    articleIndexService
+      .indexDocument(
+        article5,
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article6,
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
+      )
+      .get
+    articleIndexService
+      .indexDocument(
+        article7,
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
+      )
+      .get
 
     blockUntil(() => { articleIndexService.countDocuments == 3 })
 
@@ -72,20 +100,29 @@ class ArticleIndexServiceTest
     val Success(expectedArticle5) =
       searchConverterService.asSearchableArticle(
         article5,
-        Some(TestData.taxonomyTestBundle),
-        Some(TestData.emptyGrepBundle)
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(expectedArticle6) =
       searchConverterService.asSearchableArticle(
         article6,
-        Some(TestData.taxonomyTestBundle),
-        Some(TestData.emptyGrepBundle)
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
     val Success(expectedArticle7) =
       searchConverterService.asSearchableArticle(
         article7,
-        Some(TestData.taxonomyTestBundle),
-        Some(TestData.emptyGrepBundle)
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          Some(TestData.myndlaTestBundle)
+        )
       )
 
     val Some(actualArticle5) = articles.find(p => p.id == article5.id.get)

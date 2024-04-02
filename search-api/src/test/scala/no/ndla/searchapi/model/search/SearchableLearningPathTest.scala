@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -62,7 +62,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       supportedLanguages = List("nb", "en", "nn"),
       authors = List("Yap"),
       contexts = searchableTaxonomyContexts,
-      license = "by-sa"
+      license = "by-sa",
+      favorited = 0
     )
 
     val json         = CirceUtil.toJsonString(original)

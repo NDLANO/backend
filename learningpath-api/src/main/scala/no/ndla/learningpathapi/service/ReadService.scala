@@ -1,5 +1,5 @@
 /*
- * Part of NDLA learningpath-api.
+ * Part of NDLA learningpath-api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -8,17 +8,16 @@
 
 package no.ndla.learningpathapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
-import no.ndla.common.model.{api => commonApi}
+import no.ndla.common.model.api as commonApi
 import no.ndla.learningpathapi.integration.MyNDLAApiClient
-import no.ndla.learningpathapi.model.api._
+import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
-import no.ndla.learningpathapi.model.domain.{StepStatus, LearningPathStatus => _}
+import no.ndla.learningpathapi.model.domain.{InvalidLpStatusException, StepStatus, LearningPathStatus as _}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.myndla.model.domain.InvalidStatusException
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -166,7 +165,7 @@ trait ReadService {
                 .learningPathsWithStatus(ps)
                 .flatMap(lp => converterService.asApiLearningpathV2(lp, "all", fallback = true, user).toOption)
             )
-          case _ => Failure(InvalidStatusException(s"Parameter '$status' is not a valid status"))
+          case _ => Failure(InvalidLpStatusException(s"Parameter '$status' is not a valid status"))
         }
       } else { Failure(AccessDeniedException("You do not have access to this resource.")) }
     }

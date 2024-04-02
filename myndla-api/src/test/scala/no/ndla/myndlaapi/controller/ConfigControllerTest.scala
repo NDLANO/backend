@@ -8,8 +8,8 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla.model.api.config.{ConfigMeta, ConfigMetaValue}
-import no.ndla.myndla.model.domain.config.ConfigKey
+import no.ndla.common.model.api.config.{ConfigMeta, ConfigMetaValue}
+import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.myndlaapi.TestData.{adminAndWriteScopeClientToken, adminScopeClientToken}
 import no.ndla.myndlaapi.{Eff, TestEnvironment}
 import no.ndla.network.tapir.auth.TokenUser

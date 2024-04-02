@@ -1,5 +1,5 @@
 /*
- * Part of NDLA mapping.
+ * Part of NDLA mapping
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE

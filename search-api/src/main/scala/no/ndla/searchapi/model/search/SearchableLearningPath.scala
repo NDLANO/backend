@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search-api
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -31,7 +31,8 @@ case class SearchableLearningPath(
     isBasedOn: Option[Long],
     supportedLanguages: List[String],
     authors: List[String],
-    contexts: List[SearchableTaxonomyContext]
+    contexts: List[SearchableTaxonomyContext],
+    favorited: Long
 )
 
 object SearchableLearningPath {

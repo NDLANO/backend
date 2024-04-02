@@ -11,12 +11,11 @@ package no.ndla.myndlaapi.e2e
 import io.circe.generic.auto.*
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.NDLADate
-import no.ndla.myndla
-import no.ndla.myndla.model.api.ArenaUser
-import no.ndla.myndla.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api
-import no.ndla.myndlaapi.*
+import no.ndla.myndlaapi.{model, *}
+import no.ndla.myndlaapi.model.api.ArenaUser
 import no.ndla.myndlaapi.model.arena.api.PaginatedNewPostNotifications
+import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -337,7 +336,7 @@ class ArenaTest
             created = someDate,
             updated = someDate,
             owner = Some(
-              myndla.model.api.ArenaUser(
+              model.api.ArenaUser(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -354,7 +353,7 @@ class ArenaTest
             created = someDate,
             updated = someDate,
             owner = Some(
-              myndla.model.api.ArenaUser(
+              model.api.ArenaUser(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -371,7 +370,7 @@ class ArenaTest
             created = someDate,
             updated = someDate,
             owner = Some(
-              myndla.model.api.ArenaUser(
+              model.api.ArenaUser(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -388,7 +387,7 @@ class ArenaTest
             created = someDate,
             updated = someDate,
             owner = Some(
-              myndla.model.api.ArenaUser(
+              model.api.ArenaUser(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -463,7 +462,7 @@ class ArenaTest
         created = someDate,
         updated = someDate,
         owner = Some(
-          myndla.model.api.ArenaUser(
+          model.api.ArenaUser(
             id = 1,
             displayName = "",
             username = "email@ndla.no",
