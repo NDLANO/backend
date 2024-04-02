@@ -283,7 +283,11 @@ trait StateTransitionRules {
       convertedArticle.flatMap(articleBeforeSideEffect => {
         sideEffects
           .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
-            accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
+            accumulatedArticle.flatMap(a => {
+              val result = sideEffect(a, isImported, user)
+              println("sideeffect returned: " + result)
+              result
+            })
           })
       })
     }
