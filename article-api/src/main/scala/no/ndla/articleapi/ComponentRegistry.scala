@@ -65,7 +65,8 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with TapirHealthController
     with NdlaMiddleware
     with SwaggerControllerConfig
-    with SwaggerDocControllerConfig {
+    with SwaggerDocControllerConfig
+    with FrontpageApiClient {
   override val props: ArticleApiProperties = properties
   override val migrator                    = new DBMigrator
 
@@ -92,6 +93,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
   lazy val searchApiClient     = new SearchApiClient
   lazy val feideApiClient      = new FeideApiClient
   lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
+  lazy val frontpageApiClient  = new FrontpageApiClient
 
   lazy val clock = new SystemClock
 

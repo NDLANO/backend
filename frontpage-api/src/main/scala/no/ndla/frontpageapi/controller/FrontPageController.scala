@@ -7,16 +7,17 @@
 
 package no.ndla.frontpageapi.controller
 
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
+import no.ndla.common.model.api.FrontPage
 import no.ndla.frontpageapi.Eff
-import no.ndla.frontpageapi.model.api._
+import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import no.ndla.network.tapir.NoNullJsonPrinter._
+import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_ADMIN
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait FrontPageController {

@@ -1,17 +1,17 @@
 /*
- * Part of NDLA frontpage-api
- * Copyright (C) 2018 NDLA
+ * Part of NDLA common
+ * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.frontpageapi.model.api
+package no.ndla.common.model.api
 
 import cats.implicits.toFunctorOps
 import com.scalatsi.{TSIType, TSNamedType, TSType}
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 import scala.annotation.unused
@@ -29,15 +29,17 @@ case class FrontPage(
     @description("List of Menu objects") menu: List[Menu]
 )
 
+object FrontPage {
+  implicit val encodeFrontPage: Encoder[FrontPage] = deriveEncoder
+  implicit val decodeFrontPage: Decoder[FrontPage] = deriveDecoder
+}
+
 object Menu {
   implicit val encodeMenu: Encoder[Menu] = deriveEncoder
   implicit val decodeMenu: Decoder[Menu] = deriveDecoder
 
   implicit val encodeMenuData: Encoder[MenuData] = Encoder.instance { case menu: Menu => menu.asJson }
   implicit val decodeMenuData: Decoder[MenuData] = Decoder[Menu].widen
-
-  implicit val frontPageEncoder: Encoder[FrontPage] = deriveEncoder
-  implicit val frontPageDecoder: Decoder[FrontPage] = deriveDecoder
 
   implicit val menuTSI: TSIType[Menu] = {
     @unused

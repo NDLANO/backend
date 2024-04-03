@@ -42,4 +42,14 @@ class CachableTest extends UnitSuite with TestEnvironment {
     val c2: Cachable[Try[Int]] = Cachable.yes(t2)
     c2 should be(Cachable(Success(2), true))
   }
+
+  test("That merging returns non-cachable if any non-cachable") {
+    val cachables1: List[Cachable[Int]] = List(Cachable.yes(1), Cachable.yes(2), Cachable.yes(3))
+    val result1                         = Cachable.merge(cachables1)
+    result1 should be(Cachable(List(1, 2, 3), true))
+
+    val cachables2: List[Cachable[Int]] = List(Cachable.yes(1), Cachable.no(2), Cachable.yes(3))
+    val result2                         = Cachable.merge(cachables2)
+    result2 should be(Cachable(List(1, 2, 3), false))
+  }
 }

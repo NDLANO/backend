@@ -56,7 +56,8 @@ trait TestEnvironment
     with DBArticle
     with Props
     with TestData
-    with DBMigrator {
+    with DBMigrator
+    with FrontpageApiClient {
   val props: ArticleApiProperties = new ArticleApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
@@ -86,6 +87,7 @@ trait TestEnvironment
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
   val redisClient: RedisClient                       = mock[RedisClient]
+  val frontpageApiClient: FrontpageApiClient         = mock[FrontpageApiClient]
 
   val clock: SystemClock = mock[SystemClock]
 
