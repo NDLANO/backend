@@ -307,31 +307,32 @@ trait ReadService {
     }
 
     def toArticleItem(article: api.ArticleV2): String = {
-      s"""
-         |<item>
-         |<title>${article.title.title}</title>
-         |<description>${article.metaDescription.metaDescription}</description>
-         |<link>${toNdlaFrontendUrl(article.slug, article.id)}</link>
-         |<pubDate>${article.published.asString}</pubDate>
-         |${article.metaImage.map(i => s"""<image>${i.url}</image>""").getOrElse("")}
-         |</item>
-         """.stripMargin
+      s"""<item>
+         |  <title>${article.title.title}</title>
+         |  <description>${article.metaDescription.metaDescription}</description>
+         |  <link>${toNdlaFrontendUrl(article.slug, article.id)}</link>
+         |  <pubDate>${article.published.asString}</pubDate>
+         |  ${article.metaImage.map(i => s"""<image>${i.url}</image>""").getOrElse("")}
+         |</item>""".stripMargin.indent(4)
     }
 
     private def toNdlaFrontendUrl(slug: Option[String], id: Long) = slug
       .map(slug => s"${props.ndlaFrontendUrl}/about/$slug")
       .getOrElse(s"${props.ndlaFrontendUrl}/article/$id")
 
+    private val allBlankLinesRegex = """(?m)^\s*$[\r\n]*""".r
     def toRSSXML(parentArticle: api.ArticleV2, articles: List[api.ArticleV2]): String = {
-      s"""<?xml version="1.0" encoding="utf-8"?>
+      val rss = s"""<?xml version="1.0" encoding="utf-8"?>
          |<rss version="2.0">
          |  <channel>
          |    <title>${parentArticle.title.title}</title>
          |    <link>${toNdlaFrontendUrl(parentArticle.slug, parentArticle.id)}</link>
          |    <description>${parentArticle.metaDescription.metaDescription}</description>
-         |    ${articles.map(toArticleItem).mkString}
+         |${articles.map(toArticleItem).mkString}
          |  </channel>
          |</rss>""".stripMargin
+
+      allBlankLinesRegex.replaceAllIn(rss, "")
     }
 
     def getArticleFrontpageRSS(slug: String): Try[Cachable[String]] = {
