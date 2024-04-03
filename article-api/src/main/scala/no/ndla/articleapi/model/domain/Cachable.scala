@@ -52,6 +52,10 @@ case class Cachable[T](
 }
 
 object Cachable {
+  def merge[T](cachables: List[Cachable[T]]): Cachable[List[T]] = {
+    val canBeCached = cachables.forall(_.canBeCached)
+    Cachable(cachables.map(_.value), canBeCached)
+  }
 
   def yes[T <: Try[U], U](value: T): Try[Cachable[U]] =
     value.map(v => Cachable.yes(v))

@@ -11,7 +11,7 @@ import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.parser._
-import no.ndla.frontpageapi.model.api.{FrontPage, Menu}
+import no.ndla.common.model.api.{FrontPage, Menu}
 
 class FrontPageTest extends UnitSuite with TestEnvironment {
   test("test that circe encoding and decoding works for recursive types") {

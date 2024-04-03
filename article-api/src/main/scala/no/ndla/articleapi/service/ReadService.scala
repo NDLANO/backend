@@ -8,28 +8,32 @@
 
 package no.ndla.articleapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.caching.MemoizeHelpers
+import no.ndla.articleapi.integration.FrontpageApiClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHelpers, NotFoundException}
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
+import no.ndla.common.model.api.Menu
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.language.Language
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
 
-import scala.jdk.CollectionConverters._
+import scala.annotation.tailrec
+import scala.jdk.CollectionConverters.*
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
@@ -41,7 +45,8 @@ trait ReadService {
     with SearchConverterService
     with MemoizeHelpers
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with FrontpageApiClient =>
   val readService: ReadService
 
   class ReadService extends StrictLogging {
@@ -79,19 +84,27 @@ trait ReadService {
       }
     }
 
+    private def getDomainArticleBySlug(slug: String): Try[Article] = {
+      articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
+        case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
+        case Some(ArticleRow(_, _, _, _, None))          => Failure(ArticleErrorHelpers.ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, Some(article))) => Success(article)
+      }
+    }
+
     def getArticleBySlug(
         slug: String,
         language: String,
         fallback: Boolean
-    ): Try[Cachable[api.ArticleV2]] = {
-      articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
-        case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
-        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleErrorHelpers.ArticleGoneException())
-        case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
+    ): Try[Cachable[api.ArticleV2]] = getDomainArticleBySlug(slug).flatMap {
+      case article if article.availability == Availability.everyone =>
+        val res: Try[Cachable[api.ArticleV2]] =
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-        case Some(ArticleRow(_, _, _, _, Some(article))) =>
-          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-      }
+        res
+      case article =>
+        val res: Try[Cachable[api.ArticleV2]] =
+          Cachable.no(converterService.toApiArticleV2(article, language, fallback))
+        res
     }
 
     private[service] def addUrlsOnEmbedResources(article: Article): Article = {
@@ -272,6 +285,63 @@ trait ReadService {
       }
     }
 
+    @tailrec
+    private def findArticleMenu(article: api.ArticleV2, menus: List[Menu]): Try[Menu] = {
+      if (menus.isEmpty) Failure(NotFoundException(s"Could not find menu for article with id ${article.id}"))
+      else
+        menus.find(_.articleId == article.id) match {
+          case Some(value) => Success(value)
+          case None =>
+            val submenus = menus.flatMap(m => m.menu.map { case x: Menu => x })
+            findArticleMenu(article, submenus)
+        }
+    }
+
+    private def getArticlesForRSSFeed(menu: Menu): Try[Cachable[List[api.ArticleV2]]] = {
+      val articleIds = menu.menu.map { case x: Menu => x.articleId }
+      val articles =
+        articleIds.traverse(id =>
+          withIdV2(id, Language.DefaultLanguage, fallback = true, revision = None, feideAccessToken = None)
+        )
+      articles.map(Cachable.merge)
+    }
+
+    def toArticleItem(article: api.ArticleV2): String = {
+      s"""
+         |<item>
+         |<title>${article.title.title}</title>
+         |<description>${article.metaDescription.metaDescription}</description>
+         |<link>${toNdlaFrontendUrl(article.slug, article.id)}</link>
+         |<pubDate>${article.published.asString}</pubDate>
+         |${article.metaImage.map(i => s"""<image>${i.url}</image>""").getOrElse("")}
+         |</item>
+         """.stripMargin
+    }
+
+    private def toNdlaFrontendUrl(slug: Option[String], id: Long) = slug
+      .map(slug => s"${props.ndlaFrontendUrl}/about/$slug")
+      .getOrElse(s"${props.ndlaFrontendUrl}/article/$id")
+
+    def toRSSXML(parentArticle: api.ArticleV2, articles: List[api.ArticleV2]): String = {
+      s"""<?xml version="1.0" encoding="utf-8"?>
+         |<rss version="2.0">
+         |  <channel>
+         |    <title>${parentArticle.title.title}</title>
+         |    <link>${toNdlaFrontendUrl(parentArticle.slug, parentArticle.id)}</link>
+         |    <description>${parentArticle.metaDescription.metaDescription}</description>
+         |    ${articles.map(toArticleItem).mkString}
+         |  </channel>
+         |</rss>""".stripMargin
+    }
+
+    def getArticleFrontpageRSS(slug: String): Try[Cachable[String]] = {
+      for {
+        frontPage   <- frontpageApiClient.getFrontpage
+        article     <- getArticleBySlug(slug, Language.DefaultLanguage, fallback = true)
+        menu        <- findArticleMenu(article.value, frontPage.menu)
+        rssArticles <- getArticlesForRSSFeed(menu)
+      } yield rssArticles.map(arts => toRSSXML(article.value, arts))
+    }
   }
 
 }
