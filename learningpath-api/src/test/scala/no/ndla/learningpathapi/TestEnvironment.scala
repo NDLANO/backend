@@ -38,7 +38,6 @@ trait TestEnvironment
     with SearchApiClient
     with TaxonomyApiClient
     with NdlaClient
-    with ImageApiClientComponent
     with ConverterService
     with OembedProxyClient
     with Elastic4sClient
@@ -75,7 +74,6 @@ trait TestEnvironment
   val clock: SystemClock                                               = mock[SystemClock]
   val taxonomyApiClient: TaxonomyApiClient                             = mock[TaxonomyApiClient]
   val ndlaClient: NdlaClient                                           = mock[NdlaClient]
-  val imageApiClient: ImageApiClient                                   = mock[ImageApiClient]
   val languageValidator: LanguageValidator                             = mock[LanguageValidator]
   val learningpathControllerV2: LearningpathControllerV2               = mock[LearningpathControllerV2]
   val statsController: StatsController                                 = mock[StatsController]

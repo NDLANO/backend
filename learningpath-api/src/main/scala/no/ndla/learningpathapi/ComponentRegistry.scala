@@ -56,7 +56,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with BaseIndexService
     with TaxonomyApiClient
     with NdlaClient
-    with ImageApiClientComponent
     with ConverterService
     with FeideApiClient
     with OembedProxyClient
@@ -96,7 +95,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val clock                  = new SystemClock
   lazy val taxonomyApiClient      = new TaxonomyApiClient
   lazy val ndlaClient             = new NdlaClient
-  lazy val imageApiClient         = new ImageApiClient
   lazy val feideApiClient         = new FeideApiClient
   lazy val languageValidator      = new LanguageValidator
   lazy val titleValidator         = new TitleValidator

@@ -31,8 +31,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: ImageApiClientComponent
-    with LearningPathRepositoryComponent
+  this: LearningPathRepositoryComponent
     with LanguageValidator
     with LearningPathValidator
     with OembedProxyClient
