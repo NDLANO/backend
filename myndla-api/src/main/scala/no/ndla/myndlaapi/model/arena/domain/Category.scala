@@ -16,13 +16,15 @@ case class Category(
     title: String,
     description: String,
     visible: Boolean,
-    rank: Int
+    rank: Int,
+    parentCategoryId: Option[Long]
 )
 
 case class InsertCategory(
     title: String,
     description: String,
-    visible: Boolean
+    visible: Boolean,
+    parentCategoryId: Option[Long]
 )
 
 object Category extends SQLSyntaxSupport[Category] {
@@ -39,7 +41,8 @@ object Category extends SQLSyntaxSupport[Category] {
       title = rs.string(colNameWrapper("title")),
       description = rs.string(colNameWrapper("description")),
       visible = rs.boolean(colNameWrapper("visible")),
-      rank = rs.int(colNameWrapper("rank"))
+      rank = rs.int(colNameWrapper("rank")),
+      parentCategoryId = rs.longOpt(colNameWrapper("parent_category_id"))
     )
   }
 

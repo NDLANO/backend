@@ -10,7 +10,8 @@ package no.ndla.myndlaapi.integration.nodebb
 case class CategoryInList(
     cid: Long,
     name: String,
-    description: String
+    description: String,
+    children: List[CategoryInList]
 )
 
 case class Categories(

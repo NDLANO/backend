@@ -7,18 +7,18 @@
 
 package no.ndla.myndlaapi.repository
 
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.myndlaapi.model.arena.domain
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.DBUtil.buildWhereClause
 import no.ndla.common.errors.RollbackException
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.myndlaapi.model.arena.api.CategorySort
+import no.ndla.myndlaapi.model.arena.api.{CategoryBreadcrumb, CategorySort}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
 import no.ndla.myndlaapi.model.domain.{MyNDLAUser, NDLASQLException}
@@ -346,6 +346,23 @@ trait ArenaRepository {
       }.flatten
     }
 
+    def getNextParentRank(newParentId: Option[Long])(implicit session: DBSession): Try[Int] = Try {
+      val whereClause = newParentId match {
+        case Some(value) => sqls"where parent_category_id = $value"
+        case None        => sqls"where parent_category_id is null"
+      }
+
+      sql"""
+           select coalesce(max(rank), 0) + 1 as rank
+           from ${domain.Category.table}
+           $whereClause
+         """
+        .map(rs => rs.int("rank"))
+        .single
+        .apply()
+        .getOrElse(1)
+    }
+
     def getTopicFollowers(topicId: Long)(implicit session: DBSession): Try[List[MyNDLAUser]] = Try {
       val tf = domain.TopicFollow.syntax("tf")
       val u  = MyNDLAUser.syntax("u")
@@ -458,6 +475,26 @@ trait ArenaRepository {
         created = created,
         resolved = None
       )
+    }
+
+    def getBreadcrumbs(categoryId: Long)(implicit session: DBSession): Try[List[CategoryBreadcrumb]] = Try {
+      sql"""
+              WITH RECURSIVE breadcrumbs AS (
+                 SELECT id, title, parent_category_id
+                 FROM categories
+                 WHERE id = $categoryId
+                 UNION ALL
+                 SELECT c.id, c.title, c.parent_category_id
+                 FROM categories c
+                 JOIN breadcrumbs b ON c.id = b.parent_category_id
+              )
+              SELECT id, title
+              FROM breadcrumbs
+         """
+        .map(rs => CategoryBreadcrumb(id = rs.long("id"), title = rs.string("title")))
+        .list
+        .apply()
+        .reverse
     }
 
     def deleteCategory(categoryId: Long)(implicit session: DBSession): Try[Int] = Try {
@@ -1030,15 +1067,26 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getCategories(user: MyNDLAUser, filterFollowed: Boolean, sort: CategorySort)(implicit
-        session: DBSession
-    ): Try[List[domain.Category]] = {
-      val ca         = domain.Category.syntax("ca")
+    def getCategories(
+        user: MyNDLAUser,
+        filterFollowed: Boolean,
+        sort: CategorySort,
+        parentCategoryId: Option[Long]
+    )(implicit session: DBSession): Try[List[domain.Category]] = {
+      val ca = domain.Category.syntax("ca")
+      val parentFilter = parentCategoryId match {
+        case Some(parentId) => sqls"""${ca.parentCategoryId} = $parentId"""
+        case None           => sqls"""${ca.parentCategoryId} is null"""
+      }
+
       val visibleSql = if (user.isAdmin) None else Some(sqls"${ca.visible} = true")
 
       val where = if (filterFollowed) {
         val subWhereClause = buildWhereClause(
-          Seq(sqls"${domain.CategoryFollow.column.user_id} = ${user.id}") ++ visibleSql
+          Seq(
+            parentFilter,
+            sqls"${domain.CategoryFollow.column.user_id} = ${user.id}"
+          ) ++ visibleSql
         )
         sqls"""
             where ${ca.id} in (
@@ -1047,7 +1095,7 @@ trait ArenaRepository {
                 $subWhereClause
             )
             """
-      } else buildWhereClause(visibleSql.toSeq)
+      } else buildWhereClause(visibleSql.toSeq :+ parentFilter)
 
       val orderByClause = sort match {
         case CategorySort.ByTitle => sqls"order by ${ca.title}"
@@ -1101,21 +1149,28 @@ trait ArenaRepository {
     }
 
     def insertCategory(category: domain.InsertCategory)(implicit session: DBSession): Try[domain.Category] = Try {
+      val rankWhereClause = category.parentCategoryId match {
+        case Some(value) => sqls"where parent_category_id = $value"
+        case None        => sqls"where parent_category_id is null"
+      }
+
       sql"""
             insert into ${domain.Category.table}
-              (title, description, visible, rank)
+              (title, description, visible, rank, parent_category_id)
             values (
               ${category.title},
               ${category.description},
               ${category.visible},
-              (select coalesce(max(rank), 0) + 1 from ${domain.Category.table})
+              (select coalesce(max(rank), 0) + 1 from ${domain.Category.table} $rankWhereClause),
+              ${category.parentCategoryId}
             )
             returning
                 id,
                 title,
                 description,
                 visible,
-                rank
+                rank,
+                parent_category_id
            """
         .map(rs => domain.Category.fromResultSet(s => domain.Category.column.c(s))(rs))
         .single
@@ -1124,15 +1179,17 @@ trait ArenaRepository {
         .flatMap(_.toTry(NDLASQLException("Did not get a category back after insert, this is a bug")))
     }.flatten
 
-    def updateCategory(categoryId: Long, category: domain.InsertCategory)(implicit
+    def updateCategory(categoryId: Long, category: domain.InsertCategory, newRank: Int)(implicit
         session: DBSession
     ): Try[domain.Category] = Try {
       withSQL {
         update(domain.Category)
           .set(
-            domain.Category.column.title       -> category.title,
-            domain.Category.column.description -> category.description,
-            domain.Category.column.visible     -> category.visible
+            domain.Category.column.title            -> category.title,
+            domain.Category.column.description      -> category.description,
+            domain.Category.column.visible          -> category.visible,
+            domain.Category.column.parentCategoryId -> category.parentCategoryId,
+            domain.Category.column.rank             -> newRank
           )
           .where
           .eq(domain.Category.column.id, categoryId)
@@ -1145,10 +1202,17 @@ trait ArenaRepository {
         .flatMap(_.toTry(NDLASQLException("Did not get a category back after update, this is a bug")))
     }.flatten
 
-    def getAllCategoryIds(implicit session: DBSession): Try[List[Long]] = {
+    def getAllCategoryIds(parentId: Option[Long])(implicit session: DBSession): Try[List[Long]] = {
       Try {
+
+        val whereClause = parentId match {
+          case Some(value) => sqls"where parent_category_id = $value"
+          case None        => sqls"where parent_category_id is null"
+        }
+
         sql"""
              select id from ${domain.Category.table}
+             $whereClause
            """
           .map(rs => rs.long("id"))
           .list

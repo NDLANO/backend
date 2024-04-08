@@ -21,7 +21,9 @@ trait ConverterService {
         category: domain.Category,
         topicCount: Long,
         postCount: Long,
-        isFollowing: Boolean
+        isFollowing: Boolean,
+        subcategories: List[api.Category],
+        breadcrumbs: List[api.CategoryBreadcrumb]
     ): api.Category = {
       api.Category(
         id = category.id,
@@ -31,7 +33,11 @@ trait ConverterService {
         postCount = postCount,
         isFollowing = isFollowing,
         visible = category.visible,
-        rank = category.rank
+        rank = category.rank,
+        parentCategoryId = category.parentCategoryId,
+        subcategories = subcategories,
+        categoryCount = subcategories.size.toLong,
+        breadcrumbs = breadcrumbs
       )
     }
 

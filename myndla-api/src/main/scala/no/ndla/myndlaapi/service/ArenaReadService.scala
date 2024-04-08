@@ -36,16 +36,21 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
-    def sortCategories(sortedIds: List[Long], user: MyNDLAUser): Try[List[api.Category]] =
+    def sortCategories(parentId: Option[Long], sortedIds: List[Long], user: MyNDLAUser): Try[List[api.Category]] =
       arenaRepository.rollbackOnFailure { session =>
         for {
-          existingCategoryIds <- arenaRepository.getAllCategoryIds(session)
+          existingCategoryIds <- arenaRepository.getAllCategoryIds(parentId)(session)
           _ <-
             if (existingCategoryIds.sorted != sortedIds.sorted) {
               Failure(ValidationException("body", "Sorted ids must contain every existing category id"))
             } else { Success(()) }
-          _          <- arenaRepository.sortCategories(sortedIds)(session)
-          categories <- getCategories(user, filterFollowed = false, sort = CategorySort.ByRank)(session)
+          _ <- arenaRepository.sortCategories(sortedIds)(session)
+          categories <- getCategories(
+            user,
+            filterFollowed = false,
+            sort = CategorySort.ByRank,
+            parentCategoryId = None
+          )(session)
         } yield categories
       }
 
@@ -251,21 +256,49 @@ trait ArenaReadService {
     }
 
     def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
-      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description, newCategory.visible)
+      val toInsert = domain.InsertCategory(
+        newCategory.title,
+        newCategory.description,
+        newCategory.visible,
+        newCategory.parentCategoryId
+      )
       arenaRepository.insertCategory(toInsert)(session).map { inserted =>
-        converterService.toApiCategory(inserted, 0, 0, isFollowing = false)
+        converterService.toApiCategory(inserted, 0, 0, isFollowing = false, List.empty, List.empty)
+
       }
+    }
+
+    def getNewRank(existing: api.CategoryWithTopics, newParentId: Option[Long])(session: DBSession): Try[Int] = {
+      val parentHasChanged = existing.parentCategoryId.exists(newParentId.contains)
+      if (parentHasChanged) {
+        arenaRepository.getNextParentRank(newParentId)(session)
+      } else Success(existing.rank)
     }
 
     def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
         session: DBSession = AutoSession
     ): Try[Category] = {
-      val toInsert = domain.InsertCategory(newCategory.title, newCategory.description, newCategory.visible)
+      val toInsert = domain.InsertCategory(
+        newCategory.title,
+        newCategory.description,
+        newCategory.visible,
+        newCategory.parentCategoryId
+      )
       for {
-        existing  <- getCategory(categoryId, 0, 0, user)(session)
-        updated   <- arenaRepository.updateCategory(categoryId, toInsert)(session)
-        following <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
-      } yield converterService.toApiCategory(updated, existing.topicCount, existing.postCount, following.isDefined)
+        existing      <- getCategory(categoryId, 0, 0, user)(session)
+        newRank       <- getNewRank(existing, toInsert.parentCategoryId)(session)
+        updated       <- arenaRepository.updateCategory(categoryId, toInsert, newRank)(session)
+        following     <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
+        subcategories <- getCategories(user, filterFollowed = false, CategorySort.ByRank, categoryId.some)(session)
+        breadcrumbs   <- arenaRepository.getBreadcrumbs(existing.id)(session)
+      } yield converterService.toApiCategory(
+        updated,
+        existing.topicCount,
+        existing.postCount,
+        following.isDefined,
+        subcategories,
+        breadcrumbs
+      )
     }
 
     def postTopic(categoryId: Long, newTopic: NewTopic, user: MyNDLAUser): Try[api.Topic] = {
@@ -342,9 +375,11 @@ trait ArenaReadService {
         maybeCategory <- arenaRepository.getCategory(categoryId, includeHidden = requester.isAdmin)(session)
         category      <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize, requester)(session)
-        topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
-        postsCount    <- arenaRepository.getPostCountForCategory(categoryId)(session)
-        following     <- arenaRepository.getCategoryFollowing(categoryId, requester.id)(session)
+        subcats     <- getCategories(requester, filterFollowed = false, CategorySort.ByRank, category.id.some)(session)
+        topicsCount <- arenaRepository.getTopicCountForCategory(categoryId)(session)
+        breadcrumb  <- arenaRepository.getBreadcrumbs(categoryId)(session)
+        postsCount  <- arenaRepository.getPostCountForCategory(categoryId)(session)
+        following   <- arenaRepository.getCategoryFollowing(categoryId, requester.id)(session)
         tt = topics.map(topic => converterService.toApiTopic(topic))
       } yield api.CategoryWithTopics(
         id = categoryId,
@@ -357,7 +392,11 @@ trait ArenaReadService {
         topicPage = page,
         isFollowing = following.isDefined,
         visible = category.visible,
-        rank = category.rank
+        rank = category.rank,
+        categoryCount = subcats.size.toLong,
+        subcategories = subcats,
+        parentCategoryId = category.parentCategoryId,
+        breadcrumbs = breadcrumb
       )
     }
 
@@ -435,17 +474,27 @@ trait ArenaReadService {
     def getCategories(
         requester: MyNDLAUser,
         filterFollowed: Boolean,
-        sort: CategorySort
+        sort: CategorySort,
+        parentCategoryId: Option[Long]
     )(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
       arenaRepository
-        .getCategories(requester, filterFollowed, sort)(session)
+        .getCategories(requester, filterFollowed, sort, parentCategoryId)(session)
         .flatMap(categories => {
           categories.traverse(category => {
             for {
-              postCount  <- arenaRepository.getPostCountForCategory(category.id)(session)
-              topicCount <- arenaRepository.getTopicCountForCategory(category.id)(session)
-              following  <- arenaRepository.getCategoryFollowing(category.id, requester.id)(session)
-            } yield converterService.toApiCategory(category, topicCount, postCount, following.isDefined)
+              postCount     <- arenaRepository.getPostCountForCategory(category.id)(session)
+              topicCount    <- arenaRepository.getTopicCountForCategory(category.id)(session)
+              subcategories <- getCategories(requester, filterFollowed, sort, Some(category.id))(session)
+              following     <- arenaRepository.getCategoryFollowing(category.id, requester.id)(session)
+              breadcrumbs   <- arenaRepository.getBreadcrumbs(category.id)(session)
+            } yield converterService.toApiCategory(
+              category,
+              topicCount,
+              postCount,
+              following.isDefined,
+              subcategories,
+              breadcrumbs
+            )
           })
         })
 
