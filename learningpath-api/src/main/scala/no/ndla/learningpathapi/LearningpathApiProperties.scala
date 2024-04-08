@@ -38,7 +38,8 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
   def MaxPageSize         = 10000
   def IndexBulkSize       = 1000
 
-  def InternalImageApiUrl: String = s"$ImageApiHost/image-api/v2/images"
+  def InternalImageApiUrl: String    = s"$ImageApiHost/image-api/v3/images"
+  def InternalImageApiRawUrl: String = s"$ImageApiHost/image-api/raw"
 
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt

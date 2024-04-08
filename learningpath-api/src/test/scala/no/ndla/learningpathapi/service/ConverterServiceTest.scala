@@ -12,7 +12,6 @@ import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
-import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
 import no.ndla.learningpathapi.model.domain.*
@@ -411,22 +410,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("asCoverPhoto converts an image id to CoverPhoto") {
-    val imageMeta =
-      ImageMetaInformation(
-        "1",
-        "http://image-api.ndla-local/image-api/v2/images/1",
-        "http://image-api.ndla-local/image-api/raw/1.jpg",
-        1024,
-        "something"
-      )
     val expectedResult =
       CoverPhoto(
-        "http://api-gateway.ndla-local/image-api/raw/1.jpg",
-        "http://api-gateway.ndla-local/image-api/v2/images/1"
+        s"http://${props.ImageApiHost}/image-api/raw/id/1",
+        s"http://${props.ImageApiHost}/image-api/v3/images/1"
       )
-    when(imageApiClient.imageMetaOnUrl(any[String])).thenReturn(Some(imageMeta))
     val Some(result) = service.asCoverPhoto("1")
-
     result should equal(expectedResult)
   }
 

@@ -31,8 +31,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: ImageApiClientComponent
-    with LearningPathRepositoryComponent
+  this: LearningPathRepositoryComponent
     with LanguageValidator
     with LearningPathValidator
     with OembedProxyClient
@@ -82,13 +81,10 @@ trait ConverterService {
     }
 
     def asCoverPhoto(imageId: String): Option[CoverPhoto] = {
-      imageApiClient
-        .imageMetaOnUrl(createUrlToImageApi(imageId))
-        .map(imageMeta => {
-          val imageUrl = s"$Domain${imageMeta.imageUrl.path}"
-          val metaUrl  = s"$Domain${imageMeta.metaUrl.path}"
-          api.CoverPhoto(imageUrl, metaUrl)
-        })
+      val metaUrl  = createUrlToImageApi(imageId)
+      val imageUrl = createUrlToImageApiRaw(imageId)
+
+      Some(api.CoverPhoto(imageUrl, metaUrl))
     }
 
     private def asCopyright(copyright: api.Copyright): learningpath.LearningpathCopyright = {
@@ -641,6 +637,9 @@ trait ConverterService {
 
     private def createUrlToImageApi(imageId: String): String = {
       s"http://$InternalImageApiUrl/$imageId"
+    }
+    private def createUrlToImageApiRaw(imageId: String): String = {
+      s"http://$InternalImageApiRawUrl/id/$imageId"
     }
 
     private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2): EmbedUrlV2 = {

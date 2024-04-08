@@ -620,7 +620,7 @@ trait LearningpathControllerV2 {
       .description("Fetch all learningpaths with specified status")
       .in("status" / learningPathStatus)
       .out(jsonBody[List[LearningPathV2]])
-      .errorOut(errorOutputsFor(400, 500))
+      .errorOut(errorOutputsFor(400, 401, 403, 500))
       .withOptionalUser
       .serverLogicPure { maybeUser =>
         { case status =>
