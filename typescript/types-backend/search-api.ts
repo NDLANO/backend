@@ -247,6 +247,23 @@ export interface IStatus {
   other: string[]
 }
 
+export interface ISubjectAggregation {
+  subjectId: string
+  totalArticleCount: number
+  oldArticleCount: number
+  revisionCount: number
+  flowCount: number
+  favoritedCount: number
+}
+
+export interface ISubjectAggregations {
+  subjects: ISubjectAggregation[]
+}
+
+export interface ISubjectAggsInput {
+  subjects?: string[]
+}
+
 export interface ISuggestOption {
   text: string
   score: number
