@@ -42,7 +42,9 @@ object searchapi extends Module {
       "LearningpathResults",
       "SearchError",
       "ValidationError",
-      "DraftSearchParams"
+      "DraftSearchParams",
+      "SubjectAggregations",
+      "SubjectAggsInput"
     )
   )
 
