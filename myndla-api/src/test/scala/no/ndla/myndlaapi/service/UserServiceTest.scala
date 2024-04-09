@@ -200,6 +200,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student"),
+      None,
       eduPersonPrincipalName = "example@email.com",
       mail = Seq("example@email.com")
     )
@@ -329,6 +330,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
       eduPersonAffiliation = Seq.empty,
+      None,
       eduPersonPrincipalName = "example@email.com",
       mail = Seq("example@email.com")
     )

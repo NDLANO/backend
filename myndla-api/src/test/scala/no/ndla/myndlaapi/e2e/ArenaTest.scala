@@ -71,7 +71,7 @@ class ArenaTest
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any))
-        .thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"), "email@ndla.no", Seq("email@ndla.no"))))
+        .thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"), None, "email@ndla.no", Seq("email@ndla.no"))))
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
       when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List("zxc")))
       when(clock.now()).thenReturn(someDate)
