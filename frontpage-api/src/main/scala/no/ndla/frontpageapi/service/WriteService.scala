@@ -7,6 +7,7 @@
 
 package no.ndla.frontpageapi.service
 
+import no.ndla.common.model.api.FrontPage
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.domain.Errors.{SubjectPageNotFoundException, ValidationException}
@@ -89,7 +90,7 @@ trait WriteService {
       )
     }
 
-    def createFrontPage(page: api.FrontPage): Try[api.FrontPage] = {
+    def createFrontPage(page: FrontPage): Try[FrontPage] = {
       for {
         domainFrontpage <- Try(ConverterService.toDomainFrontPage(page))
         inserted        <- frontPageRepository.newFrontPage(domainFrontpage)

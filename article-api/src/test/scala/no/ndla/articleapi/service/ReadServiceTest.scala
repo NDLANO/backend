@@ -15,7 +15,17 @@ import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{ArticleContent, ArticleType, Availability, VisualElement}
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{FrontPage, Menu}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  ArticleType,
+  Availability,
+  Description,
+  Title,
+  VisualElement
+}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.mockito.ArgumentMatchers.any
@@ -282,5 +292,79 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     result.errors.head.message should be("Query parameter 'ids' is missing")
 
     verify(articleRepository, times(0)).withIds(any, any, any)(any)
+  }
+
+  test("That xml is generated correctly for frontpage articles") {
+    val date = NDLADate.now()
+    val parentArticle = TestData.sampleDomainArticle.copy(
+      id = Some(1),
+      title = Seq(Title("Parent title", "nb")),
+      metaDescription = Seq(Description("Parent description", "nb")),
+      metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
+      slug = Some("some-slug"),
+      published = date
+    )
+
+    val article1 = TestData.sampleDomainArticle.copy(
+      id = Some(2),
+      title = Seq(Title("Article1 title", "nb")),
+      metaDescription = Seq(Description("Article1 description", "nb")),
+      metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
+      slug = Some("slug-one"),
+      published = date
+    )
+
+    val article2 = TestData.sampleDomainArticle.copy(
+      id = Some(3),
+      title = Seq(Title("Article2 title", "nb")),
+      metaDescription = Seq(Description("Article2 description", "nb")),
+      metaImage = Seq(),
+      slug = Some("slug-two"),
+      published = date
+    )
+
+    val frontPage = FrontPage(
+      100,
+      List(Menu(1, List(Menu(2, List.empty, Some(true)), Menu(3, List.empty, Some(true))), Some(false)))
+    )
+
+    val rowOne   = Some(ArticleRow(1, 1, 1, Some("some-slug"), Some(parentArticle)))
+    val rowTwo   = Some(ArticleRow(2, 2, 2, Some("slug-one"), Some(article1)))
+    val rowThree = Some(ArticleRow(3, 3, 3, Some("slug-two"), Some(article2)))
+
+    when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List.empty)
+    when(frontpageApiClient.getFrontpage).thenReturn(Success(frontPage))
+    when(articleRepository.withSlug("some-slug")).thenReturn(rowOne)
+    when(articleRepository.withId(1)).thenReturn(rowOne)
+    when(articleRepository.withSlug("slug-one")).thenReturn(rowTwo)
+    when(articleRepository.withId(2)).thenReturn(rowTwo)
+    when(articleRepository.withSlug("slug-two")).thenReturn(rowThree)
+    when(articleRepository.withId(3)).thenReturn(rowThree)
+
+    val xml = readService.getArticleFrontpageRSS("some-slug").get.value
+    xml should be(
+      s"""<?xml version="1.0" encoding="utf-8"?>
+        |<rss version="2.0">
+        |  <channel>
+        |    <title>Parent title</title>
+        |    <link>http://localhost:30017/about/some-slug</link>
+        |    <description>Parent description</description>
+        |    <item>
+        |      <title>Article1 title</title>
+        |      <description>Article1 description</description>
+        |      <link>http://localhost:30017/about/slug-one</link>
+        |      <pubDate>${date.asString}</pubDate>
+        |      <image>http://api-gateway.ndla-local/image-api/raw/id/1000</image>
+        |    </item>
+        |    <item>
+        |      <title>Article2 title</title>
+        |      <description>Article2 description</description>
+        |      <link>http://localhost:30017/about/slug-two</link>
+        |      <pubDate>${date.asString}</pubDate>
+        |    </item>
+        |  </channel>
+        |</rss>""".stripMargin
+    )
+
   }
 }

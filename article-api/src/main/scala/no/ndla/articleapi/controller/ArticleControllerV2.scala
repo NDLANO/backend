@@ -8,25 +8,26 @@
 
 package no.ndla.articleapi.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
+import cats.implicits.*
+import io.circe.generic.auto.*
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api._
+import no.ndla.articleapi.model.api.*
 import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.{Eff, Props}
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{DynamicHeaders, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import sttp.model.{Header, MediaType}
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -391,9 +392,23 @@ trait ArticleControllerV2 {
         }
       })
 
+    def articleFrontPageRSS: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Get RSS feed for articles at a level in the frontpage menu")
+      .in(path[String]("slug").description("Slug of the article to generate RSS for") / "rss.xml")
+      .errorOut(errorOutputsFor(400, 410, 404))
+      .out(stringBody)
+      .out(EndpointOutput.derived[DynamicHeaders])
+      .serverLogicPure { slug =>
+        readService
+          .getArticleFrontpageRSS(slug)
+          .map(_.Ok(List(Header.contentType(MediaType.ApplicationXml))))
+          .handleErrorsOrOk
+      }
+
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       tagSearch,
       getByIds,
+      articleFrontPageRSS,
       getSingle,
       getSearch,
       postSearch,

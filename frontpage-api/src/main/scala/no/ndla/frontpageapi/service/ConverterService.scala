@@ -8,10 +8,12 @@
 package no.ndla.frontpageapi.service
 
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, MissingIdException}
-import no.ndla.frontpageapi.model.domain._
+import no.ndla.frontpageapi.model.domain.*
 import no.ndla.frontpageapi.model.{api, domain}
+
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
+import cats.implicits.*
+import no.ndla.common.model
 import no.ndla.frontpageapi.Props
 import no.ndla.language.Language.{findByLanguageOrBestEffort, mergeLanguageFields}
 
@@ -21,11 +23,11 @@ trait ConverterService {
   object ConverterService {
     import props.{BrightcoveAccountId, BrightcovePlayer, RawImageApiUrl}
 
-    private def toApiMenu(menu: domain.Menu): api.Menu =
-      api.Menu(menu.articleId, menu.menu.map(toApiMenu), Some(menu.hideLevel))
+    private def toApiMenu(menu: domain.Menu): model.api.Menu =
+      model.api.Menu(menu.articleId, menu.menu.map(toApiMenu), Some(menu.hideLevel))
 
-    def toApiFrontPage(frontPage: domain.FrontPage): api.FrontPage =
-      api.FrontPage(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
+    def toApiFrontPage(frontPage: domain.FrontPage): model.api.FrontPage =
+      model.api.FrontPage(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
 
     private def toApiBannerImage(banner: domain.BannerImage): api.BannerImage =
       api.BannerImage(
@@ -187,12 +189,12 @@ trait ConverterService {
         validated <- VisualElementType.validateVisualElement(ve)
       } yield validated
 
-    private def toDomainMenu(menu: api.Menu): domain.Menu = {
-      val apiMenu = menu.menu.map { case x: api.Menu => toDomainMenu(x) }
+    private def toDomainMenu(menu: model.api.Menu): domain.Menu = {
+      val apiMenu = menu.menu.map { case x: model.api.Menu => toDomainMenu(x) }
       domain.Menu(articleId = menu.articleId, menu = apiMenu, hideLevel = menu.hideLevel.getOrElse(false))
     }
 
-    def toDomainFrontPage(page: api.FrontPage): domain.FrontPage = {
+    def toDomainFrontPage(page: model.api.FrontPage): domain.FrontPage = {
       domain.FrontPage(articleId = page.articleId, menu = page.menu.map(toDomainMenu))
     }
 

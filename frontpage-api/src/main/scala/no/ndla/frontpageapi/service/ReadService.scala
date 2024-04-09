@@ -7,9 +7,10 @@
 
 package no.ndla.frontpageapi.service
 
-import cats.implicits._
-import no.ndla.common.{errors => common}
-import no.ndla.common.implicits._
+import cats.implicits.*
+import no.ndla.common.errors as common
+import no.ndla.common.implicits.*
+import no.ndla.common.model.api.FrontPage
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, SubjectPageNotFoundException}
@@ -72,7 +73,7 @@ trait ReadService {
       } yield api
     }
 
-    def getFrontPage: Try[api.FrontPage] = {
+    def getFrontPage: Try[FrontPage] = {
       frontPageRepository.getFrontPage.flatMap {
         case None        => Failure(common.NotFoundException("Front page was not found"))
         case Some(value) => Success(ConverterService.toApiFrontPage(value))

@@ -7,8 +7,8 @@
 
 package no.ndla.frontpageapi.controller
 
-import no.ndla.common.errors as common
-import no.ndla.frontpageapi.model.api
+import no.ndla.common.{model, errors as common}
+import no.ndla.common.model.api.FrontPage
 import no.ndla.frontpageapi.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
@@ -96,7 +96,7 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirC
   }
 
   test("That POST / returns 200 if auth header does have correct role") {
-    when(writeService.createFrontPage(any)).thenReturn(Success(api.FrontPage(1, List())))
+    when(writeService.createFrontPage(any)).thenReturn(Success(FrontPage(1, List())))
 
     val request =
       quickRequest
@@ -110,7 +110,7 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirC
   }
 
   test("That POST / returns 400 if auth header does have correct role but the json body is malformed") {
-    when(writeService.createFrontPage(any)).thenReturn(Success(api.FrontPage(1, List())))
+    when(writeService.createFrontPage(any)).thenReturn(Success(model.api.FrontPage(1, List())))
 
     val request =
       quickRequest
@@ -124,7 +124,7 @@ class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirC
   }
 
   test("That GET / returns 200 when the frontpage is available") {
-    val frontPage = api.FrontPage(articleId = 1, menu = List.empty)
+    val frontPage = model.api.FrontPage(articleId = 1, menu = List.empty)
 
     when(readService.getFrontPage).thenReturn(Success(frontPage))
     val request = quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")

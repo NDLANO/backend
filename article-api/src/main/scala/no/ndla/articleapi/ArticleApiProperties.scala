@@ -117,6 +117,12 @@ class ArticleApiProperties extends BaseProps {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
+  def ndlaFrontendUrl = Environment match {
+    case "local" => "http://localhost:30017"
+    case "prod"  => "https://ndla.no"
+    case _       => s"https://$Environment.ndla.no"
+  }
+
   def BrightcoveAccountId: String        = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   private def BrightcovePlayerId: String = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 

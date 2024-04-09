@@ -26,6 +26,7 @@ trait BaseProps {
   def MyNDLAApiHost: String       = propOrElse("MYNDLA_API_HOST", "myndla-api.ndla-local")
   def LearningpathApiHost: String = propOrElse("LEARNINGPATH_API_HOST", "learningpath-api.ndla-local")
   def SearchApiHost: String       = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
+  def FrontpageApiHost: String    = propOrElse("FRONTPAGE_API_HOST", "frontpage-api.ndla-local")
   def TaxonomyApiHost: String     = propOrElse("TAXONOMY_API_HOST", "taxonomy-api.ndla-local:5000")
 
   def ApiGatewayUrl: String      = s"http://$ApiGatewayHost"
@@ -37,6 +38,7 @@ trait BaseProps {
   def ImageApiUrl: String        = s"http://$ImageApiHost"
   def LearningpathApiUrl: String = s"http://$LearningpathApiHost"
   def SearchApiUrl: String       = s"http://$SearchApiHost"
+  def FrontpageApiUrl: String    = s"http://$FrontpageApiHost"
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
   def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
 
