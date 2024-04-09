@@ -249,7 +249,7 @@ export interface IStatus {
 
 export interface ISubjectAggregation {
   subjectId: string
-  totalArticleCount: number
+  publishedArticleCount: number
   oldArticleCount: number
   revisionCount: number
   flowCount: number

@@ -76,21 +76,33 @@ trait MultiDraftSearchService {
       val flowStatuses        = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
       def aggregateSubject(subjectId: String): Try[SubjectAggregation] = for {
         old <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(subjects = List(subjectId), publishedFilterTo = Some(fiveYearsAgo))
+          MultiDraftSearchSettings.default.copy(
+            subjects = List(subjectId),
+            publishedFilterTo = Some(fiveYearsAgo)
+          )
         )
         revisions <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(subjects = List(subjectId), revisionDateFilterTo = Some(inOneYear))
+          MultiDraftSearchSettings.default.copy(
+            subjects = List(subjectId),
+            revisionDateFilterTo = Some(inOneYear)
+          )
         )
-        allArticles <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(subjects = List(subjectId))
+        publishedArticles <- filteredCountSearch(
+          MultiDraftSearchSettings.default.copy(
+            subjects = List(subjectId),
+            statusFilter = List(DraftStatus.PUBLISHED)
+          )
         )
         inFlow <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(subjects = List(subjectId), statusFilter = flowStatuses)
+          MultiDraftSearchSettings.default.copy(
+            subjects = List(subjectId),
+            statusFilter = flowStatuses
+          )
         )
         favorited <- aggregateFavorites(subjectId)
       } yield SubjectAggregation(
         subjectId = subjectId,
-        totalArticleCount = allArticles,
+        publishedArticleCount = publishedArticles,
         oldArticleCount = old,
         revisionCount = revisions,
         flowCount = inFlow,
