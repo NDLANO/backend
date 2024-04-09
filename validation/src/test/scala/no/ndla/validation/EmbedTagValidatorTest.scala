@@ -286,6 +286,21 @@ class EmbedTagValidatorTest extends UnitSuite {
     res.size should be(0)
   }
 
+  test("validate should return no validation errors if comment embed-tag is used correctly with html") {
+    val tag = generateTagWithAttrsAndChildren(
+      Map(
+        TagAttribute.DataResource -> ResourceType.Comment.toString,
+        TagAttribute.DataText     -> "Min kommentar",
+        TagAttribute.DataType     -> "inline"
+      ),
+      """
+        |<p>her</p>
+        |""".stripMargin
+    )
+    val res = TagValidator.validate("content", tag)
+    res.size should be(0)
+  }
+
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=error"
   ) {

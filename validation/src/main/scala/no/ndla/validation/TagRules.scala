@@ -287,6 +287,7 @@ object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   case object DataSubjectId           extends TagAttribute("data-subject-id")
   case object DataSubtitle            extends TagAttribute("data-subtitle")
   case object DataTag                 extends TagAttribute("data-tag")
+  case object DataText                extends TagAttribute("data-text")
   case object DataTitle               extends TagAttribute("data-title")
   case object DataTitleLanguage       extends TagAttribute("data-title-language")
   case object DataType                extends TagAttribute("data-type")

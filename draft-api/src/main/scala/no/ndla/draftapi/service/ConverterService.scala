@@ -7,15 +7,15 @@
 
 package no.ndla.draftapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.api.{Delete, DraftCopyright, Missing, UpdateWith, draft}
-import no.ndla.common.model.domain.{Priority, Responsible}
+import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
-import no.ndla.common.model.{NDLADate, RelatedContentLink, api => commonApi, domain => common}
+import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -25,13 +25,14 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.validation._
+import no.ndla.validation.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import org.jsoup.nodes.Entities.EscapeMode
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -552,6 +553,24 @@ trait ConverterService {
     def getNextRevision(revisions: Seq[common.draft.RevisionMeta]): Option[common.draft.RevisionMeta] =
       revisions.filterNot(_.status == common.draft.RevisionStatus.Revised).sortBy(_.revisionDate).headOption
 
+    def filterComments(content: Seq[ArticleContent]): Seq[ArticleContent] = {
+      val contents = content.map(cont => {
+        val document = Jsoup.parseBodyFragment(cont.content)
+        document
+          .outputSettings()
+          .escapeMode(EscapeMode.xhtml)
+          .prettyPrint(false)
+          .indentAmount(0)
+
+        val commentEmbeds = document.select("[data-resource='comment']")
+        commentEmbeds.unwrap()
+
+        val newContentString = document.select("body").first().html()
+        cont.copy(content = newContentString)
+      })
+      contents
+    }
+
     def toArticleApiArticle(draft: Draft): Try[common.article.Article] = {
       draft.copyright match {
         case None => Failure(ValidationException("copyright", "Copyright must be present when publishing an article"))
@@ -561,7 +580,7 @@ trait ConverterService {
               id = draft.id,
               revision = draft.revision,
               title = draft.title,
-              content = draft.content,
+              content = filterComments(draft.content),
               copyright = toArticleApiCopyright(copyright),
               tags = draft.tags,
               requiredLibraries = draft.requiredLibraries,
