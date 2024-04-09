@@ -28,7 +28,7 @@ case class SubjectAggregation(
     @description("Id of the aggregated subject")
     subjectId: String,
     @description("Number of resources in subject")
-    totalArticleCount: Long,
+    publishedArticleCount: Long,
     @description("Number of resources in subject with published older than 5 years")
     oldArticleCount: Long,
     @description("Number of resources in subject with a revision date expiration in one year")
