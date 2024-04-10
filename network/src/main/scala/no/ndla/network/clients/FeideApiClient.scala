@@ -53,9 +53,9 @@ case class FeideExtendedUserInfo(
 
   private def isTeacherAffiliation: Boolean = {
     !this.eduPersonPrimaryAffiliation.contains("student") &&
-    this.eduPersonAffiliation.contains("staff") ||
-    this.eduPersonAffiliation.contains("faculty") ||
-    this.eduPersonAffiliation.contains("employee")
+    (this.eduPersonAffiliation.contains("staff") ||
+      this.eduPersonAffiliation.contains("faculty") ||
+      this.eduPersonAffiliation.contains("employee"))
   }
 
   def isTeacher: Boolean = {
