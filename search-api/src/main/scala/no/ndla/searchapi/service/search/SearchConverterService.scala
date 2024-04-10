@@ -16,12 +16,14 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
   ArticleType,
   Priority,
+  Tag,
   VisualElement,
   ResourceType as MyNDLAResourceType
 }
@@ -256,14 +258,7 @@ trait SearchConverterService {
           )
       }
 
-      val favorited = (indexingBundle.myndlaBundle match {
-        case Some(value) =>
-          Success(value.getFavorites(lp.id.get.toString, MyNDLAResourceType.Learningpath))
-        case None =>
-          myndlaapiClient
-            .getStatsFor(lp.id.get.toString, List(MyNDLAResourceType.Learningpath))
-            .map(_.map(_.favourites).sum)
-      }).?
+      val favorited = getFavoritedCountFor(indexingBundle, lp.id.get.toString, List(MyNDLAResourceType.Learningpath)).?
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
@@ -295,6 +290,60 @@ trait SearchConverterService {
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
+          favorited = favorited
+        )
+      )
+    }
+
+    private def getFavoritedCountFor(
+        indexingBundle: IndexingBundle,
+        id: String,
+        resourceTypes: List[MyNDLAResourceType]
+    ): Try[Long] = {
+      (indexingBundle.myndlaBundle match {
+        case Some(value) => Success(value.getFavorites(id, resourceTypes))
+        case None =>
+          myndlaapiClient
+            .getStatsFor(id, resourceTypes)
+            .map(_.map(_.favourites).sum)
+      })
+    }
+
+    def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = {
+      val title     = SearchableLanguageValues.fromFields(c.title)
+      val content   = SearchableLanguageValues.fromFieldsMap(c.content, toPlaintext)
+      val tags      = SearchableLanguageList.fromFields(c.tags)
+      val favorited = getFavoritedCountFor(indexingBundle, c.id.get.toString, List(MyNDLAResourceType.Concept)).?
+
+      val authors = (
+        c.copyright.map(_.creators).toList ++
+          c.copyright.map(_.processors).toList ++
+          c.copyright.map(_.rightsholders).toList
+      ).flatten.map(_.name)
+
+      val status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq)
+
+      Success(
+        SearchableConcept(
+          id = c.id.get,
+          conceptType = c.conceptType.toString,
+          title = title,
+          content = content,
+          defaultTitle = title.defaultValue,
+          metaImage = c.metaImage,
+          tags = tags,
+          subjectIds = c.subjectIds.toSeq,
+          lastUpdated = c.updated,
+          status = status,
+          updatedBy = c.updatedBy,
+          license = c.copyright.flatMap(_.license),
+          articleIds = c.articleIds,
+          created = c.created,
+          source = c.copyright.flatMap(_.origin),
+          responsible = c.responsible,
+          gloss = c.glossData.map(_.gloss),
+          domainObject = c,
+          authors = authors,
           favorited = favorited
         )
       )
@@ -576,7 +625,8 @@ trait SearchConverterService {
         parentTopicName = None,
         primaryRootName = None,
         published = None,
-        favorited = None
+        favorited = None,
+        resultType = SearchType.Articles
       )
     }
 
@@ -641,7 +691,8 @@ trait SearchConverterService {
         parentTopicName = parentTopicName,
         primaryRootName = primaryRootName,
         published = Some(searchableDraft.published),
-        favorited = Some(searchableDraft.favorited)
+        favorited = Some(searchableDraft.favorited),
+        resultType = SearchType.Drafts
       )
     }
 
@@ -697,7 +748,61 @@ trait SearchConverterService {
         parentTopicName = None,
         primaryRootName = None,
         published = None,
-        favorited = Some(searchableLearningPath.favorited)
+        favorited = Some(searchableLearningPath.favorited),
+        resultType = SearchType.LearningPaths
+      )
+    }
+
+    def conceptHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummary = {
+      val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hit.sourceAsString)
+
+      val titles = searchableConcept.title.languageValues.map(lv => api.Title(lv.value, lv.language))
+
+      val content = searchableConcept.content.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
+      val tags    = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
+
+      val supportedLanguages = getSupportedLanguages(titles, content, tags)
+
+      val title = findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", UnknownLanguage.toString))
+      val url   = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
+      val metaImages = searchableConcept.domainObject.metaImage.map(image => {
+        val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
+        api.MetaImage(metaImageUrl, image.altText, image.language)
+      })
+      val metaImage = findByLanguageOrBestEffort(metaImages, language)
+
+      val responsible = searchableConcept.responsible.map(r => api.DraftResponsible(r.responsibleId, r.lastUpdated))
+      val metaDescription = findByLanguageOrBestEffort(content, language).getOrElse(
+        api.MetaDescription("", UnknownLanguage.toString)
+      )
+
+      MultiSearchSummary(
+        id = searchableConcept.id,
+        title = title,
+        metaDescription = metaDescription,
+        metaImage = metaImage,
+        url = url,
+        contexts = List.empty,
+        supportedLanguages = supportedLanguages,
+        learningResourceType = LearningResourceType.Concept.toString,
+        status = Some(searchableConcept.status),
+        traits = List.empty,
+        score = hit.score,
+        highlights = getHighlights(hit.highlight),
+        paths = List.empty,
+        lastUpdated = searchableConcept.lastUpdated,
+        license = searchableConcept.license,
+        revisions = Seq.empty,
+        responsible = responsible,
+        comments = None,
+        prioritized = None,
+        priority = None,
+        resourceTypeName = None,
+        parentTopicName = None,
+        primaryRootName = None,
+        published = None,
+        favorited = Some(searchableConcept.favorited),
+        resultType = SearchType.Concepts
       )
     }
 

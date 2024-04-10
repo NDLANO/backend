@@ -13,6 +13,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
 import no.ndla.network.tapir.NonEmptyString
@@ -21,6 +22,7 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.ApiTaxonomyContext
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
+import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
@@ -55,15 +57,19 @@ class MultiDraftSearchServiceAtomicTest
   override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
+  override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+    override val indexShards = 1
+  }
   override val multiDraftSearchService = new MultiDraftSearchService
   override val converterService        = new ConverterService
   override val searchConverterService  = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
-      articleIndexService.createIndexAndAlias()
-      draftIndexService.createIndexAndAlias()
-      learningPathIndexService.createIndexAndAlias()
+      draftConceptIndexService.createIndexAndAlias().get
+      articleIndexService.createIndexAndAlias().get
+      draftIndexService.createIndexAndAlias().get
+      learningPathIndexService.createIndexAndAlias().get
     }
   }
 
@@ -72,6 +78,7 @@ class MultiDraftSearchServiceAtomicTest
       articleIndexService.deleteIndexAndAlias()
       draftIndexService.deleteIndexAndAlias()
       learningPathIndexService.deleteIndexAndAlias()
+      draftConceptIndexService.deleteIndexAndAlias()
     }
   }
 
@@ -1060,6 +1067,139 @@ class MultiDraftSearchServiceAtomicTest
       .get
       .results
       .map(_.id) should be(Seq(1, 3, 2, 4))
+  }
+
+  test("Test that concepts appear in the search, but not by default") {
+    val draft1 = TestData.draft1.copy(
+      id = Some(1)
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2)
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3)
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4)
+    )
+
+    val concept1 = TestData.sampleNbDomainConcept.copy(
+      id = Some(1)
+    )
+    val concept2 = TestData.sampleNbDomainConcept.copy(
+      id = Some(2)
+    )
+    val concept3 = TestData.sampleNbDomainConcept.copy(
+      id = Some(3)
+    )
+    val concept4 = TestData.sampleNbDomainConcept.copy(
+      id = Some(4)
+    )
+    draftIndexService.indexDocument(draft1, indexingBundle).get
+    draftIndexService.indexDocument(draft2, indexingBundle).get
+    draftIndexService.indexDocument(draft3, indexingBundle).get
+    draftIndexService.indexDocument(draft4, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept1, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept2, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept3, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept4, indexingBundle).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4 && draftConceptIndexService.countDocuments == 4)
+
+    multiDraftSearchService
+      .matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByIdAsc))
+      .get
+      .results
+      .map(r => r.id -> r.resultType) should be(
+      Seq(
+        1 -> SearchType.Drafts,
+        2 -> SearchType.Drafts,
+        3 -> SearchType.Drafts,
+        4 -> SearchType.Drafts
+      )
+    )
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          sort = Sort.ByIdAsc,
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts))
+        )
+      )
+      .get
+      .results
+      .map(r => r.id -> r.resultType) should be(
+      Seq(
+        1 -> SearchType.Concepts,
+        1 -> SearchType.Drafts,
+        2 -> SearchType.Concepts,
+        2 -> SearchType.Drafts,
+        3 -> SearchType.Concepts,
+        3 -> SearchType.Drafts,
+        4 -> SearchType.Concepts,
+        4 -> SearchType.Drafts
+      )
+    )
+  }
+  test("that concepts are indexed with content and are searchable") {
+    val draft1 = TestData.draft1.copy(
+      id = Some(1)
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2)
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3)
+    )
+
+    val concept1 = TestData.sampleNbDomainConcept.copy(
+      id = Some(1),
+      content = Seq(ConceptContent("Liten apekatt", "nb"))
+    )
+    val concept2 = TestData.sampleNbDomainConcept.copy(
+      id = Some(2),
+      content = Seq(ConceptContent("Stor giraff", "nb"))
+    )
+    val concept3 = TestData.sampleNbDomainConcept.copy(
+      id = Some(3),
+      content = Seq(ConceptContent("Medium kylling", "nb"))
+    )
+    draftIndexService.indexDocument(draft1, indexingBundle).get
+    draftIndexService.indexDocument(draft2, indexingBundle).get
+    draftIndexService.indexDocument(draft3, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept1, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept2, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept3, indexingBundle).get
+
+    blockUntil(() => draftIndexService.countDocuments == 3 && draftConceptIndexService.countDocuments == 3)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          sort = Sort.ByIdAsc,
+          query = NonEmptyString.fromString("giraff"),
+          resultTypes = Some(SearchType.values.toList)
+        )
+      )
+      .get
+      .results
+      .map(r => r.id -> r.resultType) should be(
+      Seq(2 -> SearchType.Concepts)
+    )
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          sort = Sort.ByIdAsc,
+          query = NonEmptyString.fromString("apekatt"),
+          resultTypes = Some(SearchType.values.toList)
+        )
+      )
+      .get
+      .results
+      .map(r => r.id -> r.resultType) should be(
+      Seq(1 -> SearchType.Concepts)
+    )
   }
 
 }

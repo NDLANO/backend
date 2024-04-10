@@ -40,14 +40,23 @@ trait MultiDraftSearchService {
     with DraftIndexService
     with LearningPathIndexService
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with DraftConceptIndexService =>
   val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
-    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
-    override val searchIndex: List[String] =
-      List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
-    override val indexServices: List[IndexService[_ <: Content]] = List(draftIndexService, learningPathIndexService)
+    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndex}
+    override val searchIndex: List[String] = List(
+      SearchType.Drafts,
+      SearchType.LearningPaths,
+      SearchType.Concepts
+    ).map(SearchIndex)
+
+    override val indexServices: List[IndexService[_ <: Content]] = List(
+      draftIndexService,
+      learningPathIndexService,
+      draftConceptIndexService
+    )
 
     case class SumAggResult(value: Long) extends AggResult
 
@@ -114,6 +123,17 @@ trait MultiDraftSearchService {
         .map(aggregations => SubjectAggregations(aggregations))
     }
 
+    private def getSearchIndexes(settings: MultiDraftSearchSettings): List[String] = {
+      settings.resultTypes match {
+        case Some(list) if list.nonEmpty =>
+          list.flatMap { searchType =>
+            val potentialIndex = SearchIndex(searchType)
+            Option.when(searchIndex.contains(potentialIndex))(potentialIndex)
+          }
+        case _ => List(SearchType.Drafts, SearchType.LearningPaths).map(SearchIndex)
+      }
+    }
+
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
 
       val contentSearch = settings.query.map(queryString => {
@@ -138,7 +158,8 @@ trait MultiDraftSearchService {
             langQueryFunc("embedAttributes", 1),
             simpleStringQuery(queryString.underlying).field("authors", 1),
             simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
-            nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", queryString.underlying))),
+            nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", queryString.underlying)))
+              .ignoreUnmapped(true),
             idsQuery(queryString.underlying),
             nestedQuery("revisionMeta", simpleStringQuery(queryString.underlying).field("revisionMeta.note"))
               .ignoreUnmapped(true)
@@ -195,7 +216,8 @@ trait MultiDraftSearchService {
 
         val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
 
-        val searchToExecute = search(searchIndex)
+        val index = getSearchIndexes(settings)
+        val searchToExecute = search(index)
           .query(filteredSearch)
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .trackTotalHits(true)
@@ -371,8 +393,8 @@ trait MultiDraftSearchService {
         learningPathIndexService.indexDocuments(shouldUsePublishedTax = true)
       }
 
-      handleScheduledIndexResults(SearchIndexes(SearchType.Drafts), draftFuture)
-      handleScheduledIndexResults(SearchIndexes(SearchType.LearningPaths), learningPathFuture)
+      handleScheduledIndexResults(SearchIndex(SearchType.Drafts), draftFuture)
+      handleScheduledIndexResults(SearchIndex(SearchType.LearningPaths), learningPathFuture)
     }
   }
 

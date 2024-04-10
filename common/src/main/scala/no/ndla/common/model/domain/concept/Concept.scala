@@ -32,7 +32,7 @@ case class Concept(
     responsible: Option[Responsible],
     conceptType: ConceptType.Value,
     glossData: Option[GlossData],
-    editorNotes: Seq[EditorNote]
+    editorNotes: Seq[ConceptEditorNote]
 ) extends Content {
   def supportedLanguages: Set[String] =
     getSupportedLanguages(title, content, tags, visualElement, metaImage).toSet

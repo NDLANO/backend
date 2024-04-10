@@ -13,7 +13,8 @@ import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.searchapi.model.search.SearchType
 
-import scala.util.Properties._
+import scala.util.Properties.*
+import scala.util.{Failure, Success, Try}
 
 trait Props extends HasBaseProps {
   val props: SearchApiProperties
@@ -30,17 +31,25 @@ class SearchApiProperties extends BaseProps with StrictLogging {
 
   def SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-search-api.ndla-local")
 
-  def SearchIndexes: Map[SearchType.Value, String] = Map(
-    SearchType.Articles      -> propOrElse("ARTICLE_SEARCH_INDEX_NAME", "articles"),
-    SearchType.Drafts        -> propOrElse("DRAFT_SEARCH_INDEX_NAME", "drafts"),
-    SearchType.LearningPaths -> propOrElse("LEARNINGPATH_SEARCH_INDEX_NAME", "learningpaths")
-  )
+  val articleIndexName      = propOrElse("ARTICLE_SEARCH_INDEX_NAME", "articles")
+  val draftIndexName        = propOrElse("DRAFT_SEARCH_INDEX_NAME", "drafts")
+  val learningpathIndexName = propOrElse("LEARNINGPATH_SEARCH_INDEX_NAME", "learningpaths")
+  val conceptIndexName      = propOrElse("DRAFT_CONCEPT_SEARCH_INDEX_NAME", "draftconcepts")
 
-  def SearchDocuments: Map[SearchType.Value, String] = Map(
-    SearchType.Articles      -> "article",
-    SearchType.Drafts        -> "draft",
-    SearchType.LearningPaths -> "learningpath"
-  )
+  def SearchIndex(searchType: SearchType) = searchType match {
+    case SearchType.Articles      => articleIndexName
+    case SearchType.Drafts        => draftIndexName
+    case SearchType.LearningPaths => learningpathIndexName
+    case SearchType.Concepts      => conceptIndexName
+  }
+
+  def indexToSearchType(indexName: String): Try[SearchType] = indexName match {
+    case `articleIndexName`      => Success(SearchType.Articles)
+    case `draftIndexName`        => Success(SearchType.Drafts)
+    case `learningpathIndexName` => Success(SearchType.LearningPaths)
+    case `conceptIndexName`      => Success(SearchType.Concepts)
+    case _                       => Failure(new IllegalArgumentException(s"Unknown index name: $indexName"))
+  }
 
   def DefaultPageSize                            = 10
   def MaxPageSize                                = 10000
@@ -54,6 +63,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
 
   def ExternalApiUrls: Map[String, String] = Map(
     "article-api"      -> s"$Domain/article-api/v2/articles",
+    "concept-api"      -> s"$Domain/concept-api/v1/drafts",
     "draft-api"        -> s"$Domain/draft-api/v1/drafts",
     "learningpath-api" -> s"$Domain/learningpath-api/v2/learningpaths",
     "raw-image"        -> s"$Domain/image-api/raw/id"

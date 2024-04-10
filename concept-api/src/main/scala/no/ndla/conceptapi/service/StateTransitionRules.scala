@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service
 
-import no.ndla.common.model.domain.concept.Concept as DomainConcept
+import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Status, Concept as DomainConcept}
 import no.ndla.common.model.domain.{Responsible, concept}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.common.model.domain.concept.ConceptStatus.*
@@ -17,7 +17,6 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.common.Clock
-import no.ndla.common.model.domain.concept.{ConceptStatus, EditorNote, Status}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 
@@ -140,7 +139,7 @@ trait StateTransitionRules {
         user: TokenUser
     ) = {
       if (current.status.current != to)
-        current.editorNotes :+ EditorNote(
+        current.editorNotes :+ ConceptEditorNote(
           "Status changed",
           user.id,
           newStatus,

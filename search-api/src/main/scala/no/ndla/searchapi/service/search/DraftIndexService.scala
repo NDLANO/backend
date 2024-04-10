@@ -23,11 +23,12 @@ import scala.util.Try
 
 trait DraftIndexService {
   this: SearchConverterService with IndexService with DraftApiClient with Props =>
+  import props.SearchIndex
   val draftIndexService: DraftIndexService
 
   class DraftIndexService extends StrictLogging with IndexService[Draft] {
-    override val documentType: String      = props.SearchDocuments(SearchType.Drafts)
-    override val searchIndex: String       = props.SearchIndexes(SearchType.Drafts)
+    override val documentType: String      = "draft"
+    override val searchIndex: String       = SearchIndex(SearchType.Drafts)
     override val apiClient: DraftApiClient = draftApiClient
 
     override def createIndexRequest(

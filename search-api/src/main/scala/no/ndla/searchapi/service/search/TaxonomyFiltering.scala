@@ -76,11 +76,11 @@ trait TaxonomyFiltering {
     }
   }
 
-  protected def contextTypeFilter(contextTypes: List[LearningResourceType.Value]): Option[BoolQuery] =
+  protected def contextTypeFilter(contextTypes: List[LearningResourceType]): Option[BoolQuery] =
     if (contextTypes.isEmpty) None
     else {
       val taxonomyContextQuery =
-        contextTypes.map(ct => nestedQuery("contexts", termQuery("contexts.contextType", ct.toString)))
+        contextTypes.map(ct => nestedQuery("contexts", termQuery("contexts.contextType", ct.entryName)))
 
       Some(boolQuery().should(taxonomyContextQuery))
     }

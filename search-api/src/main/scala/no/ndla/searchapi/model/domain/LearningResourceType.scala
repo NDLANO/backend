@@ -8,12 +8,19 @@
 
 package no.ndla.searchapi.model.domain
 
-object LearningResourceType extends Enumeration {
-  val Article: LearningResourceType.Value      = Value("standard")
-  val TopicArticle: LearningResourceType.Value = Value("topic-article")
-  val LearningPath: LearningResourceType.Value = Value("learningpath")
+import enumeratum.*
 
-  def all: List[String] = LearningResourceType.values.map(_.toString).toList
+sealed abstract class LearningResourceType(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
 
-  def valueOf(s: String): Option[LearningResourceType.Value] = LearningResourceType.values.find(_.toString == s)
+object LearningResourceType extends Enum[LearningResourceType] with CirceEnum[LearningResourceType] {
+  case object Article      extends LearningResourceType("standard")
+  case object TopicArticle extends LearningResourceType("topic-article")
+  case object LearningPath extends LearningResourceType("learningpath")
+  case object Concept      extends LearningResourceType("concept")
+
+  def all: List[String]                                 = LearningResourceType.values.map(_.entryName).toList
+  def valueOf(s: String): Option[LearningResourceType]  = LearningResourceType.values.find(_.entryName == s)
+  override def values: IndexedSeq[LearningResourceType] = findValues
 }

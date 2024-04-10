@@ -11,6 +11,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.Comment
+import no.ndla.searchapi.model.search.SearchType
 import sttp.tapir.Schema.annotations.description
 
 @description("Object describing matched field with matching words emphasized")
@@ -51,7 +52,8 @@ case class MultiSearchSummary(
     @description("Name of the parent topic if exists") parentTopicName: Option[String],
     @description("Name of the primary context root if exists") primaryRootName: Option[String],
     @description("When the article was last published") published: Option[NDLADate],
-    @description("Number of times favorited in MyNDLA") favorited: Option[Long]
+    @description("Number of times favorited in MyNDLA") favorited: Option[Long],
+    @description("Type of the resource") resultType: SearchType
 )
 // format: on
 

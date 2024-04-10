@@ -12,6 +12,7 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
+import no.ndla.searchapi.model.search.SearchType
 
 case class MultiDraftSearchSettings(
     query: Option[NonEmptyString],
@@ -26,7 +27,7 @@ case class MultiDraftSearchSettings(
     subjects: List[String],
     topics: List[String],
     resourceTypes: List[String],
-    learningResourceTypes: List[LearningResourceType.Value],
+    learningResourceTypes: List[LearningResourceType],
     supportedLanguages: List[String],
     relevanceIds: List[String],
     statusFilter: List[DraftStatus],
@@ -47,7 +48,8 @@ case class MultiDraftSearchSettings(
     prioritized: Option[Boolean],
     priority: List[String],
     publishedFilterFrom: Option[NDLADate],
-    publishedFilterTo: Option[NDLADate]
+    publishedFilterTo: Option[NDLADate],
+    resultTypes: Option[List[SearchType]]
 )
 
 object MultiDraftSearchSettings {
@@ -85,6 +87,12 @@ object MultiDraftSearchSettings {
     prioritized = None,
     priority = List.empty,
     publishedFilterTo = None,
-    publishedFilterFrom = None
+    publishedFilterFrom = None,
+    resultTypes = Some(
+      List(
+        SearchType.Articles,
+        SearchType.LearningPaths
+      )
+    )
   )
 }

@@ -9,21 +9,19 @@ package no.ndla.conceptapi.service
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.model.domain.concept.{Concept as DomainConcept}
-import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
+import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.concept.ConceptStatus.*
+import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Concept as DomainConcept}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation.*
 import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.UpdateWith
-import no.ndla.common.model.domain.concept
-import no.ndla.common.model.domain.concept.{ConceptStatus, EditorNote}
 
 trait WriteService {
   this: DraftConceptRepository
@@ -155,7 +153,7 @@ trait WriteService {
       val allNewNotes = newEditorNote ++ changedResponsibleNote
 
       changed.copy(editorNotes =
-        changed.editorNotes ++ allNewNotes.map(EditorNote(_, user.id, changed.status, clock.now()))
+        changed.editorNotes ++ allNewNotes.map(ConceptEditorNote(_, user.id, changed.status, clock.now()))
       )
     }
 
@@ -223,7 +221,7 @@ trait WriteService {
                 withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
                 conceptWithUpdatedNotes = withStatus.copy(editorNotes =
                   withStatus.editorNotes ++ Seq(
-                    concept.EditorNote(
+                    ConceptEditorNote(
                       s"Deleted language '$language'.",
                       userInfo.id,
                       withStatus.status,

@@ -101,6 +101,7 @@ export interface IDraftSearchParams {
   topics?: string[]
   publishedDateFrom?: string
   publishedDateTo?: string
+  resultTypes?: SearchType[]
 }
 
 export interface IGroupSearchResult {
@@ -215,6 +216,7 @@ export interface IMultiSearchSummary {
   primaryRootName?: string
   published?: string
   favorited?: number
+  resultType: SearchType
 }
 
 export interface IMultiSearchTermsAggregation {
@@ -296,3 +298,5 @@ export interface IValidationMessage {
   field: string
   message: string
 }
+
+export type SearchType = ("article" | "draft" | "learningpath" | "concept")

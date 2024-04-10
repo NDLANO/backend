@@ -11,22 +11,22 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.model.domain.{Responsible, Tag, Title, concept}
-import no.ndla.common.model.domain.concept.Concept as DomainConcept
-import no.ndla.common.{Clock, model}
-import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.concept.{
   ConceptContent,
+  ConceptEditorNote,
   ConceptMetaImage,
   ConceptStatus,
   ConceptType,
-  EditorNote,
   GlossData,
   GlossExample,
   Status,
   VisualElement,
-  WordClass
+  WordClass,
+  Concept as DomainConcept
 }
+import no.ndla.common.{Clock, model}
+import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptTags, NotFoundException}
@@ -138,7 +138,7 @@ trait ConverterService {
         other = status.other.map(_.toString).toSeq
       )
     }
-    private def toApiEditorNote(editorNote: EditorNote) = {
+    private def toApiEditorNote(editorNote: ConceptEditorNote) = {
       api.EditorNote(
         note = editorNote.note,
         updatedBy = editorNote.user,
@@ -253,7 +253,7 @@ trait ConverterService {
         responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
         conceptType = conceptType,
         glossData = glossData,
-        editorNotes = Seq(model.domain.concept.EditorNote(s"Created $conceptType", userInfo.id, Status.default, now))
+        editorNotes = Seq(ConceptEditorNote(s"Created $conceptType", userInfo.id, Status.default, now))
       )
     }
 
@@ -394,8 +394,7 @@ trait ConverterService {
         responsible = responsible,
         conceptType = conceptType,
         glossData = glossData,
-        editorNotes =
-          Seq(model.domain.concept.EditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now()))
+        editorNotes = Seq(ConceptEditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now()))
       )
     }
 

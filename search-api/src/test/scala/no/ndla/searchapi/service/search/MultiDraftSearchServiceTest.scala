@@ -48,6 +48,9 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
   override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
+  override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+    override val indexShards = 1
+  }
   override val multiDraftSearchService = new MultiDraftSearchService
   override val converterService        = new ConverterService
   override val searchConverterService  = new SearchConverterService
@@ -60,6 +63,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     if (elasticSearchContainer.isSuccess) {
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
+      draftConceptIndexService.createIndexAndAlias()
 
       draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
 

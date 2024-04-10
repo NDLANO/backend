@@ -12,7 +12,6 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.search.api.MultiSearchTermsAggregation
 import sttp.tapir.Schema.annotations.description
 
-// format: off
 @description("Search result for group search")
 case class GroupSearchResult(
     @description("The total number of resources matching this query") totalCount: Long,
@@ -24,7 +23,6 @@ case class GroupSearchResult(
     @description("The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregation],
     @description("Type of resources in this object") resourceType: String
 )
-// format: on
 
 object GroupSearchResult {
   implicit val encoder: Encoder[GroupSearchResult] = deriveEncoder

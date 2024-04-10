@@ -264,7 +264,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
           Status(ConceptStatus.IN_PROGRESS, Set.empty),
@@ -287,7 +287,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        concept.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
           concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
@@ -364,7 +364,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        concept.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
           concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
@@ -390,7 +390,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        concept.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
           concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
@@ -449,7 +449,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        concept.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "test",
           concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
@@ -473,7 +473,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        concept.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "test",
           concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
