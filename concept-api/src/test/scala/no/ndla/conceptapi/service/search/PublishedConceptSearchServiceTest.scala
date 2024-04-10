@@ -21,6 +21,15 @@ import org.scalatest.Outcome
 import java.time.LocalDateTime
 import scala.util.Success
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.concept.{
+  Concept,
+  ConceptContent,
+  ConceptMetaImage,
+  ConceptType,
+  GlossData,
+  VisualElement,
+  WordClass
+}
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import org.mockito.Mockito.when

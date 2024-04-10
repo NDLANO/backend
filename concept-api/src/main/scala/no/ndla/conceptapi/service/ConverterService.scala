@@ -7,18 +7,30 @@
 
 package no.ndla.conceptapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.common.model.domain.{Responsible, Tag, Title}
-import no.ndla.common.Clock
+import no.ndla.common.model.domain.{Responsible, Tag, Title, concept}
+import no.ndla.common.model.domain.concept.Concept as DomainConcept
+import no.ndla.common.{Clock, model}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
-import no.ndla.common.model.{api => commonApi, domain => commonDomain}
+import no.ndla.common.model.domain.concept.{
+  ConceptContent,
+  ConceptMetaImage,
+  ConceptStatus,
+  ConceptType,
+  EditorNote,
+  GlossData,
+  GlossExample,
+  Status,
+  VisualElement,
+  WordClass
+}
+import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptTags, NotFoundException}
-import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordClass}
-import no.ndla.conceptapi.model.{api, domain}
+import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
@@ -29,7 +41,7 @@ import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribu
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -40,7 +52,7 @@ trait ConverterService {
     import props.externalApiUrls
 
     def toApiConcept(
-        concept: domain.Concept,
+        concept: DomainConcept,
         language: String,
         fallback: Boolean,
         user: Option[TokenUser]
@@ -100,7 +112,7 @@ trait ConverterService {
       }
     }
 
-    def toApiGlossData(domainGlossData: Option[domain.GlossData]): Option[api.GlossData] = {
+    def toApiGlossData(domainGlossData: Option[GlossData]): Option[api.GlossData] = {
       domainGlossData.map(glossData =>
         api.GlossData(
           gloss = glossData.gloss,
@@ -120,13 +132,13 @@ trait ConverterService {
       )
     }
 
-    def toApiStatus(status: domain.Status): api.Status = {
+    def toApiStatus(status: Status): api.Status = {
       api.Status(
         current = status.current.toString,
         other = status.other.map(_.toString).toSeq
       )
     }
-    private def toApiEditorNote(editorNote: domain.EditorNote) = {
+    private def toApiEditorNote(editorNote: EditorNote) = {
       api.EditorNote(
         note = editorNote.note,
         updatedBy = editorNote.user,
@@ -169,35 +181,35 @@ trait ConverterService {
     def toApiConceptTitle(title: Title): api.ConceptTitle =
       api.ConceptTitle(title.title, title.language)
 
-    def toApiConceptContent(content: domain.ConceptContent): api.ConceptContent =
+    def toApiConceptContent(content: ConceptContent): api.ConceptContent =
       api.ConceptContent(Jsoup.parseBodyFragment(content.content).body().text(), content.content, content.language)
 
-    def toApiMetaImage(metaImage: domain.ConceptMetaImage): api.ConceptMetaImage =
+    def toApiMetaImage(metaImage: ConceptMetaImage): api.ConceptMetaImage =
       api.ConceptMetaImage(
         s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
         metaImage.language
       )
 
-    def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
+    def toApiVisualElement(visualElement: VisualElement): api.VisualElement =
       api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
     private def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
       api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
-    def toDomainGlossData(apiGlossData: Option[api.GlossData]): Try[Option[domain.GlossData]] = {
+    def toDomainGlossData(apiGlossData: Option[api.GlossData]): Try[Option[GlossData]] = {
       apiGlossData
         .map(glossData =>
           WordClass.valueOfOrError(glossData.wordClass) match {
             case Failure(ex) => Failure(ex)
             case Success(wordClass) =>
               Success(
-                domain.GlossData(
+                concept.GlossData(
                   gloss = glossData.gloss,
                   wordClass = wordClass,
                   examples = glossData.examples.map(gl =>
                     gl.map(g =>
-                      domain.GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions)
+                      GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions)
                     )
                   ),
                   originalLanguage = glossData.originalLanguage,
@@ -209,10 +221,10 @@ trait ConverterService {
         .sequence
     }
 
-    def toDomainConcept(concept: api.NewConcept, userInfo: TokenUser): Try[domain.Concept] = {
+    def toDomainConcept(concept: api.NewConcept, userInfo: TokenUser): Try[DomainConcept] = {
       val conceptType = ConceptType.valueOfOrError(concept.conceptType).getOrElse(ConceptType.CONCEPT)
       val content = concept.content
-        .map(content => Seq(domain.ConceptContent(content, concept.language)))
+        .map(content => Seq(model.domain.concept.ConceptContent(content, concept.language)))
         .getOrElse(Seq.empty)
       val visualElement = concept.visualElement
         .filterNot(_.isEmpty)
@@ -222,7 +234,7 @@ trait ConverterService {
 
       for {
         glossData <- toDomainGlossData(concept.glossData)
-      } yield domain.Concept(
+      } yield DomainConcept(
         id = None,
         revision = None,
         title = Seq(Title(concept.title, concept.language)),
@@ -231,7 +243,8 @@ trait ConverterService {
         created = now,
         updated = now,
         updatedBy = Seq(userInfo.id),
-        metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
+        metaImage =
+          concept.metaImage.map(m => model.domain.concept.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleIds = concept.articleIds.getOrElse(Seq.empty),
@@ -240,7 +253,7 @@ trait ConverterService {
         responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
         conceptType = conceptType,
         glossData = glossData,
-        editorNotes = Seq(domain.EditorNote(s"Created $conceptType", userInfo.id, Status.default, now))
+        editorNotes = Seq(model.domain.concept.EditorNote(s"Created $conceptType", userInfo.id, Status.default, now))
       )
     }
 
@@ -259,8 +272,8 @@ trait ConverterService {
       HtmlTagRules.jsoupDocumentToString(document)
     }
 
-    private def toDomainVisualElement(visualElement: String, language: String): domain.VisualElement = {
-      domain.VisualElement(
+    private def toDomainVisualElement(visualElement: String, language: String): VisualElement = {
+      concept.VisualElement(
         visualElement = removeUnknownEmbedTagAttribute(visualElement),
         language = language
       )
@@ -270,15 +283,15 @@ trait ConverterService {
       if (tags.isEmpty) Seq.empty else Seq(Tag(tags, language))
 
     def toDomainConcept(
-        toMergeInto: domain.Concept,
+        toMergeInto: DomainConcept,
         updateConcept: api.UpdatedConcept,
         userInfo: TokenUser
-    ): Try[domain.Concept] = {
+    ): Try[DomainConcept] = {
       val domainTitle = updateConcept.title
         .map(t => Title(t, updateConcept.language))
         .toSeq
       val domainContent = updateConcept.content
-        .map(c => domain.ConceptContent(c, updateConcept.language))
+        .map(c => concept.ConceptContent(c, updateConcept.language))
         .toSeq
 
       val domainTags = updateConcept.tags.map(t => Tag(t, updateConcept.language)).toSeq
@@ -289,7 +302,7 @@ trait ConverterService {
       val updatedMetaImage = updateConcept.metaImage match {
         case Delete => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
         case UpdateWith(m) =>
-          val domainMetaImage = domain.ConceptMetaImage(m.id, m.alt, updateConcept.language)
+          val domainMetaImage = concept.ConceptMetaImage(m.id, m.alt, updateConcept.language)
           mergeLanguageFields(toMergeInto.metaImage, Seq(domainMetaImage))
         case Missing => toMergeInto.metaImage
       }
@@ -309,7 +322,7 @@ trait ConverterService {
       }
 
       toDomainGlossData(updateConcept.glossData).map(glossData =>
-        domain.Concept(
+        DomainConcept(
           id = toMergeInto.id,
           revision = toMergeInto.revision,
           title = mergeLanguageFields(toMergeInto.title, domainTitle),
@@ -332,14 +345,14 @@ trait ConverterService {
       )
     }
 
-    def updateStatus(status: ConceptStatus, concept: domain.Concept, user: TokenUser): Try[domain.Concept] =
+    def updateStatus(status: ConceptStatus, concept: DomainConcept, user: TokenUser): Try[DomainConcept] =
       StateTransitionRules.doTransition(concept, status, user)
 
-    def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: TokenUser): domain.Concept = {
+    def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: TokenUser): DomainConcept = {
       val lang = concept.language
 
       val newMetaImage = concept.metaImage match {
-        case UpdateWith(m) => Seq(domain.ConceptMetaImage(m.id, m.alt, lang))
+        case UpdateWith(m) => Seq(model.domain.concept.ConceptMetaImage(m.id, m.alt, lang))
         case _             => Seq.empty
       }
 
@@ -350,11 +363,11 @@ trait ConverterService {
 
       // format: off
       val glossData = concept.glossData.map(gloss =>
-        domain.GlossData(
+        model.domain.concept.GlossData(
           gloss = gloss.gloss,
           wordClass = WordClass.valueOf(gloss.wordClass).getOrElse(WordClass.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
           examples = gloss.examples.map(ge =>
-            ge.map(g => domain.GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions))),
+            ge.map(g => model.domain.concept.GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions))),
           originalLanguage = gloss.originalLanguage,
           transcriptions = gloss.transcriptions
         )
@@ -363,11 +376,11 @@ trait ConverterService {
 
       val conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT)
 
-      domain.Concept(
+      DomainConcept(
         id = Some(id),
         revision = None,
         title = concept.title.map(t => Title(t, lang)).toSeq,
-        content = concept.content.map(c => domain.ConceptContent(c, lang)).toSeq,
+        content = concept.content.map(c => model.domain.concept.ConceptContent(c, lang)).toSeq,
         copyright = concept.copyright.map(toDomainCopyright),
         created = clock.now(),
         updated = clock.now(),
@@ -381,7 +394,8 @@ trait ConverterService {
         responsible = responsible,
         conceptType = conceptType,
         glossData = glossData,
-        editorNotes = Seq(domain.EditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now()))
+        editorNotes =
+          Seq(model.domain.concept.EditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now()))
       )
     }
 
@@ -415,7 +429,7 @@ trait ConverterService {
           .toList
       }
 
-    def addUrlOnVisualElement(concept: Concept): Concept = {
+    def addUrlOnVisualElement(concept: DomainConcept): DomainConcept = {
       val visualElementWithUrls =
         concept.visualElement.map(visual => visual.copy(visualElement = addUrlOnElement(visual.visualElement)))
       concept.copy(visualElement = visualElementWithUrls)

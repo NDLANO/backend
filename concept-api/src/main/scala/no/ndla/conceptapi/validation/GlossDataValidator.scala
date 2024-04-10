@@ -8,8 +8,8 @@
 package no.ndla.conceptapi.validation
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.conceptapi.model.domain.ConceptType.{CONCEPT, GLOSS}
-import no.ndla.conceptapi.model.domain.{ConceptType, GlossData}
+import no.ndla.common.model.domain.concept.{ConceptType, GlossData}
+import no.ndla.common.model.domain.concept.ConceptType.{CONCEPT, GLOSS}
 
 object GlossDataValidator {
 

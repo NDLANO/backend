@@ -9,20 +9,21 @@ package no.ndla.conceptapi.service
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.common.model.domain.concept.{Concept as DomainConcept}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.ConceptStatus._
+import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
-import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
-import no.ndla.conceptapi.validation._
+import no.ndla.conceptapi.validation.*
 import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.UpdateWith
+import no.ndla.common.model.domain.concept
+import no.ndla.common.model.domain.concept.{ConceptStatus, EditorNote}
 
 trait WriteService {
   this: DraftConceptRepository
@@ -38,9 +39,9 @@ trait WriteService {
   class WriteService {
 
     def insertListingImportedConcepts(
-        conceptsWithListingId: Seq[(domain.Concept, Long)],
+        conceptsWithListingId: Seq[(DomainConcept, Long)],
         forceUpdate: Boolean
-    ): Seq[Try[domain.Concept]] = {
+    ): Seq[Try[DomainConcept]] = {
       conceptsWithListingId.map { case (concept, listingId) =>
         val existing = draftConceptRepository.withListingId(listingId).nonEmpty
         if (existing && !forceUpdate) {
@@ -56,7 +57,7 @@ trait WriteService {
       }
     }
 
-    def saveImportedConcepts(concepts: Seq[domain.Concept], forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
+    def saveImportedConcepts(concepts: Seq[DomainConcept], forceUpdate: Boolean): Seq[Try[DomainConcept]] = {
       concepts.map(concept => {
         concept.id match {
           case Some(id) if draftConceptRepository.exists(id) =>
@@ -87,10 +88,10 @@ trait WriteService {
       } yield apiC
     }
 
-    private def shouldUpdateStatus(existing: domain.Concept, changed: domain.Concept): Boolean = {
+    private def shouldUpdateStatus(existing: DomainConcept, changed: DomainConcept): Boolean = {
       // Function that sets values we don't want to include when comparing concepts to check if we should update status
       val withComparableValues =
-        (concept: domain.Concept) =>
+        (concept: DomainConcept) =>
           concept.copy(
             revision = None,
             created = NDLADate.fromUnixTime(0),
@@ -100,11 +101,11 @@ trait WriteService {
     }
 
     private def updateStatusIfNeeded(
-        existing: domain.Concept,
-        changed: domain.Concept,
+        existing: DomainConcept,
+        changed: DomainConcept,
         updateStatus: Option[String],
         user: TokenUser
-    ): Try[Concept] = {
+    ): Try[DomainConcept] = {
       if (!shouldUpdateStatus(existing, changed) && updateStatus.isEmpty) {
         Success(changed)
       } else {
@@ -116,10 +117,10 @@ trait WriteService {
       }
     }
 
-    private def shouldUpdateNotes(existing: domain.Concept, changed: domain.Concept): Boolean = {
+    private def shouldUpdateNotes(existing: DomainConcept, changed: DomainConcept): Boolean = {
       // Function that sets values we don't want to include when comparing concepts to check if we should update notes
       val withComparableValues =
-        (concept: domain.Concept) =>
+        (concept: DomainConcept) =>
           concept.copy(
             revision = None,
             created = NDLADate.fromUnixTime(0),
@@ -131,11 +132,11 @@ trait WriteService {
     }
 
     private def updateNotes(
-        old: domain.Concept,
+        old: DomainConcept,
         updated: api.UpdatedConcept,
-        changed: domain.Concept,
+        changed: DomainConcept,
         user: TokenUser
-    ): domain.Concept = {
+    ): DomainConcept = {
       val isNewLanguage =
         !old.supportedLanguages.contains(updated.language) && changed.supportedLanguages.contains(updated.language)
       val dataChanged = shouldUpdateNotes(old, changed);
@@ -154,11 +155,11 @@ trait WriteService {
       val allNewNotes = newEditorNote ++ changedResponsibleNote
 
       changed.copy(editorNotes =
-        changed.editorNotes ++ allNewNotes.map(domain.EditorNote(_, user.id, changed.status, clock.now()))
+        changed.editorNotes ++ allNewNotes.map(EditorNote(_, user.id, changed.status, clock.now()))
       )
     }
 
-    private def updateConcept(toUpdate: domain.Concept): Try[domain.Concept] = {
+    private def updateConcept(toUpdate: DomainConcept): Try[DomainConcept] = {
       for {
         _             <- contentValidator.validateConcept(toUpdate)
         domainConcept <- draftConceptRepository.update(toUpdate)
@@ -222,7 +223,7 @@ trait WriteService {
                 withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
                 conceptWithUpdatedNotes = withStatus.copy(editorNotes =
                   withStatus.editorNotes ++ Seq(
-                    domain.EditorNote(
+                    concept.EditorNote(
                       s"Deleted language '$language'.",
                       userInfo.id,
                       withStatus.status,
@@ -244,7 +245,7 @@ trait WriteService {
 
     }
 
-    def updateConceptStatus(status: domain.ConceptStatus, id: Long, user: TokenUser): Try[api.Concept] = {
+    def updateConceptStatus(status: ConceptStatus, id: Long, user: TokenUser): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case None => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
@@ -262,14 +263,14 @@ trait WriteService {
       }
     }
 
-    def publishConcept(concept: domain.Concept): Try[domain.Concept] = {
+    def publishConcept(concept: DomainConcept): Try[DomainConcept] = {
       for {
         inserted <- publishedConceptRepository.insertOrUpdate(concept)
         indexed  <- publishedConceptIndexService.indexDocument(inserted)
       } yield indexed
     }
 
-    def unpublishConcept(concept: domain.Concept): Try[domain.Concept] = {
+    def unpublishConcept(concept: DomainConcept): Try[DomainConcept] = {
       concept.id match {
         case Some(id) =>
           for {

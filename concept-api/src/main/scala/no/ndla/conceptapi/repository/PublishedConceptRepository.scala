@@ -10,9 +10,10 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, PublishedConcept}
+import no.ndla.conceptapi.model.domain.{DBConcept, PublishedConcept}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
@@ -95,7 +96,7 @@ trait PublishedConceptRepository {
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = PublishedConcept.syntax("co")
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
-        .map(Concept.fromResultSet(co))
+        .map(DBConcept.fromResultSet(co))
         .single()
     }
 
@@ -124,7 +125,7 @@ trait PublishedConceptRepository {
     )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
       val co = PublishedConcept.syntax("co")
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
-        .map(Concept.fromResultSet(co))
+        .map(DBConcept.fromResultSet(co))
         .list()
     }
 
@@ -138,7 +139,7 @@ trait PublishedConceptRepository {
            offset $offset
            limit $pageSize
       """
-        .map(Concept.fromResultSet(co))
+        .map(DBConcept.fromResultSet(co))
         .list()
     }
   }

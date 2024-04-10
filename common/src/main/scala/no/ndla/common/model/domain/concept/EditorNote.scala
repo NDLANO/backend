@@ -1,11 +1,11 @@
 /*
- * Part of NDLA concept-api
- * Copyright (C) 2023 NDLA
+ * Part of NDLA common
+ * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.conceptapi.model.domain
+package no.ndla.common.model.domain.concept
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}

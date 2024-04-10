@@ -10,8 +10,9 @@ package no.ndla.conceptapi.controller
 import cats.implicits._
 import no.ndla.common.implicits._
 import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.domain.concept.ConceptStatus
 import no.ndla.conceptapi.model.api._
-import no.ndla.conceptapi.model.domain.{ConceptStatus, Sort}
+import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}

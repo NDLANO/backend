@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.repository
 
-import no.ndla.conceptapi.model.domain.Concept
+import no.ndla.common.model.domain.concept.Concept
 import scalikejdbc.{AutoSession, DBSession}
 
 trait Repository[T <: Concept] {

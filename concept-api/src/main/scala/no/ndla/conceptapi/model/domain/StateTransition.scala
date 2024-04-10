@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.model.domain
 
+import no.ndla.common.model.domain.concept.ConceptStatus
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
 import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE

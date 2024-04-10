@@ -11,9 +11,9 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.domain
 import no.ndla.network.NdlaClient
 import io.lemonlabs.uri.typesafe.dsl.*
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.client3.quick.*
 
@@ -23,7 +23,7 @@ import scala.util.{Failure, Success, Try}
 
 case class ConceptDomainDumpResults(
     totalCount: Long,
-    results: List[domain.Concept]
+    results: List[Concept]
 )
 
 object ConceptDomainDumpResults {
@@ -39,7 +39,7 @@ trait ArticleApiClient {
     val baseUrl: String = s"http://${props.ArticleApiHost}/intern"
     val dumpDomainPath  = "dump/concepts"
 
-    def getChunks(user: TokenUser): Iterator[Try[Seq[domain.Concept]]] = {
+    def getChunks(user: TokenUser): Iterator[Try[Seq[Concept]]] = {
       getChunk(0, 0, user) match {
         case Success(initSearch) =>
           val dbCount  = initSearch.totalCount
@@ -47,7 +47,7 @@ trait ArticleApiClient {
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
           val pages    = Seq.range(1, numPages + 1)
 
-          val iterator: Iterator[Try[Seq[domain.Concept]]] = pages.iterator.map(p => {
+          val iterator: Iterator[Try[Seq[Concept]]] = pages.iterator.map(p => {
             getChunk(p, pageSize, user).map(_.results)
           })
 

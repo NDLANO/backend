@@ -16,11 +16,12 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ElasticIndexingException}
-import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
+import no.ndla.conceptapi.model.domain.ReindexResult
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}

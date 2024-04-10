@@ -8,6 +8,7 @@ object AccessDeniedException {
   def forbidden: AccessDeniedException =
     AccessDeniedException("User is missing required permission(s) to perform this operation")
 }
-case class NotFoundException(message: String) extends RuntimeException(message)
-case class RollbackException(ex: Throwable)   extends RuntimeException
-case class FileTooBigException()              extends RuntimeException
+case class NotFoundException(message: String)      extends RuntimeException(message)
+case class RollbackException(ex: Throwable)        extends RuntimeException
+case class FileTooBigException()                   extends RuntimeException
+case class InvalidStatusException(message: String) extends RuntimeException(message)

@@ -7,8 +7,8 @@
 
 package no.ndla.conceptapi.validation
 
+import no.ndla.common.model.domain.concept.{ConceptType, GlossData, GlossExample, WordClass}
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
-import no.ndla.conceptapi.model.domain.{ConceptType, GlossExample, GlossData, WordClass}
 
 class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
   test("that GlossDataValidator fails if ConceptType is concept and glossData is defined") {

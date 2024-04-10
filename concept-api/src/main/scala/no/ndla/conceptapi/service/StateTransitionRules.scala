@@ -7,16 +7,17 @@
 
 package no.ndla.conceptapi.service
 
-import no.ndla.common.model.domain.Responsible
+import no.ndla.common.model.domain.concept.Concept as DomainConcept
+import no.ndla.common.model.domain.{Responsible, concept}
 import no.ndla.conceptapi.model.api.ErrorHelpers
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.ConceptStatus._
+import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
-import no.ndla.conceptapi.model.domain.{ConceptStatus, StateTransition}
+import no.ndla.conceptapi.model.domain.StateTransition
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.common.Clock
+import no.ndla.common.model.domain.concept.{ConceptStatus, EditorNote, Status}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 
@@ -38,14 +39,14 @@ trait StateTransitionRules {
   object StateTransitionRules {
 
     private[service] val unpublishConcept: SideEffect =
-      (concept: domain.Concept, _: TokenUser) => writeService.unpublishConcept(concept)
+      (concept: DomainConcept, _: TokenUser) => writeService.unpublishConcept(concept)
 
     private[service] val publishConcept: SideEffect =
-      (concept: domain.Concept, _: TokenUser) => writeService.publishConcept(concept)
+      (concept: DomainConcept, _: TokenUser) => writeService.publishConcept(concept)
 
-    private val resetResponsible: SideEffect = (concept: domain.Concept, _: TokenUser) =>
+    private val resetResponsible: SideEffect = (concept: DomainConcept, _: TokenUser) =>
       Success(concept.copy(responsible = None))
-    private val addResponsible: SideEffect = (concept: domain.Concept, user: TokenUser) => {
+    private val addResponsible: SideEffect = (concept: DomainConcept, user: TokenUser) => {
       val responsible = concept.responsible.getOrElse(Responsible(user.id, clock.now()))
       Success(concept.copy(responsible = Some(responsible)))
     }
@@ -110,7 +111,7 @@ trait StateTransitionRules {
         .find(transition => transition.from == from && transition.to == to)
         .filter(t => user.hasPermissions(t.requiredPermissions))
 
-    private def validateTransition(current: domain.Concept, transition: StateTransition): Try[Unit] = {
+    private def validateTransition(current: DomainConcept, transition: StateTransition): Try[Unit] = {
       val statusRequiresResponsible = ConceptStatus.thatRequiresResponsible.contains(transition.to)
       val statusFromPublishedToInProgress =
         current.status.current == PUBLISHED && transition.to == IN_PROGRESS
@@ -133,13 +134,13 @@ trait StateTransitionRules {
       Success(())
     }
     private def newEditorNotesForTransition(
-        current: domain.Concept,
+        current: DomainConcept,
         to: ConceptStatus,
-        newStatus: domain.Status,
+        newStatus: Status,
         user: TokenUser
     ) = {
       if (current.status.current != to)
-        current.editorNotes :+ domain.EditorNote(
+        current.editorNotes :+ EditorNote(
           "Status changed",
           user.id,
           newStatus,
@@ -148,10 +149,10 @@ trait StateTransitionRules {
       else current.editorNotes
     }
     private[service] def doTransitionWithoutSideEffect(
-        current: domain.Concept,
+        current: DomainConcept,
         to: ConceptStatus,
         user: TokenUser
-    ): (Try[domain.Concept], Seq[SideEffect]) = {
+    ): (Try[DomainConcept], Seq[SideEffect]) = {
       getTransition(current.status.current, to, user) match {
         case Some(t) =>
           validateTransition(current, t) match {
@@ -161,7 +162,7 @@ trait StateTransitionRules {
                 if (t.addCurrentStateToOthersOnTransition) Set(current.status.current)
                 else Set.empty
               val other            = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
-              val newStatus        = domain.Status(to, other)
+              val newStatus        = concept.Status(to, other)
               val newEditorNotes   = newEditorNotesForTransition(current, to, newStatus, user)
               val convertedArticle = current.copy(status = newStatus, editorNotes = newEditorNotes)
               (Success(convertedArticle), t.sideEffects)
@@ -175,10 +176,10 @@ trait StateTransitionRules {
     }
 
     def doTransition(
-        current: domain.Concept,
+        current: DomainConcept,
         to: ConceptStatus,
         user: TokenUser
-    ): Try[domain.Concept] = {
+    ): Try[DomainConcept] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user)
       convertedArticle.flatMap(conceptBeforeSideEffect => {
         sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {

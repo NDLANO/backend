@@ -78,4 +78,3 @@ case class ConceptExistsAlreadyException(message: String) extends RuntimeExcepti
 case class ImportException(message: String)               extends RuntimeException(message)
 case class ElasticIndexingException(message: String)      extends RuntimeException(message)
 case class OperationNotAllowedException(message: String)  extends RuntimeException(message)
-case class InvalidStatusException(message: String)        extends RuntimeException(message)

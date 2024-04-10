@@ -8,13 +8,21 @@
 package no.ndla.conceptapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.{domain => common}
-import no.ndla.conceptapi.model.{api, domain}
-import no.ndla.conceptapi.model.domain.{ConceptContent, Status}
+import no.ndla.common.model.domain as common
+import no.ndla.conceptapi.model.api
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.Missing
+import no.ndla.common.model.domain.concept
+import no.ndla.common.model.domain.concept.{
+  Concept,
+  ConceptContent,
+  ConceptMetaImage,
+  ConceptType,
+  Status,
+  VisualElement
+}
 
 object TestData {
 
@@ -69,28 +77,28 @@ object TestData {
     editorNotes = Some(Seq.empty)
   )
 
-  val sampleNbDomainConcept: domain.Concept = domain.Concept(
+  val sampleNbDomainConcept: Concept = Concept(
     id = Some(1),
     revision = Some(1),
     title = Seq(common.Title("Tittel", "nb")),
-    content = Seq(domain.ConceptContent("Innhold", "nb")),
+    content = Seq(ConceptContent("Innhold", "nb")),
     copyright = None,
     created = yesterday,
     updated = today,
     updatedBy = Seq.empty,
-    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
+    metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
+    visualElement = Seq(VisualElement(visualElementString, "nb")),
     responsible = None,
-    conceptType = domain.ConceptType.CONCEPT,
+    conceptType = ConceptType.CONCEPT,
     glossData = None,
     editorNotes = Seq.empty
   )
 
-  val sampleConcept: domain.Concept = domain.Concept(
+  val sampleConcept: Concept = Concept(
     id = Some(1),
     revision = Some(1),
     title = Seq(common.Title("Tittel for begrep", "nb")),
@@ -101,40 +109,40 @@ object TestData {
     created = NDLADate.now().minusDays(4),
     updated = NDLADate.now().minusDays(2),
     updatedBy = Seq.empty,
-    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
+    metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("liten", "fisk"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement("VisualElement for begrep", "nb")),
+    visualElement = Seq(concept.VisualElement("VisualElement for begrep", "nb")),
     responsible = None,
-    conceptType = domain.ConceptType.CONCEPT,
+    conceptType = concept.ConceptType.CONCEPT,
     glossData = None,
     editorNotes = Seq.empty
   )
 
-  val domainConcept: domain.Concept = domain.Concept(
+  val domainConcept: Concept = Concept(
     id = Some(1),
     revision = Some(1),
     title = Seq(common.Title("Tittel", "nb"), common.Title("Tittelur", "nn")),
-    content = Seq(domain.ConceptContent("Innhold", "nb"), domain.ConceptContent("Innhald", "nn")),
+    content = Seq(concept.ConceptContent("Innhold", "nb"), concept.ConceptContent("Innhald", "nn")),
     copyright = None,
     created = yesterday,
     updated = today,
     updatedBy = Seq(""),
-    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
+    metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb"), common.Tag(Seq("liten", "fisk"), "nn")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
+    visualElement = Seq(concept.VisualElement(visualElementString, "nb")),
     responsible = None,
-    conceptType = domain.ConceptType.CONCEPT,
+    conceptType = concept.ConceptType.CONCEPT,
     glossData = None,
     editorNotes = Seq.empty
   )
 
-  val domainConcept_toDomainUpdateWithId: domain.Concept = domain.Concept(
+  val domainConcept_toDomainUpdateWithId: Concept = Concept(
     id = None,
     revision = None,
     title = Seq.empty,
@@ -150,7 +158,7 @@ object TestData {
     status = Status.default,
     visualElement = Seq.empty,
     responsible = None,
-    conceptType = domain.ConceptType.CONCEPT,
+    conceptType = concept.ConceptType.CONCEPT,
     glossData = None,
     editorNotes = Seq.empty
   )

@@ -10,8 +10,7 @@ package no.ndla.conceptapi.service
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.model.api as commonApi
 import no.ndla.conceptapi.model.api.ConceptResponsible
-import no.ndla.conceptapi.model.domain.*
-import no.ndla.conceptapi.model.{api, domain}
+import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.invocation.InvocationOnMock
@@ -21,6 +20,14 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{Missing, UpdateWith}
+import no.ndla.common.model.domain.concept.{
+  Concept,
+  ConceptContent,
+  ConceptMetaImage,
+  ConceptStatus,
+  Status,
+  VisualElement
+}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -42,12 +49,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       responsible = Some(ConceptResponsible("hei", TestData.today))
     )
 
-  val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(
+  val domainConcept: Concept = TestData.sampleNbDomainConcept.copy(
     id = Some(conceptId),
     responsible = Some(Responsible("hei", TestData.today))
   )
 
-  def mockWithConcept(concept: domain.Concept): OngoingStubbing[NDLADate] = {
+  def mockWithConcept(concept: Concept): OngoingStubbing[NDLADate] = {
     when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
     when(draftConceptRepository.update(any[Concept])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))

@@ -8,8 +8,8 @@
 package no.ndla.conceptapi.service.search
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
 
 trait DraftConceptIndexService {
