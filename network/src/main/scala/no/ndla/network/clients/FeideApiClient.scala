@@ -46,14 +46,16 @@ object FeideOpenIdUserInfo {
 case class FeideExtendedUserInfo(
     displayName: String,
     eduPersonAffiliation: Seq[String],
+    eduPersonPrimaryAffiliation: Option[String],
     eduPersonPrincipalName: String,
     mail: Seq[String]
 ) {
 
   private def isTeacherAffiliation: Boolean = {
-    this.eduPersonAffiliation.contains("staff") ||
-    this.eduPersonAffiliation.contains("faculty") ||
-    this.eduPersonAffiliation.contains("employee")
+    !this.eduPersonPrimaryAffiliation.contains("student") &&
+    (this.eduPersonAffiliation.contains("staff") ||
+      this.eduPersonAffiliation.contains("faculty") ||
+      this.eduPersonAffiliation.contains("employee"))
   }
 
   def isTeacher: Boolean = {

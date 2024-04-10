@@ -70,7 +70,9 @@ class CloneFolderTest
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any))
-        .thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"), "email@ndla.no", Seq("email@ndla.no"))))
+        .thenReturn(
+          Success(FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Seq("email@ndla.no")))
+        )
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
     }

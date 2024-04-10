@@ -247,6 +247,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val teacheruser = FeideExtendedUserInfo(
       displayName = "Johnny Bravo",
       eduPersonAffiliation = Seq("employee", "staff"),
+      eduPersonPrimaryAffiliation = None,
       eduPersonPrincipalName = "example@email.com",
       mail = Seq("example@email.com")
     )
