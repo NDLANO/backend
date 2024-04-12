@@ -9,6 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.api.SingleResourceStats
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.api.Stats
 import no.ndla.myndlaapi.service.FolderReadService
@@ -17,8 +18,8 @@ import no.ndla.network.tapir.{Service, TapirErrorHelpers}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.model.CommaSeparated
 
 trait StatsController {
@@ -39,7 +40,11 @@ trait StatsController {
         }
       }
     private val pathResourceType =
-      path[CommaSeparated[String]]("resourceType").description("The type of the resource to look up")
+      path[CommaSeparated[String]]("resourceType")
+        .description(
+          s"The type of the resource to look up. Comma separated list to support ${ResourceType.Multidisciplinary}. Possible values ${ResourceType.values
+              .mkString(", ")}"
+        )
     private val pathResourceIds =
       path[CommaSeparated[String]]("resourceIds").description("IDs of the resources to look up")
 
