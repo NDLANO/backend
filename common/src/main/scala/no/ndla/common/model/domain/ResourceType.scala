@@ -11,7 +11,9 @@ import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 
-sealed abstract class ResourceType(override val entryName: String) extends EnumEntry {}
+sealed abstract class ResourceType(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
 
 object ResourceType extends Enum[ResourceType] with CirceEnum[ResourceType] {
   override val values: IndexedSeq[ResourceType] = findValues
