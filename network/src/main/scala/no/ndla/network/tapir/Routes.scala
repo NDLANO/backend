@@ -8,11 +8,12 @@
 package no.ndla.network.tapir
 
 import com.sun.net.httpserver.HttpServer
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
+import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.network.model.RequestInfo
-import no.ndla.network.tapir.NoNullJsonPrinter._
+import no.ndla.network.tapir.NoNullJsonPrinter.*
 import org.log4s.{Logger, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
@@ -24,6 +25,8 @@ import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandl
 import sttp.tapir.server.interceptor.reject.{RejectContext, RejectHandler}
 import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
 import sttp.tapir.server.jdkhttp.{Id, JdkHttpServer, JdkHttpServerOptions}
+import sttp.tapir.server.metrics.MetricLabels
+import sttp.tapir.server.metrics.prometheus.PrometheusMetrics
 import sttp.tapir.server.model.ValuedEndpointOutput
 import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 
@@ -135,6 +138,12 @@ trait Routes[F[_]] {
     }
 
     def startJdkServerAsync(name: String, port: Int)(warmupFunc: => Unit): HttpServer = {
+      val registry = new PrometheusRegistry()
+      val prometheusMetrics = PrometheusMetrics.default[Id](
+        namespace = "tapir",
+        registry = registry,
+        labels = MetricLabels.Default
+      )
       // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
       val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
 
@@ -144,6 +153,7 @@ trait Routes[F[_]] {
         .exceptionHandler(NdlaExceptionHandler[Id]())
         .decodeFailureHandler(decodeFailureHandler[Id])
         .serverLog(None)
+        .metricsInterceptor(prometheusMetrics.metricsInterceptor())
         .prependInterceptor(RequestInterceptor.transformServerRequest[Id](JDKMiddleware.before))
         .prependInterceptor(RequestInterceptor.transformResultEffect(new JDKMiddleware.after))
         .options
@@ -154,6 +164,7 @@ trait Routes[F[_]] {
         .options(options)
         .executor(executor)
         .addEndpoints(endpoints)
+        .addEndpoint(prometheusMetrics.metricsEndpoint)
         .port(port)
         .start()
 

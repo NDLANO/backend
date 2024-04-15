@@ -93,12 +93,13 @@ object Dependencies {
     )
 
     lazy val tapir: Seq[ModuleID] = Seq(
-      "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"     % TapirV,
-      "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle" % TapirV,
-      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"        % TapirV,
-      "com.softwaremill.sttp.tapir"   %% "tapir-jdkhttp-server"    % TapirV,
-      "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"      % ApiSpecV,
-      "com.softwaremill.sttp.tapir"   %% "tapir-testing"           % TapirV % "test"
+      "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"      % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle"  % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"         % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-jdkhttp-server"     % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-prometheus-metrics" % TapirV,
+      "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"       % ApiSpecV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-testing"            % TapirV % "test"
     ).map {
       // NOTE: tapir-jdkhttp-server includes some logback provider for slf4j
       //       this conflicts with the existing provider, so lets exclude it.
