@@ -271,6 +271,8 @@ trait SearchService {
         case ByPrioritizedDesc            => sortField("prioritized", Desc)
         case ByPublishedAsc               => sortField("published", Asc)
         case ByPublishedDesc              => sortField("published", Desc)
+        case ByFavoritedAsc               => sortField("favorited", Asc)
+        case ByFavoritedDesc              => sortField("favorited", Desc)
       }
     }
 
