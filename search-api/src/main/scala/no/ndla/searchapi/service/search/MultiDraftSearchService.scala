@@ -393,8 +393,14 @@ trait MultiDraftSearchService {
         learningPathIndexService.indexDocuments(shouldUsePublishedTax = true)
       }
 
+      val conceptFuture = Future {
+        requestInfo.setThreadContextRequestInfo()
+        draftConceptIndexService.indexDocuments(shouldUsePublishedTax = true)
+      }
+
       handleScheduledIndexResults(SearchIndex(SearchType.Drafts), draftFuture)
       handleScheduledIndexResults(SearchIndex(SearchType.LearningPaths), learningPathFuture)
+      handleScheduledIndexResults(SearchIndex(SearchType.Concepts), conceptFuture)
     }
   }
 
