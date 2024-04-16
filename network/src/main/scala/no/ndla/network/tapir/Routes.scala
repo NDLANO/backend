@@ -88,7 +88,12 @@ trait Routes[F[_]] {
     }
 
     object JDKMiddleware {
-      private def shouldLogRequest(req: ServerRequest): Boolean = s"/${req.uri.path.mkString("/")}" != "/health"
+      private def shouldLogRequest(req: ServerRequest): Boolean = {
+        if (req.uri.path.size != 1) return true
+        if (req.uri.path.head == "metrics") return false
+        if (req.uri.path.head == "health") return false
+        true
+      }
 
       val beforeTime = new AttributeKey[Long]("beforeTime")
       def before(req: ServerRequest): ServerRequest = {
