@@ -48,7 +48,7 @@ case class FeideExtendedUserInfo(
     eduPersonAffiliation: Seq[String],
     eduPersonPrimaryAffiliation: Option[String],
     eduPersonPrincipalName: String,
-    mail: Seq[String]
+    mail: Option[Seq[String]]
 ) {
 
   private def isTeacherAffiliation: Boolean = {
@@ -74,7 +74,7 @@ case class FeideExtendedUserInfo(
     }
   }
 
-  def email: String    = this.mail.headOption.getOrElse(this.eduPersonPrincipalName)
+  def email: String    = this.mail.getOrElse(Seq(this.eduPersonPrincipalName)).head
   def username: String = this.eduPersonPrincipalName
 }
 
