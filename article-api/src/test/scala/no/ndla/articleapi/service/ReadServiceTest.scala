@@ -202,7 +202,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article1    = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
     val article2    = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
-    val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), None, "", Seq.empty)
+    val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), None, "", None)
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(any))
@@ -229,7 +229,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article1    = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
     val article2    = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
-    val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"), None, "", Seq.empty)
+    val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"), None, "", None)
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(any))

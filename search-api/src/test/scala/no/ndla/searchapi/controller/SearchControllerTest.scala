@@ -249,7 +249,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
       eduPersonAffiliation = Seq("employee", "staff"),
       eduPersonPrimaryAffiliation = None,
       eduPersonPrincipalName = "example@email.com",
-      mail = Seq("example@email.com")
+      mail = Some(Seq("example@email.com"))
     )
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacheruser))

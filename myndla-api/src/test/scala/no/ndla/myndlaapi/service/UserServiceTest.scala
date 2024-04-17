@@ -202,7 +202,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       eduPersonAffiliation = Seq("student"),
       None,
       eduPersonPrincipalName = "example@email.com",
-      mail = Seq("example@email.com")
+      mail = Some(Seq("example@email.com"))
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
@@ -332,7 +332,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       eduPersonAffiliation = Seq.empty,
       None,
       eduPersonPrincipalName = "example@email.com",
-      mail = Seq("example@email.com")
+      mail = Some(Seq("example@email.com"))
     )
     val apiUserData = api.MyNDLAUser(
       id = 42,

@@ -13,7 +13,7 @@ import no.ndla.network.UnitSuite
 class FeideApiClientTest extends UnitSuite {
 
   test("testFeideExtendedUserInfo roles") {
-    val user = FeideExtendedUserInfo("", Seq.empty, None, "", Seq(""))
+    val user = FeideExtendedUserInfo("", Seq.empty, None, "", None)
     assert(!user.isTeacher)
 
     val member = user.copy(eduPersonAffiliation = Seq("member"))
