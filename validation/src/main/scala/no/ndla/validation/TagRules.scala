@@ -1,5 +1,7 @@
 package no.ndla.validation
 
+import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
+import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder, parser}
@@ -122,6 +124,9 @@ sealed abstract class TagAttribute(override val entryName: String) extends EnumE
 }
 object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   val values: IndexedSeq[TagAttribute] = findValues
+
+  implicit val enumTsType: TSNamedType[TagAttribute] =
+    TSType.alias[TagAttribute]("TagAttribute", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 
   case object Accent               extends TagAttribute("accent")
   case object AccentUnder          extends TagAttribute("accentunder")
