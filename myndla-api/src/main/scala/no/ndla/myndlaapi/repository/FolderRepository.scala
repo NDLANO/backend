@@ -316,11 +316,10 @@ trait FolderRepository {
         }
     }
 
-    def getRecentFavorited(implicit session: DBSession = AutoSession): Try[String] = Try {
-      sql"select resource_id from ${FolderResource.table} order by favorited_date DESC limit 1"
+    def getRecentFavorited(size: Option[Int])(implicit session: DBSession = AutoSession): Try[Seq[String]] = Try {
+      sql"select resource_id from ${FolderResource.table} order by favorited_date DESC limit ${size.getOrElse(1)}"
         .map(rs => rs.string("resource_id"))
-        .single()
-        .getOrElse("")
+        .list()
     }
 
     def numberOfFavouritesForResource(resourceId: String, resourceType: String)(implicit

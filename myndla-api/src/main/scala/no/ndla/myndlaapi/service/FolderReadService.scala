@@ -273,9 +273,9 @@ trait FolderReadService {
       folderRepository.getAllFavorites(session)
     }
 
-    def getRecentFavorite: Try[String] = {
+    def getRecentFavorite(size: Option[Int]): Try[Seq[String]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
-      folderRepository.getRecentFavorited(session)
+      folderRepository.getRecentFavorited(size)(session)
     }
 
     def getFavouriteStatsForResource(
