@@ -137,6 +137,17 @@ trait FolderController {
         folderReadService.getAllResources(size, feideHeader).handleErrorsOrOk
       }
 
+    private def fetchRecent: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Fetch the most recent favorited resource")
+      .description("Fetch the most recent favorited resource")
+      .in("resources")
+      .in("recent")
+      .errorOut(errorOutputsFor(400, 401, 403, 404))
+      .out(stringBody)
+      .serverLogicPure { _ =>
+        folderReadService.getRecentFavorite.handleErrorsOrOk
+      }
+
     private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Creates new folder resource")
       .description("Creates new folder resource")
@@ -242,6 +253,7 @@ trait FolderController {
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getAllFolders,
       fetchAllResources,
+      fetchRecent,
       getSingleFolder,
       createNewFolder,
       updateFolder,

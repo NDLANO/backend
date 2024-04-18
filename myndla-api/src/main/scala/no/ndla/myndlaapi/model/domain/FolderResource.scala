@@ -14,7 +14,7 @@ import no.ndla.common.model.NDLADate
 import scalikejdbc.*
 
 import java.util.UUID
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate) extends Rankable {
   override val sortId: UUID          = resourceId
