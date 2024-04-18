@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
@@ -242,13 +243,13 @@ trait FolderWriteService {
         .flatMap(feideId => importUserDataAuthenticated(toImport, feideId, maybeFeideToken))
     }
 
-    private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int)(implicit
+    private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate)(implicit
         session: DBSession
     ): Try[domain.FolderResource] =
       folderRepository.getConnection(folderId, resourceId) match {
         case Success(Some(connection)) => Success(connection)
-        case Success(None)             => folderRepository.createFolderResourceConnection(folderId, resourceId, rank)
-        case Failure(ex)               => Failure(ex)
+        case Success(None) => folderRepository.createFolderResourceConnection(folderId, resourceId, rank, favoritedDate)
+        case Failure(ex)   => Failure(ex)
       }
 
     def updateFolder(
@@ -380,7 +381,7 @@ trait FolderWriteService {
             found match {
               case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _)) =>
                 folderRepository.setFolderRank(folderId, newRank, feideId)(session)
-              case Some(domain.FolderResource(folderId, resourceId, _)) =>
+              case Some(domain.FolderResource(folderId, resourceId, _, _)) =>
                 folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
               case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
             }
@@ -635,13 +636,13 @@ trait FolderWriteService {
                 clock.now(),
                 document
               )
-              connection <- folderRepository.createFolderResourceConnection(folderId, inserted.id, rank)
+              connection <- folderRepository.createFolderResourceConnection(folderId, inserted.id, rank, clock.now())
             } yield inserted.copy(connection = connection.some)
           case Some(existingResource) =>
             val mergedResource = folderConverterService.mergeResource(existingResource, newResource)
             for {
               updated    <- folderRepository.updateResource(mergedResource)
-              connection <- connectIfNotConnected(folderId, mergedResource.id, rank)
+              connection <- connectIfNotConnected(folderId, mergedResource.id, rank, clock.now())
             } yield updated.copy(connection = connection.some)
         }
     }

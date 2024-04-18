@@ -149,9 +149,9 @@ class FolderRepositoryTest
     val resource2 =
       repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
-    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id, 3)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
+    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id, 3, created)
 
     folderResourcesCount should be(3)
   }
@@ -199,9 +199,9 @@ class FolderRepositoryTest
       repository.insertResource("feide", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
     val resource2 =
       repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
-    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id, 3)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
+    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id, 3, created)
 
     folderResourcesCount() should be(3)
     repository.deleteFolder(folder1.get.id)
@@ -219,9 +219,9 @@ class FolderRepositoryTest
     val resource2 =
       repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 1)
-    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 1)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 1, created)
+    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 1, created)
 
     repository.folderResourceConnectionCount(resource1.get.id).get should be(2)
     repository.folderResourceConnectionCount(resource2.get.id).get should be(1)
@@ -302,10 +302,10 @@ class FolderRepositoryTest
     val resource3 =
       repository.insertResource("feide", "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
-    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id, 3)
-    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 4)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
+    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id, 3, created)
+    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 4, created)
 
     repository.getFolderResources(folder1.get.id).get.length should be(3)
     repository.getFolderResources(folder2.get.id).get.length should be(1)
@@ -425,7 +425,7 @@ class FolderRepositoryTest
       )
       .failIfFailure
     val insertedConnection =
-      repository.createFolderResourceConnection(insertedMain.id, insertedResource.id, 1).failIfFailure
+      repository.createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, clock.now()).failIfFailure
 
     val expectedSubfolders = List(
       insertedChild2,
@@ -494,11 +494,11 @@ class FolderRepositoryTest
     val resource4 =
       repository.insertResource("feide2", "/path4", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2)
-    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id, 3)
-    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 4)
-    repository.createFolderResourceConnection(folder3.get.id, resource4.get.id, 5)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
+    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id, 3, created)
+    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 4, created)
+    repository.createFolderResourceConnection(folder3.get.id, resource4.get.id, 5, created)
 
     folderCount() should be(3)
     resourceCount() should be(4)
@@ -599,7 +599,9 @@ class FolderRepositoryTest
       )
       .failIfFailure
     val insertedConnection =
-      repository.createFolderResourceConnection(insertedMain.id, insertedResource.id, 1).failIfFailure
+      repository
+        .createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, NDLADate.now().withNano(0))
+        .failIfFailure
 
     val expectedSubfolders = List(
       insertedChild2,

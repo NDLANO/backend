@@ -134,13 +134,14 @@ trait FolderRepository {
     def createFolderResourceConnection(
         folderId: UUID,
         resourceId: UUID,
-        rank: Int
+        rank: Int,
+        favoritedDate: NDLADate
     )(implicit session: DBSession = AutoSession): Try[FolderResource] = Try {
       sql"insert into ${FolderResource.table} (folder_id, resource_id, rank) values ($folderId, $resourceId, $rank)"
         .update(): Unit
       logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
 
-      FolderResource(folderId = folderId, resourceId = resourceId, rank = rank)
+      FolderResource(folderId = folderId, resourceId = resourceId, rank = rank, favoritedDate = favoritedDate)
     }
 
     def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
@@ -228,13 +229,14 @@ trait FolderRepository {
         session: DBSession = AutoSession
     ): Try[Option[FolderResource]] = {
       Try(
-        sql"select resource_id, folder_id, rank from ${FolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
+        sql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
           .map(rs => {
             for {
               resourceId <- rs.get[Try[UUID]]("resource_id")
               folderId   <- rs.get[Try[UUID]]("folder_id")
-              rank = rs.int("rank")
-            } yield FolderResource(resourceId, folderId, rank)
+              rank          = rs.int("rank")
+              favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
+            } yield FolderResource(resourceId, folderId, rank, favoritedDate)
           })
           .single()
       )
@@ -244,13 +246,14 @@ trait FolderRepository {
 
     def getConnections(folderId: UUID)(implicit session: DBSession = AutoSession): Try[List[FolderResource]] = {
       Try(
-        sql"select resource_id, folder_id, rank from ${FolderResource.table} where folder_id=$folderId"
+        sql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where folder_id=$folderId"
           .map(rs => {
             for {
               resourceId <- rs.get[Try[UUID]]("resource_id")
               folderId   <- rs.get[Try[UUID]]("folder_id")
-              rank = rs.int("rank")
-            } yield FolderResource(folderId, resourceId, rank)
+              rank          = rs.int("rank")
+              favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
+            } yield FolderResource(folderId, resourceId, rank, favoritedDate)
           })
           .list()
       )
