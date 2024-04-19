@@ -623,6 +623,7 @@ trait FolderWriteService {
         feideId: FeideID
     )(implicit session: DBSession): Try[domain.Resource] = {
       val rank = getNextRank(siblings.childrenResources)
+      val date = clock.now()
       folderRepository
         .resourceWithPathAndTypeAndFeideId(newResource.path, newResource.resourceType, feideId)
         .flatMap {
@@ -633,16 +634,16 @@ trait FolderWriteService {
                 feideId,
                 newResource.path,
                 newResource.resourceType,
-                clock.now(),
+                date,
                 document
               )
-              connection <- folderRepository.createFolderResourceConnection(folderId, inserted.id, rank, clock.now())
+              connection <- folderRepository.createFolderResourceConnection(folderId, inserted.id, rank, date)
             } yield inserted.copy(connection = connection.some)
           case Some(existingResource) =>
             val mergedResource = folderConverterService.mergeResource(existingResource, newResource)
             for {
               updated    <- folderRepository.updateResource(mergedResource)
-              connection <- connectIfNotConnected(folderId, mergedResource.id, rank, clock.now())
+              connection <- connectIfNotConnected(folderId, mergedResource.id, rank, date)
             } yield updated.copy(connection = connection.some)
         }
     }

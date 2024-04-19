@@ -137,8 +137,16 @@ trait FolderRepository {
         rank: Int,
         favoritedDate: NDLADate
     )(implicit session: DBSession = AutoSession): Try[FolderResource] = Try {
-      sql"insert into ${FolderResource.table} (folder_id, resource_id, rank) values ($folderId, $resourceId, $rank)"
-        .update(): Unit
+      withSQL {
+        insert
+          .into(FolderResource)
+          .namedValues(
+            FolderResource.column.folderId      -> folderId,
+            FolderResource.column.resourceId    -> resourceId,
+            FolderResource.column.rank          -> rank,
+            FolderResource.column.favoritedDate -> favoritedDate
+          )
+      }.update(): Unit
       logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
 
       FolderResource(folderId = folderId, resourceId = resourceId, rank = rank, favoritedDate = favoritedDate)

@@ -420,12 +420,14 @@ class FolderRepositoryTest
         "feide",
         "/testPath",
         ResourceType.Article,
-        NDLADate.now().withNano(0),
+        created,
         ResourceDocument(List(), "1")
       )
       .failIfFailure
     val insertedConnection =
-      repository.createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, clock.now()).failIfFailure
+      repository
+        .createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, created)
+        .failIfFailure
 
     val expectedSubfolders = List(
       insertedChild2,
@@ -600,7 +602,7 @@ class FolderRepositoryTest
       .failIfFailure
     val insertedConnection =
       repository
-        .createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, NDLADate.now().withNano(0))
+        .createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, created)
         .failIfFailure
 
     val expectedSubfolders = List(
