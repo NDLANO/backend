@@ -11,6 +11,7 @@ import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class SearchType(override val entryName: String) extends EnumEntry {
   override def toString: String = entryName
@@ -24,7 +25,7 @@ object SearchType extends Enum[SearchType] with CirceEnum[SearchType] {
   def all: List[String]                       = SearchType.values.map(_.toString).toList
   override def values: IndexedSeq[SearchType] = findValues
 
-  implicit def schema: Schema[SearchType] = Schema.derived
+  implicit def schema: Schema[SearchType] = schemaForEnumEntry[SearchType]
 
   implicit val enumTsType: TSNamedType[SearchType] =
     TSType.alias[SearchType]("SearchType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
