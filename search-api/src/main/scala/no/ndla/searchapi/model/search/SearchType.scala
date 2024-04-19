@@ -10,13 +10,14 @@ package no.ndla.searchapi.model.search
 import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
+import no.ndla.common.CirceUtil.CirceEnumWithErrors
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class SearchType(override val entryName: String) extends EnumEntry {
   override def toString: String = entryName
 }
-object SearchType extends Enum[SearchType] with CirceEnum[SearchType] {
+object SearchType extends Enum[SearchType] with CirceEnumWithErrors[SearchType] {
   case object Articles      extends SearchType("article")
   case object Drafts        extends SearchType("draft")
   case object LearningPaths extends SearchType("learningpath")

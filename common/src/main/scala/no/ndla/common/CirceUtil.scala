@@ -7,8 +7,9 @@
 
 package no.ndla.common
 
-import io.circe.{Decoder, Encoder, HCursor, parser}
+import enumeratum.*
 import io.circe.syntax.*
+import io.circe.*
 
 import scala.util.{Failure, Try}
 
@@ -36,6 +37,22 @@ object CirceUtil {
   /** Helper to simplify making decoders with default values */
   def getOrDefault[T: Decoder](cur: HCursor, key: String, default: T) = {
     cur.downField(key).as[Option[T]].map(_.getOrElse(default))
+  }
+
+  private val stringDecoder = implicitly[Decoder[String]]
+
+  /** Trait that does the same as `CirceEnum`, but with slightly better error message */
+  trait CirceEnumWithErrors[A <: EnumEntry] extends CirceEnum[A] {
+    this: Enum[A] =>
+    override implicit val circeDecoder: Decoder[A] = (c: HCursor) =>
+      stringDecoder(c).flatMap { s =>
+        withNameEither(s).left.map { notFound =>
+          val enumName = this.getClass.getSimpleName.stripSuffix("$")
+          val enumList = s"[${notFound.enumValues.mkString("'", "','", "'")}]"
+          val message  = s"'${notFound.notFoundName}' is not a member of enum '$enumName'. Must be one of $enumList"
+          DecodingFailure(message, c.history)
+        }
+      }
   }
 
 }
