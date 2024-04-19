@@ -35,7 +35,7 @@ case class MultiSearchSummary(
     @description("Url pointing to the resource") url: String,
     @description("Contexts of the resource") contexts: List[ApiTaxonomyContext],
     @description("Languages the resource exists in") supportedLanguages: Seq[String],
-    @description("Learning resource type, either 'standard', 'topic-article' or 'learningpath'") learningResourceType: String,
+    @description("Learning resource type, either 'standard', 'topic-article', 'learningpath', 'concept' or 'gloss'") learningResourceType: String,
     @description("Status information of the resource") status: Option[Status],
     @description("Traits for the resource") traits: List[String],
     @description("Relevance score. The higher the score, the better the document matches your search criteria.") score: Float,

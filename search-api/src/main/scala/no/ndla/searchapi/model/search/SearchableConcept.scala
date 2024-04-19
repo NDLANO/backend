@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.concept.{Concept, ConceptMetaImage}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.Status
+import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchableConcept(
     id: Long,
@@ -35,7 +36,8 @@ case class SearchableConcept(
     responsible: Option[Responsible],
     gloss: Option[String],
     domainObject: Concept,
-    favorited: Long
+    favorited: Long,
+    learningResourceType: LearningResourceType
 )
 
 object SearchableConcept {

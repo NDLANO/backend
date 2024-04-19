@@ -16,7 +16,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.concept.Concept
+import no.ndla.common.model.domain.concept.{Concept, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -290,7 +290,8 @@ trait SearchConverterService {
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
-          favorited = favorited
+          favorited = favorited,
+          learningResourceType = LearningResourceType.LearningPath
         )
       )
     }
@@ -323,10 +324,15 @@ trait SearchConverterService {
 
       val status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq)
 
+      val learningResourceType = c.conceptType match {
+        case ConceptType.CONCEPT => LearningResourceType.Concept
+        case ConceptType.GLOSS   => LearningResourceType.Gloss
+      }
+
       Success(
         SearchableConcept(
           id = c.id.get,
-          conceptType = c.conceptType.toString,
+          conceptType = c.conceptType.entryName,
           title = title,
           content = content,
           defaultTitle = title.defaultValue,
@@ -344,7 +350,8 @@ trait SearchConverterService {
           gloss = c.glossData.map(_.gloss),
           domainObject = c,
           authors = authors,
-          favorited = favorited
+          favorited = favorited,
+          learningResourceType = learningResourceType
         )
       )
     }
@@ -433,6 +440,11 @@ trait SearchConverterService {
       val visualElement   = model.SearchableLanguageValues.fromFields(draft.visualElement)
       val introduction    = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
       val metaDescription = model.SearchableLanguageValues.fromFields(draft.metaDescription)
+      val learningResourceType = draft.articleType match {
+        case ArticleType.Standard         => LearningResourceType.Article
+        case ArticleType.TopicArticle     => LearningResourceType.TopicArticle
+        case ArticleType.FrontpageArticle => LearningResourceType.FrontpageArticle
+      }
 
       Success(
         SearchableDraft(
@@ -470,7 +482,8 @@ trait SearchConverterService {
           resourceTypeName = sortableResourceTypeName,
           defaultResourceTypeName = sortableResourceTypeName.defaultValue,
           published = draft.published,
-          favorited = favorited
+          favorited = favorited,
+          learningResourceType = learningResourceType
         )
       )
     }
@@ -784,7 +797,7 @@ trait SearchConverterService {
         url = url,
         contexts = List.empty,
         supportedLanguages = supportedLanguages,
-        learningResourceType = LearningResourceType.Concept.toString,
+        learningResourceType = searchableConcept.learningResourceType.entryName,
         status = Some(searchableConcept.status),
         traits = List.empty,
         score = hit.score,

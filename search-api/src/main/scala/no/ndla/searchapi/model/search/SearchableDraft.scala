@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchableDraft(
     id: Long,
@@ -50,7 +51,8 @@ case class SearchableDraft(
     resourceTypeName: SearchableLanguageValues,
     defaultResourceTypeName: Option[String],
     published: NDLADate,
-    favorited: Long
+    favorited: Long,
+    learningResourceType: LearningResourceType
 )
 
 object SearchableDraft {

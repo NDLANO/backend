@@ -23,7 +23,7 @@ import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregations
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{ErrorHelpers, SubjectAggregation, SubjectAggregations}
-import no.ndla.searchapi.model.domain.SearchResult
+import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
@@ -301,7 +301,7 @@ trait MultiDraftSearchService {
       val articleTypeFilter = Some(
         boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
       )
-      val taxonomyContextFilter       = contextTypeFilter(settings.learningResourceTypes)
+      val learningResourceType        = learningResourceFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
       val taxonomyTopicFilter         = topicFilter(settings.topics, settings.filterInactive)
@@ -316,7 +316,6 @@ trait MultiDraftSearchService {
         taxonomySubjectFilter,
         taxonomyTopicFilter,
         taxonomyResourceTypesFilter,
-        taxonomyContextFilter,
         taxonomyContextActiveFilter,
         supportedLanguageFilter,
         taxonomyRelevanceFilter,
@@ -328,9 +327,15 @@ trait MultiDraftSearchService {
         publishedDateFilter,
         responsibleIdFilter,
         prioritizedFilter,
-        priorityFilter
+        priorityFilter,
+        learningResourceType
       ).flatten
     }
+
+    private def learningResourceFilter(types: List[LearningResourceType]): Option[Query] =
+      Option.when(types.nonEmpty)(
+        termsQuery("learningResourceType", types.map(_.entryName))
+      )
 
     private def getRevisionHistoryLogQuery(queryString: String, excludeHistoryLog: Boolean): Seq[Query] = {
       Seq(

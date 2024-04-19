@@ -54,6 +54,7 @@ trait ArticleIndexService {
         textField("grepContexts.title"),
         keywordField("traits"),
         keywordField("availability"),
+        keywordField("learningResourceType"),
         getTaxonomyContextMapping,
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),

@@ -96,7 +96,7 @@ trait SearchConverterService {
 
       SearchableConcept(
         id = c.id.get,
-        conceptType = c.conceptType.toString,
+        conceptType = c.conceptType.entryName,
         title = title,
         content = content,
         defaultTitle = title.defaultValue,

@@ -13,7 +13,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
-import no.ndla.common.model.domain.concept.ConceptContent
+import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
 import no.ndla.network.tapir.NonEmptyString
@@ -21,7 +21,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.ApiTaxonomyContext
-import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
+import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
@@ -1202,4 +1202,93 @@ class MultiDraftSearchServiceAtomicTest
     )
   }
 
+  test("That filtering based on learningResourceType works for everyone") {
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      articleType = ArticleType.Standard
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      articleType = ArticleType.TopicArticle
+    )
+    val learningPath3 = TestData.learningPath1.copy(
+      id = Some(3)
+    )
+    val concept4 = TestData.sampleNbDomainConcept.copy(
+      id = Some(4),
+      conceptType = ConceptType.CONCEPT
+    )
+    val concept5 = TestData.sampleNbDomainConcept.copy(
+      id = Some(5),
+      conceptType = ConceptType.GLOSS
+    )
+
+    draftIndexService.indexDocument(draft1, indexingBundle).get
+    draftIndexService.indexDocument(draft2, indexingBundle).get
+    learningPathIndexService.indexDocument(learningPath3, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept4, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept5, indexingBundle).get
+
+    blockUntil(() =>
+      draftIndexService.countDocuments == 2 &&
+        learningPathIndexService.countDocuments == 1 &&
+        draftConceptIndexService.countDocuments == 2
+    )
+
+    {
+      val search = multiDraftSearchService
+        .matchingQuery(
+          multiDraftSearchSettings.copy(
+            learningResourceTypes = List(LearningResourceType.Article),
+            resultTypes = Some(SearchType.values.toList)
+          )
+        )
+        .get
+      search.results.map(_.id) should be(Seq(1))
+    }
+    {
+      val search = multiDraftSearchService
+        .matchingQuery(
+          multiDraftSearchSettings.copy(
+            learningResourceTypes = List(LearningResourceType.TopicArticle),
+            resultTypes = Some(SearchType.values.toList)
+          )
+        )
+        .get
+      search.results.map(_.id) should be(Seq(2))
+    }
+    {
+      val search = multiDraftSearchService
+        .matchingQuery(
+          multiDraftSearchSettings.copy(
+            learningResourceTypes = List(LearningResourceType.LearningPath),
+            resultTypes = Some(SearchType.values.toList)
+          )
+        )
+        .get
+      search.results.map(_.id) should be(Seq(3))
+    }
+    {
+      val search = multiDraftSearchService
+        .matchingQuery(
+          multiDraftSearchSettings.copy(
+            learningResourceTypes = List(LearningResourceType.Concept),
+            resultTypes = Some(SearchType.values.toList)
+          )
+        )
+        .get
+      search.results.map(_.id) should be(Seq(4))
+    }
+    {
+      val search = multiDraftSearchService
+        .matchingQuery(
+          multiDraftSearchSettings.copy(
+            learningResourceTypes = List(LearningResourceType.Gloss),
+            resultTypes = Some(SearchType.values.toList)
+          )
+        )
+        .get
+      search.results.map(_.id) should be(Seq(5))
+    }
+  }
 }

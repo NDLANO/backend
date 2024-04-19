@@ -62,6 +62,7 @@ trait DraftIndexService {
         textField("grepContexts.title"),
         keywordField("traits"),
         longField("favorited"),
+        keywordField("learningResourceType"),
         ObjectField(
           "responsible",
           properties = Seq(

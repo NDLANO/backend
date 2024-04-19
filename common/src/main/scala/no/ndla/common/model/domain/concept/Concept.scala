@@ -30,7 +30,7 @@ case class Concept(
     status: Status,
     visualElement: Seq[VisualElement],
     responsible: Option[Responsible],
-    conceptType: ConceptType.Value,
+    conceptType: ConceptType,
     glossData: Option[GlossData],
     editorNotes: Seq[ConceptEditorNote]
 ) extends Content {

@@ -97,7 +97,7 @@ trait ConverterService {
             status = status,
             visualElement = visualElement,
             responsible = responsible,
-            conceptType = concept.conceptType.toString,
+            conceptType = concept.conceptType.entryName,
             glossData = toApiGlossData(concept.glossData),
             editorNotes = editorNotes
           )

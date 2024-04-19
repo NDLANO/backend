@@ -61,6 +61,7 @@ trait DraftConceptIndexService {
         keywordField("authors"),
         longField("articleIds"),
         dateField("created"),
+        keywordField("learningResourceType"),
         keywordField("source"),
         ObjectField(
           "responsible",

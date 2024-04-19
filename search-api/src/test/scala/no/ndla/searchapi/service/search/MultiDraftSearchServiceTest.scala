@@ -527,8 +527,8 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       )
     )
 
-    search.totalCount should be(12)
-    search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 15))
+    search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15))
+    search.totalCount should be(13)
   }
 
   test("That filtering out inactive contexts works as expected") {
@@ -566,8 +566,8 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     search.totalCount should be(7)
     search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 12))
 
-    search2.totalCount should be(5)
-    search2.results.map(_.id) should be(Seq(8, 9, 10, 11, 15))
+    search2.totalCount should be(6)
+    search2.results.map(_.id) should be(Seq(8, 9, 10, 11, 13, 15))
   }
 
   test("That filtering on article-type works") {
@@ -591,13 +591,13 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     search3.results.map(_.id) should be(Seq(16))
   }
 
-  test("That filtering on learningpath learningresourcetype returns learningpaths in structure") {
+  test("That filtering on learningpath learningresourcetype returns learningpaths") {
     val Success(search) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(language = "*", learningResourceTypes = List(LearningResourceType.LearningPath))
     )
 
-    search.totalCount should be(5)
-    search.results.map(_.id) should be(Seq(1, 2, 3, 4, 5))
+    search.totalCount should be(6)
+    search.results.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6))
     search.results.map(_.url.contains("learningpath")).distinct should be(Seq(true))
   }
 
