@@ -198,7 +198,7 @@ export interface IMultiSearchSummary {
   url: string
   contexts: IApiTaxonomyContext[]
   supportedLanguages: string[]
-  learningResourceType: string
+  learningResourceType: LearningResourceType
   status?: IStatus
   traits: string[]
   score: number
@@ -298,5 +298,7 @@ export interface IValidationMessage {
   field: string
   message: string
 }
+
+export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
 export type SearchType = ("article" | "draft" | "learningpath" | "concept")

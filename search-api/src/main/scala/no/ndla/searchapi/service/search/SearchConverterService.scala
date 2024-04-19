@@ -16,7 +16,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.concept.{Concept, ConceptType}
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -239,7 +239,8 @@ trait SearchConverterService {
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
-          availability = ai.availability.toString
+          availability = ai.availability.toString,
+          learningResourceType = LearningResourceType.fromArticleType(ai.articleType)
         )
       )
 
@@ -324,11 +325,6 @@ trait SearchConverterService {
 
       val status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq)
 
-      val learningResourceType = c.conceptType match {
-        case ConceptType.CONCEPT => LearningResourceType.Concept
-        case ConceptType.GLOSS   => LearningResourceType.Gloss
-      }
-
       Success(
         SearchableConcept(
           id = c.id.get,
@@ -351,7 +347,7 @@ trait SearchConverterService {
           domainObject = c,
           authors = authors,
           favorited = favorited,
-          learningResourceType = learningResourceType
+          learningResourceType = LearningResourceType.fromConceptType(c.conceptType)
         )
       )
     }
@@ -440,11 +436,6 @@ trait SearchConverterService {
       val visualElement   = model.SearchableLanguageValues.fromFields(draft.visualElement)
       val introduction    = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
       val metaDescription = model.SearchableLanguageValues.fromFields(draft.metaDescription)
-      val learningResourceType = draft.articleType match {
-        case ArticleType.Standard         => LearningResourceType.Article
-        case ArticleType.TopicArticle     => LearningResourceType.TopicArticle
-        case ArticleType.FrontpageArticle => LearningResourceType.FrontpageArticle
-      }
 
       Success(
         SearchableDraft(
@@ -483,7 +474,7 @@ trait SearchConverterService {
           defaultResourceTypeName = sortableResourceTypeName.defaultValue,
           published = draft.published,
           favorited = favorited,
-          learningResourceType = learningResourceType
+          learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
         )
       )
     }
@@ -621,7 +612,7 @@ trait SearchConverterService {
         url = url,
         contexts = contexts,
         supportedLanguages = supportedLanguages,
-        learningResourceType = searchableArticle.articleType,
+        learningResourceType = searchableArticle.learningResourceType,
         status = None,
         traits = searchableArticle.traits,
         score = hit.score,
@@ -687,7 +678,7 @@ trait SearchConverterService {
         url = url,
         contexts = contexts,
         supportedLanguages = supportedLanguages,
-        learningResourceType = searchableDraft.articleType,
+        learningResourceType = searchableDraft.learningResourceType,
         status = Some(api.Status(searchableDraft.draftStatus.current, searchableDraft.draftStatus.other)),
         traits = searchableDraft.traits,
         score = hit.score,
@@ -744,7 +735,7 @@ trait SearchConverterService {
         url = url,
         contexts = contexts,
         supportedLanguages = supportedLanguages,
-        learningResourceType = LearningResourceType.LearningPath.toString,
+        learningResourceType = LearningResourceType.LearningPath,
         status = Some(api.Status(searchableLearningPath.status, Seq.empty)),
         traits = List.empty,
         score = hit.score,
@@ -797,7 +788,7 @@ trait SearchConverterService {
         url = url,
         contexts = List.empty,
         supportedLanguages = supportedLanguages,
-        learningResourceType = searchableConcept.learningResourceType.entryName,
+        learningResourceType = searchableConcept.learningResourceType,
         status = Some(searchableConcept.status),
         traits = List.empty,
         score = hit.score,

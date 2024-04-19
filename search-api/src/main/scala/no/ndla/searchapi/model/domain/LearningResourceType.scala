@@ -8,7 +8,13 @@
 
 package no.ndla.searchapi.model.domain
 
+import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
+import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
+import no.ndla.common.model.domain.ArticleType
+import no.ndla.common.model.domain.concept.ConceptType
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class LearningResourceType(override val entryName: String) extends EnumEntry {
   override def toString: String = entryName
@@ -22,7 +28,28 @@ object LearningResourceType extends Enum[LearningResourceType] with CirceEnum[Le
   case object Concept          extends LearningResourceType("concept")
   case object Gloss            extends LearningResourceType("gloss")
 
+  implicit val enumTsType: TSNamedType[LearningResourceType] =
+    TSType.alias[LearningResourceType]("LearningResourceType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
+
   def all: List[String]                                 = LearningResourceType.values.map(_.entryName).toList
   def valueOf(s: String): Option[LearningResourceType]  = LearningResourceType.values.find(_.entryName == s)
   override def values: IndexedSeq[LearningResourceType] = findValues
+
+  implicit def schema: Schema[LearningResourceType] = schemaForEnumEntry[LearningResourceType]
+
+  def fromArticleType(articleType: ArticleType): LearningResourceType = {
+    articleType match {
+      case ArticleType.Standard         => Article
+      case ArticleType.TopicArticle     => TopicArticle
+      case ArticleType.FrontpageArticle => FrontpageArticle
+    }
+  }
+
+  def fromConceptType(conceptType: ConceptType): LearningResourceType = {
+    conceptType match {
+      case ConceptType.CONCEPT => LearningResourceType.Concept
+      case ConceptType.GLOSS   => LearningResourceType.Gloss
+    }
+
+  }
 }

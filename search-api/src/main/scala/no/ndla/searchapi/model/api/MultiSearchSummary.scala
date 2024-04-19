@@ -11,6 +11,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.Comment
+import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.search.SearchType
 import sttp.tapir.Schema.annotations.description
 
@@ -35,7 +36,7 @@ case class MultiSearchSummary(
     @description("Url pointing to the resource") url: String,
     @description("Contexts of the resource") contexts: List[ApiTaxonomyContext],
     @description("Languages the resource exists in") supportedLanguages: Seq[String],
-    @description("Learning resource type, either 'standard', 'topic-article', 'learningpath', 'concept' or 'gloss'") learningResourceType: String,
+    @description("Learning resource type") learningResourceType: LearningResourceType,
     @description("Status information of the resource") status: Option[Status],
     @description("Traits for the resource") traits: List[String],
     @description("Relevance score. The higher the score, the better the document matches your search criteria.") score: Float,
