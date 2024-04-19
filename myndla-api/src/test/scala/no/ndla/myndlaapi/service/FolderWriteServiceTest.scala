@@ -165,7 +165,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
-    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1)
+    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1, clock.now())
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
@@ -198,7 +198,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
-    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1)
+    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1, clock.now())
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
@@ -295,8 +295,15 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(None))
     when(folderRepository.insertResource(any, any, any, any, any)(any)).thenReturn(Success(resource))
-    when(folderRepository.createFolderResourceConnection(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
+    when(folderRepository.createFolderResourceConnection(any, any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(
+        FolderResource(
+          folderId = i.getArgument(0),
+          resourceId = i.getArgument(1),
+          rank = i.getArgument(2),
+          favoritedDate = created
+        )
+      )
     })
 
     service
@@ -323,7 +330,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       any,
       any
     )(any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any)(any)
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(any)
     verify(folderConverterService, times(0)).mergeResource(any, any[NewResource])
     verify(folderRepository, times(0)).updateResource(any)(any)
   }
@@ -356,8 +363,15 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(Some(resource)))
     when(folderRepository.updateResource(eqTo(resource))(any)).thenReturn(Success(resource))
-    when(folderRepository.createFolderResourceConnection(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
+    when(folderRepository.createFolderResourceConnection(any, any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(
+        FolderResource(
+          folderId = i.getArgument(0),
+          resourceId = i.getArgument(1),
+          rank = i.getArgument(2),
+          favoritedDate = i.getArgument(3)
+        )
+      )
     })
 
     service
@@ -380,7 +394,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(0)).insertResource(any, any, any, any, any)(any)
     verify(folderConverterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
     verify(folderRepository, times(1)).updateResource(eqTo(resource))(any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any)(any)
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(any)
   }
 
   test("that deleteFolder deletes correct number of folder-resource-connections and resources") {

@@ -10,12 +10,13 @@ package no.ndla.myndlaapi.model.domain
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.model.NDLADate
 import scalikejdbc.*
 
 import java.util.UUID
 import scala.util.Try
 
-case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int) extends Rankable {
+case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate) extends Rankable {
   override val sortId: UUID          = resourceId
   override val sortRank: Option[Int] = Some(rank)
 }
@@ -32,10 +33,11 @@ object FolderResource extends SQLSyntaxSupport[FolderResource] {
   def fromResultSet(colNameWrapper: String => String, rs: WrappedResultSet): Try[FolderResource] = {
     import no.ndla.myndlaapi.uuidBinder
     for {
-      folderId   <- rs.get[Try[UUID]](colNameWrapper("folder_id"))
-      resourceId <- rs.get[Try[UUID]](colNameWrapper("resource_id"))
-      rank       <- Try(rs.int(colNameWrapper("rank")))
-    } yield FolderResource(folderId = folderId, resourceId = resourceId, rank = rank)
+      folderId      <- rs.get[Try[UUID]](colNameWrapper("folder_id"))
+      resourceId    <- rs.get[Try[UUID]](colNameWrapper("resource_id"))
+      rank          <- Try(rs.int(colNameWrapper("rank")))
+      favoritedDate <- Try(NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("favorited_date"))))
+    } yield FolderResource(folderId = folderId, resourceId = resourceId, rank = rank, favoritedDate = favoritedDate)
   }
 
 }

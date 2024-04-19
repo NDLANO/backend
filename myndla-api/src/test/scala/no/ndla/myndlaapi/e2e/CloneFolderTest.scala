@@ -155,7 +155,7 @@ class CloneFolderTest
 
     val document = ResourceDocument(tags = List("a", "b"), resourceId = "1")
     val rId = folderRepository.insertResource(feideId, "/path", ResourceType.Article, testClock.now(), document).get.id
-    folderRepository.createFolderResourceConnection(pId, rId, 1)
+    folderRepository.createFolderResourceConnection(pId, rId, 1, testClock.now())
 
     pId
   }

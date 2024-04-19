@@ -55,6 +55,9 @@ trait FolderController {
       .description("Destination UUID of the folder. If None it will be cloned as a root folder.")
     private val pathResourceId = path[UUID]("resource-id").description("The UUID of the resource")
     private val queryFolderId  = query[Option[UUID]]("folder-id").description("The UUID of the folder")
+    private val queryRecentSize =
+      query[Option[Int]]("size")
+        .description("How many latest favorited resources to return")
 
     import io.circe.generic.auto._
 
@@ -135,6 +138,18 @@ trait FolderController {
       .serverLogicPure { case (feideHeader, inputSize) =>
         val size = if (inputSize < 1) defaultSize else inputSize
         folderReadService.getAllResources(size, feideHeader).handleErrorsOrOk
+      }
+
+    private def fetchRecent: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Fetch the most recent favorited resource")
+      .description("Fetch the most recent favorited resource")
+      .in("resources")
+      .in("recent")
+      .in(queryRecentSize)
+      .errorOut(errorOutputsFor(400, 401, 403, 404))
+      .out(jsonBody[Seq[String]])
+      .serverLogicPure { case (queryRecentSize) =>
+        folderReadService.getRecentFavorite(queryRecentSize).handleErrorsOrOk
       }
 
     private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint.post
@@ -242,6 +257,7 @@ trait FolderController {
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getAllFolders,
       fetchAllResources,
+      fetchRecent,
       getSingleFolder,
       createNewFolder,
       updateFolder,
