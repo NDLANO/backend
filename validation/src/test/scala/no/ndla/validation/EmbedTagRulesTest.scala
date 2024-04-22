@@ -133,6 +133,25 @@ class EmbedTagRulesTest extends UnitSuite {
     }
   }
 
+  test("Field with dataType URL should accept funky embed urls") {
+    {
+      val url =
+        "https://www.gapminder.org/tools/#$ui$chart$cursorMode=plus&opacitySelectDim:0.39;;&model$markers$bubble$encoding$size$data$space@=geo&=time;;&scale$domain:null&type:null&zoomed:null;;&x$data$concept=time&space@=time;;&scale$domain:null&zoomed:null&type:null;;&frame$extrapolate:51;&trail$data$filter$markers$bra=1800&nor=1800&uga=1800;;;;;;;;&chart-type=bubbles&url=v1"
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="iframe"
+           | data-url="$url"
+           | data-type="iframe"
+           | data-title="Gapminder"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+  }
+
   test("Fields with dataType EMAIL should have legal email") {
     {
       val embedString =

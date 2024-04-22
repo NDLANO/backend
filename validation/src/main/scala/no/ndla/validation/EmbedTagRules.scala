@@ -7,7 +7,7 @@
 
 package no.ndla.validation
 
-import enumeratum._
+import enumeratum.*
 
 import scala.io.Source
 import scala.language.postfixOps
