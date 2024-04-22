@@ -147,7 +147,7 @@ trait FolderController {
       .in("recent")
       .in(queryRecentSize)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[Seq[String]])
+      .out(jsonBody[Seq[Resource]])
       .serverLogicPure { case (queryRecentSize) =>
         folderReadService.getRecentFavorite(queryRecentSize).handleErrorsOrOk
       }
