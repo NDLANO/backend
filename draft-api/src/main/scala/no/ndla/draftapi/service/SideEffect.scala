@@ -12,15 +12,26 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.Try
 
-object SideEffect {
-  type IsImported = Boolean
-  type SideEffect = (Draft, IsImported, TokenUser) => Try[Draft]
+case class SideEffect(
+    name: String,
+    function: (Draft, Boolean, TokenUser) => Try[Draft]
+) {
+  def run(article: Draft, isImported: Boolean, user: TokenUser): Try[Draft] =
+    function(article, isImported, user)
+}
 
-  /** Implicits used to simplify creating a [[SideEffect]] which doesn't need all the parameters */
-  object implicits {
-    implicit def toSideEffect(func: Draft => Try[Draft]): SideEffect =
-      (article: Draft, _: Boolean, _: TokenUser) => {
-        func(article)
-      }
+object SideEffect {
+  def withDraft(name: String)(func: Draft => Try[Draft]): SideEffect = {
+    SideEffect(
+      name = name,
+      function = (article: Draft, _: Boolean, _: TokenUser) => { func(article) }
+    )
+  }
+
+  def withDraftAndUser(name: String)(func: (Draft, TokenUser) => Try[Draft]): SideEffect = {
+    SideEffect(
+      name = name,
+      function = (article: Draft, _: Boolean, tokenUser: TokenUser) => { func(article, tokenUser) }
+    )
   }
 }

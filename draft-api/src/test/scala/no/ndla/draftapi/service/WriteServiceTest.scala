@@ -106,6 +106,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     })
   }
 
+  override def afterEach(): Unit = {
+    scala.util.Properties.clearProp("DEBUG_FLAKE")
+  }
+
   test("newArticle should insert a given article") {
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
@@ -1560,6 +1564,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That started is reset when published via PUBLISHED field") {
+    scala.util.Properties.setProp("DEBUG_FLAKE", "true")
     when(articleApiClient.updateArticle(any, any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[Draft](1))
     })

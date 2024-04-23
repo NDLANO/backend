@@ -17,7 +17,6 @@ import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
-import no.ndla.draftapi.service.SideEffect.SideEffect
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
@@ -42,63 +41,71 @@ trait StateTransitionRules {
     with SearchApiClient =>
 
   object StateTransitionRules {
+    private[service] val checkIfArticleIsInUse: SideEffect =
+      SideEffect.withDraftAndUser("checkIfArticleIsInUse")((article: Draft, user: TokenUser) =>
+        doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
+          Success(article)
+        }
+      )
 
-    // Import implicits to clean up SideEffect creation where we don't need all parameters
-    import SideEffect.implicits._
-
-    private[service] val checkIfArticleIsInUse: SideEffect = (article: Draft, _, user: TokenUser) =>
-      doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
-        Success(article)
-      }
-
-    private val resetResponsible: SideEffect = (article: Draft) => {
+    private val resetResponsible: SideEffect = SideEffect.withDraft("resetResponsible") { article =>
       Success(article.copy(responsible = None))
     }
 
-    private val addResponsible: SideEffect = (article: Draft, _: Boolean, user: TokenUser) => {
-      val responsible = article.responsible.getOrElse(Responsible(user.id, clock.now()))
-      Success(article.copy(responsible = Some(responsible)))
-    }
+    private val addResponsible: SideEffect =
+      SideEffect.withDraftAndUser("addResponsible")((article: Draft, user: TokenUser) => {
+        val responsible = article.responsible.getOrElse(Responsible(user.id, clock.now()))
+        Success(article.copy(responsible = Some(responsible)))
+      })
 
-    private[service] val unpublishArticle: SideEffect = (article: Draft, _, user: TokenUser) =>
-      doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
-        article.id match {
-          case Some(id) =>
-            val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false, user)
-            val articleUpdT  = articleApiClient.unpublishArticle(article, user)
-            val failures     = Seq(taxMetadataT, articleUpdT).collectFirst { case Failure(ex) => Failure(ex) }
-            failures.getOrElse(articleUpdT)
-          case _ => Failure(NotFoundException("This is a bug, article to unpublish has no id."))
+    private[service] val unpublishArticle: SideEffect =
+      SideEffect.withDraftAndUser("unpublishArticle")((article: Draft, user: TokenUser) =>
+        doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
+          article.id match {
+            case Some(id) =>
+              val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false, user)
+              val articleUpdT  = articleApiClient.unpublishArticle(article, user)
+              val failures     = Seq(taxMetadataT, articleUpdT).collectFirst { case Failure(ex) => Failure(ex) }
+              failures.getOrElse(articleUpdT)
+            case _ => Failure(NotFoundException("This is a bug, article to unpublish has no id."))
+          }
         }
-      }
+      )
 
-    private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean, user: TokenUser) => {
-      val validatedArticle = converterService.toArticleApiArticle(draft) match {
-        case Failure(ex)      => Failure(ex)
-        case Success(article) => articleApiClient.validateArticle(article, isImported, Some(user))
-      }
-      validatedArticle.map(_ => draft)
-    }
+    private val validateArticleApiArticle: SideEffect =
+      SideEffect(
+        "validateArticleApiArticle",
+        (draft: Draft, isImported: Boolean, user: TokenUser) => {
+          val validatedArticle = converterService.toArticleApiArticle(draft) match {
+            case Failure(ex)      => Failure(ex)
+            case Success(article) => articleApiClient.validateArticle(article, isImported, Some(user))
+          }
+          validatedArticle.map(_ => draft)
+        }
+      )
 
     private def publishArticleSideEffect(useSoftValidation: Boolean): SideEffect =
-      (article, isImported, user) =>
-        article.id match {
-          case Some(id) =>
-            val externalIds = draftRepository.getExternalIdsFromId(id)(ReadOnlyAutoSession)
+      SideEffect(
+        "publishArticleSideEffect",
+        (article, isImported, user) =>
+          article.id match {
+            case Some(id) =>
+              val externalIds = draftRepository.getExternalIdsFromId(id)(ReadOnlyAutoSession)
 
-            val h5pPaths = converterService.getEmbeddedH5PPaths(article)
-            h5pApiClient.publishH5Ps(h5pPaths, user): Unit
+              val h5pPaths = converterService.getEmbeddedH5PPaths(article)
+              h5pApiClient.publishH5Ps(h5pPaths, user): Unit
 
-            val taxonomyT    = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-            val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = true, user)
-            val articleUdpT =
-              articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation, user)
-            val failures = Seq(taxonomyT, taxMetadataT, articleUdpT).collectFirst { case Failure(ex) =>
-              Failure(ex)
-            }
-            failures.getOrElse(articleUdpT)
-          case _ => Failure(NotFoundException("This is a bug, article to publish has no id."))
-        }
+              val taxonomyT    = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
+              val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = true, user)
+              val articleUdpT =
+                articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation, user)
+              val failures = Seq(taxonomyT, taxMetadataT, articleUdpT).collectFirst { case Failure(ex) =>
+                Failure(ex)
+              }
+              failures.getOrElse(articleUdpT)
+            case _ => Failure(NotFoundException("This is a bug, article to publish has no id."))
+          }
+      )
 
     private val publishArticle            = publishArticleSideEffect(useSoftValidation = false)
     private val publishWithSoftValidation = publishArticleSideEffect(useSoftValidation = true)
@@ -273,19 +280,35 @@ trait StateTransitionRules {
       }
     }
 
+    def debugLog(x: Any): Unit = {
+      if (scala.util.Properties.propOrEmpty("DEBUG_FLAKE") == "true") {
+        println(x)
+      }
+    }
+
     def doTransition(
         current: Draft,
         to: DraftStatus,
         user: TokenUser,
         isImported: Boolean
     ): Try[Draft] = {
+      debugLog("---doTransition start---")
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
-      convertedArticle.flatMap(articleBeforeSideEffect => {
+      debugLog(s"\tGot convertedArticle: $convertedArticle")
+      debugLog(s"\tGot sideEffects: [${sideEffects.map(_.name).mkString(",")}]")
+      val result = convertedArticle.flatMap(articleBeforeSideEffect => {
         sideEffects
           .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
-            accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
+            debugLog(s"\tAttempting to run sideEffect: ${sideEffect.name}")
+            accumulatedArticle.flatMap(a => {
+              val result = sideEffect.run(a, isImported, user)
+              debugLog(s"\tRan sideEffect: ${sideEffect.name} with result: $result")
+              result
+            })
           })
       })
+      debugLog("---doTransition end---")
+      result
     }
 
     private[this] def learningPathsUsingArticle(articleId: Long, user: TokenUser): Seq[LearningPath] = {
