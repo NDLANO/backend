@@ -70,7 +70,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (followed, sort) =>
-          arenaReadService.getCategories(user, followed, sort)().handleErrorsOrOk
+          arenaReadService.getCategories(user, followed, sort, None)().handleErrorsOrOk
         }
       }
 
@@ -106,17 +106,17 @@ trait ArenaController {
 
     def sortCategories: ServerEndpoint[Any, Eff] = endpoint.put
       .in("categories" / "sort")
+      .in(query[Option[Long]]("category-parent-id").description("Which parent to sort the categories for, if any"))
       .summary("Sort categories")
       .description("Sort categories")
       .in(jsonBody[List[Long]].description("List of category ids in the order they should be sorted"))
       .out(jsonBody[List[Category]])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArenaAdmin = true)
-      .serverLogicPure {
-        user =>
-          { sortedIds =>
-            arenaReadService.sortCategories(sortedIds, user).handleErrorsOrOk
-          }
+      .serverLogicPure { user =>
+        { case (parentId, sortedIds) =>
+          arenaReadService.sortCategories(parentId, sortedIds, user).handleErrorsOrOk
+        }
       }
 
     def getTopic: ServerEndpoint[Any, Eff] = endpoint.get

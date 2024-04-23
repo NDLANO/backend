@@ -144,7 +144,7 @@ class ArenaTest
   )
 
   def createCategory(title: String, description: String, shouldSucceed: Boolean = true): Response[String] = {
-    val newCategory = api.NewCategory(title = title, description = description, visible = true)
+    val newCategory = api.NewCategory(title = title, description = description, visible = true, parentCategoryId = None)
     val inBody      = newCategory.asJson.noSpaces
     val res = simpleHttpClient.send(
       quickRequest
@@ -221,7 +221,20 @@ class ArenaTest
     val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.Category]]).toTry.get
     categories.size should be(1)
     categories.head should be(
-      api.Category(1, "title", "description", 0, 0, isFollowing = false, visible = true, rank = 1)
+      api.Category(
+        1,
+        "title",
+        "description",
+        0,
+        0,
+        isFollowing = false,
+        visible = true,
+        rank = 1,
+        parentCategoryId = None,
+        categoryCount = 0,
+        subcategories = List.empty,
+        breadcrumbs = List(api.CategoryBreadcrumb(1, "title"))
+      )
     )
   }
 
@@ -291,7 +304,11 @@ class ArenaTest
       ),
       isFollowing = false,
       visible = true,
-      rank = 1
+      rank = 1,
+      categoryCount = 0,
+      subcategories = List.empty,
+      parentCategoryId = None,
+      breadcrumbs = List(api.CategoryBreadcrumb(1, "title"))
     )
 
     val categoryResp = simpleHttpClient.send(

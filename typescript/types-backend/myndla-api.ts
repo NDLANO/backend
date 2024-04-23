@@ -24,6 +24,15 @@ export interface ICategory {
   isFollowing: boolean
   visible: boolean
   rank: number
+  parentCategoryId?: number
+  categoryCount: number
+  subcategories: ICategory[]
+  breadcrumbs: ICategoryBreadcrumb[]
+}
+
+export interface ICategoryBreadcrumb {
+  id: number
+  title: string
 }
 
 export interface ICategoryWithTopics {
@@ -38,6 +47,10 @@ export interface ICategoryWithTopics {
   isFollowing: boolean
   visible: boolean
   rank: number
+  parentCategoryId?: number
+  categoryCount: number
+  subcategories: ICategory[]
+  breadcrumbs: ICategoryBreadcrumb[]
 }
 
 export interface IConfigMeta {
@@ -105,6 +118,7 @@ export interface INewCategory {
   title: string
   description: string
   visible: boolean
+  parentCategoryId?: number
 }
 
 export interface INewFlag {

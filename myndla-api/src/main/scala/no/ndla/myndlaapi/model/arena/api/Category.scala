@@ -18,5 +18,9 @@ case class Category(
     @description("Count of posts in the category") postCount: Long,
     @description("Whether the requesting user is following the category") isFollowing: Boolean,
     @description("Whether the category is visible to regular users") visible: Boolean,
-    @description("Where the category is sorted when sorting by rank") rank: Int
+    @description("Where the category is sorted when sorting by rank") rank: Int,
+    @description("The id of the parent category if any") parentCategoryId: Option[Long],
+    @description("Count of subcategories in the category") categoryCount: Long,
+    @description("Categories in the category") subcategories: List[Category],
+    @description("Breadcrumb path of categories") breadcrumbs: List[CategoryBreadcrumb]
 )
