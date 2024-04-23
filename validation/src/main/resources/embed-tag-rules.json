@@ -695,7 +695,8 @@
               "fb.watch",
               "sketchfab.com",
               "jeopardylabs.com",
-              "players.brightcove.net"
+              "players.brightcove.net",
+              ".*.uio.no"
             ]
           }
         },
