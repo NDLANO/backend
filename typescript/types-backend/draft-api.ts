@@ -124,10 +124,6 @@ export interface IEditorNote {
   timestamp: string
 }
 
-export interface IField {
-  name: TagAttribute
-}
-
 export interface IGrepCodesSearchResult {
   totalCount: number
   page: number
@@ -135,24 +131,10 @@ export interface IGrepCodesSearchResult {
   results: string[]
 }
 
-export interface IHtmlRulesAttribute {
-  fields: IField[]
-  mustContainAtLeastOneOptionalAttribute?: boolean
-}
-
-export interface IHtmlRulesFile {
-  attributes: { [ key: string ]: IHtmlRulesAttribute }
-  tags: string[]
-}
-
 export interface ILicense {
   license: string
   description?: string
   url?: string
-}
-
-export interface IMathMLRulesFile {
-  attributes: { [ key: string ]: TagAttribute[] }
 }
 
 export interface INewArticle {
@@ -294,8 +276,6 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
-
-export type TagAttribute = ("accent" | "accentunder" | "actiontype" | "align" | "alignmentscope" | "altimg" | "altimg-height" | "altimg-valign" | "altimg-width" | "alttext" | "bevelled" | "cd" | "charalign" | "charspacing" | "class" | "close" | "colspan" | "columnalign" | "columnlines" | "columnspacing" | "columnspan" | "columnwidth" | "crossout" | "decimalpoint" | "definitionURL" | "denomalign" | "depth" | "dir" | "display" | "displaystyle" | "edge" | "encoding" | "equalcolumns" | "equalrows" | "fence" | "form" | "frame" | "framespacing" | "groupalign" | "headers" | "height" | "href" | "id" | "indentalign" | "indentalignfirst" | "indentalignlast" | "indentshift" | "indentshiftfirst" | "indentshiftlast" | "indenttarget" | "infixlinebreakstyle" | "lquote" | "lspace" | "lang" | "largeop" | "length" | "lineleading" | "linethickness" | "linebreak" | "linebreakmultchar" | "linebreakstyle" | "location" | "longdivstyle" | "mathbackground" | "mathcolor" | "mathsize" | "mathvariant" | "maxsize" | "minlabelspacing" | "minsize" | "movablelimits" | "name" | "notation" | "numalign" | "open" | "overflow" | "position" | "rquote" | "rspace" | "rel" | "rowalign" | "rowlines" | "rowspacing" | "rowspan" | "scope" | "scriptlevel" | "scriptminsize" | "scriptsizemultiplier" | "selection" | "separator" | "separators" | "shift" | "side" | "span" | "src" | "stackalign" | "start" | "stretchy" | "style" | "subscriptshift" | "supscriptshift" | "symmetric" | "target" | "title" | "voffset" | "valign" | "width" | "xlink:href" | "xmlns" | "data-account" | "data-align" | "data-alt" | "data-article-id" | "data-author" | "data-authors" | "data-background" | "data-blob" | "data-blob-color" | "data-border" | "data-caption" | "data-code-format" | "data-columns" | "data-code-content" | "data-content-id" | "data-content-type" | "data-copyright" | "data-date" | "data-description" | "data-description-language" | "data-disclaimer" | "data-display" | "data-edition" | "data-email" | "data-example-ids" | "data-example-langs" | "data-focal-x" | "data-focal-y" | "data-heading-level" | "data-height" | "data-imageid" | "data-image-side" | "data-image-id" | "data-is-decorative" | "data-job-title" | "data-language" | "data-link-text" | "data-lower-right-x" | "data-lower-right-y" | "data-message" | "data-nrk-video-id" | "data-name" | "data-open-in" | "data-parallax-cell" | "data-path" | "data-player" | "data-publisher" | "data-recursive" | "data-resource" | "data-resource_id" | "data-size" | "data-subject-id" | "data-subtitle" | "data-tag" | "data-text" | "data-title" | "data-title-language" | "data-type" | "data-upper-left-x" | "data-upper-left-y" | "data-url" | "data-url-text" | "data-videoid" | "data-width" | "data-year")
 
 export type UpdateOrDeleteNewArticleMetaImage = (null | undefined | INewArticleMetaImage)
 

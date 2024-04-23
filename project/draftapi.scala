@@ -44,10 +44,7 @@ object draftapi extends Module {
       "UpdatedArticle",
       "UpdatedUserData",
       "UploadedFile",
-      "UserData",
-      "no.ndla.validation.model.HtmlRulesFile",
-      "no.ndla.validation.model.MathMLRulesFile",
-      "no.ndla.validation.TagAttribute"
+      "UserData"
     )
   )
 
