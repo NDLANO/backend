@@ -8,7 +8,7 @@
 package no.ndla.draftapi.model.domain
 
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.draftapi.service.SideEffect.SideEffect
+import no.ndla.draftapi.service.SideEffect
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 
