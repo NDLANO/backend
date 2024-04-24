@@ -412,8 +412,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("asCoverPhoto converts an image id to CoverPhoto") {
     val expectedResult =
       CoverPhoto(
-        s"http://${props.ImageApiHost}/image-api/raw/id/1",
-        s"http://${props.ImageApiHost}/image-api/v3/images/1"
+        s"${props.Domain}/image-api/raw/id/1",
+        s"${props.Domain}/image-api/v3/images/1"
       )
     val Some(result) = service.asCoverPhoto("1")
     result should equal(expectedResult)

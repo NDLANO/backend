@@ -636,10 +636,10 @@ trait ConverterService {
     }
 
     private def createUrlToImageApi(imageId: String): String = {
-      s"http://$InternalImageApiUrl/$imageId"
+      s"${ExternalApiUrls.ImageApiUrl}/$imageId"
     }
     private def createUrlToImageApiRaw(imageId: String): String = {
-      s"http://$InternalImageApiRawUrl/id/$imageId"
+      s"${ExternalApiUrls.ImageApiRawUrl}/id/$imageId"
     }
 
     private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2): EmbedUrlV2 = {
