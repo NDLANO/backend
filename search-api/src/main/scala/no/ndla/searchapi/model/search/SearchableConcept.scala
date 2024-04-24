@@ -24,7 +24,7 @@ case class SearchableConcept(
     metaImage: Seq[ConceptMetaImage],
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
-    subjectIds: Seq[String],
+    subjectIds: List[String],
     lastUpdated: NDLADate,
     status: Status,
     updatedBy: Seq[String],

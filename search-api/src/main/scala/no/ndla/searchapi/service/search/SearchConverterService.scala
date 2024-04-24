@@ -334,7 +334,7 @@ trait SearchConverterService {
           defaultTitle = title.defaultValue,
           metaImage = c.metaImage,
           tags = tags,
-          subjectIds = c.subjectIds.toSeq,
+          subjectIds = c.subjectIds.toList,
           lastUpdated = c.updated,
           status = status,
           updatedBy = c.updatedBy,
@@ -630,7 +630,8 @@ trait SearchConverterService {
         primaryRootName = None,
         published = None,
         favorited = None,
-        resultType = SearchType.Articles
+        resultType = SearchType.Articles,
+        conceptSubjectIds = None
       )
     }
 
@@ -696,7 +697,8 @@ trait SearchConverterService {
         primaryRootName = primaryRootName,
         published = Some(searchableDraft.published),
         favorited = Some(searchableDraft.favorited),
-        resultType = SearchType.Drafts
+        resultType = SearchType.Drafts,
+        conceptSubjectIds = None
       )
     }
 
@@ -753,7 +755,8 @@ trait SearchConverterService {
         primaryRootName = None,
         published = None,
         favorited = Some(searchableLearningPath.favorited),
-        resultType = SearchType.LearningPaths
+        resultType = SearchType.LearningPaths,
+        conceptSubjectIds = None
       )
     }
 
@@ -806,7 +809,8 @@ trait SearchConverterService {
         primaryRootName = None,
         published = None,
         favorited = Some(searchableConcept.favorited),
-        resultType = SearchType.Concepts
+        resultType = SearchType.Concepts,
+        conceptSubjectIds = Some(searchableConcept.subjectIds)
       )
     }
 

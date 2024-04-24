@@ -217,6 +217,7 @@ export interface IMultiSearchSummary {
   published?: string
   favorited?: number
   resultType: SearchType
+  conceptSubjectIds?: string[]
 }
 
 export interface IMultiSearchTermsAggregation {

@@ -304,6 +304,7 @@ trait MultiDraftSearchService {
       val learningResourceType        = learningResourceFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
+      val conceptSubjectFilter        = subjectFilterForConcept(settings.subjects)
       val taxonomyTopicFilter         = topicFilter(settings.topics, settings.filterInactive)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
       val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
@@ -314,6 +315,7 @@ trait MultiDraftSearchService {
         articleTypeFilter,
         languageFilter,
         taxonomySubjectFilter,
+        conceptSubjectFilter,
         taxonomyTopicFilter,
         taxonomyResourceTypesFilter,
         taxonomyContextActiveFilter,
@@ -330,6 +332,12 @@ trait MultiDraftSearchService {
         priorityFilter,
         learningResourceType
       ).flatten
+    }
+
+    private def subjectFilterForConcept(subjectIds: List[String]): Option[Query] = {
+      Option.when(subjectIds.nonEmpty) {
+        mustBeNotConceptOr(termsQuery("subjectIds", subjectIds))
+      }
     }
 
     private def learningResourceFilter(types: List[LearningResourceType]): Option[Query] =

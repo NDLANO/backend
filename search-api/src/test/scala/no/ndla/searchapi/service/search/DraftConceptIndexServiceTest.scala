@@ -67,7 +67,7 @@ class DraftConceptIndexServiceTest
       metaImage = Seq(ConceptMetaImage("1", "alt", "nb")),
       defaultTitle = Some("hei"),
       tags = languageList,
-      subjectIds = Seq("urn:subject:1"),
+      subjectIds = List("urn:subject:1"),
       lastUpdated = now,
       status = api.Status("IN_PROGRESS", Seq("PUBLISHED")),
       updatedBy = Seq("noen"),

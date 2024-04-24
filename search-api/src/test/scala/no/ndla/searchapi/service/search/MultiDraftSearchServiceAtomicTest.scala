@@ -1291,4 +1291,76 @@ class MultiDraftSearchServiceAtomicTest
       search.results.map(_.id) should be(Seq(5))
     }
   }
+
+  test("That responsible filtering works for concepts") {
+    val responsible = Responsible("some-user", TestData.today)
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      articleType = ArticleType.Standard,
+      responsible = Some(responsible)
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      articleType = ArticleType.Standard,
+      responsible = None
+    )
+    val concept3 = TestData.sampleNbDomainConcept.copy(
+      id = Some(3),
+      conceptType = ConceptType.CONCEPT,
+      responsible = Some(responsible)
+    )
+
+    draftIndexService.indexDocument(draft1, indexingBundle).get
+    draftIndexService.indexDocument(draft2, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept3, indexingBundle).get
+
+    blockUntil(() => draftIndexService.countDocuments == 2 && draftConceptIndexService.countDocuments == 1)
+
+    val search = multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          resultTypes = Some(SearchType.values.toList),
+          responsibleIdFilter = List("some-user")
+        )
+      )
+      .get
+    search.results.map(_.id) should be(Seq(1, 3))
+  }
+
+  test("That subject filtering works for concepts") {
+    val responsible = Responsible("some-user", TestData.today)
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      articleType = ArticleType.Standard,
+      responsible = Some(responsible)
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      articleType = ArticleType.Standard,
+      responsible = None
+    )
+    val concept3 = TestData.sampleNbDomainConcept.copy(
+      id = Some(3),
+      conceptType = ConceptType.CONCEPT,
+      responsible = Some(responsible),
+      subjectIds = Set("urn:subject:1000")
+    )
+
+    draftIndexService.indexDocument(draft1, indexingBundle).get
+    draftIndexService.indexDocument(draft2, indexingBundle).get
+    draftConceptIndexService.indexDocument(concept3, indexingBundle).get
+
+    blockUntil(() => draftIndexService.countDocuments == 2 && draftConceptIndexService.countDocuments == 1)
+
+    val search = multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          resultTypes = Some(SearchType.values.toList),
+          subjects = List("urn:subject:1000"),
+          filterInactive = true
+        )
+      )
+      .get
+    search.results.map(_.id) should be(Seq(3))
+  }
 }

@@ -54,7 +54,8 @@ case class MultiSearchSummary(
     @description("Name of the primary context root if exists") primaryRootName: Option[String],
     @description("When the article was last published") published: Option[NDLADate],
     @description("Number of times favorited in MyNDLA") favorited: Option[Long],
-    @description("Type of the resource") resultType: SearchType
+    @description("Type of the resource") resultType: SearchType,
+    @description("Subject ids for the resource, if a concept") conceptSubjectIds: Option[List[String]]
 )
 // format: on
 
