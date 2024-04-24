@@ -44,6 +44,11 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
+  object ExternalApiUrls {
+    def ImageApiUrl    = s"$Domain/image-api/v3/images"
+    def ImageApiRawUrl = s"$Domain/image-api/raw"
+  }
+
   def NdlaFrontendHost: String = propOrElse(
     "NDLA_FRONTEND_HOST",
     Environment match {
