@@ -324,11 +324,21 @@ trait FolderRepository {
         }
     }
 
-    def getRecentFavorited(size: Option[Int])(implicit session: DBSession = AutoSession): Try[Seq[String]] = Try {
-      sql"select resource_id from ${FolderResource.table} order by favorited_date DESC limit ${size.getOrElse(1)}"
-        .map(rs => rs.string("resource_id"))
+    def getRecentFavorited(size: Option[Int])(implicit session: DBSession = AutoSession): Try[List[Resource]] = Try {
+      val fr = FolderResource.syntax("fr")
+      val r  = Resource.syntax("r")
+      sql"""select ${r.result.*}, ${fr.result.*} from ${FolderResource.as(fr)}
+            left join ${Resource.as(r)}
+                on ${fr.resourceId} = ${r.id}
+            order by favorited_date DESC
+            limit ${size.getOrElse(1)}
+           """
+        .one(Resource.fromResultSet(r, withConnection = false))
+        .toOne(rs => FolderResource.fromResultSet(fr)(rs).toOption)
+        .map((resource, connection) => resource.map(_.copy(connection = connection)))
         .list()
-    }
+        .sequence
+    }.flatten
 
     def numberOfFavouritesForResource(resourceId: String, resourceType: String)(implicit
         session: DBSession

@@ -273,9 +273,12 @@ trait FolderReadService {
       folderRepository.getAllFavorites(session)
     }
 
-    def getRecentFavorite(size: Option[Int]): Try[Seq[String]] = {
+    def getRecentFavorite(size: Option[Int]): Try[List[Resource]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
-      folderRepository.getRecentFavorited(size)(session)
+      folderRepository.getRecentFavorited(size)(session) match {
+        case Failure(ex)    => Failure(ex)
+        case Success(value) => value.traverse(r => folderConverterService.toApiResource(r, isOwner = false))
+      }
     }
 
     def getFavouriteStatsForResource(
