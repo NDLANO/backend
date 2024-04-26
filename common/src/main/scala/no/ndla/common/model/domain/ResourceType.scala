@@ -11,6 +11,7 @@ import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import sttp.tapir.Codec.PlainCodec
+import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class ResourceType(override val entryName: String) extends EnumEntry {
@@ -21,7 +22,7 @@ object ResourceType extends Enum[ResourceType] with CirceEnum[ResourceType] {
   override val values: IndexedSeq[ResourceType] = findValues
 
   implicit val codec: PlainCodec[ResourceType] = plainCodecEnumEntry[ResourceType]
-
+  implicit val schema: Schema[ResourceType]    = schemaForEnumEntry[ResourceType]
   implicit val enumTsType: TSNamedType[ResourceType] =
     TSType.alias[ResourceType]("ResourceType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 

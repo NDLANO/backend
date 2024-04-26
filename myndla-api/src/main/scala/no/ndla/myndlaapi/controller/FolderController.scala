@@ -63,7 +63,7 @@ trait FolderController {
     private val queryExcludeResourceTypes =
       listQuery[ResourceType]("exclude")
         .description(
-          s"Which resource types to exclude. Available values are ${ResourceType.values.mkString(", ")}. If None all resource types are included. To provide multiple resource types, separate by comma (,)."
+          s"Which resource types to exclude. If None all resource types are included. To provide multiple resource types, separate by comma (,)."
         )
 
     import io.circe.generic.auto._
