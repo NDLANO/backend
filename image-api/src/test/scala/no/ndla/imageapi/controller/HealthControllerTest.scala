@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA image-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.imageapi.controller
 
 import no.ndla.common.model.NDLADate
