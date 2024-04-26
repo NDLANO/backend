@@ -324,12 +324,19 @@ trait FolderRepository {
         }
     }
 
-    def getRecentFavorited(size: Option[Int])(implicit session: DBSession = AutoSession): Try[List[Resource]] = Try {
+    def getRecentFavorited(size: Option[Int], excludeResourceTypes: List[ResourceType])(implicit
+        session: DBSession = AutoSession
+    ): Try[List[Resource]] = Try {
       val fr = FolderResource.syntax("fr")
       val r  = Resource.syntax("r")
+      val where =
+        if (excludeResourceTypes.nonEmpty) {
+          sqls"""where ${r.resourceType} not in (${excludeResourceTypes.map(_.entryName)})"""
+        } else { sqls"" }
       sql"""select ${r.result.*}, ${fr.result.*} from ${FolderResource.as(fr)}
             left join ${Resource.as(r)}
                 on ${fr.resourceId} = ${r.id}
+            $where
             order by favorited_date DESC
             limit ${size.getOrElse(1)}
            """

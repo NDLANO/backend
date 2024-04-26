@@ -13,6 +13,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.SingleResourceStats
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.model.api.{ExportedUserData, Folder, Resource}
 import no.ndla.myndlaapi.model.{api, domain}
@@ -273,9 +274,9 @@ trait FolderReadService {
       folderRepository.getAllFavorites(session)
     }
 
-    def getRecentFavorite(size: Option[Int]): Try[List[Resource]] = {
+    def getRecentFavorite(size: Option[Int], excludeResourceTypes: List[ResourceType]): Try[List[Resource]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
-      folderRepository.getRecentFavorited(size)(session) match {
+      folderRepository.getRecentFavorited(size, excludeResourceTypes)(session) match {
         case Failure(ex)    => Failure(ex)
         case Success(value) => value.traverse(r => folderConverterService.toApiResource(r, isOwner = false))
       }

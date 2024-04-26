@@ -7,6 +7,8 @@
 
 package no.ndla.myndlaapi.controller
 
+import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.api.{
   Folder,
@@ -58,6 +60,11 @@ trait FolderController {
     private val queryRecentSize =
       query[Option[Int]]("size")
         .description("How many latest favorited resources to return")
+    private val queryExcludeResourceTypes =
+      listQuery[ResourceType]("exclude")
+        .description(
+          s"Which resource types to exclude. If None all resource types are included. To provide multiple resource types, separate by comma (,)."
+        )
 
     import io.circe.generic.auto._
 
@@ -146,10 +153,13 @@ trait FolderController {
       .in("resources")
       .in("recent")
       .in(queryRecentSize)
+      .in(queryExcludeResourceTypes)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[Seq[Resource]])
-      .serverLogicPure { case (queryRecentSize) =>
-        folderReadService.getRecentFavorite(queryRecentSize).handleErrorsOrOk
+      .serverLogicPure { case (queryRecentSize, queryExcludeResourceTypes) =>
+        folderReadService
+          .getRecentFavorite(queryRecentSize, queryExcludeResourceTypes.values)
+          .handleErrorsOrOk
       }
 
     private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint.post
