@@ -717,6 +717,7 @@ class CloneFolderTest
         Some(feideId)
       )
       .get
+      .folders
 
     allFolders.size should be(2)
     allFolders.head.name should be("toCopy")

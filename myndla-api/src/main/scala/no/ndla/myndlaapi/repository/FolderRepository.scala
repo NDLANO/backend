@@ -19,6 +19,7 @@ import no.ndla.myndlaapi.model.domain.{
   Folder,
   FolderResource,
   FolderStatus,
+  FolderUser,
   NDLASQLException,
   NewFolderData,
   Resource,
@@ -780,9 +781,89 @@ trait FolderRepository {
         s"Inserted new folder resource with id ${folderResourceRow.folder_id}_${folderResourceRow.resource_id}"
       )
     }
+
+    def createFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
+        session: DBSession = AutoSession
+    ): Try[FolderUser] = Try {
+      withSQL {
+        insert
+          .into(FolderUser)
+          .namedValues(
+            FolderUser.column.folderId -> folderId,
+            FolderUser.column.feideId  -> feideId
+          )
+      }.update(): Unit
+      logger.info(s"Inserted new sharedFolder-user connection with folder id $folderId and feide id $feideId")
+
+      FolderUser(folderId = folderId, feideId = feideId)
+    }
+
+    def deleteFolderUserConnections(
+        folderIds: List[UUID]
+    )(implicit session: DBSession = AutoSession): Try[List[UUID]] = Try {
+      val column = FolderUser.column.c _
+      withSQL {
+        delete
+          .from(FolderUser)
+          .where
+          .in(column("folder_id"), folderIds)
+      }.update()
+    } match {
+      case Failure(ex) => Failure(ex)
+      case Success(numRows) =>
+        logger.info(s"Deleted $numRows shared folder user connections with folder ids (${folderIds.mkString(", ")})")
+        Success(folderIds)
+    }
+
+    def deleteFolderUserConnection(
+        folderId: Option[UUID],
+        feideId: Option[FeideID]
+    )(implicit session: DBSession = AutoSession): Try[Int] = Try {
+      (folderId, feideId) match {
+        case (Some(folderId), Some(feideId)) =>
+          deleteFolderUserConnectionWhere(sqls"folder_id = $folderId AND feide_id = $feideId")
+        case (Some(folderId), None) =>
+          deleteFolderUserConnectionWhere(sqls"folder_id = $folderId ")
+        case (None, Some(feideId)) =>
+          deleteFolderUserConnectionWhere(sqls"feide_id = $feideId")
+        case (None, None) => Failure(NDLASQLException("No feide id or folder id provided"))
+      }
+    }.flatMap {
+      case Failure(ex)     => Failure(ex)
+      case Success(numRow) => Success(numRow)
+    }
+
+    private def deleteFolderUserConnectionWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession): Try[Int] = {
+      val f = FolderUser.syntax("f")
+      Try(
+        sql"DELETE FROM ${FolderUser.as(f)} WHERE $whereClause".update()
+      ) match {
+        case Failure(ex) => Failure(ex)
+        case Success(numRows) =>
+          logger.info(s"Deleted $numRows from shared folder user connections")
+          Success(numRows)
+      }
+    }
+
+    def getSavedSharedFolder(
+        feideId: FeideID
+    )(implicit session: DBSession = AutoSession): Try[List[Folder]] = Try {
+      val f   = Folder.syntax("f")
+      val sfu = FolderUser.syntax("sfu")
+      sql"""
+          SELECT ${f.result.*}
+          FROM ${Folder.as(f)}
+          LEFT JOIN ${FolderUser.as(sfu)} on sfu.folder_id = f.id
+          WHERE sfu.feide_id = $feideId
+        """
+        .map(Folder.fromResultSet(f))
+        .list()
+        .sequence
+    }.flatten
   }
 }
-
 case class FolderRow(
     id: UUID,
     parent_id: Option[UUID],

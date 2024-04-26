@@ -644,4 +644,42 @@ class FolderRepositoryTest
     res.get.get should be(folder1.get.copy(subfolders = List(folder2.get)))
   }
 
+  test("that creating folder user connection works") {
+    implicit val session: AutoSession.type = AutoSession
+    val created                            = NDLADate.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
+    val feideId = "feide"
+
+    val folder1 =
+      repository.insertFolder("feide", TestData.baseFolderDocument.copy(status = FolderStatus.SHARED)).failIfFailure
+
+    repository.createFolderUserConnection(folder1.id, feideId).failIfFailure
+
+    val res = repository.getSavedSharedFolder(feideId)
+
+    res.get should have.length(1)
+    res.get should contain(folder1)
+  }
+
+  test("that deleting folder user connection works") {
+    implicit val session: AutoSession.type = AutoSession
+
+    val created = NDLADate.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
+    val feideId = "feide"
+
+    val folder1 =
+      repository.insertFolder("feide", TestData.baseFolderDocument.copy(status = FolderStatus.SHARED)).failIfFailure
+    val userFolder = repository.createFolderUserConnection(folder1.id, feideId)
+    val numRows    = repository.deleteFolderUserConnection(folder1.id.some, feideId.some)
+
+    val res = repository.getSavedSharedFolder(feideId).failIfFailure
+
+    numRows.get should be(1)
+    res should have.length(0)
+    res should not contain userFolder
+
+  }
 }

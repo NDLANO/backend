@@ -14,7 +14,7 @@ import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.SingleResourceStats
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
-import no.ndla.myndlaapi.model.api.{ExportedUserData, Folder, Resource}
+import no.ndla.myndlaapi.model.api.{ExportedUserData, Folder, Resource, UserFolder}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.FolderStatus
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
@@ -38,30 +38,75 @@ trait FolderReadService {
   val folderReadService: FolderReadService
 
   class FolderReadService {
+    private def getSubFoldersAndResources(
+        topFolders: List[domain.Folder],
+        includeSubfolders: Boolean,
+        includeResources: Boolean,
+        feideId: FeideID
+    )(session: DBSession): Try[List[Folder]] = {
+      for {
+        withFavorite <- mergeWithFavorite(topFolders, feideId)
+        withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(session)
+        feideUser    <- userRepository.userWithFeideId(feideId)(session)
+        apiFolders <- folderConverterService.domainToApiModel(
+          withData,
+          v =>
+            folderConverterService.toApiFolder(
+              v,
+              List(api.Breadcrumb(id = v.id.toString, name = v.name)),
+              feideUser,
+              feideUser.exists(_.feideId == v.feideId)
+            )
+        )
+        sorted = apiFolders.sortBy(_.rank)
+      } yield sorted
+    }
 
+    private def getSharedSubFoldersAndResources(
+        topFolders: List[domain.Folder],
+        feideId: FeideID
+    )(session: DBSession) = {
+      for {
+        withData <- topFolders
+          .traverse(f => {
+            val folderWithContent =
+              folderRepository.getFolderAndChildrenSubfoldersWithResources(f.id, FolderStatus.SHARED, Option(feideId))(
+                session
+              )
+            getWith404IfNone(f.id, folderWithContent)
+          })
+        apiFolders <- folderConverterService.domainToApiModel(
+          withData,
+          (v: domain.Folder) => {
+            for {
+              user <- userRepository.userWithFeideId(v.feideId)(session)
+              converted <-
+                folderConverterService.toApiFolder(
+                  v,
+                  List(api.Breadcrumb(id = v.id.toString, name = v.name)),
+                  user,
+                  user.exists(_.feideId == v.feideId)
+                )
+            } yield converted
+          }
+        )
+        sorted = apiFolders.sortBy(_.rank)
+      } yield sorted
+
+    }
     private def getFoldersAuthenticated(
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideId: FeideID
-    ): Try[List[Folder]] = {
+    ): Try[UserFolder] = {
       folderRepository.rollbackOnFailure(session => {
         for {
-          topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)(session)
-          withFavorite <- mergeWithFavorite(topFolders, feideId)
-          withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(session)
-          feideUser    <- userRepository.userWithFeideId(feideId)(session)
-          apiFolders <- folderConverterService.domainToApiModel(
-            withData,
-            v =>
-              folderConverterService.toApiFolder(
-                v,
-                List(api.Breadcrumb(id = v.id.toString, name = v.name)),
-                feideUser,
-                feideUser.exists(_.feideId == v.feideId)
-              )
-          )
-          sorted = apiFolders.sortBy(_.rank)
-        } yield sorted
+          myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)
+          savedSharedFolders <- folderRepository.getSavedSharedFolder(feideId)
+          folders       <- getSubFoldersAndResources(myFolders, includeSubfolders, includeResources, feideId)(session)
+          sharedFolders <- getSharedSubFoldersAndResources(savedSharedFolders, feideId)(session)
+
+        } yield UserFolder(folders = folders, sharedFolders = sharedFolders)
       })
     }
 
@@ -147,7 +192,7 @@ trait FolderReadService {
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[List[Folder]] = {
+    ): Try[UserFolder] = {
       withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, _))
     }
 
@@ -308,7 +353,7 @@ trait FolderReadService {
         feideUser <- getFeideUserDataAuthenticated(feideId, maybeFeideAccessToken)
       } yield api.ExportedUserData(
         userData = feideUser,
-        folders = folders
+        folders = folders.folders
       )
 
   }
