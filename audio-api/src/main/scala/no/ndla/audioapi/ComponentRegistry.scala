@@ -10,12 +10,12 @@ package no.ndla.audioapi
 
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.audioapi.controller._
-import no.ndla.audioapi.integration._
+import no.ndla.audioapi.controller.*
+import no.ndla.audioapi.integration.*
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
-import no.ndla.audioapi.service._
-import no.ndla.audioapi.service.search._
+import no.ndla.audioapi.service.*
+import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
@@ -36,7 +36,6 @@ class ComponentRegistry(properties: AudioApiProperties)
     with AudioStorageService
     with InternController
     with NdlaMiddleware
-    with HealthController
     with TapirHealthController
     with AudioController
     with SeriesController
@@ -79,10 +78,10 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val validationService = new ValidationService
   lazy val converterService  = new ConverterService
 
-  lazy val internController   = new InternController
-  lazy val audioApiController = new AudioController
-  lazy val seriesController   = new SeriesController
-  lazy val healthController   = new HealthController
+  lazy val internController                             = new InternController
+  lazy val audioApiController                           = new AudioController
+  lazy val seriesController                             = new SeriesController
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
 
   var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchConverterService = new SearchConverterService
@@ -96,7 +95,7 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val clock = new SystemClock
 
   private val swagger = new SwaggerController(
-    List(
+    List[Service[Eff]](
       audioApiController,
       seriesController,
       internController,

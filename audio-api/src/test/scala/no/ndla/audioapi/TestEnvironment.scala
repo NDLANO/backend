@@ -10,15 +10,15 @@ package no.ndla.audioapi
 
 import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
-import no.ndla.audioapi.integration._
+import no.ndla.audioapi.controller.{AudioController, InternController, SeriesController}
+import no.ndla.audioapi.integration.*
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
-import no.ndla.audioapi.service._
-import no.ndla.audioapi.service.search._
+import no.ndla.audioapi.service.*
+import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -36,8 +36,6 @@ trait TestEnvironment
     with InternController
     with Routes[Eff]
     with NdlaMiddleware
-    with HealthController
-    with TapirHealthController
     with AudioController
     with SeriesController
     with Elastic4sClient
@@ -73,7 +71,6 @@ trait TestEnvironment
 
   val internController: InternController  = mock[InternController]
   val audioApiController: AudioController = mock[AudioController]
-  val healthController: HealthController  = mock[HealthController]
   val seriesController: SeriesController  = mock[SeriesController]
 
   var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]

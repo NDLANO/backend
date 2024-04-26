@@ -9,13 +9,14 @@
 package no.ndla.imageapi
 
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.imageapi.controller._
-import no.ndla.imageapi.integration._
+import no.ndla.imageapi.controller.*
+import no.ndla.imageapi.integration.*
 import no.ndla.imageapi.model.api.ErrorHelpers
 import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service._
+import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
   ImageIndexService,
   ImageSearchService,
@@ -75,8 +76,8 @@ class ComponentRegistry(properties: ImageApiProperties)
     with TapirHealthController {
   override val props: ImageApiProperties = properties
 
-  override val migrator   = new DBMigrator
-  override val dataSource = DataSource.getHikariDataSource
+  override val migrator                     = new DBMigrator
+  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
   val amazonClient: AmazonS3 =
