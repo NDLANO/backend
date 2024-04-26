@@ -204,6 +204,13 @@ trait ImageRepository {
       }
     }
 
+    def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
+      val im = ImageMetaInformation.syntax("im")
+      sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where metadata is not null order by random() limit 1"
+        .map(ImageMetaInformation.fromResultSet(im))
+        .single()
+    }
+
     def getByPage(pageSize: Int, offset: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Seq[ImageMetaInformation] = {
