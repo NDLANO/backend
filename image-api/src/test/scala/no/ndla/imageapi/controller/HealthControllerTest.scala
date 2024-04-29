@@ -76,9 +76,6 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("that /health/liveness returns 200 on aws failure") {
     healthControllerResponse = 200
-    when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
-    when(imageStorage.objectExists("file.jpg")).thenReturn(false)
-
     val request =
       quickRequest
         .get(uri"http://localhost:$serverPort/health/liveness")
