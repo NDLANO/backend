@@ -20,7 +20,7 @@ import scalikejdbc.*
 import scala.util.{Success, Try}
 
 trait ImageRepository {
-  this: DataSource with ConverterService =>
+  this: DataSource & ConverterService =>
   val imageRepository: ImageRepository
 
   class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
@@ -174,7 +174,7 @@ trait ImageRepository {
         .list()
     }
 
-    def withAndWithoutPrefixSlash(str: String): (String, String) = {
+    private def withAndWithoutPrefixSlash(str: String): (String, String) = {
       val without = str.dropWhile(_ == '/')
       (without, s"/$without")
     }
@@ -202,6 +202,17 @@ trait ImageRepository {
         case Some(minmax) => minmax
         case None         => (0L, 0L)
       }
+    }
+
+    def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
+      val im  = ImageMetaInformation.syntax("im")
+      val dif = Image.syntax("dif")
+      sql"""SELECT ${im.result.*}
+           FROM ${ImageMetaInformation.as(im)}
+           LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
+           WHERE metadata is not null order by random() limit 1"""
+        .map(ImageMetaInformation.fromResultSet(im))
+        .single()
     }
 
     def getByPage(pageSize: Int, offset: Int)(implicit

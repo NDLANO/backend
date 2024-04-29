@@ -20,9 +20,7 @@ import sttp.client3.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   var healthControllerResponse: Int = 200
-  val controller: HealthController = new HealthController {
-    override def getApiResponse(url: String): Int = healthControllerResponse
-  }
+  val controller: HealthController  = new HealthController
   controller.setWarmedUp()
 
   override def beforeAll(): Unit = {
@@ -58,6 +56,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that /health returns 200 on success") {
     healthControllerResponse = 200
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
+    when(audioStorage.objectExists("file.mp3")).thenReturn(true)
 
     val request =
       quickRequest
@@ -70,6 +69,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that /health returns 500 on failure") {
     healthControllerResponse = 500
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
+    when(audioStorage.objectExists("file.mp3")).thenReturn(false)
 
     val request =
       quickRequest
@@ -79,9 +79,10 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     response.code.code should be(500)
   }
 
-  test("that /health returns 200 on no images") {
+  test("that /health returns 200 on no audios") {
     healthControllerResponse = 404
     when(audioRepository.getRandomAudio()).thenReturn(None)
+    when(audioStorage.objectExists("file.mp3")).thenReturn(false)
 
     val request =
       quickRequest

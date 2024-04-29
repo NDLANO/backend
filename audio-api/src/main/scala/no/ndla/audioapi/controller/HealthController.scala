@@ -10,35 +10,26 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.{Eff, Props}
 import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.AudioStorageService
 import no.ndla.network.tapir.TapirHealthController
-import sttp.client3.quick._
 
 trait HealthController {
-  this: AudioRepository with Props with TapirHealthController =>
+  this: AudioStorageService & AudioRepository & Props & TapirHealthController =>
   val healthController: HealthController
 
   class HealthController extends TapirHealthController[Eff] {
-    private val localhost = "localhost"
-    private val localport = props.ApplicationPort
-
-    def getApiResponse(url: String): Int = {
-      simpleHttpClient.send(quickRequest.get(uri"$url")).code.code
-    }
-
-    private def getReturnCode(imageResponse: Int) = {
-      imageResponse match {
-        case 200 => Right("Healthy")
-        case _   => Left("Internal server error")
-      }
-    }
 
     override def checkHealth(): Either[String, String] = {
       audioRepository
         .getRandomAudio()
-        .map(audio => {
-          val id         = audio.id.get
-          val previewUrl = s"http://$localhost:$localport${props.AudioControllerPath}$id"
-          getReturnCode(getApiResponse(previewUrl))
+        .flatMap(audio => {
+          audio.filePaths.headOption.map(filePath => {
+            if (audioStorage.objectExists(filePath.filePath)) {
+              Right("Healthy")
+            } else {
+              Left("Internal server error")
+            }
+          })
         })
         .getOrElse(Right("Healthy"))
     }

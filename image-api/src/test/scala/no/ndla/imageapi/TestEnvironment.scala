@@ -13,15 +13,16 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.imageapi.controller.{
   BaseImageController,
+  HealthController,
   ImageControllerV2,
   ImageControllerV3,
   InternController,
   RawController
 }
-import no.ndla.imageapi.integration._
+import no.ndla.imageapi.integration.*
 import no.ndla.imageapi.model.api.ErrorHelpers
-import no.ndla.imageapi.repository._
-import no.ndla.imageapi.service._
+import no.ndla.imageapi.repository.*
+import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
   ImageIndexService,
   ImageSearchService,
@@ -32,7 +33,7 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -55,6 +56,8 @@ trait TestEnvironment
     with ImageStorageService
     with ImageIndexService
     with NdlaClient
+    with HealthController
+    with TapirHealthController
     with InternController
     with BaseImageController
     with ImageControllerV2
@@ -90,6 +93,7 @@ trait TestEnvironment
 
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
   val rawController: RawController                   = mock[RawController]
+  val healthController: HealthController             = mock[HealthController]
   val internController: InternController             = mock[InternController]
   val imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
   val imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
