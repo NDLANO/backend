@@ -74,7 +74,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     response.code.code should be(200)
   }
 
-  test("that /health/liveness returns 200 on aws failure") {
+  test("that /health/liveness returns 200") {
     healthControllerResponse = 200
     val request =
       quickRequest
