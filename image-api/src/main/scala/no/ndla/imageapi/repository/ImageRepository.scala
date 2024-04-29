@@ -210,7 +210,7 @@ trait ImageRepository {
       sql"""SELECT ${im.result.*}
            FROM ${ImageMetaInformation.as(im)}
            LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
-           WHERE metadata is not null order by random() limit 1"""
+           WHERE im.metadata is not null order by random() limit 1"""
         .map(ImageMetaInformation.fromResultSet(im))
         .single()
     }
