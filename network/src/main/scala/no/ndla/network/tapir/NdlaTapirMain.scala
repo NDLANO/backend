@@ -44,7 +44,9 @@ trait NdlaTapirMain[F[_]] {
     setPropsFromEnv()
 
     logCopyrightHeader()
-    beforeStart()
-    startServer(props.ApplicationName, props.ApplicationPort) { performWarmup() }
+    startServer(props.ApplicationName, props.ApplicationPort) {
+      beforeStart()
+      performWarmup()
+    }
   }
 }

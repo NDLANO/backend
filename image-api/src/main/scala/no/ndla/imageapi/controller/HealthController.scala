@@ -19,7 +19,7 @@ trait HealthController {
 
   class HealthController extends TapirHealthController[Eff] {
 
-    override def checkHealth(): Either[String, String] = {
+    override def checkReadiness(): Either[String, String] = {
       imageRepository
         .getRandomImage()
         .flatMap(image => {
