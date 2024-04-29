@@ -102,12 +102,13 @@ trait Routes[F[_]] {
         val startTime = System.currentTimeMillis()
 
         if (shouldLogRequest(req)) {
+          val headerString = s"Headers: ${req.headers.map(h => s"'${h.name}': '${h.value}'")}"
           val s = RequestLogger.beforeRequestLogString(
             method = req.method.toString(),
             requestPath = s"/${req.uri.path.mkString("/")}",
             queryString = req.queryParameters.toString(false)
           )
-          logger.info(s)
+          logger.info(s"$s -> $headerString")
         }
 
         req.attribute(beforeTime, startTime)
