@@ -22,14 +22,14 @@ trait HealthController {
     override def checkHealth(): Either[String, String] = {
       audioRepository
         .getRandomAudio()
-        .map(audio => {
+        .flatMap(audio => {
           audio.filePaths.headOption.map(filePath => {
             if (audioStorage.objectExists(filePath.filePath)) {
               Right("Healthy")
             } else {
               Left("Internal server error")
             }
-          }).getOrElse(Right("Healthy"))
+          })
         })
         .getOrElse(Right("Healthy"))
     }

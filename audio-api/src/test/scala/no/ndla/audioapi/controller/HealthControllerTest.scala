@@ -20,7 +20,7 @@ import sttp.client3.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
   var healthControllerResponse: Int = 200
-  val controller: HealthController = new HealthController
+  val controller: HealthController  = new HealthController
   controller.setWarmedUp()
 
   override def beforeAll(): Unit = {

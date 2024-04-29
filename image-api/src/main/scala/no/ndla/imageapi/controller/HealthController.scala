@@ -22,9 +22,9 @@ trait HealthController {
     override def checkHealth(): Either[String, String] = {
       imageRepository
         .getRandomImage()
-        .map(image => {
+        .flatMap(image => {
           image.images
-            .map(imgMeta => {
+            .flatMap(imgMeta => {
               imgMeta.headOption
                 .map(img => {
                   if (imageStorage.objectExists(img.fileName)) {
@@ -33,9 +33,7 @@ trait HealthController {
                     Left("Internal server error")
                   }
                 })
-                .getOrElse(Right("Healthy"))
             })
-            .getOrElse(Right("Healthy"))
         })
         .getOrElse(Right("Healthy"))
     }
