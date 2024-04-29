@@ -60,7 +60,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val request =
       quickRequest
-        .get(uri"http://localhost:$serverPort/health")
+        .get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
@@ -73,7 +73,31 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val request =
       quickRequest
-        .get(uri"http://localhost:$serverPort/health")
+        .get(uri"http://localhost:$serverPort/health/readiness")
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(500)
+  }
+
+  test("that /health/liveness returns 200 on aws failure") {
+    when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
+    when(audioStorage.objectExists("file.mp3")).thenReturn(false)
+
+    val request =
+      quickRequest
+        .get(uri"http://localhost:$serverPort/health/liveness")
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(200)
+  }
+
+  test("that /health/readiness returns 500 on aws failure") {
+    when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
+    when(audioStorage.objectExists("file.mp3")).thenReturn(false)
+
+    val request =
+      quickRequest
+        .get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(500)
@@ -86,7 +110,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val request =
       quickRequest
-        .get(uri"http://localhost:$serverPort/health")
+        .get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)

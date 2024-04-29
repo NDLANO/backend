@@ -89,9 +89,10 @@ trait Routes[F[_]] {
 
     object JDKMiddleware {
       private def shouldLogRequest(req: ServerRequest): Boolean = {
-        if (req.uri.path.size != 1) return true
-        if (req.uri.path.head == "metrics") return false
-        if (req.uri.path.head == "health") return false
+        if (req.uri.path.size == 1) {
+          if (req.uri.path.head == "metrics") return false
+          if (req.uri.path.head == "health") return false
+        } else if (req.uri.path.size > 1 && req.uri.path.head == "health") return false
         true
       }
 

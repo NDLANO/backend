@@ -61,27 +61,40 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Seq.empty
   )
 
-  test("that /health returns 200 on success") {
+  test("that /health/readiness returns 200 on success") {
     healthControllerResponse = 200
     when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
     when(imageStorage.objectExists("file.jpg")).thenReturn(true)
 
     val request =
       quickRequest
-        .get(uri"http://localhost:$serverPort/health")
+        .get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
   }
 
-  test("that /health returns 500 on failure") {
+  test("that /health/liveness returns 200 on aws failure") {
+    healthControllerResponse = 200
+    when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
+    when(imageStorage.objectExists("file.jpg")).thenReturn(false)
+
+    val request =
+      quickRequest
+        .get(uri"http://localhost:$serverPort/health/liveness")
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(200)
+  }
+
+  test("that /health/readiness returns 500 on failure") {
     healthControllerResponse = 500
     when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
     when(imageStorage.objectExists("file.jpg")).thenReturn(false)
 
     val request =
       quickRequest
-        .get(uri"http://localhost:$serverPort/health")
+        .get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(500)
