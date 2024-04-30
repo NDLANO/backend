@@ -388,7 +388,7 @@ object TestData {
     "test",
     Some(today),
     Some("<article><div>test</div></article>"),
-    Seq.empty,
+    None,
     None,
     None,
     None,
@@ -405,18 +405,18 @@ object TestData {
         false
       )
     ),
-    Seq.empty,
+    None,
     "standard",
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
+    None,
+    None,
+    None,
+    None,
     availability = None,
     Seq.empty,
     None,
     None,
     None,
-    List.empty,
+    None,
     None,
     None
   )

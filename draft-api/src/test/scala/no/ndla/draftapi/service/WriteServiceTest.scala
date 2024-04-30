@@ -1214,7 +1214,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       title = "Jonas",
       content = Some(""),
       introduction = Some(""),
-      tags = Seq(),
+      tags = None,
       metaDescription = Some(""),
       visualElement = Some("")
     )
