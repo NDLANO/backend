@@ -2,6 +2,8 @@
 
 export type Availability = ("everyone" | "teacher")
 
+export type Grade = (1 | 2 | 3 | 4 | 5)
+
 export interface IArticle {
   id: number
   oldNdlaUrl?: string
@@ -35,6 +37,7 @@ export interface IArticle {
   prioritized: boolean
   priority: string
   started: boolean
+  qualityEvaluation?: IQualityEvaluation
 }
 
 export interface IArticleContent {
@@ -162,6 +165,7 @@ export interface INewArticle {
   comments: INewComment[]
   prioritized?: boolean
   priority?: string
+  qualityEvaluation?: IQualityEvaluation
 }
 
 export interface INewArticleMetaImage {
@@ -172,6 +176,11 @@ export interface INewArticleMetaImage {
 export interface INewComment {
   content: string
   isOpen?: boolean
+}
+
+export interface IQualityEvaluation {
+  grade: Grade
+  note: string
 }
 
 export interface IRelatedContentLink {
@@ -241,6 +250,7 @@ export interface IUpdatedArticle {
   comments?: IUpdatedComment[]
   prioritized?: boolean
   priority?: string
+  qualityEvaluation?: IQualityEvaluation
 }
 
 export interface IUpdatedComment {
