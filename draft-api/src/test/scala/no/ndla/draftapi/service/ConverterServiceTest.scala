@@ -326,7 +326,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(
@@ -369,7 +370,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
 
     val expectedArticle = Draft(
@@ -402,7 +404,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -463,7 +466,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
 
     val expectedArticle = Draft(
@@ -496,7 +500,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -1095,7 +1100,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       slug = Some("kjempe-slug"),
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
     val article = common.model.domain.article.Article(
       id = Some(articleId),

@@ -110,7 +110,8 @@ object TestData {
     Seq.empty,
     priority = Priority.Unspecified.entryName,
     started = false,
-    prioritized = false
+    prioritized = false,
+    qualityEvaluation = None
   )
 
   val blankUpdatedArticle: UpdatedArticle = api.UpdatedArticle(
@@ -140,7 +141,8 @@ object TestData {
     slug = None,
     comments = None,
     prioritized = None,
-    priority = None
+    priority = None,
+    qualityEvaluation = None
   )
 
   val sampleApiUpdateArticle: UpdatedArticle = blankUpdatedArticle.copy(
@@ -227,7 +229,8 @@ object TestData {
     Seq.empty,
     false,
     Priority.Unspecified.entryName,
-    false
+    false,
+    None
   )
 
   val apiArticleUserTest: api.Article = api.Article(
@@ -279,7 +282,8 @@ object TestData {
     Seq.empty,
     false,
     Priority.Unspecified.entryName,
-    false
+    false,
+    None
   )
 
   val sampleTopicArticle: Draft = Draft(
@@ -312,7 +316,8 @@ object TestData {
     None,
     Seq.empty,
     Priority.Unspecified,
-    false
+    false,
+    None
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -345,7 +350,8 @@ object TestData {
     None,
     Seq.empty,
     Priority.Unspecified,
-    false
+    false,
+    None
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -380,7 +386,8 @@ object TestData {
     None,
     Seq.empty,
     Priority.Unspecified,
-    false
+    false,
+    None
   )
 
   val newArticle: NewArticle = api.NewArticle(
@@ -417,6 +424,7 @@ object TestData {
     None,
     None,
     List.empty,
+    None,
     None,
     None
   )
@@ -467,7 +475,8 @@ object TestData {
     slug = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    started = false
+    started = false,
+    qualityEvaluation = None
   )
 
   val apiArticleWithHtmlFaultV2: api.Article = api.Article(
@@ -522,7 +531,8 @@ object TestData {
     comments = Seq.empty,
     prioritized = false,
     priority = Priority.Unspecified.entryName,
-    started = false
+    started = false,
+    qualityEvaluation = None
   )
 
   val (nodeId, nodeId2)         = ("1234", "4321")

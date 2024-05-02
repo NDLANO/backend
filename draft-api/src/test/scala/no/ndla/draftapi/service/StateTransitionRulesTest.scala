@@ -357,7 +357,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
     val article = common.article.Article(
       id = Some(articleId),
@@ -477,7 +478,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
@@ -532,7 +534,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
@@ -591,7 +594,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
@@ -652,7 +656,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       slug = None,
       comments = Seq.empty,
       priority = Priority.Unspecified,
-      started = false
+      started = false,
+      qualityEvaluation = None
     )
     val status                            = common.Status(PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS

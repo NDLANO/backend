@@ -127,7 +127,8 @@ trait ConverterService {
           slug = newArticle.slug,
           comments = newCommentToDomain(newArticle.comments),
           priority = priority,
-          started = false
+          started = false,
+          qualityEvaluation = toQualityEvaluationToDomain(newArticle.qualityEvaluation)
         )
       )
     }
@@ -172,6 +173,11 @@ trait ConverterService {
         )
       )
     }
+
+    private[service] def toQualityEvaluationToDomain(
+        newQualityEvaluation: Option[api.QualityEvaluation]
+    ): Option[common.draft.QualityEvaluation] =
+      newQualityEvaluation.map(qe => common.draft.QualityEvaluation(grade = qe.grade, note = qe.note))
 
     private[service] def updatedCommentToDomainNullDocument(
         updatedComments: List[UpdatedComment]
@@ -405,7 +411,8 @@ trait ConverterService {
             comments = article.comments.map(toApiComment),
             prioritized = article.priority == Priority.Prioritized,
             priority = article.priority.entryName,
-            started = article.started
+            started = article.started,
+            qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation)
           )
         )
       } else {
@@ -482,6 +489,12 @@ trait ConverterService {
       isOpen = comment.isOpen,
       solved = comment.solved
     )
+
+    private def toApiQualityEvaluation(
+        qualityEvaluation: Option[common.draft.QualityEvaluation]
+    ): Option[api.QualityEvaluation] = {
+      qualityEvaluation.map(qe => api.QualityEvaluation(grade = qe.grade, note = qe.note))
+    }
 
     def toApiArticleTag(tag: common.Tag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)
 
@@ -887,7 +900,8 @@ trait ConverterService {
           slug = article.slug,
           comments = comments,
           priority = priority,
-          started = false
+          started = false,
+          qualityEvaluation = toQualityEvaluationToDomain(article.qualityEvaluation)
         )
     }
 
