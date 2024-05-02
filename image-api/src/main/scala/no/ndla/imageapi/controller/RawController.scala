@@ -29,7 +29,7 @@ trait RawController {
   class RawController extends Service[Eff] {
     override val serviceName: String         = "raw"
     override val prefix: EndpointInput[Unit] = "image-api" / serviceName
-    override val enableSwagger: Boolean      = false
+    override val enableSwagger: Boolean      = true
     import ErrorHelpers._
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
