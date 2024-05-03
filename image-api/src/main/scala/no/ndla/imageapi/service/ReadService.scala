@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.StrictLogging
-import io.lemonlabs.uri.{Uri, UrlPath}
+import io.lemonlabs.uri.UrlPath
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2, ImageMetaInformationV3}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
@@ -143,7 +143,8 @@ trait ReadService {
       for {
         imageMeta     <- imageRepository.withId(imageId)
         imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images.getOrElse(Seq.empty), language)
-        imageName = Uri.parse(imageFileMeta.fileName).toStringRaw.dropWhile(_ == '/')
+        parsedImageName = UrlPath.parse(imageFileMeta.fileName)
+        imageName       = parsedImageName.toStringRaw.dropWhile(_ == '/')
       } yield imageName
     }
   }
