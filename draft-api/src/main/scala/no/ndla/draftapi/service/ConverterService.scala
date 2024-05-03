@@ -116,7 +116,7 @@ trait ConverterService {
           grepCodes = newArticle.grepCodes.getOrElse(Seq.empty),
           conceptIds = newArticle.conceptIds.getOrElse(Seq.empty),
           availability = newAvailability,
-          relatedContent = toDomainRelatedContent(newArticle.relatedContent),
+          relatedContent = toDomainRelatedContent(newArticle.relatedContent.getOrElse(Seq.empty)),
           revisionMeta = revisionMeta,
           responsible = responsible,
           slug = newArticle.slug,
