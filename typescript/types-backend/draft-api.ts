@@ -142,24 +142,24 @@ export interface INewArticle {
   title: string
   published?: string
   content?: string
-  tags: string[]
+  tags?: string[]
   introduction?: string
   metaDescription?: string
   metaImage?: INewArticleMetaImage
   visualElement?: string
   copyright?: IDraftCopyright
-  requiredLibraries: IRequiredLibrary[]
+  requiredLibraries?: IRequiredLibrary[]
   articleType: string
-  notes: string[]
-  editorLabels: string[]
-  grepCodes: string[]
-  conceptIds: number[]
+  notes?: string[]
+  editorLabels?: string[]
+  grepCodes?: string[]
+  conceptIds?: number[]
   availability?: string
   relatedContent: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
   responsibleId?: string
   slug?: string
-  comments: INewComment[]
+  comments?: INewComment[]
   prioritized?: boolean
   priority?: string
 }
