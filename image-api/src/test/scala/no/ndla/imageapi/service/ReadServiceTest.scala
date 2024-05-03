@@ -126,7 +126,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    readService.getImageFileName(1, Some("nb")) should be(Some(expectedFileName))
+    readService.getImageFileName(1, Some("nb")) should be(Success(Some(expectedFileName)))
 
   }
 

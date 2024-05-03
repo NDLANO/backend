@@ -139,13 +139,17 @@ trait ReadService {
       ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
     }
 
-    def getImageFileName(imageId: Long, language: Option[String]): Option[String] = {
-      for {
+    def getImageFileName(imageId: Long, language: Option[String]): Try[Option[String]] = {
+      val imageMeta = for {
         imageMeta     <- imageRepository.withId(imageId)
         imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images.getOrElse(Seq.empty), language)
-        parsedImageName = UrlPath.parse(imageFileMeta.fileName)
-        imageName       = parsedImageName.toStringRaw.dropWhile(_ == '/')
-      } yield imageName
+      } yield imageFileMeta
+
+      imageMeta.traverse(meta =>
+        UrlPath
+          .parseTry(meta.fileName)
+          .map(_.toStringRaw.dropWhile(_ == '/'))
+      )
     }
   }
 
