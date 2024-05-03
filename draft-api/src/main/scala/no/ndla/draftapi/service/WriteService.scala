@@ -162,7 +162,7 @@ trait WriteService {
         oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
     ): Try[api.Article] = {
-      val newNotes      = newArticle.notes.map(n => "Opprettet artikkel" +: n)
+      val newNotes      = Some("Opprettet artikkel" +: newArticle.notes.getOrElse(Seq.empty))
       val visualElement = newArticle.visualElement.filter(_.nonEmpty)
       val withNotes = newArticle.copy(
         notes = newNotes,
