@@ -10,7 +10,7 @@ package no.ndla.integrationtests.draftapi.articleapi
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
@@ -39,7 +39,7 @@ class ArticleApiClientTest
   val WeNeedThisToMakeTheTestsWorkNoIdeaWhyReadTheComment: Set[String] = HtmlTagRules.PermittedHTML.tags
 
   val articleApiPort: Int         = findFreePort
-  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int = articleApiPort
@@ -61,8 +61,8 @@ class ArticleApiClientTest
     articleApi = new articleapi.MainClass(articleApiProperties)
     Future { articleApi.run() }: Unit
     blockUntil(() => {
-      import sttp.client3.quick._
-      val req = quickRequest.get(uri"$articleApiBaseUrl/health")
+      import sttp.client3.quick.*
+      val req = quickRequest.get(uri"$articleApiBaseUrl/health/readiness")
       val res = Try(simpleHttpClient.send(req))
       println(res)
       res.map(_.code.code) == Success(200)
