@@ -7,14 +7,14 @@
 
 package no.ndla.draftapi.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
+import cats.implicits.*
+import io.circe.generic.auto.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.License
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.draftapi.model.api._
+import no.ndla.draftapi.model.api.*
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
@@ -23,26 +23,20 @@ import no.ndla.draftapi.{Eff, Props}
 import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
-import no.ndla.network.tapir.NoNullJsonPrinter._
+import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.{DynamicHeaders, Service}
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
 trait DraftController {
-  this: ReadService
-    with WriteService
-    with ArticleSearchService
-    with SearchConverterService
-    with ConverterService
-    with ContentValidator
-    with Props
-    with ErrorHelpers =>
+  this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
+    ContentValidator & Props & ErrorHelpers =>
   val draftController: DraftController
 
   class DraftController extends Service[Eff] {

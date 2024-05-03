@@ -7,10 +7,10 @@
 
 package no.ndla.draftapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.Path
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
@@ -20,9 +20,9 @@ import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.{Priority, Responsible, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.integration._
+import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
@@ -32,32 +32,21 @@ import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.validation._
+import no.ndla.validation.*
 import org.jsoup.nodes.Element
 import scalikejdbc.{AutoSession, ReadOnlyAutoSession}
 
 import java.util.concurrent.Executors
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.math.max
 import scala.util.{Failure, Random, Success, Try}
 
 trait WriteService {
-  this: DraftRepository
-    with UserDataRepository
-    with ConverterService
-    with ContentValidator
-    with ArticleIndexService
-    with TagIndexService
-    with GrepCodesIndexService
-    with Clock
-    with ReadService
-    with ArticleApiClient
-    with SearchApiClient
-    with FileStorageService
-    with TaxonomyApiClient
-    with Props =>
+  this: DraftRepository & UserDataRepository & ConverterService & ContentValidator & ArticleIndexService &
+    TagIndexService & GrepCodesIndexService & Clock & ReadService & ArticleApiClient & SearchApiClient &
+    FileStorageService & TaxonomyApiClient & Props =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {
@@ -173,7 +162,7 @@ trait WriteService {
         oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
     ): Try[api.Article] = {
-      val newNotes      = "Opprettet artikkel." +: newArticle.notes
+      val newNotes      = Some("Opprettet artikkel" +: newArticle.notes.getOrElse(Seq.empty))
       val visualElement = newArticle.visualElement.filter(_.nonEmpty)
       val withNotes = newArticle.copy(
         notes = newNotes,
@@ -499,7 +488,7 @@ trait WriteService {
         old: Draft,
         changed: Draft
     ): Option[api.PartialArticleFields] = {
-      import api.PartialArticleFields._
+      import api.PartialArticleFields.*
       val shouldInclude = field match {
         case `availability`    => old.availability != changed.availability
         case `grepCodes`       => old.grepCodes != changed.grepCodes
@@ -693,7 +682,7 @@ trait WriteService {
         .mkString("/")
     }
 
-    def deleteFile(fileUrlOrPath: String): Try[_] = {
+    def deleteFile(fileUrlOrPath: String): Try[?] = {
       val filePath = getFilePathFromUrl(fileUrlOrPath)
       if (fileStorage.resourceWithPathExists(filePath)) {
         fileStorage.deleteResourceWithPath(filePath)
@@ -775,7 +764,7 @@ trait WriteService {
       val isAllLanguage  = language == Language.AllLanguages
       val initialPartial = PartialPublishArticle.empty()
 
-      import api.PartialArticleFields._
+      import api.PartialArticleFields.*
       articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partial, field) => {
         field match {
           case `availability`                     => partial.withAvailability(article.availability)
@@ -932,7 +921,7 @@ trait WriteService {
       }
     }
 
-    private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
+    private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
       val updateResult = entity.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -952,7 +941,7 @@ trait WriteService {
       })
     }
 
-    private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
+    private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
       draftRepository
         .withId(articleId)(ReadOnlyAutoSession)
         .traverse(article => {
