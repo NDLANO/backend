@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
@@ -34,7 +34,7 @@ case class NewArticle(
     @description("A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
     @description("A list of conceptIds connected to the article") conceptIds: Option[Seq[Long]],
     @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[String],
-    @description("A list of content related to the article") relatedContent: Seq[Either[RelatedContentLink, Long]],
+    @description("A list of content related to the article") relatedContent: Option[Seq[Either[RelatedContentLink, Long]]],
     @description("An object describing a future revision") revisionMeta: Option[Seq[RevisionMeta]],
     @description("NDLA ID representing the editor responsible for this article") responsibleId: Option[String],
     @description("The path to the frontpage article") slug: Option[String],
