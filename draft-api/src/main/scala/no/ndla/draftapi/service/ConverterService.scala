@@ -245,7 +245,10 @@ trait ConverterService {
     }
 
     private def toDomainTag(tag: Option[Seq[String]], language: String): Option[common.Tag] =
-      if (tag.getOrElse(Seq.empty).nonEmpty) Some(common.Tag(tag.get, language)) else None
+      tag.flatMap {
+        case list if list.nonEmpty => Some(common.Tag(list, language))
+        case _                     => None
+      }
 
     private def toDomainVisualElement(visual: String, language: String): common.VisualElement =
       common.VisualElement(removeUnknownEmbedTagAttribute(visual), language)
