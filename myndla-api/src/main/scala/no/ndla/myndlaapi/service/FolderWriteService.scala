@@ -103,18 +103,18 @@ trait FolderWriteService {
         folderId: UUID,
         newStatus: FolderStatus.Value,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[List[UUID]] = {
-      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-      for {
-        feideId    <- feideApiClient.getFeideID(feideAccessToken)
-        _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
-        folder     <- folderRepository.folderWithId(folderId)
-        _          <- folder.isOwner(feideId)
-        ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
-        updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
-        _          <- handleFolderUserConnectionsOnUnShare(ids, newStatus, folder.status)
-      } yield updatedIds
-    }
+    ): Try[List[UUID]] =
+      folderRepository.rollbackOnFailure({ implicit session =>
+        for {
+          feideId    <- feideApiClient.getFeideID(feideAccessToken)
+          _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
+          folder     <- folderRepository.folderWithId(folderId)
+          _          <- folder.isOwner(feideId)
+          ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
+          updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
+          _          <- handleFolderUserConnectionsOnUnShare(ids, newStatus, folder.status)
+        } yield updatedIds
+      })
 
     private[service] def cloneChildrenRecursively(
         sourceFolder: CopyableFolder,
@@ -394,7 +394,7 @@ trait FolderWriteService {
             val newRank = idx + 1
             val found   = rankables.find(_.sortId == id)
             found match {
-              case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _)) =>
+              case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _, _)) =>
                 folderRepository.setFolderRank(folderId, newRank, feideId)(session)
               case Some(domain.FolderResource(folderId, resourceId, _, _)) =>
                 folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)

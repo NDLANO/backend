@@ -29,7 +29,8 @@ case class NewFolderData(
       subfolders: List[Folder],
       created: NDLADate,
       updated: NDLADate,
-      shared: Option[NDLADate]
+      shared: Option[NDLADate],
+      user: Option[MyNDLAUser]
   ): Folder = {
     Folder(
       id = id,
@@ -43,7 +44,8 @@ case class NewFolderData(
       rank = rank,
       created = created,
       updated = updated,
-      shared = shared
+      shared = shared,
+      user = user
     )
   }
 }
@@ -60,7 +62,8 @@ case class Folder(
     updated: NDLADate,
     resources: List[Resource],
     subfolders: List[Folder],
-    shared: Option[NDLADate]
+    shared: Option[NDLADate],
+    user: Option[MyNDLAUser]
 ) extends FeideContent
     with Rankable
     with CopyableFolder {
@@ -113,7 +116,8 @@ object Folder extends SQLSyntaxSupport[Folder] {
       rank = rank,
       created = created,
       updated = updated,
-      shared = shared
+      shared = shared,
+      user = None
     )
   }
 }

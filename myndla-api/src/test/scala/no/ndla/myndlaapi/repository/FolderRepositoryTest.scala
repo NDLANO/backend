@@ -180,7 +180,8 @@ class FolderRepositoryTest
       created = created,
       updated = created,
       shared = None,
-      description = Some("new")
+      description = Some("new"),
+      user = None
     )
     val expected = updatedFolder.copy(name = "updated", status = FolderStatus.SHARED, description = Some("new"))
 
@@ -340,7 +341,8 @@ class FolderRepositoryTest
         created = clock.now(),
         updated = clock.now(),
         shared = None,
-        description = None
+        description = None,
+        user = None
       )
 
     val mainParent = base.copy(
@@ -397,7 +399,8 @@ class FolderRepositoryTest
         created = created,
         updated = created,
         shared = None,
-        description = Some("desc")
+        description = Some("desc"),
+        user = None
       )
 
     val baseNewFolderData = NewFolderData(
@@ -571,7 +574,8 @@ class FolderRepositoryTest
         created = created,
         updated = created,
         shared = None,
-        description = None
+        description = None,
+        user = None
       )
 
     val baseNewFolderData = NewFolderData(

@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.model.domain.ResourceType
-import no.ndla.myndlaapi.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomainResource}
+import no.ndla.myndlaapi.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
@@ -61,7 +61,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
 
     val subFolder1 = domain.Folder(
@@ -76,7 +77,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
 
     val subFolder2 = domain.Folder(
@@ -91,7 +93,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
 
     val resource1 = Resource(
@@ -250,13 +253,18 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         status = "private",
         breadcrumbs = List(api.Breadcrumb(id = favoriteUUID.toString, name = "favorite"))
       )
+
+    val user               = emptyMyNDLAUser.copy(id = 1996, shareName = true, displayName = "hallois")
     val folderId           = UUID.randomUUID()
     val sharedFolderDomain = emptyDomainFolder.copy(id = folderId, name = "SharedFolder", status = FolderStatus.SHARED)
+    val savedFolderDomain =
+      emptyDomainFolder.copy(id = folderId, name = "SharedFolder", status = FolderStatus.SHARED, user = Some(user))
     val sharedFolderApi = emptyApiFolder.copy(
       id = folderId.toString,
       name = "SharedFolder",
       status = "shared",
-      breadcrumbs = List(api.Breadcrumb(id = folderId.toString, name = "SharedFolder"))
+      breadcrumbs = List(api.Breadcrumb(id = folderId.toString, name = "SharedFolder")),
+      owner = Some(Owner(name = user.displayName))
     )
 
     when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
@@ -266,6 +274,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.getSavedSharedFolder(any)(any[DBSession])).thenReturn(Success(List(sharedFolderDomain)))
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any, any, any)(any[DBSession]))
       .thenReturn(Success(Option(sharedFolderDomain)))
+    when(folderRepository.getSharedFolderAndChildrenSubfoldersWithResources(any)(any[DBSession]))
+      .thenReturn(Success(Option(savedFolderDomain)))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token")).get

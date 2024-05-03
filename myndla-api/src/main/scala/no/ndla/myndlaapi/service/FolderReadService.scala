@@ -63,14 +63,13 @@ trait FolderReadService {
     }
 
     private def getSharedSubFoldersAndResources(
-        topFolders: List[domain.Folder],
-        feideId: FeideID
+        topFolders: List[domain.Folder]
     )(session: DBSession) = {
       for {
         withData <- topFolders
           .traverse(f => {
             val folderWithContent =
-              folderRepository.getFolderAndChildrenSubfoldersWithResources(f.id, FolderStatus.SHARED, Option(feideId))(
+              folderRepository.getSharedFolderAndChildrenSubfoldersWithResources(f.id)(
                 session
               )
             getWith404IfNone(f.id, folderWithContent)
@@ -79,13 +78,12 @@ trait FolderReadService {
           withData,
           (v: domain.Folder) => {
             for {
-              user <- userRepository.userWithFeideId(v.feideId)(session)
               converted <-
                 folderConverterService.toApiFolder(
                   v,
                   List(api.Breadcrumb(id = v.id.toString, name = v.name)),
-                  user,
-                  user.exists(_.feideId == v.feideId)
+                  v.user,
+                  v.user.exists(_.feideId == v.feideId)
                 )
             } yield converted
           }
@@ -104,7 +102,7 @@ trait FolderReadService {
           myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)
           savedSharedFolders <- folderRepository.getSavedSharedFolder(feideId)
           folders       <- getSubFoldersAndResources(myFolders, includeSubfolders, includeResources, feideId)(session)
-          sharedFolders <- getSharedSubFoldersAndResources(savedSharedFolders, feideId)(session)
+          sharedFolders <- getSharedSubFoldersAndResources(savedSharedFolders)(session)
 
         } yield UserFolder(folders = folders, sharedFolders = sharedFolders)
       })

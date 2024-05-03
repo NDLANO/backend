@@ -545,7 +545,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
     val apiFolder = Folder(
       id = folderId.toString,
@@ -603,7 +604,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -617,7 +619,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
     val belowLimit = MaxFolderDepth - 2
 
@@ -663,7 +666,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -677,7 +681,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
     val belowLimit = MaxFolderDepth - 2
 
@@ -724,7 +729,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
     val mergedFolder = existingFolder.copy(status = FolderStatus.SHARED)
     val siblingFolder = domain.Folder(
@@ -739,7 +745,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = None
+      description = None,
+      user = None
     )
     val expectedFolder = api.Folder(
       id = folderId.toString,
@@ -868,7 +875,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       resources = List(),
       subfolders = List(),
       shared = Some(clock.now()),
-      description = None
+      description = None,
+      user = None
     )
     val expectedFolder =
       NewFolder(
@@ -903,7 +911,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       resources = List(),
       subfolders = List(),
       shared = Some(clock.now()),
-      description = None
+      description = None,
+      user = None
     )
     val expectedFolder =
       NewFolder(
@@ -1039,6 +1048,10 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
     when(folderRepository.updateFolderStatusInBulk(any, any)(any)).thenReturn(Success(List(folderId)))
     when(folderRepository.deleteFolderUserConnections(any)(any)).thenReturn(Success(List(folderId, folderIdChild)))
+    when(folderRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    })
 
     val result = service.changeStatusOfFolderAndItsSubfolders(folderId, FolderStatus.PRIVATE, Some(feideId))
 

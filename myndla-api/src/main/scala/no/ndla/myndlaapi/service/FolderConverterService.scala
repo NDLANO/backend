@@ -95,7 +95,8 @@ trait FolderConverterService {
         created = existing.created,
         updated = clock.now(),
         shared = shared,
-        description = description
+        description = description,
+        user = existing.user
       )
     }
 

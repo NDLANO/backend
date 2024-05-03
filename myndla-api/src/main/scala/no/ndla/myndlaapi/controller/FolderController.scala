@@ -256,8 +256,8 @@ trait FolderController {
       }
 
     private def createFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.post
-      .summary("Creates new link between sharedFolder and user")
-      .description("Creates new link between sharedFolder and user")
+      .summary("Saves a shared folder")
+      .description("Saves a shared folder")
       .in("shared" / pathFolderId / "save")
       .in(feideHeader)
       .out(emptyOutput)
@@ -267,8 +267,8 @@ trait FolderController {
       }
 
     private def deleteFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.delete
-      .summary("Deletes a link between sharedFolder and user")
-      .description("Deletes a link between sharedFolder and user")
+      .summary("Deletes a saved shared folder")
+      .description("Deletes a saved shared folder")
       .in("shared" / pathFolderId / "save")
       .in(feideHeader)
       .out(emptyOutput)

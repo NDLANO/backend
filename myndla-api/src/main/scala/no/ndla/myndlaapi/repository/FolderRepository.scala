@@ -20,6 +20,7 @@ import no.ndla.myndlaapi.model.domain.{
   FolderResource,
   FolderStatus,
   FolderUser,
+  MyNDLAUser,
   NDLASQLException,
   NewFolderData,
   Resource,
@@ -94,7 +95,8 @@ trait FolderRepository {
           subfolders = List.empty,
           created = created,
           updated = updated,
-          shared = shared
+          shared = shared,
+          user = None
         )
       }
 
@@ -487,6 +489,61 @@ trait FolderRepository {
         .list()
         .sequence
     }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
+
+    def getSharedFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit
+        session: DBSession
+    ): Try[Option[Folder]] =
+      getSharedFolderAndChildrenSubfoldersWithResourcesWhere(id)
+
+    private[repository] def getSharedFolderAndChildrenSubfoldersWithResourcesWhere(id: UUID)(implicit
+        session: DBSession
+    ): Try[Option[Folder]] = Try {
+      val u  = MyNDLAUser.syntax("u")
+      val r  = Resource.syntax("r")
+      val fr = FolderResource.syntax("fr")
+
+      sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
+            WITH RECURSIVE childs AS (
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created, updated as f_updated, shared as f_shared, description as f_description
+                FROM ${Folder.table} parent
+                WHERE id = $id
+                UNION ALL
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created, child.updated as f_updated, child.shared as f_shared, child.description as f_description
+                FROM ${Folder.table} child
+                JOIN childs AS parent ON parent.f_id = child.parent_id
+                AND child.status = ${FolderStatus.SHARED.toString}
+            )
+            SELECT childs.*, ${r.resultAll}, ${u.resultAll}, ${fr.resultAll} FROM childs
+            LEFT JOIN ${FolderResource.as(fr)} ON ${fr.folderId} = f_id
+            LEFT JOIN ${Resource.as(r)} ON ${r.id} = ${fr.resourceId}
+            LEFT JOIN ${MyNDLAUser.as(u)} on ${u.feideId} = f_feide_id;
+         """
+        .one(rs => Folder.fromResultSet(s => s"f_$s")(rs))
+        .toManies(
+          rs => Resource.fromResultSetSyntaxProvider(r, fr)(rs).sequence,
+          rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption
+        )
+        .map((folder, resources, user) => toCompileFolder(folder, resources, user))
+        .list()
+        .sequence
+    }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
+
+    private def toCompileFolder(
+        folder: Try[Folder],
+        resource: collection.Seq[Try[Resource]],
+        users: collection.Seq[MyNDLAUser]
+    ): Try[Folder] =
+      for {
+        f         <- folder
+        resources <- resource.toList.sequence
+        user      <- findUser(f.feideId, users)
+      } yield f.copy(resources = resources, user = user)
+
+    private def findUser(feideId: FeideID, users: collection.Seq[MyNDLAUser]): Try[Option[MyNDLAUser]] =
+      users.find(user => feideId == user.feideId) match {
+        case Some(u) => Success(Some(u))
+        case None    => Failure(NDLASQLException(s"${feideId} does not match any users with folder"))
+      }
 
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively

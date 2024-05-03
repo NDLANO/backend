@@ -53,7 +53,8 @@ object TestData {
     created = today,
     updated = today,
     shared = None,
-    description = None
+    description = None,
+    user = None
   )
 
   val baseFolderDocument: NewFolderData = NewFolderData(
