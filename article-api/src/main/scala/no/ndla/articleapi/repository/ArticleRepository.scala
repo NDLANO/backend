@@ -337,7 +337,10 @@ trait ArticleRepository {
         externalId: String
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleIds] = {
       val ar = Article.syntax("ar")
-      sql"select distinct article_id, external_id from ${Article.as(ar)} where $externalId=ANY(ar.external_id)"
+      sql"""select distinct article_id, external_id
+        from ${Article.as(ar)}
+        where $externalId=ANY(ar.external_id)
+        and ar.document is not NULL"""
         .map(rs =>
           ArticleIds(
             rs.long("article_id"),
