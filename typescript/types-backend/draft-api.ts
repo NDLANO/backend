@@ -155,7 +155,7 @@ export interface INewArticle {
   grepCodes?: string[]
   conceptIds?: number[]
   availability?: string
-  relatedContent: (IRelatedContentLink | number)[]
+  relatedContent?: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
   responsibleId?: string
   slug?: string
