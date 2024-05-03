@@ -31,7 +31,7 @@ class ArticleApiClientTest
   override val searchConverterService = new SearchConverterService
 
   val articleApiPort: Int         = findFreePort
-  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int = articleApiPort
@@ -54,8 +54,8 @@ class ArticleApiClientTest
     Future { articleApi.run() }: Unit
 
     blockUntil(() => {
-      import sttp.client3.quick._
-      val req = quickRequest.get(uri"$articleApiBaseUrl/health")
+      import sttp.client3.quick.*
+      val req = quickRequest.get(uri"$articleApiBaseUrl/health/readiness")
       val res = Try(simpleHttpClient.send(req))
       res.map(_.code.code) == Success(200)
     })

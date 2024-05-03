@@ -33,7 +33,7 @@ class LearningpathApiClientTest
   override val searchConverterService = new SearchConverterService
 
   val learningpathApiPort: Int    = findFreePort
-  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int = learningpathApiPort
@@ -56,8 +56,8 @@ class LearningpathApiClientTest
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
     Future { learningpathApi.run() }: Unit
     blockUntil(() => {
-      import sttp.client3.quick._
-      val req = quickRequest.get(uri"$learningpathApiBaseUrl/health")
+      import sttp.client3.quick.*
+      val req = quickRequest.get(uri"$learningpathApiBaseUrl/health/readiness")
       val res = Try(simpleHttpClient.send(req))
       res.map(_.code.code) == Success(200)
     })
