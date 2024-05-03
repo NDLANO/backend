@@ -69,7 +69,6 @@ class ComponentRegistry(properties: DraftApiProperties)
     with ArticleApiClient
     with SearchApiClient
     with H5PApiClient
-    with RuleController
     with UserDataController
     with Props
     with DBMigrator
@@ -127,7 +126,6 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val internController                             = new InternController
   lazy val draftController                              = new DraftController
   lazy val fileController                               = new FileController
-  lazy val ruleController                               = new RuleController
   lazy val userDataController                           = new UserDataController
   lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
 
@@ -135,7 +133,6 @@ class ComponentRegistry(properties: DraftApiProperties)
     List[Service[Eff]](
       draftController,
       fileController,
-      ruleController,
       userDataController,
       internController,
       healthController
