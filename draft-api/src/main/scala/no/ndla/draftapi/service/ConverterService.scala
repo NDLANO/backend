@@ -128,7 +128,7 @@ trait ConverterService {
           comments = newCommentToDomain(newArticle.comments),
           priority = priority,
           started = false,
-          qualityEvaluation = toQualityEvaluationToDomain(newArticle.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation)
         )
       )
     }
@@ -174,7 +174,7 @@ trait ConverterService {
       )
     }
 
-    private[service] def toQualityEvaluationToDomain(
+    private[service] def qualityEvaluationToDomain(
         newQualityEvaluation: Option[api.QualityEvaluation]
     ): Option[common.draft.QualityEvaluation] =
       newQualityEvaluation.map(qe => common.draft.QualityEvaluation(grade = qe.grade, note = qe.note))
@@ -775,7 +775,8 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug.orElse(toMergeInto.slug),
             comments = updatedComments,
-            priority = priority
+            priority = priority,
+            qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
           )
 
           val articleWithNewContent = article.copy(content = newContent)
@@ -901,7 +902,7 @@ trait ConverterService {
           comments = comments,
           priority = priority,
           started = false,
-          qualityEvaluation = toQualityEvaluationToDomain(article.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
         )
     }
 
