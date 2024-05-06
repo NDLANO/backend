@@ -14,7 +14,9 @@ import no.ndla.oembedproxy.{Eff, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
+import sttp.client3.Response
 import sttp.client3.quick.*
+import sttp.model.{Header, Method, RequestMetadata, StatusCode, Uri}
 
 import scala.util.{Failure, Success}
 
@@ -51,9 +53,19 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Tapi
   }
 
   test("h5p url should return 404 if not found") {
-    val exception = new HttpRequestException("bad", None) {
-      override def is404: Boolean = true
-    }
+    val responseMock = new Response[String](
+      body = "",
+      code = StatusCode.NotFound,
+      statusText = "",
+      headers = List.empty,
+      history = List.empty,
+      request = new RequestMetadata {
+        override def method: Method       = Method.GET
+        override def uri: Uri             = uri""
+        override def headers: Seq[Header] = Seq.empty
+      }
+    )
+    val exception = new HttpRequestException("bad", Some(responseMock))
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
     when(clock.now()).thenCallRealMethod()
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")

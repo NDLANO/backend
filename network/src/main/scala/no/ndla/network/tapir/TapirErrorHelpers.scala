@@ -44,6 +44,7 @@ trait TapirErrorHelpers extends StrictLogging {
 
     val PARAMETER_MISSING      = "PARAMETER MISSING"
     val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
+    val INVALID_URL            = "INVALID_URL"
     val REMOTE_ERROR           = "REMOTE ERROR"
     val WINDOW_TOO_LARGE       = "RESULT_WINDOW_TOO_LARGE"
     val RESOURCE_OUTDATED      = "RESOURCE_OUTDATED"
