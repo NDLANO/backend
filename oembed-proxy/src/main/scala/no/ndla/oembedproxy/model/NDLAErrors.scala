@@ -20,10 +20,10 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
   import ErrorHelpers._
 
   private val statusCodesToPassAlong = List(401, 403, 404, 410)
-  def getRequestExceptionStatusCode(exception: HttpRequestException): Int =
+  def getRequestExceptionStatusCode(exception: HttpRequestException): Option[Int] =
     exception.httpResponse.map(_.code.code) match {
-      case Some(value) if statusCodesToPassAlong.contains(value) => value
-      case _                                                     => 502
+      case Some(value) if statusCodesToPassAlong.contains(value) => Some(value)
+      case _                                                     => None
     }
 
   override def handleErrors: PartialFunction[Throwable, ErrorBody] = {
@@ -32,12 +32,17 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
     case pnse: ProviderNotSupportedException =>
       ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 422)
     case hre: HttpRequestException =>
-      val statusCode = getRequestExceptionStatusCode(hre)
       val msg = hre.httpResponse.map(response =>
         s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"
       )
-      logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
-      ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), statusCode)
+      getRequestExceptionStatusCode(hre) match {
+        case None =>
+          logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
+          ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
+        case Some(statusCode) =>
+          logger.error(s"Remote service returned $statusCode: '${hre.getMessage}'${msg.getOrElse("")}")
+          ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), statusCode)
+      }
   }
 }
 
