@@ -32,7 +32,7 @@ class DraftApiClientTest
   override val searchConverterService = new SearchConverterService
 
   val draftApiPort: Int           = findFreePort
-  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
     override def ApplicationPort: Int = draftApiPort
@@ -55,8 +55,8 @@ class DraftApiClientTest
     draftApi = new draftapi.MainClass(draftApiProperties)
     Future { draftApi.run() }: Unit
     blockUntil(() => {
-      import sttp.client3.quick._
-      val req = quickRequest.get(uri"$draftApiBaseUrl/health")
+      import sttp.client3.quick.*
+      val req = quickRequest.get(uri"$draftApiBaseUrl/health/readiness")
       val res = Try(simpleHttpClient.send(req))
       res.map(_.code.code) == Success(200)
     })

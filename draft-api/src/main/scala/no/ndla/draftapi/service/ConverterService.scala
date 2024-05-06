@@ -36,13 +36,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock
-    with DraftRepository
-    with ArticleApiClient
-    with StateTransitionRules
-    with WriteService
-    with UUIDUtil
-    with Props =>
+  this: Clock & DraftRepository & ArticleApiClient & StateTransitionRules & WriteService & UUIDUtil & Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
@@ -85,8 +79,9 @@ trait ConverterService {
             case _          => Priority.Unspecified
           }
         )
+      val libraries = newArticle.requiredLibraries.getOrElse(Seq.empty)
 
-      newNotes(newArticle.notes, user, status).map(notes =>
+      newNotes(newArticle.notes.getOrElse(Seq.empty), user, status).map(notes =>
         Draft(
           id = Some(newArticleId),
           revision = None,
@@ -95,7 +90,7 @@ trait ConverterService {
           content = domainContent.filterNot(_.isEmpty),
           copyright = newArticle.copyright.map(toDomainCopyright),
           tags = toDomainTag(newArticle.tags, newArticle.language).toSeq,
-          requiredLibraries = newArticle.requiredLibraries.map(toDomainRequiredLibraries),
+          requiredLibraries = libraries.map(toDomainRequiredLibraries),
           visualElement =
             newArticle.visualElement.map(visual => toDomainVisualElement(visual, newArticle.language)).toSeq,
           introduction = newArticle.introduction
@@ -117,15 +112,15 @@ trait ConverterService {
           articleType = common.ArticleType.valueOfOrError(newArticle.articleType),
           notes = notes,
           previousVersionsNotes = Seq.empty,
-          editorLabels = newArticle.editorLabels,
-          grepCodes = newArticle.grepCodes,
-          conceptIds = newArticle.conceptIds,
+          editorLabels = newArticle.editorLabels.getOrElse(Seq.empty),
+          grepCodes = newArticle.grepCodes.getOrElse(Seq.empty),
+          conceptIds = newArticle.conceptIds.getOrElse(Seq.empty),
           availability = newAvailability,
-          relatedContent = toDomainRelatedContent(newArticle.relatedContent),
+          relatedContent = toDomainRelatedContent(newArticle.relatedContent.getOrElse(Seq.empty)),
           revisionMeta = revisionMeta,
           responsible = responsible,
           slug = newArticle.slug,
-          comments = newCommentToDomain(newArticle.comments),
+          comments = newCommentToDomain(newArticle.comments.getOrElse(List.empty)),
           priority = priority,
           started = false,
           qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation)
@@ -255,8 +250,11 @@ trait ConverterService {
       common.ArticleContent(removeUnknownEmbedTagAttribute(articleContent.content), articleContent.language)
     }
 
-    private def toDomainTag(tag: Seq[String], language: String): Option[common.Tag] =
-      if (tag.nonEmpty) Some(common.Tag(tag, language)) else None
+    private def toDomainTag(tag: Option[Seq[String]], language: String): Option[common.Tag] =
+      tag.flatMap {
+        case list if list.nonEmpty => Some(common.Tag(list, language))
+        case _                     => None
+      }
 
     private def toDomainVisualElement(visual: String, language: String): common.VisualElement =
       common.VisualElement(removeUnknownEmbedTagAttribute(visual), language)
@@ -623,7 +621,7 @@ trait ConverterService {
         case _             => false
       }
 
-      val langFields: Seq[Option[_]] = Seq(
+      val langFields: Seq[Option[?]] = Seq(
         article.title,
         article.content,
         article.tags,
@@ -796,7 +794,7 @@ trait ConverterService {
     ): Draft = {
       val updatedTitles           = updatedArticle.title.toSeq.map(t => toDomainTitle(api.ArticleTitle(t, t, lang)))
       val updatedContents         = updatedArticle.content.toSeq.map(c => toDomainContent(api.ArticleContent(c, lang)))
-      val updatedTags             = updatedArticle.tags.flatMap(tags => toDomainTag(tags, lang)).toSeq
+      val updatedTags             = updatedArticle.tags.flatMap(tags => toDomainTag(Some(tags), lang)).toSeq
       val updatedVisualElement    = updatedArticle.visualElement.map(c => toDomainVisualElement(c, lang)).toSeq
       val updatedIntroductions    = updatedArticle.introduction.map(i => toDomainIntroduction(i, lang)).toSeq
       val updatedMetaDescriptions = updatedArticle.metaDescription.map(m => toDomainMetaDescription(m, lang)).toSeq

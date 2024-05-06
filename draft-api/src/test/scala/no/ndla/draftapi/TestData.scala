@@ -12,10 +12,10 @@ import no.ndla.common.model
 import no.ndla.common.model.api.{DraftCopyright, Missing}
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
+import no.ndla.common.model.domain.draft.DraftStatus.*
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.draftapi.integration.{LearningPath, Title}
-import no.ndla.draftapi.model.api._
+import no.ndla.draftapi.model.api.*
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
@@ -395,7 +395,7 @@ object TestData {
     "test",
     Some(today),
     Some("<article><div>test</div></article>"),
-    Seq.empty,
+    None,
     None,
     None,
     None,
@@ -412,18 +412,18 @@ object TestData {
         false
       )
     ),
-    Seq.empty,
+    None,
     "standard",
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
+    None,
+    None,
+    None,
+    None,
     availability = None,
-    Seq.empty,
     None,
     None,
     None,
-    List.empty,
+    None,
+    None,
     None,
     None,
     None

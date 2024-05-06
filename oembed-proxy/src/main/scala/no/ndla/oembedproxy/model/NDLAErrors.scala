@@ -21,11 +21,15 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
 
   override def handleErrors: PartialFunction[Throwable, ErrorBody] = {
     case pnse: ProviderNotSupportedException =>
-      ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 501)
+      ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 422)
     case hre: HttpRequestException if hre.is404 =>
       val msg = hre.getMessage
       logger.info(s"Could not fetch remote: '$msg'")
       ErrorBody(REMOTE_ERROR, msg, clock.now(), 404)
+    case hre: HttpRequestException if hre.is410 =>
+      val msg = hre.getMessage
+      logger.info(s"Could not fetch remote: '$msg'")
+      ErrorBody(REMOTE_ERROR, msg, clock.now(), 410)
     case hre: HttpRequestException =>
       val msg = hre.httpResponse.map(response =>
         s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"

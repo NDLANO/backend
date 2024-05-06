@@ -29,7 +29,7 @@ trait RawController {
   class RawController extends Service[Eff] {
     override val serviceName: String         = "raw"
     override val prefix: EndpointInput[Unit] = "image-api" / serviceName
-    override val enableSwagger: Boolean      = false
+    override val enableSwagger: Boolean      = true
     import ErrorHelpers._
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
@@ -67,12 +67,13 @@ trait RawController {
       .out(inputStreamBody)
       .serverLogicPure { case (imageId, imageParams) =>
         readService.getImageFileName(imageId, imageParams.language) match {
-          case Some(fileName) =>
+          case Success(Some(fileName)) =>
             getRawImage(fileName, imageParams) match {
               case Failure(ex)  => returnLeftError(ex)
               case Success(img) => toImageResponse(img)
             }
-          case None => notFoundWithMsg(s"Image with id $imageId not found").asLeft
+          case Success(None) => notFoundWithMsg(s"Image with id $imageId not found").asLeft
+          case Failure(ex)   => returnLeftError(ex)
         }
       }
 

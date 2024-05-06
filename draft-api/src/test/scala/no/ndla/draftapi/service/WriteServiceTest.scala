@@ -1214,7 +1214,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       title = "Jonas",
       content = Some(""),
       introduction = Some(""),
-      tags = Seq(),
+      tags = None,
       metaDescription = Some(""),
       visualElement = Some("")
     )
@@ -1565,9 +1565,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That started is reset when published via PUBLISHED field") {
     scala.util.Properties.setProp("DEBUG_FLAKE", "true")
-    when(articleApiClient.updateArticle(any, any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
-      Success(i.getArgument[Draft](1))
-    })
+    doAnswer((i: InvocationOnMock) => { Success(i.getArgument[Draft](1)) })
+      .when(articleApiClient)
+      .updateArticle(any, any, any, any, any, any)
+
     val existing = TestData.sampleDomainArticle.copy(
       started = true,
       status = TestData.statusWithInProcess,

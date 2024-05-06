@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.StrictLogging
-import io.lemonlabs.uri.{Uri, UrlPath}
+import io.lemonlabs.uri.UrlPath
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2, ImageMetaInformationV3}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
@@ -139,12 +139,17 @@ trait ReadService {
       ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
     }
 
-    def getImageFileName(imageId: Long, language: Option[String]): Option[String] = {
-      for {
+    def getImageFileName(imageId: Long, language: Option[String]): Try[Option[String]] = {
+      val imageMeta = for {
         imageMeta     <- imageRepository.withId(imageId)
         imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images.getOrElse(Seq.empty), language)
-        imageName = Uri.parse(imageFileMeta.fileName).toStringRaw.dropWhile(_ == '/')
-      } yield imageName
+      } yield imageFileMeta
+
+      imageMeta.traverse(meta =>
+        UrlPath
+          .parseTry(meta.fileName)
+          .map(_.toStringRaw.dropWhile(_ == '/'))
+      )
     }
   }
 

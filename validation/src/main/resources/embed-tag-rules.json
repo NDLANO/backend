@@ -696,7 +696,8 @@
               "sketchfab.com",
               "jeopardylabs.com",
               "players.brightcove.net",
-              ".*.uio.no"
+              ".*.uio.no",
+              "geodata.maps.arcgis.com"
             ]
           }
         },
@@ -1269,5 +1270,6 @@
         }
       ]
     }
-  }
+  },
+  "tags": []
 }

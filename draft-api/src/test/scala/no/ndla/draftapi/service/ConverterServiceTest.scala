@@ -636,7 +636,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("toDomainArticle(NewArticle) should convert grepCodes correctly") {
     val Success(res1) = service.toDomainArticle(
       1,
-      TestData.newArticle.copy(grepCodes = Seq("a", "b")),
+      TestData.newArticle.copy(grepCodes = Some(Seq("a", "b"))),
       List(TestData.externalId),
       TestData.userWithWriteAccess,
       None,
@@ -645,7 +645,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success(res2) = service.toDomainArticle(
       1,
-      TestData.newArticle.copy(grepCodes = Seq.empty),
+      TestData.newArticle.copy(grepCodes = None),
       List(TestData.externalId),
       TestData.userWithWriteAccess,
       None,
