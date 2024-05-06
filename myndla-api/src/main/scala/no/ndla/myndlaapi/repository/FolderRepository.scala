@@ -19,7 +19,7 @@ import no.ndla.myndlaapi.model.domain.{
   Folder,
   FolderResource,
   FolderStatus,
-  FolderUser,
+  SavedSharedFolder,
   MyNDLAUser,
   NDLASQLException,
   NewFolderData,
@@ -520,18 +520,18 @@ trait FolderRepository {
          """
         .one(rs => Folder.fromResultSet(s => s"f_$s")(rs))
         .toManies(
-          rs => Resource.fromResultSetSyntaxProvider(r, fr)(rs).sequence,
+          rs => Resource.fromResultSetSyntaxProviderWithConnection(r, fr)(rs).sequence,
           rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption
         )
-        .map((folder, resources, user) => toCompileFolder(folder, resources, user))
+        .map((folder, resources, user) => toCompileFolder(folder, resources.toList, user.toList))
         .list()
         .sequence
     }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
 
     private def toCompileFolder(
         folder: Try[Folder],
-        resource: collection.Seq[Try[Resource]],
-        users: collection.Seq[MyNDLAUser]
+        resource: Seq[Try[Resource]],
+        users: Seq[MyNDLAUser]
     ): Try[Folder] =
       for {
         f         <- folder
@@ -841,27 +841,27 @@ trait FolderRepository {
 
     def createFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
         session: DBSession = AutoSession
-    ): Try[FolderUser] = Try {
+    ): Try[SavedSharedFolder] = Try {
       withSQL {
         insert
-          .into(FolderUser)
+          .into(SavedSharedFolder)
           .namedValues(
-            FolderUser.column.folderId -> folderId,
-            FolderUser.column.feideId  -> feideId
+            SavedSharedFolder.column.folderId -> folderId,
+            SavedSharedFolder.column.feideId  -> feideId
           )
       }.update(): Unit
       logger.info(s"Inserted new sharedFolder-user connection with folder id $folderId and feide id $feideId")
 
-      FolderUser(folderId = folderId, feideId = feideId)
+      SavedSharedFolder(folderId = folderId, feideId = feideId)
     }
 
     def deleteFolderUserConnections(
         folderIds: List[UUID]
     )(implicit session: DBSession = AutoSession): Try[List[UUID]] = Try {
-      val column = FolderUser.column.c _
+      val column = SavedSharedFolder.column.c _
       withSQL {
         delete
-          .from(FolderUser)
+          .from(SavedSharedFolder)
           .where
           .in(column("folder_id"), folderIds)
       }.update()
@@ -893,9 +893,9 @@ trait FolderRepository {
     private def deleteFolderUserConnectionWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession): Try[Int] = {
-      val f = FolderUser.syntax("f")
+      val f = SavedSharedFolder.syntax("f")
       Try(
-        sql"DELETE FROM ${FolderUser.as(f)} WHERE $whereClause".update()
+        sql"DELETE FROM ${SavedSharedFolder.as(f)} WHERE $whereClause".update()
       ) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) =>
@@ -908,11 +908,11 @@ trait FolderRepository {
         feideId: FeideID
     )(implicit session: DBSession = AutoSession): Try[List[Folder]] = Try {
       val f   = Folder.syntax("f")
-      val sfu = FolderUser.syntax("sfu")
+      val sfu = SavedSharedFolder.syntax("sfu")
       sql"""
           SELECT ${f.result.*}
           FROM ${Folder.as(f)}
-          LEFT JOIN ${FolderUser.as(sfu)} on sfu.folder_id = f.id
+          LEFT JOIN ${SavedSharedFolder.as(sfu)} on sfu.folder_id = f.id
           WHERE sfu.feide_id = $feideId
         """
         .map(Folder.fromResultSet(f))

@@ -58,7 +58,8 @@ object myndlaapi extends Module {
       "PaginatedNewPostNotifications",
       "Post",
       "Stats",
-      "SingleResourceStats"
+      "SingleResourceStats",
+      "UserFolder"
     )
   )
 

@@ -72,7 +72,7 @@ object Resource extends SQLSyntaxSupport[Resource] {
   def fromResultSet(lp: SyntaxProvider[Resource], withConnection: Boolean)(rs: WrappedResultSet): Try[Resource] =
     fromResultSet(s => lp.resultName.c(s), withConnection)(rs)
 
-  def fromResultSetSyntaxProvider(lp: SyntaxProvider[Resource], sp: SyntaxProvider[FolderResource])(
+  def fromResultSetSyntaxProviderWithConnection(lp: SyntaxProvider[Resource], sp: SyntaxProvider[FolderResource])(
       rs: WrappedResultSet
   ): Try[Option[Resource]] = {
     import no.ndla.myndlaapi.maybeUuidBinder

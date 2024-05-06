@@ -33,7 +33,7 @@ import no.ndla.myndlaapi.model.domain.{
   FolderSortException,
   FolderStatus,
   Rankable,
-  FolderUser
+  SavedSharedFolder
 }
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
@@ -700,7 +700,7 @@ trait FolderWriteService {
 
     private def createSharedFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
         session: DBSession
-    ): Try[FolderUser] = {
+    ): Try[SavedSharedFolder] = {
       for {
         folder     <- folderRepository.folderWithId(folderId).filter(f => f.isShared)
         folderUser <- folderRepository.createFolderUserConnection(folder.id, feideId)

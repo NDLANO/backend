@@ -77,15 +77,12 @@ trait FolderReadService {
         apiFolders <- folderConverterService.domainToApiModel(
           withData,
           (v: domain.Folder) => {
-            for {
-              converted <-
-                folderConverterService.toApiFolder(
-                  v,
-                  List(api.Breadcrumb(id = v.id.toString, name = v.name)),
-                  v.user,
-                  v.user.exists(_.feideId == v.feideId)
-                )
-            } yield converted
+            folderConverterService.toApiFolder(
+              v,
+              List(api.Breadcrumb(id = v.id.toString, name = v.name)),
+              v.user,
+              v.user.exists(_.feideId == v.feideId)
+            )
           }
         )
         sorted = apiFolders.sortBy(_.rank)

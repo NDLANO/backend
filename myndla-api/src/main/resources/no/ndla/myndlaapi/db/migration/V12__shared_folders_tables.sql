@@ -1,4 +1,4 @@
-CREATE TABLE folder_users(
+CREATE TABLE saved_shared_folder(
     folder_id uuid NOT NULL,
     feide_id text NOT NULL,
     CONSTRAINT folder_users_pkey PRIMARY KEY (folder_id, feide_id),

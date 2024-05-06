@@ -22,7 +22,7 @@ import no.ndla.myndlaapi.model.domain.{
   FolderResource,
   FolderStatus,
   Resource,
-  FolderUser,
+  SavedSharedFolder,
   UserRole
 }
 import no.ndla.scalatestsuite.UnitTestSuite
@@ -1026,7 +1026,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.createFolderUserConnection(any, any)(any))
-      .thenReturn(Success(FolderUser(folderId, feideId)))
+      .thenReturn(Success(SavedSharedFolder(folderId, feideId)))
     when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
 
     val result = service.newSaveSharedFolder(folderId, Some(feideId))
