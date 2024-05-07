@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA common
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.common.model.domain.draft
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}

@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA draft-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.draftapi.model.api
 
 import io.circe.{Decoder, Encoder}
