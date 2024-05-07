@@ -11,7 +11,7 @@ package no.ndla.oembedproxy.service
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
-import no.ndla.oembedproxy.model.{OEmbed, OEmbedProvider, ProviderNotSupportedException}
+import no.ndla.oembedproxy.model.{InvalidUrlException, OEmbed, OEmbedProvider, ProviderNotSupportedException}
 import sttp.client3.quick.*
 
 import scala.annotation.tailrec
@@ -66,11 +66,15 @@ trait OEmbedServiceComponent {
     }
 
     def get(url: String, maxWidth: Option[String], maxHeight: Option[String]): Try[OEmbed] = {
-      getProvider(url) match {
-        case None =>
-          Failure(ProviderNotSupportedException(s"Could not find an oembed-provider for the url '$url'"))
-        case Some(provider) =>
-          fetchOembedFromProvider(provider, url, maxWidth, maxHeight, 0).map(provider.postProcessor(url, _))
+      io.lemonlabs.uri.Uri.parseTry(url) match {
+        case Failure(_) => Failure(InvalidUrlException(s"$url does not seem to be a valid url."))
+        case Success(_) =>
+          getProvider(url) match {
+            case None =>
+              Failure(ProviderNotSupportedException(s"Could not find an oembed-provider for the url '$url'"))
+            case Some(provider) =>
+              fetchOembedFromProvider(provider, url, maxWidth, maxHeight, 0).map(provider.postProcessor(url, _))
+          }
       }
     }
 
