@@ -550,7 +550,8 @@ object TestData {
     slug = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    started = false
+    started = false,
+    qualityEvaluation = None
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -611,7 +612,8 @@ object TestData {
     slug = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    started = false
+    started = false,
+    qualityEvaluation = None
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))

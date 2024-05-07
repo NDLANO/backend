@@ -40,7 +40,8 @@ case class NewArticle(
     @description("The path to the frontpage article") slug: Option[String],
     @description("Information about a comment attached to an article") comments: Option[List[NewComment]],
     @description("If the article should be prioritized") prioritized: Option[Boolean],
-    @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String]
+    @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String],
+    @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluation],
 )
 // format: on
 
