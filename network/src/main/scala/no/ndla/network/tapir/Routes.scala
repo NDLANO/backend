@@ -143,13 +143,24 @@ trait Routes[F[_]] {
       }
     }
 
-    def startJdkServerAsync(name: String, port: Int)(warmupFunc: => Unit): HttpServer = {
-      val registry = new PrometheusRegistry()
-      val prometheusMetrics = PrometheusMetrics.default[Id](
-        namespace = "tapir",
-        registry = registry,
-        labels = MetricLabels.Default
+    private val registry: PrometheusRegistry = new PrometheusRegistry()
+    private val metricLabels: MetricLabels = MetricLabels(
+      forRequest = List(
+        "path"   -> { case (ep, _) => ep.showPathTemplate(showQueryParam = None) },
+        "method" -> { case (_, req) => req.method.method }
+      ),
+      forResponse = List(
+        "status" -> {
+          case Right(r) => r.code.code.toString
+          case Left(_)  => "5xx"
+        }
       )
+    )
+
+    def startJdkServerAsync(name: String, port: Int)(warmupFunc: => Unit): HttpServer = {
+      val prometheusMetrics = PrometheusMetrics
+        .default[Id](namespace = "tapir", registry = registry, labels = metricLabels)
+
       // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
       val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
 
