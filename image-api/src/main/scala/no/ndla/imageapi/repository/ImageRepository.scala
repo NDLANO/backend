@@ -208,9 +208,9 @@ trait ImageRepository {
       val im  = ImageMetaInformation.syntax("im")
       val dif = Image.syntax("dif")
       sql"""SELECT ${im.result.*}
-           FROM ${ImageMetaInformation.as(im)}
+           FROM ${ImageMetaInformation.as(im)} TABLESAMPLE system_rows(1)
            LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
-           WHERE im.metadata is not null order by random() limit 1"""
+           LIMIT 1"""
         .map(ImageMetaInformation.fromResultSet(im))
         .single()
     }

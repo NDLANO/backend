@@ -188,7 +188,7 @@ trait AudioRepository {
 
     def getRandomAudio()(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
-      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where document is not null order by random() limit 1"
+      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} tablesample system_rows(1) limit 1"
         .map(AudioMetaInformation.fromResultSet(au))
         .single()
     }
