@@ -58,7 +58,6 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ConverterService
     with ValidationService
     with BaseImageController
-    with HealthController
     with ImageControllerV2
     with ImageControllerV3
     with RawController
@@ -105,11 +104,11 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val clock          = new SystemClock
   lazy val random         = new Random
 
-  lazy val imageControllerV2 = new ImageControllerV2
-  lazy val imageControllerV3 = new ImageControllerV3
-  lazy val rawController     = new RawController
-  lazy val internController  = new InternController
-  lazy val healthController  = new HealthController
+  lazy val imageControllerV2                            = new ImageControllerV2
+  lazy val imageControllerV3                            = new ImageControllerV3
+  lazy val rawController                                = new RawController
+  lazy val internController                             = new InternController
+  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController
 
   private val swagger = new SwaggerController(
     List[Service[Eff]](
