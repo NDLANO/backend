@@ -186,7 +186,13 @@ trait AudioRepository {
       )
     }
 
-    def getRandomAudio()(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
+    def setSearchPath(implicit session: DBSession): Unit = {
+      val sp = SQLSyntax.createUnsafely(s"${props.MetaSchema},public")
+      sql"""SET search_path = $sp;""".execute.apply()
+    }
+    setSearchPath(AutoSession)
+
+    def getRandomAudio()(implicit session: DBSession = AutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} tablesample system_rows(1) limit 1"
         .map(AudioMetaInformation.fromResultSet(au))
