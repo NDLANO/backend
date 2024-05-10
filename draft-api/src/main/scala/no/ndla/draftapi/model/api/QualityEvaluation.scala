@@ -15,7 +15,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Quality evaluation of the article")
 case class QualityEvaluation(
     @description("The grade (1-5) of the article") grade: Grade,
-    @description("Note explaining the score") note: String
+    @description("Note explaining the score") note: Option[String]
 )
 
 object QualityEvaluation {

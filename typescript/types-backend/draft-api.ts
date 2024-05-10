@@ -180,7 +180,7 @@ export interface INewComment {
 
 export interface IQualityEvaluation {
   grade: Grade
-  note: string
+  note?: string
 }
 
 export interface IRelatedContentLink {
