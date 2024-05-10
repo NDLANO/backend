@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 
 case class QualityEvaluation(
     grade: Grade,
-    note: String
+    note: Option[String]
 )
 
 object QualityEvaluation {
