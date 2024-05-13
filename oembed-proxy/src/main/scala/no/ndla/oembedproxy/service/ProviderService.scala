@@ -57,12 +57,12 @@ trait ProviderService {
     val YoutubeEndpoint: OEmbedEndpoint = OEmbedEndpoint(
       Some(
         List(
-          "https://*.youtube.com/watch*",
-          "https://*.youtube.com/v/*",
-          "https://youtu.be/*",
-          "https://*.youtube.com/playlist?list=*",
-          "https://youtube.com/playlist?list=*",
-          "https://*.youtube.com/shorts*"
+          "http(s?)://*.youtube.com/watch*",
+          "http(s?)://*.youtube.com/v/*",
+          "http(s?)://youtu.be/*",
+          "http(s?)://*.youtube.com/playlist?list=*",
+          "http(s?)://youtube.com/playlist?list=*",
+          "http(s?)://*.youtube.com/shorts*"
         )
       ),
       Some("https://www.youtube.com/oembed"),
