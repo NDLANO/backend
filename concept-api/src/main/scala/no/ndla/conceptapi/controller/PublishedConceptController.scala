@@ -273,9 +273,8 @@ trait PublishedConceptController {
       .serverLogicPure { case (language, fallback, subjects) =>
         if (subjects.values.nonEmpty) {
           publishedConceptSearchService.getTagsWithSubjects(subjects.values, language, fallback) match {
-            case Success(res) if res.nonEmpty => SomeTagList(res).asRight
-            case Success(_)  => returnLeftError(NotFoundException("Could not find any tags in the specified subjects"))
-            case Failure(ex) => returnLeftError(ex)
+            case Success(res) => SomeTagList(res).asRight
+            case Failure(ex)  => returnLeftError(ex)
           }
         } else { SomeStringList(readService.allTagsFromConcepts(language, fallback)).asRight }
       }
