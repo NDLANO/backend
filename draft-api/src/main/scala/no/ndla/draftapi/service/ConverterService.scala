@@ -11,6 +11,7 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.{Delete, DraftCopyright, Missing, UpdateWith, draft}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
@@ -19,7 +20,7 @@ import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi, dom
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewComment, NotFoundException, UpdatedComment}
+import no.ndla.draftapi.model.api.{NewComment, NotFoundException, UpdatedArticle, UpdatedComment}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -698,36 +699,8 @@ trait ConverterService {
       addedNotes.map(n => toMergeInto.notes ++ n)
     }
 
-    def toDomainArticle(
-        toMergeInto: Draft,
-        article: api.UpdatedArticle,
-        isImported: Boolean,
-        user: TokenUser,
-        oldNdlaCreatedDate: Option[NDLADate],
-        oldNdlaUpdatedDate: Option[NDLADate]
-    ): Try[Draft] = {
-      val isNewLanguage = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
-      val createdDate   = if (isImported) oldNdlaCreatedDate.getOrElse(toMergeInto.created) else toMergeInto.created
-      val updatedDate   = if (isImported) oldNdlaUpdatedDate.getOrElse(clock.now()) else clock.now()
-      val publishedDate = article.published.getOrElse(toMergeInto.published)
-      val updatedAvailability = common.Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
-      val updatedRevisionMeta =
-        article.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(toMergeInto.revisionMeta)
-
-      val updatedRequiredLibraries = article.requiredLibraries
-        .map(_.map(toDomainRequiredLibraries))
-        .getOrElse(toMergeInto.requiredLibraries)
-
-      val updatedRelatedContent = article.relatedContent
-        .map(toDomainRelatedContent)
-        .getOrElse(toMergeInto.relatedContent)
-
-      val failableFields = for {
-        newNotes   <- getNewEditorialNotes(isNewLanguage, user, article, toMergeInto)
-        newContent <- cloneFilesForOtherLanguages(article.content, toMergeInto.content, isNewLanguage)
-      } yield (newNotes, newContent)
-
-      val responsible = (article.responsibleId, toMergeInto.responsible) match {
+    private def getNewResponsible(toMergeInto: Draft, article: UpdatedArticle) =
+      (article.responsibleId, toMergeInto.responsible) match {
         case (Delete, _)                       => None
         case (UpdateWith(responsibleId), None) => Some(Responsible(responsibleId, clock.now()))
         case (UpdateWith(responsibleId), Some(existing)) if existing.responsibleId != responsibleId =>
@@ -735,13 +708,8 @@ trait ConverterService {
         case (_, existing) => existing
       }
 
-      val updatedComments = article.comments
-        .map(comments => updatedCommentToDomain(comments, toMergeInto.comments))
-        .getOrElse(toMergeInto.comments)
-
-      val copyright = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
-
-      val priority = article.priority
+    private def getNewPriority(toMergeInto: Draft, article: UpdatedArticle) =
+      article.priority
         .map(v => common.Priority.valueOfOrError(v).getOrElse(toMergeInto.priority))
         .getOrElse(
           article.prioritized match {
@@ -751,71 +719,124 @@ trait ConverterService {
           }
         )
 
-      failableFields match {
-        case Failure(ex) => Failure(ex)
-        case Success((allNotes, newContent)) =>
-          val partiallyConverted = toMergeInto.copy(
-            revision = Option(article.revision),
-            copyright = copyright,
-            requiredLibraries = updatedRequiredLibraries,
-            created = createdDate,
-            updated = updatedDate,
-            published = publishedDate,
-            updatedBy = user.id,
-            articleType = article.articleType.map(common.ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
-            notes = allNotes,
-            editorLabels = article.editorLabels.getOrElse(toMergeInto.editorLabels),
-            grepCodes = article.grepCodes.getOrElse(toMergeInto.grepCodes),
-            conceptIds = article.conceptIds.getOrElse(toMergeInto.conceptIds),
-            availability = updatedAvailability,
-            relatedContent = updatedRelatedContent,
-            revisionMeta = updatedRevisionMeta,
-            responsible = responsible,
-            slug = article.slug.orElse(toMergeInto.slug),
-            comments = updatedComments,
-            priority = priority,
-            qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
-          )
-
-          val articleWithNewContent = article.copy(content = newContent)
-          articleWithNewContent.language match {
-            case None if languageFieldIsDefined(articleWithNewContent) =>
-              Failure(ValidationException("language", "This field must be specified when updating language fields"))
-            case None       => Success(partiallyConverted)
-            case Some(lang) => Success(mergeArticleLanguageFields(partiallyConverted, articleWithNewContent, lang))
+    private def getNewMetaImage(toMergeInto: Draft, maybeLang: Option[String], updatedArticle: UpdatedArticle) =
+      maybeLang
+        .map(lang =>
+          updatedArticle.metaImage match {
+            case Delete  => toMergeInto.metaImage.filterNot(_.language == lang)
+            case Missing => toMergeInto.metaImage
+            case UpdateWith(m) =>
+              val domainMetaImage = Seq(common.ArticleMetaImage(m.id, m.alt, lang))
+              mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
           }
-      }
-    }
+        )
+        .getOrElse(toMergeInto.metaImage)
 
-    private[service] def mergeArticleLanguageFields(
+    def toDomainArticle(
         toMergeInto: Draft,
-        updatedArticle: api.UpdatedArticle,
-        lang: String
-    ): Draft = {
-      val updatedTitles           = updatedArticle.title.toSeq.map(t => toDomainTitle(api.ArticleTitle(t, t, lang)))
-      val updatedContents         = updatedArticle.content.toSeq.map(c => toDomainContent(api.ArticleContent(c, lang)))
-      val updatedTags             = updatedArticle.tags.flatMap(tags => toDomainTag(Some(tags), lang)).toSeq
-      val updatedVisualElement    = updatedArticle.visualElement.map(c => toDomainVisualElement(c, lang)).toSeq
-      val updatedIntroductions    = updatedArticle.introduction.map(i => toDomainIntroduction(i, lang)).toSeq
-      val updatedMetaDescriptions = updatedArticle.metaDescription.map(m => toDomainMetaDescription(m, lang)).toSeq
+        article: api.UpdatedArticle,
+        isImported: Boolean,
+        user: TokenUser,
+        oldNdlaCreatedDate: Option[NDLADate],
+        oldNdlaUpdatedDate: Option[NDLADate]
+    ): Try[Draft] = {
+      if (article.language.isEmpty && languageFieldIsDefined(article))
+        return Failure(ValidationException("language", "This field must be specified when updating language fields"))
 
-      val updatedMetaImage = updatedArticle.metaImage match {
-        case Delete  => toMergeInto.metaImage.filterNot(_.language == lang)
-        case Missing => toMergeInto.metaImage
-        case UpdateWith(m) =>
-          val domainMetaImage = Seq(common.ArticleMetaImage(m.id, m.alt, lang))
-          mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
-      }
+      val isNewLanguage = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
+      val createdDate   = if (isImported) oldNdlaCreatedDate.getOrElse(toMergeInto.created) else toMergeInto.created
+      val updatedDate   = if (isImported) oldNdlaUpdatedDate.getOrElse(clock.now()) else clock.now()
+      val publishedDate = article.published.getOrElse(toMergeInto.published)
+      val updatedAvailability = common.Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
+      val updatedRevision    = article.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(toMergeInto.revisionMeta)
+      val responsible        = getNewResponsible(toMergeInto, article)
+      val copyright          = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
+      val priority           = getNewPriority(toMergeInto, article)
+      val newNotes           = getNewEditorialNotes(isNewLanguage, user, article, toMergeInto).?
+      val newContent         = cloneFilesForOtherLanguages(article.content, toMergeInto.content, isNewLanguage).?
+      val updatedRelatedCont = article.relatedContent.map(toDomainRelatedContent).getOrElse(toMergeInto.relatedContent)
+      val reqLibs =
+        article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).getOrElse(toMergeInto.requiredLibraries)
+      val updatedComments = article.comments
+        .map(comments => updatedCommentToDomain(comments, toMergeInto.comments))
+        .getOrElse(toMergeInto.comments)
 
-      toMergeInto.copy(
-        title = mergeLanguageFields(toMergeInto.title, updatedTitles),
-        content = mergeLanguageFields(toMergeInto.content, updatedContents),
-        tags = mergeLanguageFields(toMergeInto.tags, updatedTags),
-        visualElement = mergeLanguageFields(toMergeInto.visualElement, updatedVisualElement),
-        introduction = mergeLanguageFields(toMergeInto.introduction, updatedIntroductions),
-        metaDescription = mergeLanguageFields(toMergeInto.metaDescription, updatedMetaDescriptions),
-        metaImage = updatedMetaImage
+      val articleWithNewContent = article.copy(content = newContent)
+
+      val maybeLang        = articleWithNewContent.language
+      val updatedMetaImage = getNewMetaImage(toMergeInto, maybeLang, articleWithNewContent)
+      val updatedTitles = mergeLanguageFields(
+        toMergeInto.title,
+        maybeLang
+          .traverse(lang => articleWithNewContent.title.toSeq.map(t => toDomainTitle(api.ArticleTitle(t, t, lang))))
+          .flatten
       )
+      val updatedContents = mergeLanguageFields(
+        toMergeInto.content,
+        maybeLang
+          .traverse(lang => articleWithNewContent.content.toSeq.map(c => toDomainContent(api.ArticleContent(c, lang))))
+          .flatten
+      )
+      val updatedTags = mergeLanguageFields(
+        toMergeInto.tags,
+        maybeLang
+          .traverse(lang => articleWithNewContent.tags.flatMap(tags => toDomainTag(Some(tags), lang)).toSeq)
+          .flatten
+      )
+      val updatedVisualElement = mergeLanguageFields(
+        toMergeInto.visualElement,
+        maybeLang
+          .traverse(lang => articleWithNewContent.visualElement.map(c => toDomainVisualElement(c, lang)).toSeq)
+          .flatten
+      )
+      val updatedIntroductions = mergeLanguageFields(
+        toMergeInto.introduction,
+        maybeLang
+          .traverse(lang => articleWithNewContent.introduction.map(i => toDomainIntroduction(i, lang)).toSeq)
+          .flatten
+      )
+      val updatedMetaDescriptions = mergeLanguageFields(
+        toMergeInto.metaDescription,
+        maybeLang
+          .traverse(lang => articleWithNewContent.metaDescription.map(m => toDomainMetaDescription(m, lang)).toSeq)
+          .flatten
+      )
+
+      val converted = Draft(
+        id = toMergeInto.id,
+        revision = Option(article.revision),
+        status = toMergeInto.status,
+        title = updatedTitles,
+        content = updatedContents,
+        copyright = copyright,
+        tags = updatedTags,
+        requiredLibraries = reqLibs,
+        visualElement = updatedVisualElement,
+        introduction = updatedIntroductions,
+        metaDescription = updatedMetaDescriptions,
+        metaImage = updatedMetaImage,
+        created = createdDate,
+        updated = updatedDate,
+        updatedBy = user.id,
+        published = publishedDate,
+        articleType = article.articleType.map(common.ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
+        notes = newNotes,
+        previousVersionsNotes = toMergeInto.previousVersionsNotes,
+        editorLabels = article.editorLabels.getOrElse(toMergeInto.editorLabels),
+        grepCodes = article.grepCodes.getOrElse(toMergeInto.grepCodes),
+        conceptIds = article.conceptIds.getOrElse(toMergeInto.conceptIds),
+        availability = updatedAvailability,
+        relatedContent = updatedRelatedCont,
+        revisionMeta = updatedRevision,
+        responsible = responsible,
+        slug = article.slug.orElse(toMergeInto.slug),
+        comments = updatedComments,
+        priority = priority,
+        started = toMergeInto.started,
+        qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
+      )
+
+      Success(converted)
     }
 
     def toDomainArticle(
