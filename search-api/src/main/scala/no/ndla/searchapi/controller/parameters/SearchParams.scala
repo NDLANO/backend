@@ -7,13 +7,14 @@
 
 package no.ndla.searchapi.controller.parameters
 
+import com.scalatsi.TypescriptType.{TSString, TSUndefined}
+import com.scalatsi.{TSIType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
-import sttp.tapir.codec.enumeratum.*
 
 // format: off
 case class SearchParams (
@@ -46,7 +47,7 @@ case class SearchParams (
     license: Option[String],
 
     @description("The sorting used on results.")
-    sort: Option[String],
+    sort: Option[Sort],
 
     @description("Return only learning resources that have one of the provided ids.")
     ids: Option[List[Long]],
@@ -88,13 +89,8 @@ case class SearchParams (
 object SearchParams {
   implicit val encoder: Encoder[SearchParams] = deriveEncoder
   implicit val decoder: Decoder[SearchParams] = deriveDecoder
-  implicit val schema: Schema[SearchParams] = Schema
-    .derived[SearchParams]
-    .modify(_.sort)(sortSchema =>
-      // NOTE: Ideally the sort type would've been typed as `Option[Sort]` (With the enum)
-      //       but the frontend shares the code for the sort parameter across apis.
-      schemaForEnumEntry[Sort].asOption
-        .as[Option[String]]
-        .description(sortSchema.description.getOrElse(""))
-    )
+  implicit val schema: Schema[SearchParams] = Schema.derived[SearchParams]
+
+  import com.scalatsi.dsl.*
+  implicit val tsType: TSIType[SearchParams] = TSType.fromCaseClass[SearchParams] - "sort" + ("sort", TSString | TSUndefined)
 }

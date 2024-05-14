@@ -7,6 +7,8 @@
 
 package no.ndla.searchapi.controller.parameters
 
+import com.scalatsi.TypescriptType.{TSString, TSUndefined}
+import com.scalatsi.{TSIType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
@@ -15,7 +17,6 @@ import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.SearchType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
-import sttp.tapir.codec.enumeratum.*
 
   // format: off
   case class DraftSearchParams(
@@ -50,7 +51,7 @@ import sttp.tapir.codec.enumeratum.*
       noteQuery: Option[NonEmptyString],
 
       @description("The sorting used on results.")
-      sort: Option[String],
+      sort: Option[Sort],
 
       @description("Fallback to existing language if language is specified.")
       fallback: Option[Boolean],
@@ -137,13 +138,9 @@ import sttp.tapir.codec.enumeratum.*
 object DraftSearchParams {
   implicit val encoder: Encoder[DraftSearchParams] = deriveEncoder
   implicit val decoder: Decoder[DraftSearchParams] = deriveDecoder
-  implicit val schema: Schema[DraftSearchParams] = Schema
-    .derived[DraftSearchParams]
-    .modify(_.sort)(sortSchema =>
-      // NOTE: Ideally the sort type would've been typed as `Option[Sort]` (With the enum)
-      //       but the frontend shares the code for the sort parameter across apis.
-      schemaForEnumEntry[Sort].asOption
-        .as[Option[String]]
-        .description(sortSchema.description.getOrElse(""))
-    )
+  implicit val schema: Schema[DraftSearchParams]   = Schema.derived[DraftSearchParams]
+
+  import com.scalatsi.dsl.*
+  implicit val tsType: TSIType[DraftSearchParams] =
+    TSType.fromCaseClass[DraftSearchParams] - "sort" + ("sort", TSString | TSUndefined)
 }
