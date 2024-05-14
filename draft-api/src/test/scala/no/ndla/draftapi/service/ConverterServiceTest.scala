@@ -295,6 +295,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Merging language fields of article should not delete not updated fields") {
+    when(clock.now()).thenReturn(TestData.today)
     val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
     val art = Draft(
       id = Some(3),
@@ -335,10 +336,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       language = Some("nb")
     )
 
-    service.mergeArticleLanguageFields(art, updatedNothing, "nb") should be(art)
+    val user = TokenUser("theuserthatchangeditid", Set.empty, None)
+
+    service.toDomainArticle(art, updatedNothing, false, user, None, None).get should be(art)
   }
 
   test("mergeArticleLanguageFields should replace every field correctly") {
+    when(clock.now()).thenReturn(TestData.today)
     val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
     val art = Draft(
       id = Some(3),
@@ -430,11 +434,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       createNewVersion = None
     )
 
-    service.mergeArticleLanguageFields(art, updatedEverything, "nb") should be(expectedArticle)
+    val user = TokenUser("theuserthatchangeditid", Set.empty, None)
+    service.toDomainArticle(art, updatedEverything, false, user, None, None).get should be(expectedArticle)
 
   }
 
   test("mergeArticleLanguageFields should merge every field correctly") {
+    when(clock.now()).thenReturn(TestData.today)
     val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
     val art = Draft(
       id = Some(3),
@@ -488,7 +494,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = "theuserthatchangeditid",
       published = TestData.today,
       articleType = ArticleType.Standard,
-      notes = Seq(EditorNote("Note here", "sheeps", status, TestData.today)),
+      notes = Seq(
+        EditorNote("Note here", "sheeps", status, TestData.today),
+        EditorNote(
+          "Ny språkvariant 'en' ble lagt til.",
+          "theuserthatchangeditid",
+          Status(PUBLISHED, Set()),
+          TestData.today
+        )
+      ),
       previousVersionsNotes = Seq.empty,
       editorLabels = Seq.empty,
       grepCodes = Seq.empty,
@@ -526,7 +540,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       createNewVersion = None
     )
 
-    service.mergeArticleLanguageFields(art, updatedEverything, "en") should be(expectedArticle)
+    val user = TokenUser("theuserthatchangeditid", Set.empty, None)
+    service.toDomainArticle(art, updatedEverything, false, user, None, None).get should be(expectedArticle)
 
   }
 
