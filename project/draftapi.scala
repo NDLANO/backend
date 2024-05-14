@@ -44,7 +44,8 @@ object draftapi extends Module {
       "UpdatedArticle",
       "UpdatedUserData",
       "UploadedFile",
-      "UserData"
+      "UserData",
+      "no.ndla.common.model.api.FakeArticle"
     )
   )
 

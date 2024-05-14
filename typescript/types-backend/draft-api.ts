@@ -2,7 +2,17 @@
 
 export type Availability = ("everyone" | "teacher")
 
+export interface DescriptionLT {
+  language: string
+  description: string
+}
+
 export type Grade = (1 | 2 | 3 | 4 | 5)
+
+export interface IApiTitle {
+  title: string
+  language: string
+}
 
 export interface IArticle {
   id: number
@@ -125,6 +135,12 @@ export interface IEditorNote {
   user: string
   status: IStatus
   timestamp: string
+}
+
+export interface IFakeArticle {
+  title: IApiTitle
+  description: DescriptionLT
+  introduction: IntroductionLT
 }
 
 export interface IGrepCodesSearchResult {
@@ -285,6 +301,11 @@ export interface IUserData {
 export interface IVisualElement {
   visualElement: string
   language: string
+}
+
+export interface IntroductionLT {
+  language: string
+  introduction: string
 }
 
 export type UpdateOrDeleteNewArticleMetaImage = (null | undefined | INewArticleMetaImage)
