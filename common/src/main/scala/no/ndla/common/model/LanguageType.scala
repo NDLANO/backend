@@ -11,19 +11,20 @@ import com.scalatsi.TSType
 import com.scalatsi.TypescriptType.TSString
 import io.circe.{Decoder, DecodingFailure, Encoder, JsonObject}
 import io.circe.syntax.*
+import no.ndla.language.model.{LanguageField, WithLanguage}
 import sttp.tapir.Schema.SName
 import sttp.tapir.{FieldName, Schema, SchemaType}
 import sttp.tapir.SchemaType.SProductField
 
 import scala.reflect.runtime.universe.*
 
-case class LanguageType[T, SUBFIELD_NAME <: String](
-    value: T,
-    language: String
-) {
-  def convertTo[NEW_SFN <: String]: LanguageType[T, NEW_SFN] = {
-    LanguageType(value, language)
-  }
+case class LanguageType[T, SUBFIELD_NAME <: String](value: T, language: String) extends LanguageField[T] {
+  def as[NEW_SFN <: String]: LanguageType[T, NEW_SFN]     = LanguageType(value, language)
+  def withValue(value: T): LanguageType[T, SUBFIELD_NAME] = this.copy(value = value)
+
+  // TODO: either remove this, or do something smart?
+  //       since `value` is generic this is a bit tricky
+  override def isEmpty: Boolean = ???
 }
 
 object LanguageType {

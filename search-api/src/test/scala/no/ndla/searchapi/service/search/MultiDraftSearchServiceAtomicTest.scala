@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticApi.indexInto
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.NDLADate
+import no.ndla.common.model.{LanguageType, NDLADate}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
@@ -390,7 +390,7 @@ class MultiDraftSearchServiceAtomicTest
     )
     val draft3 = TestData.draft1.copy(
       id = Some(3),
-      title = Seq(Title("Gris", "nb")),
+      title = Seq(LanguageType("Gris", "nb")),
       notes = Seq(),
       previousVersionsNotes = Seq()
     )

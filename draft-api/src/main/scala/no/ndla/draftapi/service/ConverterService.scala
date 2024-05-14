@@ -16,7 +16,7 @@ import no.ndla.common.model.api.{Delete, DraftCopyright, Missing, UpdateWith, dr
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
-import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi, domain as common}
+import no.ndla.common.model.{LanguageType, NDLADate, RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -51,7 +51,7 @@ trait ConverterService {
         oldNdlaCreatedDate: Option[NDLADate],
         oldNdlaUpdatedDate: Option[NDLADate]
     ): Try[Draft] = {
-      val domainTitles = Seq(common.Title(newArticle.title, newArticle.language))
+      val domainTitles = Seq(LanguageType[String, "title"](newArticle.title, newArticle.language))
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
@@ -440,8 +440,8 @@ trait ConverterService {
     private def toApiStatus(status: common.Status): api.Status =
       api.Status(status.current.toString, status.other.map(_.toString).toSeq)
 
-    def toApiArticleTitle(title: common.Title): api.ArticleTitle =
-      api.ArticleTitle(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+    def toApiArticleTitle(title: LanguageType[String, ?]): api.ArticleTitle =
+      api.ArticleTitle(Jsoup.parseBodyFragment(title.value).body().text(), title.value, title.language)
 
     private def toApiArticleContent(content: common.ArticleContent): api.ArticleContent =
       api.ArticleContent(content.content, content.language)

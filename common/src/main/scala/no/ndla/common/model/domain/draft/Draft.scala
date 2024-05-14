@@ -9,16 +9,16 @@ package no.ndla.common.model.domain.draft
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import no.ndla.common.implicits._
-import no.ndla.common.model.{NDLADate, RelatedContentLink}
-import no.ndla.common.model.domain._
+import no.ndla.common.implicits.*
+import no.ndla.common.model.{LanguageType, NDLADate, RelatedContentLink}
+import no.ndla.common.model.domain.*
 import no.ndla.language.Language.getSupportedLanguages
 
 case class Draft(
     id: Option[Long],
     revision: Option[Int],
     status: Status,
-    title: Seq[Title],
+    title: Seq[LanguageType[String, "title"]],
     content: Seq[ArticleContent],
     copyright: Option[DraftCopyright],
     tags: Seq[Tag],

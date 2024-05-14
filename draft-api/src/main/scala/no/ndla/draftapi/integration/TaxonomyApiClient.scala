@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.LanguageType
 import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
@@ -52,7 +53,11 @@ trait TaxonomyApiClient {
       * @return
       *   List of Resources or Topics that were updated if none failed.
       */
-    private def updateTaxonomy(nodes: Seq[Node], titles: Seq[Title], user: TokenUser): Try[List[Node]] = {
+    private def updateTaxonomy(
+        nodes: Seq[Node],
+        titles: Seq[LanguageType[String, ?]],
+        user: TokenUser
+    ): Try[List[Node]] = {
       Language.findByLanguageOrBestEffort(titles, DefaultLanguage) match {
         case Some(title) =>
           val updated = nodes.map(updateTitleAndTranslations(_, title, titles, user))
@@ -66,12 +71,12 @@ trait TaxonomyApiClient {
 
     private def updateTitleAndTranslations(
         node: Node,
-        defaultTitle: Title,
-        titles: Seq[Title],
+        defaultTitle: LanguageType[String, ?],
+        titles: Seq[LanguageType[String, ?]],
         user: TokenUser
     ) = {
-      val strippedTitles = titles.map(title => title.copy(title = Jsoup.parseBodyFragment(title.title).body().text()))
-      val nodeResult     = updateNode(node.withName(Jsoup.parseBodyFragment(defaultTitle.title).body().text()), user)
+      val strippedTitles    = titles.map(title => title.withValue(Jsoup.parseBodyFragment(title.value).body().text()))
+      val nodeResult        = updateNode(node.withName(Jsoup.parseBodyFragment(defaultTitle.value).body().text()), user)
       val translationResult = updateTranslations(node.id, strippedTitles, user)
 
       val deleteResult = getTranslations(node.id).flatMap(translations => {
@@ -92,10 +97,10 @@ trait TaxonomyApiClient {
 
     private def updateTranslations(
         id: String,
-        titles: Seq[Title],
+        titles: Seq[LanguageType[String, ?]],
         user: TokenUser
     ) = {
-      val tries = titles.map(t => updateNodeTranslation(id, t.language, t.title, user))
+      val tries = titles.map(t => updateNodeTranslation(id, t.language, t.value, user))
       Traverse[List].sequence(tries.toList)
     }
 

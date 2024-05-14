@@ -11,7 +11,7 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.model.{LanguageType, NDLADate}
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.common.model.api.{FakeArticle, License}
+import no.ndla.common.model.api.License
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.model.api.*
@@ -102,7 +102,6 @@ trait DraftController {
     private val importId         = query[Option[String]]("importId")
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-      fakeEndpoint,
       getLicenses,
       getTagSearch,
       getGrepCodes,
@@ -658,20 +657,6 @@ trait DraftController {
           case Success(_)  => Right(())
           case Failure(ex) => returnLeftError(ex)
         }
-      }
-    def fakeEndpoint: ServerEndpoint[Any, Eff] = endpoint.get
-      .in("someurl")
-      .summary("Show article with a specified slug")
-      .description("Shows the article for the specified slug.")
-      .out(jsonBody[LanguageType[String, "apekatt"]])
-      .errorOut(errorOutputsFor(401, 403, 404))
-      .serverLogicPure { _ =>
-//        FakeArticle(
-//          title = ApiTitle("title", "en"),
-//          description = LanguageType("desc", "en"),
-//          introduction = LanguageType("introooo", "en")
-//        ).asRight
-        LanguageType[String, "description"]("introooo", "en").convertTo["apekatt"].asRight
       }
 
     def getArticleBySlug: ServerEndpoint[Any, Eff] = endpoint.get

@@ -28,7 +28,7 @@ import no.ndla.common.model.domain.{
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
-import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.common.model.{LanguageType, NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
@@ -586,7 +586,7 @@ object TestData {
     id = Option(1),
     revision = Option(1),
     status = draftStatus,
-    title = Seq(Title("test", "en")),
+    title = Seq(LanguageType("test", "en")),
     content = Seq(ArticleContent("<section><div>test</div></section>", "en")),
     copyright = Some(draftPublicDomainCopyright),
     tags = Seq.empty,
@@ -621,7 +621,7 @@ object TestData {
 
   val draft1: Draft = TestData.sampleDraftWithByNcSa.copy(
     id = Option(1),
-    title = List(Title("Batmen er på vift med en bil", "nb")),
+    title = List(LanguageType("Batmen er på vift med en bil", "nb")),
     introduction = List(Introduction("Batmen", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -637,7 +637,7 @@ object TestData {
 
   val draft2: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(2),
-    title = List(Title("Pingvinen er ute og går", "nb")),
+    title = List(LanguageType("Pingvinen er ute og går", "nb")),
     introduction = List(Introduction("Pingvinen", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -654,7 +654,7 @@ object TestData {
 
   val draft3: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(3),
-    title = List(Title("Donald Duck kjører bil", "nb")),
+    title = List(LanguageType("Donald Duck kjører bil", "nb")),
     introduction = List(Introduction("Donald Duck", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -667,7 +667,7 @@ object TestData {
 
   val draft4: Draft = TestData.sampleDraftWithCopyrighted.copy(
     id = Option(4),
-    title = List(Title("Superman er ute og flyr", "nb")),
+    title = List(LanguageType("Superman er ute og flyr", "nb")),
     introduction = List(Introduction("Superman", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -680,7 +680,7 @@ object TestData {
 
   val draft5: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(5),
-    title = List(Title("Hulken løfter biler", "nb")),
+    title = List(LanguageType("Hulken løfter biler", "nb")),
     introduction = List(Introduction("Hulken", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -709,7 +709,7 @@ object TestData {
 
   val draft6: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(6),
-    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
+    title = List(LanguageType("Loke og Tor prøver å fange midgaardsormen", "nb")),
     introduction = List(Introduction("Loke og Tor", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -726,7 +726,7 @@ object TestData {
 
   val draft7: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(7),
-    title = List(Title("Yggdrasil livets tre", "nb")),
+    title = List(LanguageType("Yggdrasil livets tre", "nb")),
     introduction = List(Introduction("Yggdrasil", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -738,7 +738,7 @@ object TestData {
 
   val draft8: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(8),
-    title = List(Title("Baldur har mareritt", "nb")),
+    title = List(LanguageType("Baldur har mareritt", "nb")),
     introduction = List(Introduction("Baldur", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -751,7 +751,7 @@ object TestData {
 
   val draft9: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(9),
-    title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
+    title = List(LanguageType("Baldur har mareritt om Ragnarok", "nb")),
     introduction = List(Introduction("Baldur", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -765,7 +765,7 @@ object TestData {
   val draft10: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(10),
     status = Status(DraftStatus.IN_PROGRESS, Set.empty),
-    title = List(Title("This article is in english", "en")),
+    title = List(LanguageType("This article is in english", "en")),
     introduction = List(Introduction("Engulsk", "en")),
     metaDescription = List.empty,
     visualElement = List.empty,
@@ -780,7 +780,7 @@ object TestData {
   val draft11: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(11),
     status = Status(DraftStatus.IN_PROGRESS, Set.empty),
-    title = List(Title("Katter", "nb"), Title("Cats", "en")),
+    title = List(LanguageType("Katter", "nb"), LanguageType("Cats", "en")),
     introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
     tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),
@@ -794,7 +794,7 @@ object TestData {
   val draft12: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(12),
     status = importedDraftStatus,
-    title = List(Title("Ekstrastoff", "nb")),
+    title = List(LanguageType("Ekstrastoff", "nb")),
     introduction = List(Introduction("Ekstra", "nb")),
     metaDescription = List(common.Description("", "nb")),
     content = List(
@@ -811,7 +811,11 @@ object TestData {
 
   val draft13: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(13),
-    title = List(Title("Luringen", "nb"), Title("English title", "en"), Title("Chhattisgarhi title", "hne")),
+    title = List(
+      LanguageType("Luringen", "nb"),
+      LanguageType("English title", "en"),
+      LanguageType("Chhattisgarhi title", "hne")
+    ),
     introduction = List(Introduction("Luringen", "nb")),
     metaDescription = List(common.Description("", "nb")),
     content = List(
@@ -835,7 +839,7 @@ object TestData {
 
   val draft14: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(14),
-    title = List(Title("Slettet", "nb")),
+    title = List(LanguageType("Slettet", "nb")),
     introduction = List(Introduction("Slettet", "nb")),
     metaDescription = List(common.Description("", "nb")),
     content = List(ArticleContent("", "nb")),
@@ -851,7 +855,7 @@ object TestData {
 
   val draft15: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(15),
-    title = List(Title("Engler og demoner", "nb")),
+    title = List(LanguageType("Engler og demoner", "nb")),
     introduction = List(Introduction("Religion", "nb")),
     metaDescription = List(common.Description("metareligion", "nb")),
     content = List(
@@ -867,7 +871,7 @@ object TestData {
 
   val draft16: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(16),
-    title = List(Title("Engler og demoner", "nb")),
+    title = List(LanguageType("Engler og demoner", "nb")),
     slug = Some("engler-og-demoner"),
     introduction = List(Introduction("Religion", "nb")),
     metaDescription = List(common.Description("metareligion", "nb")),
@@ -1186,7 +1190,7 @@ object TestData {
     generateContexts(topic_4, subject_2, subject_2, List.empty, Some("topic-article"), core, true, true, true)
   val topic_5: Node = Node(
     "urn:topic:5",
-    draft15.title.head.title,
+    draft15.title.head.value,
     Some(s"urn:article:${draft15.id.get}"),
     Some("/subject:3/topic:5"),
     invisibleMetadata,

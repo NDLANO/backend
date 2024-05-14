@@ -94,7 +94,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       expectedAllPublicLearningPaths(language).map(_.id.get)
 
   private def titlesForLang(language: String) = {
-    expectedAllPublicDrafts(language).map(_.title.find(_.language == language || language == "*").get.title) ++
+    expectedAllPublicDrafts(language).map(_.title.find(_.language == language || language == "*").get.value) ++
       expectedAllPublicLearningPaths(language).map(_.title.find(_.language == language || language == "*").get.title)
   }
 

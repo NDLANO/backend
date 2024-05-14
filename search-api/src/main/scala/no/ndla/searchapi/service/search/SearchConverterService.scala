@@ -399,7 +399,7 @@ trait SearchConverterService {
           license = draft.copyright.flatMap(_.license),
           authors = authors,
           articleType = draft.articleType.entryName,
-          defaultTitle = defaultTitle.map(t => t.title),
+          defaultTitle = defaultTitle.map(t => t.value),
           supportedLanguages = supportedLanguages,
           notes = notes,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts),

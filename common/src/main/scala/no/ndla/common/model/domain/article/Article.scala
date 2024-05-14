@@ -10,14 +10,14 @@ package no.ndla.common.model.domain.article
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.model.{NDLADate, RelatedContentLink}
-import no.ndla.common.model.domain._
-import no.ndla.common.implicits._
+import no.ndla.common.model.{LanguageType, NDLADate, RelatedContentLink}
+import no.ndla.common.model.domain.*
+import no.ndla.common.implicits.*
 
 case class Article(
     id: Option[Long],
     revision: Option[Int],
-    title: Seq[Title],
+    title: Seq[LanguageType[String, "title"]],
     content: Seq[ArticleContent],
     copyright: Copyright,
     tags: Seq[Tag],
