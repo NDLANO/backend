@@ -1,6 +1,7 @@
 package no.ndla.common
 
 import no.ndla.common.ContentURIUtil.NotUrnPatternException
+import no.ndla.common.model.api.{ApiTitle, ApiType, DomainTitle, DomainType}
 import no.ndla.scalatestsuite.UnitTestSuite
 
 import scala.util.{Failure, Success}
@@ -27,6 +28,37 @@ class ContentURIUtilTest extends UnitTestSuite {
         None
       )
     )
+  }
+
+  test("something") {
+    def merge[
+        A <: ApiType[D],
+        D <: DomainType[A]
+    ](
+        existing: Seq[DomainType[A]],
+        input: Option[ApiType[D]]
+    ): Seq[DomainType[A]] = {
+      input match {
+        case Some(i) => existing.filterNot(_.language == i.language) :+ i.toDomain
+        case None    => existing
+      }
+    }
+
+    val domains = Seq(
+      DomainTitle("tittel", "nb"),
+      DomainTitle("title", "en")
+    )
+
+    val input = Option(ApiTitle("ny tittel", "nb"))
+
+    val result = merge(domains, input)
+    result should be(
+      Seq(
+        DomainTitle("title", "en"),
+        DomainTitle("ny tittel", "nb")
+      )
+    )
+
   }
 
 }
