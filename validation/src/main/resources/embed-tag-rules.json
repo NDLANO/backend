@@ -697,7 +697,8 @@
               "jeopardylabs.com",
               "players.brightcove.net",
               ".*.uio.no",
-              "geodata.maps.arcgis.com"
+              "geodata.maps.arcgis.com",
+              "arcg.is"
             ]
           }
         },
