@@ -8,8 +8,8 @@
 package no.ndla.conceptapi.validation
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.conceptapi.model.domain.ConceptType.{CONCEPT, GLOSS}
-import no.ndla.conceptapi.model.domain.{ConceptType, GlossData}
+import no.ndla.common.model.domain.concept.{ConceptType, GlossData}
+import no.ndla.common.model.domain.concept.ConceptType.{CONCEPT, GLOSS}
 
 object GlossDataValidator {
 
@@ -33,10 +33,10 @@ object GlossDataValidator {
 
   def validateGlossData(
       maybeGlossData: Option[GlossData],
-      conceptType: ConceptType.Value
+      conceptType: ConceptType
   ): Option[ValidationMessage] = {
     (maybeGlossData, conceptType) match {
-      case (None, GLOSS)      => glossDataValidationMessage(conceptType.toString)
+      case (None, GLOSS)      => glossDataValidationMessage(conceptType.entryName)
       case (Some(_), CONCEPT) => conceptTypeValidationMessage
       case (_, _)             => None
     }

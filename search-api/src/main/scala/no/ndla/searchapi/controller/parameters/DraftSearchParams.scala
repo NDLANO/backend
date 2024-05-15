@@ -11,6 +11,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.searchapi.model.search.SearchType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
@@ -125,7 +126,11 @@ import sttp.tapir.Schema.annotations.description
 
       @description("Return only results having published date before this date.")
       publishedDateTo: Option[NDLADate],
-)
+
+      @description("Types of hits to appear in the result")
+      resultTypes: Option[List[SearchType]]
+  )
+// format: on
 
 object DraftSearchParams {
   implicit val encoder: Encoder[DraftSearchParams] = deriveEncoder

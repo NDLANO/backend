@@ -14,6 +14,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.Content
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, Service}
@@ -23,7 +24,14 @@ import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyAp
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
-import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
+import no.ndla.searchapi.model.search.SearchType
+import no.ndla.searchapi.service.search.{
+  ArticleIndexService,
+  DraftConceptIndexService,
+  DraftIndexService,
+  IndexService,
+  LearningPathIndexService
+}
 import sttp.model.StatusCode
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -40,6 +48,7 @@ trait InternController {
     with ArticleIndexService
     with LearningPathIndexService
     with DraftIndexService
+    with DraftConceptIndexService
     with TaxonomyApiClient
     with GrepApiClient
     with Props
@@ -51,7 +60,7 @@ trait InternController {
     import ErrorHelpers._
 
     implicit val ec: ExecutionContext =
-      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
+      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
@@ -98,7 +107,8 @@ trait InternController {
       reindexById,
       reindexArticle,
       reindexDraft,
-      reindexLearningpath
+      reindexLearningpath,
+      reindexConcept
     )
 
     def deleteDocument: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -110,6 +120,7 @@ trait InternController {
           case articleIndexService.documentType      => articleIndexService.deleteDocument(documentId)
           case draftIndexService.documentType        => draftIndexService.deleteDocument(documentId)
           case learningPathIndexService.documentType => learningPathIndexService.deleteDocument(documentId)
+          case draftConceptIndexService.documentType => draftConceptIndexService.deleteDocument(documentId)
           case _                                     => Success(())
         }).map(_ => ()).handleErrorsOrOk
       }
@@ -139,7 +150,8 @@ trait InternController {
         oneOf[Content](
           oneOfVariant(jsonBody[Article]),
           oneOfVariant(jsonBody[Draft]),
-          oneOfVariant(jsonBody[LearningPath])
+          oneOfVariant(jsonBody[LearningPath]),
+          oneOfVariant(jsonBody[Concept])
         )
       )
       .errorOut(errorOutputsFor(400))
@@ -148,6 +160,7 @@ trait InternController {
           case articleIndexService.documentType      => indexRequestWithService(articleIndexService, body)
           case draftIndexService.documentType        => indexRequestWithService(draftIndexService, body)
           case learningPathIndexService.documentType => indexRequestWithService(learningPathIndexService, body)
+          case draftConceptIndexService.documentType => indexRequestWithService(draftConceptIndexService, body)
           case _ =>
             badRequest(
               s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
@@ -162,7 +175,8 @@ trait InternController {
         oneOf[Content](
           oneOfVariant(jsonBody[Article]),
           oneOfVariant(jsonBody[Draft]),
-          oneOfVariant(jsonBody[LearningPath])
+          oneOfVariant(jsonBody[LearningPath]),
+          oneOfVariant(jsonBody[Concept])
         )
       )
       .serverLogicPure { case (indexType, id) =>
@@ -170,6 +184,7 @@ trait InternController {
           case articleIndexService.documentType      => articleIndexService.reindexDocument(id).handleErrorsOrOk
           case draftIndexService.documentType        => draftIndexService.reindexDocument(id).handleErrorsOrOk
           case learningPathIndexService.documentType => learningPathIndexService.reindexDocument(id).handleErrorsOrOk
+          case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id).handleErrorsOrOk
           case _ =>
             badRequest(
               s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
@@ -190,6 +205,21 @@ trait InternController {
         }
 
         resolveResultFutures(List(draftIndex))
+      }
+
+    def reindexConcept: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("index" / "concept")
+      .in(query[Option[Int]]("numShards"))
+      .errorOut(stringInternalServerError)
+      .out(stringBody)
+      .serverLogicPure { numShards =>
+        val requestInfo = RequestInfo.fromThreadContext()
+        val conceptIndex = Future {
+          requestInfo.setThreadContextRequestInfo()
+          ("concepts", draftConceptIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
+        }
+
+        resolveResultFutures(List(conceptIndex))
       }
 
     def reindexArticle: ServerEndpoint[Any, Eff] = endpoint.post
@@ -232,11 +262,13 @@ trait InternController {
         articleIndexService.cleanupIndexes(): Unit
         draftIndexService.cleanupIndexes(): Unit
         learningPathIndexService.cleanupIndexes(): Unit
+        draftConceptIndexService.cleanupIndexes(): Unit
 
         val articles      = articleIndexService.reindexWithShards(numShards)
         val drafts        = draftIndexService.reindexWithShards(numShards)
         val learningpaths = learningPathIndexService.reindexWithShards(numShards)
-        List(articles, drafts, learningpaths).sequence match {
+        val concept       = draftConceptIndexService.reindexWithShards(numShards)
+        List(articles, drafts, learningpaths, concept).sequence match {
           case Success(_) =>
             s"Reindexing with $numShards shards completed in ${System.currentTimeMillis() - startTime}ms".asRight
           case Failure(ex) =>
@@ -254,11 +286,13 @@ trait InternController {
         articleIndexService.cleanupIndexes(): Unit
         draftIndexService.cleanupIndexes(): Unit
         learningPathIndexService.cleanupIndexes(): Unit
+        draftConceptIndexService.cleanupIndexes(): Unit
 
         val articles      = articleIndexService.updateReplicaNumber(numReplicas)
         val drafts        = draftIndexService.updateReplicaNumber(numReplicas)
         val learningpaths = learningPathIndexService.updateReplicaNumber(numReplicas)
-        List(articles, drafts, learningpaths).sequence match {
+        val concepts      = draftConceptIndexService.updateReplicaNumber(numReplicas)
+        List(articles, drafts, learningpaths, concepts).sequence match {
           case Success(_) =>
             s"Updated replication setting for indexes to $numReplicas replicas. Populating may take some time.".asRight
           case Failure(ex) =>
@@ -298,6 +332,7 @@ trait InternController {
             learningPathIndexService.cleanupIndexes(): Unit
             articleIndexService.cleanupIndexes(): Unit
             draftIndexService.cleanupIndexes(): Unit
+            draftConceptIndexService.cleanupIndexes(): Unit
 
             val publishedIndexingBundle = IndexingBundle(
               grepBundle = Some(grepBundle),
@@ -324,6 +359,10 @@ trait InternController {
               Future {
                 requestInfo.setThreadContextRequestInfo()
                 ("drafts", draftIndexService.indexDocuments(numShards, draftIndexingBundle))
+              },
+              Future {
+                requestInfo.setThreadContextRequestInfo()
+                ("concepts", draftConceptIndexService.indexDocuments(numShards, draftIndexingBundle))
               }
             )
             if (runInBackground) {

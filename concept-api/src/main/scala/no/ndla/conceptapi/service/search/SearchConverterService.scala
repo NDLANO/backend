@@ -11,13 +11,14 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.domain.{Tag, Title, concept}
 import no.ndla.common.model.api as commonApi
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, ConceptType, VisualElement}
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
-import no.ndla.conceptapi.model.domain.{Concept, ConceptType, SearchResult}
+import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.*
-import no.ndla.conceptapi.model.{api, domain}
+import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -33,8 +34,8 @@ trait SearchConverterService {
 
   class SearchConverterService extends StrictLogging {
     private def getEmbedResourcesAndIdsToIndex(
-        visualElement: Seq[domain.VisualElement],
-        metaImage: Seq[domain.ConceptMetaImage]
+        visualElement: Seq[VisualElement],
+        metaImage: Seq[ConceptMetaImage]
     ): List[EmbedValues] = {
       val visualElementTuples = visualElement.flatMap(v => getEmbedValues(v.visualElement, v.language))
       val metaImageTuples =
@@ -95,7 +96,7 @@ trait SearchConverterService {
 
       SearchableConcept(
         id = c.id.get,
-        conceptType = c.conceptType.toString,
+        conceptType = c.conceptType.entryName,
         title = title,
         content = content,
         defaultTitle = title.defaultValue,
@@ -125,10 +126,10 @@ trait SearchConverterService {
     def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummary = {
       val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hitString)
       val titles            = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
-      val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
-      val tags     = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
+      val contents          = searchableConcept.content.languageValues.map(lv => ConceptContent(lv.value, lv.language))
+      val tags              = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
       val visualElements =
-        searchableConcept.visualElement.languageValues.map(lv => domain.VisualElement(lv.value, lv.language))
+        searchableConcept.visualElement.languageValues.map(lv => concept.VisualElement(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, contents)
 

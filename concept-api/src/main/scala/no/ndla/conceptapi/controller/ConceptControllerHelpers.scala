@@ -8,8 +8,9 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.domain.concept.ConceptType
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.domain.{ConceptType, Sort}
+import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.language.Language
 import sttp.tapir._
 import sttp.tapir.model.Delimited

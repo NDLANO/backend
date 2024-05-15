@@ -13,6 +13,8 @@ import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggResult, AggSe
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
@@ -23,7 +25,7 @@ import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregations
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{ErrorHelpers, SubjectAggregation, SubjectAggregations}
-import no.ndla.searchapi.model.domain.SearchResult
+import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
@@ -40,14 +42,23 @@ trait MultiDraftSearchService {
     with DraftIndexService
     with LearningPathIndexService
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with DraftConceptIndexService =>
   val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
-    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
-    override val searchIndex: List[String] =
-      List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
-    override val indexServices: List[IndexService[_ <: Content]] = List(draftIndexService, learningPathIndexService)
+    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndex}
+    override val searchIndex: List[String] = List(
+      SearchType.Drafts,
+      SearchType.LearningPaths,
+      SearchType.Concepts
+    ).map(SearchIndex)
+
+    override val indexServices: List[IndexService[_ <: Content]] = List(
+      draftIndexService,
+      learningPathIndexService,
+      draftConceptIndexService
+    )
 
     case class SumAggResult(value: Long) extends AggResult
 
@@ -114,6 +125,34 @@ trait MultiDraftSearchService {
         .map(aggregations => SubjectAggregations(aggregations))
     }
 
+    private def getSearchIndexes(settings: MultiDraftSearchSettings): Try[List[String]] = {
+      settings.resultTypes match {
+        case Some(list) if list.nonEmpty =>
+          val idxs = list.map { st =>
+            val index        = SearchIndex(st)
+            val isValidIndex = searchIndex.contains(index)
+
+            if (isValidIndex) Right(index)
+            else {
+              val validSearchTypes = searchIndex.traverse(props.indexToSearchType).getOrElse(List.empty)
+              val validTypesString = s"[${validSearchTypes.mkString("'", "','", "'")}]"
+              Left(
+                ValidationMessage(
+                  "resultTypes",
+                  s"Invalid result type for endpoint: '$st', expected one of: $validTypesString"
+                )
+              )
+            }
+          }
+
+          val errors = idxs.collect { case Left(e) => e }
+          if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
+          else Success(idxs.collect { case Right(i) => i })
+
+        case _ => Success(List(SearchType.Drafts, SearchType.LearningPaths).map(SearchIndex))
+      }
+    }
+
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
 
       val contentSearch = settings.query.map(queryString => {
@@ -138,7 +177,8 @@ trait MultiDraftSearchService {
             langQueryFunc("embedAttributes", 1),
             simpleStringQuery(queryString.underlying).field("authors", 1),
             simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
-            nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", queryString.underlying))),
+            nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", queryString.underlying)))
+              .ignoreUnmapped(true),
             idsQuery(queryString.underlying),
             nestedQuery("revisionMeta", simpleStringQuery(queryString.underlying).field("revisionMeta.note"))
               .ignoreUnmapped(true)
@@ -195,7 +235,8 @@ trait MultiDraftSearchService {
 
         val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
 
-        val searchToExecute = search(searchIndex)
+        val index = getSearchIndexes(settings).?
+        val searchToExecute = search(index)
           .query(filteredSearch)
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .trackTotalHits(true)
@@ -279,9 +320,10 @@ trait MultiDraftSearchService {
       val articleTypeFilter = Some(
         boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
       )
-      val taxonomyContextFilter       = contextTypeFilter(settings.learningResourceTypes)
+      val learningResourceType        = learningResourceFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
+      val conceptSubjectFilter        = subjectFilterForConcept(settings.subjects)
       val taxonomyTopicFilter         = topicFilter(settings.topics, settings.filterInactive)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
       val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
@@ -292,9 +334,9 @@ trait MultiDraftSearchService {
         articleTypeFilter,
         languageFilter,
         taxonomySubjectFilter,
+        conceptSubjectFilter,
         taxonomyTopicFilter,
         taxonomyResourceTypesFilter,
-        taxonomyContextFilter,
         taxonomyContextActiveFilter,
         supportedLanguageFilter,
         taxonomyRelevanceFilter,
@@ -306,9 +348,21 @@ trait MultiDraftSearchService {
         publishedDateFilter,
         responsibleIdFilter,
         prioritizedFilter,
-        priorityFilter
+        priorityFilter,
+        learningResourceType
       ).flatten
     }
+
+    private def subjectFilterForConcept(subjectIds: List[String]): Option[Query] = {
+      Option.when(subjectIds.nonEmpty) {
+        mustBeNotConceptOr(termsQuery("subjectIds", subjectIds))
+      }
+    }
+
+    private def learningResourceFilter(types: List[LearningResourceType]): Option[Query] =
+      Option.when(types.nonEmpty)(
+        termsQuery("learningResourceType", types.map(_.entryName))
+      )
 
     private def getRevisionHistoryLogQuery(queryString: String, excludeHistoryLog: Boolean): Seq[Query] = {
       Seq(
@@ -371,8 +425,14 @@ trait MultiDraftSearchService {
         learningPathIndexService.indexDocuments(shouldUsePublishedTax = true)
       }
 
-      handleScheduledIndexResults(SearchIndexes(SearchType.Drafts), draftFuture)
-      handleScheduledIndexResults(SearchIndexes(SearchType.LearningPaths), learningPathFuture)
+      val conceptFuture = Future {
+        requestInfo.setThreadContextRequestInfo()
+        draftConceptIndexService.indexDocuments(shouldUsePublishedTax = true)
+      }
+
+      handleScheduledIndexResults(SearchIndex(SearchType.Drafts), draftFuture)
+      handleScheduledIndexResults(SearchIndex(SearchType.LearningPaths), learningPathFuture)
+      handleScheduledIndexResults(SearchIndex(SearchType.Concepts), conceptFuture)
     }
   }
 

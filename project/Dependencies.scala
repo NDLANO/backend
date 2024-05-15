@@ -95,6 +95,7 @@ object Dependencies {
     lazy val tapir: Seq[ModuleID] = Seq(
       "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"      % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle"  % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-enumeratum"         % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"         % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-jdkhttp-server"     % TapirV,
       "com.softwaremill.sttp.tapir"   %% "tapir-prometheus-metrics" % TapirV,

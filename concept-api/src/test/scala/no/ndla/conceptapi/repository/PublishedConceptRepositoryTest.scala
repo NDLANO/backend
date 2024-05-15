@@ -8,18 +8,17 @@
 package no.ndla.conceptapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
-
-import java.net.Socket
-import no.ndla.common.model.{domain => common}
-import no.ndla.conceptapi._
-import no.ndla.conceptapi.model.domain
+import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.common.model.domain.concept
+import no.ndla.common.model.domain.concept.ConceptContent
+import no.ndla.conceptapi.*
+import no.ndla.conceptapi.model.domain.PublishedConcept
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
-import scalikejdbc.{DB, _}
+import scalikejdbc.{DB, *}
 
+import java.net.Socket
 import scala.util.{Failure, Success, Try}
-import no.ndla.common.model.NDLADate
-import no.ndla.conceptapi.model.domain.PublishedConcept
 
 class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 
@@ -241,20 +240,20 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   test("That getByPage returns all concepts in database") {
     val con1 = TestData.domainConcept.copy(
       id = Some(1),
-      content = Seq(domain.ConceptContent("Hei", "nb")),
+      content = Seq(ConceptContent("Hei", "nb")),
       updated = NDLADate.fromUnixTime(0),
       created = NDLADate.fromUnixTime(0)
     )
     val con2 = TestData.domainConcept.copy(
       id = Some(2),
       revision = Some(100),
-      content = Seq(domain.ConceptContent("På", "nb")),
+      content = Seq(concept.ConceptContent("På", "nb")),
       updated = NDLADate.fromUnixTime(0),
       created = NDLADate.fromUnixTime(0)
     )
     val con3 = TestData.domainConcept.copy(
       id = Some(3),
-      content = Seq(domain.ConceptContent("Deg", "nb")),
+      content = Seq(concept.ConceptContent("Deg", "nb")),
       updated = NDLADate.fromUnixTime(0),
       created = NDLADate.fromUnixTime(0)
     )

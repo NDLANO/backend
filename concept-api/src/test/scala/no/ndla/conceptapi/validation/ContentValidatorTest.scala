@@ -7,10 +7,10 @@
 
 package no.ndla.conceptapi.validation
 
-import no.ndla.common.model.domain.{Author, Responsible, Title}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent}
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.conceptapi.model.domain.{Concept, ConceptContent}
+import no.ndla.common.model.domain.{Author, Responsible, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.{Failure, Success}

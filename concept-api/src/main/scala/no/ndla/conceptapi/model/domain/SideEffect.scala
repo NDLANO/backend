@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.model.domain
 
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Success, Try}

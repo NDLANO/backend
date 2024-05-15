@@ -144,7 +144,6 @@ lazy val constants = Module.setup(
     network,
     language,
     mapping,
-    `concept-api`,
     testWith(scalatestsuite)
   )
 )

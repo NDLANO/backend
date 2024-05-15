@@ -14,6 +14,7 @@ import no.ndla.searchapi.model.api.learningpath.Copyright
 import no.ndla.searchapi.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData.*
+import no.ndla.searchapi.model.domain.LearningResourceType
 
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 
@@ -63,7 +64,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       authors = List("Yap"),
       contexts = searchableTaxonomyContexts,
       license = "by-sa",
-      favorited = 0
+      favorited = 0,
+      learningResourceType = LearningResourceType.LearningPath
     )
 
     val json         = CirceUtil.toJsonString(original)

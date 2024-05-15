@@ -7,11 +7,27 @@
 
 package no.ndla.searchapi.model.search
 
-object SearchType extends Enumeration {
-  val Articles: SearchType.Value      = Value("article")
-  val Drafts: SearchType.Value        = Value("draft")
-  val LearningPaths: SearchType.Value = Value("learningpath")
+import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
+import com.scalatsi.{TSNamedType, TSType}
+import enumeratum.*
+import no.ndla.common.CirceUtil.CirceEnumWithErrors
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
-  def all: List[String] = SearchType.values.map(_.toString).toList
+sealed abstract class SearchType(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
+object SearchType extends Enum[SearchType] with CirceEnumWithErrors[SearchType] {
+  case object Articles      extends SearchType("article")
+  case object Drafts        extends SearchType("draft")
+  case object LearningPaths extends SearchType("learningpath")
+  case object Concepts      extends SearchType("concept")
 
+  def all: List[String]                       = SearchType.values.map(_.toString).toList
+  override def values: IndexedSeq[SearchType] = findValues
+
+  implicit def schema: Schema[SearchType] = schemaForEnumEntry[SearchType]
+
+  implicit val enumTsType: TSNamedType[SearchType] =
+    TSType.alias[SearchType]("SearchType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 }

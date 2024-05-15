@@ -13,6 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchableArticle(
     id: Long,
@@ -34,7 +35,8 @@ case class SearchableArticle(
     traits: List[String],
     embedAttributes: SearchableLanguageList,
     embedResourcesAndIds: List[EmbedValues],
-    availability: String
+    availability: String,
+    learningResourceType: LearningResourceType
 )
 
 object SearchableArticle {

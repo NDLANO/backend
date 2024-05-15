@@ -41,12 +41,10 @@ trait MultiSearchService {
   val multiSearchService: MultiSearchService
 
   class MultiSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
-    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
+    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndex}
 
-    override val searchIndex: List[String] =
-      List(SearchIndexes(SearchType.Articles), SearchIndexes(SearchType.LearningPaths))
-    override val indexServices: List[IndexService[_ <: Content]] =
-      List(articleIndexService, learningPathIndexService)
+    override val searchIndex: List[String] = List(SearchType.Articles, SearchType.LearningPaths).map(SearchIndex)
+    override val indexServices: List[IndexService[_ <: Content]] = List(articleIndexService, learningPathIndexService)
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
 
@@ -217,8 +215,8 @@ trait MultiSearchService {
         learningPathIndexService.indexDocuments(shouldUsePublishedTax = true)
       }
 
-      handleScheduledIndexResults(SearchIndexes(SearchType.Articles), articleFuture)
-      handleScheduledIndexResults(SearchIndexes(SearchType.LearningPaths), learningPathFuture)
+      handleScheduledIndexResults(SearchIndex(SearchType.Articles), articleFuture)
+      handleScheduledIndexResults(SearchIndex(SearchType.LearningPaths), learningPathFuture)
     }
   }
 

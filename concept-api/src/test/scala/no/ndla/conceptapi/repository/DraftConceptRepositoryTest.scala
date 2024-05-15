@@ -8,19 +8,17 @@
 package no.ndla.conceptapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
-
-import java.net.Socket
-import no.ndla.common.model.{domain => common}
-import no.ndla.conceptapi.model.domain
+import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.common.model.domain.concept
+import no.ndla.common.model.domain.concept.ConceptContent
+import no.ndla.conceptapi.TestData.*
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import scalikejdbc.DB
-import no.ndla.conceptapi.TestData._
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
+import scalikejdbc.*
 
+import java.net.Socket
 import scala.util.{Failure, Success, Try}
-import scalikejdbc._
-import no.ndla.common.model.NDLADate
 
 class DraftConceptRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
@@ -87,7 +85,7 @@ class DraftConceptRepositoryTest
     val id2 = repository.insert(art2).id.get
     val id3 = repository.insert(art3).id.get
 
-    val updatedContent = Seq(domain.ConceptContent("What u do mr", "nb"))
+    val updatedContent = Seq(ConceptContent("What u do mr", "nb"))
     repository.update(art1.copy(id = Some(id1), content = updatedContent))
 
     repository.withId(id1).get.content should be(updatedContent)
@@ -255,7 +253,7 @@ class DraftConceptRepositoryTest
   test("Revision mismatch fail with optimistic lock exception") {
     val art1 = domainConcept.copy(
       revision = None,
-      content = Seq(domain.ConceptContent("Originalpls", "nb")),
+      content = Seq(concept.ConceptContent("Originalpls", "nb")),
       created = NDLADate.fromUnixTime(0),
       updated = NDLADate.fromUnixTime(0)
     )
@@ -265,7 +263,7 @@ class DraftConceptRepositoryTest
 
     repository.withId(insertedId).get.revision should be(Some(1))
 
-    val updatedContent = Seq(domain.ConceptContent("Updatedpls", "nb"))
+    val updatedContent = Seq(concept.ConceptContent("Updatedpls", "nb"))
     val updatedArt1    = art1.copy(revision = Some(10), id = Some(insertedId), content = updatedContent)
 
     val updateResult1 = repository.update(updatedArt1)
@@ -285,17 +283,17 @@ class DraftConceptRepositoryTest
 
   test("That getByPage returns all concepts in database") {
     val con1 = domainConcept.copy(
-      content = Seq(domain.ConceptContent("Hei", "nb")),
+      content = Seq(concept.ConceptContent("Hei", "nb")),
       updated = NDLADate.fromUnixTime(0),
       created = NDLADate.fromUnixTime(0)
     )
     val con2 = domainConcept.copy(
-      content = Seq(domain.ConceptContent("På", "nb")),
+      content = Seq(concept.ConceptContent("På", "nb")),
       updated = NDLADate.fromUnixTime(0),
       created = NDLADate.fromUnixTime(0)
     )
     val con3 = domainConcept.copy(
-      content = Seq(domain.ConceptContent("Deg", "nb")),
+      content = Seq(concept.ConceptContent("Deg", "nb")),
       updated = NDLADate.fromUnixTime(0),
       created = NDLADate.fromUnixTime(0)
     )

@@ -1,19 +1,20 @@
 /*
- * Part of NDLA concept-api
- * Copyright (C) 2019 NDLA
+ * Part of NDLA search-api
+ * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.conceptapi.model.search
+package no.ndla.searchapi.model.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.model.domain.Responsible
-import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.concept.{Concept, ConceptMetaImage}
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.searchapi.model.api.Status
+import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchableConcept(
     id: Long,
@@ -23,24 +24,20 @@ case class SearchableConcept(
     metaImage: Seq[ConceptMetaImage],
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
-    subjectIds: Seq[String],
+    subjectIds: List[String],
     lastUpdated: NDLADate,
     status: Status,
     updatedBy: Seq[String],
     license: Option[String],
-    copyright: Option[SearchableCopyright],
-    embedResourcesAndIds: List[EmbedValues],
-    visualElement: SearchableLanguageValues,
+    authors: List[String],
     articleIds: Seq[Long],
     created: NDLADate,
     source: Option[String],
     responsible: Option[Responsible],
     gloss: Option[String],
     domainObject: Concept,
-    sortableSubject: SearchableLanguageValues,
-    sortableConceptType: SearchableLanguageValues,
-    defaultSortableSubject: Option[String],
-    defaultSortableConceptType: Option[String]
+    favorited: Long,
+    learningResourceType: LearningResourceType
 )
 
 object SearchableConcept {

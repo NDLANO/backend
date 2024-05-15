@@ -10,10 +10,11 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHelpers, NotFoundException}
-import no.ndla.conceptapi.model.domain.Concept
+import no.ndla.conceptapi.model.domain.DBConcept
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
@@ -33,7 +34,7 @@ trait DraftConceptRepository {
 
       val conceptId: Long =
         sql"""
-        insert into ${Concept.table} (document, revision)
+        insert into ${DBConcept.table} (document, revision)
         values (${dataObject}, $newRevision)
           """.updateAndReturnGeneratedKey()
 
@@ -53,7 +54,7 @@ trait DraftConceptRepository {
 
       val conceptId: Long =
         sql"""
-        insert into ${Concept.table} (listing_id, document, revision)
+        insert into ${DBConcept.table} (listing_id, document, revision)
         values ($listingId, $dataObject, $newRevision)
           """.updateAndReturnGeneratedKey()
 
@@ -70,7 +71,7 @@ trait DraftConceptRepository {
 
       Try(
         sql"""
-           update ${Concept.table}
+           update ${DBConcept.table}
            set document=${dataObject}
            where listing_id=${listingId}
          """.updateAndReturnGeneratedKey()
@@ -85,7 +86,7 @@ trait DraftConceptRepository {
     def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
       sql"""
         select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id
-        from ${Concept.table}
+        from ${DBConcept.table}
         where jsonb_array_length(document->'subjectIds') != 0;"""
         .map(rs => rs.string("subject_id"))
         .list()
@@ -95,7 +96,7 @@ trait DraftConceptRepository {
     def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
       sql"""
            select distinct id, document#>'{tags}' as tags
-           from ${Concept.table}
+           from ${DBConcept.table}
            where jsonb_array_length(document#>'{tags}') > 0
            order by id
          """
@@ -120,7 +121,7 @@ trait DraftConceptRepository {
 
           Try(
             sql"""
-                  insert into ${Concept.table} (id, document, revision)
+                  insert into ${DBConcept.table} (id, document, revision)
                   values ($id, ${dataObject}, $newRevision)
                """.update()
           ).map(_ => {
@@ -145,13 +146,13 @@ trait DraftConceptRepository {
 
           Try(
             sql"""
-              update ${Concept.table}
+              update ${DBConcept.table}
               set
                 document=${dataObject},
                 revision=$newRevision
               where id=$conceptId
               and revision=$oldRevision
-              and revision=(select max(revision) from ${Concept.table} where id=$conceptId)
+              and revision=(select max(revision) from ${DBConcept.table} where id=$conceptId)
             """.update()
           ) match {
             case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
@@ -177,20 +178,20 @@ trait DraftConceptRepository {
       conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
     def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
-      sql"select id from ${Concept.table} where id=${id}"
+      sql"select id from ${DBConcept.table} where id=${id}"
         .map(rs => rs.long("id"))
         .single()
         .isDefined
     }
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      sql"select id from ${Concept.table} where $externalId = any(external_id)"
+      sql"select id from ${DBConcept.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
         .single()
     }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}"
+      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBConcept.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
@@ -206,29 +207,29 @@ trait DraftConceptRepository {
     private def conceptWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
-      val co = Concept.syntax("co")
-      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
-        .map(Concept.fromResultSet(co))
+      val co = DBConcept.syntax("co")
+      sql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
+        .map(DBConcept.fromResultSet(co))
         .single()
     }
 
     private def conceptsWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
-      val co = Concept.syntax("co")
-      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
-        .map(Concept.fromResultSet(co))
+      val co = DBConcept.syntax("co")
+      sql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
+        .map(DBConcept.fromResultSet(co))
         .list()
     }
 
     def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-      sql"select count(*) from ${Concept.table}"
+      sql"select count(*) from ${DBConcept.table}"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
 
     private def getHighestId(implicit session: DBSession = ReadOnlyAutoSession): Long = {
-      sql"select id from ${Concept.table} order by id desc limit 1"
+      sql"select id from ${DBConcept.table} order by id desc limit 1"
         .map(rs => rs.long("id"))
         .single()
         .getOrElse(0)
@@ -237,7 +238,7 @@ trait DraftConceptRepository {
     def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Unit = {
       val idToStartAt = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
       val sequenceName = SQLSyntax.createUnsafely(
-        s"${Concept.schemaName.getOrElse(props.MetaSchema)}.${Concept.tableName}_id_seq"
+        s"${DBConcept.schemaName.getOrElse(props.MetaSchema)}.${DBConcept.tableName}_id_seq"
       )
 
       sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate(): Unit
@@ -252,7 +253,7 @@ trait DraftConceptRepository {
 
       val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
-              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Concept.table}) _
+              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${DBConcept.table}) _
               where tagObj->>'language' like ${langOrAll}
               order by tags) sorted_tags
               where sorted_tags.tags ilike ${sanitizedInput + '%'}
@@ -266,7 +267,7 @@ trait DraftConceptRepository {
         sql"""
               select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
-              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Concept.table}) _
+              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${DBConcept.table}) _
               where tagObj->>'language' like  ${langOrAll}) all_tags
               where all_tags.tags ilike ${sanitizedInput + '%'};
            """
@@ -279,16 +280,16 @@ trait DraftConceptRepository {
     }
 
     def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
-      val co = Concept.syntax("co")
+      val co = DBConcept.syntax("co")
       sql"""
            select ${co.result.*}, ${co.revision} as revision
-           from ${Concept.as(co)}
+           from ${DBConcept.as(co)}
            where document is not null
            order by ${co.id}
            offset $offset
            limit $pageSize
       """
-        .map(Concept.fromResultSet(co))
+        .map(DBConcept.fromResultSet(co))
         .list()
     }
   }

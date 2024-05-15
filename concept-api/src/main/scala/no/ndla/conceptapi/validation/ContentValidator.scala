@@ -9,16 +9,16 @@ package no.ndla.conceptapi.validation
 
 import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, ConceptStatus, VisualElement}
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.validation.GlossDataValidator.validateGlossData
 import no.ndla.language.model.{Iso639, WithLanguage}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.allLegalTags
-import no.ndla.validation._
+import no.ndla.validation.*
 
 import scala.util.{Failure, Success, Try}
 

@@ -23,11 +23,12 @@ import scala.util.Try
 
 trait LearningPathIndexService {
   this: SearchConverterService with IndexService with LearningPathApiClient with Props =>
+  import props.SearchIndex
   val learningPathIndexService: LearningPathIndexService
 
   class LearningPathIndexService extends StrictLogging with IndexService[LearningPath] {
-    override val documentType: String             = props.SearchDocuments(SearchType.LearningPaths)
-    override val searchIndex: String              = props.SearchIndexes(SearchType.LearningPaths)
+    override val documentType: String             = "learningpath"
+    override val searchIndex: String              = SearchIndex(SearchType.LearningPaths)
     override val apiClient: LearningPathApiClient = learningPathApiClient
 
     override def createIndexRequest(
@@ -46,6 +47,7 @@ trait LearningPathIndexService {
         intField("id"),
         textField("coverPhotoId"),
         intField("duration"),
+        keywordField("learningResourceType"),
         textField("status"),
         textField("verificationStatus"),
         dateField("lastUpdated"),

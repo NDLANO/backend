@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
+import no.ndla.common.model.domain.{Author, Responsible, Tag, Title, concept}
 import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain.*
@@ -20,6 +20,17 @@ import org.scalatest.Outcome
 
 import scala.util.Success
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.concept.{
+  Concept,
+  ConceptContent,
+  ConceptMetaImage,
+  ConceptStatus,
+  ConceptType,
+  GlossData,
+  Status,
+  VisualElement,
+  WordClass
+}
 import no.ndla.conceptapi.integration.model.TaxonomyData
 import org.mockito.Mockito.when
 
@@ -159,7 +170,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
     subjectIds = Set("urn:subject:1", "urn:subject:100"),
-    status = Status(current = ConceptStatus.PUBLISHED, other = Set.empty),
+    status = concept.Status(current = ConceptStatus.PUBLISHED, other = Set.empty),
     metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en")),
     responsible = Some(Responsible("test1", today))
   )
@@ -172,7 +183,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
     updated = NDLADate.now().minusDays(1),
     subjectIds = Set("urn:subject:2"),
-    status = Status(current = ConceptStatus.FOR_APPROVAL, other = Set(ConceptStatus.PUBLISHED)),
+    status = concept.Status(current = ConceptStatus.FOR_APPROVAL, other = Set(ConceptStatus.PUBLISHED)),
     updatedBy = Seq("Test1"),
     visualElement = List(
       VisualElement(
@@ -194,7 +205,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     copyright = Some(publicDomain),
     title = List(Title("deleted", "en"), Title("slettet", "nb")),
     content = List(ConceptContent("deleted", "en"), ConceptContent("slettet", "nb")),
-    status = Status(current = ConceptStatus.ARCHIVED, other = Set.empty)
+    status = concept.Status(current = ConceptStatus.ARCHIVED, other = Set.empty)
   )
 
   val concept13: Concept = TestData.sampleConcept.copy(

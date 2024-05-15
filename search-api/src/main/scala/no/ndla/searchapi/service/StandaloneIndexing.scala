@@ -13,6 +13,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.Environment.{booleanPropOrFalse, prop}
 import no.ndla.common.model.domain.Content
 import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
+import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import sttp.client3.quick.*
 
@@ -101,7 +102,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       case Failure(ex) => Seq(Failure(ex))
       case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
         implicit val ec: ExecutionContextExecutorService =
-          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
         def reindexWithIndexService[C <: Content](
             indexService: componentRegistry.IndexService[C],

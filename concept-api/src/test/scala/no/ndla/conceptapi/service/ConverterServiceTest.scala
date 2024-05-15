@@ -7,19 +7,18 @@
 
 package no.ndla.conceptapi.service
 
-import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.{api as commonApi, domain as common}
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
+import no.ndla.common.model.domain.concept.*
+import no.ndla.common.model.domain.{Responsible, concept}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
+import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
-import no.ndla.conceptapi.model.domain.{ConceptType, VisualElement, WordClass}
-import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
+import org.mockito.Mockito.when
 
 import scala.util.{Failure, Success}
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
-import org.mockito.Mockito.when
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -106,8 +105,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         content = Seq(
-          domain.ConceptContent("Innhold", "nb"),
-          domain.ConceptContent("Nytt innhald", "nn")
+          ConceptContent("Innhold", "nb"),
+          concept.ConceptContent("Nytt innhald", "nn")
         ),
         updated = updated
       )
@@ -142,9 +141,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           common.Title("Title", "en")
         ),
         content = Seq(
-          domain.ConceptContent("Innhold", "nb"),
-          domain.ConceptContent("Innhald", "nn"),
-          domain.ConceptContent("My content", "en")
+          concept.ConceptContent("Innhold", "nb"),
+          concept.ConceptContent("Innhald", "nn"),
+          concept.ConceptContent("My content", "en")
         ),
         updated = updated
       )
@@ -184,8 +183,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         content = Seq(
-          domain.ConceptContent("Innhold", "nb"),
-          domain.ConceptContent("Nytt innhald", "nn")
+          concept.ConceptContent("Innhold", "nb"),
+          concept.ConceptContent("Nytt innhald", "nn")
         ),
         copyright = Option(
           common.draft.DraftCopyright(
@@ -265,10 +264,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        domain.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
-          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          Status(ConceptStatus.IN_PROGRESS, Set.empty),
           today
         )
       )
@@ -288,10 +287,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        domain.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
-          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
           today
         )
       )
@@ -306,11 +305,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
-      metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
+      metaImage = Seq(ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn")),
       updated = updated
     )
     val afterUpdate = TestData.domainConcept.copy(
-      metaImage = Seq(domain.ConceptMetaImage("2", "Hej", "nn")),
+      metaImage = Seq(concept.ConceptMetaImage("2", "Hej", "nn")),
       updated = updated
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
@@ -323,11 +322,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
-      metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
+      metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn")),
       updated = updated
     )
     val afterUpdate = TestData.domainConcept.copy(
-      metaImage = Seq(domain.ConceptMetaImage("2", "Hej", "nn"), domain.ConceptMetaImage("1", "Hola", "nb")),
+      metaImage = Seq(concept.ConceptMetaImage("2", "Hej", "nn"), concept.ConceptMetaImage("1", "Hola", "nb")),
       updated = updated
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(
@@ -343,11 +342,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
-      metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
+      metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn")),
       updated = updated
     )
     val afterUpdate = TestData.domainConcept.copy(
-      metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
+      metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn")),
       updated = updated
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Missing)
@@ -361,14 +360,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
       id = Some(12),
-      metaImage = Seq(domain.ConceptMetaImage("1", "Hola", "nb")),
+      metaImage = Seq(concept.ConceptMetaImage("1", "Hola", "nb")),
       created = today,
       updated = today,
       editorNotes = Seq(
-        domain.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
-          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
           today
         )
       )
@@ -391,10 +390,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        domain.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "",
-          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
           today
         )
       )
@@ -450,10 +449,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        domain.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "test",
-          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
           today
         )
       )
@@ -474,10 +473,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       editorNotes = Seq(
-        domain.EditorNote(
+        ConceptEditorNote(
           "Created concept",
           "test",
-          domain.Status(domain.ConceptStatus.IN_PROGRESS, Set.empty),
+          concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
           today
         )
       )
@@ -536,21 +535,21 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "gloss", glossData = Some(newGlossData))
 
     val expectedGlossExample1 = List(
-      domain.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
-      domain.GlossExample(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
+      GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
+      concept.GlossExample(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
     )
     val expectedGlossExample2 =
-      List(domain.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+      List(concept.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
     val expectedGlossData = Some(
-      domain.GlossData(
+      GlossData(
         gloss = "juan",
-        wordClass = domain.WordClass.NOUN,
+        wordClass = WordClass.NOUN,
         originalLanguage = "nb",
         examples = List(expectedGlossExample1, expectedGlossExample2),
         transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     )
-    val expectedConceptType = domain.ConceptType.GLOSS
+    val expectedConceptType = ConceptType.GLOSS
 
     val result = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess).get
     result.conceptType should be(expectedConceptType)
@@ -604,26 +603,26 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.emptyApiUpdatedConcept.copy(conceptType = Some("gloss"), glossData = Some(updatedGlossData))
 
     val expectedGlossExample1 = List(
-      domain.GlossExample(
+      concept.GlossExample(
         example = "nei men saa",
         language = "nb",
         transcriptions = Map("a" -> "b")
       ),
-      domain.GlossExample(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
+      concept.GlossExample(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
     )
     val expectedGlossExample2 =
-      List(domain.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+      List(concept.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
     val expectedGlossData = Some(
-      domain.GlossData(
+      concept.GlossData(
         gloss = "huehue",
-        wordClass = domain.WordClass.NOUN,
+        wordClass = concept.WordClass.NOUN,
         originalLanguage = "nb",
         examples = List(expectedGlossExample1, expectedGlossExample2),
         transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     )
-    val expectedConceptType = domain.ConceptType.GLOSS
-    val existingConcept     = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, glossData = None)
+    val expectedConceptType = concept.ConceptType.GLOSS
+    val existingConcept     = TestData.domainConcept.copy(conceptType = concept.ConceptType.CONCEPT, glossData = None)
 
     val result = converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess).get
     result.conceptType should be(expectedConceptType)
@@ -649,7 +648,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedConcept =
       TestData.emptyApiUpdatedConcept.copy(conceptType = Some("gloss"), glossData = Some(updatedGlossData))
 
-    val existingConcept = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, glossData = None)
+    val existingConcept = TestData.domainConcept.copy(conceptType = concept.ConceptType.CONCEPT, glossData = None)
 
     val Failure(result) =
       converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess)
@@ -658,15 +657,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("that toApiConcept converts gloss data correctly") {
     val domainGlossExample1 = List(
-      domain.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
-      domain.GlossExample(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
+      concept.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
+      concept.GlossExample(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
     )
     val domainGlossExample2 =
-      List(domain.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+      List(concept.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
     val domainGlossData = Some(
-      domain.GlossData(
+      concept.GlossData(
         gloss = "gestalt",
-        wordClass = domain.WordClass.NOUN,
+        wordClass = concept.WordClass.NOUN,
         originalLanguage = "nb",
         examples = List(domainGlossExample1, domainGlossExample2),
         transcriptions = Map("zh" -> "a", "pinyin" -> "b")
@@ -674,7 +673,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val existingConcept =
       TestData.domainConcept.copy(
-        conceptType = domain.ConceptType.GLOSS,
+        conceptType = concept.ConceptType.GLOSS,
         glossData = domainGlossData,
         title = Seq(common.Title("title", "nb"))
       )
@@ -712,9 +711,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
 
     val expectedGlossExample =
-      domain.GlossExample(example = "some example", language = "nb", transcriptions = Map("a" -> "b"))
+      concept.GlossExample(example = "some example", language = "nb", transcriptions = Map("a" -> "b"))
     val expectedGlossData =
-      domain.GlossData(
+      concept.GlossData(
         gloss = "yoink",
         wordClass = WordClass.VERB,
         originalLanguage = "nb",

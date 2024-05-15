@@ -50,17 +50,18 @@ trait SearchService {
       *   api-model summary of hit
       */
     private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean) = {
-      val articleType      = props.SearchIndexes(SearchType.Articles)
-      val draftType        = props.SearchIndexes(SearchType.Drafts)
-      val learningPathType = props.SearchIndexes(SearchType.LearningPaths)
-
-      hit.index.split("_").headOption match {
-        case Some(`articleType`) =>
+      val indexName = hit.index.split("_").headOption.traverse(x => props.indexToSearchType(x))
+      indexName.flatMap {
+        case Some(SearchType.Articles) =>
           Success(searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive))
-        case Some(`draftType`) => Success(searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive))
-        case Some(`learningPathType`) =>
+        case Some(SearchType.Drafts) =>
+          Success(searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive))
+        case Some(SearchType.LearningPaths) =>
           Success(searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive))
-        case _ => Failure(NdlaSearchException("Index type was bad when determining search result type."))
+        case Some(SearchType.Concepts) =>
+          Success(searchConverterService.conceptHitAsMultiSummary(hit, language))
+        case None =>
+          Failure(NdlaSearchException("Index type was bad when determining search result type."))
       }
     }
 
@@ -119,7 +120,7 @@ trait SearchService {
           nestedQuery(
             "embedResourcesAndIds",
             boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback))
-          )
+          ).ignoreUnmapped(true)
         )
       }
     }

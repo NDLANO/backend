@@ -23,7 +23,7 @@ case class SearchSettings(
     withIdIn: List[Long],
     subjects: List[String],
     resourceTypes: List[String],
-    learningResourceTypes: List[LearningResourceType.Value],
+    learningResourceTypes: List[LearningResourceType],
     supportedLanguages: List[String],
     relevanceIds: List[String],
     grepCodes: List[String],

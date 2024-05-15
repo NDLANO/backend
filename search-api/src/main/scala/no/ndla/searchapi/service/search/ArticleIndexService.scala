@@ -25,8 +25,9 @@ trait ArticleIndexService {
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends StrictLogging with IndexService[Article] {
-    override val documentType: String        = props.SearchDocuments(SearchType.Articles)
-    override val searchIndex: String         = props.SearchIndexes(SearchType.Articles)
+    import props.SearchIndex
+    override val documentType: String        = "article"
+    override val searchIndex: String         = SearchIndex(SearchType.Articles)
     override val apiClient: ArticleApiClient = articleApiClient
 
     override def createIndexRequest(
@@ -53,6 +54,7 @@ trait ArticleIndexService {
         textField("grepContexts.title"),
         keywordField("traits"),
         keywordField("availability"),
+        keywordField("learningResourceType"),
         getTaxonomyContextMapping,
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),

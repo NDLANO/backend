@@ -6,12 +6,38 @@
  */
 
 package no.ndla.searchapi.service.search
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import no.ndla.searchapi.model.domain.LearningResourceType
 
 trait TaxonomyFiltering {
+
+  private val notConceptType = LearningResourceType.values
+    .filter(x => x != LearningResourceType.Concept && x != LearningResourceType.Gloss)
+    .map(_.entryName)
+
+  private val mustBeConceptQuery = termsQuery(
+    "learningResourceType",
+    Seq(LearningResourceType.Concept.entryName, LearningResourceType.Gloss.entryName)
+  )
+
+  private val mustNotBeConceptQuery = termsQuery("learningResourceType", notConceptType)
+
+  def mustBeConceptOr(query: Query): Query = {
+    val newQuery = query match {
+      case nested: NestedQuery if nested.path == "contexts" => nested.ignoreUnmapped(true)
+      case query                                            => query
+    }
+    boolQuery().should(newQuery, mustBeConceptQuery)
+  }
+  def mustBeNotConceptOr(query: Query): Query = {
+    val newQuery = query match {
+      case nested: NestedQuery if nested.path == "contexts" => nested.ignoreUnmapped(true)
+      case query                                            => query
+    }
+    boolQuery().should(newQuery, mustNotBeConceptQuery)
+  }
 
   protected def relevanceFilter(relevanceIds: List[String], subjectIds: List[String]): Option[BoolQuery] =
     if (relevanceIds.isEmpty) None
@@ -33,26 +59,36 @@ trait TaxonomyFiltering {
   private val booleanMust: (String, String) => BoolQuery = (field: String, id: String) =>
     boolQuery().must(termQuery(field, id))
 
-  protected def subjectFilter(subjects: List[String], filterInactive: Boolean): Option[NestedQuery] =
+  protected def subjectFilter(subjects: List[String], filterInactive: Boolean): Option[Query] =
     if (subjects.isEmpty) None
     else {
       val subjectQueries = subjects.map(subjectId =>
         if (filterInactive)
-          boolQuery().must(booleanMust("contexts.rootId", subjectId), booleanMust("contexts.isActive", "true"))
+          boolQuery().must(
+            booleanMust("contexts.rootId", subjectId),
+            booleanMust("contexts.isActive", "true")
+          )
         else booleanMust("contexts.rootId", subjectId)
       )
-      Some(nestedQuery("contexts", boolQuery().should(subjectQueries)))
+      Some(
+        mustBeConceptOr(
+          nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)
+        )
+      )
     }
 
-  protected def topicFilter(topics: List[String], filterInactive: Boolean): Option[NestedQuery] =
+  protected def topicFilter(topics: List[String], filterInactive: Boolean): Option[Query] =
     if (topics.isEmpty) None
     else {
       val subjectQueries = topics.map(subjectId =>
         if (filterInactive)
-          boolQuery().must(booleanMust("contexts.parentIds", subjectId), booleanMust("contexts.isActive", "true"))
+          boolQuery().must(
+            booleanMust("contexts.parentIds", subjectId),
+            booleanMust("contexts.isActive", "true")
+          )
         else booleanMust("contexts.parentIds", subjectId)
       )
-      Some(nestedQuery("contexts", boolQuery().should(subjectQueries)))
+      Some(mustBeConceptOr(nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)))
     }
 
   protected def resourceTypeFilter(resourceTypes: List[String], filterByNoResourceType: Boolean): Option[Query] = {
@@ -76,18 +112,18 @@ trait TaxonomyFiltering {
     }
   }
 
-  protected def contextTypeFilter(contextTypes: List[LearningResourceType.Value]): Option[BoolQuery] =
+  protected def contextTypeFilter(contextTypes: List[LearningResourceType]): Option[BoolQuery] =
     if (contextTypes.isEmpty) None
     else {
       val taxonomyContextQuery =
-        contextTypes.map(ct => nestedQuery("contexts", termQuery("contexts.contextType", ct.toString)))
+        contextTypes.map(ct => nestedQuery("contexts", termQuery("contexts.contextType", ct.entryName)))
 
       Some(boolQuery().should(taxonomyContextQuery))
     }
 
   protected def contextActiveFilter(filterInactive: Boolean): Option[Query] =
     if (filterInactive) {
-      val contextActiveQuery = nestedQuery("contexts", termQuery("contexts.isActive", true))
-      Some(contextActiveQuery)
+      val contextActiveQuery = nestedQuery("contexts", termQuery("contexts.isActive", true)).ignoreUnmapped(true)
+      Some(mustBeConceptOr(contextActiveQuery))
     } else None
 }

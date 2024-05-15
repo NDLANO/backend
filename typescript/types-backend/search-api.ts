@@ -101,6 +101,7 @@ export interface IDraftSearchParams {
   topics?: string[]
   publishedDateFrom?: string
   publishedDateTo?: string
+  resultTypes?: SearchType[]
 }
 
 export interface IGroupSearchResult {
@@ -197,7 +198,7 @@ export interface IMultiSearchSummary {
   url: string
   contexts: IApiTaxonomyContext[]
   supportedLanguages: string[]
-  learningResourceType: string
+  learningResourceType: LearningResourceType
   status?: IStatus
   traits: string[]
   score: number
@@ -215,6 +216,8 @@ export interface IMultiSearchSummary {
   primaryRootName?: string
   published?: string
   favorited?: number
+  resultType: SearchType
+  conceptSubjectIds?: string[]
 }
 
 export interface IMultiSearchTermsAggregation {
@@ -296,3 +299,7 @@ export interface IValidationMessage {
   field: string
   message: string
 }
+
+export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
+
+export type SearchType = ("article" | "draft" | "learningpath" | "concept")

@@ -33,7 +33,7 @@ object constantslib extends Module {
       "no.ndla.common.model.domain.config._",
       "no.ndla.network.tapir.auth._",
       "no.ndla.common.model.domain.draft._",
-      "no.ndla.conceptapi.model.domain._"
+      "no.ndla.common.model.domain.concept._"
     ),
     typescriptExports := Seq(
       "ConfigKey",

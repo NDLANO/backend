@@ -15,9 +15,9 @@ import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController}
-import no.ndla.searchapi.integration._
+import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.service.search._
+import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -27,6 +27,8 @@ trait TestEnvironment
     with ArticleIndexService
     with MultiSearchService
     with DraftIndexService
+    with DraftConceptApiClient
+    with DraftConceptIndexService
     with MultiDraftSearchService
     with ConverterService
     with DraftApiClient
@@ -68,18 +70,22 @@ trait TestEnvironment
   val draftApiClient: DraftApiClient               = mock[DraftApiClient]
   val learningPathApiClient: LearningPathApiClient = mock[LearningPathApiClient]
   val articleApiClient: ArticleApiClient           = mock[ArticleApiClient]
+  val draftConceptApiClient: DraftConceptApiClient = mock[DraftConceptApiClient]
   val feideApiClient: FeideApiClient               = mock[FeideApiClient]
   val redisClient: RedisClient                     = mock[RedisClient]
 
   val clock: SystemClock = mock[SystemClock]
 
-  val converterService: ConverterService                 = mock[ConverterService]
-  val searchConverterService: SearchConverterService     = mock[SearchConverterService]
-  val multiSearchService: MultiSearchService             = mock[MultiSearchService]
+  val converterService: ConverterService             = mock[ConverterService]
+  val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  val multiSearchService: MultiSearchService         = mock[MultiSearchService]
+
   val articleIndexService: ArticleIndexService           = mock[ArticleIndexService]
   val learningPathIndexService: LearningPathIndexService = mock[LearningPathIndexService]
   val draftIndexService: DraftIndexService               = mock[DraftIndexService]
-  val multiDraftSearchService: MultiDraftSearchService   = mock[MultiDraftSearchService]
+  val draftConceptIndexService: DraftConceptIndexService = mock[DraftConceptIndexService]
+
+  val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 
   override def services: List[Service[Eff]] = List()
 }

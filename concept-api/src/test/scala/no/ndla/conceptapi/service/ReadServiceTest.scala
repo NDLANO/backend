@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain as common
-import no.ndla.conceptapi.model.domain.VisualElement
+import no.ndla.common.model.domain.concept.VisualElement
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser

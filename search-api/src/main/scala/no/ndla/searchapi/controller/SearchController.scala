@@ -25,6 +25,7 @@ import no.ndla.searchapi.{Eff, Props}
 import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
+import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
   MultiDraftSearchService,
@@ -563,7 +564,8 @@ trait SearchController {
                 priority = stringListParam("priority").some,
                 topics = stringListParam("topics").some,
                 publishedDateFrom = dateParamOrNone("published-date-from"),
-                publishedDateTo = dateParamOrNone("published-date-to")
+                publishedDateTo = dateParamOrNone("published-date-to"),
+                resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some
               )
             )
 
@@ -687,7 +689,8 @@ trait SearchController {
             prioritized = params.prioritized,
             priority = params.priority.getOrElse(List.empty),
             publishedFilterFrom = params.publishedDateFrom,
-            publishedFilterTo = params.publishedDateTo
+            publishedFilterTo = params.publishedDateTo,
+            resultTypes = params.resultTypes
           )
       }
     }

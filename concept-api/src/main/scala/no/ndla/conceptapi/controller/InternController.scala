@@ -7,10 +7,10 @@
 
 package no.ndla.conceptapi.controller
 
-import cats.implicits._
+import cats.implicits.*
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Eff
 import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResults, ErrorHelpers, NotFoundException}
-import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
@@ -21,12 +21,12 @@ import sttp.model.StatusCode
 import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.Executors
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 
 trait InternController {
   this: IndexService

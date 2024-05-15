@@ -11,10 +11,11 @@ import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.domain.concept.ConceptStatus
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ErrorHelpers, OperationNotAllowedException, SubjectTags}
-import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult}
+import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.{DraftSearchSettings, DraftSearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.AllLanguages

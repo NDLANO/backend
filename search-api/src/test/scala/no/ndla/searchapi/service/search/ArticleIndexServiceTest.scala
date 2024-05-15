@@ -17,7 +17,7 @@ import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType}
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
@@ -163,7 +163,8 @@ class ArticleIndexServiceTest
         SearchableGrepContext("KE12", None),
         SearchableGrepContext("KM123", None),
         SearchableGrepContext("TT2", None)
-      )
+      ),
+      learningResourceType = LearningResourceType.Article
     )
 
     val searchableFields = searchableToTestWith.asJson
