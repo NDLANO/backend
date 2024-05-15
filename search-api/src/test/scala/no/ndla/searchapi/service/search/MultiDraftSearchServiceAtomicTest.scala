@@ -1178,7 +1178,7 @@ class MultiDraftSearchServiceAtomicTest
         multiDraftSearchSettings.copy(
           sort = Sort.ByIdAsc,
           query = NonEmptyString.fromString("giraff"),
-          resultTypes = Some(SearchType.values.toList)
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
         )
       )
       .get
@@ -1192,7 +1192,7 @@ class MultiDraftSearchServiceAtomicTest
         multiDraftSearchSettings.copy(
           sort = Sort.ByIdAsc,
           query = NonEmptyString.fromString("apekatt"),
-          resultTypes = Some(SearchType.values.toList)
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
         )
       )
       .get
@@ -1240,7 +1240,7 @@ class MultiDraftSearchServiceAtomicTest
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.Article),
-            resultTypes = Some(SearchType.values.toList)
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
           )
         )
         .get
@@ -1251,7 +1251,7 @@ class MultiDraftSearchServiceAtomicTest
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.TopicArticle),
-            resultTypes = Some(SearchType.values.toList)
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
           )
         )
         .get
@@ -1262,7 +1262,7 @@ class MultiDraftSearchServiceAtomicTest
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.LearningPath),
-            resultTypes = Some(SearchType.values.toList)
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
           )
         )
         .get
@@ -1273,7 +1273,7 @@ class MultiDraftSearchServiceAtomicTest
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.Concept),
-            resultTypes = Some(SearchType.values.toList)
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
           )
         )
         .get
@@ -1284,7 +1284,7 @@ class MultiDraftSearchServiceAtomicTest
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.Gloss),
-            resultTypes = Some(SearchType.values.toList)
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
           )
         )
         .get
@@ -1319,7 +1319,7 @@ class MultiDraftSearchServiceAtomicTest
     val search = multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          resultTypes = Some(SearchType.values.toList),
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           responsibleIdFilter = List("some-user")
         )
       )
@@ -1355,7 +1355,7 @@ class MultiDraftSearchServiceAtomicTest
     val search = multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          resultTypes = Some(SearchType.values.toList),
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           subjects = List("urn:subject:1000"),
           filterInactive = true
         )
