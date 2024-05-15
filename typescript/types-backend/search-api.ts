@@ -288,18 +288,6 @@ export interface ITitle {
   language: string
 }
 
-export interface IValidationError {
-  code: string
-  description: string
-  messages: IValidationMessage[]
-  occuredAt: string
-}
-
-export interface IValidationMessage {
-  field: string
-  message: string
-}
-
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
 export type SearchType = ("article" | "draft" | "learningpath" | "concept")
