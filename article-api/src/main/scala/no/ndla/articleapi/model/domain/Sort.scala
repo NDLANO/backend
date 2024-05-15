@@ -8,11 +8,16 @@
 
 package no.ndla.articleapi.model.domain
 
-import enumeratum._
+import com.scalatsi.TypescriptType.TSEnum
+import com.scalatsi.{TSNamedType, TSType}
+import enumeratum.*
+import sttp.tapir.Codec.PlainCodec
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class Sort(override val entryName: String) extends EnumEntry
 
-object Sort extends Enum[Sort] {
+object Sort extends Enum[Sort] with CirceEnum[Sort] {
 
   val values: IndexedSeq[Sort] = findValues
   val all: IndexedSeq[String]  = values.map(_.entryName)
@@ -28,4 +33,11 @@ object Sort extends Enum[Sort] {
 
   def valueOf(s: String): Option[Sort] = Sort.values.find(_.entryName == s)
 
+  implicit val schema: Schema[Sort]               = schemaForEnumEntry[Sort]
+  implicit val codec: PlainCodec[Sort]            = plainCodecEnumEntry[Sort]
+  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
+  implicit val enumTsType: TSNamedType[Sort] = TSType.alias[Sort](
+    "Sort",
+    TSEnum.string("ArticleSortEnum", tsEnumValues: _*)
+  )
 }
