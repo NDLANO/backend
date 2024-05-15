@@ -88,7 +88,7 @@ trait SeriesController {
       .serverLogicPure { case (query, language, sort, page, pageSize, scrollId, fallback) =>
         scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
-          search(query, language, sort, pageSize, page, shouldScroll, fallback.getOrElse(false))
+          search(query, language, Sort.valueOf(sort), pageSize, page, shouldScroll, fallback.getOrElse(false))
         }.handleErrorsOrOk
       }
 
@@ -192,7 +192,7 @@ trait SeriesController {
     private def search(
         query: Option[String],
         language: Option[String],
-        sort: Option[String],
+        sort: Option[Sort],
         pageSize: Option[Int],
         page: Option[Int],
         shouldScroll: Boolean,
@@ -205,7 +205,7 @@ trait SeriesController {
             language = language,
             page = page,
             pageSize = pageSize,
-            sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc),
+            sort = sort.getOrElse(Sort.ByRelevanceDesc),
             shouldScroll = shouldScroll,
             fallback = fallback
           )
@@ -216,7 +216,7 @@ trait SeriesController {
             language = language,
             page = page,
             pageSize = pageSize,
-            sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc),
+            sort = sort.getOrElse(Sort.ByTitleAsc),
             shouldScroll = shouldScroll,
             fallback = fallback
           )

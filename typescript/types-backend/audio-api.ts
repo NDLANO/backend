@@ -1,5 +1,16 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export enum AudioSortEnum {
+  ByRelevanceDesc = "-relevance",
+  ByRelevanceAsc = "relevance",
+  ByTitleDesc = "-title",
+  ByTitleAsc = "title",
+  ByLastUpdatedDesc = "-lastUpdated",
+  ByLastUpdatedAsc = "lastUpdated",
+  ByIdDesc = "-id",
+  ByIdAsc = "id",
+}
+
 export interface IAudio {
   url: string
   mimeType: string
@@ -122,7 +133,7 @@ export interface ISearchParams {
   language?: string
   page?: number
   pageSize?: number
-  sort?: string
+  sort?: Sort
   scrollId?: string
   audioType?: string
   filterBySeries?: boolean
@@ -145,7 +156,7 @@ export interface ISeriesSearchParams {
   language?: string
   page?: number
   pageSize?: number
-  sort?: string
+  sort?: Sort
   scrollId?: string
   fallback?: boolean
 }
@@ -196,3 +207,5 @@ export interface IUpdatedAudioMetaInformation {
   seriesId?: number
   manuscript?: string
 }
+
+export type Sort = AudioSortEnum

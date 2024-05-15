@@ -8,7 +8,12 @@
 
 package no.ndla.audioapi.model
 
-import enumeratum._
+import com.scalatsi.TypescriptType.TSEnum
+import com.scalatsi.{TSNamedType, TSType}
+import enumeratum.*
+import sttp.tapir.Codec.PlainCodec
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class Sort(override val entryName: String) extends EnumEntry
 
@@ -35,5 +40,13 @@ object Sort extends Enum[Sort] {
       case Some(s) => valueOf(s)
     }
   }
+
+  implicit val schema: Schema[Sort]               = schemaForEnumEntry[Sort]
+  implicit val codec: PlainCodec[Sort]            = plainCodecEnumEntry[Sort]
+  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
+  implicit val enumTsType: TSNamedType[Sort] = TSType.alias[Sort](
+    "Sort",
+    TSEnum.string("AudioSortEnum", tsEnumValues: _*)
+  )
 
 }
