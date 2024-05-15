@@ -9,6 +9,7 @@ package no.ndla.conceptapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.conceptapi.model.domain.Sort
 import sttp.tapir.Schema.annotations.description
 
 // format: off
@@ -19,7 +20,7 @@ case class DraftConceptSearchParams(
   @description("The page number of the search hits to display.") page: Option[Int],
   @description("The number of search hits to display for each page.") pageSize: Option[Int],
   @description("Return only articles that have one of the provided ids.") ids: Option[List[Long]],
-  @description("The sorting used on results. Default is by -relevance.") sort: Option[String],
+  @description("The sorting used on results. Default is by -relevance.") sort: Option[Sort],
   @description("Whether to fallback to existing language if not found in selected language.") fallback: Option[Boolean],
   @description("A search context retrieved from the response header of a previous search.") scrollId: Option[String],
   @description("A comma-separated list of subjects that should appear in the search.") subjects: Option[Set[String]],
