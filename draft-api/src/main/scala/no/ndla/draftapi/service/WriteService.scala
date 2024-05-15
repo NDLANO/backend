@@ -462,6 +462,7 @@ trait WriteService {
             comments = List.empty,
             priority = Priority.Unspecified,
             started = false,
+            qualityEvaluation = None,
             // LanguageField ordering shouldn't matter:
             visualElement = article.visualElement.sorted,
             content = article.content.sorted,
