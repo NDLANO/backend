@@ -9,8 +9,8 @@ package no.ndla.searchapi.model.domain.learningpath
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.learningpath.EmbedUrl
-import no.ndla.searchapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Title
 
 case class LearningStep(

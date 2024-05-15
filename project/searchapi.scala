@@ -41,7 +41,6 @@ object searchapi extends Module {
       "ImageResults",
       "LearningpathResults",
       "SearchError",
-      "ValidationError",
       "DraftSearchParams",
       "SubjectAggregations",
       "SubjectAggsInput"

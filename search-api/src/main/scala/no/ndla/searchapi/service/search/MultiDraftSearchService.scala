@@ -13,6 +13,8 @@ import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggResult, AggSe
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
@@ -123,14 +125,31 @@ trait MultiDraftSearchService {
         .map(aggregations => SubjectAggregations(aggregations))
     }
 
-    private def getSearchIndexes(settings: MultiDraftSearchSettings): List[String] = {
+    private def getSearchIndexes(settings: MultiDraftSearchSettings): Try[List[String]] = {
       settings.resultTypes match {
         case Some(list) if list.nonEmpty =>
-          list.flatMap { searchType =>
-            val potentialIndex = SearchIndex(searchType)
-            Option.when(searchIndex.contains(potentialIndex))(potentialIndex)
+          val idxs = list.map { st =>
+            val index        = SearchIndex(st)
+            val isValidIndex = searchIndex.contains(index)
+
+            if (isValidIndex) Right(index)
+            else {
+              val validSearchTypes = searchIndex.traverse(props.indexToSearchType).getOrElse(List.empty)
+              val validTypesString = s"[${validSearchTypes.mkString("'", "','", "'")}]"
+              Left(
+                ValidationMessage(
+                  "resultTypes",
+                  s"Invalid result type for endpoint: '$st', expected one of: $validTypesString"
+                )
+              )
+            }
           }
-        case _ => List(SearchType.Drafts, SearchType.LearningPaths).map(SearchIndex)
+
+          val errors = idxs.collect { case Left(e) => e }
+          if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
+          else Success(idxs.collect { case Right(i) => i })
+
+        case _ => Success(List(SearchType.Drafts, SearchType.LearningPaths).map(SearchIndex))
       }
     }
 
@@ -216,7 +235,7 @@ trait MultiDraftSearchService {
 
         val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
 
-        val index = getSearchIndexes(settings)
+        val index = getSearchIndexes(settings).?
         val searchToExecute = search(index)
           .query(filteredSearch)
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
