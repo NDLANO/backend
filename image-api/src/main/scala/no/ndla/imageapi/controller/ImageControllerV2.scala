@@ -217,7 +217,7 @@ trait ImageControllerV2 {
           val pageSize           = searchParams.pageSize
           val page               = searchParams.page
           val podcastFriendly    = searchParams.podcastFriendly
-          val sort               = Sort.valueOf(searchParams.sort)
+          val sort               = searchParams.sort
           val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
           val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           val modelReleasedStatus =
