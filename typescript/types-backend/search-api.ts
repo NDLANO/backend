@@ -78,7 +78,7 @@ export interface IDraftSearchParams {
   license?: string
   query?: string
   noteQuery?: string
-  sort?: string
+  sort?: Sort
   fallback?: boolean
   subjects?: string[]
   languageFilter?: string[]
@@ -291,3 +291,36 @@ export interface ITitle {
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
 export type SearchType = ("article" | "draft" | "learningpath" | "concept")
+
+export type Sort = SortEnum
+
+export enum SortEnum {
+  ByRelevanceDesc = "-relevance",
+  ByRelevanceAsc = "relevance",
+  ByTitleDesc = "-title",
+  ByTitleAsc = "title",
+  ByLastUpdatedDesc = "-lastUpdated",
+  ByLastUpdatedAsc = "lastUpdated",
+  ByIdDesc = "-id",
+  ByIdAsc = "id",
+  ByDurationDesc = "-duration",
+  ByDurationAsc = "duration",
+  ByRevisionDateAsc = "revisionDate",
+  ByRevisionDateDesc = "-revisionDate",
+  ByResponsibleLastUpdatedAsc = "responsibleLastUpdated",
+  ByResponsibleLastUpdatedDesc = "-responsibleLastUpdated",
+  ByStatusAsc = "status",
+  ByStatusDesc = "-status",
+  ByPrioritizedDesc = "-prioritized",
+  ByPrioritizedAsc = "prioritized",
+  ByParentTopicNameDesc = "-parentTopicName",
+  ByParentTopicNameAsc = "parentTopicName",
+  ByPrimaryRootDesc = "-primaryRoot",
+  ByPrimaryRootAsc = "primaryRoot",
+  ByResourceTypeDesc = "-resourceType",
+  ByResourceTypeAsc = "resourceType",
+  ByPublishedDesc = "-published",
+  ByPublishedAsc = "published",
+  ByFavoritedDesc = "-favorited",
+  ByFavoritedAsc = "favorited",
+}

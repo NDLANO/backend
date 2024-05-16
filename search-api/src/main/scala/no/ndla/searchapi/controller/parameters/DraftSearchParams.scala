@@ -11,6 +11,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.SearchType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
@@ -48,7 +49,7 @@ import sttp.tapir.Schema.annotations.description
       noteQuery: Option[NonEmptyString],
 
       @description("The sorting used on results.")
-      sort: Option[String],
+      sort: Option[Sort],
 
       @description("Fallback to existing language if language is specified.")
       fallback: Option[Boolean],
@@ -135,6 +136,5 @@ import sttp.tapir.Schema.annotations.description
 object DraftSearchParams {
   implicit val encoder: Encoder[DraftSearchParams] = deriveEncoder
   implicit val decoder: Decoder[DraftSearchParams] = deriveDecoder
-
-  implicit val schema: Schema[DraftSearchParams] = Schema.derived
+  implicit val schema: Schema[DraftSearchParams]   = Schema.derived[DraftSearchParams]
 }

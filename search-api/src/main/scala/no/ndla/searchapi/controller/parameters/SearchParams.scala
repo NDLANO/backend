@@ -7,9 +7,12 @@
 
 package no.ndla.searchapi.controller.parameters
 
+import com.scalatsi.TypescriptType.{TSString, TSUndefined}
+import com.scalatsi.{TSIType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.searchapi.model.domain.Sort
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
@@ -44,7 +47,7 @@ case class SearchParams (
     license: Option[String],
 
     @description("The sorting used on results.")
-    sort: Option[String],
+    sort: Option[Sort],
 
     @description("Return only learning resources that have one of the provided ids.")
     ids: Option[List[Long]],
@@ -86,6 +89,8 @@ case class SearchParams (
 object SearchParams {
   implicit val encoder: Encoder[SearchParams] = deriveEncoder
   implicit val decoder: Decoder[SearchParams] = deriveDecoder
+  implicit val schema: Schema[SearchParams] = Schema.derived[SearchParams]
 
-  implicit val schema: Schema[SearchParams] = Schema.derived
+  import com.scalatsi.dsl.*
+  implicit val tsType: TSIType[SearchParams] = TSType.fromCaseClass[SearchParams] - "sort" + ("sort", TSString | TSUndefined)
 }

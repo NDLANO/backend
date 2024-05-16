@@ -138,7 +138,7 @@ export interface ISearchParams {
   fallback?: boolean
   minimumSize?: number
   includeCopyrighted?: boolean
-  sort?: string
+  sort?: Sort
   page?: number
   pageSize?: number
   podcastFriendly?: boolean
@@ -191,5 +191,18 @@ export interface IValidationMessage {
   field: string
   message: string
 }
+
+export enum ImageSortEnum {
+  ByRelevanceDesc = "-relevance",
+  ByRelevanceAsc = "relevance",
+  ByTitleDesc = "-title",
+  ByTitleAsc = "title",
+  ByLastUpdatedDesc = "-lastUpdated",
+  ByLastUpdatedAsc = "lastUpdated",
+  ByIdDesc = "-id",
+  ByIdAsc = "id",
+}
+
+export type Sort = ImageSortEnum
 
 export type UpdateOrDeleteString = (null | undefined | string)

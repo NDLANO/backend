@@ -1,5 +1,16 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export enum ArticleSortEnum {
+  ByRelevanceDesc = "-relevance",
+  ByRelevanceAsc = "relevance",
+  ByTitleDesc = "-title",
+  ByTitleAsc = "title",
+  ByLastUpdatedDesc = "-lastUpdated",
+  ByLastUpdatedAsc = "lastUpdated",
+  ByIdDesc = "-id",
+  ByIdAsc = "id",
+}
+
 export type Availability = ("everyone" | "teacher")
 
 export interface IArticleContentV2 {
@@ -45,7 +56,7 @@ export interface IArticleSearchParams {
   pageSize?: number
   ids?: number[]
   articleTypes?: string[]
-  sort?: string
+  sort?: Sort
   fallback?: boolean
   scrollId?: string
   grepCodes?: string[]
@@ -170,3 +181,5 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
+
+export type Sort = ArticleSortEnum

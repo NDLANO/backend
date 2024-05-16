@@ -282,7 +282,7 @@ trait DraftConceptController {
 
         scrollSearchOr(scrollId, lang.getOrElse(DefaultLanguage)) {
           val query          = searchParams.query
-          val sort           = searchParams.sort.flatMap(Sort.valueOf)
+          val sort           = searchParams.sort
           val language       = searchParams.language.getOrElse(AllLanguages)
           val pageSize       = searchParams.pageSize.getOrElse(DefaultPageSize)
           val page           = searchParams.page.getOrElse(1)

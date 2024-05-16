@@ -9,6 +9,7 @@ package no.ndla.draftapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.draftapi.model.domain.Sort
 import sttp.tapir.Schema.annotations.description
 
 // format: off
@@ -21,7 +22,7 @@ case class ArticleSearchParams(
     @description("The number of search hits to display for each page.") pageSize: Option[Int],
     @description("Return only articles that have one of the provided ids") ids: Option[List[Long]],
     @description("Return only articles of specific type(s)") articleTypes: Option[List[String]],
-    @description("The sorting used on results. Default is by -relevance.") sort: Option[String],
+    @description("The sorting used on results. Default is by -relevance.") sort: Option[Sort],
     @description("A search context retrieved from the response header of a previous search.") scrollId: Option[String],
     @description("Fallback to some existing language if language is specified.") fallback: Option[Boolean],
     @description("Return only articles containing codes from GREP API") grepCodes: Option[List[String]]

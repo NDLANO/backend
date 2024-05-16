@@ -1,5 +1,24 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export enum ConceptSortEnum {
+  ByRelevanceDesc = "-relevance",
+  ByRelevanceAsc = "relevance",
+  ByTitleDesc = "-title",
+  ByTitleAsc = "title",
+  ByLastUpdatedDesc = "-lastUpdated",
+  ByLastUpdatedAsc = "lastUpdated",
+  ByIdDesc = "-id",
+  ByIdAsc = "id",
+  ByResponsibleLastUpdatedDesc = "-responsibleLastUpdated",
+  ByResponsibleLastUpdatedAsc = "responsibleLastUpdated",
+  ByStatusAsc = "status",
+  ByStatusDesc = "-status",
+  BySubjectAsc = "subject",
+  BySubjectDesc = "-subject",
+  ByConceptTypeAsc = "conceptType",
+  ByConceptTypeDesc = "-conceptType",
+}
+
 export interface IAuthor {
   type: string
   name: string
@@ -51,7 +70,7 @@ export interface IConceptSearchParams {
   page?: number
   pageSize?: number
   ids?: number[]
-  sort?: string
+  sort?: Sort
   fallback?: boolean
   scrollId?: string
   subjects?: string[]
@@ -112,7 +131,7 @@ export interface IDraftConceptSearchParams {
   page?: number
   pageSize?: number
   ids?: number[]
-  sort?: string
+  sort?: Sort
   fallback?: boolean
   scrollId?: string
   subjects?: string[]
@@ -247,6 +266,8 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
+
+export type Sort = ConceptSortEnum
 
 export type UpdateOrDeleteNewConceptMetaImage = (null | undefined | INewConceptMetaImage)
 
