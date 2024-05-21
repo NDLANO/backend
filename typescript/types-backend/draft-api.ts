@@ -201,6 +201,11 @@ export interface IRevisionMeta {
   status: string
 }
 
+export interface ISavedSearch {
+  searchUrl: string
+  searchPhrase: string
+}
+
 export interface ISearchResult {
   totalCount: number
   page: number
@@ -261,7 +266,7 @@ export interface IUpdatedComment {
 }
 
 export interface IUpdatedUserData {
-  savedSearches?: string[]
+  savedSearches?: ISavedSearch[]
   latestEditedArticles?: string[]
   latestEditedConcepts?: string[]
   favoriteSubjects?: string[]
@@ -276,7 +281,7 @@ export interface IUploadedFile {
 
 export interface IUserData {
   userId: string
-  savedSearches?: string[]
+  savedSearches?: ISavedSearch[]
   latestEditedArticles?: string[]
   latestEditedConcepts?: string[]
   favoriteSubjects?: string[]

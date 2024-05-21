@@ -8,13 +8,14 @@
 package no.ndla.draftapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.draftapi.model.api.SavedSearch
 
 import java.net.Socket
 import no.ndla.draftapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.postgresql.util.PSQLException
 import org.scalatest.Outcome
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -96,7 +97,8 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
   test("that withId and withUserId returns the same userdata") {
     this.resetIdSequence()
 
-    val data1 = TestData.emptyDomainUserData.copy(userId = "first", savedSearches = Some(Seq("eple")))
+    val data1 =
+      TestData.emptyDomainUserData.copy(userId = "first", savedSearches = Some(Seq(SavedSearch("eple", "eple"))))
     val data2 = TestData.emptyDomainUserData.copy(userId = "second", latestEditedArticles = Some(Seq("kake")))
     val data3 = TestData.emptyDomainUserData.copy(userId = "third", favoriteSubjects = Some(Seq("bok")))
 
@@ -114,7 +116,7 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
 
     val initialUserData2 = TestData.emptyDomainUserData.copy(
       userId = "second",
-      savedSearches = Some(Seq("Seiddit", "Emina")),
+      savedSearches = Some(Seq(SavedSearch("Seiddit", "Seiddit"), SavedSearch("Emina", "Emina"))),
       latestEditedArticles = Some(Seq("article:6", "article:9")),
       favoriteSubjects = Some(Seq("methematics", "PEBCAK-studies"))
     )
@@ -123,13 +125,13 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
     val inserted2 = repository.insert(initialUserData2)
 
     val updatedUserData1 = inserted1.get.copy(
-      savedSearches = Some(Seq("1", "2")),
+      savedSearches = Some(Seq(SavedSearch("1", "1"), SavedSearch("2", "2"))),
       latestEditedArticles = Some(Seq("3", "4")),
       favoriteSubjects = Some(Seq("5", "6"))
     )
 
     val updatedUserData2 = inserted2.get.copy(
-      savedSearches = Some(Seq("a", "b")),
+      savedSearches = Some(Seq(SavedSearch("a", "a"), SavedSearch("b", "b"))),
       latestEditedArticles = None,
       favoriteSubjects = Some(Seq.empty)
     )

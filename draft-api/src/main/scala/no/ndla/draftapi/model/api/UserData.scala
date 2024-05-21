@@ -12,7 +12,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Information about user data")
 case class UserData(
     @description("The auth0 id of the user") userId: String,
-    @description("User's saved searches") savedSearches: Option[Seq[String]],
+    @description("User's saved searches") savedSearches: Option[Seq[SavedSearch]],
     @description("User's last edited articles") latestEditedArticles: Option[Seq[String]],
     @description("User's last edited concepts") latestEditedConcepts: Option[Seq[String]],
     @description("User's favorite subjects") favoriteSubjects: Option[Seq[String]]
