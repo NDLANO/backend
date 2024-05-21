@@ -361,7 +361,7 @@ trait SearchController {
     def searchLearningResources: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find learning resources")
       .description("Shows all learning resources. You can search too.")
-      .errorOut(errorOutputsFor(400))
+      .errorOut(errorOutputsFor(400, 401, 403))
       .out(jsonBody[MultiSearchResult])
       .out(EndpointOutput.derived[DynamicHeaders])
       .in(pageNo)
@@ -610,7 +610,7 @@ trait SearchController {
           feideApiClient.getFeideExtendedUser(Some(token)) match {
             case Success(user) => Success(user.availabilities.toList)
             case Failure(ex) =>
-              logger.error(s"Error when fetching user from feide with accessToken '$token'")
+              logger.error(s"Error when fetching user from feide with accessToken '$token': ${ex.getMessage}")
               Failure(ex)
           }
       }
