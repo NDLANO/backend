@@ -19,6 +19,8 @@ import no.ndla.myndlaapi.model.domain.{
   Folder,
   FolderResource,
   FolderStatus,
+  SavedSharedFolder,
+  MyNDLAUser,
   NDLASQLException,
   NewFolderData,
   Resource,
@@ -93,7 +95,8 @@ trait FolderRepository {
           subfolders = List.empty,
           created = created,
           updated = updated,
-          shared = shared
+          shared = shared,
+          user = None
         )
       }
 
@@ -494,6 +497,61 @@ trait FolderRepository {
         .sequence
     }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
 
+    def getSharedFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit
+        session: DBSession
+    ): Try[Option[Folder]] =
+      getSharedFolderAndChildrenSubfoldersWithResourcesWhere(id)
+
+    private[repository] def getSharedFolderAndChildrenSubfoldersWithResourcesWhere(id: UUID)(implicit
+        session: DBSession
+    ): Try[Option[Folder]] = Try {
+      val u  = MyNDLAUser.syntax("u")
+      val r  = Resource.syntax("r")
+      val fr = FolderResource.syntax("fr")
+
+      sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
+            WITH RECURSIVE childs AS (
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created, updated as f_updated, shared as f_shared, description as f_description
+                FROM ${Folder.table} parent
+                WHERE id = $id
+                UNION ALL
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created, child.updated as f_updated, child.shared as f_shared, child.description as f_description
+                FROM ${Folder.table} child
+                JOIN childs AS parent ON parent.f_id = child.parent_id
+                AND child.status = ${FolderStatus.SHARED.toString}
+            )
+            SELECT childs.*, ${r.resultAll}, ${u.resultAll}, ${fr.resultAll} FROM childs
+            LEFT JOIN ${FolderResource.as(fr)} ON ${fr.folderId} = f_id
+            LEFT JOIN ${Resource.as(r)} ON ${r.id} = ${fr.resourceId}
+            LEFT JOIN ${MyNDLAUser.as(u)} on ${u.feideId} = f_feide_id;
+         """
+        .one(rs => Folder.fromResultSet(s => s"f_$s")(rs))
+        .toManies(
+          rs => Resource.fromResultSetSyntaxProviderWithConnection(r, fr)(rs).sequence,
+          rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption
+        )
+        .map((folder, resources, user) => toCompileFolder(folder, resources.toList, user.toList))
+        .list()
+        .sequence
+    }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
+
+    private def toCompileFolder(
+        folder: Try[Folder],
+        resource: Seq[Try[Resource]],
+        users: Seq[MyNDLAUser]
+    ): Try[Folder] =
+      for {
+        f         <- folder
+        resources <- resource.toList.sequence
+        user      <- findUser(f.feideId, users)
+      } yield f.copy(resources = resources, user = user)
+
+    private def findUser(feideId: FeideID, users: collection.Seq[MyNDLAUser]): Try[Option[MyNDLAUser]] =
+      users.find(user => feideId == user.feideId) match {
+        case Some(u) => Success(Some(u))
+        case None    => Failure(NDLASQLException(s"${feideId} does not match any users with folder"))
+      }
+
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
@@ -787,9 +845,89 @@ trait FolderRepository {
         s"Inserted new folder resource with id ${folderResourceRow.folder_id}_${folderResourceRow.resource_id}"
       )
     }
+
+    def createFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
+        session: DBSession = AutoSession
+    ): Try[SavedSharedFolder] = Try {
+      withSQL {
+        insert
+          .into(SavedSharedFolder)
+          .namedValues(
+            SavedSharedFolder.column.folderId -> folderId,
+            SavedSharedFolder.column.feideId  -> feideId
+          )
+      }.update(): Unit
+      logger.info(s"Inserted new sharedFolder-user connection with folder id $folderId and feide id $feideId")
+
+      SavedSharedFolder(folderId = folderId, feideId = feideId)
+    }
+
+    def deleteFolderUserConnections(
+        folderIds: List[UUID]
+    )(implicit session: DBSession = AutoSession): Try[List[UUID]] = Try {
+      val column = SavedSharedFolder.column.c _
+      withSQL {
+        delete
+          .from(SavedSharedFolder)
+          .where
+          .in(column("folder_id"), folderIds)
+      }.update()
+    } match {
+      case Failure(ex) => Failure(ex)
+      case Success(numRows) =>
+        logger.info(s"Deleted $numRows shared folder user connections with folder ids (${folderIds.mkString(", ")})")
+        Success(folderIds)
+    }
+
+    def deleteFolderUserConnection(
+        folderId: Option[UUID],
+        feideId: Option[FeideID]
+    )(implicit session: DBSession = AutoSession): Try[Int] = Try {
+      (folderId, feideId) match {
+        case (Some(folderId), Some(feideId)) =>
+          deleteFolderUserConnectionWhere(sqls"folder_id = $folderId AND feide_id = $feideId")
+        case (Some(folderId), None) =>
+          deleteFolderUserConnectionWhere(sqls"folder_id = $folderId ")
+        case (None, Some(feideId)) =>
+          deleteFolderUserConnectionWhere(sqls"feide_id = $feideId")
+        case (None, None) => Failure(NDLASQLException("No feide id or folder id provided"))
+      }
+    }.flatMap {
+      case Failure(ex)     => Failure(ex)
+      case Success(numRow) => Success(numRow)
+    }
+
+    private def deleteFolderUserConnectionWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession): Try[Int] = {
+      val f = SavedSharedFolder.syntax("f")
+      Try(
+        sql"DELETE FROM ${SavedSharedFolder.as(f)} WHERE $whereClause".update()
+      ) match {
+        case Failure(ex) => Failure(ex)
+        case Success(numRows) =>
+          logger.info(s"Deleted $numRows from shared folder user connections")
+          Success(numRows)
+      }
+    }
+
+    def getSavedSharedFolder(
+        feideId: FeideID
+    )(implicit session: DBSession = AutoSession): Try[List[Folder]] = Try {
+      val f   = Folder.syntax("f")
+      val sfu = SavedSharedFolder.syntax("sfu")
+      sql"""
+          SELECT ${f.result.*}
+          FROM ${Folder.as(f)}
+          LEFT JOIN ${SavedSharedFolder.as(sfu)} on sfu.folder_id = f.id
+          WHERE sfu.feide_id = $feideId
+        """
+        .map(Folder.fromResultSet(f))
+        .list()
+        .sequence
+    }.flatten
   }
 }
-
 case class FolderRow(
     id: UUID,
     parent_id: Option[UUID],

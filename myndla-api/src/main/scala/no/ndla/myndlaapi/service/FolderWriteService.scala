@@ -32,7 +32,8 @@ import no.ndla.myndlaapi.model.domain.{
   FolderAndDirectChildren,
   FolderSortException,
   FolderStatus,
-  Rankable
+  Rankable,
+  SavedSharedFolder
 }
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
@@ -87,21 +88,33 @@ trait FolderWriteService {
       configService.isMyNDLAWriteRestricted.map(!_)
     }
 
+    private def handleFolderUserConnectionsOnUnShare(
+        folderIds: List[UUID],
+        newStatus: FolderStatus.Value,
+        oldStatus: FolderStatus.Value
+    )(implicit session: DBSession): Try[_] = {
+      (oldStatus, newStatus) match {
+        case (FolderStatus.SHARED, FolderStatus.PRIVATE) => folderRepository.deleteFolderUserConnections(folderIds)
+        case _                                           => Success(())
+      }
+    }
+
     def changeStatusOfFolderAndItsSubfolders(
         folderId: UUID,
         newStatus: FolderStatus.Value,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[List[UUID]] = {
-      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-      for {
-        feideId    <- feideApiClient.getFeideID(feideAccessToken)
-        _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
-        folder     <- folderRepository.folderWithId(folderId)
-        _          <- folder.isOwner(feideId)
-        ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
-        updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
-      } yield updatedIds
-    }
+    ): Try[List[UUID]] =
+      folderRepository.rollbackOnFailure({ implicit session =>
+        for {
+          feideId    <- feideApiClient.getFeideID(feideAccessToken)
+          _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
+          folder     <- folderRepository.folderWithId(folderId)
+          _          <- folder.isOwner(feideId)
+          ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
+          updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
+          _          <- handleFolderUserConnectionsOnUnShare(ids, newStatus, folder.status)
+        } yield updatedIds
+      })
 
     private[service] def cloneChildrenRecursively(
         sourceFolder: CopyableFolder,
@@ -304,6 +317,7 @@ trait FolderWriteService {
         _ <- folder.resources.traverse(res => deleteResourceIfNoConnection(folder.id, res.id))
         _ <- folder.subfolders.traverse(childFolder => deleteRecursively(childFolder, feideId))
         _ <- folderRepository.deleteFolder(folder.id)
+        _ <- folderRepository.deleteFolderUserConnection(folder.id.some, None)
       } yield folder.id
     }
 
@@ -355,6 +369,7 @@ trait FolderWriteService {
         _       <- folderRepository.deleteAllUserFolders(feideId)
         _       <- folderRepository.deleteAllUserResources(feideId)
         _       <- userRepository.deleteUser(feideId)
+        _       <- folderRepository.deleteFolderUserConnection(None, feideId.some)
       } yield ()
     }
 
@@ -379,7 +394,7 @@ trait FolderWriteService {
             val newRank = idx + 1
             val found   = rankables.find(_.sortId == id)
             found match {
-              case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _)) =>
+              case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _, _)) =>
                 folderRepository.setFolderRank(folderId, newRank, feideId)(session)
               case Some(domain.FolderResource(folderId, resourceId, _, _)) =>
                 folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
@@ -673,6 +688,35 @@ trait FolderWriteService {
               Failure(AccessDeniedException("You do not have write access while write restriction is active."))
           }
         )
+    }
+
+    def newSaveSharedFolder(folderId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId <- feideApiClient.getFeideID(feideAccessToken)
+        _       <- createSharedFolderUserConnection(folderId, feideId)
+      } yield ()
+    }
+
+    private def createSharedFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
+        session: DBSession
+    ): Try[SavedSharedFolder] = {
+      for {
+        folder     <- folderRepository.folderWithId(folderId).filter(f => f.isShared)
+        folderUser <- folderRepository.createFolderUserConnection(folder.id, feideId)
+      } yield folderUser
+    }
+
+    def deleteSavedSharedFolder(folderId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId <- feideApiClient.getFeideID(feideAccessToken)
+        _       <- deleteFolderUserConnection(folderId, feideId)
+      } yield ()
+    }
+
+    private def deleteFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit session: DBSession): Try[Int] = {
+      folderRepository.deleteFolderUserConnection(folderId.some, feideId.some)
     }
 
     private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[_] = {

@@ -107,7 +107,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("folderData1")
+      description = Some("folderData1"),
+      user = None
     )
     val folderData2 = domain.Folder(
       id = subFolder2UUID,
@@ -121,7 +122,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("folderData2")
+      description = Some("folderData2"),
+      user = None
     )
     val folderData3 = domain.Folder(
       id = subFolder3UUID,
@@ -135,7 +137,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("folderData3")
+      description = Some("folderData3"),
+      user = None
     )
     val mainFolder = domain.Folder(
       id = mainFolderUUID,
@@ -149,7 +152,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       created = created,
       updated = created,
       shared = None,
-      description = Some("mainFolder")
+      description = Some("mainFolder"),
+      user = None
     )
     val apiResource = api.Resource(
       id = resourceUUID.toString,
@@ -262,7 +266,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       shared = None,
-      description = Some("hei")
+      description = Some("hei"),
+      user = None
     )
     val updatedWithData =
       UpdatedFolder(name = Some("newNamae"), status = Some("shared"), description = Some("halla"))
@@ -309,7 +314,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       shared = Some(sharedBefore),
-      description = None
+      description = None,
+      user = None
     )
     val existingShared  = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
     val existingPrivate = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)

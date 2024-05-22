@@ -72,6 +72,14 @@ object Resource extends SQLSyntaxSupport[Resource] {
   def fromResultSet(lp: SyntaxProvider[Resource], withConnection: Boolean)(rs: WrappedResultSet): Try[Resource] =
     fromResultSet(s => lp.resultName.c(s), withConnection)(rs)
 
+  def fromResultSetSyntaxProviderWithConnection(lp: SyntaxProvider[Resource], sp: SyntaxProvider[FolderResource])(
+      rs: WrappedResultSet
+  ): Try[Option[Resource]] = {
+    import no.ndla.myndlaapi.maybeUuidBinder
+    rs.get[Option[UUID]](sp.resultName.c("resource_id"))
+      .traverse(_ => fromResultSetSyntaxProvider(s => lp.resultName.c(s), sp)(rs))
+  }
+
   def fromResultSetOpt(rs: WrappedResultSet, withConnection: Boolean): Try[Option[Resource]] = {
     import no.ndla.myndlaapi.maybeUuidBinder
     rs.get[Option[UUID]]("resource_id").traverse(_ => fromResultSet(rs, withConnection))
@@ -80,16 +88,28 @@ object Resource extends SQLSyntaxSupport[Resource] {
   private def fromResultSet(rs: WrappedResultSet, withConnection: Boolean): Try[Resource] =
     fromResultSet(s => s, withConnection)(rs)
 
+  private def fromResultSetSyntaxProvider(
+      colNameWrapper: String => String,
+      sp: SyntaxProvider[FolderResource]
+  )(rs: WrappedResultSet): Try[Resource] = {
+    val connection = FolderResource.fromResultSet(sp)(rs).toOption
+    toResource(colNameWrapper, connection)(rs)
+  }
+
   private def fromResultSet(
       colNameWrapper: String => String,
       withConnection: Boolean
   )(rs: WrappedResultSet): Try[Resource] = {
-    import no.ndla.myndlaapi.uuidBinder
-
     val connection =
       if (withConnection) FolderResource.fromResultSet(colNameWrapper, rs).toOption
       else None
+    toResource(colNameWrapper, connection)(rs)
+  }
 
+  private def toResource(colNameWrapper: String => String, connection: Option[FolderResource])(
+      rs: WrappedResultSet
+  ): Try[Resource] = {
+    import no.ndla.myndlaapi.uuidBinder
     for {
       id <- rs.get[Try[UUID]](colNameWrapper("id"))
       jsonString      = rs.string(colNameWrapper("document"))
@@ -101,7 +121,6 @@ object Resource extends SQLSyntaxSupport[Resource] {
         .withNameOption(resourceTypeStr)
         .toTry(NDLASQLException(s"Invalid resource type when reading resource with id '$id' from database"))
       metaData <- CirceUtil.tryParseAs[ResourceDocument](jsonString)
-
     } yield metaData.toFullResource(id, path, resourceType, feideId, created, connection)
   }
 }

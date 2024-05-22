@@ -274,4 +274,9 @@ export interface IUpdatedResource {
   resourceId?: string
 }
 
+export interface IUserFolder {
+  folders: IFolder[]
+  sharedFolders: IFolder[]
+}
+
 export type ResourceType = ("concept" | "image" | "audio" | "multidisciplinary" | "article" | "learningpath" | "video" | "folder")

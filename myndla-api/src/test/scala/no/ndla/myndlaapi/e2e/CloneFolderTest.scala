@@ -582,7 +582,8 @@ class CloneFolderTest
       resources = List(),
       subfolders = List(),
       shared = Some(shared),
-      description = None
+      description = None,
+      user = None
     )
     val expectedChild: domain.Folder = domain.Folder(
       id = childId,
@@ -596,7 +597,8 @@ class CloneFolderTest
       resources = List(),
       subfolders = List(expectedChildChild),
       shared = Some(shared),
-      description = None
+      description = None,
+      user = None
     )
     val expectedParent: domain.Folder = domain.Folder(
       id = parentId,
@@ -610,7 +612,8 @@ class CloneFolderTest
       resources = List(),
       subfolders = List(expectedChild),
       shared = Some(shared),
-      description = None
+      description = None,
+      user = None
     )
 
     val response = simpleHttpClient.send(
@@ -717,6 +720,7 @@ class CloneFolderTest
         Some(feideId)
       )
       .get
+      .folders
 
     allFolders.size should be(2)
     allFolders.head.name should be("toCopy")

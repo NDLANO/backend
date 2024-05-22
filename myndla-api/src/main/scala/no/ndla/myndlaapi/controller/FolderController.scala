@@ -17,7 +17,8 @@ import no.ndla.myndlaapi.model.api.{
   NewResource,
   Resource,
   UpdatedFolder,
-  UpdatedResource
+  UpdatedResource,
+  UserFolder
 }
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.myndlaapi.model.domain.FolderStatus
@@ -75,7 +76,7 @@ trait FolderController {
       .in(includeResources)
       .in(includeSubfolders)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[List[Folder]])
+      .out(jsonBody[UserFolder])
       .serverLogicPure { case (feideHeader, includeResources, includeSubfolders) =>
         folderReadService.getFolders(includeSubfolders, includeResources, feideHeader).handleErrorsOrOk
       }
@@ -264,6 +265,28 @@ trait FolderController {
         folderWriteService.sortFolder(sortObject, sortRequest, feideHeader).handleErrorsOrOk
       }
 
+    private def createFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Saves a shared folder")
+      .description("Saves a shared folder")
+      .in("shared" / pathFolderId / "save")
+      .in(feideHeader)
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+      .serverLogicPure { case (folderId, feideHeader) =>
+        folderWriteService.newSaveSharedFolder(folderId, feideHeader).handleErrorsOrOk
+      }
+
+    private def deleteFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.delete
+      .summary("Deletes a saved shared folder")
+      .description("Deletes a saved shared folder")
+      .in("shared" / pathFolderId / "save")
+      .in(feideHeader)
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+      .serverLogicPure { case (folderId, feideHeader) =>
+        folderWriteService.deleteSavedSharedFolder(folderId, feideHeader).handleErrorsOrOk
+      }
+
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getAllFolders,
       fetchAllResources,
@@ -279,7 +302,9 @@ trait FolderController {
       changeStatusForFolderAndSubFolders,
       cloneFolder,
       sortFolderResources,
-      sortFolderFolders
+      sortFolderFolders,
+      createFolderUserConnection,
+      deleteFolderUserConnection
     )
   }
 }
