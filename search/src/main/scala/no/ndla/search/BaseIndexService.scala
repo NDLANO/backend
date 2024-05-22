@@ -151,8 +151,16 @@ trait BaseIndexService {
         logger.info("Skipping replica change in local environment, since the cluster only has one node.")
         Success(())
       } else {
-        val settingsMap = Map("number_of_replicas" -> overrideReplicaNumber.getOrElse(indexReplicas).toString)
-        e4sClient.execute(updateSettings(Indexes(indexName), settingsMap))
+        val updateValue = overrideReplicaNumber.getOrElse(indexReplicas).toString
+        val settingsMap = Map("number_of_replicas" -> updateValue)
+        e4sClient.execute(updateSettings(Indexes(indexName), settingsMap)) match {
+          case Failure(ex) =>
+            logger.error(s"Could not update replica number for '$indexName': '${ex.getMessage}'.", ex)
+            Failure(ex)
+          case Success(value) =>
+            logger.info(s"Successfully updated replica number for '$indexName' to '$updateValue'")
+            Success(value)
+        }
       }
     }
 
