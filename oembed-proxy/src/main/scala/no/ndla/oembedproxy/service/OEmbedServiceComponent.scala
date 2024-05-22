@@ -13,6 +13,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.{InvalidUrlException, OEmbed, OEmbedProvider, ProviderNotSupportedException}
 import sttp.client3.quick.*
+import sttp.model.HttpVersion
 
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
@@ -46,6 +47,7 @@ trait OEmbedServiceComponent {
           .get(uri)
           .followRedirects(true)
           .readTimeout(remoteTimeout)
+          .httpVersion(HttpVersion.HTTP_1_1)
       ) match {
         case Success(oembed)                   => Success(oembed)
         case Failure(ex: HttpRequestException) => Failure(ex)
