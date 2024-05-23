@@ -14,14 +14,15 @@ import no.ndla.draftapi.db.migrationwithdependencies.{
   R__SetArticleTypeFromTaxonomy,
   V20__UpdateH5PDomainForFF,
   V23__UpdateH5PDomainForFFVisualElement,
-  V33__ConvertLanguageUnknown
+  V33__ConvertLanguageUnknown,
+  V57__MigrateSavedSearch
 }
 import no.ndla.draftapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 
 trait DBMigrator {
-  this: Props with DataSource =>
+  this: Props with DataSource with V57__MigrateSavedSearch =>
   val migrator: DBMigrator
 
   class DBMigrator {
@@ -35,7 +36,8 @@ trait DBMigrator {
           new R__SetArticleTypeFromTaxonomy(props),
           new V20__UpdateH5PDomainForFF,
           new V23__UpdateH5PDomainForFFVisualElement,
-          new V33__ConvertLanguageUnknown(props)
+          new V33__ConvertLanguageUnknown(props),
+          new V57__MigrateSavedSearch
         )
         .locations("no/ndla/draftapi/db/migration")
         .table("schema_version") // Flyway's default table name changed, so we specify the old one.

@@ -12,12 +12,13 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.draftapi.caching.MemoizeHelpers
-import no.ndla.draftapi.controller._
-import no.ndla.draftapi.integration._
+import no.ndla.draftapi.controller.*
+import no.ndla.draftapi.db.migrationwithdependencies.V57__MigrateSavedSearch
+import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
-import no.ndla.draftapi.service._
-import no.ndla.draftapi.service.search._
+import no.ndla.draftapi.service.*
+import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirErrorHelpers}
@@ -67,7 +68,8 @@ trait TestEnvironment
     with Props
     with Routes[Eff]
     with TapirErrorHelpers
-    with NdlaMiddleware {
+    with NdlaMiddleware
+    with V57__MigrateSavedSearch {
   val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
