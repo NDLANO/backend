@@ -98,10 +98,10 @@ trait V57__MigrateSavedSearch {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newWorkStealingPool(10))
       val firstPage     = fetchAuth0UsersByQuery(managementToken, 0).?
-      val numberOfPages = Math.ceil(firstPage.total / firstPage.length)
+      val numberOfPages = Math.ceil(firstPage.total.toDouble / firstPage.length.toDouble)
       val users = (1 to numberOfPages.toInt).foldLeft(List[Future[Auth0Users]](Future(firstPage))) {
         case (acc, pageNumber) =>
-          val x = Future(fetchAuth0UsersByQuery(managementToken, pageNumber).?)
+          val x = Future(fetchAuth0UsersByQuery(managementToken, pageNumber.toLong).?)
           acc :+ x
       }
       val fut = Future.sequence(users)
@@ -213,10 +213,8 @@ trait V57__MigrateSavedSearch {
           val parsed     = uri"$s"
           val paramsMap  = parsed.paramsMap
           val searchType = parsed.pathSegments.segments.last.v
-          println(s)
-          println(f"paramsMap: $paramsMap")
           val searchPhrase = paramsMap.foldLeft("") {
-            case (acc, ("query", v)) => s"""$acc + "$v""""
+            case (acc, ("query", v)) => s"$acc + $v"
             case (acc, ("subjects", v)) => {
               v match {
                 case "urn:favourites"  => s"$acc + Mine favorittfag"
@@ -232,7 +230,8 @@ trait V57__MigrateSavedSearch {
             }
             case (acc, ("resource-types", v)) => {
               v match {
-                case "topic-article" => s"$acc + Emne"
+                case "topic-article"     => s"$acc + Emne"
+                case "frontpage-article" => s"$acc + Om-NDLA-artikkel"
                 case _ =>
                   getResourceType(v) match {
                     case Failure(_)            => { acc }
@@ -286,7 +285,21 @@ trait V57__MigrateSavedSearch {
               }
             }
             case (acc, ("status", v)) => s"$acc + ${getStatusTranslation(v)}"
-
+            case (acc, ("filter-inactive", v)) => {
+              v match {
+                case "false" => s"$acc + Utgåtte fag inkludert"
+                case _       => acc
+              }
+            }
+            case (acc, ("exclude-revision-log", _))   => acc
+            case (acc, ("fallback", _))               => acc
+            case (acc, ("page-size", _))              => acc
+            case (acc, ("sort", _))                   => acc
+            case (acc, ("include-other-statuses", _)) => acc
+            case (acc, ("revision-date-to", _))       => acc
+            case (acc, ("revision-date-from", _))     => acc
+            case (acc, ("page", _))                   => acc
+            case (acc, ("types", _))                  => acc
             case (acc, (k, _)) =>
               println(s"Unhandled key: $k")
               acc
@@ -301,7 +314,6 @@ trait V57__MigrateSavedSearch {
           }
 
         })
-      println(f"Search phrase: $searchPhrases")
 
       val newUserData = V57_UserData(
         userId = oldUserData.userId,
@@ -312,7 +324,6 @@ trait V57__MigrateSavedSearch {
         latestEditedConcepts = oldUserData.latestEditedConcepts,
         favoriteSubjects = oldUserData.favoriteSubjects
       )
-      println(f"newUserData: $newUserData")
       newUserData.asJson.noSpaces
     }
   }
