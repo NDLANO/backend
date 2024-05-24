@@ -26,13 +26,8 @@ import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient
-    with SearchApiClient
-    with BaseIndexService
-    with TaxonomyApiClient
-    with GrepApiClient
-    with Props
-    with MyNDLAApiClient =>
+  this: Elastic4sClient & SearchApiClient & BaseIndexService & TaxonomyApiClient & GrepApiClient & Props &
+    MyNDLAApiClient =>
 
   trait IndexService[D <: Content] extends BaseIndexService with StrictLogging {
     val apiClient: SearchApiClient
@@ -138,7 +133,9 @@ trait IndexService {
       })
     }
 
-    def sendToElastic(indexName: String, indexingBundle: IndexingBundle)(implicit d: Decoder[D]): Try[(Int, Int)] = {
+    private def sendToElastic(indexName: String, indexingBundle: IndexingBundle)(implicit
+        d: Decoder[D]
+    ): Try[(Int, Int)] = {
 
       val chunks = apiClient.getChunks[D]
       val results = chunks
@@ -201,7 +198,7 @@ trait IndexService {
       }
     }
 
-    val hyphDecompounderTokenFilter: CompoundWordTokenFilter = CompoundWordTokenFilter(
+    private val hyphDecompounderTokenFilter: CompoundWordTokenFilter = CompoundWordTokenFilter(
       name = "hyphenation_decompounder",
       `type` = HyphenationDecompounder,
       wordListPath = Some("compound-words-norwegian-wordlist.txt"),

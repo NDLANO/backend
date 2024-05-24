@@ -55,7 +55,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Success, Try}
 
 trait SearchConverterService {
-  this: DraftApiClient with TaxonomyApiClient with ConverterService with Props with MyNDLAApiClient =>
+  this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
@@ -302,13 +302,13 @@ trait SearchConverterService {
         id: String,
         resourceTypes: List[MyNDLAResourceType]
     ): Try[Long] = {
-      (indexingBundle.myndlaBundle match {
+      indexingBundle.myndlaBundle match {
         case Some(value) => Success(value.getFavorites(id, resourceTypes))
         case None =>
           myndlaapiClient
             .getStatsFor(id, resourceTypes)
             .map(_.map(_.favourites).sum)
-      })
+      }
     }
 
     def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = {
@@ -544,7 +544,7 @@ trait SearchConverterService {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {

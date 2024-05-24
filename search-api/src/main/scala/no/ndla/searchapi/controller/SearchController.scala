@@ -87,7 +87,7 @@ trait SearchController {
     private val resourceTypes =
       listQuery[String]("resource-types")
         .description(
-          "Return only learning resources of specific type(s). To provide multiple types, separate by comma (,)."
+          "Return only learning resources with specific taxonomy type(s), e.g. 'urn:resourcetype:learningpath'. To provide multiple types, separate by comma (,)."
         )
     private val learningResourceIds =
       listQuery[Long]("ids")
@@ -110,7 +110,7 @@ trait SearchController {
     private val contextTypes =
       listQuery[String]("context-types")
         .description(
-          s"A comma separated list of context-types the learning resources should be filtered by. Available values is ${LearningResourceType.values
+          s"A comma separated list of types the learning resources should be filtered by. Available values is ${LearningResourceType.values
               .mkString(", ")}"
         )
     private val groupTypes =

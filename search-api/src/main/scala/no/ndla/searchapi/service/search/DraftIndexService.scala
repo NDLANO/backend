@@ -22,7 +22,7 @@ import no.ndla.searchapi.model.search.SearchType
 import scala.util.Try
 
 trait DraftIndexService {
-  this: SearchConverterService with IndexService with DraftApiClient with Props =>
+  this: SearchConverterService & IndexService & DraftApiClient & Props =>
   import props.SearchIndex
   val draftIndexService: DraftIndexService
 

@@ -35,15 +35,8 @@ import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.domain.Content
 
 trait MultiDraftSearchService {
-  this: Elastic4sClient
-    with SearchConverterService
-    with IndexService
-    with SearchService
-    with DraftIndexService
-    with LearningPathIndexService
-    with Props
-    with ErrorHelpers
-    with DraftConceptIndexService =>
+  this: Elastic4sClient & SearchConverterService & IndexService & SearchService & DraftIndexService &
+    LearningPathIndexService & Props & ErrorHelpers & DraftConceptIndexService =>
   val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
@@ -54,20 +47,20 @@ trait MultiDraftSearchService {
       SearchType.Concepts
     ).map(SearchIndex)
 
-    override val indexServices: List[IndexService[_ <: Content]] = List(
+    override val indexServices: List[IndexService[? <: Content]] = List(
       draftIndexService,
       learningPathIndexService,
       draftConceptIndexService
     )
 
-    case class SumAggResult(value: Long) extends AggResult
+    private case class SumAggResult(value: Long) extends AggResult
 
-    val sumAggsSerde: AggSerde[SumAggResult] = (_: String, data: Map[String, Any]) => {
+    private val sumAggsSerde: AggSerde[SumAggResult] = (_: String, data: Map[String, Any]) => {
       val value = data("value").asInstanceOf[Double].toLong
       SumAggResult(value)
     }
 
-    def aggregateFavorites(subjectId: String): Try[Long] = {
+    private def aggregateFavorites(subjectId: String): Try[Long] = {
       val filter       = nestedQuery("contexts", boolQuery().should(termQuery("contexts.rootId", subjectId)))
       val aggregations = sumAgg("favoritedCount", "favorited")
       val searchToExecute = search(searchIndex)
@@ -204,7 +197,7 @@ trait MultiDraftSearchService {
       executeSearch(settings, fullQuery)
     }
 
-    def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
+    private def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
       val filteredSearch = boolQuery().filter(getSearchFilters(settings))
       val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
       val searchToExecute = search(searchIndex)

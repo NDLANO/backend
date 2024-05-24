@@ -22,7 +22,7 @@ import no.ndla.searchapi.model.search.SearchType
 import scala.util.Try
 
 trait LearningPathIndexService {
-  this: SearchConverterService with IndexService with LearningPathApiClient with Props =>
+  this: SearchConverterService & IndexService & LearningPathApiClient & Props =>
   import props.SearchIndex
   val learningPathIndexService: LearningPathIndexService
 

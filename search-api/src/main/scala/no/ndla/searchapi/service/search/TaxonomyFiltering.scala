@@ -24,7 +24,7 @@ trait TaxonomyFiltering {
 
   private val mustNotBeConceptQuery = termsQuery("learningResourceType", notConceptType)
 
-  def mustBeConceptOr(query: Query): Query = {
+  private def mustBeConceptOr(query: Query): Query = {
     val newQuery = query match {
       case nested: NestedQuery if nested.path == "contexts" => nested.ignoreUnmapped(true)
       case query                                            => query
@@ -111,15 +111,6 @@ trait TaxonomyFiltering {
       )
     }
   }
-
-  protected def contextTypeFilter(contextTypes: List[LearningResourceType]): Option[BoolQuery] =
-    if (contextTypes.isEmpty) None
-    else {
-      val taxonomyContextQuery =
-        contextTypes.map(ct => nestedQuery("contexts", termQuery("contexts.contextType", ct.entryName)))
-
-      Some(boolQuery().should(taxonomyContextQuery))
-    }
 
   protected def contextActiveFilter(filterInactive: Boolean): Option[Query] =
     if (filterInactive) {
