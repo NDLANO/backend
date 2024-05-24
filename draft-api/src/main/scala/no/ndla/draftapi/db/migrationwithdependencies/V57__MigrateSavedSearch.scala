@@ -14,7 +14,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.draftapi.integration.{Node, TaxonomyApiClient}
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.{Props}
+import no.ndla.draftapi.Props
 import no.ndla.network.{AuthUser, NdlaClient, TaxonomyData}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
@@ -26,6 +26,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration.DurationInt
+
 trait V57__MigrateSavedSearch {
   this: TaxonomyApiClient with NdlaClient with Props =>
 
@@ -66,11 +67,10 @@ trait V57__MigrateSavedSearch {
         audience = auth0Audience,
         grant_type = "client_credentials"
       )
+
       val jsonStr = CirceUtil.toJsonString(inputBody)
       val bod     = StringBody(jsonStr, "utf-8", sttp.model.MediaType.ApplicationJson)
-      val req = quickRequest
-        .post(managementUri)
-        .body(bod)
+      val req     = quickRequest.post(managementUri).body(bod)
 
       Try {
         val res = simpleHttpClient.send(req)
@@ -91,7 +91,6 @@ trait V57__MigrateSavedSearch {
         CirceUtil
           .unsafeParseAs[Auth0Users](res.body)
       }
-
     }
 
     def getEditors(managementToken: String): Try[Map[String, Auth0UserObject]] = {
@@ -114,11 +113,9 @@ trait V57__MigrateSavedSearch {
       }
     }
 
-    val managementToken = getManagementToken().get
-    val auth0Editors    = getEditors(managementToken).get
+    lazy val managementToken = getManagementToken().get
+    lazy val auth0Editors    = getEditors(managementToken).get
 
-    val ndlaClient                  = new NdlaClient
-    val taxonomyApiClient           = new TaxonomyApiClient {}
     private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
     private val taxonomyTimeout     = 20.seconds
 
