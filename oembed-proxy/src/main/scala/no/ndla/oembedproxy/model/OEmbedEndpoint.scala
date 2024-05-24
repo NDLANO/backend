@@ -13,7 +13,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 case class OEmbedEndpoint(
     schemes: Option[List[String]],
-    url: Option[String],
+    url: String,
     discovery: Option[Boolean],
     formats: Option[List[String]],
     mandatoryQueryParams: Option[List[(String, String)]]

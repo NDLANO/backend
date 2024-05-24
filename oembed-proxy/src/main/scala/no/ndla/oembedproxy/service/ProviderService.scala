@@ -32,7 +32,7 @@ trait ProviderService {
     val NdlaFrontendEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(
         Some(props.NdlaApprovedUrl),
-        Some(props.NdlaFrontendOembedServiceUrl),
+        props.NdlaFrontendOembedServiceUrl,
         None,
         None,
         None
@@ -41,7 +41,7 @@ trait ProviderService {
     val ListingFrontendEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(
         Some(props.ListingFrontendApprovedUrls),
-        Some(props.ListingFrontendOembedServiceUrl),
+        props.ListingFrontendOembedServiceUrl,
         None,
         None,
         None
@@ -65,7 +65,7 @@ trait ProviderService {
           "http(s?)://*.youtube.com/shorts*"
         )
       ),
-      Some("https://www.youtube.com/oembed"),
+      "https://www.youtube.com/oembed",
       None,
       None,
       None
@@ -82,7 +82,7 @@ trait ProviderService {
     val H5PApprovedUrls: List[String] = List(props.NdlaH5PApprovedUrl)
 
     val H5PEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(H5PApprovedUrls), Some(s"${props.NdlaH5POembedProvider}/oembed"), None, None, None)
+      OEmbedEndpoint(Some(H5PApprovedUrls), s"${props.NdlaH5POembedProvider}/oembed", None, None, None)
 
     val H5PProvider: OEmbedProvider =
       OEmbedProvider("H5P", props.NdlaH5POembedProvider, List(H5PEndpoint))
@@ -103,7 +103,7 @@ trait ProviderService {
     )
 
     val TedEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(TedApprovedUrls), Some("https://www.ted.com/services/v1/oembed.json"), None, None, None)
+      OEmbedEndpoint(Some(TedApprovedUrls), "https://www.ted.com/services/v1/oembed.json", None, None, None)
     val TedProvider: OEmbedProvider = OEmbedProvider("Ted", "https://ted.com", List(TedEndpoint), removeQueryString)
 
     val IssuuApprovedUrls: List[String] = List("http://issuu.com/*", "https://issuu.com/*")
@@ -111,7 +111,7 @@ trait ProviderService {
     val IssuuEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(
         Some(IssuuApprovedUrls),
-        Some("https://issuu.com/oembed"),
+        "https://issuu.com/oembed",
         None,
         None,
         Some(List(("iframe", "true")))
@@ -137,7 +137,7 @@ trait ProviderService {
         case Success(providers) =>
           providers
             .filter(_.endpoints.nonEmpty)
-            .filter(_.endpoints.forall(endpoint => endpoint.url.isDefined))
+            .filter(_.endpoints.forall(endpoint => endpoint.url.nonEmpty))
         case Failure(ex) =>
           logger.error(s"Failed to load providers from ${request.uri}.")
           throw new DoNotUpdateMemoizeException(ex.getMessage)

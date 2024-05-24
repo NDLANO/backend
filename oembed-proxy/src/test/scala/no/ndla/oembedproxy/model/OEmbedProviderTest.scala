@@ -16,13 +16,13 @@ class OEmbedProviderTest extends UnitSuite {
     OEmbedProvider("youtube", "https://www.youtube.com", List())
 
   val ndlaEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(Some(List("https://ndla.no/*/123")), Some("https://ndla.no/oembed"), None, None, None)
+    OEmbedEndpoint(Some(List("https://ndla.no/*/123")), "https://ndla.no/oembed", None, None, None)
 
   val ndlaListEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(Some(List("https://liste.ndla.no/*")), Some("https://liste.ndla.no/oembed"), None, None, None)
+    OEmbedEndpoint(Some(List("https://liste.ndla.no/*")), "https://liste.ndla.no/oembed", None, None, None)
 
   val youtubeEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(Some(List("https://www.youtube.com/*")), Some("https://www.youtube.com/oembed"), None, None, None)
+    OEmbedEndpoint(Some(List("https://www.youtube.com/*")), "https://www.youtube.com/oembed", None, None, None)
 
   test("That hostMatches returns true for same host, regardless of protocol") {
     youtubeProvider.hostMatches("https://www.youtube.com") should be(right = true)
@@ -55,8 +55,8 @@ class OEmbedProviderTest extends UnitSuite {
   }
 
   test("That requestUrl throws exception when no endpoints have embedUrl defined") {
-    assertResult("The provider 'youtube' has no embed-url available") {
-      intercept[RuntimeException] {
+    assertResult("The provider 'youtube' does not support the provided url 'random'. Must be one of []") {
+      intercept[ProviderNotSupportedException] {
         youtubeProvider.requestUrl("random", None, None)
       }.getMessage
     }
@@ -64,7 +64,7 @@ class OEmbedProviderTest extends UnitSuite {
 
   test("That {format} is replaced in embedUrl") {
     val endpoint =
-      youtubeEndpoint.copy(url = Some("https://www.youtube.com/oembed.{format}"))
+      youtubeEndpoint.copy(url = "https://www.youtube.com/oembed.{format}")
     val requestUrl = youtubeProvider
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", None, None)
@@ -72,7 +72,7 @@ class OEmbedProviderTest extends UnitSuite {
   }
 
   test("That maxwidth is appended correctly") {
-    val endpoint = youtubeEndpoint.copy(url = Some("https://youtube.com/oembed"))
+    val endpoint = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
     val requestUrl = youtubeProvider
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", Some("100"), None)
@@ -80,7 +80,7 @@ class OEmbedProviderTest extends UnitSuite {
   }
 
   test("That maxheight is appended correctly") {
-    val endpoint = youtubeEndpoint.copy(url = Some("https://youtube.com/oembed"))
+    val endpoint = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
     val requestUrl = youtubeProvider
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", None, Some("100"))
@@ -88,7 +88,7 @@ class OEmbedProviderTest extends UnitSuite {
   }
 
   test("That both maxwidth and maxheight are appended correctly") {
-    val endpoint = youtubeEndpoint.copy(url = Some("https://youtube.com/oembed"))
+    val endpoint = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
     val requestUrl = youtubeProvider
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", Some("100"), Some("200"))

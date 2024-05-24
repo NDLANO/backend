@@ -23,7 +23,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   val ndlaProvider: OEmbedProvider = OEmbedProvider(
     "ndla",
     "https://ndla.no",
-    List(OEmbedEndpoint(Some(List("https://ndla.no/*")), Some("https://ndla.no/oembed"), None, None, None))
+    List(OEmbedEndpoint(Some(List("https://ndla.no/*")), "https://ndla.no/oembed", None, None, None))
   )
 
   val youtubeProvider: OEmbedProvider = OEmbedProvider(
@@ -32,7 +32,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
     List(
       OEmbedEndpoint(
         Some(List("https://www.youtube.com/*")),
-        Some("https://www.youtube.com/oembed"),
+        "https://www.youtube.com/oembed",
         Some(true),
         None,
         None
