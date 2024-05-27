@@ -164,7 +164,7 @@ trait MultiSearchService {
       val articleTypeFilter = Some(
         boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
       )
-      val learningResourceTypeFilter = Some(
+      val learningResourceTypeFilter = Option.when(settings.learningResourceTypes.nonEmpty)(
         boolQuery().should(
           settings.learningResourceTypes.map(resourceType => termQuery("learningResourceType", resourceType.entryName))
         )
