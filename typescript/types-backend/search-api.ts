@@ -13,6 +13,7 @@ export interface IApiTaxonomyContext {
   language: string
   isPrimary: boolean
   isActive: boolean
+  url: string
 }
 
 export interface IArticleIntroduction {
