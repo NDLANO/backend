@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
@@ -29,14 +29,8 @@ import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.domain.Content
 
 trait MultiSearchService {
-  this: Elastic4sClient
-    with SearchConverterService
-    with SearchService
-    with IndexService
-    with ArticleIndexService
-    with LearningPathIndexService
-    with Props
-    with ErrorHelpers =>
+  this: Elastic4sClient & SearchConverterService & SearchService & IndexService & ArticleIndexService &
+    LearningPathIndexService & Props & ErrorHelpers =>
 
   val multiSearchService: MultiSearchService
 
@@ -44,7 +38,7 @@ trait MultiSearchService {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndex}
 
     override val searchIndex: List[String] = List(SearchType.Articles, SearchType.LearningPaths).map(SearchIndex)
-    override val indexServices: List[IndexService[_ <: Content]] = List(articleIndexService, learningPathIndexService)
+    override val indexServices: List[IndexService[? <: Content]] = List(articleIndexService, learningPathIndexService)
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
 
@@ -170,7 +164,11 @@ trait MultiSearchService {
       val articleTypeFilter = Some(
         boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
       )
-      val taxonomyContextTypeFilter   = contextTypeFilter(settings.learningResourceTypes)
+      val learningResourceTypeFilter = Option.when(settings.learningResourceTypes.nonEmpty)(
+        boolQuery().should(
+          settings.learningResourceTypes.map(resourceType => termQuery("learningResourceType", resourceType.entryName))
+        )
+      )
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
@@ -187,10 +185,10 @@ trait MultiSearchService {
         licenseFilter,
         idFilter,
         articleTypeFilter,
+        learningResourceTypeFilter,
         languageFilter,
         taxonomySubjectFilter,
         taxonomyResourceTypesFilter,
-        taxonomyContextTypeFilter,
         supportedLanguageFilter,
         taxonomyRelevanceFilter,
         taxonomyContextActiveFilter,

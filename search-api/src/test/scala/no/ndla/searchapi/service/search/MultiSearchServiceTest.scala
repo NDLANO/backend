@@ -538,14 +538,15 @@ class MultiSearchServiceTest
     search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12))
   }
 
-  test("That filtering on learningpath learningresourcetype returns learningpaths in structure") {
+  test("That filtering on learningpath learningresourcetype returns learningpaths") {
     val Success(search) = multiSearchService.matchingQuery(
       searchSettings.copy(language = "*", learningResourceTypes = List(LearningResourceType.LearningPath))
     )
 
-    search.totalCount should be(5)
-    search.results.map(_.id) should be(Seq(1, 2, 3, 4, 5))
+    search.totalCount should be(6)
+    search.results.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6))
     search.results.filter(_.contexts.nonEmpty).map(_.contexts.head.contextType) should be(
+      // only 5 learningpaths with contexts
       Seq.fill(5) { LearningResourceType.LearningPath.toString }
     )
   }

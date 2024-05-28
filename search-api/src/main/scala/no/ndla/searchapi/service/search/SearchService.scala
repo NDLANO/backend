@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.service.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.handlers.searches.suggestion.{DirectGenerator, PhraseSuggestion}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, SimpleStringQuery}
@@ -24,8 +24,8 @@ import no.ndla.search.AggregationBuilder.getAggregationsFromResult
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
-import no.ndla.searchapi.model.domain.Sort._
-import no.ndla.searchapi.model.domain._
+import no.ndla.searchapi.model.domain.Sort.*
+import no.ndla.searchapi.model.domain.*
 import no.ndla.searchapi.model.search.SearchType
 
 import java.lang.Math.max
@@ -33,12 +33,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with IndexService with SearchConverterService with StrictLogging with Props =>
+  this: Elastic4sClient & IndexService & SearchConverterService & StrictLogging & Props =>
 
   trait SearchService {
     import props.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
     val searchIndex: List[String]
-    val indexServices: List[IndexService[_]]
+    val indexServices: List[IndexService[?]]
 
     /** Returns hit as summary
       *
@@ -179,7 +179,7 @@ trait SearchService {
       }.toSeq
     }
 
-    def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestion] = {
+    private def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestion] = {
       results.map(result =>
         SearchSuggestion(
           text = result.text,
@@ -190,7 +190,7 @@ trait SearchService {
       )
     }
 
-    def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOption = {
+    private def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOption = {
       val text  = optionsMap.getOrElse("text", "")
       val score = optionsMap.getOrElse("score", 1)
       SuggestOption(

@@ -21,7 +21,7 @@ import no.ndla.searchapi.model.search.SearchType
 import scala.util.Try
 
 trait ArticleIndexService {
-  this: SearchConverterService with IndexService with ArticleApiClient with Props =>
+  this: SearchConverterService & IndexService & ArticleApiClient & Props =>
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends StrictLogging with IndexService[Article] {
