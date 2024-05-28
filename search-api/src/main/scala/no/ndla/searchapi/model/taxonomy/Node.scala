@@ -66,7 +66,8 @@ case class TaxonomyContext(
     isPrimary: Boolean,
     contextId: String,
     isVisible: Boolean,
-    isActive: Boolean
+    isActive: Boolean,
+    url: Option[String]
 )
 
 object TaxonomyContext {

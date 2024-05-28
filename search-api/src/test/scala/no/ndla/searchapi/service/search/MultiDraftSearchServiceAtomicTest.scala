@@ -567,7 +567,8 @@ class MultiDraftSearchServiceAtomicTest
           isPrimary = true,
           contextId = "",
           isVisible = true,
-          isActive = true
+          isActive = true,
+          None
         )
       )
     )

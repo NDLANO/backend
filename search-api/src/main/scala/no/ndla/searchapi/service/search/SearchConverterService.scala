@@ -164,7 +164,8 @@ trait SearchConverterService {
           resourceTypes = context.resourceTypes,
           parentIds = context.parentIds,
           isPrimary = context.isPrimary,
-          isActive = context.isActive
+          isActive = context.isActive,
+          url = context.url
         )
       )
     }
@@ -844,7 +845,8 @@ trait SearchConverterService {
         resourceTypes = resourceTypes,
         language = language,
         isPrimary = context.isPrimary,
-        isActive = context.isActive
+        isActive = context.isActive,
+        url = context.url.getOrElse(context.path)
       )
 
     }

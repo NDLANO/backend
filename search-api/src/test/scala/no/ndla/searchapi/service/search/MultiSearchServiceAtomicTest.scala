@@ -146,7 +146,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             isPrimary = true,
             contextId = "",
             isVisible = true,
-            isActive = true
+            isActive = true,
+            None
           )
         )
       )
@@ -329,7 +330,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             isPrimary = true,
             contextId = "",
             isVisible = true,
-            isActive = true
+            isActive = true,
+            None
           )
         )
       )
@@ -468,7 +470,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             isPrimary = true,
             contextId = "",
             isVisible = true,
-            isActive = true
+            isActive = true,
+            None
           )
         )
       )
@@ -495,7 +498,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             isPrimary = true,
             contextId = "",
             isVisible = true,
-            isActive = true
+            isActive = true,
+            None
           )
         )
       )
