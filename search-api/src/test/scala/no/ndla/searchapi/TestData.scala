@@ -1047,21 +1047,22 @@ object TestData {
     parent.contexts.map(context => {
       TaxonomyContext(
         publicId = node.id,
-        path = s"${context.path}/${URI.create(node.id).getSchemeSpecificPart}",
         rootId = root.id,
         root = SearchableLanguageValues(Seq(LanguageValue("nb", root.name))),
+        path = s"${context.path}/${URI.create(node.id).getSchemeSpecificPart}",
         breadcrumbs = SearchableLanguageList.addValue(context.breadcrumbs, parent.name),
+        contextType = contextType,
         relevanceId = relevance.id,
         relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
         resourceTypes = resourceTypes.map(rt =>
           SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
-        contextType = contextType,
         parentIds = context.parentIds :+ parent.id,
         isPrimary = isPrimary,
         contextId = Random.alphanumeric.take(12).mkString,
         isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible),
-        isActive = isActive
+        isActive = isActive,
+        None
       )
     })
   }
@@ -1089,7 +1090,8 @@ object TestData {
         isPrimary = true,
         contextId = "",
         isVisible = true,
-        isActive = true
+        isActive = true,
+        None
       )
     )
   )
@@ -1116,7 +1118,8 @@ object TestData {
         isPrimary = true,
         contextId = "",
         isVisible = true,
-        isActive = true
+        isActive = true,
+        None
       )
     )
   )
@@ -1143,7 +1146,8 @@ object TestData {
         isPrimary = true,
         contextId = "",
         isVisible = false,
-        isActive = true
+        isActive = true,
+        None
       )
     )
   )
@@ -1665,7 +1669,8 @@ object TestData {
       resourceTypes = searchableResourceTypes,
       parentIds = List("urn:topic:1"),
       isPrimary = true,
-      isActive = true
+      isActive = true,
+      None
     )
 
   val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(

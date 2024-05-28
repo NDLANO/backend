@@ -315,6 +315,7 @@ trait IndexService {
         keywordField("relevanceId"),
         booleanField("isActive"),
         booleanField("isPrimary"),
+        keywordField("url"),
         nestedField("resourceTypes").fields(
           keywordField("id")
         )
