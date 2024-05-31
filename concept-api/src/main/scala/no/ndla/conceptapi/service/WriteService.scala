@@ -138,7 +138,7 @@ trait WriteService {
     ): DomainConcept = {
       val isNewLanguage =
         !old.supportedLanguages.contains(updated.language) && changed.supportedLanguages.contains(updated.language)
-      val dataChanged = shouldUpdateNotes(old, changed);
+      val dataChanged = shouldUpdateNotes(old, changed)
 
       val newEditorNote =
         if (isNewLanguage) Seq(s"New language '${updated.language}' added")
@@ -170,10 +170,8 @@ trait WriteService {
       val executor = Executors.newSingleThreadExecutor
       val ec       = ExecutionContext.fromExecutorService(executor)
 
-      for {
-        _ <- draftConceptIndexService.indexDocument(toIndex)
-        _ = searchApiClient.indexConcept(toIndex, user)(ec)
-      } yield toIndex
+      draftConceptIndexService.indexDocument(toIndex): Unit
+      searchApiClient.indexConcept(toIndex, user)(ec): Unit
     }
 
     def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, user: TokenUser): Try[api.Concept] = {
