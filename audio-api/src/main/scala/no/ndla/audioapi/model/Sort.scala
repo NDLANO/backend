@@ -17,7 +17,7 @@ import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class Sort(override val entryName: String) extends EnumEntry
 
-object Sort extends Enum[Sort] {
+object Sort extends Enum[Sort] with CirceEnum[Sort] {
 
   val values: IndexedSeq[Sort] = findValues
 
