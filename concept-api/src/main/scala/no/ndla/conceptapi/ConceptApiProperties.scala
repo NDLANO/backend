@@ -14,7 +14,7 @@ import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
-import scala.util.Properties._
+import scala.util.Properties.*
 
 trait Props extends HasBaseProps {
   val props: ConceptApiProperties
@@ -55,9 +55,9 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
     if (booleanPropOrFalse("ALLOW_HTML")) Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
     else Set.empty
 
-  def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
+  private def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
-  def H5PAddress: String = propOrElse(
+  private def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",
     Map(
       "local"   -> "https://h5p-test.ndla.no",

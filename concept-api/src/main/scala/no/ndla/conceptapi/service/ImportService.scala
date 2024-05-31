@@ -28,7 +28,7 @@ trait ImportService {
       pageStream
         .map(page => {
           page.map(successfulPage => {
-            val saved                = writeService.saveImportedConcepts(successfulPage, forceUpdate)
+            val saved                = writeService.saveImportedConcepts(successfulPage, forceUpdate, user)
             val numSuccessfullySaved = saved.count(_.isSuccess)
             val warnings             = saved.collect { case Failure(ex) => ex.getMessage }
             (numSuccessfullySaved, successfulPage.size, warnings)

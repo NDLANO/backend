@@ -16,7 +16,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: DraftConceptRepository with PublishedConceptRepository with ConverterService =>
+  this: DraftConceptRepository & PublishedConceptRepository & ConverterService =>
   val readService: ReadService
 
   class ReadService {
