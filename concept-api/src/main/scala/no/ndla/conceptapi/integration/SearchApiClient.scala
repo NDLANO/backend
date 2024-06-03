@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.concept.Concept
@@ -28,10 +27,8 @@ trait SearchApiClient {
 
   class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends StrictLogging {
 
-    private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
-    private val SearchEndpoint          = s"$SearchApiBaseUrl/search-api/v1/search/editorial/"
-    private val SearchEndpointPublished = s"$SearchApiBaseUrl/search-api/v1/search/"
-    private val indexTimeout            = 60.seconds
+    private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
+    private val indexTimeout     = 60.seconds
 
     def indexConcept(concept: Concept, user: TokenUser)(implicit ex: ExecutionContext): Concept = {
       val future = postWithData[Concept, Concept](s"$InternalEndpoint/concept/", concept, user)
@@ -77,52 +74,5 @@ trait SearchApiClient {
         )
       }
     }
-
-    def draftsWhereUsed(articleId: Long, user: TokenUser): Seq[SearchHit] = {
-      get[SearchResults](
-        SearchEndpoint,
-        user,
-        "embed-resource" -> "content-link,related-content",
-        "embed-id"       -> s"${articleId}"
-      ) match {
-        case Success(value) => value.results
-        case Failure(_)     => Seq.empty
-      }
-    }
-
-    def publishedWhereUsed(articleId: Long, user: TokenUser): Seq[SearchHit] = {
-      get[SearchResults](
-        SearchEndpointPublished,
-        user,
-        "embed-resource" -> "content-link,related-content",
-        "embed-id"       -> s"${articleId}"
-      ) match {
-        case Success(value) => value.results
-        case Failure(_)     => Seq.empty
-      }
-    }
-
-    private def get[A: Decoder](endpointUrl: String, user: TokenUser, params: (String, String)*): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params: _*)), Some(user))
-    }
   }
-
-}
-
-case class SearchResults(totalCount: Int, results: Seq[SearchHit])
-object SearchResults {
-  implicit val encoder: Encoder[SearchResults] = deriveEncoder
-  implicit val decoder: Decoder[SearchResults] = deriveDecoder
-}
-
-case class SearchHit(id: Long, title: Title)
-object SearchHit {
-  implicit val encoder: Encoder[SearchHit] = deriveEncoder
-  implicit val decoder: Decoder[SearchHit] = deriveDecoder
-}
-
-case class Title(title: String, language: String)
-object Title {
-  implicit val encoder: Encoder[Title] = deriveEncoder
-  implicit val decoder: Decoder[Title] = deriveDecoder
 }

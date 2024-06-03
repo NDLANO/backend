@@ -8,7 +8,7 @@
 package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.{booleanPropOrFalse, prop}
+import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
@@ -51,9 +51,7 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
   def ElasticSearchScrollKeepAlive        = "1m"
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
-  def IntroductionHtmlTags: Set[String] =
-    if (booleanPropOrFalse("ALLOW_HTML")) Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
-    else Set.empty
+  def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
 
   private def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
