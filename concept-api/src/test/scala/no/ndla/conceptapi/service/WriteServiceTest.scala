@@ -81,6 +81,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.newConcept(TestData.sampleNewConcept, userInfo).get.id.toString should equal(domainConcept.id.get.toString)
     verify(draftConceptRepository, times(1)).insert(any[Concept])
     verify(draftConceptIndexService, times(1)).indexDocument(any[Concept])
+    verify(searchApiClient, times(1)).indexConcept(any[Concept], any[TokenUser])(any)
   }
 
   test("That update function updates only content properly") {

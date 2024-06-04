@@ -163,7 +163,7 @@ trait InternController {
           case draftConceptIndexService.documentType => indexRequestWithService(draftConceptIndexService, body)
           case _ =>
             badRequest(
-              s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
+              s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
             ).asLeft
         }
       }
@@ -187,7 +187,7 @@ trait InternController {
           case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id).handleErrorsOrOk
           case _ =>
             badRequest(
-              s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
+              s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
             ).asLeft
         }
       }

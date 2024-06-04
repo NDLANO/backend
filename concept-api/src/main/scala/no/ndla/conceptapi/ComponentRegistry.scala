@@ -9,13 +9,13 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.conceptapi.controller._
-import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, TaxonomyApiClient}
+import no.ndla.conceptapi.controller.*
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, SearchApiClient, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service.search._
-import no.ndla.conceptapi.service._
+import no.ndla.conceptapi.service.search.*
+import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
@@ -56,6 +56,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with BaseIndexService
     with InternController
     with ArticleApiClient
+    with SearchApiClient
     with NdlaClient
     with Props
     with DBMigrator
@@ -91,6 +92,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
 
   lazy val ndlaClient       = new NdlaClient
   lazy val articleApiClient = new ArticleApiClient
+  lazy val searchApiClient  = new SearchApiClient
 
   lazy val importService = new ImportService
 

@@ -24,16 +24,8 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 trait StateTransitionRules {
-  this: WriteService
-    with DraftConceptRepository
-    with PublishedConceptRepository
-    with WriteService
-    with ConverterService
-    with ContentValidator
-    with DraftConceptIndexService
-    with PublishedConceptRepository
-    with ErrorHelpers
-    with Clock =>
+  this: WriteService & DraftConceptRepository & PublishedConceptRepository & WriteService & ConverterService &
+    ContentValidator & DraftConceptIndexService & PublishedConceptRepository & ErrorHelpers & Clock =>
 
   object StateTransitionRules {
 
@@ -50,10 +42,10 @@ trait StateTransitionRules {
       Success(concept.copy(responsible = Some(responsible)))
     }
 
-    import StateTransition._
+    import StateTransition.*
 
-    val WritePermission: Set[Permission]   = Set(CONCEPT_API_WRITE)
-    val PublishPermission: Set[Permission] = Set(CONCEPT_API_ADMIN)
+    private val WritePermission: Set[Permission]   = Set(CONCEPT_API_WRITE)
+    private val PublishPermission: Set[Permission] = Set(CONCEPT_API_ADMIN)
 
     // format: off
     val StateTransitions: Set[StateTransition] = Set(
@@ -81,7 +73,7 @@ trait StateTransitionRules {
       (PUBLISHED          -> UNPUBLISHED)         keepStates Set() require PublishPermission withSideEffect unpublishConcept withSideEffect resetResponsible,
        UNPUBLISHED        -> UNPUBLISHED          withSideEffect resetResponsible,
       (UNPUBLISHED        -> PUBLISHED)           keepStates Set() require PublishPermission withSideEffect publishConcept withSideEffect resetResponsible,
-      (UNPUBLISHED        -> IN_PROGRESS),
+       UNPUBLISHED        -> IN_PROGRESS,
       (UNPUBLISHED        -> ARCHIVED)            require WritePermission withIllegalStatuses  Set(PUBLISHED) withSideEffect resetResponsible,
        LANGUAGE           -> LANGUAGE,
       (LANGUAGE           -> FOR_APPROVAL)        keepStates Set(PUBLISHED) require PublishPermission,

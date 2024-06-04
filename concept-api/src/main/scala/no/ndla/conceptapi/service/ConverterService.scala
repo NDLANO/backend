@@ -45,7 +45,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with DraftConceptRepository with StateTransitionRules with Props =>
+  this: Clock & DraftConceptRepository & StateTransitionRules & Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
