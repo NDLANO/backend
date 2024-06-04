@@ -23,13 +23,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with ConverterService with Props =>
+  this: NdlaClient & ConverterService & Props =>
   val searchApiClient: SearchApiClient
 
   class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends StrictLogging {
 
     private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
-    private val SearchEndpoint          = s"$SearchApiBaseUrl/search-api/v1/search/editorial/"
     private val SearchEndpointPublished = s"$SearchApiBaseUrl/search-api/v1/search/"
     private val indexTimeout            = 60.seconds
 
@@ -72,18 +71,6 @@ trait SearchApiClient {
             .header("content-type", "application/json", replaceExisting = true),
           Some(user)
         )
-      }
-    }
-
-    def draftsWhereUsed(articleId: Long, user: TokenUser): Seq[SearchHit] = {
-      get[SearchResults](
-        SearchEndpoint,
-        user,
-        "embed-resource" -> "content-link,related-content",
-        "embed-id"       -> s"${articleId}"
-      ) match {
-        case Success(value) => value.results
-        case Failure(_)     => Seq.empty
       }
     }
 

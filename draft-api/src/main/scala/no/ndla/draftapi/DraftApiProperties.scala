@@ -9,13 +9,13 @@ package no.ndla.draftapi
 
 import com.amazonaws.regions.Regions
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.{booleanPropOrFalse, prop, propToAwsRegion}
+import no.ndla.common.Environment.{prop, propToAwsRegion}
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
-import scala.util.Properties._
+import scala.util.Properties.*
 
 trait Props extends HasBaseProps {
   val props: DraftApiProperties
@@ -41,7 +41,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
 
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
-  def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
+  private def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   def externalApiUrls: Map[String, String] = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
@@ -58,13 +58,11 @@ class DraftApiProperties extends BaseProps with StrictLogging {
     "image-api"   -> s"http://$ImageApiHost/intern"
   )
 
-  def InlineHtmlTags: Set[String] =
-    if (booleanPropOrFalse("ALLOW_HTML_IN_TITLE")) Set("code", "em", "span", "strong", "sub", "sup") else Set.empty
-  def IntroductionHtmlTags: Set[String] =
-    if (booleanPropOrFalse("ALLOW_HTML_IN_TITLE")) InlineHtmlTags ++ Set("br", "p") else Set.empty
+  def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
+  def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
 
-  def BrightcoveAccountId: String        = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  private def BrightcovePlayerId: String = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  private def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  private def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"

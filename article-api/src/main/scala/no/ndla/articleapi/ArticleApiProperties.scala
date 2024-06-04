@@ -8,13 +8,13 @@
 
 package no.ndla.articleapi
 
-import no.ndla.common.Environment.{booleanPropOrFalse, prop}
+import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
-import scala.util.Properties._
+import scala.util.Properties.*
 
 trait Props extends HasBaseProps {
   val props: ArticleApiProperties
@@ -93,7 +93,7 @@ class ArticleApiProperties extends BaseProps {
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   def maxConvertionRounds = 5
 
-  def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
+  private def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   def externalApiUrls: Map[String, String] = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
@@ -103,10 +103,8 @@ class ArticleApiProperties extends BaseProps {
     ResourceType.H5P.toString   -> H5PAddress
   )
 
-  def InlineHtmlTags: Set[String] =
-    if (booleanPropOrFalse("ALLOW_HTML_IN_TITLE")) Set("code", "em", "span", "strong", "sub", "sup") else Set.empty
-  def IntroductionHtmlTags: Set[String] =
-    if (booleanPropOrFalse("ALLOW_HTML_IN_TITLE")) InlineHtmlTags ++ Set("br", "p") else Set.empty
+  def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
+  def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
 
   private def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",
@@ -117,14 +115,14 @@ class ArticleApiProperties extends BaseProps {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  def ndlaFrontendUrl = Environment match {
+  def ndlaFrontendUrl: String = Environment match {
     case "local" => "http://localhost:30017"
     case "prod"  => "https://ndla.no"
     case _       => s"https://$Environment.ndla.no"
   }
 
-  def BrightcoveAccountId: String        = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  private def BrightcovePlayerId: String = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  private def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  private def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
