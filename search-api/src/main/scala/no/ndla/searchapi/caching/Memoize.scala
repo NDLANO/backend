@@ -11,7 +11,7 @@ package no.ndla.searchapi.caching
 import com.typesafe.scalalogging.StrictLogging
 
 import java.util.concurrent.Executors
-import scala.collection.mutable.{Map => MutableMap}
+import scala.collection.mutable.Map as MutableMap
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success}
@@ -55,7 +55,7 @@ class Memoize[I, R](maxCacheAgeMs: Long, f: I => R) extends StrictLogging {
     }
   }
 
-  def updateCache(result: CacheValue): Unit = {
+  private def updateCache(result: CacheValue): Unit = {
     isUpdating.remove(result.input): Unit
     cache.put(result.input, result): Unit
     System.gc()

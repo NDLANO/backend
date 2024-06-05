@@ -10,7 +10,7 @@ package no.ndla.searchapi.integration
 import no.ndla.network.NdlaClient
 
 trait ArticleApiClient {
-  this: NdlaClient with SearchApiClient =>
+  this: NdlaClient & SearchApiClient =>
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient(val baseUrl: String) extends SearchApiClient {

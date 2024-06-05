@@ -16,7 +16,7 @@ import sttp.client3.quick.*
 import scala.util.Try
 
 trait MyNDLAApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
 
   val myndlaapiClient: MyNDLAApiClient
 
