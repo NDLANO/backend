@@ -23,23 +23,23 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Futu
 import scala.util.{Failure, Success, Try}
 
 trait GrepApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
   val grepApiClient: GrepApiClient
 
   class GrepApiClient extends StrictLogging {
     import props.GrepApiUrl
     private val GrepApiEndpoint = s"$GrepApiUrl/kl06/v201906"
 
-    def getAllKjerneelementer: Try[List[GrepElement]] =
+    private def getAllKjerneelementer: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/kjerneelementer-lk20/").map(_.distinct)
 
-    def getAllKompetansemaal: Try[List[GrepElement]] =
+    private def getAllKompetansemaal: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/kompetansemaal-lk20/").map(_.distinct)
 
-    def getAllTverrfagligeTemaer: Try[List[GrepElement]] =
+    private def getAllTverrfagligeTemaer: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/tverrfaglige-temaer-lk20/").map(_.distinct)
 
-    // NOTE: We add a helper so we dont have to provide `()` where this is used :^)
+    // NOTE: We add a helper so we don't have to provide `()` where this is used :^)
     val getGrepBundle: () => Try[GrepBundle] = () => _getGrepBundle(())
 
     private val _getGrepBundle: Memoize[Unit, Try[GrepBundle]] = new Memoize(1000 * 60, _ => getGrepBundleUncached)

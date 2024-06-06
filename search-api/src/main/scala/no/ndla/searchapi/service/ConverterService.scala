@@ -7,13 +7,13 @@
 
 package no.ndla.searchapi.service
 
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.network.ApplicationUrl
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api
 import no.ndla.searchapi.model.api.LearningPathIntroduction
 import no.ndla.searchapi.model.api.article.ArticleIntroduction
-import no.ndla.searchapi.model.domain._
+import no.ndla.searchapi.model.domain.*
 
 trait ConverterService {
   this: Props =>

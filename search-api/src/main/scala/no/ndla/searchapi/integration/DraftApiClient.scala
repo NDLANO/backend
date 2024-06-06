@@ -12,7 +12,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
 
 trait DraftApiClient {
-  this: NdlaClient with SearchApiClient with Props =>
+  this: NdlaClient & SearchApiClient & Props =>
   val draftApiClient: DraftApiClient
 
   class DraftApiClient(val baseUrl: String) extends SearchApiClient {

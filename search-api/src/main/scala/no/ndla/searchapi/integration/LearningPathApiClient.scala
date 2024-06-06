@@ -10,7 +10,7 @@ package no.ndla.searchapi.integration
 import no.ndla.network.NdlaClient
 
 trait LearningPathApiClient {
-  this: NdlaClient with SearchApiClient =>
+  this: NdlaClient & SearchApiClient =>
   val learningPathApiClient: LearningPathApiClient
 
   class LearningPathApiClient(val baseUrl: String) extends SearchApiClient {
