@@ -14,10 +14,8 @@ import sttp.tapir.Schema.annotations.description
 @description("Taxonomy resource type")
 case class TaxonomyResourceType(
     @description("Id of the taoxonomy resource type") id: String,
-    @description("Name of the subject this context is in") name: String,
-    @description(
-      "The ISO 639-1 language code describing which article translation this visual element belongs to"
-    ) language: String
+    @description("Name of the taoxonomy resource type") name: String,
+    @description("The ISO 639-1 language code for the resource type") language: String
 )
 
 object TaxonomyResourceType {

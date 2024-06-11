@@ -16,12 +16,12 @@ import no.ndla.conceptapi.controller.{
   InternController,
   PublishedConceptController
 }
-import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, TaxonomyApiClient}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, SearchApiClient, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service._
-import no.ndla.conceptapi.service.search._
+import no.ndla.conceptapi.service.*
+import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
@@ -54,6 +54,7 @@ trait TestEnvironment
     with ContentValidator
     with ImportService
     with ArticleApiClient
+    with SearchApiClient
     with NdlaClient
     with Clock
     with Props
@@ -96,6 +97,7 @@ trait TestEnvironment
 
   val ndlaClient: NdlaClient             = mock[NdlaClient]
   val articleApiClient: ArticleApiClient = mock[ArticleApiClient]
+  val searchApiClient: SearchApiClient   = mock[SearchApiClient]
 
   def services: List[Service[Eff]] = List.empty
 }

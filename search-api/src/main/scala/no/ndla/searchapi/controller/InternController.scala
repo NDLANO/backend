@@ -44,16 +44,8 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
-  this: IndexService
-    with ArticleIndexService
-    with LearningPathIndexService
-    with DraftIndexService
-    with DraftConceptIndexService
-    with TaxonomyApiClient
-    with GrepApiClient
-    with Props
-    with ErrorHelpers
-    with MyNDLAApiClient =>
+  this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
+    TaxonomyApiClient & GrepApiClient & Props & ErrorHelpers & MyNDLAApiClient =>
   val internController: InternController
 
   class InternController extends Service[Eff] with StrictLogging {
@@ -163,7 +155,7 @@ trait InternController {
           case draftConceptIndexService.documentType => indexRequestWithService(draftConceptIndexService, body)
           case _ =>
             badRequest(
-              s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
+              s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
             ).asLeft
         }
       }
@@ -187,7 +179,7 @@ trait InternController {
           case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id).handleErrorsOrOk
           case _ =>
             badRequest(
-              s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
+              s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
             ).asLeft
         }
       }

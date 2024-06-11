@@ -21,7 +21,7 @@ import scala.math.ceil
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with StrictLogging with Props =>
+  this: NdlaClient & StrictLogging & Props =>
 
   trait SearchApiClient {
     val name: String

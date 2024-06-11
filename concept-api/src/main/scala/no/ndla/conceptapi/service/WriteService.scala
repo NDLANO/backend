@@ -13,6 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Concept as DomainConcept}
+import no.ndla.conceptapi.integration.SearchApiClient
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -21,17 +22,13 @@ import no.ndla.conceptapi.validation.*
 import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 
+import java.util.concurrent.Executors
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: DraftConceptRepository
-    with PublishedConceptRepository
-    with ConverterService
-    with ContentValidator
-    with DraftConceptIndexService
-    with PublishedConceptIndexService
-    with StrictLogging
-    with Clock =>
+  this: DraftConceptRepository & PublishedConceptRepository & ConverterService & ContentValidator &
+    DraftConceptIndexService & PublishedConceptIndexService & StrictLogging & SearchApiClient & Clock =>
   val writeService: WriteService
 
   class WriteService {
@@ -55,12 +52,16 @@ trait WriteService {
       }
     }
 
-    def saveImportedConcepts(concepts: Seq[DomainConcept], forceUpdate: Boolean): Seq[Try[DomainConcept]] = {
+    def saveImportedConcepts(
+        concepts: Seq[DomainConcept],
+        forceUpdate: Boolean,
+        user: TokenUser
+    ): Seq[Try[DomainConcept]] = {
       concepts.map(concept => {
         concept.id match {
           case Some(id) if draftConceptRepository.exists(id) =>
             if (forceUpdate) {
-              updateConcept(concept) match {
+              updateConcept(concept, user) match {
                 case Failure(ex) =>
                   logger.error(s"Could not update concept with id '${concept.id.getOrElse(-1)}' when importing.")
                   Failure(ex)
@@ -76,13 +77,13 @@ trait WriteService {
       })
     }
 
-    def newConcept(newConcept: api.NewConcept, userInfo: TokenUser): Try[api.Concept] = {
+    def newConcept(newConcept: api.NewConcept, user: TokenUser): Try[api.Concept] = {
       for {
-        concept          <- converterService.toDomainConcept(newConcept, userInfo)
+        concept          <- converterService.toDomainConcept(newConcept, user)
         _                <- contentValidator.validateConcept(concept)
         persistedConcept <- Try(draftConceptRepository.insert(concept))
-        _                <- draftConceptIndexService.indexDocument(persistedConcept)
-        apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true, Some(userInfo))
+        _ = indexConcept(persistedConcept, user)
+        apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true, Some(user))
       } yield apiC
     }
 
@@ -137,7 +138,7 @@ trait WriteService {
     ): DomainConcept = {
       val isNewLanguage =
         !old.supportedLanguages.contains(updated.language) && changed.supportedLanguages.contains(updated.language)
-      val dataChanged = shouldUpdateNotes(old, changed);
+      val dataChanged = shouldUpdateNotes(old, changed)
 
       val newEditorNote =
         if (isNewLanguage) Seq(s"New language '${updated.language}' added")
@@ -157,39 +158,47 @@ trait WriteService {
       )
     }
 
-    private def updateConcept(toUpdate: DomainConcept): Try[DomainConcept] = {
+    private def updateConcept(toUpdate: DomainConcept, user: TokenUser): Try[DomainConcept] = {
       for {
         _             <- contentValidator.validateConcept(toUpdate)
         domainConcept <- draftConceptRepository.update(toUpdate)
-        _             <- draftConceptIndexService.indexDocument(domainConcept)
+        _ = indexConcept(domainConcept, user)
       } yield domainConcept
     }
 
-    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, userInfo: TokenUser): Try[api.Concept] = {
+    private def indexConcept(toIndex: DomainConcept, user: TokenUser): Unit = {
+      val executor = Executors.newSingleThreadExecutor
+      val ec       = ExecutionContext.fromExecutorService(executor)
+
+      draftConceptIndexService.indexDocument(toIndex): Unit
+      searchApiClient.indexConcept(toIndex, user)(ec): Unit
+    }
+
+    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, user: TokenUser): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           for {
-            domainConcept <- converterService.toDomainConcept(existingConcept, updatedConcept, userInfo)
-            withStatus    <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, userInfo)
-            withNotes = updateNotes(existingConcept, updatedConcept, withStatus, userInfo)
-            updated <- updateConcept(withNotes)
+            domainConcept <- converterService.toDomainConcept(existingConcept, updatedConcept, user)
+            withStatus    <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, user)
+            withNotes = updateNotes(existingConcept, updatedConcept, withStatus, user)
+            updated <- updateConcept(withNotes, user)
             converted <- converterService.toApiConcept(
               updated,
               updatedConcept.language,
               fallback = true,
-              Some(userInfo)
+              Some(user)
             )
           } yield converted
 
         case None if draftConceptRepository.exists(id) =>
-          val concept = converterService.toDomainConcept(id, updatedConcept, userInfo)
+          val concept = converterService.toDomainConcept(id, updatedConcept, user)
           for {
-            updated <- updateConcept(concept)
+            updated <- updateConcept(concept, user)
             converted <- converterService.toApiConcept(
               updated,
               updatedConcept.language,
               fallback = true,
-              Some(userInfo)
+              Some(user)
             )
           } yield converted
         case None =>
@@ -197,7 +206,7 @@ trait WriteService {
       }
     }
 
-    def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.Concept] = {
+    def deleteLanguage(id: Long, language: String, user: TokenUser): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           existingConcept.title.size match {
@@ -218,23 +227,23 @@ trait WriteService {
               )
 
               for {
-                withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
+                withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, user)
                 conceptWithUpdatedNotes = withStatus.copy(editorNotes =
                   withStatus.editorNotes ++ Seq(
                     ConceptEditorNote(
                       s"Deleted language '$language'.",
-                      userInfo.id,
+                      user.id,
                       withStatus.status,
                       clock.now()
                     )
                   )
                 )
-                updated <- updateConcept(conceptWithUpdatedNotes)
+                updated <- updateConcept(conceptWithUpdatedNotes, user)
                 converted <- converterService.toApiConcept(
                   updated,
                   Language.AllLanguages,
                   fallback = false,
-                  Some(userInfo)
+                  Some(user)
                 )
               } yield converted
           }
@@ -249,7 +258,7 @@ trait WriteService {
         case Some(draft) =>
           for {
             convertedConcept <- converterService.updateStatus(status, draft, user)
-            updatedConcept   <- updateConcept(convertedConcept)
+            updatedConcept   <- updateConcept(convertedConcept, user)
             _                <- draftConceptIndexService.indexDocument(updatedConcept)
             apiConcept <- converterService.toApiConcept(
               updatedConcept,

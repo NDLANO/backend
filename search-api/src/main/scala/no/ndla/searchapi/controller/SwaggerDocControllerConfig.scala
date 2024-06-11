@@ -10,7 +10,7 @@ package no.ndla.searchapi.controller
 import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
 import no.ndla.searchapi.Props
-import sttp.tapir._
+import sttp.tapir.*
 
 trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
   this: Props =>

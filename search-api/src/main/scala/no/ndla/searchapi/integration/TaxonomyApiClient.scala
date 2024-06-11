@@ -28,7 +28,7 @@ import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
   val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {

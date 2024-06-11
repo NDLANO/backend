@@ -45,19 +45,13 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
-  this: SearchApiClient
-    with MultiSearchService
-    with SearchConverterService
-    with SearchService
-    with MultiDraftSearchService
-    with FeideApiClient
-    with Props
-    with ErrorHelpers =>
+  this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
+    FeideApiClient & Props & ErrorHelpers =>
   val searchController: SearchController
 
   class SearchController extends Service[Eff] {
-    import props._
-    import ErrorHelpers._
+    import props.*
+    import ErrorHelpers.*
 
     override val serviceName: String         = "search"
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
