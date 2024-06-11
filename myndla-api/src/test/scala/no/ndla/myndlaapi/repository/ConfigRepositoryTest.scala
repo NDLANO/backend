@@ -12,10 +12,9 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 import scalikejdbc._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Success
 
 class ConfigRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "myndlaapi_test")
@@ -25,26 +24,6 @@ class ConfigRepositoryTest
   override val migrator                     = new DBMigrator
 
   var repository: ConfigRepository = _
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    postgresContainer match {
-      case Failure(ex) =>
-        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-    if (!sys.env.getOrElse("CI", "false").toBoolean) {
-      assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
-    }
-    super.withFixture(test)
-  }
-
-  def databaseIsAvailable: Boolean = {
-    val res = Try(repository.configCount)
-    res.isSuccess
-  }
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -61,9 +40,7 @@ class ConfigRepositoryTest
 
   override def beforeEach(): Unit = {
     repository = new ConfigRepository
-    if (databaseIsAvailable) {
-      emptyTestDatabase
-    }
+    emptyTestDatabase
   }
 
   test("That updating configKey from empty database inserts config") {

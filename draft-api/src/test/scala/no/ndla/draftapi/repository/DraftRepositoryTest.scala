@@ -16,32 +16,17 @@ import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.Mockito.when
-import org.scalatest.Outcome
 import scalikejdbc.*
 
 import java.net.Socket
 import java.util.UUID
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
   var repository: ArticleRepository         = _
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    postgresContainer match {
-      case Failure(ex) =>
-        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-    assume(postgresContainer.isSuccess)
-    super.withFixture(test)
-  }
-
-  val sampleArticle: Draft = TestData.sampleArticleWithByNcSa
+  val sampleArticle: Draft                  = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
     sql"delete from articledata;".execute()(session)
@@ -73,11 +58,9 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try {
-      DataSource.connectToDatabase()
-      if (serverIsListening) {
-        migrator.migrate()
-      }
+    DataSource.connectToDatabase()
+    if (serverIsListening) {
+      migrator.migrate()
     }
   }
 

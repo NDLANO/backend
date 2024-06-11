@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.db.migrationwithdependencies._
+import no.ndla.articleapi.db.migrationwithdependencies.*
 import no.ndla.articleapi.integration.DataSource
 import org.flywaydb.core.Flyway
 

@@ -14,7 +14,6 @@ import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.TestData.*
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 import scalikejdbc.*
 
 import java.net.Socket
@@ -28,21 +27,6 @@ class DraftConceptRepositoryTest
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator                     = new DBMigrator
   var repository: DraftConceptRepository    = _
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    postgresContainer match {
-      case Failure(ex) =>
-        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-    if (!sys.env.getOrElse("CI", "false").toBoolean) {
-      assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
-    }
-    super.withFixture(test)
-  }
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -59,11 +43,9 @@ class DraftConceptRepositoryTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try {
-      if (serverIsListening) {
-        DataSource.connectToDatabase()
-        migrator.migrate()
-      }
+    if (serverIsListening) {
+      DataSource.connectToDatabase()
+      migrator.migrate()
     }
   }
 

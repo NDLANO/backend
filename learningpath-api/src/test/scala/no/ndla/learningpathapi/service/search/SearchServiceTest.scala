@@ -19,7 +19,6 @@ import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doReturn
-import org.scalatest.Outcome
 
 import scala.util.Success
 
@@ -29,12 +28,6 @@ class SearchServiceTest
     with TestEnvironment {
   import props.{DefaultPageSize, MaxPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
-
   override val searchConverterService: SearchConverterService = new SearchConverterService
   override val searchIndexService: SearchIndexService = new SearchIndexService {
     override val indexShards: Int = 1 // 1 shard for accurate scoring in tests

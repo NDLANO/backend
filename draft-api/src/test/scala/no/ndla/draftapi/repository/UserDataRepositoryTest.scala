@@ -14,7 +14,6 @@ import java.net.Socket
 import no.ndla.draftapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.postgresql.util.PSQLException
-import org.scalatest.Outcome
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
@@ -23,19 +22,6 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
   var repository: UserDataRepository        = _
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    postgresContainer match {
-      case Failure(ex) =>
-        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-    assume(postgresContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -70,11 +56,9 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try {
-      DataSource.connectToDatabase()
-      if (serverIsListening) {
-        migrator.migrate()
-      }
+    DataSource.connectToDatabase()
+    if (serverIsListening) {
+      migrator.migrate()
     }
   }
 

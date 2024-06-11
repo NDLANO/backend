@@ -15,12 +15,11 @@ import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, FolderStatus, New
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.Mockito.when
-import org.scalatest.Outcome
 import scalikejdbc.*
 
 import java.net.Socket
 import java.util.UUID
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class FolderRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
@@ -29,19 +28,6 @@ class FolderRepositoryTest
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
   var repository: FolderRepository          = _
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    postgresContainer match {
-      case Failure(ex) =>
-        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-    assume(postgresContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -72,11 +58,9 @@ class FolderRepositoryTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try {
-      DataSource.connectToDatabase()
-      if (serverIsListening) {
-        migrator.migrate()
-      }
+    DataSource.connectToDatabase()
+    if (serverIsListening) {
+      migrator.migrate()
     }
   }
 

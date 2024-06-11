@@ -8,8 +8,8 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -18,9 +18,8 @@ import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.scalatest.Outcome
 
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class MultiSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -29,20 +28,6 @@ class MultiSearchServiceTest
   import props.DefaultPageSize
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    elasticSearchContainer match {
-      case Failure(ex) =>
-        println(s"Elasticsearch container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1

@@ -10,25 +10,11 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestEnvironment
-import org.scalatest.Outcome
 
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class IndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    elasticSearchContainer match {
-      case Failure(ex) =>
-        println(s"Elasticsearch container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   val testIndexPrefix = "searchapi-index-service-test"
 
