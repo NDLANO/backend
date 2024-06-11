@@ -102,7 +102,7 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
     OEmbedConverterService.addYoutubeTimestampIfdefinedInRequest(requestUrl, oembed).html should be(expectedResult)
   }
 
-  test("handleYoutubeRequestUrl should strip all query params except 'v'") {
+  test("handleYoutubeRequestUrl should strip all query params except 'v' and 'list'") {
     OEmbedConverterService.handleYoutubeRequestUrl("http://youtube.com/watch?start=1&v=123asdf") should equal(
       "http://youtube.com/watch?v=123asdf"
     )
@@ -113,6 +113,10 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
       "http://youtube.com/watch?v=123asdf&;amptime_continue=43"
     ) should equal("http://youtube.com/watch?v=123asdf")
     OEmbedConverterService.handleYoutubeRequestUrl("notanurl") should equal("notanurl")
+
+    OEmbedConverterService.handleYoutubeRequestUrl("https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje") should be(
+      "https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje"
+    )
   }
 
   test("handleYoutubeRequestUrl should convert /embed and /v urls to youtu.be") {
