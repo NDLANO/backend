@@ -11,7 +11,6 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.model.domain.Sort
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 
 import scala.util.Success
 import no.ndla.imageapi.model.domain.ImageMetaInformation
@@ -22,12 +21,6 @@ class TagSearchServiceTest
     with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   val indexName = "tags-testing"
   override val tagSearchService: TagSearchService = new TagSearchService {

@@ -19,28 +19,12 @@ import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.search.SearchableConcept
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
-import scala.util.Failure
-
 class DraftConceptIndexServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest) = {
-    elasticSearchContainer match {
-      case Failure(ex) =>
-        println(s"Elasticsearch container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
-
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }

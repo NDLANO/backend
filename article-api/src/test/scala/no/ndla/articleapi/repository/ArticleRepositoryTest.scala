@@ -38,30 +38,23 @@ class ArticleRepositoryTest
     }
   }
 
-  def databaseIsAvailable: Boolean = Try(repository.articleCount).isSuccess
-
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try {
-      ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-      if (serverIsListening) {
-        migrator.migrate()
-      }
+    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    if (serverIsListening) {
+      migrator.migrate()
     }
   }
 
   override def beforeEach(): Unit = {
     repository = new ArticleRepository
-    if (databaseIsAvailable)
-      repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
+    repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
   }
 
   override def afterEach(): Unit =
-    if (databaseIsAvailable)
-      repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
+    repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
 
   test("getAllIds returns a list with all ids in the database") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val externalIdsAndRegularIds = (100 to 150).map(_.toString).zipWithIndex
     externalIdsAndRegularIds.foreach { case (exId, id) =>
       repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id.toLong)), List(exId))
@@ -71,7 +64,6 @@ class ArticleRepositoryTest
   }
 
   test("getIdFromExternalId works with all ids") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val inserted1 = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), List("6000", "10"))
     val inserted2 = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List("6001", "11"))
 
@@ -82,7 +74,6 @@ class ArticleRepositoryTest
   }
 
   test("getArticleIdsFromExternalId should return ArticleIds object with externalIds") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val externalIds = List("1", "6010", "6011", "5084", "763", "8881", "1919")
     val inserted    = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
     val inserted2   = repository.updateArticleFromDraftApi(sampleArticle.copy(revision = Some(2)), externalIds)
@@ -93,7 +84,6 @@ class ArticleRepositoryTest
   }
 
   test("updateArticleFromDraftApi should update all columns with data from draft-api") {
-    assume(databaseIsAvailable, "Database is unavailable")
 
     val externalIds = List("123", "456")
     val sampleArticle: Article =
@@ -105,8 +95,6 @@ class ArticleRepositoryTest
   }
 
   test("Fetching external ids works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
-
     val externalIds        = List("1", "2", "3")
     val idWithExternals    = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), externalIds)
     val idWithoutExternals = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List.empty)
@@ -121,7 +109,6 @@ class ArticleRepositoryTest
   }
 
   test("updating with a valid article with a that is not in database will be recreated") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val article = TestData.sampleDomainArticle.copy(id = Some(110))
 
     val x = repository.updateArticleFromDraftApi(article, List.empty)
@@ -131,7 +118,6 @@ class ArticleRepositoryTest
   }
 
   test("deleting article should ignore missing articles") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val article = TestData.sampleDomainArticle.copy(id = Some(Integer.MAX_VALUE))
 
     val deletedId = repository.deleteMaxRevision(article.id.get)
@@ -139,8 +125,6 @@ class ArticleRepositoryTest
   }
 
   test("That getArticlesByPage returns all latest articles") {
-    assume(databaseIsAvailable, "Database is unavailable")
-
     val art1 = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), List.empty).get
     val art2 = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List.empty).get
     val art3 = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(3)), List.empty).get
@@ -154,8 +138,6 @@ class ArticleRepositoryTest
   }
 
   test("That stored articles are retrieved exactly as they were stored") {
-    assume(databaseIsAvailable, "Database is unavailable")
-
     val art1 = repository.updateArticleFromDraftApi(TestData.sampleArticleWithByNcSa.copy(id = Some(1)), List.empty).get
     val art2 =
       repository.updateArticleFromDraftApi(TestData.sampleArticleWithPublicDomain.copy(id = Some(2)), List.empty).get
@@ -168,7 +150,6 @@ class ArticleRepositoryTest
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val sampleArticle1 = TestData.sampleDomainArticle2
       .copy(
         id = Some(1L),
@@ -252,7 +233,6 @@ class ArticleRepositoryTest
   }
 
   test("Dumping articles should ignore unpublished ones") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val articleId = 110L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
 
@@ -270,7 +250,6 @@ class ArticleRepositoryTest
   }
 
   test("That fetching with slugs works as expected with revisions") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val articleId = 110L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId), slug = Some("Detti-er-ein-slug"))
 

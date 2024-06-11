@@ -14,31 +14,16 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.{TestData, TestEnvironment}
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
-import org.scalatest.Outcome
+import no.ndla.searchapi.{TestData, TestEnvironment}
 
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
   import props.{DefaultPageSize, MaxPageSize}
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    elasticSearchContainer match {
-      case Failure(ex) =>
-        println(s"Elasticsearch container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
-
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }

@@ -16,10 +16,9 @@ import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.Mockito.when
-import org.scalatest.Outcome
 import scalikejdbc.*
 
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 class LearningPathRepositoryComponentIntegrationTest
     extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "learningpathapi_test")
@@ -30,21 +29,6 @@ class LearningPathRepositoryComponentIntegrationTest
   override val migrator                     = new DBMigrator
 
   var repository: LearningPathRepository = _
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    postgresContainer match {
-      case Failure(ex) =>
-        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-    if (!sys.env.getOrElse("CI", "false").toBoolean) {
-      assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
-    }
-    super.withFixture(test)
-  }
 
   val clinton: Author                  = Author("author", "Hilla the Hun")
   val license                          = "publicdomain"

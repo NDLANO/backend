@@ -17,10 +17,9 @@ import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.Outcome
 
 import java.util.UUID
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class DraftIndexServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -28,19 +27,6 @@ class DraftIndexServiceTest
     with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    elasticSearchContainer match {
-      case Failure(ex) =>
-        println(s"Elasticsearch container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1

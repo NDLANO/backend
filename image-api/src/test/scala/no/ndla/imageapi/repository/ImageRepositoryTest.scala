@@ -35,11 +35,6 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     }
   }
 
-  def databaseIsAvailable: Boolean = {
-    val res = Try(repository.imageCount)
-    res.isSuccess
-  }
-
   def emptyTestDatabase: Boolean =
     DB autoCommit (implicit session => {
       sql"delete from imagemetadata;".execute()(session)
@@ -47,21 +42,18 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try {
-      DataSource.connectToDatabase()
-      if (serverIsListening) {
-        migrator.migrate()
-      }
+    DataSource.connectToDatabase()
+    if (serverIsListening) {
+      migrator.migrate()
     }
   }
 
   override def beforeEach(): Unit = {
     repository = new ImageRepository
-    if (databaseIsAvailable) { emptyTestDatabase }
+    emptyTestDatabase
   }
 
   test("That inserting and retrieving images works as expected") {
-    assume(databaseIsAvailable)
     postgresContainer.map(x => println(x.getJdbcUrl))
     val image1 = TestData.bjorn.copy(id = None, images = None, titles = Seq(ImageTitle("KyllingFisk", "nb")))
 
@@ -82,7 +74,6 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("That fetching images based on path works") {
-    assume(databaseIsAvailable)
     val path1 = "/some-path1.jpg"
     val path2 = "/some-path123.png"
     val path3 = "/some-path555.png"
@@ -105,7 +96,6 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("that fetching based on path works with and without slash") {
-    assume(databaseIsAvailable)
     val path1         = "/slash-path1.jpg"
     val imageFile1    = TestData.bjorn.images.get.head.copy(fileName = path1)
     val image1        = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile1)))
@@ -128,7 +118,6 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("That fetching image from url where there exists multiple works") {
-    assume(databaseIsAvailable)
     val path1        = "/fetch-path1.jpg"
     val imageFile1   = TestData.bjorn.images.get.head.copy(fileName = path1)
     val image1       = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile1)))
@@ -141,7 +130,6 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("That fetching image from url with special characters are escaped") {
-    assume(databaseIsAvailable)
     val path1        = "/path1.jpg"
     val imageFile1   = TestData.bjorn.images.get.head.copy(fileName = path1)
     val image1       = TestData.bjorn.copy(id = None, images = Some(Seq(imageFile1)))

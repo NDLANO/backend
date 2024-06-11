@@ -21,7 +21,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.{Outcome, PrivateMethodTester}
+import org.scalatest.PrivateMethodTester
 
 import scala.util.Success
 
@@ -32,12 +32,6 @@ class ImageSearchServiceTest
     with PrivateMethodTester {
   import TestData.searchSettings
   import props.{DefaultPageSize, MaxPageSize}
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

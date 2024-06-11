@@ -16,7 +16,6 @@ import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 
 import scala.util.Success
 import no.ndla.common.model.NDLADate
@@ -39,12 +38,6 @@ import java.util.UUID
 class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
   import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   val indexName: String = UUID.randomUUID().toString
   override val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {
