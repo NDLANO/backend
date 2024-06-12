@@ -699,7 +699,10 @@
               "players.brightcove.net",
               ".*.uio.no",
               "geodata.maps.arcgis.com",
-              "arcg.is"
+              "arcg.is",
+              "norgeskart.no",
+              "kartiskolen.no",
+              "norgeibilder.no"
             ]
           }
         },
