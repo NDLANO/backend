@@ -20,7 +20,8 @@ case class Stats(
     @description("The total number of created tags") numberOfTags: Long,
     @description("The total number of favourited subjects") numberOfSubjects: Long,
     @description("The total number of shared folders") numberOfSharedFolders: Long,
-    @description("Stats for type resources") favouritedResources: List[ResourceStats]
+    @description("Stats for type resources") favouritedResources: List[ResourceStats],
+    @description("Stats for favourited resources") favourited: Map[String, Long]
 )
 
 object Stats {
