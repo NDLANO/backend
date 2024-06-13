@@ -696,7 +696,9 @@ trait ArenaRepository {
         topic_id = topicId,
         created = created,
         updated = updated,
-        ownerId = Some(ownerId)
+        ownerId = Some(ownerId),
+        upvotes = None,
+        upvoted = None
       )
     }
 

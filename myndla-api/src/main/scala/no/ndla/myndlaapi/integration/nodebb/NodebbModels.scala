@@ -49,7 +49,9 @@ case class Post(
     edited: Long,
     timestamp: Long,
     user: Owner,
-    deleted: Long
+    deleted: Long,
+    upvotes: Short,
+    upvoted: Boolean
 )
 
 case class SinglePostResponse(response: SinglePost)
