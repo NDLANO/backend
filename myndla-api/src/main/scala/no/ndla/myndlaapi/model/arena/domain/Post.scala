@@ -18,9 +18,7 @@ case class Post(
     topic_id: Long,
     created: NDLADate,
     updated: NDLADate,
-    ownerId: Option[Long],
-    upvotes: Option[Short],
-    upvoted: Option[Boolean]
+    ownerId: Option[Long]
 ) extends Owned
 
 object Post extends SQLSyntaxSupport[Post] {
@@ -39,9 +37,7 @@ object Post extends SQLSyntaxSupport[Post] {
       topic_id = rs.long(colFunc("topic_id")),
       created = NDLADate.fromUtcDate(rs.localDateTime(colFunc("created"))),
       updated = NDLADate.fromUtcDate(rs.localDateTime(colFunc("updated"))),
-      ownerId = rs.longOpt(colFunc("owner_id")),
-      upvotes = None,
-      upvoted = None
+      ownerId = rs.longOpt(colFunc("owner_id"))
     )
   }
 }
