@@ -194,6 +194,28 @@ trait ArenaController {
         arenaReadService.unfollowTopic(topicId, user)().handleErrorsOrOk
       }
 
+    def upvotePost: ServerEndpoint[Any, Eff] = endpoint.put
+      .in("posts" / pathPostId / "upvote")
+      .summary("Upvote post")
+      .description("Upvote post")
+      .out(jsonBody[Post])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => postId => 
+        arenaReadService.upvotePost(postId, user)().handleErrorsOrOk
+      }
+
+    def unUpvotePost: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in("posts" / pathPostId / "upvote")
+      .summary("Remove upvote from post")
+      .description("Remove a previously cast upvote from a post")
+      .out(jsonBody[Post])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .requireMyNDLAUser(requireArena = true)
+      .serverLogicPure { user => postId =>
+        arenaReadService.unUpvotePost(postId, user)().handleErrorsOrOk
+      }
+
     def postTopic: ServerEndpoint[Any, Eff] = endpoint.post
       .in("categories" / pathCategoryId / "topics")
       .summary("Create new topic")
@@ -505,7 +527,9 @@ trait ArenaController {
       deleteAllNotifications,
       getByUsername,
       listUsers,
-      adminUpdateMyNDLAUser
+      adminUpdateMyNDLAUser,
+      upvotePost,
+      unUpvotePost
     )
   }
 
