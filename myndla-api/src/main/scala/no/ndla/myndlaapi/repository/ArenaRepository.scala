@@ -273,6 +273,24 @@ trait ArenaRepository {
       )
     }
 
+    def upvotePost(postId: Long, userId: Long)(implicit session: DBSession): Try[domain.PostUpvote] = Try {
+      val column = domain.PostUpvote.column.c _
+      val inserted = withSQL {
+        insert
+          .into(domain.PostUpvote)
+          .namedValues(
+            column("user_id") -> userId,
+            column("post_id") -> postId
+          )
+      }.updateAndReturnGeneratedKey.apply()
+
+      domain.PostUpvote(
+        id = inserted,
+        user_id = userId,
+        post_id = postId
+      )
+    }
+
     def unfollowTopic(topicId: Long, userId: Long)(implicit session: DBSession): Try[Int] = Try {
       val tf = domain.TopicFollow.syntax("tf")
       val count = withSQL {
@@ -290,6 +308,24 @@ trait ArenaRepository {
           )
         )
       else Success(count)
+    }.flatten
+
+    def unUpvotePost(postId: Long, userId: Long)(implicit session: DBSession): Try[Int] = {
+      val pu = domain.PostUpvote.syntax("pu")
+      val count = withSQL {
+        delete
+          .from(domain.PostUpvote as pu)
+          .where
+          .eq(pu.user_id, userId)
+          .and
+          .eq(pu.post_id, postId)
+      }.update()
+      if (count < 1)
+        Failure(
+          NDLASQLException(
+            s"Deleting a postupvote with user_id '$userId' and post_id $postId resulted in no affected row"
+          )
+        )
     }.flatten
 
     def followCategory(categoryId: Long, userId: Long)(implicit session: DBSession): Try[domain.CategoryFollow] = Try {
@@ -696,9 +732,7 @@ trait ArenaRepository {
         topic_id = topicId,
         created = created,
         updated = updated,
-        ownerId = Some(ownerId),
-        upvotes = None,
-        upvoted = None
+        ownerId = Some(ownerId)
       )
     }
 
