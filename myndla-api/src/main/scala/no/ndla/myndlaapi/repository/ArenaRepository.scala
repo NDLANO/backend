@@ -1034,7 +1034,9 @@ trait ArenaRepository {
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
-              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}
+              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll},
+                (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${ps(p).id} and user_id = ${u.id}) as upvoted,
+                (select count(*) from ${domain.PostUpvote.table} where post_id = ${ps(p).id}) as upvotes,
               from (
                   select ${p.resultAll}
                   from ${domain.Post.as(p)}
