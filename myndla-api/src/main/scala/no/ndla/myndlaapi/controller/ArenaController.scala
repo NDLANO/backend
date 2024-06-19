@@ -201,7 +201,7 @@ trait ArenaController {
       .out(jsonBody[Post])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
-      .serverLogicPure { user => postId => 
+      .serverLogicPure { user => postId =>
         arenaReadService.upvotePost(postId, user)().handleErrorsOrOk
       }
 

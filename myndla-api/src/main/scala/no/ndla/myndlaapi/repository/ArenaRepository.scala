@@ -310,6 +310,44 @@ trait ArenaRepository {
       else Success(count)
     }.flatten
 
+    def getUpvoted(postId: Long, userId: Long)(implicit session: DBSession): Try[Boolean] = Try {
+      val pu = domain.PostUpvote.syntax("pu")
+      sql"""
+           select ${pu.resultAll}
+           from ${domain.PostUpvote.as(pu)}
+           where ${pu.post_id} = $postId and ${pu.user_id} = $userId
+         """
+        .map(rs => domain.PostUpvote.fromResultSet(pu)(rs))
+        .single
+        .apply()
+        .sequence
+    }.flatten
+
+    def getUpvotesForPost(postId: Long)(implicit session: DBSession): Try[List[domain.PostUpvote]] = Try {
+      val pu = domain.PostUpvote.syntax("pu")
+      sql"""
+           select ${pu.resultAll}
+           from ${domain.PostUpvote.as(pu)}
+           where ${pu.post_id} = $postId
+         """
+        .map(rs => domain.PostUpvote.fromResultSet(pu)(rs))
+        .list
+        .apply()
+    }
+
+    // def getUpvote(postId: Long, userId: Long)(implicit session: DBSession): Try[Option[domain.PostUpvote]] = Try {
+    //   val pu = domain.PostUpvote.syntax("pu")
+    //   sql"""
+    //        select ${pu.resultAll}
+    //        from ${domain.PostUpvote.as(pu)}
+    //        where ${pu.post_id} = $postId and ${pu.user_id} = $userId
+    //      """
+    //     .map(rs => domain.PostUpvote.fromResultSet(pu)(rs))
+    //     .single
+    //     .apply()
+    //     .sequence
+    // }.flatten
+
     def unUpvotePost(postId: Long, userId: Long)(implicit session: DBSession): Try[Int] = {
       val pu = domain.PostUpvote.syntax("pu")
       val count = withSQL {
@@ -1035,7 +1073,9 @@ trait ArenaRepository {
       Try {
         sql"""
               select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll},
-                (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${ps(p).id} and user_id = ${u.id}) as upvoted,
+                (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${ps(
+            p
+          ).id} and user_id = ${u.id}) as upvoted,
                 (select count(*) from ${domain.PostUpvote.table} where post_id = ${ps(p).id}) as upvotes,
               from (
                   select ${p.resultAll}
