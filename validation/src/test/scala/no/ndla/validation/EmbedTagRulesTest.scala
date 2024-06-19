@@ -150,6 +150,22 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq.empty
       )
     }
+    {
+      val url =
+        "https://norgeskart.no/#!?project=norgeskart&layers=1002&zoom=16&lat=6629573.59&lon=-9409.52&markerLat=6629453.716012445&markerLon=-8055.200595151538&p=searchOptionsPanel&sok=Haukadalen"
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="iframe"
+           | data-url="$url"
+           | data-type="iframe"
+           | data-title="Norgeskart"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
   }
 
   test("Fields with dataType EMAIL should have legal email") {
