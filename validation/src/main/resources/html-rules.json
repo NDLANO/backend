@@ -75,6 +75,9 @@
           "name": "align"
         },
         {
+          "name": "data-align"
+        },
+        {
           "name": "colspan"
         },
         {
@@ -98,6 +101,9 @@
         },
         {
           "name": "align"
+        },
+        {
+          "name": "data-align"
         },
         {
           "name": "colspan"

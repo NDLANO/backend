@@ -279,7 +279,7 @@ object TagValidator {
         ValidationMessage(
           fieldName,
           s"$EmbedTagName tag with `data-resource=$resourceType` can only have the following children tags: [${childrenRule.allowedChildren
-              .mkString(",")}]"
+              .mkString(", ")}]"
         )
       }
     }
@@ -424,7 +424,7 @@ object TagValidator {
         .map(tag => {
           val optionalField = attrsRules.optional.filter(_.name.eq(tag))
           val optionGroup   = optionalField.flatMap(f => f.validation.mustCoexistWith :+ f.name)
-          val groupErrors = s"${optionGroup.mkString(",")} (Missing: ${optionGroup.diff(usedOptionals).mkString(",")})"
+          val groupErrors = s"${optionGroup.mkString(", ")} (Missing: ${optionGroup.diff(usedOptionals).mkString(", ")})"
           ValidationMessage(
             fieldName,
             s"$partialErrorMessage must contain all or none of the attributes in the optional attribute group: ($groupErrors)"
