@@ -49,7 +49,8 @@ case class Post(
     edited: Long,
     timestamp: Long,
     user: Owner,
-    deleted: Long
+    deleted: Long,
+    toPid: Option[Long]
 )
 
 case class SinglePostResponse(response: SinglePost)

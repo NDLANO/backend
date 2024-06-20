@@ -190,7 +190,9 @@ trait ImportService {
 
       val created = convertTimestampToNDLADate(post.timestamp)
       val updated = if (post.edited == 0) created else convertTimestampToNDLADate(post.edited)
-      arenaRepository.postPost(topic.id, singlePost.content, owner.id, created, updated)(session).map(_ => ())
+      arenaRepository
+        .postPost(topic.id, singlePost.content, owner.id, created, updated, post.toPid)(session)
+        .map(_ => ())
     }
 
     private def importPosts(
