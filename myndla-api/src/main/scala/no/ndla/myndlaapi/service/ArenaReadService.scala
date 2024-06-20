@@ -242,9 +242,9 @@ trait ArenaReadService {
         _             <- failIfEditDisallowed(post, user)
         updatedPost   <- arenaRepository.updatePost(postId, newPost.content, updatedTime)(session)
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
-        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session).map(_.length).getOrElse(0)
-        upvoted       <- (arenaRepository.getUpvoted(postId, user.id)(session)).isDefined
-        compiledPost = CompiledPost(updatedPost, owner, flags, upvotes, upvoted)
+        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        compiledPost = CompiledPost(updatedPost, owner, flags, upvotes.length, upvoted.isDefined)
       } yield converterService.toApiPost(compiledPost, user)
     }
 
@@ -455,10 +455,14 @@ trait ArenaReadService {
 
     def upvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Post] = {
       for {
-        maybePost <- arenaRepository.getPost(postId)(session)
-        (post, _) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
-        _         <- arenaRepository.upvotePost(postId, user.id)(session)
-      } yield converterService.toApiPost(post, user)
+        maybePost     <- arenaRepository.getPost(postId)(session)
+        (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+        _             <- arenaRepository.upvotePost(postId, user.id)(session)
+        flags         <- arenaRepository.getFlagsForPost(postId)(session)
+        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isDefined)
+      } yield converterService.toApiPost(compiledPost, user)
     }
 
     def unUpvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Post] = {
@@ -467,9 +471,9 @@ trait ArenaReadService {
         (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
         _             <- arenaRepository.unUpvotePost(postId, user.id)(session)
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
-        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session).map(_.length).getOrElse(0)
-        upvoted       <- (arenaRepository.getUpvoted(postId, user.id)(session)).isDefined
-        compiledPost = CompiledPost(post, owner, flags, upvotes, upvoted)
+        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isDefined)
       } yield converterService.toApiPost(compiledPost, user)
     }
 

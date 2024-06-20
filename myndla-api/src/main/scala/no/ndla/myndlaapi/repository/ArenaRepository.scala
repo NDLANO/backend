@@ -82,19 +82,25 @@ trait ArenaRepository {
       val n  = domain.Notification.syntax("n")
       val ns = SubQuery.syntax("ns").include(n)
       val p  = domain.Post.syntax("p")
+      val ps = SubQuery.syntax("ps").include(p)
       val t  = domain.Topic.syntax("t")
       val u  = MyNDLAUser.syntax("u")
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
-             select ${ns.resultAll}, ${p.resultAll}, ${t.resultAll}, ${u.resultAll}, ${f.resultAll}
+             select ${ns.resultAll}, ${ps.resultAll}, ${t.resultAll}, ${u.resultAll}, ${f.resultAll},
+             (select count(*) from ${domain.PostUpvote.table} where post_id = ${ps(p).id}) as upvotes,
+             (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${ps(p).id} and user_id = ${u.id}) as upvoted,
              from (
                select ${n.resultAll}
                from ${domain.Notification.as(n)}
                where ${n.user_id} = ${user.id} and ${n.topic_id} = $topicId
                order by ${n.notification_time} desc
              ) ns
-             left join ${domain.Post.as(p)} on ${p.id} = ${ns(n).post_id}
+             left join (
+               select ${p.resultAll},
+               from ${domain.Post.as(p)}
+             ) ps on ${p.id} = ${ns(n).post_id}
              left join ${domain.Topic.as(t)} on ${t.id} = ${ns(n).topic_id}
              left join ${MyNDLAUser.as(u)} on ${u.id} = ${p.ownerId} or ${u.id} = ${t.ownerId}
              left join ${domain.Flag.as(f)} on ${f.post_id} = ${p.id}
@@ -102,12 +108,16 @@ trait ArenaRepository {
            """
           .one(rs => domain.Notification.fromResultSet(ns(n).resultName)(rs))
           .toManies(
-            rs => domain.Post.fromResultSet(p.resultName)(rs).toOption,
+            rs => {
+              (domain.Post.fromResultSet(p.resultName)(rs),
+                rs.int("upvotes"),
+                rs.boolean("upvoted"))
+            }.toOption,
             rs => domain.Topic.fromResultSet(t.resultName)(rs).toOption,
             rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map { (notification, post, topic, owner, flag) =>
+          .map { (notification, postWithUpvotes, topic, owner, flag) =>
             compileNotification(notification, post.toList, topic.toList, owner.toList :+ user, flag.toList)
           }
           .list
@@ -310,7 +320,7 @@ trait ArenaRepository {
       else Success(count)
     }.flatten
 
-    def getUpvoted(postId: Long, userId: Long)(implicit session: DBSession): Try[Boolean] = Try {
+    def getUpvoted(postId: Long, userId: Long)(implicit session: DBSession): Try[Option[domain.PostUpvote]] = Try {
       val pu = domain.PostUpvote.syntax("pu")
       sql"""
            select ${pu.resultAll}
@@ -333,22 +343,10 @@ trait ArenaRepository {
         .map(rs => domain.PostUpvote.fromResultSet(pu)(rs))
         .list
         .apply()
-    }
+        .sequence
+    }.flatten
 
-    // def getUpvote(postId: Long, userId: Long)(implicit session: DBSession): Try[Option[domain.PostUpvote]] = Try {
-    //   val pu = domain.PostUpvote.syntax("pu")
-    //   sql"""
-    //        select ${pu.resultAll}
-    //        from ${domain.PostUpvote.as(pu)}
-    //        where ${pu.post_id} = $postId and ${pu.user_id} = $userId
-    //      """
-    //     .map(rs => domain.PostUpvote.fromResultSet(pu)(rs))
-    //     .single
-    //     .apply()
-    //     .sequence
-    // }.flatten
-
-    def unUpvotePost(postId: Long, userId: Long)(implicit session: DBSession): Try[Int] = {
+    def unUpvotePost(postId: Long, userId: Long)(implicit session: DBSession): Try[Int] = Try {
       val pu = domain.PostUpvote.syntax("pu")
       val count = withSQL {
         delete
@@ -364,6 +362,8 @@ trait ArenaRepository {
             s"Deleting a postupvote with user_id '$userId' and post_id $postId resulted in no affected row"
           )
         )
+      else
+        Success(count)
     }.flatten
 
     def followCategory(categoryId: Long, userId: Long)(implicit session: DBSession): Try[domain.CategoryFollow] = Try {
@@ -878,6 +878,32 @@ trait ArenaRepository {
         owners: Seq[MyNDLAUser],
         flags: Seq[domain.Flag]
     ): Try[CompiledPost] = {
+    val postOwner = findOwner(post, owners, "Post").?
+    val postFlags = flags.filter(f => f.post_id == post.id)
+    val flagsWithFlaggers = postFlags
+      .traverse(f =>
+        findOwner(f, owners, "Flag").map(flagger => {
+          CompiledFlag(flag = f, flagger = flagger)
+        })
+      )
+      .?
+
+      Success(
+        CompiledPost(
+          post = post,
+          owner = postOwner,
+          flags = flagsWithFlaggers.toList
+        )
+      )
+    }
+
+    def compilePost(
+        post: domain.Post,
+        owners: Seq[MyNDLAUser],
+        flags: Seq[domain.Flag],
+        upvotes: Int,
+        upvoted: Boolean,
+    ): Try[CompiledPost] = {
       val postOwner = findOwner(post, owners, "Post").?
       val postFlags = flags.filter(f => f.post_id == post.id)
       val flagsWithFlaggers = postFlags
@@ -892,7 +918,9 @@ trait ArenaRepository {
         CompiledPost(
           post = post,
           owner = postOwner,
-          flags = flagsWithFlaggers.toList
+          flags = flagsWithFlaggers.toList,
+          upvotes = upvotes,
+          upvoted = upvoted
         )
       )
     }
@@ -973,7 +1001,9 @@ trait ArenaRepository {
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
-              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}
+              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll},
+              (select count(*) from ${domain.PostUpvote.table} where post_id = ${ps(p).id}) as upvotes,
+              (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${ps(p).id} and user_id = ${u.id}) as upvoted,
               from (
                   select ${p.resultAll}
                   from ${domain.Post.as(p)}
@@ -987,12 +1017,21 @@ trait ArenaRepository {
                left join ${MyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
                order by ${ps(p).created} asc nulls last
            """
-          .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
+          .one(rs => {
+            (
+              domain.Post.fromResultSet(ps(p).resultName)(rs),
+              rs.int("upvotes"),
+              rs.boolean("upvoted")
+            )
+          })
           .toManies(
             rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
+          .map { ( postWithUpvotes, owners, flags ) =>
+            val ( post, upvotes, upvoted ) = postWithUpvotes
+            compilePost(post.get, owners.toList, flags.toList, upvotes, upvoted)
+          }
           .list
           .apply()
           .sequence
@@ -1073,10 +1112,10 @@ trait ArenaRepository {
       Try {
         sql"""
               select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll},
+                (select count(*) from ${domain.PostUpvote.table} where post_id = ${ps(p).id}) as upvotes,
                 (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${ps(
             p
           ).id} and user_id = ${u.id}) as upvoted,
-                (select count(*) from ${domain.PostUpvote.table} where post_id = ${ps(p).id}) as upvotes,
               from (
                   select ${p.resultAll}
                   from ${domain.Post.as(p)}
@@ -1089,12 +1128,19 @@ trait ArenaRepository {
                left join ${MyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
                order by ${ps(p).created} asc nulls last, ${ps(p).id} asc
            """
-          .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
+          .one(rs => {
+            (domain.Post.fromResultSet(ps(p).resultName)(rs),
+              rs.int("upvotes"),
+              rs.boolean("upvoted"))
+          })
           .toManies(
             rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
+          .map { ( postWithUpvotes, owners, flags) =>
+            val ( post, upvotes, upvoted) = postWithUpvotes
+            compilePost(post.get, owners.toList, flags.toList, upvotes, upvoted)
+          }
           .list
           .apply()
           .sequence

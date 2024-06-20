@@ -50,7 +50,7 @@ case class Post(
     timestamp: Long,
     user: Owner,
     deleted: Long,
-    upvotes: Short,
+    upvotes: Int,
     upvoted: Boolean
 )
 

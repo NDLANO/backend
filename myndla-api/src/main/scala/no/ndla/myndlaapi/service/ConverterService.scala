@@ -112,6 +112,5 @@ trait ConverterService {
         upvoted = compiledPost.upvoted
       )
     }
-
   }
 }

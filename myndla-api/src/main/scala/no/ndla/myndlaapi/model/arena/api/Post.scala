@@ -20,6 +20,6 @@ case class Post(
     @description("The post owner") owner: Option[ArenaUser],
     @description("The flags that have been added to post. Only visible to admins.") flags: Option[List[Flag]],
     @description("The id of the parenting topic") topicId: Long,
-    @description("Number of upvotes on the post") upvotes: Short,
+    @description("Number of upvotes on the post") upvotes: Int,
     @description("Flag saying if the logged in user has upvoted or not") upvoted: Boolean
 )

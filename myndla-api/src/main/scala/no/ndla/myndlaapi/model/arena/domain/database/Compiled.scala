@@ -19,9 +19,9 @@ case class CompiledPost(
     post: domain.Post,
     owner: Option[MyNDLAUser],
     flags: List[CompiledFlag],
-    upvotes: Short,
+    upvotes: Int,
     upvoted: Boolean
-)
+                                  )
 
 case class CompiledTopic(
     topic: domain.Topic,
