@@ -215,7 +215,7 @@ trait ArenaReadService {
       val updatedTime = clock.now()
       for {
         topic <- getCompiledTopic(topicId, user)(session)
-        posts <- arenaRepository.getPostsForTopic(topicId, 0, 10)(session)
+        posts <- arenaRepository.getPostsForTopic(topicId, 0, 10, user)(session)
         _     <- failIfEditDisallowed(topic.topic, user)
         updatedTopic <- arenaRepository.updateTopic(
           topicId = topicId,
@@ -418,7 +418,7 @@ trait ArenaReadService {
       val offset = (page - 1) * pageSize
       for {
         topic <- getCompiledTopic(topicId, user)(session)
-        posts <- arenaRepository.getPostsForTopic(topicId, offset, pageSize)(session)
+        posts <- arenaRepository.getPostsForTopic(topicId, offset, pageSize, user)(session)
         _     <- readNotification(user, topicId, posts)(session)
       } yield converterService.toApiTopicWithPosts(
         compiledTopic = topic,

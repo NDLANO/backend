@@ -347,7 +347,9 @@ class ArenaTest
               )
             ),
             flags = Some(List()),
-            topicId = 1
+            topicId = 1,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 4,
@@ -364,7 +366,9 @@ class ArenaTest
               )
             ),
             flags = Some(List()),
-            topicId = 1
+            topicId = 1,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 5,
@@ -381,7 +385,9 @@ class ArenaTest
               )
             ),
             flags = Some(List()),
-            topicId = 1
+            topicId = 1,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 6,
@@ -398,7 +404,9 @@ class ArenaTest
               )
             ),
             flags = Some(List()),
-            topicId = 1
+            topicId = 1,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 7,
@@ -415,7 +423,9 @@ class ArenaTest
               )
             ),
             flags = Some(List()),
-            topicId = 1
+            topicId = 1,
+            upvotes = 0,
+            upvoted = false
           )
         )
       ),
@@ -490,7 +500,9 @@ class ArenaTest
           )
         ),
         flags = Some(List()),
-        topicId = 1
+        topicId = 1,
+        upvotes = 0,
+        upvoted = false
       )
     }
 

@@ -18,7 +18,7 @@ case class PostUpvote(
 )
 
 object PostUpvote extends SQLSyntaxSupport[PostUpvote] {
-  override val tableName = "post_upvotes"
+  override val tableName = "post_upvote"
 
   def fromResultSet(sp: SyntaxProvider[PostUpvote])(rs: WrappedResultSet): Try[PostUpvote] =
     fromResultSet(sp.resultName)(rs)
