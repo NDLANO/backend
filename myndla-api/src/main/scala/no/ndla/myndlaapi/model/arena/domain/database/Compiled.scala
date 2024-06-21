@@ -21,7 +21,7 @@ case class CompiledPost(
     flags: List[CompiledFlag],
     upvotes: Int,
     upvoted: Boolean
-                                  )
+)
 
 case class CompiledTopic(
     topic: domain.Topic,

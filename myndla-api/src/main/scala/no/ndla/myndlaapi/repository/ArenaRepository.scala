@@ -58,8 +58,8 @@ trait ArenaRepository {
     ): Try[CompiledNotification] = {
       notification.flatMap(not => {
         val upvotesForPost = postUpvotes.filter(_.post_id == not.post_id)
-        val numUpvotes = upvotesForPost.size
-        val hasUpvoted = upvotesForPost.exists(_.user_id == not.user_id)
+        val numUpvotes     = upvotesForPost.size
+        val hasUpvoted     = upvotesForPost.exists(_.user_id == not.user_id)
         for {
           owner <- owners
             .find(_.id == not.user_id)
@@ -115,7 +115,14 @@ trait ArenaRepository {
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
           .map { (notification, post, postUpvotes, topic, owner, flag) =>
-            compileNotification(notification, post.toList, postUpvotes.toList, topic.toList, owner.toList :+ user, flag.toList)
+            compileNotification(
+              notification,
+              post.toList,
+              postUpvotes.toList,
+              topic.toList,
+              owner.toList :+ user,
+              flag.toList
+            )
           }
           .list
           .apply()
@@ -161,7 +168,14 @@ trait ArenaRepository {
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
           .map { (notification, post, postUpvotes, topic, owner, flag) =>
-            compileNotification(notification, post.toList, postUpvotes.toList, topic.toList, owner.toList :+ user, flag.toList)
+            compileNotification(
+              notification,
+              post.toList,
+              postUpvotes.toList,
+              topic.toList,
+              owner.toList :+ user,
+              flag.toList
+            )
           }
           .list
           .apply()
@@ -878,7 +892,7 @@ trait ArenaRepository {
         owners: Seq[MyNDLAUser],
         flags: Seq[domain.Flag],
         upvotes: Int,
-        upvoted: Boolean,
+        upvoted: Boolean
     ): Try[CompiledPost] = {
       val postOwner = findOwner(post, owners, "Post").?
       val postFlags = flags.filter(f => f.post_id == post.id)
