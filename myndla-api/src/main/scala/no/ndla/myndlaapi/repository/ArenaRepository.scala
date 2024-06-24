@@ -21,7 +21,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.arena.api.{CategoryBreadcrumb, CategorySort}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
-import no.ndla.myndlaapi.model.domain.{MyNDLAUser, NDLASQLException}
+import no.ndla.myndlaapi.model.domain.{MyNDLAUser, NDLASQLException, NotFoundException}
 
 trait ArenaRepository {
   this: Clock =>
@@ -372,7 +372,7 @@ trait ArenaRepository {
       }.update()
       if (count < 1)
         Failure(
-          NDLASQLException(
+          NotFoundException(
             s"Deleting a postupvote with user_id '$userId' and post_id $postId resulted in no affected row"
           )
         )

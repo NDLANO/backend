@@ -458,9 +458,11 @@ trait ArenaReadService {
         maybePost     <- arenaRepository.getPost(postId)(session)
         (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
         upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
-        _             <- if (upvoted.isEmpty) arenaRepository.upvotePost(postId, user.id)(session) else Success(())
-        flags         <- arenaRepository.getFlagsForPost(postId)(session)
-        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
+        _ <-
+          if (upvoted.isEmpty && owner.exists(_.id != user.id)) arenaRepository.upvotePost(postId, user.id)(session)
+          else Success(())
+        flags   <- arenaRepository.getFlagsForPost(postId)(session)
+        upvotes <- arenaRepository.getUpvotesForPost(postId)(session)
         compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isEmpty)
       } yield converterService.toApiPost(compiledPost, user)
     }

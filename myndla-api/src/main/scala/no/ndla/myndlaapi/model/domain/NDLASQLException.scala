@@ -11,3 +11,4 @@ package no.ndla.myndlaapi.model.domain
 case class NDLASQLException(message: String)       extends RuntimeException(message)
 case class InvalidStatusException(message: String) extends RuntimeException(message)
 case class FolderSortException(message: String)    extends RuntimeException(message)
+case class NotFoundException(message: String)      extends RuntimeException(message)
