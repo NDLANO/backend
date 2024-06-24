@@ -21,28 +21,12 @@ class V58__MigrateSavedSearchUrlsTest extends UnitSuite with TestEnvironment {
                       |            "searchPhrase": "Forklaring + Publisert"
                       |        }
                       |    ],
-                      |    "latestEditedArticles": [
-                      |    ],
-                      |    "latestEditedConcepts": [
-                      |    ],
-                      |    "favoriteSubjects": [
-                      |    ]
+                      |    "latestEditedArticles": [],
+                      |    "latestEditedConcepts": [],
+                      |    "favoriteSubjects": []
                       |}""".stripMargin
-    val newSearch = """{
-                      |    "userId": "userid",
-                      |    "savedSearches": [
-                      |        {
-                      |            "searchUrl": "/search/content?exclude-revision-log=false&fallback=false&filter-inactive=true&include-other-statuses=false&page-size=10&sort=-lastUpdated&draft-status=PUBLISHED",
-                      |            "searchPhrase": "Forklaring + Publisert"
-                      |        }
-                      |    ],
-                      |    "latestEditedArticles": [
-                      |    ],
-                      |    "latestEditedConcepts": [
-                      |    ],
-                      |    "favoriteSubjects": [
-                      |    ]
-                      |}""".stripMargin
+    val newSearch =
+      """{"userId":"userid","savedSearches":[{"searchUrl":"/search/content?exclude-revision-log=false&fallback=false&filter-inactive=true&include-other-statuses=false&page-size=10&sort=-lastUpdated&draft-status=PUBLISHED","searchPhrase":"Forklaring + Publisert"}],"latestEditedArticles":[],"latestEditedConcepts":[],"favoriteSubjects":[]}"""
     val result = migration.convertDocument(oldSearch)
 
     result should equal(newSearch)
