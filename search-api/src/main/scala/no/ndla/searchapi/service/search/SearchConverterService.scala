@@ -324,6 +324,8 @@ trait SearchConverterService {
           c.copyright.map(_.rightsholders).toList
       ).flatten.map(_.name)
 
+      val users: Seq[String] = c.updatedBy ++ c.editorNotes.map(_.user)
+
       val status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq)
 
       Success(
@@ -332,21 +334,22 @@ trait SearchConverterService {
           conceptType = c.conceptType.entryName,
           title = title,
           content = content,
-          defaultTitle = title.defaultValue,
           metaImage = c.metaImage,
+          defaultTitle = title.defaultValue,
           tags = tags,
           subjectIds = c.subjectIds.toList,
           lastUpdated = c.updated,
-          status = status,
+          draftStatus = status,
+          users = users.toList,
           updatedBy = c.updatedBy,
           license = c.copyright.flatMap(_.license),
+          authors = authors,
           articleIds = c.articleIds,
           created = c.created,
           source = c.copyright.flatMap(_.origin),
           responsible = c.responsible,
           gloss = c.glossData.map(_.gloss),
           domainObject = c,
-          authors = authors,
           favorited = favorited,
           learningResourceType = LearningResourceType.fromConceptType(c.conceptType)
         )
@@ -793,7 +796,7 @@ trait SearchConverterService {
         contexts = List.empty,
         supportedLanguages = supportedLanguages,
         learningResourceType = searchableConcept.learningResourceType,
-        status = Some(searchableConcept.status),
+        status = Some(searchableConcept.draftStatus),
         traits = List.empty,
         score = hit.score,
         highlights = getHighlights(hit.highlight),
