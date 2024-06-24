@@ -124,8 +124,7 @@ class ArticleApiClientTest
     slug = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    started = false,
-    qualityEvaluation = None
+    started = false
   )
 
   val exampleToken =
