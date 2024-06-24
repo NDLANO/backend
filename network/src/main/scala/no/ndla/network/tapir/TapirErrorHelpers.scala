@@ -41,6 +41,7 @@ trait TapirErrorHelpers extends StrictLogging {
     val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
     val VALIDATION             = "VALIDATION_ERROR"
     val METHOD_NOT_ALLOWED     = "METHOD_NOT_ALLOWED"
+    val CONFLICT               = "CONFLICT"
 
     val PARAMETER_MISSING      = "PARAMETER MISSING"
     val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
@@ -75,6 +76,7 @@ trait TapirErrorHelpers extends StrictLogging {
     def unauthorized: ErrorBody                 = ErrorBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now(), 401)
     def forbidden: ErrorBody                    = ErrorBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now(), 403)
     def forbiddenMsg(msg: String): ErrorBody    = ErrorBody(FORBIDDEN, msg, clock.now(), 403)
+    def conflict(msg: String): ErrorBody        = ErrorBody(CONFLICT, msg, clock.now(), 409)
     def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now(), 422)
     def invalidSearchContext: ErrorBody =
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
