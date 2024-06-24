@@ -457,11 +457,11 @@ trait ArenaReadService {
       for {
         maybePost     <- arenaRepository.getPost(postId)(session)
         (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
-        _             <- arenaRepository.upvotePost(postId, user.id)(session)
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        _             <- if (upvoted.isEmpty) arenaRepository.upvotePost(postId, user.id)(session) else Success(())
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
-        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
-        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isDefined)
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isEmpty)
       } yield converterService.toApiPost(compiledPost, user)
     }
 
@@ -469,11 +469,11 @@ trait ArenaReadService {
       for {
         maybePost     <- arenaRepository.getPost(postId)(session)
         (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
-        _             <- arenaRepository.unUpvotePost(postId, user.id)(session)
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        _             <- if (upvoted.isDefined) arenaRepository.unUpvotePost(postId, user.id)(session) else Success(())
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
-        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
-        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isDefined)
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isEmpty)
       } yield converterService.toApiPost(compiledPost, user)
     }
 
