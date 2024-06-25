@@ -14,7 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi.{model, *}
 import no.ndla.myndlaapi.model.api.ArenaUser
-import no.ndla.myndlaapi.model.arena.api.{PaginatedNewPostNotifications, Post}
+import no.ndla.myndlaapi.model.arena.api.PaginatedNewPostNotifications
 import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -694,7 +694,7 @@ class ArenaTest
     val top1T  = io.circe.parser.parse(top1.body).flatMap(_.as[api.Topic]).toTry
     val top1Id = top1T.get.id
 
-    val createdPost = createPost("post1", top1Id)
+    createPost("post1", top1Id)
 
     val expectedUpvoteResult = api.Post(
       id = 1,
