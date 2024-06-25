@@ -25,28 +25,14 @@ import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sor
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
-import org.scalatest.Outcome
 
 import java.util.UUID
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class MultiDraftSearchServiceAtomicTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    elasticSearchContainer match {
-      case Failure(ex) =>
-        println(s"Elasticsearch container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1

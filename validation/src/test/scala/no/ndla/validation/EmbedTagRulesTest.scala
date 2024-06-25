@@ -150,6 +150,38 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq.empty
       )
     }
+    {
+      val url =
+        "https://norgeskart.no/#!?project=norgeskart&layers=1002&zoom=16&lat=6629573.59&lon=-9409.52&markerLat=6629453.716012445&markerLon=-8055.200595151538&p=searchOptionsPanel&sok=Haukadalen"
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="iframe"
+           | data-url="$url"
+           | data-type="iframe"
+           | data-title="Norgeskart"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
+    {
+      val url =
+        "https://kartiskolen.no/mobile.html?topic=geologi&lang=nb&bgLayer=vanlig_grunnkart&mobile=true&layers=bergarter_oversikt,bergarter_detaljer&layers_opacity=0.6,0.6&X=6758065.33&Y=8776.16&zoom=10"
+      val embedString =
+        s"""<$EmbedTagName
+           | data-resource="iframe"
+           | data-url="$url"
+           | data-type="iframe"
+           | data-title="Kart i skolen"
+           |/>""".stripMargin
+
+      val result = TagValidator.validate("test", embedString)
+      result should be(
+        Seq.empty
+      )
+    }
   }
 
   test("Fields with dataType EMAIL should have legal email") {

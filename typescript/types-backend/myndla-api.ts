@@ -229,6 +229,7 @@ export interface IStats {
   numberOfSubjects: number
   numberOfSharedFolders: number
   favouritedResources: IResourceStats[]
+  favourited: { [ key: string ]: number }
 }
 
 export interface ITopic {

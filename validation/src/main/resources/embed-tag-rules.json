@@ -698,8 +698,12 @@
               "jeopardylabs.com",
               "players.brightcove.net",
               ".*.uio.no",
-              "geodata.maps.arcgis.com",
-              "arcg.is"
+              ".*.maps.arcgis.com",
+              "arcg.is",
+              "norgeskart.no",
+              "kartiskolen.no",
+              "norgeibilder.no",
+              "video.qbrick.com"
             ]
           }
         },

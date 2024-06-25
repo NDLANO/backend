@@ -73,4 +73,10 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
     providers.size should be(1)
   }
+
+  test("That youtube provider supports playlists") {
+    providerService.YoutubeEndpoint.supports(
+      "https://youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje"
+    ) should be(true)
+  }
 }

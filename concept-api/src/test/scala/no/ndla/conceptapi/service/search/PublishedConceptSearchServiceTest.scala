@@ -16,7 +16,6 @@ import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.*
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 
 import java.time.LocalDateTime
 import scala.util.Success
@@ -39,12 +38,6 @@ class PublishedConceptSearchServiceTest
     with TestEnvironment {
   import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override val publishedConceptSearchService = new PublishedConceptSearchService
   override val publishedConceptIndexService: PublishedConceptIndexService = new PublishedConceptIndexService {

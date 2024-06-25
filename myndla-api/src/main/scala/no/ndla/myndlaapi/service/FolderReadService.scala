@@ -286,6 +286,7 @@ trait FolderReadService {
       implicit val session: DBSession = folderRepository.getSession(true)
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
       val favouritedResources         = groupedResources.map(gr => api.ResourceStats(gr._2, gr._1))
+      val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
       for {
         numberOfUsers         <- userRepository.numberOfUsers()
         numberOfFolders       <- folderRepository.numberOfFolders()
@@ -300,7 +301,8 @@ trait FolderReadService {
           numberOfTags,
           numberOfSubjects,
           numberOfSharedFolders,
-          favouritedResources
+          favouritedResources,
+          favourited
         )
       } yield stats
     }

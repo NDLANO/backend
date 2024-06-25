@@ -17,7 +17,6 @@ import no.ndla.common.model.domain._
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 
 import scala.util.Success
 
@@ -29,12 +28,6 @@ class ArticleSearchServiceTest
   import props._
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override val articleSearchService = new ArticleSearchService
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {

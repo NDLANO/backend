@@ -11,19 +11,12 @@ import no.ndla.audioapi.{TestData, TestEnvironment}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.common.model.{domain => common}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 
 import scala.util.Success
 
 class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override val tagSearchService = new TagSearchService
   override val tagIndexService: TagIndexService = new TagIndexService {

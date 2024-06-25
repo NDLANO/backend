@@ -9,7 +9,6 @@ package no.ndla.draftapi.service.search
 
 import no.ndla.draftapi._
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 
 import scala.util.Success
 import no.ndla.common.model.domain.draft.Draft
@@ -17,13 +16,6 @@ import no.ndla.common.model.domain.draft.Draft
 class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    elasticSearchContainer.get
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override val grepCodesSearchService = new GrepCodesSearchService
   override val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {

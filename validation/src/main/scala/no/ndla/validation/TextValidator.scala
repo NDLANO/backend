@@ -84,7 +84,7 @@ object TextValidator {
       Seq.empty
     } else {
       val whiteListValidationMessage =
-        ValidationMessage(fieldPath, s"$IllegalContentInBasicText ${allowedTags.mkString(",")}")
+        ValidationMessage(fieldPath, s"$IllegalContentInBasicText ${allowedTags.mkString(", ")}")
       val jsoupValidatorMessages = Option.when(!Jsoup.isValid(text, whiteList))(whiteListValidationMessage)
       TagValidator.validate(fieldPath, text, requiredToOptional) ++ jsoupValidatorMessages.toSeq
     }

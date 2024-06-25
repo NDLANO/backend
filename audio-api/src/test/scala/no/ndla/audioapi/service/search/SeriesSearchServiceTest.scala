@@ -13,7 +13,6 @@ import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.{domain => common}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 
 import scala.util.Success
 
@@ -29,12 +28,6 @@ class SeriesSearchServiceTest
   }
   override val searchConverterService = new SearchConverterService
   override val converterService       = new ConverterService
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   val seriesToIndex: Seq[Series] = Seq(
     TestData.SampleSeries.copy(

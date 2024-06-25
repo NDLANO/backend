@@ -18,7 +18,6 @@ import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.Outcome
 
 import scala.util.Success
 
@@ -216,12 +215,6 @@ class AudioSearchServiceTest
     Some(1),
     None
   )
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    assume(elasticSearchContainer.isSuccess)
-    super.withFixture(test)
-  }
 
   override def beforeAll(): Unit = {
     super.beforeAll()

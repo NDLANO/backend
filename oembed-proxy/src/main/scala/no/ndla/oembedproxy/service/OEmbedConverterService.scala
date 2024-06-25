@@ -39,7 +39,7 @@ object OEmbedConverterService {
   }
 
   def handleYoutubeRequestUrl(url: String): String = {
-    val filtered = filterQueryNames(url.replaceAll("&amp;", "&"), Set("v"))
+    val filtered = filterQueryNames(url.replaceAll("&amp;", "&"), Set("v", "list"))
 
     filtered.path.parts.toList match {
       case "embed" :: videoId :: _ => idToYoutubeUrl(videoId)

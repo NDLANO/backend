@@ -14,32 +14,16 @@ import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.domain.PublishedConcept
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.scalatest.Outcome
 import scalikejdbc.{DB, *}
 
 import java.net.Socket
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 
   override val dataSource: HikariDataSource  = testDataSource.get
   override val migrator                      = new DBMigrator
   var repository: PublishedConceptRepository = _
-
-  // Skip tests if no docker environment available
-  override def withFixture(test: NoArgTest): Outcome = {
-    postgresContainer match {
-      case Failure(ex) =>
-        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
-        println(s"Got exception: ${ex.getMessage}")
-        ex.printStackTrace()
-      case _ =>
-    }
-    if (!sys.env.getOrElse("CI", "false").toBoolean) {
-      assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
-    }
-    super.withFixture(test)
-  }
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -56,11 +40,9 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try {
-      if (serverIsListening) {
-        DataSource.connectToDatabase()
-        migrator.migrate()
-      }
+    if (serverIsListening) {
+      DataSource.connectToDatabase()
+      migrator.migrate()
     }
   }
 
