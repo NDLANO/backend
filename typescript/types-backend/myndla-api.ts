@@ -3,11 +3,11 @@
 export type ArenaGroup = "ADMIN"
 
 export interface IArenaUser {
-  id: number
-  displayName: string
-  username: string
-  location: string
-  groups: ArenaGroup[]
+  id: "circular reference error"
+  displayName: "circular reference error"
+  username: "circular reference error"
+  location: "circular reference error"
+  groups: "circular reference error"
 }
 
 export interface IBreadcrumb {
