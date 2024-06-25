@@ -16,7 +16,7 @@ import scalikejdbc.{DB, DBSession, *}
 
 import scala.collection.Seq
 
-class V58__RenameAlignAttributeTable extends BaseJavaMigration {
+class V59__RenameAlignAttributeTable extends BaseJavaMigration {
 
   private def countAllRows(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from articledata where document is not NULL"
