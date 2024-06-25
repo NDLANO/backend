@@ -114,7 +114,9 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
     ) should equal("http://youtube.com/watch?v=123asdf")
     OEmbedConverterService.handleYoutubeRequestUrl("notanurl") should equal("notanurl")
 
-    OEmbedConverterService.handleYoutubeRequestUrl("https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje") should be(
+    OEmbedConverterService.handleYoutubeRequestUrl(
+      "https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje"
+    ) should be(
       "https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje"
     )
   }

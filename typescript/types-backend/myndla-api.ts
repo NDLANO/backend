@@ -134,6 +134,7 @@ export interface INewFolder {
 
 export interface INewPost {
   content: string
+  toPostId?: number
 }
 
 export interface INewPostNotification {
@@ -199,6 +200,7 @@ export interface IPost {
   owner?: IArenaUser
   flags?: IFlag[]
   topicId: number
+  replies: IPost[]
 }
 
 export interface IResource {

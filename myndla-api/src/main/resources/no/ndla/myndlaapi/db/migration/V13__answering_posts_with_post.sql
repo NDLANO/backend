@@ -1,0 +1,3 @@
+ALTER TABLE posts
+    ADD COLUMN to_post_id BIGINT DEFAULT NULL,
+    ADD CONSTRAINT fk_to_post_id FOREIGN KEY (to_post_id) REFERENCES posts(id) ON DELETE CASCADE;
