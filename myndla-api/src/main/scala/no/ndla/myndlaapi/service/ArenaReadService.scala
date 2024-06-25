@@ -463,7 +463,9 @@ trait ArenaReadService {
           else Success(())
         flags   <- arenaRepository.getFlagsForPost(postId)(session)
         upvotes <- arenaRepository.getUpvotesForPost(postId)(session)
-        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isEmpty)
+        // The post is now upvoted if it wasn't initiated by the post's owner
+        newUpvotedState = upvoted.isEmpty && !owner.exists(_.id != user.id)
+        compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
       } yield converterService.toApiPost(compiledPost, user)
     }
 
@@ -475,7 +477,8 @@ trait ArenaReadService {
         _             <- if (upvoted.isDefined) arenaRepository.unUpvotePost(postId, user.id)(session) else Success(())
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
-        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted.isEmpty)
+        newUpvotedState = upvoted.isEmpty // The upvote is now removed
+        compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
       } yield converterService.toApiPost(compiledPost, user)
     }
 

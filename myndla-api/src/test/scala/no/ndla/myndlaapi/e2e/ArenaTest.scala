@@ -218,7 +218,7 @@ class ArenaTest
         .header("FeideAuthorization", s"Bearer $token")
         .readTimeout(10.seconds)
     )
-    if (shouldSucceed) { res.code.code should be(201)}
+    if (shouldSucceed) { res.code.code should be(200)}
     res
   }
 
@@ -235,7 +235,7 @@ class ArenaTest
         .header("FeideAuthorization", s"Bearer $token")
         .readTimeout(10.seconds)
     )
-    if (shouldSucceed) { res.code.code should be(201)}
+    if (shouldSucceed) { res.code.code should be(200)}
     res
   }
 
