@@ -69,12 +69,6 @@
     "td": {
       "fields": [
         {
-          "name": "valign"
-        },
-        {
-          "name": "align"
-        },
-        {
           "name": "data-align"
         },
         {
@@ -96,12 +90,6 @@
     },
     "th": {
       "fields": [
-        {
-          "name": "valign"
-        },
-        {
-          "name": "align"
-        },
         {
           "name": "data-align"
         },
