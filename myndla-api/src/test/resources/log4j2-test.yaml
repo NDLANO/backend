@@ -1,6 +1,0 @@
-Configuration:
-  status: warn
-
-  Loggers:
-    Root:
-      level: warn

@@ -57,6 +57,8 @@ trait Module {
     javaOptions ++= reflectiveAccessOptions,
     tpolecatScalacOptions ++= scalacOptions,
     tpolecatExcludeOptions ++= excludeOptions,
+    Compile / unmanagedResources += file("log4j2.yaml"),
+    Test / unmanagedResources += file("log4j2-test.yaml"),
     Test / tpolecatExcludeOptions ++= testExcludeOptions,
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
@@ -152,6 +154,7 @@ trait Module {
 
         new Dockerfile {
           from("eclipse-temurin:21-jdk")
+          env("LOG_APPENDER", "Docker")
           add(artifact, artifactTargetPath)
           entryPointRaw(entry)
         }

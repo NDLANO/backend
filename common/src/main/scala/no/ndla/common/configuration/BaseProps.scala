@@ -10,6 +10,12 @@ trait BaseProps {
   def ApplicationPort: Int
   def ApplicationName: String
 
+  private def setLogProperties(): Unit = {
+    System.setProperty("APPLICATION_NAME", ApplicationName): Unit
+  }
+
+  setLogProperties()
+
   def Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
 
   def ContactName: String  = propOrElse("CONTACT_NAME", "NDLA")

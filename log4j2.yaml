@@ -1,0 +1,31 @@
+Configuration:
+  status: warn
+
+  Appenders:
+    Console:
+    - name: Console
+      PatternLayout:
+        Pattern: "[$${sys:APPLICATION_NAME:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] (%X{correlationID}) %-5level %C.%M#%L: %msg%n"
+    - name: Docker
+      JsonLayout:
+        compact: true
+        eventEol: true
+        locationInfo: true
+        stacktraceAsString: true
+        KeyValuePair:
+          - key: "correlationID"
+            value: "$${ctx:correlationID:-}"
+          - key: "timestamp"
+            value: "$${date:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}"
+
+  Loggers:
+    Logger:
+      name: "no.ndla"
+      level: info
+      additivity: false
+      AppenderRef:
+        - ref: ${env:LOG_APPENDER:-Console}
+    Root:
+      level: warn
+      AppenderRef:
+        - ref: ${env:LOG_APPENDER:-Console}
