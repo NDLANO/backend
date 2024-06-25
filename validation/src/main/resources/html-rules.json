@@ -72,9 +72,6 @@
           "name": "data-align"
         },
         {
-          "name": "data-align"
-        },
-        {
           "name": "colspan"
         },
         {
@@ -93,9 +90,6 @@
     },
     "th": {
       "fields": [
-        {
-          "name": "data-align"
-        },
         {
           "name": "data-align"
         },

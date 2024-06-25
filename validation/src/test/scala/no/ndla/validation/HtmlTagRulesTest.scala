@@ -23,7 +23,7 @@ class HtmlTagRulesTest extends UnitSuite {
   }
 
   test("That isAttributeKeyValid returns true for legal attributes") {
-    HtmlTagRules.isAttributeKeyValid("align", "td") should equal(true)
+    HtmlTagRules.isAttributeKeyValid("data-align", "td") should equal(true)
   }
 
   test("That isTagValid returns false for illegal tags") {
