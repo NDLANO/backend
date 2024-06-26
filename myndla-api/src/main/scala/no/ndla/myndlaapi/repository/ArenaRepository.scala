@@ -552,6 +552,37 @@ trait ArenaRepository {
       }.flatten
     }
 
+    def getReplies(parentPostId: Long)(implicit session: DBSession): Try[List[CompiledPost]] = {
+      val p  = domain.Post.syntax("p")
+      val ps = SubQuery.syntax("ps").include(p)
+      val u  = MyNDLAUser.syntax("u")
+      val f  = domain.Flag.syntax("f")
+      Try {
+        sql"""
+              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}
+              from (
+                  select ${p.resultAll}
+                  from ${domain.Post.as(p)}
+                  where ${p.toPostId} = $parentPostId
+                  and (select deleted from topics t where t.id = ${p.topic_id}) is null
+                  order by ${p.created} asc nulls last, ${p.id} asc
+                ) ps
+               left join ${domain.Flag.as(f)} on ${f.post_id} = ${ps(p).id}
+               left join ${MyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
+               order by ${ps(p).created} asc nulls last
+           """
+          .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
+          .toManies(
+            rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
+            rs => domain.Flag.fromResultSet(f)(rs).toOption
+          )
+          .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
+          .list
+          .apply()
+          .sequence
+      }.flatten
+    }
+
     def insertTopic(
         categoryId: Long,
         title: String,
@@ -673,7 +704,14 @@ trait ArenaRepository {
         .apply(): Unit
     }
 
-    def postPost(topicId: Long, content: String, ownerId: Long, created: NDLADate, updated: NDLADate)(implicit
+    def postPost(
+        topicId: Long,
+        content: String,
+        ownerId: Long,
+        created: NDLADate,
+        updated: NDLADate,
+        toPostId: Option[Long]
+    )(implicit
         session: DBSession
     ): Try[domain.Post] = Try {
       val column = domain.Post.column.c _
@@ -681,11 +719,12 @@ trait ArenaRepository {
         insert
           .into(domain.Post)
           .namedValues(
-            column("topic_id") -> topicId,
-            column("owner_id") -> ownerId,
-            column("content")  -> content,
-            column("created")  -> created,
-            column("updated")  -> updated
+            column("topic_id")   -> topicId,
+            column("owner_id")   -> ownerId,
+            column("content")    -> content,
+            column("created")    -> created,
+            column("updated")    -> updated,
+            column("to_post_id") -> toPostId
           )
       }.updateAndReturnGeneratedKey
         .apply()
@@ -696,7 +735,8 @@ trait ArenaRepository {
         topic_id = topicId,
         created = created,
         updated = updated,
-        ownerId = Some(ownerId)
+        ownerId = Some(ownerId),
+        toPostId = toPostId
       )
     }
 

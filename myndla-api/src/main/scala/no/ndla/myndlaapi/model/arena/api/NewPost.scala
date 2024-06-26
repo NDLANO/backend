@@ -13,7 +13,8 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Arena post data")
 case class NewPost(
-    @description("The post content") content: String
+    @description("The post content") content: String,
+    @description("The id of the post that is replied to") toPostId: Option[Long]
 )
 
 object NewPost {
