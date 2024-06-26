@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.e2e
 
 import io.circe.generic.auto.*
 import io.circe.syntax.EncoderOps
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi.{model, *}
@@ -760,18 +761,36 @@ class ArenaTest
     val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
     val topicId = topicT.get.id
 
-    val post   = createPost("noe innhold i topicen", topicId, token = userToken)
-    val postT  = io.circe.parser.parse(post.body).flatMap(_.as[api.Post]).toTry
-    val postId = postT.get.id
+    val ownPost   = createPost("Innhold i posten", topicId, token = userToken)
+    val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.Post]).toTry
+    val ownPostId = ownPostT.get.id
 
-    val firstUpvote = simpleHttpClient.send(
+    val otherPost = createPost("Innhold i posten", topicId, toPostId = Some(ownPostId))
+    val otherPostT = CirceUtil.tryParseAs[api.Post](otherPost.body).get
+    val otherPostId = otherPostT.id
+
+    val upvoteOwnPost = simpleHttpClient.send(
       quickRequest
-        .post(uri"$myndlaApiArenaUrl/posts/${postId}/upvote")
+        .put(uri"$myndlaApiArenaUrl/posts/${ownPostId}/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
 
-    val firstUpvoteT = io.circe.parser.parse(firstUpvote.body).flatMap(_.as[api.Post]).toTry.get
+    val upvoteOwnPostT = CirceUtil.tryParseAs[api.Post](upvoteOwnPost.body).get
+
+    upvoteOwnPost.code.code should be(200)
+    upvoteOwnPostT.upvotes should be(0)
+    upvoteOwnPostT.upvoted should be(false)
+
+
+    val firstUpvote = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
+    )
+
+    val firstUpvoteT = CirceUtil.tryParseAs[api.Post](firstUpvote.body).get
 
     firstUpvote.code.code should be(200)
     firstUpvoteT.upvotes should be(1)
@@ -779,25 +798,21 @@ class ArenaTest
 
     val secondUpvote = simpleHttpClient.send(
       quickRequest
-        .post(uri"$myndlaApiArenaUrl/posts/${postId}/upvote")
+        .put(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
 
-    val secondUpvoteT = io.circe.parser.parse(secondUpvote.body).flatMap(_.as[api.Post]).toTry.get
-
     secondUpvote.code.code should be(409)
-    secondUpvoteT.upvotes should be(1)
-    secondUpvoteT.upvoted should be(true)
 
     val unUpvote = simpleHttpClient.send(
       quickRequest
-        .delete(uri"$myndlaApiArenaUrl/posts/${postId}/upvote")
+        .delete(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
 
-    val unUpvoteT = io.circe.parser.parse(unUpvote.body).flatMap(_.as[api.Post]).toTry.get
+    val unUpvoteT = CirceUtil.tryParseAs[api.Post](unUpvote.body).get
 
     unUpvote.code.code should be(200)
     unUpvoteT.upvotes should be(0)

@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.implicits._
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException, InvalidStateException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
@@ -489,15 +489,16 @@ trait ArenaReadService {
         maybePost     <- arenaRepository.getPost(postId)(session)
         (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
         upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        userIsNotOwner = owner.exists(_.id != user.id)
         _ <-
-          if (upvoted.isEmpty && owner.exists(_.id != user.id)) arenaRepository.upvotePost(postId, user.id)(session)
+          if (upvoted.isDefined) {
+            Failure(InvalidStateException(s"User ${user.id} has already upvoted"))
+          } else if (upvoted.isEmpty && userIsNotOwner) arenaRepository.upvotePost(postId, user.id)(session)
           else Success(())
         flags   <- arenaRepository.getFlagsForPost(postId)(session)
         upvotes <- arenaRepository.getUpvotesForPost(postId)(session)
-        // The post is now upvoted if it wasn't initiated by the post's owner
-        newUpvotedState = upvoted.isEmpty && !owner.exists(_.id != user.id)
-        compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
-        replies         = getRepliesForPost(compiledPost.post.id, user)(session).?
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, userIsNotOwner)
+        replies      = getRepliesForPost(compiledPost.post.id, user)(session).?
       } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
@@ -509,9 +510,8 @@ trait ArenaReadService {
         _             <- if (upvoted.isDefined) arenaRepository.unUpvotePost(postId, user.id)(session) else Success(())
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
-        newUpvotedState = !upvoted.isDefined // The upvote is now removed
-        compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
-        replies         = getRepliesForPost(compiledPost.post.id, user)(session).?
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted = false)
+        replies      = getRepliesForPost(compiledPost.post.id, user)(session).?
       } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
