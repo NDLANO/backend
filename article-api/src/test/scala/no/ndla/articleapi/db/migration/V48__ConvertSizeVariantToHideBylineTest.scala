@@ -1,19 +1,19 @@
 /*
- * Part of NDLA draft-api
+ * Part of NDLA article-api
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.draftapi.db.migration
+package no.ndla.articleapi.db.migration
 
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.ArticleContent
-import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
-class V59__ConvertSizeVariantToHideBylineTest extends UnitSuite with TestEnvironment {
+class V48__ConvertSizeVariantToHideBylineTest extends UnitSuite with TestEnvironment {
 
   test("Migrate size attribute to hide caption and byline") {
-    val migration = new V59__ConvertSizeVariantToHideByline
+    val migration = new V48__ConvertSizeVariantToHideByline
     val oldArticle =
       """<section><ndlaembed data-resource="image" data-resource_id="1" data-align="left" data-caption="Caption" data-size="full-hide-byline"></ndlaembed></section>"""
     val newArticle =

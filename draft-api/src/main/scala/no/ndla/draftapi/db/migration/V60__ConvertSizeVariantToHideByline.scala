@@ -18,7 +18,7 @@ import org.jsoup.nodes.Entities.EscapeMode
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, *}
 
-class V59__ConvertSizeVariantToHideByline extends BaseJavaMigration {
+class V60__ConvertSizeVariantToHideByline extends BaseJavaMigration {
   private def countAllRows(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from articledata where document is not NULL"
       .map(rs => rs.long("count"))
