@@ -756,19 +756,17 @@ class ArenaTest
     val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
     val categoryId        = categoryIdT.get.id
 
-    val topic = createTopic("title1", "description1", categoryId)
-
+    val topic = createTopic("Topic title", "Topic description", categoryId, token = userToken)
     val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
     val topicId = topicT.get.id
 
-    val post    = createPost("noe innhold i topicen", topicId, token = userToken)
-    val postT = io.circe.parser.parse(post.body).flatMap(_.as[api.Post]).toTry
-
-    createPost("post1", topicId)
+    val post   = createPost("noe innhold i topicen", topicId, token = userToken)
+    val postT  = io.circe.parser.parse(post.body).flatMap(_.as[api.Post]).toTry
+    val postId = postT.get.id
 
     val firstUpvote = simpleHttpClient.send(
       quickRequest
-        .post(uri"$myndlaApiArenaUrl/posts/${postT.get.id}/upvote")
+        .post(uri"$myndlaApiArenaUrl/posts/${postId}/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
@@ -781,7 +779,7 @@ class ArenaTest
 
     val secondUpvote = simpleHttpClient.send(
       quickRequest
-        .post(uri"$myndlaApiArenaUrl/posts/${postT.get.id}/upvote")
+        .post(uri"$myndlaApiArenaUrl/posts/${postId}/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
@@ -794,7 +792,7 @@ class ArenaTest
 
     val unUpvote = simpleHttpClient.send(
       quickRequest
-        .delete(uri"$myndlaApiArenaUrl/posts/${postT.get.id}/upvote")
+        .delete(uri"$myndlaApiArenaUrl/posts/${postId}/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )

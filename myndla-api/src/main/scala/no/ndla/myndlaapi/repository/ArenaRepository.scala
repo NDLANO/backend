@@ -640,16 +640,18 @@ trait ArenaRepository {
       }.flatten
     }
 
-    def getReplies(parentPostId: Long)(implicit session: DBSession): Try[List[CompiledPost]] = {
+    def getReplies(parentPostId: Long, requester: MyNDLAUser)(implicit session: DBSession): Try[List[CompiledPost]] = {
       val p  = domain.Post.syntax("p")
       val ps = SubQuery.syntax("ps").include(p)
       val u  = MyNDLAUser.syntax("u")
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
-              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}
+              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}, upvotes, upvoted
               from (
-                  select ${p.resultAll}
+                  select ${p.resultAll},
+                  (select count(*) from ${domain.PostUpvote.table} where post_id = ${p.id}) as upvotes,
+                  (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${p.id} and user_id = ${requester.id}) as upvoted
                   from ${domain.Post.as(p)}
                   where ${p.toPostId} = $parentPostId
                   and (select deleted from topics t where t.id = ${p.topic_id}) is null
@@ -659,12 +661,17 @@ trait ArenaRepository {
                left join ${MyNDLAUser.as(u)} on ${u.id} = ${ps(p).ownerId} OR ${u.id} = ${f.user_id}
                order by ${ps(p).created} asc nulls last
            """
-          .one(rs => domain.Post.fromResultSet(ps(p).resultName)(rs))
+          .one(rs => {
+            (domain.Post.fromResultSet(ps(p).resultName)(rs), rs.int("upvotes"), rs.boolean("upvoted"))
+          })
           .toManies(
             rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
             rs => domain.Flag.fromResultSet(f)(rs).toOption
           )
-          .map((posts, owners, flags) => posts.flatMap(pp => compilePost(pp, owners.toList, flags.toList)))
+          .map { (postWithUpvotes, owners, flags) =>
+            val (post, upvotes, upvoted) = postWithUpvotes
+            compilePost(post.get, owners.toList, flags.toList, upvotes, upvoted)
+          }
           .list
           .apply()
           .sequence

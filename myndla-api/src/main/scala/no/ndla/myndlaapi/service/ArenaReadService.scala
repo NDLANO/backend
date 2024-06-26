@@ -259,7 +259,7 @@ trait ArenaReadService {
     def getRepliesForPost(parentPostId: Long, requester: MyNDLAUser)(
         session: DBSession = AutoSession
     ): Try[List[api.Post]] = Try {
-      val replies = arenaRepository.getReplies(parentPostId)(session).?
+      val replies = arenaRepository.getReplies(parentPostId, requester)(session).?
       replies.map(r => {
         val replyReplies = getRepliesForPost(r.post.id, requester)(session).?
         converterService.toApiPost(r, requester, replyReplies)
