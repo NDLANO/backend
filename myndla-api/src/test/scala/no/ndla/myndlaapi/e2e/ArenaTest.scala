@@ -168,7 +168,7 @@ class ArenaTest
     val newTopic =
       api.NewTopic(
         title = title,
-        initialPost = api.NewPost(content = content),
+        initialPost = api.NewPost(content = content, None),
         isLocked = Some(false),
         isPinned = Some(false)
       )
@@ -189,9 +189,10 @@ class ArenaTest
       content: String,
       topicId: Long,
       shouldSucceed: Boolean = true,
-      token: String = "asd"
+      token: String = "asd",
+      toPostId: Option[Long] = None
   ): Response[String] = {
-    val newPost = api.NewPost(content = content)
+    val newPost = api.NewPost(content = content, toPostId = toPostId)
     val inBody  = newPost.asJson.noSpaces
     val res = simpleHttpClient.send(
       quickRequest
@@ -382,6 +383,7 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
+            replies = List.empty,
             upvotes = 0,
             upvoted = false
           ),
@@ -401,6 +403,7 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
+            replies = List.empty,
             upvotes = 0,
             upvoted = false
           ),
@@ -420,6 +423,7 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
+            replies = List.empty,
             upvotes = 0,
             upvoted = false
           ),
@@ -439,6 +443,7 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
+            replies = List.empty,
             upvotes = 0,
             upvoted = false
           ),
@@ -458,6 +463,7 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
+            replies = List.empty,
             upvotes = 0,
             upvoted = false
           )
@@ -535,6 +541,7 @@ class ArenaTest
         ),
         flags = Some(List()),
         topicId = 1,
+        replies = List.empty,
         upvotes = 0,
         upvoted = false
       )
@@ -680,6 +687,97 @@ class ArenaTest
 
   }
 
+  test("that fetching a topic gives us posts with nested replies") {
+    val user1Token = "user1"
+    val user1Id    = "user1Id"
+    val user2Token = "user2"
+    val user2Id    = "user2Id"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(user1Token)))).thenReturn(Success(user1Id))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(user2Token)))).thenReturn(Success(user2Id))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
+    when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
+    val createCategoryRes = createCategory("title", "description")
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryId        = categoryIdT.get.id
+
+    val createTopicRes = createTopic("title1", "description1", categoryId, token = user1Token)
+    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.Topic]).toTry
+    val topicId        = topicIdT.get.id
+
+    val post1    = createPost("noe innhold i topicen", topicId, token = user2Token)
+    val post1Try = io.circe.parser.parse(post1.body).flatMap(_.as[api.Post]).toTry
+    val post2    = createPost("noe annet innhold", topicId, token = user1Token, toPostId = Some(post1Try.get.id))
+    val post2Try = io.circe.parser.parse(post2.body).flatMap(_.as[api.Post]).toTry
+
+    val post3 = createPost("Svar til noe annet innhold", topicId, token = user2Token, toPostId = Some(post2Try.get.id))
+    val post3Try = io.circe.parser.parse(post3.body).flatMap(_.as[api.Post]).toTry
+
+    val topic1 = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiArenaUrl/topics/$topicId")
+        .header("FeideAuthorization", s"Bearer $user1Token")
+        .readTimeout(10.seconds)
+    )
+    val topicTry = io.circe.parser.parse(topic1.body).flatMap(_.as[api.TopicWithPosts]).toTry.get
+
+    topicTry.postCount should be(4)
+    topicTry.posts.items.length should be(2)
+    topicTry.posts.items.head.replies.length should be(0)
+    topicTry.posts.items.last.replies.length should be(1)
+    topicTry.posts.items.last.replies.last.replies.last should be(post3Try.get)
+
+  }
+
+  test("that deleting post also deletes replies") {
+    val user1Token = "user1"
+    val user1Id    = "user1Id"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(user1Token)))).thenReturn(Success(user1Id))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
+    when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
+    val createCategoryRes = createCategory("title", "description")
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryId        = categoryIdT.get.id
+
+    val createTopicRes = createTopic("title1", "description1", categoryId, token = user1Token)
+    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.Topic]).toTry
+    val topicId        = topicIdT.get.id
+
+    val post1    = createPost("noe innhold i topicen", topicId, token = user1Token)
+    val post1Try = io.circe.parser.parse(post1.body).flatMap(_.as[api.Post]).toTry
+    createPost("noe annet innhold", topicId, token = user1Token, toPostId = Some(post1Try.get.id))
+
+    val topic1 = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiArenaUrl/topics/$topicId")
+        .header("FeideAuthorization", s"Bearer $user1Token")
+        .readTimeout(10.seconds)
+    )
+
+    val topicTry = io.circe.parser.parse(topic1.body).flatMap(_.as[api.TopicWithPosts]).toTry.get
+
+    topicTry.postCount should be(3)
+
+    val postDelete = simpleHttpClient.send(
+      quickRequest
+        .delete(uri"$myndlaApiArenaUrl/posts/${post1Try.get.id}")
+        .header("FeideAuthorization", s"Bearer $user1Token")
+        .readTimeout(10.seconds)
+    )
+
+    postDelete.code.code should be(200)
+
+    val topic2 = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiArenaUrl/topics/$topicId")
+        .header("FeideAuthorization", s"Bearer $user1Token")
+        .readTimeout(10.seconds)
+    )
+
+    val topic2Try = io.circe.parser.parse(topic2.body).flatMap(_.as[api.TopicWithPosts]).toTry.get
+
+    topic2Try.postCount should be(1)
+
+  }
   test("that a post can get upvoted and the upvote can be removed again") {
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))

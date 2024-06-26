@@ -81,7 +81,10 @@ trait ArenaReadService {
       for {
         posts     <- arenaRepository.getFlaggedPosts(offset, pageSize)(session)
         postCount <- arenaRepository.getFlaggedPostsCount(session)
-        apiPosts = posts.map(compiledPost => converterService.toApiPost(compiledPost, requester))
+        apiPosts = posts.map(compiledPost => {
+          val replies = getRepliesForPost(compiledPost.post.id, requester)(session).?
+          converterService.toApiPost(compiledPost, requester, replies)
+        })
       } yield api.PaginatedPosts(
         items = apiPosts,
         totalCount = postCount,
@@ -112,14 +115,18 @@ trait ArenaReadService {
         compiledNotifications <- arenaRepository.getNotifications(user, offset, pageSize)(session)
         notificationsCount    <- arenaRepository.notificationsCount(user.id)(session)
         apiNotifications = compiledNotifications.map { notification =>
-          api.NewPostNotification(
-            id = notification.notification.id,
-            isRead = notification.notification.is_read,
-            topicTitle = notification.topic.title,
-            topicId = notification.topic.id,
-            post = converterService.toApiPost(notification.post, user),
-            notificationTime = notification.notification.notification_time
-          )
+          {
+            val replies = getRepliesForPost(notification.post.post.id, user)(session).?
+
+            api.NewPostNotification(
+              id = notification.notification.id,
+              isRead = notification.notification.is_read,
+              topicTitle = notification.topic.title,
+              topicId = notification.topic.id,
+              post = converterService.toApiPost(notification.post, user, replies),
+              notificationTime = notification.notification.notification_time
+            )
+          }
         }
       } yield api.PaginatedNewPostNotifications(
         items = apiNotifications,
@@ -242,10 +249,21 @@ trait ArenaReadService {
         _             <- failIfEditDisallowed(post, user)
         updatedPost   <- arenaRepository.updatePost(postId, newPost.content, updatedTime)(session)
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
+        replies       <- getRepliesForPost(post.id, user)(session)
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
         upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
         compiledPost = CompiledPost(updatedPost, owner, flags, upvotes.length, upvoted.isDefined)
-      } yield converterService.toApiPost(compiledPost, user)
+      } yield converterService.toApiPost(compiledPost, user, replies)
+    }
+
+    def getRepliesForPost(parentPostId: Long, requester: MyNDLAUser)(
+        session: DBSession = AutoSession
+    ): Try[List[api.Post]] = Try {
+      val replies = arenaRepository.getReplies(parentPostId)(session).?
+      replies.map(r => {
+        val replyReplies = getRepliesForPost(r.post.id, requester)(session).?
+        converterService.toApiPost(r, requester, replyReplies)
+      })
     }
 
     private def failIfEditDisallowed(owned: domain.Owned, user: MyNDLAUser): Try[Unit] = {
@@ -318,7 +336,9 @@ trait ArenaReadService {
             pinned = if (user.isAdmin) newTopic.isPinned.getOrElse(false) else false
           )(session)
           _ <- followTopic(topic.id, user)(session)
-          _ <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created)(session)
+          _ <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created, None)(
+            session
+          )
           compiledTopic = CompiledTopic(topic, Some(user), 1, isFollowing = true)
         } yield converterService.toApiTopic(compiledTopic)
       }
@@ -334,13 +354,15 @@ trait ArenaReadService {
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
-          topic   <- getCompiledTopic(topicId, user)(session)
-          _       <- failIfPostDisallowed(topic, user)
-          newPost <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created)(session)
-          _       <- generateNewPostNotifications(topic, newPost)(session)
-          _       <- followTopic(topicId, user)(session)
+          topic <- getCompiledTopic(topicId, user)(session)
+          _     <- failIfPostDisallowed(topic, user)
+          newPost <- arenaRepository.postPost(topicId, newPost.content, user.id, created, created, newPost.toPostId)(
+            session
+          )
+          _ <- generateNewPostNotifications(topic, newPost)(session)
+          _ <- followTopic(topicId, user)(session)
           compiledPost = CompiledPost(newPost, Some(user), List.empty, 0, false)
-        } yield converterService.toApiPost(compiledPost, user)
+        } yield converterService.toApiPost(compiledPost, user, List.empty)
       }
 
     def generateNewPostNotifications(topic: CompiledTopic, newPost: domain.Post)(
@@ -417,16 +439,25 @@ trait ArenaReadService {
     ): Try[api.TopicWithPosts] = {
       val offset = (page - 1) * pageSize
       for {
-        topic <- getCompiledTopic(topicId, user)(session)
-        posts <- arenaRepository.getPostsForTopic(topicId, offset, pageSize, user)(session)
-        _     <- readNotification(user, topicId, posts)(session)
+        topic    <- getCompiledTopic(topicId, user)(session)
+        posts    <- arenaRepository.getPostsForTopic(topicId, offset, pageSize, user)(session)
+        _        <- readNotification(user, topicId, posts)(session)
+        apiPosts <- getRepliesForPosts(posts.filter(_.post.toPostId.isEmpty), user)(session)
       } yield converterService.toApiTopicWithPosts(
         compiledTopic = topic,
         page = page,
         pageSize = pageSize,
-        posts = posts,
-        requester = user
+        posts = apiPosts
       )
+    }
+
+    def getRepliesForPosts(posts: List[CompiledPost], requester: MyNDLAUser)(
+        session: DBSession = AutoSession
+    ): Try[List[api.Post]] = Try {
+      posts.map(post => {
+        val replies = getRepliesForPost(post.post.id, requester)(session).?
+        converterService.toApiPost(post, requester, replies)
+      })
     }
 
     def readNotification(user: MyNDLAUser, topicId: Long, posts: List[CompiledPost])(session: DBSession): Try[Unit] = {
@@ -466,7 +497,8 @@ trait ArenaReadService {
         // The post is now upvoted if it wasn't initiated by the post's owner
         newUpvotedState = upvoted.isEmpty && !owner.exists(_.id != user.id)
         compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
-      } yield converterService.toApiPost(compiledPost, user)
+        replies = getRepliesForPost(compiledPost.post.id, user)(session).?
+      } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
     def unUpvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Post] = {
@@ -479,7 +511,8 @@ trait ArenaReadService {
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
         newUpvotedState = upvoted.isEmpty // The upvote is now removed
         compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
-      } yield converterService.toApiPost(compiledPost, user)
+        replies = getRepliesForPost(compiledPost.post.id, user)(session).?
+      } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
     def followCategory(categoryId: Long, user: MyNDLAUser)(

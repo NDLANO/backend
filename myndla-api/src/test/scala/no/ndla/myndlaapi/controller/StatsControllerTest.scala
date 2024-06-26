@@ -22,7 +22,7 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
   val controller: StatsController = new StatsController()
 
   test("That getting stats returns in fact stats") {
-    when(folderReadService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty)))
+    when(folderReadService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty, Map.empty)))
 
     val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats"))
     response.code.code should be(200)

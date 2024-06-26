@@ -33,7 +33,7 @@ case class OEmbedProvider(
   private def _requestUrl(url: String, maxWidth: Option[String], maxHeight: Option[String]): String = {
     endpoints.collectFirst { case e if e.supports(url) && e.url.nonEmpty => e } match {
       case None =>
-        val validUrls = endpoints.flatMap(_.url)
+        val validUrls = endpoints.map(_.url)
         throw ProviderNotSupportedException(
           s"The provider '$providerName' does not support the provided url '$url'. Must be one of [${validUrls.mkString(",")}]"
         )

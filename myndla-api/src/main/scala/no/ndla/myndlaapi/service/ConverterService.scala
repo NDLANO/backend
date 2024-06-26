@@ -59,15 +59,14 @@ trait ConverterService {
         compiledTopic: CompiledTopic,
         page: Long,
         pageSize: Long,
-        posts: List[CompiledPost],
-        requester: MyNDLAUser
+        posts: List[api.Post]
     ): api.TopicWithPosts = {
-      val apiPosts = posts.map(post => toApiPost(post, requester))
+
       val pagination = api.PaginatedPosts(
         page = page,
         pageSize = pageSize,
         totalCount = compiledTopic.postCount,
-        items = apiPosts
+        items = posts
       )
 
       api.TopicWithPosts(
@@ -97,9 +96,11 @@ trait ConverterService {
 
     def toApiPost(
         compiledPost: CompiledPost,
-        requester: MyNDLAUser
+        requester: MyNDLAUser,
+        replies: List[api.Post]
     ): api.Post = {
       val maybeFlags = Option.when(requester.isAdmin)(compiledPost.flags.map(toApiFlag))
+
       api.Post(
         id = compiledPost.post.id,
         content = compiledPost.post.content,
@@ -108,9 +109,11 @@ trait ConverterService {
         owner = compiledPost.owner.map(ArenaUser.from),
         flags = maybeFlags,
         topicId = compiledPost.post.topic_id,
+        replies = replies,
         upvotes = compiledPost.upvotes,
         upvoted = compiledPost.upvoted
       )
     }
+
   }
 }
