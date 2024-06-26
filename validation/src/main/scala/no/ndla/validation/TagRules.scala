@@ -268,6 +268,8 @@ object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   case object DataFocalY              extends TagAttribute("data-focal-y")
   case object DataHeadingLevel        extends TagAttribute("data-heading-level")
   case object DataHeight              extends TagAttribute("data-height")
+  case object DataHideByline          extends TagAttribute("data-hide-byline")
+  case object DataHideCaption         extends TagAttribute("data-hide-caption")
   case object DataImageId             extends TagAttribute("data-imageid")
   case object DataImageSide           extends TagAttribute("data-image-side")
   case object DataImage_Id            extends TagAttribute("data-image-id")

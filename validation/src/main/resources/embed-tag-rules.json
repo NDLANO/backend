@@ -534,6 +534,20 @@
               "data-lower-right-x"
             ]
           }
+        },
+        {
+          "name": "data-hide-byline",
+          "validation": {
+            "required": false,
+            "dataType": "BOOLEAN"
+          }
+        },
+        {
+          "name": "data-hide-caption",
+          "validation": {
+            "required": false,
+            "dataType": "BOOLEAN"
+          }
         }
       ]
     },
