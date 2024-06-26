@@ -24,7 +24,7 @@ trait Props extends HasBaseProps {
 class AudioApiProperties extends BaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  val ApplicationName            = "audio-api"
+  def ApplicationName            = "audio-api"
   val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
