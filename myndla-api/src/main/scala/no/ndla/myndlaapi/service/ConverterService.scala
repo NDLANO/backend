@@ -109,7 +109,9 @@ trait ConverterService {
         owner = compiledPost.owner.map(ArenaUser.from),
         flags = maybeFlags,
         topicId = compiledPost.post.topic_id,
-        replies = replies
+        replies = replies,
+        upvotes = compiledPost.upvotes,
+        upvoted = compiledPost.upvoted
       )
     }
 

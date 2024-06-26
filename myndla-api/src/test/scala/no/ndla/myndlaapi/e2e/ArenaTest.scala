@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.e2e
 
 import io.circe.generic.auto.*
 import io.circe.syntax.EncoderOps
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi.{model, *}
@@ -349,7 +350,9 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
-            replies = List.empty
+            replies = List.empty,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 4,
@@ -367,7 +370,9 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
-            replies = List.empty
+            replies = List.empty,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 5,
@@ -385,7 +390,9 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
-            replies = List.empty
+            replies = List.empty,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 6,
@@ -403,7 +410,9 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
-            replies = List.empty
+            replies = List.empty,
+            upvotes = 0,
+            upvoted = false
           ),
           api.Post(
             id = 7,
@@ -421,7 +430,9 @@ class ArenaTest
             ),
             flags = Some(List()),
             topicId = 1,
-            replies = List.empty
+            replies = List.empty,
+            upvotes = 0,
+            upvoted = false
           )
         )
       ),
@@ -497,7 +508,9 @@ class ArenaTest
         ),
         flags = Some(List()),
         topicId = 1,
-        replies = List.empty
+        replies = List.empty,
+        upvotes = 0,
+        upvoted = false
       )
     }
 
@@ -732,4 +745,78 @@ class ArenaTest
     topic2Try.postCount should be(1)
 
   }
+
+  test("that a post can get upvoted and the upvote can be removed again") {
+    val userToken = "user"
+    val userId    = "userId"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(userToken)))).thenReturn(Success(userId))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
+    when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
+
+    val createCategoryRes = createCategory("title", "description")
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryId        = categoryIdT.get.id
+
+    val topic = createTopic("Topic title", "Topic description", categoryId, token = userToken)
+    val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
+    val topicId = topicT.get.id
+
+    val ownPost   = createPost("Innhold i posten", topicId, token = userToken)
+    val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.Post]).toTry
+    val ownPostId = ownPostT.get.id
+
+    val otherPost = createPost("Innhold i posten", topicId, toPostId = Some(ownPostId))
+    val otherPostT = CirceUtil.tryParseAs[api.Post](otherPost.body).get
+    val otherPostId = otherPostT.id
+
+    val upvoteOwnPost = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/posts/${ownPostId}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
+    )
+
+    val upvoteOwnPostT = CirceUtil.tryParseAs[api.Post](upvoteOwnPost.body).get
+
+    upvoteOwnPost.code.code should be(200)
+    upvoteOwnPostT.upvotes should be(0)
+    upvoteOwnPostT.upvoted should be(false)
+
+
+    val firstUpvote = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
+    )
+
+    val firstUpvoteT = CirceUtil.tryParseAs[api.Post](firstUpvote.body).get
+
+    firstUpvote.code.code should be(200)
+    firstUpvoteT.upvotes should be(1)
+    firstUpvoteT.upvoted should be(true)
+
+    val secondUpvote = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
+    )
+
+    secondUpvote.code.code should be(409)
+
+    val unUpvote = simpleHttpClient.send(
+      quickRequest
+        .delete(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
+    )
+
+    val unUpvoteT = CirceUtil.tryParseAs[api.Post](unUpvote.body).get
+
+    unUpvote.code.code should be(200)
+    unUpvoteT.upvotes should be(0)
+    unUpvoteT.upvoted should be(false)
+  }
+
 }

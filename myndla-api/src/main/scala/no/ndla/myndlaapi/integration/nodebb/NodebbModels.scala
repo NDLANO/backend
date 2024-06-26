@@ -50,7 +50,9 @@ case class Post(
     timestamp: Long,
     user: Owner,
     deleted: Long,
-    toPid: Option[Long]
+    toPid: Option[Long],
+    upvotes: Int,
+    upvoted: Boolean
 )
 
 case class SinglePostResponse(response: SinglePost)

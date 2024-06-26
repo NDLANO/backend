@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException, InvalidStateException}
 import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.DataSource
 import no.ndla.myndlaapi.model.arena.domain.TopicGoneException
@@ -32,6 +32,8 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
       ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401)
     case a: AccessDeniedException =>
       ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
+    case ise: InvalidStateException =>
+      ErrorBody(CONFLICT, ise.getMessage, clock.now(), 409)
     case mse: InvalidStatusException =>
       ErrorBody(MISSING_STATUS, mse.getMessage, clock.now(), 400)
     case _: PSQLException =>

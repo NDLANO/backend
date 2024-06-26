@@ -12,3 +12,4 @@ case class NotFoundException(message: String)      extends RuntimeException(mess
 case class RollbackException(ex: Throwable)        extends RuntimeException
 case class FileTooBigException()                   extends RuntimeException
 case class InvalidStatusException(message: String) extends RuntimeException(message)
+case class InvalidStateException(message: String)  extends RuntimeException(message)

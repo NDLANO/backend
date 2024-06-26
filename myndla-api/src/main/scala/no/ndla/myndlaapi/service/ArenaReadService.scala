@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.implicits._
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException, InvalidStateException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
@@ -222,7 +222,7 @@ trait ArenaReadService {
       val updatedTime = clock.now()
       for {
         topic <- getCompiledTopic(topicId, user)(session)
-        posts <- arenaRepository.getPostsForTopic(topicId, 0, 10)(session)
+        posts <- arenaRepository.getPostsForTopic(topicId, 0, 10, user)(session)
         _     <- failIfEditDisallowed(topic.topic, user)
         updatedTopic <- arenaRepository.updateTopic(
           topicId = topicId,
@@ -250,14 +250,16 @@ trait ArenaReadService {
         updatedPost   <- arenaRepository.updatePost(postId, newPost.content, updatedTime)(session)
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
         replies       <- getRepliesForPost(post.id, user)(session)
-        compiledPost = CompiledPost(updatedPost, owner, flags)
+        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        compiledPost = CompiledPost(updatedPost, owner, flags, upvotes.length, upvoted.isDefined)
       } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
     def getRepliesForPost(parentPostId: Long, requester: MyNDLAUser)(
         session: DBSession = AutoSession
     ): Try[List[api.Post]] = Try {
-      val replies = arenaRepository.getReplies(parentPostId)(session).?
+      val replies = arenaRepository.getReplies(parentPostId, requester)(session).?
       replies.map(r => {
         val replyReplies = getRepliesForPost(r.post.id, requester)(session).?
         converterService.toApiPost(r, requester, replyReplies)
@@ -359,7 +361,7 @@ trait ArenaReadService {
           )
           _ <- generateNewPostNotifications(topic, newPost)(session)
           _ <- followTopic(topicId, user)(session)
-          compiledPost = CompiledPost(newPost, Some(user), List.empty)
+          compiledPost = CompiledPost(newPost, Some(user), List.empty, 0, false)
         } yield converterService.toApiPost(compiledPost, user, List.empty)
       }
 
@@ -438,7 +440,7 @@ trait ArenaReadService {
       val offset = (page - 1) * pageSize
       for {
         topic    <- getCompiledTopic(topicId, user)(session)
-        posts    <- arenaRepository.getPostsForTopic(topicId, offset, pageSize)(session)
+        posts    <- arenaRepository.getPostsForTopic(topicId, offset, pageSize, user)(session)
         _        <- readNotification(user, topicId, posts)(session)
         apiPosts <- getRepliesForPosts(posts.filter(_.post.toPostId.isEmpty), user)(session)
       } yield converterService.toApiTopicWithPosts(
@@ -480,6 +482,37 @@ trait ArenaReadService {
         following <- arenaRepository.getTopicFollowing(topicId, user.id)(session)
         _         <- if (following.isDefined) arenaRepository.unfollowTopic(topicId, user.id)(session) else Success(())
       } yield apiTopic
+    }
+
+    def upvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Post] = {
+      for {
+        maybePost     <- arenaRepository.getPost(postId)(session)
+        (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        userIsNotOwner = owner.exists(_.id != user.id)
+        _ <-
+          if (upvoted.isDefined) {
+            Failure(InvalidStateException(s"User ${user.id} has already upvoted"))
+          } else if (upvoted.isEmpty && userIsNotOwner) arenaRepository.upvotePost(postId, user.id)(session)
+          else Success(())
+        flags   <- arenaRepository.getFlagsForPost(postId)(session)
+        upvotes <- arenaRepository.getUpvotesForPost(postId)(session)
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, userIsNotOwner)
+        replies      = getRepliesForPost(compiledPost.post.id, user)(session).?
+      } yield converterService.toApiPost(compiledPost, user, replies)
+    }
+
+    def unUpvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Post] = {
+      for {
+        maybePost     <- arenaRepository.getPost(postId)(session)
+        (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
+        upvoted       <- arenaRepository.getUpvoted(postId, user.id)(session)
+        _             <- if (upvoted.isDefined) arenaRepository.unUpvotePost(postId, user.id)(session) else Success(())
+        flags         <- arenaRepository.getFlagsForPost(postId)(session)
+        upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
+        compiledPost = CompiledPost(post, owner, flags, upvotes.length, upvoted = false)
+        replies      = getRepliesForPost(compiledPost.post.id, user)(session).?
+      } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
     def followCategory(categoryId: Long, user: MyNDLAUser)(
