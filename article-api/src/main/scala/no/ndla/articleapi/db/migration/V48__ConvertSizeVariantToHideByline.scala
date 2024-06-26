@@ -80,7 +80,7 @@ class V48__ConvertSizeVariantToHideByline extends BaseJavaMigration {
         val hasSize      = embed.hasAttr("data-size")
         if (dataResource == "image" && hasSize) {
           val size = embed.attr("data-size")
-          if (size.endsWith("-hide-byline")) {
+          if (size.endsWith("--hide-byline")) {
             embed.attr("data-hide-byline", "true"): Unit
             embed.attr("data-hide-caption", "true"): Unit
           }
