@@ -69,10 +69,7 @@
     "td": {
       "fields": [
         {
-          "name": "valign"
-        },
-        {
-          "name": "align"
+          "name": "data-align"
         },
         {
           "name": "colspan"
@@ -94,10 +91,7 @@
     "th": {
       "fields": [
         {
-          "name": "valign"
-        },
-        {
-          "name": "align"
+          "name": "data-align"
         },
         {
           "name": "colspan"

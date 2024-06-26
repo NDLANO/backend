@@ -3,11 +3,11 @@
 export type ArenaGroup = "ADMIN"
 
 export interface IArenaUser {
-  id: number
-  displayName: string
-  username: string
-  location: string
-  groups: ArenaGroup[]
+  id: "circular reference error"
+  displayName: "circular reference error"
+  username: "circular reference error"
+  location: "circular reference error"
+  groups: "circular reference error"
 }
 
 export interface IBreadcrumb {
@@ -134,6 +134,7 @@ export interface INewFolder {
 
 export interface INewPost {
   content: string
+  toPostId?: number
 }
 
 export interface INewPostNotification {
@@ -199,6 +200,7 @@ export interface IPost {
   owner?: IArenaUser
   flags?: IFlag[]
   topicId: number
+  replies: IPost[]
 }
 
 export interface IResource {
@@ -229,6 +231,7 @@ export interface IStats {
   numberOfSubjects: number
   numberOfSharedFolders: number
   favouritedResources: IResourceStats[]
+  favourited: { [ key: string ]: number }
 }
 
 export interface ITopic {

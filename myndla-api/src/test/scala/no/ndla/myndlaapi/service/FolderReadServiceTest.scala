@@ -14,7 +14,7 @@ import no.ndla.myndlaapi.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomai
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
-import no.ndla.myndlaapi.model.api.{Folder, Owner}
+import no.ndla.myndlaapi.model.api.{Folder, Owner, ResourceStats}
 import no.ndla.myndlaapi.model.domain.{FolderStatus, MyNDLAGroup, MyNDLAUser, Resource, UserRole}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -412,9 +412,21 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
     when(userRepository.numberOfFavouritedSubjects()(any)).thenReturn(Some(15))
     when(folderRepository.numberOfSharedFolders()(any)).thenReturn(Some(5))
-    when(folderRepository.numberOfResourcesGrouped()(any)).thenReturn(List.empty)
+    when(folderRepository.numberOfResourcesGrouped()(any))
+      .thenReturn(List((1, "article"), (2, "learningpath"), (3, "video")))
 
-    service.getStats.get should be(api.Stats(5, 10, 20, 10, 15, 5, List.empty))
+    service.getStats.get should be(
+      api.Stats(
+        5,
+        10,
+        20,
+        10,
+        15,
+        5,
+        List(ResourceStats("article", 1), ResourceStats("learningpath", 2), ResourceStats("video", 3)),
+        Map("article" -> 1, "learningpath" -> 2, "video" -> 3)
+      )
+    )
   }
 
   test("That getSharedFolder returns an unshared folder if requested by the owner") {

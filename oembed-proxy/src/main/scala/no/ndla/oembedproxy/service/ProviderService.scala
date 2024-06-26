@@ -60,8 +60,8 @@ trait ProviderService {
           "http(s?)://*.youtube.com/watch*",
           "http(s?)://*.youtube.com/v/*",
           "http(s?)://youtu.be/*",
-          "http(s?)://*.youtube.com/playlist?list=*",
-          "http(s?)://youtube.com/playlist?list=*",
+          "http(s?)://*.youtube.com/playlist\\?list=*",
+          "http(s?)://youtube.com/playlist\\?list=*",
           "http(s?)://*.youtube.com/shorts*"
         )
       ),
