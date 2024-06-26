@@ -497,7 +497,7 @@ trait ArenaReadService {
         // The post is now upvoted if it wasn't initiated by the post's owner
         newUpvotedState = upvoted.isEmpty && !owner.exists(_.id != user.id)
         compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
-        replies = getRepliesForPost(compiledPost.post.id, user)(session).?
+        replies         = getRepliesForPost(compiledPost.post.id, user)(session).?
       } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
@@ -511,7 +511,7 @@ trait ArenaReadService {
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
         newUpvotedState = !upvoted.isDefined // The upvote is now removed
         compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
-        replies = getRepliesForPost(compiledPost.post.id, user)(session).?
+        replies         = getRepliesForPost(compiledPost.post.id, user)(session).?
       } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
