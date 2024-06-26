@@ -206,40 +206,6 @@ class ArenaTest
     res
   }
 
-  def upvotePost(
-      postId: String,
-      shouldSucceed: Boolean = true,
-      token: String = "asd"
-  ): Response[String] = {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiArenaUrl/posts/$postId/upvote")
-        .body()
-        .header("Content-type", "application/json")
-        .header("FeideAuthorization", s"Bearer $token")
-        .readTimeout(10.seconds)
-    )
-    if (shouldSucceed) { res.code.code should be(200)}
-    res
-  }
-
-  def unUpvotePost(
-      postId: String,
-      shouldSucceed: Boolean = true,
-      token: String = "asd"
-  ): Response[String] = {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .delete(uri"$myndlaApiArenaUrl/posts/$postId/upvote")
-        .body()
-        .header("Content-type", "application/json")
-        .header("FeideAuthorization", s"Bearer $token")
-        .readTimeout(10.seconds)
-    )
-    if (shouldSucceed) { res.code.code should be(200)}
-    res
-  }
-
   test("that creating and fetching all categories works") {
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(myndlaApi.componentRegistry.userService.getArenaEnabledUser(any)).thenReturn(Success(testAdmin))
@@ -778,8 +744,11 @@ class ArenaTest
     topic2Try.postCount should be(1)
 
   }
+
   test("that a post can get upvoted and the upvote can be removed again") {
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
+    val userToken = "user"
+    val userId    = "userId"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(userToken)))).thenReturn(Success(userId))
     when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
@@ -787,62 +756,54 @@ class ArenaTest
     val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
     val categoryId        = categoryIdT.get.id
 
-    val top1 = createTopic("title1", "description1", categoryId)
+    val topic = createTopic("title1", "description1", categoryId)
 
-    val top1T  = io.circe.parser.parse(top1.body).flatMap(_.as[api.Topic]).toTry
-    val top1Id = top1T.get.id
+    val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
+    val topicId = topicT.get.id
 
-    createPost("post1", top1Id)
+    val post    = createPost("noe innhold i topicen", topicId, token = userToken)
+    val postT = io.circe.parser.parse(post.body).flatMap(_.as[api.Post]).toTry
 
-    val expectedUpvoteResult = api.Post(
-      id = 1,
-      content = s"post1",
-      created = someDate,
-      updated = someDate,
-      owner = Some(
-        model.api.ArenaUser(
-          id = 1,
-          displayName = "",
-          username = "email@ndla.no",
-          location = "zxc",
-          groups = List(ArenaGroup.ADMIN)
-        )
-      ),
-      flags = Some(List()),
-      topicId = 1,
-      upvotes = 1,
-      upvoted = true
+    createPost("post1", topicId)
+
+    val firstUpvote = simpleHttpClient.send(
+      quickRequest
+        .post(uri"$myndlaApiArenaUrl/posts/${postT.get.id}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
     )
 
-    val expectedUnUpvoteResult = api.Post(
-      id = 1,
-      content = s"post1",
-      created = someDate,
-      updated = someDate,
-      owner = Some(
-        model.api.ArenaUser(
-          id = 1,
-          displayName = "",
-          username = "email@ndla.no",
-          location = "zxc",
-          groups = List(ArenaGroup.ADMIN)
-        )
-      ),
-      flags = Some(List()),
-      topicId = 1,
-      upvotes = 0,
-      upvoted = false
+    val firstUpvoteT = io.circe.parser.parse(firstUpvote.body).flatMap(_.as[api.Post]).toTry.get
+
+    firstUpvote.code.code should be(200)
+    firstUpvoteT.upvotes should be(1)
+    firstUpvoteT.upvoted should be(true)
+
+    val secondUpvote = simpleHttpClient.send(
+      quickRequest
+        .post(uri"$myndlaApiArenaUrl/posts/${postT.get.id}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
     )
 
-    val upvoted = upvotePost("1")
-    val upvotedResultTry = io.circe.parser.parse(upvoted.body).flatMap(_.as[api.Post]).toTry
-    upvotedResultTry should be(Success(expectedUpvoteResult))
-    upvoted.code.code should be(200)
+    val secondUpvoteT = io.circe.parser.parse(secondUpvote.body).flatMap(_.as[api.Post]).toTry.get
 
-    val unUpvoted = unUpvotePost("1")
-    val unUpvotedResultTry = io.circe.parser.parse(unUpvoted.body).flatMap(_.as[api.Post]).toTry
-    unUpvotedResultTry should be(Success(expectedUnUpvoteResult))
-    unUpvoted.code.code should be(200)
+    secondUpvote.code.code should be(409)
+    secondUpvoteT.upvotes should be(1)
+    secondUpvoteT.upvoted should be(true)
+
+    val unUpvote = simpleHttpClient.send(
+      quickRequest
+        .delete(uri"$myndlaApiArenaUrl/posts/${postT.get.id}/upvote")
+        .header("FeideAuthorization", s"Bearer $userToken")
+        .readTimeout(10.seconds)
+    )
+
+    val unUpvoteT = io.circe.parser.parse(unUpvote.body).flatMap(_.as[api.Post]).toTry.get
+
+    unUpvote.code.code should be(200)
+    unUpvoteT.upvotes should be(0)
+    unUpvoteT.upvoted should be(false)
   }
 
 }

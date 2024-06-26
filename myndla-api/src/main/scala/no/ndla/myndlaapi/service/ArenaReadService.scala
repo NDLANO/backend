@@ -509,7 +509,7 @@ trait ArenaReadService {
         _             <- if (upvoted.isDefined) arenaRepository.unUpvotePost(postId, user.id)(session) else Success(())
         flags         <- arenaRepository.getFlagsForPost(postId)(session)
         upvotes       <- arenaRepository.getUpvotesForPost(postId)(session)
-        newUpvotedState = upvoted.isEmpty // The upvote is now removed
+        newUpvotedState = !upvoted.isDefined // The upvote is now removed
         compiledPost    = CompiledPost(post, owner, flags, upvotes.length, newUpvotedState)
         replies = getRepliesForPost(compiledPost.post.id, user)(session).?
       } yield converterService.toApiPost(compiledPost, user, replies)
