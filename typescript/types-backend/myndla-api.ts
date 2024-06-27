@@ -31,8 +31,8 @@ export interface ICategory {
 }
 
 export interface ICategoryBreadcrumb {
-  id: "circular reference error"
-  title: "circular reference error"
+  id: number
+  title: string
 }
 
 export interface ICategoryWithTopics {
@@ -66,12 +66,12 @@ export interface IConfigMetaRestricted {
 }
 
 export interface IFlag {
-  id: "circular reference error"
-  reason: "circular reference error"
-  created: "circular reference error"
-  resolved?: "circular reference error"
-  isResolved: "circular reference error"
-  flagger?: "circular reference error"
+  id: number
+  reason: string
+  created: string
+  resolved?: string
+  isResolved: boolean
+  flagger?: IArenaUser
 }
 
 export interface IFolder {
