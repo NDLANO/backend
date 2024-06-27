@@ -12,7 +12,7 @@ object Dependencies {
     val HikariConnectionPoolV = "5.1.0"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.18"
-    val Log4JV                = "2.20.0"
+    val Log4JV                = "2.23.1"
     val AwsSdkV               = "1.12.669"
     val MockitoV              = "1.17.30"
     val Elastic4sV            = "8.11.5"
@@ -120,7 +120,7 @@ object Dependencies {
       "org.apache.logging.log4j"    % "log4j-core"        % Log4JV,
       "org.apache.logging.log4j"    % "log4j-slf4j2-impl" % Log4JV,
       "com.typesafe.scala-logging" %% "scala-logging"     % ScalaLoggingV,
-      "org.slf4j"                   % "slf4j-api"         % "2.0.5",
+      "org.slf4j"                   % "slf4j-api"         % "2.0.12",
       // We need jackson to load `log4j2.yaml`
       "com.fasterxml.jackson.core"       % "jackson-core"            % JacksonV,
       "com.fasterxml.jackson.core"       % "jackson-databind"        % JacksonV,

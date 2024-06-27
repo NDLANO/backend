@@ -19,9 +19,7 @@ trait Props extends HasBaseProps {
 }
 
 class FrontpageApiProperties extends BaseProps {
-  val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
-
-  val ApplicationName            = "frontpage-api"
+  def ApplicationName            = "frontpage-api"
   val ApplicationPort: Int       = propOrElse("APPLICATION_PORT", "80").toInt
   val NumThreads: Int            = propOrElse("NUM_THREADS", "200").toInt
   val DefaultLanguage: String    = propOrElse("DEFAULT_LANGUAGE", "nb")

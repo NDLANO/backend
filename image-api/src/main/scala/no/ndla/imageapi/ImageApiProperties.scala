@@ -24,7 +24,7 @@ trait Props extends HasBaseProps {
 class ImageApiProperties extends BaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  val ApplicationName            = "image-api"
+  def ApplicationName            = "image-api"
   val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val RoleWithWriteAccess = "images:write"

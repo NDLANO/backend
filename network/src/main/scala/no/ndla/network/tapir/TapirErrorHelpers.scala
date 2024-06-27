@@ -124,12 +124,14 @@ trait TapirErrorHelpers extends StrictLogging {
         PartialServerEndpoint(newEndpoint, securityLogic)
       }
     }
+  }
 
+  def logError(e: Throwable): Unit = {
+    logger.error(e.getMessage, e)
   }
 
   private def handleUnknownError(e: Throwable): ErrorBody = {
-    logger.error(e.getMessage)
-    e.printStackTrace()
+    logError(e)
     ErrorHelpers.generic
   }
 
