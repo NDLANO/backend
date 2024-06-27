@@ -691,7 +691,7 @@ class ArenaTest
     topicTry.posts.items.length should be(2)
     topicTry.posts.items.head.replies.length should be(0)
     topicTry.posts.items.last.replies.length should be(1)
-    topicTry.posts.items.last.replies.last.replies.last should be(post3Try.get)
+    topicTry.posts.items.last.replies.asInstanceOf[List[api.Post]].last.replies.last should be(post3Try.get)
 
   }
 
@@ -757,7 +757,7 @@ class ArenaTest
     val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
     val categoryId        = categoryIdT.get.id
 
-    val topic = createTopic("Topic title", "Topic description", categoryId, token = userToken)
+    val topic   = createTopic("Topic title", "Topic description", categoryId, token = userToken)
     val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
     val topicId = topicT.get.id
 
@@ -765,8 +765,8 @@ class ArenaTest
     val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.Post]).toTry
     val ownPostId = ownPostT.get.id
 
-    val otherPost = createPost("Innhold i posten", topicId, toPostId = Some(ownPostId))
-    val otherPostT = CirceUtil.tryParseAs[api.Post](otherPost.body).get
+    val otherPost   = createPost("Innhold i posten", topicId, toPostId = Some(ownPostId))
+    val otherPostT  = CirceUtil.tryParseAs[api.Post](otherPost.body).get
     val otherPostId = otherPostT.id
 
     val upvoteOwnPost = simpleHttpClient.send(
@@ -781,7 +781,6 @@ class ArenaTest
     upvoteOwnPost.code.code should be(200)
     upvoteOwnPostT.upvotes should be(0)
     upvoteOwnPostT.upvoted should be(false)
-
 
     val firstUpvote = simpleHttpClient.send(
       quickRequest
