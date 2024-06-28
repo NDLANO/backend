@@ -94,9 +94,9 @@ class V47__RenameAlignAttributeTable extends BaseJavaMigration {
         oldArticle.hcursor
           .downField("content")
           .withFocus(f => {
-            f.mapObject(contents => {
-              contents.mapValues { content =>
-                content.mapString(str => convertHtml(str))
+            f.mapArray(contents => {
+              contents.map { content =>
+                content.mapObject(f => f.mapValues(str => str.mapString(s => convertHtml(s))))
               }
             })
 
