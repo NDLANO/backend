@@ -8,6 +8,8 @@
 
 package no.ndla.myndlaapi.model.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser}
 import sttp.tapir.Schema.annotations.description
 
@@ -35,5 +37,8 @@ object ArenaUser {
       groups = user.arenaGroups
     )
   }
+
+  implicit val arenaUserEncoder: Encoder[ArenaUser] = deriveEncoder
+  implicit val arenaUserDecoder: Decoder[ArenaUser] = deriveDecoder
 
 }

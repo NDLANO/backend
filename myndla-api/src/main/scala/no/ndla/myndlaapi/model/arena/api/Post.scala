@@ -7,7 +7,11 @@
 
 package no.ndla.myndlaapi.model.arena.api
 
+import cats.implicits.toFunctorOps
 import com.scalatsi.{TSIType, TSNamedType, TSType}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.api.ArenaUser
 import sttp.tapir.Schema.annotations.description
@@ -36,8 +40,29 @@ object Post {
     implicit val postWrapper: TSNamedType[PostWrapper] = TSType.external[PostWrapper]("IPostWrapper")
     TSType.fromCaseClass[Post]
   }
+
+  implicit val postEncoder: Encoder[Post] = deriveEncoder
+  implicit val postDecoder: Decoder[Post] = deriveDecoder
+
+  implicit val postDataEncoder: Encoder[PostWrapper] = Encoder.instance { case post: Post => post.asJson }
+  implicit val postDataDecoder: Decoder[PostWrapper] = Decoder[Post].widen
 }
 
 object PostWrapper {
+  def apply(
+      id: Long,
+      content: String,
+      created: NDLADate,
+      updated: NDLADate,
+      owner: Option[ArenaUser],
+      flags: Option[List[Flag]],
+      topicId: Long,
+      replies: List[PostWrapper],
+      upvotes: Int,
+      upvoted: Boolean
+  ): PostWrapper = {
+    Post(id, content, created, updated, owner, flags, topicId, replies, upvotes, upvoted)
+  }
+
   implicit val wrapperAlias: TSNamedType[PostWrapper] = TSType.alias[PostWrapper]("IPostWrapper", Post.postTSI.get)
 }

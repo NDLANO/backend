@@ -7,6 +7,8 @@
 
 package no.ndla.myndlaapi.model.arena.api
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.api.ArenaUser
 import sttp.tapir.Schema.annotations.description
@@ -20,3 +22,8 @@ case class Flag(
     @description("Whether the flag has been resolved or not") isResolved: Boolean,
     @description("The flagging user") flagger: Option[ArenaUser]
 )
+
+object Flag {
+  implicit val flagEncoder: Encoder[Flag] = deriveEncoder
+  implicit val flagDecoder: Decoder[Flag] = deriveDecoder
+}
