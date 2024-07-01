@@ -7,7 +7,11 @@
 
 package no.ndla.myndlaapi.model.arena.api
 
+import cats.implicits.toFunctorOps
 import com.scalatsi.{TSIType, TSNamedType, TSType}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.api.ArenaUser
 import sttp.tapir.Schema.annotations.description
@@ -36,6 +40,12 @@ object Post {
     implicit val postWrapper: TSNamedType[PostWrapper] = TSType.external[PostWrapper]("IPostWrapper")
     TSType.fromCaseClass[Post]
   }
+
+  implicit val postEncoder: Encoder[Post] = deriveEncoder
+  implicit val postDecoder: Decoder[Post] = deriveDecoder
+
+  implicit val postDataEncoder: Encoder[PostWrapper] = Encoder.instance { case post: Post => post.asJson }
+  implicit val postDataDecoder: Decoder[PostWrapper] = Decoder[Post].widen
 }
 
 object PostWrapper {
