@@ -49,20 +49,5 @@ object Post {
 }
 
 object PostWrapper {
-  def apply(
-      id: Long,
-      content: String,
-      created: NDLADate,
-      updated: NDLADate,
-      owner: Option[ArenaUser],
-      flags: Option[List[Flag]],
-      topicId: Long,
-      replies: List[PostWrapper],
-      upvotes: Int,
-      upvoted: Boolean
-  ): PostWrapper = {
-    Post(id, content, created, updated, owner, flags, topicId, replies, upvotes, upvoted)
-  }
-
   implicit val wrapperAlias: TSNamedType[PostWrapper] = TSType.alias[PostWrapper]("IPostWrapper", Post.postTSI.get)
 }
