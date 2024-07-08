@@ -12,6 +12,7 @@ import io.circe.generic.auto.*
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.network.TaxonomyData
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import org.log4s.{Logger, MDC, getLogger}
@@ -97,9 +98,12 @@ trait Routes[F[_]] {
       }
 
       private def setBeforeMDC(info: RequestInfo, req: ServerRequest): Unit = {
-        MDC.put("taxonomyVersion", info.taxonomyVersion): Unit
         MDC.put("requestPath", RequestLogger.pathWithQueryParams(req)): Unit
         MDC.put("method", req.method.toString()): Unit
+
+        if (info.taxonomyVersion != TaxonomyData.defaultVersion) {
+          MDC.put("taxonomyVersion", info.taxonomyVersion): Unit
+        }
       }
 
       val beforeTime = new AttributeKey[Long]("beforeTime")
