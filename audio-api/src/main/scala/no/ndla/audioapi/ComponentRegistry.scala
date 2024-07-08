@@ -19,7 +19,7 @@ import no.ndla.audioapi.service.search._
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, SwaggerControllerConfig, TapirHealthController}
+import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: AudioApiProperties)
@@ -35,7 +35,6 @@ class ComponentRegistry(properties: AudioApiProperties)
     with ConverterService
     with AudioStorageService
     with InternController
-    with NdlaMiddleware
     with HealthController
     with TapirHealthController
     with AudioController

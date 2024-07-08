@@ -12,9 +12,10 @@ import io.circe.generic.auto.*
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.network.TaxonomyData
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.*
-import org.log4s.{Logger, getLogger}
+import org.log4s.{Logger, MDC, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.generic.auto.schemaForCaseClass
@@ -33,7 +34,7 @@ import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 import java.util.concurrent.{ExecutorService, Executors}
 
 trait Routes[F[_]] {
-  this: NdlaMiddleware with TapirErrorHelpers with HasBaseProps =>
+  this: TapirErrorHelpers with HasBaseProps =>
 
   def services: List[Service[F]]
 
@@ -96,18 +97,24 @@ trait Routes[F[_]] {
         true
       }
 
+      private def setBeforeMDC(info: RequestInfo, req: ServerRequest): Unit = {
+        MDC.put("requestPath", RequestLogger.pathWithQueryParams(req)): Unit
+        MDC.put("method", req.method.toString()): Unit
+
+        if (info.taxonomyVersion != TaxonomyData.defaultVersion) {
+          MDC.put("taxonomyVersion", info.taxonomyVersion): Unit
+        }
+      }
+
       val beforeTime = new AttributeKey[Long]("beforeTime")
       def before(req: ServerRequest): ServerRequest = {
         val requestInfo = RequestInfo.fromRequest(req)
         requestInfo.setThreadContextRequestInfo()
+        setBeforeMDC(requestInfo, req)
         val startTime = System.currentTimeMillis()
 
         if (shouldLogRequest(req)) {
-          val s = RequestLogger.beforeRequestLogString(
-            method = req.method.toString(),
-            requestPath = s"/${req.uri.path.mkString("/")}",
-            queryString = req.queryParameters.toString(false)
-          )
+          val s = RequestLogger.beforeRequestLogString(req)
           logger.info(s)
         }
 
@@ -127,6 +134,8 @@ trait Routes[F[_]] {
               .map(startTime => System.currentTimeMillis() - startTime)
               .getOrElse(-1L)
 
+            MDC.put("reqLatencyMs", s"$latency"): Unit
+
             val s = RequestLogger.afterRequestLogString(
               method = req.method.toString(),
               requestPath = s"/${req.uri.path.mkString("/")}",
@@ -138,6 +147,7 @@ trait Routes[F[_]] {
           }
 
           RequestInfo.clear()
+          MDC.clear()
           result
         }
       }

@@ -24,7 +24,7 @@ import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
+import no.ndla.network.tapir.{Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -63,7 +63,6 @@ trait TestEnvironment
     with DraftSearchSettingsHelper
     with DBMigrator
     with Routes[Eff]
-    with NdlaMiddleware
     with InternController {
   override val props: ConceptApiProperties = new ConceptApiProperties {
     override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")

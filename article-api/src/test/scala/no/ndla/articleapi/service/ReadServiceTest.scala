@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{FrontPage, Menu}
 import no.ndla.common.model.domain.{
@@ -135,7 +135,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("search should use size of id-list as page-size if defined") {
     val searchMock = mock[SearchResult[ArticleSummaryV2]]
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
-    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new AccessDeniedException("not allowed")))
 
     readService.search(
       query = None,

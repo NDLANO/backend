@@ -21,14 +21,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.network.tapir.{
-  NdlaMiddleware,
-  Routes,
-  Service,
-  SwaggerControllerConfig,
-  TapirErrorHelpers,
-  TapirHealthController
-}
+import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
 
 class ComponentRegistry(properties: ConceptApiProperties)
     extends BaseComponentRegistry[ConceptApiProperties]
@@ -65,7 +58,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with DraftSearchSettingsHelper
     with TaxonomyApiClient
     with Routes[Eff]
-    with NdlaMiddleware
     with TapirErrorHelpers
     with SwaggerControllerConfig
     with SwaggerDocControllerConfig

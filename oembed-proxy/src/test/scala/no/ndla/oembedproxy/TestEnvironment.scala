@@ -10,7 +10,7 @@ package no.ndla.oembedproxy
 
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.OEmbedProxyController
 import no.ndla.oembedproxy.model.ErrorHelpers
@@ -29,7 +29,6 @@ trait TestEnvironment
     with MemoizeHelpers
     with ErrorHelpers
     with Clock
-    with NdlaMiddleware
     with Routes[Eff] {
   override val props = new OEmbedProxyProperties
 

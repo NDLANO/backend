@@ -15,7 +15,7 @@ import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
+import no.ndla.network.tapir.{Routes, Service}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -27,7 +27,6 @@ trait TestEnvironment
     with FilmPageController
     with SubjectPageController
     with FrontPageController
-    with NdlaMiddleware
     with ReadService
     with WriteService
     with ConverterService

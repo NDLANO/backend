@@ -18,7 +18,7 @@ import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -35,7 +35,6 @@ trait TestEnvironment
     with AudioStorageService
     with InternController
     with Routes[Eff]
-    with NdlaMiddleware
     with HealthController
     with TapirHealthController
     with AudioController

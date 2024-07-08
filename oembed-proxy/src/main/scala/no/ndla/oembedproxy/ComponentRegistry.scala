@@ -11,7 +11,7 @@ package no.ndla.oembedproxy
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{OEmbedProxyController, SwaggerDocControllerConfig}
 import no.ndla.oembedproxy.model.ErrorHelpers
@@ -29,7 +29,6 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
     with ErrorHelpers
     with Routes[Eff]
     with Clock
-    with NdlaMiddleware
     with SwaggerDocControllerConfig {
   override val props: OEmbedProxyProperties = properties
 

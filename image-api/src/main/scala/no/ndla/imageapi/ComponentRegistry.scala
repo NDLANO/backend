@@ -27,14 +27,7 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{
-  NdlaMiddleware,
-  Routes,
-  Service,
-  SwaggerControllerConfig,
-  TapirErrorHelpers,
-  TapirHealthController
-}
+import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: ImageApiProperties)
@@ -70,7 +63,6 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ErrorHelpers
     with Random
     with Routes[Eff]
-    with NdlaMiddleware
     with TapirErrorHelpers
     with SwaggerControllerConfig
     with SwaggerDocControllerConfig

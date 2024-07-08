@@ -32,14 +32,7 @@ import no.ndla.learningpathapi.validation.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{
-  NdlaMiddleware,
-  Routes,
-  Service,
-  SwaggerControllerConfig,
-  TapirErrorHelpers,
-  TapirHealthController
-}
+import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: LearningpathApiProperties)
@@ -75,7 +68,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with ErrorHelpers
     with RedisClient
     with Routes[Eff]
-    with NdlaMiddleware
     with TapirErrorHelpers
     with SwaggerControllerConfig
     with SwaggerDocControllerConfig

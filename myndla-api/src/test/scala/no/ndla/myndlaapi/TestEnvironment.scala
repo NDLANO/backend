@@ -33,14 +33,7 @@ import no.ndla.myndlaapi.service.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{
-  NdlaMiddleware,
-  Routes,
-  Service,
-  SwaggerControllerConfig,
-  TapirErrorHelpers,
-  TapirHealthController
-}
+import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar.mock
 
@@ -73,7 +66,6 @@ trait TestEnvironment
     with StatsController
     with ErrorHelpers
     with Routes[Eff]
-    with NdlaMiddleware
     with TapirErrorHelpers
     with ImportService
     with NodeBBClient
