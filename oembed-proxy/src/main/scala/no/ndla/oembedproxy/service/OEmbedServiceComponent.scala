@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.{InvalidUrlException, OEmbed, OEmbedProvider, ProviderNotSupportedException}
+import org.log4s.MDC
 import sttp.client3.quick.*
 import sttp.model.HttpVersion
 
@@ -75,6 +76,7 @@ trait OEmbedServiceComponent {
             case None =>
               Failure(ProviderNotSupportedException(s"Could not find an oembed-provider for the url '$url'"))
             case Some(provider) =>
+              MDC.put("oembedProvider", provider.providerName): Unit
               fetchOembedFromProvider(provider, url, maxWidth, maxHeight, 0).map(provider.postProcessor(url, _))
           }
       }
