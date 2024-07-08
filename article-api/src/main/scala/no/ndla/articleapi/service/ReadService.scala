@@ -205,9 +205,10 @@ trait ReadService {
     ): Try[Cachable[SearchResult[ArticleSummaryV2]]] = {
       val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
         case Success(user) => user.availabilities
-        case Failure(ex) =>
-          logger.warn(s"Something went wrong when fetching feideuser, assuming non-user: ${ex.getMessage}")
+        case Failure(_: AccessDeniedException) =>
+          logger.info("User is not authenticated with Feide, assuming non-user")
           Seq.empty
+        case Failure(ex) => return Failure(ex)
       }
 
       val settings = query.emptySomeToNone match {
