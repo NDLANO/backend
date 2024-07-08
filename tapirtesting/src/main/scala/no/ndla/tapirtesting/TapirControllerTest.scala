@@ -10,13 +10,12 @@ package no.ndla.tapirtesting
 import com.sun.net.httpserver.HttpServer
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirErrorHelpers}
+import no.ndla.network.tapir.{Routes, Service, TapirErrorHelpers}
 import no.ndla.scalatestsuite.UnitTestSuite
 
 trait TapirControllerTest[F[_]]
     extends UnitTestSuite
     with Routes[F]
-    with NdlaMiddleware
     with HasBaseProps
     with TapirErrorHelpers
     with Clock {

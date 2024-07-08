@@ -15,7 +15,7 @@ import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
 
 class ComponentRegistry(properties: FrontpageApiProperties)
     extends DataSource
@@ -38,7 +38,6 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with ConverterService
     with TapirHealthController
     with Routes[Eff]
-    with NdlaMiddleware
     with SwaggerDocControllerConfig {
   override val props: FrontpageApiProperties = properties
   override val migrator                      = new DBMigrator

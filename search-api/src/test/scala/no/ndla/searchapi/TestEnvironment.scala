@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
+import no.ndla.network.tapir.{Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
@@ -52,8 +52,7 @@ trait TestEnvironment
     with Clock
     with GrepApiClient
     with Props
-    with Routes[Eff]
-    with NdlaMiddleware {
+    with Routes[Eff] {
   override val props = new SearchApiProperties
 
   val searchController: SearchController = mock[SearchController]

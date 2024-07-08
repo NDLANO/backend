@@ -34,7 +34,7 @@ import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 import java.util.concurrent.{ExecutorService, Executors}
 
 trait Routes[F[_]] {
-  this: NdlaMiddleware with TapirErrorHelpers with HasBaseProps =>
+  this: TapirErrorHelpers with HasBaseProps =>
 
   def services: List[Service[F]]
 

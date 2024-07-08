@@ -22,14 +22,7 @@ import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{
-  NdlaMiddleware,
-  Routes,
-  Service,
-  SwaggerControllerConfig,
-  TapirErrorHelpers,
-  TapirHealthController
-}
+import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: DraftApiProperties)
@@ -75,7 +68,6 @@ class ComponentRegistry(properties: DraftApiProperties)
     with DBMigrator
     with ErrorHelpers
     with Routes[Eff]
-    with NdlaMiddleware
     with TapirErrorHelpers
     with SwaggerControllerConfig
     with SwaggerDocControllerConfig

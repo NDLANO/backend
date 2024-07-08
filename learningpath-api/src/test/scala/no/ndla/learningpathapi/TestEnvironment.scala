@@ -19,7 +19,7 @@ import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, 
 import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
+import no.ndla.network.tapir.{Routes, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
@@ -56,7 +56,6 @@ trait TestEnvironment
     with InternController
     with DBMigrator
     with RedisClient
-    with NdlaMiddleware
     with Routes[Eff] {
   val props = new LearningpathApiProperties
 

@@ -22,14 +22,7 @@ import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{
-  NdlaMiddleware,
-  Routes,
-  Service,
-  SwaggerControllerConfig,
-  TapirErrorHelpers,
-  TapirHealthController
-}
+import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
@@ -63,7 +56,6 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with Routes[Eff]
     with TapirErrorHelpers
     with TapirHealthController
-    with NdlaMiddleware
     with SwaggerControllerConfig
     with SwaggerDocControllerConfig
     with FrontpageApiClient {

@@ -22,7 +22,7 @@ import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -35,7 +35,6 @@ trait TestEnvironment
     with SearchService
     with ArticleControllerV2
     with InternController
-    with NdlaMiddleware
     with DataSource
     with Routes[Eff]
     with ArticleRepository
