@@ -12,6 +12,7 @@ Configuration:
         eventEol: true
         locationInfo: true
         stacktraceAsString: true
+        properties: true
         KeyValuePair:
           - key: "correlationID"
             value: "$${ctx:correlationID:-}"
