@@ -79,7 +79,7 @@ trait ArenaReadService {
     )(session: DBSession = ReadOnlyAutoSession): Try[api.PaginatedPosts] = {
       val offset = (page - 1) * pageSize
       for {
-        posts     <- arenaRepository.getFlaggedPosts(offset, pageSize)(session)
+        posts     <- arenaRepository.getFlaggedPosts(offset, pageSize, requester)(session)
         postCount <- arenaRepository.getFlaggedPostsCount(session)
         apiPosts = posts.map(compiledPost => {
           val replies = getRepliesForPost(compiledPost.post.id, requester)(session).?
