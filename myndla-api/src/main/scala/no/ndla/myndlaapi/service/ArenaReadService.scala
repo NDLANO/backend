@@ -58,7 +58,7 @@ trait ArenaReadService {
         postId: Long,
         requester: MyNDLAUser,
         pageSize: Long
-    )(session: DBSession = ReadOnlyAutoSession): Try[api.TopicWithPosts] = {
+    )(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
       for {
         maybePost <- arenaRepository.getPost(postId)(session)
         (post, _) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
