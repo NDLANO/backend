@@ -68,9 +68,11 @@ trait ImageStorageService {
         NdlaImage(s3Object, imageKey)
       ) match {
         case Success(e) => Success(e)
-        case Failure(ex) =>
-          logger.error("HMM", ex)
+        case Failure(ex: AmazonS3Exception) if ex.getStatusCode == 404 =>
           Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
+        case Failure(ex) =>
+          logger.error(s"Failed to get image '$imageKey' from S3", ex)
+          Failure(ex)
       }
     }
 
