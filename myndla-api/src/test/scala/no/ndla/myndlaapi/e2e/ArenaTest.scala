@@ -15,7 +15,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi.{model, *}
 import no.ndla.myndlaapi.model.api.ArenaUser
-import no.ndla.myndlaapi.model.arena.api.PaginatedNewPostNotifications
+import no.ndla.myndlaapi.model.arena.api.{PaginatedNewPostNotifications, PaginatedPosts}
 import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -816,6 +816,76 @@ class ArenaTest
     unUpvote.code.code should be(200)
     unUpvoteT.upvotes should be(0)
     unUpvoteT.upvoted should be(false)
+  }
+
+  test("that a post can be flagged and flagged posts can be fetched and resolved") {
+    val adminToken   = "adminToken"
+    val adminId      = "adminId"
+    val userOneToken = "userOneToken"
+    val userOneId    = "userOneId"
+    val userTwoToken = "userTwoToken"
+    val userTwoId    = "userTwoId"
+
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(adminToken)))).thenReturn(Success(adminId))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(userOneToken)))).thenReturn(Success(userOneId))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(userTwoToken)))).thenReturn(Success(userTwoId))
+
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
+    when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
+
+    val createCategoryRes = createCategory("title", "description")
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryId        = categoryIdT.get.id
+
+    val topic   = createTopic("Topic title", "Topic description", categoryId, token = userOneToken)
+    val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
+    val topicId = topicT.get.id
+
+    val ownPost   = createPost("Innhold i posten", topicId, token = userOneToken)
+    val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.Post]).toTry
+    val ownPostId = ownPostT.get.id
+
+    val flagPost = simpleHttpClient.send(
+      quickRequest
+        .post(uri"$myndlaApiArenaUrl/posts/$ownPostId/flag")
+        .body("""{"reason": "spam"}""")
+        .header("Content-Type", "application/json")
+        .header("FeideAuthorization", s"Bearer $userTwoToken")
+        .readTimeout(10.seconds)
+    )
+    flagPost.code.code should be(200)
+
+    val flaggedPostsResponse = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiArenaUrl/flags")
+        .header("FeideAuthorization", s"Bearer $adminToken")
+        .readTimeout(10.seconds)
+    )
+
+    val flaggedPosts = CirceUtil.unsafeParseAs[PaginatedPosts](flaggedPostsResponse.body)
+    flaggedPosts.totalCount should be(1)
+    val p = flaggedPosts.items.head
+    p.id should be(ownPostId)
+    val flag = p.flags.get.head
+    flag.reason should be("spam")
+
+    simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/flags/${flag.id}")
+        .header("FeideAuthorization", s"Bearer $adminToken")
+        .readTimeout(10.seconds)
+    )
+
+    val flaggedPostsResponse2 = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiArenaUrl/flags")
+        .header("FeideAuthorization", s"Bearer $adminToken")
+        .readTimeout(10.seconds)
+    )
+
+    val flaggedPosts2 = CirceUtil.unsafeParseAs[PaginatedPosts](flaggedPostsResponse2.body)
+    flaggedPosts2.totalCount should be(1)
+    flaggedPosts2.items.head.flags.get.head.resolved.isDefined should be(true)
   }
 
 }

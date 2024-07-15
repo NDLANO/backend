@@ -58,7 +58,7 @@ trait ArenaReadService {
         postId: Long,
         requester: MyNDLAUser,
         pageSize: Long
-    )(session: DBSession = ReadOnlyAutoSession): Try[api.TopicWithPosts] = {
+    )(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
       for {
         maybePost <- arenaRepository.getPost(postId)(session)
         (post, _) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
@@ -79,7 +79,7 @@ trait ArenaReadService {
     )(session: DBSession = ReadOnlyAutoSession): Try[api.PaginatedPosts] = {
       val offset = (page - 1) * pageSize
       for {
-        posts     <- arenaRepository.getFlaggedPosts(offset, pageSize)(session)
+        posts     <- arenaRepository.getFlaggedPosts(offset, pageSize, requester)(session)
         postCount <- arenaRepository.getFlaggedPostsCount(session)
         apiPosts = posts.map(compiledPost => {
           val replies = getRepliesForPost(compiledPost.post.id, requester)(session).?

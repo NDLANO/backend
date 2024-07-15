@@ -1031,20 +1031,20 @@ trait ArenaRepository {
         .getOrElse(0L)
     }
 
-    def getFlaggedPosts(offset: Long, limit: Long)(implicit session: DBSession): Try[List[CompiledPost]] = {
+    def getFlaggedPosts(offset: Long, limit: Long, requester: MyNDLAUser)(implicit
+        session: DBSession
+    ): Try[List[CompiledPost]] = {
       val p  = domain.Post.syntax("p")
       val ps = SubQuery.syntax("ps").include(p)
       val u  = MyNDLAUser.syntax("u")
       val f  = domain.Flag.syntax("f")
       Try {
         sql"""
-              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll},
-              (select count(*) from ${domain.PostUpvote.table} where post_id = ${ps(p).id}) as upvotes,
-              (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${ps(
-            p
-          ).id} and user_id = ${u.id}) as upvoted,
+              select ${ps.resultAll}, ${u.resultAll}, ${f.resultAll}, upvotes, upvoted
               from (
-                  select ${p.resultAll}
+                  select ${p.resultAll},
+                  (select count(*) from ${domain.PostUpvote.table} where post_id = ${p.id}) as upvotes,
+                  (select count(*) > 0 from ${domain.PostUpvote.table} where post_id = ${p.id} and user_id = ${requester.id}) as upvoted
                   from ${domain.Post.as(p)}
                   where (select count(*) from flags f where f.post_id = ${p.id}) > 0
                   and (select deleted from topics t where t.id = ${p.topic_id}) is null
