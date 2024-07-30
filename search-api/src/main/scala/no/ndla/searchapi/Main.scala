@@ -9,9 +9,10 @@
 package no.ndla.searchapi
 
 import no.ndla.common.Environment.setPropsFromEnv
+import no.ndla.common.errors.ExceptionLogHandler
 
 object Main {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = ExceptionLogHandler.default {
     setPropsFromEnv()
     val props     = new SearchApiProperties
     val mainClass = new MainClass(props)
