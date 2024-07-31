@@ -7,11 +7,12 @@
 
 package no.ndla.frontpageapi.repository
 
-import io.circe.syntax._
+import io.circe.syntax.*
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, FilmFrontPageData}
+import org.log4s.Logger
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -20,6 +21,7 @@ trait FilmFrontPageRepository {
   val filmFrontPageRepository: FilmFrontPageRepository
 
   class FilmFrontPageRepository {
+    val logger: Logger = org.log4s.getLogger
     import FilmFrontPageData._
 
     def newFilmFrontPage(page: FilmFrontPageData)(implicit session: DBSession = AutoSession): Try[FilmFrontPageData] = {
@@ -50,11 +52,11 @@ trait FilmFrontPageRepository {
       ) match {
         case Success(Some(Success(s))) => Some(s)
         case Success(Some(Failure(ex))) =>
-          ex.printStackTrace()
+          logger.error(ex)("Error while decoding film front page")
           None
         case Success(None) => None
         case Failure(ex) =>
-          ex.printStackTrace()
+          logger.error(ex)("Error while getting film front page from database")
           None
       }
 

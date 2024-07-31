@@ -295,6 +295,36 @@ trait ArenaReadService {
       } else Success(existing.rank)
     }
 
+    private def validateParentCategory(category: api.CategoryType, maybeNewParentId: Option[Long], user: MyNDLAUser)(
+        session: DBSession
+    ): Try[Unit] = {
+      maybeNewParentId match {
+        case None => Success(())
+        case Some(id) if id == category.id =>
+          Failure(
+            ValidationException(
+              "parentCategoryId",
+              "Category cannot be its own child or the child of one of its children."
+            )
+          )
+        case Some(_) if category.subcategories.nonEmpty =>
+          category.subcategories
+            .traverse(sub => validateParentCategory(sub, maybeNewParentId, user)(session))
+            .map(_ => ())
+        case Some(parentId) =>
+          arenaRepository.getCategory(parentId, includeHidden = user.isAdmin)(session).flatMap {
+            case Some(_) => Success(())
+            case None =>
+              Failure(
+                ValidationException(
+                  "parentCategoryId",
+                  s"Could not find specified parent category id: '$parentId'"
+                )
+              )
+          }
+      }
+    }
+
     def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
         session: DBSession = AutoSession
     ): Try[Category] = {
@@ -306,6 +336,7 @@ trait ArenaReadService {
       )
       for {
         existing      <- getCategory(categoryId, 0, 0, user)(session)
+        _             <- validateParentCategory(existing, newCategory.parentCategoryId, user)(session)
         newRank       <- getNewRank(existing, toInsert.parentCategoryId)(session)
         updated       <- arenaRepository.updateCategory(categoryId, toInsert, newRank)(session)
         following     <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)

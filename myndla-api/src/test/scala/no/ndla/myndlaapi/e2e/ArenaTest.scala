@@ -15,7 +15,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi.{model, *}
 import no.ndla.myndlaapi.model.api.ArenaUser
-import no.ndla.myndlaapi.model.arena.api.{PaginatedNewPostNotifications, PaginatedPosts}
+import no.ndla.myndlaapi.model.arena.api.{NewCategory, PaginatedNewPostNotifications, PaginatedPosts}
 import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -144,9 +144,15 @@ class ArenaTest
     shareName = false
   )
 
-  def createCategory(title: String, description: String, shouldSucceed: Boolean = true): Response[String] = {
-    val newCategory = api.NewCategory(title = title, description = description, visible = true, parentCategoryId = None)
-    val inBody      = newCategory.asJson.noSpaces
+  def createCategory(
+      title: String,
+      description: String,
+      shouldSucceed: Boolean = true,
+      parentCategoryId: Option[Long] = None
+  ): Response[String] = {
+    val newCategory =
+      api.NewCategory(title = title, description = description, visible = true, parentCategoryId = parentCategoryId)
+    val inBody = newCategory.asJson.noSpaces
     val res = simpleHttpClient.send(
       quickRequest
         .post(uri"$myndlaApiArenaUrl/categories")
@@ -886,6 +892,100 @@ class ArenaTest
     val flaggedPosts2 = CirceUtil.unsafeParseAs[PaginatedPosts](flaggedPostsResponse2.body)
     flaggedPosts2.totalCount should be(1)
     flaggedPosts2.items.head.flags.get.head.resolved.isDefined should be(true)
+  }
+
+  test("that a category cannot be moved into itself or a child") {
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
+    when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
+    when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
+
+    val category1   = createCategory("title1", "description1", parentCategoryId = None)
+    val category1T  = io.circe.parser.parse(category1.body).flatMap(_.as[api.Category]).toTry
+    val category1Id = category1T.get.id
+
+    val category2   = createCategory("title2", "description2", parentCategoryId = Some(category1Id))
+    val category2T  = io.circe.parser.parse(category2.body).flatMap(_.as[api.Category]).toTry
+    val category2Id = category2T.get.id
+
+    val category3   = createCategory("title3", "description3", parentCategoryId = Some(category2Id))
+    val category3T  = io.circe.parser.parse(category3.body).flatMap(_.as[api.Category]).toTry
+    val category3Id = category3T.get.id
+
+    val intoItself = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/categories/$category1Id")
+        .body(
+          CirceUtil.toJsonString(
+            NewCategory(
+              title = "title1",
+              description = "description1",
+              visible = true,
+              parentCategoryId = Some(category1Id)
+            )
+          )
+        )
+    )
+    intoItself.code.code should be(400)
+
+    val intoChild = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/categories/$category1Id")
+        .body(
+          CirceUtil.toJsonString(
+            NewCategory(
+              title = "title1",
+              description = "description1",
+              visible = true,
+              parentCategoryId = Some(category2Id)
+            )
+          )
+        )
+    )
+    intoChild.code.code should be(400)
+
+    val intoNestedChild = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/categories/$category1Id")
+        .body(
+          CirceUtil.toJsonString(
+            NewCategory(
+              title = "title1",
+              description = "description1",
+              visible = true,
+              parentCategoryId = Some(category3Id)
+            )
+          )
+        )
+    )
+    intoNestedChild.code.code should be(400)
+
+    val intoAnotherParent = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiArenaUrl/categories/$category3Id")
+        .body(
+          CirceUtil.toJsonString(
+            NewCategory(
+              title = "title3",
+              description = "description3",
+              visible = true,
+              parentCategoryId = Some(category1Id)
+            )
+          )
+        )
+    )
+    intoAnotherParent.code.code should be(200)
+
+    val fetchCategoriesResponse = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiArenaUrl/categories")
+        .header("FeideAuthorization", s"Bearer asd")
+        .readTimeout(10.seconds)
+    )
+
+    val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.Category]]).toTry.get
+    categories.size should be(1)
+    categories.head.id should be(category1Id)
+    categories.head.subcategories.map(_.id) should be(List(category2Id, category3Id))
   }
 
 }
