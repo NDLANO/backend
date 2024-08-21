@@ -20,6 +20,7 @@ case class ApiTaxonomyContext(
     @description("The relevanceId for this context.") relevanceId: String,
     @description("Path to the resource in this context.") path: String,
     @description("Breadcrumbs of path to the resource in this context.") breadcrumbs: List[String],
+    @description("Unique id of this context.") contextId: String,
     @description("Type in this context.") contextType: String,
     @description("Resource-types of this context.") resourceTypes: List[TaxonomyResourceType],
     @description("Language for this context.") language: String,
