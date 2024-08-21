@@ -39,6 +39,9 @@ trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
         case None =>
           logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
           ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
+        case Some(statusCode) if statusCodesToPassAlong.contains(statusCode) =>
+          logger.info(s"Remote service returned $statusCode: '${hre.getMessage}'${msg.getOrElse("")}")
+          ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), statusCode)
         case Some(statusCode) =>
           logger.error(s"Remote service returned $statusCode: '${hre.getMessage}'${msg.getOrElse("")}")
           ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), statusCode)
