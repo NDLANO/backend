@@ -8,6 +8,7 @@ export interface IApiTaxonomyContext {
   relevanceId: string
   path: string
   breadcrumbs: string[]
+  contextId: string
   contextType: string
   resourceTypes: ITaxonomyResourceType[]
   language: string
