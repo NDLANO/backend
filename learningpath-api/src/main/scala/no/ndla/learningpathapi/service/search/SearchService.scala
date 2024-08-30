@@ -307,13 +307,13 @@ trait SearchService extends StrictLogging {
 
     private def errorHandler[T](exception: Throwable): Failure[T] = {
       exception match {
-        case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _) if status == 404 =>
+        case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _, _) if status == 404 =>
           logger.error(s"Index ${props.SearchIndex} not found. Scheduling a reindex.")
           scheduleIndexDocuments()
           Failure(
             IndexNotFoundException(s"Index ${props.SearchIndex} not found. Scheduling a reindex")
           )
-        case e: NdlaSearchException =>
+        case e: NdlaSearchException[?] =>
           logger.error(e.getMessage)
           Failure(
             NdlaSearchException(

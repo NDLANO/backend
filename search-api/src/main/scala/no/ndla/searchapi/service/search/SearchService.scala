@@ -310,7 +310,7 @@ trait SearchService {
 
     protected def errorHandler[U](failure: Throwable): Failure[U] = {
       failure match {
-        case e: NdlaSearchException =>
+        case e: NdlaSearchException[?] =>
           e.rf.map(_.status).getOrElse(0) match {
             case notFound: Int if notFound == 404 =>
               val msg = s"Index ${e.rf.flatMap(_.error.index).getOrElse("")} not found. Scheduling a reindex."

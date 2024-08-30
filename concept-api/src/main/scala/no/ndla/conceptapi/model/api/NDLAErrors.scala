@@ -38,7 +38,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
     case o: OptimisticLockException       => errorBody(RESOURCE_OUTDATED, o.getMessage, 409)
     case st: IllegalStatusStateTransition => badRequest(st.getMessage)
     case _: IndexNotFoundException        => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 500)
-    case NdlaSearchException(_, Some(rf), _)
+    case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)

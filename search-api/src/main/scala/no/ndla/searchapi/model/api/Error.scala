@@ -29,7 +29,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
     case v: ValidationException =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
     case ade: AccessDeniedException => forbiddenMsg(ade.getMessage)
-    case NdlaSearchException(_, Some(rf), _)
+    case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       invalidSearchContext

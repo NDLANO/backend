@@ -123,11 +123,11 @@ trait SearchService {
 
     protected def errorHandler[U](failure: Throwable): Failure[U] = {
       failure match {
-        case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _) if status == 404 =>
+        case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _, _) if status == 404 =>
           logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
           scheduleIndexDocuments()
           Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
-        case e: NdlaSearchException =>
+        case e: NdlaSearchException[?] =>
           logger.error(e.getMessage)
           Failure(NdlaSearchException(s"Unable to execute search in $searchIndex", e))
         case t: Throwable => Failure(t)
