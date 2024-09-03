@@ -1,6 +1,10 @@
 import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{typescriptExports, typescriptGenerationImports, typescriptOutputFile}
+import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
+  typescriptExports,
+  typescriptGenerationImports,
+  typescriptOutputFile
+}
 import sbt.*
 import sbt.Keys.*
 

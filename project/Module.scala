@@ -1,6 +1,10 @@
 import Dependencies.versions.*
 import GithubWorkflowPlugin.autoImport.*
-import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{typescriptExports, typescriptGenerationImports, typescriptOutputFile}
+import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
+  typescriptExports,
+  typescriptGenerationImports,
+  typescriptOutputFile
+}
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
 import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.*
 import org.typelevel.scalacoptions.*
@@ -21,11 +25,11 @@ object Module {
       deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty
   ): sbt.Project = {
     project
-      .settings(module.settings *)
-      .configs(module.configs *)
-      .enablePlugins(module.plugins *)
-      .disablePlugins(module.disablePlugins *)
-      .dependsOn(deps *)
+      .settings(module.settings*)
+      .configs(module.configs*)
+      .enablePlugins(module.plugins*)
+      .disablePlugins(module.disablePlugins*)
+      .dependsOn(deps*)
   }
 }
 

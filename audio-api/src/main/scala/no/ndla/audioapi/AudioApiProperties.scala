@@ -8,14 +8,14 @@
 
 package no.ndla.audioapi
 
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.Region
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.{prop, propToAwsRegion}
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.network.{AuthUser, Domains}
 import no.ndla.common.secrets.PropertyKeys
+import no.ndla.network.{AuthUser, Domains}
 
-import scala.util.Properties._
+import scala.util.Properties.*
 
 trait Props extends HasBaseProps {
   val props: AudioApiProperties
@@ -43,8 +43,8 @@ class AudioApiProperties extends BaseProps with StrictLogging {
 
   val MaxAudioFileSizeBytes: Int = 1024 * 1024 * 100 // 100 MiB
 
-  val StorageName: String    = propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
-  val StorageRegion: Regions = propToAwsRegion("AUDIO_FILE_S3_BUCKET_REGION")
+  val StorageName: String   = propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
+  val StorageRegion: Region = propToAwsRegion("AUDIO_FILE_S3_BUCKET_REGION")
 
   val SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean

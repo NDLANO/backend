@@ -103,7 +103,7 @@ class ComponentRegistry(properties: DraftApiProperties)
   val amazonClient: AmazonS3 =
     AmazonS3ClientBuilder
       .standard()
-      .withRegion(props.AttachmentStorageRegion)
+      .withRegion(props.AttachmentStorageRegion.toString)
       .build()
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)

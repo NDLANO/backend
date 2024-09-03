@@ -8,14 +8,14 @@
 
 package no.ndla.imageapi
 
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.Region
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.{prop, propToAwsRegion}
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.network.{AuthUser, Domains}
 import no.ndla.common.secrets.PropertyKeys
+import no.ndla.network.{AuthUser, Domains}
 
-import scala.util.Properties._
+import scala.util.Properties.*
 
 trait Props extends HasBaseProps {
   val props: ImageApiProperties
@@ -106,8 +106,8 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
 
-  val StorageName: String    = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
-  val StorageRegion: Regions = propToAwsRegion("IMAGE_FILE_S3_BUCKET_REGION")
+  val StorageName: String   = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
+  val StorageRegion: Region = propToAwsRegion("IMAGE_FILE_S3_BUCKET_REGION")
 
   val S3NewFileCacheControlHeader: String = propOrElse("IMAGE_FILE_S3_BUCKET_CACHE_CONTROL", "max-age=2592000")
 
