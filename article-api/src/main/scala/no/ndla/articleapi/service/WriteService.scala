@@ -103,7 +103,7 @@ trait WriteService {
       updated
         .flatMap(articleIndexService.deleteDocument)
         .map(searchApiClient.deleteArticle)
-        .map(api.ArticleIdV2)
+        .map(api.ArticleIdV2.apply)
     }
 
     def deleteArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2] = {
@@ -115,7 +115,7 @@ trait WriteService {
       deleted
         .flatMap(articleIndexService.deleteDocument)
         .map(searchApiClient.deleteArticle)
-        .map(api.ArticleIdV2)
+        .map(api.ArticleIdV2.apply)
     }
 
   }

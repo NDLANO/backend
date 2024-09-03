@@ -1,9 +1,8 @@
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
-import sbt.Keys._
+import sbt.*
+import sbt.Keys.*
 import sbtdocker.DockerPlugin
-import Dependencies.versions._
-import Dependencies._
 
 object searchapi extends Module {
   override val moduleName: String        = "search-api"
@@ -23,7 +22,7 @@ object searchapi extends Module {
     vulnerabilityOverrides
   )
 
-  lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq(
       "no.ndla.searchapi.model.api._",
       "no.ndla.searchapi.controller.parameters._"
@@ -47,7 +46,7 @@ object searchapi extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

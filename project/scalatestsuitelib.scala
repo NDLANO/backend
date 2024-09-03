@@ -1,7 +1,7 @@
-import Dependencies.versions._
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt.Keys._
-import sbt._
+import sbt.*
+import sbt.Keys.*
 
 object scalatestsuitelib extends Module {
   override val moduleName: String      = "scalatestsuite"
@@ -13,7 +13,7 @@ object scalatestsuitelib extends Module {
     "org.testcontainers" % "postgresql"     % TestContainersV
   ) ++ database ++ vulnerabilityOverrides ++ mockito
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

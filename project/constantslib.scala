@@ -1,12 +1,6 @@
 import Dependencies.versions.*
-import _root_.io.github.davidgregory084.TpolecatPlugin.autoImport.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
-  typescriptExports,
-  typescriptGenerationImports,
-  typescriptOutputFile
-}
-import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.typescriptGenerationImports
+import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{typescriptExports, typescriptGenerationImports, typescriptOutputFile}
 import sbt.*
 import sbt.Keys.*
 
@@ -22,13 +16,13 @@ object constantslib extends Module {
       scalaTsi
     )
   )
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
     tsSettings
 
-  lazy val tsSettings: Seq[Def.Setting[_]] = Seq(
+  lazy val tsSettings: Seq[Def.Setting[?]] = Seq(
     typescriptGenerationImports := Seq(
       "no.ndla.common.model.domain.config._",
       "no.ndla.network.tapir.auth._",

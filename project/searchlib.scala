@@ -1,7 +1,7 @@
-import Dependencies.versions._
-import sbt.Keys._
-import sbt._
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
+import sbt.*
+import sbt.Keys.*
 
 object searchlib extends Module {
   override val moduleName: String      = "search"
@@ -11,7 +11,7 @@ object searchlib extends Module {
     catsEffect,
     jsoup
   ) ++ elastic4s
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

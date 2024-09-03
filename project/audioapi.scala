@@ -1,9 +1,8 @@
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
+import sbt.*
 import sbt.Keys.libraryDependencies
 import sbtdocker.DockerPlugin
-import Dependencies.versions._
-import Dependencies._
 
 object audioapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.audioapi.Main")
@@ -28,7 +27,7 @@ object audioapi extends Module {
     vulnerabilityOverrides
   )
 
-  lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq("no.ndla.audioapi.model.api._"),
     exports = Seq(
       "Audio",
@@ -47,7 +46,7 @@ object audioapi extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

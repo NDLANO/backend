@@ -14,7 +14,7 @@ object tapirtestinglib extends Module {
     "com.softwaremill.sttp.tapir" %% "tapir-testing"  % TapirV
   ) ++ database ++ vulnerabilityOverrides ++ tapirHttp4sCirce
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

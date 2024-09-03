@@ -1,8 +1,7 @@
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
-import sbt.Keys._
-import Dependencies.versions._
-import Dependencies._
+import sbt.*
+import sbt.Keys.*
 
 object networklib extends Module {
   override val moduleName: String      = "network"
@@ -11,15 +10,15 @@ object networklib extends Module {
     Seq(
       sttp,
       "org.scalatest"        %% "scalatest" % ScalaTestV % "test",
-      "redis.clients"         % "jedis"     % "5.1.1",
-      "com.github.jwt-scala" %% "jwt-circe" % "10.0.0"
+      "redis.clients"         % "jedis"     % "5.1.5",
+      "com.github.jwt-scala" %% "jwt-circe" % "10.0.1"
     ),
     mockito,
     vulnerabilityOverrides,
     tapirHttp4sCirce
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

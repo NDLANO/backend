@@ -1,10 +1,9 @@
-import sbt.Keys._
-import sbt._
-import Dependencies.versions._
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import _root_.io.github.davidgregory084.TpolecatPlugin.autoImport.*
-import _root_.io.github.davidgregory084.ScalaVersion.*
-import _root_.io.github.davidgregory084.ScalacOption
+import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.*
+import org.typelevel.scalacoptions.*
+import sbt.*
+import sbt.Keys.*
 
 object commonlib extends Module {
   override val moduleName: String      = "common"
@@ -22,7 +21,7 @@ object commonlib extends Module {
     tapirHttp4sCirce
   )
   val commonTestExcludeOptions = Set(ScalacOptions.warnUnusedPatVars)
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies,
     tpolecatExcludeOptions ++= commonTestExcludeOptions ++ excludeOptions
   ) ++

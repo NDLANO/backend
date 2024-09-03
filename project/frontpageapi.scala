@@ -1,9 +1,8 @@
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
-import sbt.Keys._
+import sbt.*
+import sbt.Keys.*
 import sbtdocker.DockerPlugin
-import Dependencies.versions._
-import Dependencies._
 
 object frontpageapi extends Module {
   override val moduleName: String        = "frontpage-api"
@@ -21,7 +20,7 @@ object frontpageapi extends Module {
     tapirHttp4sCirce
   )
 
-  lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq("no.ndla.frontpageapi.model.api._", "no.ndla.network.tapir._"),
     exports = Seq(
       "no.ndla.common.model.api.FrontPage",
@@ -36,7 +35,7 @@ object frontpageapi extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

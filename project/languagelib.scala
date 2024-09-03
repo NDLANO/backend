@@ -1,7 +1,7 @@
-import Dependencies.versions._
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt.Keys._
-import sbt._
+import sbt.*
+import sbt.Keys.*
 
 object languagelib extends Module {
   override val moduleName: String      = "language"
@@ -12,7 +12,7 @@ object languagelib extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

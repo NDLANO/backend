@@ -1,9 +1,8 @@
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
-import sbt.Keys.{libraryDependencies, name}
+import sbt.*
+import sbt.Keys.libraryDependencies
 import sbtdocker.DockerPlugin
-import Dependencies.versions._
-import Dependencies._
 
 object articleapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.articleapi.Main")
@@ -28,7 +27,7 @@ object articleapi extends Module {
     vulnerabilityOverrides
   )
 
-  lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq(
       "no.ndla.articleapi.model.api._",
       "no.ndla.articleapi.model.api.TSTypes._",
@@ -47,7 +46,7 @@ object articleapi extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

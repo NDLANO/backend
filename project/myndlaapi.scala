@@ -21,7 +21,7 @@ object myndlaapi extends Module {
     vulnerabilityOverrides
   )
 
-  lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq(
       "no.ndla.common.model.api._",
       "no.ndla.common.model.api.config._",
@@ -64,7 +64,7 @@ object myndlaapi extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

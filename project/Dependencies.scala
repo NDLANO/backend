@@ -1,5 +1,4 @@
-import sbt.Keys._
-import sbt._
+import sbt.{Project, *}
 
 object Dependencies {
 
@@ -8,29 +7,29 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "2.13.13"
+    val ScalaV                = "2.13.14"
     val HikariConnectionPoolV = "5.1.0"
     val ScalaLoggingV         = "3.9.5"
-    val ScalaTestV            = "3.2.18"
+    val ScalaTestV            = "3.2.19"
     val Log4JV                = "2.23.1"
-    val AwsSdkV               = "1.12.669"
+    val AwsSdkV               = "1.12.765"
     val MockitoV              = "1.17.30"
     val Elastic4sV            = "8.11.5"
-    val JacksonV              = "2.16.1"
-    val CatsEffectV           = "3.5.3"
-    val FlywayV               = "10.8.1"
-    val PostgresV             = "42.7.2"
+    val JacksonV              = "2.17.2"
+    val CatsEffectV           = "3.5.4"
+    val FlywayV               = "10.17.3"
+    val PostgresV             = "42.7.3"
     val ScalaTsiV             = "0.8.3"
-    val Http4sV               = "0.23.25"
-    val TapirV                = "1.9.10"
-    val ApiSpecV              = "0.7.4"
-    val SttpV                 = "3.9.2"
-    val CirceV                = "0.14.6"
-    val ScalikeJDBCV          = "4.2.0"
-    val TestContainersV       = "1.19.4"
-    val JsoupV                = "1.17.2"
-    val JavaMelodyV           = "1.92.0"
-    val EnumeratumV           = "1.7.3"
+    val Http4sV               = "0.23.27"
+    val TapirV                = "1.10.15"
+    val ApiSpecV              = "0.11.0"
+    val SttpV                 = "3.9.7"
+    val CirceV                = "0.14.9"
+    val ScalikeJDBCV          = "4.3.0"
+    val TestContainersV       = "1.20.0"
+    val JsoupV                = "1.18.1"
+    val JavaMelodyV           = "2.2.0"
+    val EnumeratumV           = "1.7.4"
     val FlexmarkV             = "0.64.8"
 
     lazy val scalaUri = ("io.lemonlabs" %% "scala-uri" % "4.0.3").excludeAll("org.typelevel", "cats-parse")
@@ -130,7 +129,7 @@ object Dependencies {
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides: Seq[ModuleID] = Seq(
-      "commons-codec"             % "commons-codec" % "1.16.0",
+      "commons-codec"             % "commons-codec" % "1.17.0",
       "org.apache.httpcomponents" % "httpclient"    % "4.5.14",
       "org.yaml"                  % "snakeyaml"     % "2.0"
     )
