@@ -25,7 +25,7 @@ object Environment {
   /** Will try to derive aws-region from ec2 instance metadata if `auto` is specified in the property If another string
     * is passed, it will be attempted to be parsed as a aws region. Otherwise the default region will be used.
     */
-  def propToAwsRegion(key: String, defaultRegion: Region = RegionUtils.getRegion("eu-west-1")): Region = {
+  def propToAwsRegion(key: String, defaultRegion: Region = Region.getRegion(Regions.EU_WEST_1)): Region = {
     val specifiedRegion = propOrNone(key)
     specifiedRegion
       .flatMap {
