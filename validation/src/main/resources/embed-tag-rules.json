@@ -1085,7 +1085,7 @@
         {
           "name": "data-image-id",
           "validation": {
-            "required": true,
+            "required": false,
             "dataType": "NUMBER"
           }
         },
