@@ -885,7 +885,7 @@ trait ArenaRepository {
              select ${t.resultAll}, ${u.resultAll}, ${tf.resultAll},
                (select count(*) from ${domain.Post.table} where topic_id = ${t.id}) as postCount,
                (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${t.id} and user_id = ${requester.id}) as isFollowing,
-               (select count(*) from ${domain.Post.table} where topic_id = ${t.id} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id}) as voteCount
+               (select count(*) from ${domain.Post.table} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id} where topic_id = ${t.id}) as voteCount
              from ${domain.Topic.as(t)}
              left join ${MyNDLAUser.as(u)} on ${u.id} = ${t.ownerId}
              left join ${domain.TopicFollow.as(tf)} on ${tf.topic_id} = ${t.id}
@@ -1120,7 +1120,7 @@ trait ArenaRepository {
                 (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(
             t
           ).id} and user_id = ${requester.id}) as isFollowing,
-                (select count(*) from ${domain.Post.table} where topic_id = ${t.id} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id}) as voteCount
+                (select count(*) from ${domain.Post.table} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id} where topic_id = ${t.id}) as voteCount
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
@@ -1208,7 +1208,7 @@ trait ArenaRepository {
                 (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(
             t
           ).id} and user_id = ${requester.id}) as isFollowing,
-                (select count(*) from ${domain.Post.table} where topic_id = ${t.id} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id}) as voteCount
+                (select count(*) from ${domain.Post.table} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id} where topic_id = ${t.id}) as voteCount
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
