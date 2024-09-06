@@ -875,6 +875,8 @@ trait ArenaRepository {
       val t  = domain.Topic.syntax("t")
       val u  = MyNDLAUser.syntax("u")
       val tf = domain.TopicFollow.syntax("tf")
+      val p  = domain.Post.syntax("p")
+      val pu = domain.PostUpvote.syntax("pu")
       val visibleSql =
         if (requester.isAdmin) sqls""
         else sqls"and (select visible from ${domain.Category.table} where id = ${t.category_id}) = true"
@@ -882,7 +884,8 @@ trait ArenaRepository {
         sql"""
              select ${t.resultAll}, ${u.resultAll}, ${tf.resultAll},
                (select count(*) from ${domain.Post.table} where topic_id = ${t.id}) as postCount,
-               (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${t.id} and user_id = ${requester.id}) as isFollowing
+               (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${t.id} and user_id = ${requester.id}) as isFollowing,
+               (select count(*) from ${domain.Post.table} where topic_id = ${t.id} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id}) as voteCount
              from ${domain.Topic.as(t)}
              left join ${MyNDLAUser.as(u)} on ${u.id} = ${t.ownerId}
              left join ${domain.TopicFollow.as(tf)} on ${tf.topic_id} = ${t.id}
@@ -893,14 +896,15 @@ trait ArenaRepository {
             (
               domain.Topic.fromResultSet(t.resultName)(rs),
               rs.long("postCount"),
-              rs.boolean("isFollowing")
+              rs.boolean("isFollowing"),
+              rs.long("voteCount")
             )
           )
           .toMany(rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption)
           .map { (topicAndCountAndFollowing, owners) =>
             {
-              val (topic, postCount, isFollowing) = topicAndCountAndFollowing
-              compileTopic(topic, owners.toSeq, postCount, isFollowing)
+              val (topic, postCount, isFollowing, voteCount) = topicAndCountAndFollowing
+              compileTopic(topic, owners.toSeq, postCount, isFollowing, voteCount)
             }
           }
           .single
@@ -921,7 +925,8 @@ trait ArenaRepository {
         topic: Try[domain.Topic],
         owners: Seq[MyNDLAUser],
         postCount: Long,
-        isFollowing: Boolean
+        isFollowing: Boolean,
+        voteCount: Long
     ): Try[CompiledTopic] = {
       for {
         t     <- topic
@@ -930,7 +935,8 @@ trait ArenaRepository {
         topic = t,
         owner = owner,
         postCount = postCount,
-        isFollowing = isFollowing
+        isFollowing = isFollowing,
+        voteCount = voteCount
       )
     }
 
@@ -1097,6 +1103,8 @@ trait ArenaRepository {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
       val u  = MyNDLAUser.syntax("u")
+      val p  = domain.Post.syntax("p")
+      val pu = domain.PostUpvote.syntax("pu")
       val visibleSql =
         if (requester.isAdmin) None
         else Some(sqls"(select visible from ${domain.Category.table} where id = ${t.category_id}) = true")
@@ -1111,7 +1119,8 @@ trait ArenaRepository {
                 (select count(*) from ${domain.Post.table} where topic_id = ${ts(t).id}) as postCount,
                 (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(
             t
-          ).id} and user_id = ${requester.id}) as isFollowing
+          ).id} and user_id = ${requester.id}) as isFollowing,
+                (select count(*) from ${domain.Post.table} where topic_id = ${t.id} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id}) as voteCount
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
@@ -1127,13 +1136,14 @@ trait ArenaRepository {
             (
               domain.Topic.fromResultSet(ts(t).resultName)(rs),
               rs.long("postCount"),
-              rs.boolean("isFollowing")
+              rs.boolean("isFollowing"),
+              rs.long("voteCount")
             )
           })
           .toMany(rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption)
           .map { (topicAndCountAndFollowing, owners) =>
-            val (topic, postCount, isFollowing) = topicAndCountAndFollowing
-            compileTopic(topic, owners.toList, postCount, isFollowing)
+            val (topic, postCount, isFollowing, voteCount) = topicAndCountAndFollowing
+            compileTopic(topic, owners.toList, postCount, isFollowing, voteCount)
           }
           .list
           .apply()
@@ -1188,6 +1198,8 @@ trait ArenaRepository {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
       val u  = MyNDLAUser.syntax("u")
+      val p  = domain.Post.syntax("p")
+      val pu = domain.PostUpvote.syntax("pu")
       Try {
         sql"""
               select
@@ -1195,7 +1207,8 @@ trait ArenaRepository {
                 (select count(*) from ${domain.Post.table} where topic_id = ${ts(t).id}) as postCount,
                 (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(
             t
-          ).id} and user_id = ${requester.id}) as isFollowing
+          ).id} and user_id = ${requester.id}) as isFollowing,
+                (select count(*) from ${domain.Post.table} where topic_id = ${t.id} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id}) as voteCount
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
@@ -1212,13 +1225,14 @@ trait ArenaRepository {
             (
               domain.Topic.fromResultSet(ts(t).resultName)(rs),
               rs.long("postCount"),
-              rs.boolean("isFollowing")
+              rs.boolean("isFollowing"),
+              rs.long("voteCount")
             )
           })
           .toMany(rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption)
           .map { (topicAndCountAndFollowing, owners) =>
-            val (topic, postCount, isFollowing) = topicAndCountAndFollowing
-            compileTopic(topic, owners.toList, postCount, isFollowing)
+            val (topic, postCount, isFollowing, voteCount) = topicAndCountAndFollowing
+            compileTopic(topic, owners.toList, postCount, isFollowing, voteCount)
           }
           .list
           .apply()

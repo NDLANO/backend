@@ -370,7 +370,7 @@ trait ArenaReadService {
           _ <- arenaRepository.postPost(topic.id, newTopic.initialPost.content, user.id, created, created, None)(
             session
           )
-          compiledTopic = CompiledTopic(topic, Some(user), 1, isFollowing = true)
+          compiledTopic = CompiledTopic(topic, Some(user), 1, isFollowing = true, 0)
         } yield converterService.toApiTopic(compiledTopic)
       }
     }

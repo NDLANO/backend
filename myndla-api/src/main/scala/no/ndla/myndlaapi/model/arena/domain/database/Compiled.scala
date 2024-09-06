@@ -27,7 +27,8 @@ case class CompiledTopic(
     topic: domain.Topic,
     owner: Option[MyNDLAUser],
     postCount: Long,
-    isFollowing: Boolean
+    isFollowing: Boolean,
+    voteCount: Long
 )
 
 case class CompiledNotification(
