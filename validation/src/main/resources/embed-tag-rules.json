@@ -594,63 +594,6 @@
         }
       ]
     },
-    "concept-list": {
-      "fields": [
-        {
-          "name": "data-resource",
-          "validation": {
-            "required": true
-          }
-        },
-        {
-          "name": "data-tag",
-          "validation": {
-            "required": false,
-            "mustCoexistWith": [
-              "data-title"
-            ]
-          }
-        },
-        {
-          "name": "data-title",
-          "validation": {
-            "required": false,
-            "mustCoexistWith": [
-              "data-tag"
-            ]
-          }
-        },
-        {
-          "name": "data-subject-id",
-          "validation": {
-            "required": false,
-            "mustCoexistWith": [
-              "data-tag",
-              "data-title"
-            ]
-          }
-        },
-        {
-          "name": "data-resource_id",
-          "validation": {
-            "required": false,
-            "mustCoexistWith": [
-              "data-recursive"
-            ]
-          }
-        },
-        {
-          "name": "data-recursive",
-          "validation": {
-            "required": false,
-            "dataType": "BOOLEAN",
-            "mustCoexistWith": [
-              "data-resource_id"
-            ]
-          }
-        }
-      ]
-    },
     "iframe": {
       "fields": [
         {
