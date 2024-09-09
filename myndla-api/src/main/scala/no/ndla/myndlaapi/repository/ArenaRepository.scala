@@ -1125,7 +1125,9 @@ trait ArenaRepository {
                 ${ts.resultAll},
                 ${u.resultAll},
                 (select count(*) from ${domain.Post.table} where topic_id = ${ts(t).id}) as postCount,
-                (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(t).id} and user_id = ${requester.id}) as isFollowing,
+                (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(
+            t
+          ).id} and user_id = ${requester.id}) as isFollowing,
                 (
                   select count(*)
                   from ${domain.PostUpvote.table} pu
