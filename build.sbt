@@ -149,7 +149,6 @@ lazy val constants = Module.setup(
 )
 
 // Libraries
-lazy val base   = Module.setup(project in file("./project/"), commonlib)
 lazy val common = Module.setup(project in file("./common/"), commonlib, deps = Seq(testWith(scalatestsuite), language))
 lazy val scalatestsuite = Module.setup(project in file("./scalatestsuite/"), scalatestsuitelib)
 lazy val tapirtesting =
