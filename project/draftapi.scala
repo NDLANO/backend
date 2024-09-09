@@ -1,8 +1,8 @@
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
+import sbt.*
 import sbt.Keys.libraryDependencies
 import sbtdocker.DockerPlugin
-import Dependencies.versions._
 
 object draftapi extends Module {
   override val moduleName: String        = "draft-api"
@@ -28,7 +28,7 @@ object draftapi extends Module {
     vulnerabilityOverrides
   )
 
-  lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq(
       "no.ndla.draftapi.model.api._",
       "no.ndla.draftapi.model.api.TSTypes._",
@@ -48,7 +48,7 @@ object draftapi extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++ commonSettings ++ assemblySettings() ++ dockerSettings() ++ tsSettings
 

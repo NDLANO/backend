@@ -64,7 +64,7 @@ class ComponentRegistry(properties: AudioApiProperties)
 
   val amazonClient: AmazonS3 = AmazonS3ClientBuilder
     .standard()
-    .withRegion(props.StorageRegion)
+    .withRegion(props.StorageRegion.toString)
     .build()
 
   lazy val audioRepository  = new AudioRepository

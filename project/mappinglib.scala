@@ -1,15 +1,14 @@
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
-import sbt.Keys._
-import Dependencies.versions._
-import Dependencies._
+import sbt.*
+import sbt.Keys.*
 
 object mappinglib extends Module {
   override val moduleName: String      = "mapping"
   override val enableReleases: Boolean = false
   lazy val dependencies: Seq[ModuleID] = Seq("org.scalatest" %% "scalatest" % ScalaTestV % "test")
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

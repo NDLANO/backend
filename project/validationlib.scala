@@ -1,7 +1,7 @@
-import Dependencies.versions._
+import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt.Keys._
-import sbt._
+import sbt.*
+import sbt.Keys.*
 
 object validationlib extends Module {
   override val moduleName: String      = "validation"
@@ -12,7 +12,7 @@ object validationlib extends Module {
     scalaUri
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

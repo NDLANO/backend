@@ -18,6 +18,7 @@ import no.ndla.network.tapir.NoNullJsonPrinter.*
 import org.log4s.{Logger, MDC, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
+import sttp.shared.Identity
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.model.ServerRequest
 import sttp.tapir.server.interceptor.RequestInterceptor.RequestResultEffectTransform
@@ -25,7 +26,7 @@ import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
 import sttp.tapir.server.interceptor.reject.{RejectContext, RejectHandler}
 import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
-import sttp.tapir.server.jdkhttp.{Id, JdkHttpServer, JdkHttpServerOptions}
+import sttp.tapir.server.jdkhttp.{JdkHttpServer, JdkHttpServerOptions}
 import sttp.tapir.server.metrics.MetricLabels
 import sttp.tapir.server.metrics.prometheus.PrometheusMetrics
 import sttp.tapir.server.model.ValuedEndpointOutput
@@ -34,13 +35,13 @@ import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 import java.util.concurrent.{ExecutorService, Executors}
 
 trait Routes[F[_]] {
-  this: TapirErrorHelpers with HasBaseProps =>
+  this: TapirErrorHelpers & HasBaseProps =>
 
   def services: List[Service[F]]
 
   object Routes {
     val logger: Logger = getLogger
-    private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[_] = {
+    private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
       val logMsg = s"Failure handler got: $error"
       exception match {
         case Some(ex) => logger.error(ex)(logMsg)
@@ -60,7 +61,7 @@ trait Routes[F[_]] {
         })
 
     private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
-      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[_]]] = {
+      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[?]]] = {
         val errorToReturn = returnError(ctx.e)
         val sc            = StatusCode(errorToReturn.statusCode)
         val resp          = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
@@ -76,7 +77,7 @@ trait Routes[F[_]] {
 
     case class NdlaRejectHandler[A[_]]() extends RejectHandler[A] {
 
-      override def apply(ctx: RejectContext)(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[_]]] = {
+      override def apply(ctx: RejectContext)(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[?]]] = {
         val statusCodeAndBody = if (hasMethodMismatch(ctx.failure)) {
           ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.methodNotAllowed)
             .prepend(statusCode, StatusCode.MethodNotAllowed)
@@ -121,8 +122,8 @@ trait Routes[F[_]] {
         req.attribute(beforeTime, startTime)
       }
 
-      class after extends RequestResultEffectTransform[Id] {
-        def apply[B](req: ServerRequest, result: Id[RequestResult[B]]): Id[RequestResult[B]] = {
+      class after extends RequestResultEffectTransform[Identity] {
+        def apply[B](req: ServerRequest, result: Identity[RequestResult[B]]): Identity[RequestResult[B]] = {
           if (shouldLogRequest(req)) {
             val code: Int = result match {
               case RequestResult.Response(x) => x.code.code
@@ -169,23 +170,23 @@ trait Routes[F[_]] {
 
     def startJdkServerAsync(name: String, port: Int)(warmupFunc: => Unit): HttpServer = {
       val prometheusMetrics = PrometheusMetrics
-        .default[Id](namespace = "tapir", registry = registry, labels = metricLabels)
+        .default[Identity](namespace = "tapir", registry = registry, labels = metricLabels)
 
       // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
       val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
 
       val options: JdkHttpServerOptions = JdkHttpServerOptions.customiseInterceptors
         .defaultHandlers(err => failureResponse(err, None))
-        .rejectHandler(NdlaRejectHandler[Id]())
-        .exceptionHandler(NdlaExceptionHandler[Id]())
-        .decodeFailureHandler(decodeFailureHandler[Id])
+        .rejectHandler(NdlaRejectHandler[Identity]())
+        .exceptionHandler(NdlaExceptionHandler[Identity]())
+        .decodeFailureHandler(decodeFailureHandler[Identity])
         .serverLog(None)
         .metricsInterceptor(prometheusMetrics.metricsInterceptor())
-        .prependInterceptor(RequestInterceptor.transformServerRequest[Id](JDKMiddleware.before))
+        .prependInterceptor(RequestInterceptor.transformServerRequest[Identity](JDKMiddleware.before))
         .prependInterceptor(RequestInterceptor.transformResultEffect(new JDKMiddleware.after))
         .options
 
-      val endpoints = services.asInstanceOf[List[Service[Id]]].flatMap(_.builtEndpoints)
+      val endpoints = services.asInstanceOf[List[Service[Identity]]].flatMap(_.builtEndpoints)
 
       val server = JdkHttpServer()
         .options(options)

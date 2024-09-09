@@ -9,13 +9,13 @@ package no.ndla
 
 import no.ndla.myndlaapi.model.domain.NDLASQLException
 import scalikejdbc.{Binders, ParameterBinderFactory}
-import sttp.tapir.server.jdkhttp.Id
+import sttp.shared.Identity
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 package object myndlaapi {
-  type Eff[A] = Id[A]
+  type Eff[A] = Identity[A]
 
   val FavoriteFolderDefaultName: String = "Favoritter"
 

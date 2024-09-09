@@ -51,7 +51,7 @@ trait ReadService {
 
   class ReadService extends StrictLogging {
     def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2] =
-      articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2)
+      articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2.apply)
 
     def withIdV2(
         id: Long,

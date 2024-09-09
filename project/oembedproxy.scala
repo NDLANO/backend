@@ -1,7 +1,7 @@
 import Dependencies.versions.*
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt.Keys.*
 import sbt.*
+import sbt.Keys.*
 import sbtdocker.DockerPlugin
 
 object oembedproxy extends Module {
@@ -19,7 +19,7 @@ object oembedproxy extends Module {
     tapirHttp4sCirce
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

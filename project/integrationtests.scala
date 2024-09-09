@@ -1,6 +1,6 @@
-import Dependencies.versions._
-import sbt.Keys._
-import sbt._
+import Dependencies.versions.*
+import sbt.*
+import sbt.Keys.*
 
 object integrationtests extends Module {
   override val moduleName: String      = "integration-tests"
@@ -11,7 +11,7 @@ object integrationtests extends Module {
     )
   )
 
-  override lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

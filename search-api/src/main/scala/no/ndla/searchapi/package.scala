@@ -7,8 +7,8 @@
 
 package no.ndla
 
-import sttp.tapir.server.jdkhttp.Id
+import sttp.shared.Identity
 
 package object searchapi {
-  type Eff[A] = Id[A]
+  type Eff[A] = Identity[A]
 }

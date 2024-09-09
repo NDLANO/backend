@@ -1,20 +1,19 @@
 import Dependencies.versions.*
-import sbt.Keys.*
-import sbt.*
-import sbtassembly.*
+import GithubWorkflowPlugin.autoImport.*
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
   typescriptGenerationImports,
   typescriptOutputFile
 }
-import _root_.io.github.davidgregory084.TpolecatPlugin.autoImport.*
-import _root_.io.github.davidgregory084.ScalaVersion.*
-import _root_.io.github.davidgregory084.ScalacOption
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
-import GithubWorkflowPlugin.autoImport.*
+import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.*
+import org.typelevel.scalacoptions.*
+import sbt.*
+import sbt.Keys.*
+import sbtassembly.*
 import sbtassembly.AssemblyKeys.*
-import sbtdocker.DockerKeys.*
 import sbtdocker.*
+import sbtdocker.DockerKeys.*
 
 import scala.language.postfixOps
 
@@ -26,16 +25,16 @@ object Module {
       deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty
   ): sbt.Project = {
     project
-      .settings(module.settings: _*)
-      .configs(module.configs: _*)
-      .enablePlugins(module.plugins: _*)
-      .disablePlugins(module.disablePlugins: _*)
-      .dependsOn(deps: _*)
+      .settings(module.settings*)
+      .configs(module.configs*)
+      .enablePlugins(module.plugins*)
+      .disablePlugins(module.disablePlugins*)
+      .dependsOn(deps*)
   }
 }
 
 trait Module {
-  lazy val settings: Seq[Def.Setting[_]]                     = Seq.empty
+  lazy val settings: Seq[Def.Setting[?]]                     = Seq.empty
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
   lazy val plugins: Seq[sbt.Plugins]                         = Seq.empty
   lazy val disablePlugins: Seq[sbt.AutoPlugin]               = Seq.empty
@@ -44,7 +43,7 @@ trait Module {
 
   protected val MainClass: Option[String] = None
 
-  lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
+  lazy val commonSettings: Seq[Def.Setting[?]] = Seq(
     name                := this.moduleName,
     run / mainClass     := this.MainClass,
     Compile / mainClass := this.MainClass,
@@ -142,7 +141,7 @@ trait Module {
     "--add-opens=java.desktop/java.awt=ALL-UNNAMED"
   )
 
-  def dockerSettings(): Seq[Def.Setting[_]] = {
+  def dockerSettings(): Seq[Def.Setting[?]] = {
     Seq(
       docker := (docker dependsOn assembly).value,
       docker / dockerfile := {

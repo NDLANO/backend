@@ -76,7 +76,7 @@ class ComponentRegistry(properties: ImageApiProperties)
   val amazonClient: AmazonS3 =
     AmazonS3ClientBuilder
       .standard()
-      .withRegion(props.StorageRegion)
+      .withRegion(props.StorageRegion.toString)
       .build()
 
   lazy val imageIndexService      = new ImageIndexService
