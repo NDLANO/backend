@@ -875,17 +875,26 @@ trait ArenaRepository {
       val t  = domain.Topic.syntax("t")
       val u  = MyNDLAUser.syntax("u")
       val tf = domain.TopicFollow.syntax("tf")
-      val p  = domain.Post.syntax("p")
-      val pu = domain.PostUpvote.syntax("pu")
       val visibleSql =
         if (requester.isAdmin) sqls""
         else sqls"and (select visible from ${domain.Category.table} where id = ${t.category_id}) = true"
+
       Try {
         sql"""
              select ${t.resultAll}, ${u.resultAll}, ${tf.resultAll},
                (select count(*) from ${domain.Post.table} where topic_id = ${t.id}) as postCount,
                (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${t.id} and user_id = ${requester.id}) as isFollowing,
-               (select count(*) from ${domain.Post.table} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id} where topic_id = ${t.id}) as voteCount
+               (
+                 select count(*)
+                 from ${domain.PostUpvote.table} pu
+                 where post_id = (
+                   select id
+                   from ${domain.Post.table} p
+                   where p.topic_id = ${t.id}
+                   order by p.created asc nulls last, p.id asc
+                   limit 1
+                 )
+               ) as voteCount
              from ${domain.Topic.as(t)}
              left join ${MyNDLAUser.as(u)} on ${u.id} = ${t.ownerId}
              left join ${domain.TopicFollow.as(tf)} on ${tf.topic_id} = ${t.id}
@@ -1103,24 +1112,31 @@ trait ArenaRepository {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
       val u  = MyNDLAUser.syntax("u")
-      val p  = domain.Post.syntax("p")
-      val pu = domain.PostUpvote.syntax("pu")
       val visibleSql =
         if (requester.isAdmin) None
         else Some(sqls"(select visible from ${domain.Category.table} where id = ${t.category_id}) = true")
 
       val deleteClause = sqls"${t.deleted} is null"
       val whereClause  = buildWhereClause(conditions ++ visibleSql :+ deleteClause)
+
       Try {
         sql"""
               select
                 ${ts.resultAll},
                 ${u.resultAll},
                 (select count(*) from ${domain.Post.table} where topic_id = ${ts(t).id}) as postCount,
-                (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(
-            t
-          ).id} and user_id = ${requester.id}) as isFollowing,
-                (select count(*) from ${domain.Post.table} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id} where topic_id = ${t.id}) as voteCount
+                (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(t).id} and user_id = ${requester.id}) as isFollowing,
+                (
+                  select count(*)
+                  from ${domain.PostUpvote.table} pu
+                  where post_id = (
+                    select id
+                    from ${domain.Post.table} p
+                    where p.topic_id = ${ts(t).id}
+                    order by p.created asc nulls last, p.id asc
+                    limit 1
+                  )
+                ) as voteCount
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}
