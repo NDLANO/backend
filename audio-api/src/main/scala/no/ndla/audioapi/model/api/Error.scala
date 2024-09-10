@@ -51,7 +51,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
     case _: PSQLException =>
       DataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
-    case NdlaSearchException(_, Some(rf), _)
+    case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       invalidSearchContext

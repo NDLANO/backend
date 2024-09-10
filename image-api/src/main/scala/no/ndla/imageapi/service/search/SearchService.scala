@@ -111,7 +111,7 @@ trait SearchService {
 
     protected def errorHandler[E](exception: Throwable): Failure[E] = {
       exception match {
-        case e: NdlaSearchException =>
+        case e: NdlaSearchException[?] =>
           e.rf.map(_.status).getOrElse(0) match {
             case notFound: Int if notFound == 404 =>
               logger.error(s"Index ${props.SearchIndex} not found. Scheduling a reindex.")

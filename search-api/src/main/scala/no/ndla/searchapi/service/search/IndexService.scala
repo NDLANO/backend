@@ -173,7 +173,13 @@ trait IndexService {
       if (contents.isEmpty) {
         Success(0)
       } else {
-        val req                    = contents.map(content => createIndexRequest(content, indexName, indexingBundle))
+        val req = contents.map { content =>
+          createIndexRequest(content, indexName, indexingBundle).recoverWith({ case ex =>
+            logger.error(s"Failed to create indexRequest for $documentType with id: ${content.id}", ex)
+            Failure(ex)
+          })
+        }
+
         val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
         val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
@@ -185,6 +191,10 @@ trait IndexService {
           response match {
             case Success(r) =>
               val numFailed = r.result.failures.size + failedToCreateRequests.size
+              r.result.failures.foreach(failure => {
+                logger.error(s"Received bulk error from elasticsearch: $failure")
+              })
+
               logger.info(s"Indexed ${contents.size} documents ($documentType). No of failed items: $numFailed")
               Success(contents.size - numFailed)
             case Failure(ex) =>
@@ -193,7 +203,7 @@ trait IndexService {
           }
         } else {
           logger.error(s"All ${contents.size} requests failed to be created.")
-          Failure(ElasticIndexingException("No indexReqeusts were created successfully."))
+          Failure(ElasticIndexingException("No indexRequests were created successfully."))
         }
       }
     }

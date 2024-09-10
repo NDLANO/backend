@@ -9,6 +9,7 @@
 package no.ndla.searchapi.controller
 
 import cats.implicits.*
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.draft.DraftStatus
@@ -603,8 +604,14 @@ trait SearchController {
         case Some(token) =>
           feideApiClient.getFeideExtendedUser(Some(token)) match {
             case Success(user) => Success(user.availabilities.toList)
+            case Failure(ex: AccessDeniedException) =>
+              logger.info(
+                s"Access denied when fetching user from feide with accessToken '$token': ${ex.getMessage}",
+                ex
+              )
+              Success(List.empty)
             case Failure(ex) =>
-              logger.error(s"Error when fetching user from feide with accessToken '$token': ${ex.getMessage}")
+              logger.error(s"Error when fetching user from feide with accessToken '$token': ${ex.getMessage}", ex)
               Failure(ex)
           }
       }

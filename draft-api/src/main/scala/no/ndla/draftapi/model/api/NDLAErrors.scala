@@ -60,7 +60,7 @@ trait ErrorHelpers extends TapirErrorHelpers {
           logger.error(s"Problem with remote service: ${h.getMessage}")
           ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 502)
       }
-    case NdlaSearchException(_, Some(rf), _)
+    case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
