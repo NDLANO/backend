@@ -1216,8 +1216,6 @@ trait ArenaRepository {
       val t  = domain.Topic.syntax("t")
       val ts = SubQuery.syntax("ts").include(t)
       val u  = MyNDLAUser.syntax("u")
-      val p  = domain.Post.syntax("p")
-      val pu = domain.PostUpvote.syntax("pu")
       Try {
         sql"""
               select
@@ -1226,7 +1224,17 @@ trait ArenaRepository {
                 (select count(*) > 0 from ${domain.TopicFollow.table} where topic_id = ${ts(
             t
           ).id} and user_id = ${requester.id}) as isFollowing,
-                (select count(*) from ${domain.Post.table} inner join ${domain.PostUpvote.table} on ${p.id} = ${pu.post_id} where topic_id = ${t.id}) as voteCount
+               (
+                 select count(*)
+                 from ${domain.PostUpvote.table} pu
+                 where post_id = (
+                   select id
+                   from ${domain.Post.table} p
+                   where p.topic_id = ${ts(t).id}
+                   order by p.created asc nulls last, p.id asc
+                   limit 1
+                 )
+               ) as voteCount
               from (
                   select ${t.resultAll}, (select max(pp.created) from posts pp where pp.topic_id = ${t.id}) as newest_post_date
                   from ${domain.Topic.as(t)}

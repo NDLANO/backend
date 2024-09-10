@@ -286,7 +286,7 @@ class ArenaTest
           isFollowing = true,
           isLocked = false,
           isPinned = false,
-          voteCount = 2
+          voteCount = 0
         ),
         api.Topic(
           id = 2,
@@ -298,7 +298,7 @@ class ArenaTest
           isFollowing = true,
           isLocked = false,
           isPinned = false,
-          voteCount = 2
+          voteCount = 0
         ),
         api.Topic(
           id = 3,
@@ -310,7 +310,7 @@ class ArenaTest
           isFollowing = true,
           isLocked = false,
           isPinned = false,
-          voteCount = 2
+          voteCount = 0
         )
       ),
       isFollowing = false,
