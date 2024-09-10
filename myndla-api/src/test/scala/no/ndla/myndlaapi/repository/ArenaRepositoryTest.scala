@@ -240,16 +240,22 @@ class ArenaRepositoryTest
       val topicAfterPost = arenaRepository.getTopic(top1.id, user1)(session).get
       topicAfterPost.get.postCount should be(2)
       topicAfterPost.get.voteCount should be(0)
+      val categoryTopicsAfterPost = arenaRepository.getTopicsForCategory(cat1.id, 0, 10, user1)(session).get
+      categoryTopicsAfterPost.head.voteCount should be(0)
 
       arenaRepository.upvotePost(mainPost.id, user2.id)(session).get
       val topicAfterMainUpvote = arenaRepository.getTopic(top1.id, user1)(session).get
       topicAfterMainUpvote.get.voteCount should be(1)
+      val categoryTopicsAfterMainUpvote = arenaRepository.getTopicsForCategory(cat1.id, 0, 10, user1)(session).get
+      categoryTopicsAfterMainUpvote.head.voteCount should be(1)
 
       // Only main post of topic should count towards vote count
       // this is how it is in nodebb
       arenaRepository.upvotePost(secondPost.id, user2.id)(session).get
       val topicAfterOtherUpvote = arenaRepository.getTopic(top1.id, user1)(session).get
       topicAfterOtherUpvote.get.voteCount should be(1)
+      val categoryTopicsAfterOtherUpvote = arenaRepository.getTopicsForCategory(cat1.id, 0, 10, user1)(session).get
+      categoryTopicsAfterOtherUpvote.head.voteCount should be(1)
     }
   }
 }
