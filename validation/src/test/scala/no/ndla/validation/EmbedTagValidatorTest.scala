@@ -363,65 +363,6 @@ class EmbedTagValidatorTest extends UnitSuite {
     TagValidator.validate("content", tag).size should be(0)
   }
 
-  test(
-    "validate should return validation error if embed tag does not contain all required attributes for data-resource=concept-list"
-  ) {
-    val tag = generateTagWithAttrs(
-      Map(
-        TagAttribute.DataResource -> ResourceType.ConceptList.toString,
-        TagAttribute.DataTag      -> "Liste::"
-      )
-    )
-    val res = TagValidator.validate("content", tag)
-    findErrorByMessage(
-      res,
-      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute group"
-    ).size should be(1)
-
-    val tag2 = generateTagWithAttrs(
-      Map(
-        TagAttribute.DataResource    -> ResourceType.ConceptList.toString,
-        TagAttribute.DataResource_Id -> "1"
-      )
-    )
-    val res2 = TagValidator.validate("content", tag2)
-    findErrorByMessage(
-      res2,
-      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute group"
-    ).size should be(1)
-
-  }
-
-  test("validate should return no validation errors if concept-list embed-tag is used correctly") {
-    val tag = generateTagWithAttrs(
-      Map(
-        TagAttribute.DataResource  -> ResourceType.ConceptList.toString,
-        TagAttribute.DataTitle     -> "Liste",
-        TagAttribute.DataTag       -> "Liste:kategori:kategori2",
-        TagAttribute.DataSubjectId -> "urn:subject:123"
-      )
-    )
-    TagValidator.validate("content", tag).size should be(0)
-
-    val tag2 = generateTagWithAttrs(
-      Map(
-        TagAttribute.DataResource -> ResourceType.ConceptList.toString,
-        TagAttribute.DataTitle    -> "Liste",
-        TagAttribute.DataTag      -> "Liste:kategori:kategori2"
-      )
-    )
-    TagValidator.validate("content", tag2).size should be(0)
-
-    val tag3 = generateTagWithAttrs(
-      Map(
-        TagAttribute.DataResource    -> ResourceType.ConceptList.toString,
-        TagAttribute.DataResource_Id -> "1",
-        TagAttribute.DataRecursive   -> "false"
-      )
-    )
-    TagValidator.validate("content", tag3).size should be(0)
-  }
-
   test("validate should fail if only one optional attribute is specified") {
     val tag = generateTagWithAttrs(
       Map(

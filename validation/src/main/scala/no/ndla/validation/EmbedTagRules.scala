@@ -54,7 +54,6 @@ object ResourceType extends Enum[ResourceType] {
   case object CodeBlock       extends ResourceType("code-block")
   case object Comment         extends ResourceType("comment")
   case object Concept         extends ResourceType("concept")
-  case object ConceptList     extends ResourceType("concept-list")
   case object ContactBlock    extends ResourceType("contact-block")
   case object ContentLink     extends ResourceType("content-link")
   case object Copyright       extends ResourceType("copyright")

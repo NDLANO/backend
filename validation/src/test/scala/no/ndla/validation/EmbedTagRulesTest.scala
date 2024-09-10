@@ -103,9 +103,10 @@ class EmbedTagRulesTest extends UnitSuite {
     {
       val embedString =
         s"""<$EmbedTagName
-           | data-resource="concept-list"
-           | data-resource_id="1"
-           | data-recursive="wat"
+           | data-resource="key-figure"
+           | data-title="test"
+           | data-subtitle="test"
+           | data-is-decorative="wat"
            |/>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
@@ -113,7 +114,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=concept-list and attribute data-recursive=wat must have a valid boolean value."
+            s"An $EmbedTagName HTML tag with data-resource=key-figure and attribute data-is-decorative=wat must have a valid boolean value."
           )
         )
       )
@@ -121,9 +122,10 @@ class EmbedTagRulesTest extends UnitSuite {
     {
       val embedString =
         s"""<$EmbedTagName
-           | data-resource="concept-list"
-           | data-resource_id="1"
-           | data-recursive="true"
+           | data-resource="key-figure"
+           | data-title="test"
+           | data-subtitle="test"
+           | data-is-decorative="true"
            |/>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
