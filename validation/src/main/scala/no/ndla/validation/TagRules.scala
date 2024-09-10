@@ -245,8 +245,6 @@ object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   case object DataAuthor              extends TagAttribute("data-author")
   case object DataAuthors             extends TagAttribute("data-authors")
   case object DataBackground          extends TagAttribute("data-background")
-  case object DataBlob                extends TagAttribute("data-blob")
-  case object DataBlobColor           extends TagAttribute("data-blob-color")
   case object DataBorder              extends TagAttribute("data-border")
   case object DataCaption             extends TagAttribute("data-caption")
   case object DataCodeFormat          extends TagAttribute("data-code-format")

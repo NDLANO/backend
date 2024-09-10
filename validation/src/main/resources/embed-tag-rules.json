@@ -936,19 +936,13 @@
           }
         },
         {
-          "name": "data-blob",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-blob-color",
-          "validation": {
-            "required": false
-          }
-        },
-        {
           "name": "data-alt",
+          "validation": {
+            "required": false
+          }
+        },
+        {
+          "name": "data-background",
           "validation": {
             "required": false
           }
