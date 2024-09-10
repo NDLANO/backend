@@ -51,7 +51,8 @@ trait ConverterService {
         categoryId = compiledTopic.topic.category_id,
         isFollowing = compiledTopic.isFollowing,
         isLocked = compiledTopic.topic.locked,
-        isPinned = compiledTopic.topic.pinned
+        isPinned = compiledTopic.topic.pinned,
+        voteCount = compiledTopic.voteCount
       )
     }
 

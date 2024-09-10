@@ -20,5 +20,6 @@ case class Topic(
     @description("The id of the parenting category") categoryId: Long,
     @description("Whether the requesting user is following the topic") isFollowing: Boolean,
     @description("Whether the topic is locked or not") isLocked: Boolean,
-    @description("Whether the topic is pinned to the top of the category") isPinned: Boolean
+    @description("Whether the topic is pinned to the top of the category") isPinned: Boolean,
+    @description("The total number of votes on the posts in the topic") voteCount: Long
 )
