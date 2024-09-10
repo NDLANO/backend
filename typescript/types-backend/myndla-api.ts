@@ -262,6 +262,7 @@ export interface ITopicWithPosts {
   isFollowing: boolean
   isLocked: boolean
   isPinned: boolean
+  voteCount: number
 }
 
 export interface IUpdatedFolder {
