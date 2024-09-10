@@ -248,6 +248,7 @@ export interface ITopic {
   isFollowing: boolean
   isLocked: boolean
   isPinned: boolean
+  voteCount: number
 }
 
 export interface ITopicWithPosts {
