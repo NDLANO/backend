@@ -68,4 +68,6 @@ class SearchApiProperties extends BaseProps with StrictLogging {
     "learningpath-api" -> s"$Domain/learningpath-api/v2/learningpaths",
     "raw-image"        -> s"$Domain/image-api/raw/id"
   )
+
+  def TaxonomyFetchingThreads: Option[Int] = propOrNone("TAXONOMY_FETCHING_THREADS").map(_.toInt)
 }

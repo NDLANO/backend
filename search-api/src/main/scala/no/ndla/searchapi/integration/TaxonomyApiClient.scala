@@ -132,7 +132,8 @@ trait TaxonomyApiClient {
         val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
         val pageRange = 1 to numPages
 
-        val numThreads = Math.max(20, numPages)
+
+        val numThreads = props.TaxonomyFetchingThreads.getOrElse(Math.max(20, numPages))
         implicit val executionContext: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
 
