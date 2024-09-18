@@ -1181,6 +1181,12 @@
           "validation": {
             "required": false
           }
+        },
+        {
+          "name": "data-background",
+          "validation": {
+            "required": false
+          }
         }
       ]
     },
