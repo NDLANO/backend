@@ -21,6 +21,13 @@
         }
       ]
     },
+    "blockquote": {
+      "fields": [
+        {
+          "name": "data-variant"
+        }
+      ]
+    },
     "colgroup": {
       "fields": [
         {
@@ -63,6 +70,9 @@
         },
         {
           "name": "data-parallax-cell"
+        },
+        {
+          "name": "data-variant"
         }
       ]
     },
