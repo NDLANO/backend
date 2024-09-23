@@ -300,6 +300,7 @@ object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   case object DataUpperLeftY          extends TagAttribute("data-upper-left-y")
   case object DataUrl                 extends TagAttribute("data-url")
   case object DataUrlText             extends TagAttribute("data-url-text")
+  case object DataVariant             extends TagAttribute("data-variant")
   case object DataVideoId             extends TagAttribute("data-videoid")
   case object DataWidth               extends TagAttribute("data-width")
   case object DataYear                extends TagAttribute("data-year")
