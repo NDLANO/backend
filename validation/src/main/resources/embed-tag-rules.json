@@ -949,68 +949,6 @@
         }
       ]
     },
-    "blog-post": {
-      "fields": [
-        {
-          "name": "data-resource",
-          "validation": {
-            "required": true
-          }
-        },
-        {
-          "name": "data-image-id",
-          "validation": {
-            "required": true,
-            "dataType": "NUMBER"
-          }
-        },
-        {
-          "name": "data-language",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-title",
-          "validation": {
-            "required": true,
-            "allowedHtml": [
-              "code",
-              "em",
-              "span",
-              "strong",
-              "sub",
-              "sup"
-            ]
-          }
-        },
-        {
-          "name": "data-url",
-          "validation": {
-            "required": true,
-            "dataType": "URL"
-          }
-        },
-        {
-          "name": "data-size",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-author",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-alt",
-          "validation": {
-            "required": false
-          }
-        }
-      ]
-    },
     "key-figure": {
       "fields": [
         {

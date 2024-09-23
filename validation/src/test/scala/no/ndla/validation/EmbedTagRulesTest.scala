@@ -437,20 +437,4 @@ class EmbedTagRulesTest extends UnitSuite {
       )
     )
   }
-
-  test("Html in data-title is ok for blog-post") {
-    val embedString =
-      s"""<$EmbedTagName
-         | data-resource="blog-post"
-         | data-image-id="1"
-         | data-title="Hva skjer hos <span lang='en'>NDLA</span>"
-         | data-url="https://ndla.no"
-         |/>""".stripMargin
-
-    val result = TagValidator.validate("test", embedString)
-    result should be(
-      Seq.empty
-    )
-  }
-
 }
