@@ -186,7 +186,7 @@ trait WriteService {
             oldNdlaCreatedDate,
             oldNdlaUpdatedDate
           )
-          _               <- contentValidator.validateArticle(domainArticle)
+          _               <- contentValidator.validateArticle(None, domainArticle)
           insertedArticle <- Try(insertFunction(domainArticle))
           _ = indexArticle(insertedArticle, user)
           apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
@@ -409,7 +409,7 @@ trait WriteService {
         updatePriorityField(withStarted, oldArticle, statusWasUpdated)
 
       for {
-        _ <- contentValidator.validateArticleOnLanguage(toUpdate, language)
+        _ <- contentValidator.validateArticleOnLanguage(oldArticle, toUpdate, language)
         domainArticle <- performArticleUpdate(
           withPriority,
           externalIds,

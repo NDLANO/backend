@@ -208,7 +208,7 @@ trait ConverterService {
 
     private def toDomainRevisionMeta(revisionMeta: api.RevisionMeta): common.draft.RevisionMeta = {
       common.draft.RevisionMeta(
-        id = revisionMeta.id.map(UUID.fromString).getOrElse(UUID.randomUUID()),
+        id = revisionMeta.id.map(UUID.fromString).getOrElse(uuidUtil.randomUUID()),
         revisionDate = revisionMeta.revisionDate,
         note = revisionMeta.note,
         status = common.draft.RevisionStatus.fromStringDefault(revisionMeta.status)

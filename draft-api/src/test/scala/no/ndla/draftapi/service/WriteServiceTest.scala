@@ -80,8 +80,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       invocation.getArgument[Draft](0)
     )
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any, any[Draft])).thenReturn(Success(article))
     when(contentValidator.validateArticleOnLanguage(any[Draft], any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Draft](0))
+    )
+    when(contentValidator.validateArticleOnLanguage(any, any[Draft], any)).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[Draft](1))
     )
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(clock.now()).thenReturn(today)
@@ -506,7 +510,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(any)(any)).thenReturn(Some(article))
     service.updateArticle(1, updatedArticle, List(), List(), TestData.userWithPublishAccess, None, None, None)
 
-    verify(contentValidator, times(1)).validateArticleOnLanguage(any, eqTo(Some("nb")))
+    verify(contentValidator, times(1)).validateArticleOnLanguage(any, any, eqTo(Some("nb")))
   }
 
   test("That articles are cloned with reasonable values") {
@@ -1088,6 +1092,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle should get editor notes if RevisionMeta is added or updated") {
+    when(uuidUtil.randomUUID()).thenCallRealMethod()
     val revision = api.RevisionMeta(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,

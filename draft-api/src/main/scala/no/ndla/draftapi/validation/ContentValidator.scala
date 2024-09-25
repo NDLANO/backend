@@ -55,10 +55,13 @@ trait ContentValidator {
       }
     }
 
-    def validateArticleOnLanguage(article: Draft, language: Option[String]): Try[Draft] = {
+    def validateArticleOnLanguage(oldArticle: Option[Draft], article: Draft, language: Option[String]): Try[Draft] = {
       val toValidate = language.map(getArticleOnLanguage(article, _)).getOrElse(article)
-      validateArticle(toValidate)
+      validateArticle(oldArticle, toValidate)
     }
+
+    def validateArticleOnLanguage(article: Draft, language: Option[String]): Try[Draft] =
+      validateArticleOnLanguage(None, article, language)
 
     private def getArticleOnLanguage(article: Draft, language: String): Draft = {
       article.copy(
@@ -72,19 +75,29 @@ trait ContentValidator {
       )
     }
 
-    def validateArticle(article: Draft): Try[Draft] = {
-      val validationErrors = article.content.flatMap(c => validateArticleContent(c)) ++
-        article.introduction.flatMap(i => validateIntroduction(i)) ++
-        article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
-        validateTitles(article.title) ++
-        article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
-        validateTags(article.tags) ++
-        article.requiredLibraries.flatMap(validateRequiredLibrary) ++
-        article.metaImage.flatMap(validateMetaImage) ++
-        article.visualElement.flatMap(v => validateVisualElement(v)) ++
-        validateRevisionMeta(article.revisionMeta) ++
-        validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists) ++
-        validateResponsible(article)
+    def validateArticle(article: Draft): Try[Draft] = validateArticle(None, article)
+
+    def validateArticle(oldArticle: Option[Draft], article: Draft): Try[Draft] = {
+      val shouldValidateEntireArticle = !onlyUpdatedEditorialFields(oldArticle, article)
+      val regularValidationErrors =
+        if (shouldValidateEntireArticle)
+          article.content.flatMap(c => validateArticleContent(c)) ++
+            article.introduction.flatMap(i => validateIntroduction(i)) ++
+            article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
+            validateTitles(article.title) ++
+            article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
+            validateTags(article.tags) ++
+            article.requiredLibraries.flatMap(validateRequiredLibrary) ++
+            article.metaImage.flatMap(validateMetaImage) ++
+            article.visualElement.flatMap(v => validateVisualElement(v)) ++
+            validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists) ++
+            validateResponsible(article)
+        else Seq.empty
+
+      val editorialValidationErrors =
+        validateRevisionMeta(article.revisionMeta)
+
+      val validationErrors = regularValidationErrors ++ editorialValidationErrors
 
       if (validationErrors.isEmpty) {
         Success(article)
@@ -92,6 +105,26 @@ trait ContentValidator {
         Failure(new ValidationException(errors = validationErrors))
       }
 
+    }
+
+    private def onlyUpdatedEditorialFields(existingArticle: Option[Draft], changedArticle: Draft): Boolean = {
+      existingArticle match {
+        case None => false
+        case Some(oldArticle) =>
+          val withComparableValues =
+            (article: Draft) =>
+              article.copy(
+                revision = None,
+                notes = Seq.empty,
+                editorLabels = Seq.empty,
+                comments = List.empty,
+                updated = NDLADate.MIN,
+                revisionMeta = Seq.empty,
+                updatedBy = ""
+              )
+
+          withComparableValues(oldArticle) == withComparableValues(changedArticle)
+      }
     }
 
     def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentId] = {
