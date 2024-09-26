@@ -8,17 +8,19 @@
 package no.ndla.draftapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain._
-import no.ndla.common.model.domain.draft.{DraftCopyright, Draft, RevisionMeta}
+import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, RevisionMeta}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY_SA
 
+import java.util.UUID
 import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val contentValidator = new ContentValidator()
-  val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val invalidDocument           = """<section><invalid></invalid></section>"""
+  override val contentValidator                   = new ContentValidator()
+  override val converterService: ConverterService = new ConverterService
+  val validDocument                               = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val invalidDocument                             = """<section><invalid></invalid></section>"""
 
   val articleToValidate: Draft =
     TestData.sampleArticleWithByNcSa.copy(responsible = Some(Responsible("hei", TestData.today)))
@@ -356,5 +358,64 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val Seq(err1, err2)                     = error.errors
     err1.message.contains("The content contains illegal tags and/or attributes.") should be(true)
     err2.message should be("An article must consist of one or more <section> blocks. Illegal tag(s) are div ")
+  }
+
+  test("That validation succeeds if only editor fields are updated") {
+    val oldArticle =
+      TestData.sampleDomainArticle.copy(
+        id = Some(5),
+        revision = Some(1),
+        responsible = None,
+        revisionMeta = RevisionMeta.default
+      )
+    val article =
+      oldArticle.copy(
+        id = Some(5),
+        revision = Some(2),
+        responsible = None,
+        revisionMeta = RevisionMeta.default ++ RevisionMeta.default,
+        notes = Seq(
+          EditorNote("note1", "editor", oldArticle.status, TestData.today),
+          EditorNote("note2", "editor", oldArticle.status, TestData.today)
+        ),
+        comments = Seq(
+          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar a gitt", true, false),
+          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar igjen a gitt", true, false)
+        )
+      )
+
+    val result = contentValidator.validateArticleOnLanguage(Some(oldArticle), article, Some("nb"))
+    result.get should be(article)
+  }
+
+  test("That validation fails if only editor fields are updated and editor validation fails") {
+    val oldArticle =
+      TestData.sampleDomainArticle.copy(
+        id = Some(5),
+        revision = Some(1),
+        responsible = None,
+        revisionMeta = Seq.empty
+      )
+    val article =
+      oldArticle.copy(
+        id = Some(5),
+        revision = Some(2),
+        responsible = None,
+        revisionMeta = Seq.empty,
+        notes = Seq(
+          EditorNote("note1", "editor", oldArticle.status, TestData.today),
+          EditorNote("note2", "editor", oldArticle.status, TestData.today)
+        ),
+        comments = Seq(
+          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar a gitt", true, false),
+          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar igjen a gitt", true, false)
+        )
+      )
+
+    val result = contentValidator.validateArticleOnLanguage(Some(oldArticle), article, Some("nb"))
+    result.isFailure should be(true)
+    val Failure(validationError: ValidationException) = result
+    validationError.errors.length should be(1)
+    validationError.errors.head.message should be("An article must contain at least one planned revisiondate")
   }
 }
