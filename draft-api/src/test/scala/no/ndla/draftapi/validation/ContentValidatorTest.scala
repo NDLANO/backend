@@ -17,9 +17,10 @@ import java.util.UUID
 import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val contentValidator = new ContentValidator()
-  val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val invalidDocument           = """<section><invalid></invalid></section>"""
+  override val contentValidator                   = new ContentValidator()
+  override val converterService: ConverterService = new ConverterService
+  val validDocument                               = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val invalidDocument                             = """<section><invalid></invalid></section>"""
 
   val articleToValidate: Draft =
     TestData.sampleArticleWithByNcSa.copy(responsible = Some(Responsible("hei", TestData.today)))

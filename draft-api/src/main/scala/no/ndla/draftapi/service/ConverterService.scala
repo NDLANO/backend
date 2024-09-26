@@ -175,6 +175,16 @@ trait ConverterService {
     ): Option[common.draft.QualityEvaluation] =
       newQualityEvaluation.map(qe => common.draft.QualityEvaluation(grade = qe.grade, note = qe.note))
 
+    def withSortedLanguageFields(article: Draft): Draft = {
+      article.copy(
+        visualElement = article.visualElement.sorted,
+        content = article.content.sorted,
+        introduction = article.introduction.sorted,
+        metaImage = article.metaImage.sorted,
+        title = article.title.sorted
+      )
+    }
+
     private[service] def updatedCommentToDomainNullDocument(
         updatedComments: List[UpdatedComment]
     ): Try[Seq[Comment]] = {

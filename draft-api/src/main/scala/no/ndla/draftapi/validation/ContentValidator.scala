@@ -56,8 +56,9 @@ trait ContentValidator {
     }
 
     def validateArticleOnLanguage(oldArticle: Option[Draft], article: Draft, language: Option[String]): Try[Draft] = {
-      val toValidate = language.map(getArticleOnLanguage(article, _)).getOrElse(article)
-      validateArticle(oldArticle, toValidate)
+      val toValidate    = language.map(getArticleOnLanguage(article, _)).getOrElse(article)
+      val oldToValidate = language.map(getArticleOnLanguage(article, _)).orElse(oldArticle)
+      validateArticle(oldToValidate, toValidate)
     }
 
     def validateArticleOnLanguage(article: Draft, language: Option[String]): Try[Draft] =
@@ -113,15 +114,17 @@ trait ContentValidator {
         case Some(oldArticle) =>
           val withComparableValues =
             (article: Draft) =>
-              article.copy(
-                revision = None,
-                notes = Seq.empty,
-                editorLabels = Seq.empty,
-                comments = List.empty,
-                updated = NDLADate.MIN,
-                revisionMeta = Seq.empty,
-                updatedBy = ""
-              )
+              converterService
+                .withSortedLanguageFields(article)
+                .copy(
+                  revision = None,
+                  notes = Seq.empty,
+                  editorLabels = Seq.empty,
+                  comments = List.empty,
+                  updated = NDLADate.MIN,
+                  revisionMeta = Seq.empty,
+                  updatedBy = ""
+                )
 
           withComparableValues(oldArticle) == withComparableValues(changedArticle)
       }

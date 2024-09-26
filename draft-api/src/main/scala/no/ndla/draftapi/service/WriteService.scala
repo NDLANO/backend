@@ -445,31 +445,27 @@ trait WriteService {
       // Function that sets values we don't want to include when comparing articles to check if we should update status
       val withComparableValues =
         (article: Draft) =>
-          article.copy(
-            revision = None,
-            notes = Seq.empty,
-            editorLabels = Seq.empty,
-            created = NDLADate.MIN,
-            updated = NDLADate.MIN,
-            updatedBy = "",
-            availability = common.Availability.everyone,
-            grepCodes = Seq.empty,
-            copyright = article.copyright.map(e => e.copy(license = None)),
-            metaDescription = Seq.empty,
-            relatedContent = Seq.empty,
-            tags = Seq.empty,
-            revisionMeta = Seq.empty,
-            comments = List.empty,
-            priority = Priority.Unspecified,
-            started = false,
-            qualityEvaluation = None,
-            // LanguageField ordering shouldn't matter:
-            visualElement = article.visualElement.sorted,
-            content = article.content.sorted,
-            introduction = article.introduction.sorted,
-            metaImage = article.metaImage.sorted,
-            title = article.title.sorted
-          )
+          converterService
+            .withSortedLanguageFields(article)
+            .copy(
+              revision = None,
+              notes = Seq.empty,
+              editorLabels = Seq.empty,
+              created = NDLADate.MIN,
+              updated = NDLADate.MIN,
+              updatedBy = "",
+              availability = common.Availability.everyone,
+              grepCodes = Seq.empty,
+              copyright = article.copyright.map(e => e.copy(license = None)),
+              metaDescription = Seq.empty,
+              relatedContent = Seq.empty,
+              tags = Seq.empty,
+              revisionMeta = Seq.empty,
+              comments = List.empty,
+              priority = Priority.Unspecified,
+              started = false,
+              qualityEvaluation = None
+            )
 
       val comparableNew      = withComparableValues(changedArticle)
       val comparableExisting = withComparableValues(existingArticle)
