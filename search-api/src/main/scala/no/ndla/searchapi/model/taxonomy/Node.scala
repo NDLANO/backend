@@ -56,7 +56,7 @@ case class TaxonomyContext(
     publicId: String,
     rootId: String,
     root: SearchableLanguageValues,
-    path: String,
+    path: Option[String],
     breadcrumbs: SearchableLanguageList,
     contextType: Option[String],
     relevanceId: String,

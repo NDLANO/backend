@@ -17,7 +17,7 @@ case class SearchableTaxonomyContext(
     contextId: String,
     rootId: String,
     root: SearchableLanguageValues,
-    path: String,
+    path: Option[String],
     breadcrumbs: SearchableLanguageList,
     contextType: String,
     relevanceId: String,

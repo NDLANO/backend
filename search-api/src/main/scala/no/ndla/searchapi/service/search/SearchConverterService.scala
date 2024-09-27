@@ -569,7 +569,7 @@ trait SearchConverterService {
     }
 
     private def getPathsFromContext(contexts: List[SearchableTaxonomyContext]): List[String] = {
-      contexts.map(_.path)
+      contexts.map(_.path.getOrElse(""))
     }
 
     private def filterContexts(
@@ -842,7 +842,7 @@ trait SearchConverterService {
         rootId = context.rootId,
         relevance = relevance,
         relevanceId = context.relevanceId,
-        path = context.path,
+        path = context.path.getOrElse(""),
         breadcrumbs = breadcrumbs,
         contextId = context.contextId,
         contextType = context.contextType,
@@ -850,7 +850,7 @@ trait SearchConverterService {
         language = language,
         isPrimary = context.isPrimary,
         isActive = context.isActive,
-        url = context.url.getOrElse(context.path)
+        url = context.url.getOrElse("")
       )
 
     }
