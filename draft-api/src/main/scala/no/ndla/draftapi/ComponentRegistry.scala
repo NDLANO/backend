@@ -7,9 +7,9 @@
 
 package no.ndla.draftapi
 
-import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.draftapi.caching.MemoizeHelpers
@@ -56,7 +56,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with WriteService
     with FileController
     with FileStorageService
-    with AmazonClient
+    with NdlaS3Client
     with ContentValidator
     with Clock
     with UUIDUtil
@@ -100,11 +100,7 @@ class ComponentRegistry(properties: DraftApiProperties)
 
   lazy val fileStorage = new FileStorageService
 
-  val amazonClient: AmazonS3 =
-    AmazonS3ClientBuilder
-      .standard()
-      .withRegion(props.AttachmentStorageRegion.toString)
-      .build()
+  lazy val s3Client = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 

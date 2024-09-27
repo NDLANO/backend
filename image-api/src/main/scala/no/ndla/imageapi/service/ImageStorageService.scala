@@ -8,37 +8,34 @@
 
 package no.ndla.imageapi.service
 
+import cats.implicits.catsSyntaxOptionId
+
 import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, InputStream}
-import com.amazonaws.services.s3.model._
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
+import no.ndla.common.model.domain.UploadedFile
 
 import javax.imageio.ImageIO
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.integration.AmazonClient
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.domain.ImageStream
-import org.apache.commons.io.IOUtils
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 
 import scala.util.{Failure, Success, Try}
 
 trait ImageStorageService {
-  this: AmazonClient with ReadService with Props =>
+  this: NdlaS3Client with ReadService with Props =>
   val imageStorage: AmazonImageStorageService
 
   class AmazonImageStorageService extends StrictLogging {
-    import props.{StorageName, ValidMimeTypes}
-    case class NdlaImage(s3Object: S3Object, fileName: String) extends ImageStream {
-      lazy val imageContent: Array[Byte] = {
-        val content = IOUtils.toByteArray(s3Object.getObjectContent)
-        s3Object.getObjectContent.close()
-        content
-      }
-
+    import props.ValidMimeTypes
+    case class NdlaImage(s3Object: NdlaS3Object, fileName: String) extends ImageStream {
+      lazy val imageContent: Array[Byte]      = s3Object.stream.readAllBytes()
       override val sourceImage: BufferedImage = ImageIO.read(stream)
 
       override def contentType: String = {
-        val s3ContentType = s3Object.getObjectMetadata.getContentType
+        val s3ContentType = s3Object.contentType
         if (s3ContentType == "binary/octet-stream") {
           readService.getImageFromFilePath(fileName) match {
             case Failure(ex) =>
@@ -48,7 +45,7 @@ trait ImageStorageService {
                 if meta.contentType != "" && meta.contentType != "binary/octet-stream" && ValidMimeTypes.contains(
                   meta.contentType
                 ) =>
-              updateContentType(s3Object.getKey, meta.contentType) match {
+              updateContentType(s3Object.key, meta.contentType) match {
                 case Failure(ex) =>
                   logger.error(s"Could not update content-type s3-metadata of $fileName to ${meta.contentType}", ex)
                 case Success(_) =>
@@ -64,11 +61,9 @@ trait ImageStorageService {
     }
 
     def get(imageKey: String): Try[ImageStream] = {
-      Try(amazonClient.getObject(new GetObjectRequest(StorageName, imageKey))).map(s3Object =>
-        NdlaImage(s3Object, imageKey)
-      ) match {
+      s3Client.getObject(imageKey).map(s3Object => NdlaImage(s3Object, imageKey)) match {
         case Success(e) => Success(e)
-        case Failure(ex: AmazonS3Exception) if ex.getStatusCode == 404 =>
+        case Failure(_: NoSuchKeyException) =>
           Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
         case Failure(ex) =>
           logger.error(s"Failed to get image '$imageKey' from S3", ex)
@@ -76,40 +71,26 @@ trait ImageStorageService {
       }
     }
 
-    def uploadFromStream(stream: InputStream, storageKey: String, contentType: String, size: Long): Try[String] = {
-      val metadata = new ObjectMetadata()
-      metadata.setContentType(contentType)
-      metadata.setContentLength(size)
-      metadata.setCacheControl(props.S3NewFileCacheControlHeader)
-
-      Try(amazonClient.putObject(new PutObjectRequest(StorageName, storageKey, stream, metadata))).map(_ => storageKey)
+    def uploadFromStream(storageKey: String, uploadedFile: UploadedFile): Try[String] = {
+      s3Client.putObject(storageKey, uploadedFile, props.S3NewFileCacheControlHeader.some).map(_ => storageKey)
     }
 
-    def updateContentType(storageKey: String, contentType: String): Try[Unit] = {
-      Try {
-        val meta = amazonClient.getObjectMetadata(StorageName, storageKey)
-        meta.setContentType(contentType)
-
-        val copyRequest = new CopyObjectRequest(StorageName, storageKey, StorageName, storageKey)
-          .withNewObjectMetadata(meta)
-
-        amazonClient.copyObject(copyRequest): Unit
-      }
-    }
+    def updateContentType(storageKey: String, contentType: String): Try[Unit] =
+      for {
+        meta <- s3Client.headObject(storageKey)
+        metadata = meta.metadata()
+        _        = metadata.put("Content-Type", contentType)
+        _ <- s3Client.updateMetadata(storageKey, metadata)
+      } yield ()
 
     def cloneObject(existingKey: String, newKey: String): Try[Unit] = {
-      Try(amazonClient.copyObject(StorageName, existingKey, StorageName, newKey): Unit)
+      s3Client.copyObject(existingKey, newKey).map(_ => ())
     }
 
-    def objectExists(storageKey: String): Boolean = {
-      Try(amazonClient.doesObjectExist(StorageName, storageKey)).getOrElse(false)
-    }
+    def objectExists(storageKey: String): Boolean =
+      s3Client.objectExists(storageKey)
 
-    def objectSize(storageKey: String): Long = {
-      Try(amazonClient.getObjectMetadata(StorageName, storageKey)).map(_.getContentLength).getOrElse(0)
-    }
-
-    def deleteObject(storageKey: String): Try[Unit] = Try(amazonClient.deleteObject(StorageName, storageKey))
+    def deleteObject(storageKey: String): Try[Unit] = s3Client.deleteObject(storageKey).map(_ => ())
   }
 
 }

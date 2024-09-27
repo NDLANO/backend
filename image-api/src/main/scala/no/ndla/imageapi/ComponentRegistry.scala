@@ -8,9 +8,9 @@
 
 package no.ndla.imageapi
 
-import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.integration.*
@@ -45,7 +45,6 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ImageRepository
     with ReadService
     with WriteService
-    with AmazonClient
     with ImageStorageService
     with NdlaClient
     with ConverterService
@@ -65,6 +64,7 @@ class ComponentRegistry(properties: ImageApiProperties)
     with Routes[Eff]
     with TapirErrorHelpers
     with SwaggerControllerConfig
+    with NdlaS3Client
     with SwaggerDocControllerConfig
     with TapirHealthController {
   override val props: ImageApiProperties = properties
@@ -73,11 +73,7 @@ class ComponentRegistry(properties: ImageApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  val amazonClient: AmazonS3 =
-    AmazonS3ClientBuilder
-      .standard()
-      .withRegion(props.StorageRegion.toString)
-      .build()
+  lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
 
   lazy val imageIndexService      = new ImageIndexService
   lazy val imageSearchService     = new ImageSearchService

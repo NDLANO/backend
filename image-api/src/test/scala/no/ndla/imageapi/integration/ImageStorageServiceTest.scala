@@ -8,11 +8,13 @@
 
 package no.ndla.imageapi.integration
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectMetadata, S3Object}
+import no.ndla.common.aws.NdlaS3Object
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
+
+import scala.util.{Failure, Success}
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 
@@ -23,25 +25,22 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   override val imageStorage = new AmazonImageStorageService
 
   override def beforeEach(): Unit = {
-    reset(amazonClient)
+    reset(s3Client)
   }
 
   test("That AmazonImageStorage.objectExists returns true when image exists") {
-    when(amazonClient.doesObjectExist(any[String], any[String])).thenReturn(true)
+    when(s3Client.objectExists(any)).thenReturn(true)
     assert(imageStorage.objectExists("existingKey"))
   }
 
   test("That AmazonImageStorage.objectExists returns false when image does not exist") {
-    when(amazonClient.doesObjectExist(any[String], any[String])).thenThrow(mock[AmazonServiceException])
-    assert(!imageStorage.objectExists("nonExistingKey"))
+    when(s3Client.objectExists(any)).thenReturn(false)
+    imageStorage.objectExists("nonExistingKey") should be(false)
   }
 
   test("That AmazonImageStorage.get returns a tuple with contenttype and data when the key exists") {
-    val s3object = new S3Object()
-    s3object.setObjectMetadata(new ObjectMetadata())
-    s3object.getObjectMetadata.setContentType(ContentType)
-    s3object.setObjectContent(TestData.NdlaLogoImage.stream)
-    when(amazonClient.getObject(any[GetObjectRequest])).thenReturn(s3object)
+    val s3Object = NdlaS3Object("bucket", "existing", TestData.NdlaLogoImage.stream, ContentType, 0)
+    when(s3Client.getObject(any)).thenReturn(Success(s3Object))
 
     val image = imageStorage.get("existing")
     assert(image.isSuccess)
@@ -50,7 +49,7 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That AmazonImageStorage.get returns None when the key does not exist") {
-    when(amazonClient.getObject(any[GetObjectRequest])).thenThrow(new RuntimeException("Exception"))
+    when(s3Client.getObject(any)).thenReturn(Failure(NoSuchKeyException.builder().build()))
     assert(imageStorage.get("nonexisting").isFailure)
   }
 

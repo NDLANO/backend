@@ -15,9 +15,8 @@ object draftapi extends Module {
       sttp,
       catsEffect,
       jsoup,
-      "org.scalikejdbc" %% "scalikejdbc"             % ScalikeJDBCV,
-      "org.scalatest"   %% "scalatest"               % ScalaTestV % "test",
-      "com.amazonaws"    % "aws-java-sdk-cloudwatch" % AwsSdkV
+      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+      "org.scalatest"   %% "scalatest"   % ScalaTestV % "test"
     ),
     flexmark,
     awsS3,

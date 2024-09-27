@@ -14,9 +14,8 @@ object imageapi extends Module {
       enumeratum,
       sttp,
       jsoup,
-      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
-      "org.imgscalr"   % "imgscalr-lib"            % "4.2",
+      "org.scalatest" %% "scalatest"    % ScalaTestV % "test",
+      "org.imgscalr"   % "imgscalr-lib" % "4.2",
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.10.1",
       "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.11.0",

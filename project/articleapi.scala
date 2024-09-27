@@ -15,9 +15,7 @@ object articleapi extends Module {
       enumeratum,
       sttp,
       jsoup,
-      "com.amazonaws"  % "aws-java-sdk-s3"         % AwsSdkV,
-      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test"
     ),
     flexmark,
     melody,

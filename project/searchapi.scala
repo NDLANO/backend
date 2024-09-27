@@ -13,8 +13,7 @@ object searchapi extends Module {
       scalaUri,
       enumeratum,
       jsoup,
-      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test"
     ),
     melody,
     elastic4s,

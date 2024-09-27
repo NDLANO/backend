@@ -8,8 +8,6 @@
 
 package no.ndla.common
 
-import com.amazonaws.regions.{Region, RegionUtils, Regions}
-
 import scala.jdk.CollectionConverters.MapHasAsScala
 import scala.util.Properties.propOrElse
 import scala.util.Properties.propOrNone
@@ -21,19 +19,6 @@ object Environment {
 
   /** UNSAFE: Will throw [[EnvironmentNotFoundException]] if property is not found */
   def prop(key: String): String = propOrElse(key, throw EnvironmentNotFoundException(key))
-
-  /** Will try to derive aws-region from ec2 instance metadata if `auto` is specified in the property If another string
-    * is passed, it will be attempted to be parsed as a aws region. Otherwise the default region will be used.
-    */
-  def propToAwsRegion(key: String, defaultRegion: Region = Region.getRegion(Regions.EU_WEST_1)): Region = {
-    val specifiedRegion = propOrNone(key)
-    specifiedRegion
-      .flatMap {
-        case "auto" => Option(Regions.getCurrentRegion).map(region => RegionUtils.getRegion(region.getName))
-        case str    => Option(RegionUtils.getRegion(str))
-      }
-      .getOrElse(defaultRegion)
-  }
 
   def booleanPropOrFalse(key: String): Boolean = {
     propOrNone(key).flatMap(_.toBooleanOption).getOrElse(false)

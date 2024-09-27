@@ -12,7 +12,7 @@ object Dependencies {
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.19"
     val Log4JV                = "2.23.1"
-    val AwsSdkV               = "1.12.771"
+    val AwsSdkV               = "2.28.9"
     val MockitoV              = "1.17.30"
     val Elastic4sV            = "8.11.5"
     val JacksonV              = "2.17.2"
@@ -62,10 +62,11 @@ object Dependencies {
     )
 
     lazy val awsS3: Seq[ModuleID] = Seq(
-      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
-      // NOTE: The s3 client uses JAXB for some performance improvements:^)
-      //       A warning is logged when uploading stuff to s3 if not included
-      "javax.xml.bind" % "jaxb-api" % "2.3.1"
+      "software.amazon.awssdk" % "s3" % AwsSdkV
+    )
+
+    lazy val awsCloudwatch: Seq[ModuleID] = Seq(
+      "software.amazon.awssdk" % "cloudwatch" % AwsSdkV
     )
 
     lazy val jsoup = "org.jsoup" % "jsoup" % JsoupV

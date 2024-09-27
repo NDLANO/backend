@@ -419,8 +419,10 @@ trait WriteService {
       }
 
       imageStorage
-        .uploadFromStream(new ByteArrayInputStream(bytes), fileName, contentType, file.fileSize)
-        .map(filePath => UploadedImage(filePath, file.fileSize, contentType, dimensions))
+        .uploadFromStream(fileName, file)
+        .map(filePath => {
+          UploadedImage(filePath, file.fileSize, contentType, dimensions)
+        })
     }
 
     private[service] def uploadImage(file: UploadedFile): Try[UploadedImage] = {

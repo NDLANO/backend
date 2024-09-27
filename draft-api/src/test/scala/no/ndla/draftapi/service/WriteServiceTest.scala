@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.api.UpdateWith
@@ -27,6 +26,7 @@ import org.mockito.Mockito.{doAnswer, never, reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 
 import java.util.UUID
 import scala.concurrent.Future
@@ -430,25 +430,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileToUpload.contentType).thenReturn(Some("application/pdf"))
     when(fileToUpload.fileName).thenReturn(Some("myfile.pdf"))
     when(fileStorage.resourceExists(any)).thenReturn(false)
-    when(
-      fileStorage
-        .uploadResourceFromStream(
-          any[UploadedFile],
-          eqTo("application/pdf"),
-          any
-        )
-    ).thenAnswer((_: InvocationOnMock) => Success(mock[ObjectMetadata]))
+    when(fileStorage.uploadResourceFromStream(any[UploadedFile], any))
+      .thenAnswer((_: InvocationOnMock) => Success(mock[HeadObjectResponse]))
 
     val uploaded = service.uploadFile(fileToUpload)
 
     val storageKeyCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
     uploaded.isSuccess should be(true)
     verify(fileStorage, times(1)).resourceExists(any)
-    verify(fileStorage, times(1)).uploadResourceFromStream(
-      any,
-      eqTo("application/pdf"),
-      storageKeyCaptor.capture()
-    )
+    verify(fileStorage, times(1)).uploadResourceFromStream(any, storageKeyCaptor.capture())
     storageKeyCaptor.getValue.endsWith(".pdf") should be(true)
   }
 

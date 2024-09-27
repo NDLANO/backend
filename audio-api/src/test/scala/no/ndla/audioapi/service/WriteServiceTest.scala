@@ -7,7 +7,6 @@
 
 package no.ndla.audioapi.service
 
-import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.TestData.testUser
 import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
@@ -23,16 +22,17 @@ import org.mockito.Mockito.{reset, times, verify, when, withSettings}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.quality.Strictness
 import scalikejdbc.DBSession
+import software.amazon.awssdk.services.s3.model.{DeleteObjectResponse, HeadObjectResponse, PutObjectResponse}
 
 import java.io.FileInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override val writeService        = new WriteService
-  override val converterService    = new ConverterService
-  val (newFileName1, newFileName2) = ("AbCdeF.mp3", "GhijKl.mp3")
-  val filePartMock: UploadedFile   = mock[UploadedFile]
-  val s3ObjectMock: ObjectMetadata = mock[ObjectMetadata]
+  override val writeService            = new WriteService
+  override val converterService        = new ConverterService
+  val (newFileName1, newFileName2)     = ("AbCdeF.mp3", "GhijKl.mp3")
+  val filePartMock: UploadedFile       = mock[UploadedFile]
+  val s3ObjectMock: HeadObjectResponse = mock[HeadObjectResponse]
 
   val newAudioMeta: NewAudioMetaInformation = NewAudioMetaInformation(
     "title",
@@ -112,15 +112,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val fis = mock[FileInputStream]
     when(filePartMock.stream).thenReturn(fis)
 
-    when(s3ObjectMock.getContentLength).thenReturn(1024)
-    when(s3ObjectMock.getContentType).thenReturn("audio/mp3")
+    when(s3ObjectMock.contentLength()).thenReturn(1024)
+    when(s3ObjectMock.contentType()).thenReturn("audio/mp3")
 
     reset(audioRepository)
     reset(audioIndexService)
     reset(tagIndexService)
-    reset(audioStorage)
+    reset(s3Client)
 
-    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(s3Client.deleteObject(any[String])).thenReturn(Success(mock[DeleteObjectResponse]))
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession]))
       .thenReturn(domainAudioMeta.copy(id = Some(1), revision = Some(1)))
   }
@@ -151,20 +151,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("uploadFiles should return Failure if file upload failed") {
-    when(audioStorage.objectExists(any[String])).thenReturn(false)
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Failure(new RuntimeException))
+    when(s3Client.objectExists(any[String])).thenReturn(false)
+    when(s3Client.putObject(any, any)).thenReturn(Failure(new RuntimeException))
 
     writeService.uploadFile(filePartMock, "en").isFailure should be(true)
   }
 
   test("deleteFiles should delete all files in a list") {
     writeService.deleteFile(Audio("mp3.mp3", "audio/mp3", 1024, "unknown"))
-    verify(audioStorage, times(1)).deleteObject(any[String])
+    verify(s3Client, times(1)).deleteObject(any[String])
   }
 
   test("uploadFile should return Failure if storeFile fails to upload") {
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
+    when(s3Client.putObject(any, any))
       .thenReturn(Failure(new RuntimeException("Failed to save file")))
 
     val result = writeService.uploadFile(filePartMock, "en")
@@ -174,8 +173,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("uploadFiles should return an Audio objects if everything went ok") {
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(s3ObjectMock))
+    when(s3Client.putObject(any, any)).thenReturn(Success(mock[PutObjectResponse]))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     val result = writeService.uploadFile(filePartMock, "nb")
 
     result.isSuccess should be(true)
@@ -189,16 +188,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("storeNewAudio should return Failure if filetype is invalid") {
     when(validationService.validateAudioFile(any))
       .thenReturn(Seq(ValidationMessage("some-field", "some-message")))
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata]))
+    when(s3Client.putObject(any, any)).thenReturn(Success(mock[PutObjectResponse]))
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
   }
 
   test("storeNewAudio should return Failure if upload failes") {
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Failure(new RuntimeException))
+    when(s3Client.putObject(any, any)).thenReturn(Failure(new RuntimeException))
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
   }
@@ -214,8 +211,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
       .thenReturn(Failure(new ValidationException(errors = Seq())))
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.putObject(any, any))
+      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
     verify(audioRepository, times(0)).insert(any[domain.AudioMetaInformation])(any[DBSession])
@@ -234,8 +231,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
       .thenReturn(Success(domainAudioMeta))
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.putObject(any, any))
+      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession])).thenThrow(new RuntimeException)
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
@@ -254,8 +252,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
       .thenReturn(Success(domainAudioMeta))
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.putObject(any, any))
+      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
 
@@ -275,8 +274,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
       .thenReturn(Success(domainAudioMeta))
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.putObject(any, any))
+      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(audioRepository.setSeriesId(any, any)(any)).thenReturn(Success(1))
@@ -410,7 +410,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that updateAudio returns Failure when audio upload fails") {
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
+    when(s3Client.putObject(any, any))
       .thenReturn(Failure(new RuntimeException("Something happened")))
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(filePartMock), testUser)
@@ -421,8 +421,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that updateAudio returns Failure when meta validation fails") {
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(s3ObjectMock))
+    when(s3Client.putObject(any, any))
+      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(
         any[domain.AudioMetaInformation],
@@ -437,14 +438,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.isFailure should be(true)
     result.failed.get.getMessage should equal(new ValidationException(errors = Seq()).getMessage)
 
-    verify(audioStorage, times(1)).deleteObject(any[String])
+    verify(s3Client, times(1)).deleteObject(any[String])
   }
 
   test("that updateAudio returns Failure when meta update fails") {
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(s3ObjectMock))
+    when(s3Client.putObject(any, any))
+      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(
         any[domain.AudioMetaInformation],
@@ -461,7 +463,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.isFailure should be(true)
     result.failed.get.getMessage should equal("Something happened")
 
-    verify(audioStorage, times(1)).deleteObject(any[String])
+    verify(s3Client, times(1)).deleteObject(any[String])
   }
 
   test("that updateAudio returns Success when all is good and birds are singing") {
@@ -469,8 +471,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(s3ObjectMock))
+    when(s3Client.putObject(any, any))
+      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(
         any[domain.AudioMetaInformation],
@@ -488,32 +491,32 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(filePartMock), testUser)
     result.isSuccess should be(true)
 
-    verify(audioStorage, times(1)).deleteObject(any[String])
-    verify(audioStorage, times(1)).deleteObject(newFileName1)
+    verify(s3Client, times(1)).deleteObject(any[String])
+    verify(s3Client, times(1)).deleteObject(newFileName1)
   }
 
   test("that deleting audio both deletes database entry, s3 object, and indexed document") {
     reset(audioRepository)
-    reset(audioStorage)
+    reset(s3Client)
     reset(audioIndexService)
 
     val audioId = 4444.toLong
 
     when(audioRepository.withId(audioId)).thenReturn(Some(domainAudioMeta))
     when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
-    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(s3Client.deleteObject(any[String])).thenReturn(Success(mock[DeleteObjectResponse]))
     when(audioIndexService.deleteDocument(any[Long])).thenReturn(Success(audioId))
 
     writeService.deleteAudioAndFiles(audioId)
 
-    verify(audioStorage, times(1)).deleteObject(domainAudioMeta.filePaths.head.filePath)
+    verify(s3Client, times(1)).deleteObject(domainAudioMeta.filePaths.head.filePath)
     verify(audioIndexService, times(1)).deleteDocument(audioId)
     verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
   }
 
   test("That deleting language version deletes language") {
     reset(audioRepository)
-    reset(audioStorage)
+    reset(s3Client)
     reset(audioIndexService)
 
     val audioId = 5555.toLong
@@ -570,7 +573,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
-    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(s3Client.deleteObject(any)).thenReturn(Success(mock[DeleteObjectResponse]))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0))
     )
@@ -599,7 +602,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That deleting last language version deletes entire image") {
     reset(audioRepository)
-    reset(audioStorage)
+    reset(s3Client)
     reset(audioIndexService)
 
     val audioId = 5555.toLong
@@ -618,12 +621,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
     when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
-    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(s3Client.deleteObject(any[String])).thenReturn(Success(mock[DeleteObjectResponse]))
     when(audioIndexService.deleteDocument(any[Long])).thenReturn(Success(audioId))
 
     writeService.deleteAudioLanguageVersion(audioId, "en")
 
-    verify(audioStorage, times(1)).deleteObject(audio.filePaths.head.filePath)
+    verify(s3Client, times(1)).deleteObject(audio.filePaths.head.filePath)
     verify(audioIndexService, times(1)).deleteDocument(audioId)
     verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
   }
@@ -876,7 +879,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That deleting last language version of a file deletes it") {
     reset(audioRepository)
-    reset(audioStorage)
+    reset(s3Client)
     reset(audioIndexService)
 
     val audioId = 5555.toLong
@@ -900,7 +903,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
-    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(s3Client.deleteObject(any[String])).thenReturn(Success(mock[DeleteObjectResponse]))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0))
     )
@@ -918,14 +921,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.deleteAudioLanguageVersion(audioId, "nn")
 
-    verify(audioStorage, times(1)).deleteObject("file2.mp3")
-    verify(audioStorage, times(1)).deleteObject(any[String])
+    verify(s3Client, times(1)).deleteObject("file2.mp3")
+    verify(s3Client, times(1)).deleteObject(any[String])
 
   }
 
   test("That deleting language version will not delete file if other languages use it") {
     reset(audioRepository)
-    reset(audioStorage)
+    reset(s3Client)
     reset(audioIndexService)
 
     val audioId = 5555.toLong
@@ -966,13 +969,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.deleteAudioLanguageVersion(audioId, "nn")
 
-    verify(audioStorage, times(0)).deleteObject(any[String])
+    verify(s3Client, times(0)).deleteObject(any[String])
 
   }
 
   test("That when uploading a new file, remove the old file if not used in other language version") {
     reset(audioRepository)
-    reset(audioStorage)
+    reset(s3Client)
     reset(audioIndexService)
 
     val audioId = 5555.toLong
@@ -997,11 +1000,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val afterInsert = audio.copy(id = Some(5555), revision = Some(1))
 
-    when(audioStorage.deleteObject(any)).thenReturn(Success(()))
+    when(s3Client.deleteObject(any)).thenReturn(Success(mock[DeleteObjectResponse]))
     when(audioRepository.withId(5555)).thenReturn(Some(audio))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(audioStorage.storeAudio(any[UploadedFile], any[String], any[String]))
-      .thenReturn(Success(s3ObjectMock))
+    when(s3Client.putObject(any, any)).thenReturn(Success(mock[PutObjectResponse]))
+    when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(
         any[domain.AudioMetaInformation],
@@ -1019,7 +1022,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.updateAudio(5555, updatedAudioMeta, Some(filePartMock), testUser)
     result.isSuccess should be(true)
 
-    verify(audioStorage, times(1)).deleteObject("file3.mp3")
+    verify(s3Client, times(1)).deleteObject("file3.mp3")
 
   }
 

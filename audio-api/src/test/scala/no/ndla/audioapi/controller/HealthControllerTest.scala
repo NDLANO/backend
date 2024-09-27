@@ -56,7 +56,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that /health/readiness returns 200 on success") {
     healthControllerResponse = 200
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
-    when(audioStorage.objectExists("file.mp3")).thenReturn(true)
+    when(s3Client.objectExists("file.mp3")).thenReturn(true)
 
     val request =
       quickRequest
@@ -69,7 +69,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that /health/readiness returns 500 on failure") {
     healthControllerResponse = 500
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
-    when(audioStorage.objectExists("file.mp3")).thenReturn(false)
+    when(s3Client.objectExists("file.mp3")).thenReturn(false)
 
     val request =
       quickRequest
@@ -91,7 +91,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that /health returns 200 on no audios") {
     healthControllerResponse = 404
     when(audioRepository.getRandomAudio()).thenReturn(None)
-    when(audioStorage.objectExists("file.mp3")).thenReturn(false)
+    when(s3Client.objectExists("file.mp3")).thenReturn(false)
 
     val request =
       quickRequest

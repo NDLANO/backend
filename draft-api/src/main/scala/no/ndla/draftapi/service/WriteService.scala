@@ -694,7 +694,7 @@ trait WriteService {
       val fileName      = LazyList.continually(randomFilename(fileExtension)).dropWhile(fileStorage.resourceExists).head
 
       fileStorage
-        .uploadResourceFromStream(file, contentType, fileName)
+        .uploadResourceFromStream(file, fileName)
         .map(_ =>
           domain.UploadedFile(
             fileName = fileName,
