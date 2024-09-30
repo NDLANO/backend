@@ -121,7 +121,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             publicId = "urn:subject:1",
             rootId = "urn:subject:1",
             root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
-            path = Some("/subject:1"),
+            path = "/subject:1",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
             relevanceId = core.id,
@@ -132,7 +132,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             contextId = "",
             isVisible = true,
             isActive = true,
-            None
+            url = "/subject:1"
           )
         )
       )
@@ -305,7 +305,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             publicId = "urn:subject:1",
             rootId = "urn:subject:1",
             root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
-            path = Some("/subject:1"),
+            path = "/subject:1",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
             relevanceId = core.id,
@@ -316,7 +316,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             contextId = "",
             isVisible = true,
             isActive = true,
-            None
+            url = "/subject:1"
           )
         )
       )
@@ -445,7 +445,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             publicId = "urn:subject:1",
             rootId = "urn:subject:1",
             root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
-            path = Some("/subject:1"),
+            path = "/subject:1",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
             relevanceId = core.id,
@@ -456,7 +456,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             contextId = "",
             isVisible = true,
             isActive = true,
-            None
+            url = "/subject:1"
           )
         )
       )
@@ -473,7 +473,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             publicId = "urn:subject:2",
             rootId = "urn:subject:2",
             root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub2"))),
-            path = Some("/subject:2"),
+            path = "/subject:2",
             breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
             contextType = None,
             relevanceId = core.id,
@@ -484,7 +484,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             contextId = "",
             isVisible = true,
             isActive = true,
-            None
+            url = "/subject:2"
           )
         )
       )

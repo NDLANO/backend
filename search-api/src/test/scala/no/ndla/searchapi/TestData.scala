@@ -1045,11 +1045,12 @@ object TestData {
       isActive: Boolean
   ): List[TaxonomyContext] = {
     parent.contexts.map(context => {
+      val path = s"${context.path}/${URI.create(node.id).getSchemeSpecificPart}"
       TaxonomyContext(
         publicId = node.id,
         rootId = root.id,
         root = SearchableLanguageValues(Seq(LanguageValue("nb", root.name))),
-        path = Some(s"${context.path}/${URI.create(node.id).getSchemeSpecificPart}"),
+        path = path,
         breadcrumbs = SearchableLanguageList.addValue(context.breadcrumbs, parent.name),
         contextType = contextType,
         relevanceId = relevance.id,
@@ -1062,7 +1063,7 @@ object TestData {
         contextId = Random.alphanumeric.take(12).mkString,
         isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible),
         isActive = isActive,
-        None
+        url = path
       )
     })
   }
@@ -1080,7 +1081,7 @@ object TestData {
         publicId = "urn:subject:1",
         rootId = "urn:subject:1",
         root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
-        path = Some("/subject:1"),
+        path = "/subject:1",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
         relevanceId = core.id,
@@ -1091,7 +1092,7 @@ object TestData {
         contextId = "",
         isVisible = true,
         isActive = true,
-        None
+        url = "/subject:1"
       )
     )
   )
@@ -1108,7 +1109,7 @@ object TestData {
         publicId = "urn:subject:2",
         rootId = "urn:subject:2",
         root = SearchableLanguageValues(Seq(LanguageValue("nb", "Historie"))),
-        path = Some("/subject:2"),
+        path = "/subject:2",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
         relevanceId = core.id,
@@ -1119,7 +1120,7 @@ object TestData {
         contextId = "",
         isVisible = true,
         isActive = true,
-        None
+        url = "/subject:2"
       )
     )
   )
@@ -1136,7 +1137,7 @@ object TestData {
         publicId = "urn:subject:3",
         rootId = "urn:subject:3",
         root = SearchableLanguageValues(Seq(LanguageValue("nb", "Religion"))),
-        path = Some("/subject:3"),
+        path = "/subject:3",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
         relevanceId = core.id,
@@ -1147,7 +1148,7 @@ object TestData {
         contextId = "",
         isVisible = false,
         isActive = true,
-        None
+        url = "/subject:3"
       )
     )
   )
@@ -1657,7 +1658,7 @@ object TestData {
       contextId = "contextId",
       rootId = "urn:subject:1",
       root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
-      path = Some("/subject:3/topic:1/topic:151/resource:101"),
+      path = "/subject:3/topic:1/topic:151/resource:101",
       breadcrumbs = SearchableLanguageList(
         Seq(
           LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen"))
@@ -1670,7 +1671,7 @@ object TestData {
       parentIds = List("urn:topic:1"),
       isPrimary = true,
       isActive = true,
-      None
+      url = "/subject:3/topic:1/topic:151/resource:101"
     )
 
   val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(

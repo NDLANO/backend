@@ -543,7 +543,7 @@ class MultiDraftSearchServiceAtomicTest
           publicId = "urn:subject:1",
           rootId = "urn:subject:1",
           root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
-          path = Some("/subject:1"),
+          path = "/subject:1",
           breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
           contextType = None,
           relevanceId = core.id,
@@ -554,7 +554,7 @@ class MultiDraftSearchServiceAtomicTest
           contextId = "",
           isVisible = true,
           isActive = true,
-          None
+          url = "/subject:1"
         )
       )
     )

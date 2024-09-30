@@ -569,7 +569,7 @@ trait SearchConverterService {
     }
 
     private def getPathsFromContext(contexts: List[SearchableTaxonomyContext]): List[String] = {
-      contexts.map(_.path.getOrElse(""))
+      contexts.map(_.path)
     }
 
     private def filterContexts(
