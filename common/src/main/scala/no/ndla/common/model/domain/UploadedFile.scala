@@ -18,7 +18,7 @@ case class UploadedFile(
     fileName: Option[String],
     fileSize: Long,
     contentType: Option[String],
-    private val file: File
+    file: File
 ) {
   def doWithStream[T](f: UploadedFile => Try[T]): Try[T] = {
     try f(this)

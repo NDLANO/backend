@@ -60,10 +60,11 @@ trait NdlaS3Client {
     def putObject(key: String, uploadedFile: UploadedFile): Try[PutObjectResponse] = putObject(key, uploadedFile, None)
 
     def putObject(key: String, uploadedFile: UploadedFile, cacheControl: Option[String]): Try[PutObjectResponse] = Try {
+      val contentType = uploadedFile.contentType.getOrElse("application/octet-stream")
       val por = PutObjectRequest
         .builder()
         .contentLength(uploadedFile.fileSize)
-        .contentType(uploadedFile.contentType.getOrElse("application/octet-stream"))
+        .contentType(contentType)
         .key(key)
         .bucket(bucket)
 
@@ -72,7 +73,7 @@ trait NdlaS3Client {
         case None        => por
       }
 
-      val requestBody = RequestBody.fromInputStream(uploadedFile.stream, uploadedFile.fileSize)
+      val requestBody = RequestBody.fromFile(uploadedFile.file)
 
       client.putObject(
         porWithCacheControl.build(),
