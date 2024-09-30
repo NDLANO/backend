@@ -554,7 +554,7 @@ class MultiDraftSearchServiceAtomicTest
           contextId = "",
           isVisible = true,
           isActive = true,
-          None
+          url = "/subject:1"
         )
       )
     )

@@ -850,7 +850,7 @@ trait SearchConverterService {
         language = language,
         isPrimary = context.isPrimary,
         isActive = context.isActive,
-        url = context.url.getOrElse(context.path)
+        url = context.url
       )
 
     }

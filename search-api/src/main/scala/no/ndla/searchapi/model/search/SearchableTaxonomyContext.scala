@@ -26,7 +26,7 @@ case class SearchableTaxonomyContext(
     parentIds: List[String],
     isPrimary: Boolean,
     isActive: Boolean,
-    url: Option[String]
+    url: String
 )
 
 object SearchableTaxonomyContext {
