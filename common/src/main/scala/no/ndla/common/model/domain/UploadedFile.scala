@@ -14,7 +14,6 @@ import scala.util.Try
 
 case class UploadedFile(
     partName: String,
-    stream: InputStream,
     fileName: Option[String],
     fileSize: Long,
     contentType: Option[String],
@@ -24,19 +23,19 @@ case class UploadedFile(
     try f(this)
     finally file.delete(): Unit
   }
+
+  def stream: InputStream = new FileInputStream(file)
 }
 
 object UploadedFile {
   private def stripQuotes(s: String): String = s.stripPrefix("\"").stripSuffix("\"")
   def fromFilePart(filePart: Part[File]): UploadedFile = {
-    val file        = filePart.body
-    val inputStream = new FileInputStream(file)
-    val partName    = stripQuotes(filePart.name)
-    val fileName    = filePart.fileName.map(stripQuotes)
+    val file     = filePart.body
+    val partName = stripQuotes(filePart.name)
+    val fileName = filePart.fileName.map(stripQuotes)
 
     new UploadedFile(
       partName = partName,
-      stream = inputStream,
       fileSize = file.length(),
       contentType = filePart.contentType,
       fileName = fileName,
