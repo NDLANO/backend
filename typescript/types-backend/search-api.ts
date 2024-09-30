@@ -6,7 +6,7 @@ export interface IApiTaxonomyContext {
   rootId: string
   relevance: string
   relevanceId: string
-  path: string
+  path?: string
   breadcrumbs: string[]
   contextId: string
   contextType: string
@@ -14,7 +14,7 @@ export interface IApiTaxonomyContext {
   language: string
   isPrimary: boolean
   isActive: boolean
-  url: string
+  url?: string
 }
 
 export interface IArticleIntroduction {

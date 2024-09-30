@@ -842,7 +842,7 @@ trait SearchConverterService {
         rootId = context.rootId,
         relevance = relevance,
         relevanceId = context.relevanceId,
-        path = context.path.getOrElse(""),
+        path = context.path,
         breadcrumbs = breadcrumbs,
         contextId = context.contextId,
         contextType = context.contextType,
@@ -850,7 +850,7 @@ trait SearchConverterService {
         language = language,
         isPrimary = context.isPrimary,
         isActive = context.isActive,
-        url = context.url.getOrElse("")
+        url = context.url
       )
 
     }
