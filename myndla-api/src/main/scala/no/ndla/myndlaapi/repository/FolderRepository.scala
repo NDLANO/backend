@@ -700,6 +700,24 @@ trait FolderRepository {
       }
     }
 
+    def setSharedFolderRank(folderId: UUID, rank: Int, feideId: FeideID)(implicit session: DBSession): Try[Unit] = {
+      Try {
+        sql"""
+          update ${SavedSharedFolder.table}
+          set rank=$rank
+          where folder_id=$folderId and feide_id=$feideId
+      """
+          .update()
+      } match {
+        case Failure(ex) => Failure(ex)
+        case Success(count) if count == 1 =>
+          logger.info(s"Updated rank for shared folder with id $folderId and feideId $feideId")
+          Success(())
+        case Success(count) =>
+          Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+      }
+    }
+
     def setResourceConnectionRank(folderId: UUID, resourceId: UUID, rank: Int)(implicit session: DBSession): Try[Unit] =
       Try {
         sql"""
