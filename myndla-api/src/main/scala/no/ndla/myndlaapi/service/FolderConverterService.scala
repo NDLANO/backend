@@ -154,7 +154,7 @@ trait FolderConverterService {
     def toNewFolderData(
         newFolder: api.NewFolder,
         parentId: Option[UUID],
-        newRank: Option[Int]
+        newRank: Int
     ): Try[domain.NewFolderData] = {
       val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
 

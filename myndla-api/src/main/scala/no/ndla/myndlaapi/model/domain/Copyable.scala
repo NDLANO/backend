@@ -18,7 +18,7 @@ trait CopyableFolder {
   val description: Option[String]
   val subfolders: List[CopyableFolder]
   val resources: List[CopyableResource]
-  val rank: Option[Int]
+  val rank: Int
 }
 
 trait CopyableResource {

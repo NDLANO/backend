@@ -57,7 +57,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -73,7 +73,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -89,7 +89,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -137,7 +137,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             api.Breadcrumb(id = subFolder1UUID.toString, name = "subFolder1")
           ),
           parentId = Some(mainFolderUUID.toString),
-          rank = None,
+          rank = 1,
           created = created,
           updated = created,
           shared = None,
@@ -155,7 +155,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             api.Breadcrumb(id = subFolder2UUID.toString, name = "subFolder2")
           ),
           parentId = Some(mainFolderUUID.toString),
-          rank = None,
+          rank = 1,
           created = created,
           updated = created,
           shared = None,
@@ -163,7 +163,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
           owner = None
         )
       ),
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,

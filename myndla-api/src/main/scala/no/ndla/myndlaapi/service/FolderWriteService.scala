@@ -556,7 +556,7 @@ trait FolderWriteService {
       val folderWithName =
         withStatus.copy(name = getFolderValidName(makeUniqueNamePostfix, newFolder.name, maybeSiblings))
       val validatedParentId = validateNewFolder(folderWithName.name, parentId, maybeSiblings).?
-      val newFolderData     = folderConverterService.toNewFolderData(folderWithName, validatedParentId, nextRank.some).?
+      val newFolderData     = folderConverterService.toNewFolderData(folderWithName, validatedParentId, nextRank).?
       val inserted          = folderRepository.insertFolder(feideId, newFolderData).?
 
       Success(inserted)
@@ -702,8 +702,10 @@ trait FolderWriteService {
         session: DBSession
     ): Try[SavedSharedFolder] = {
       for {
-        folder     <- folderRepository.folderWithId(folderId).filter(f => f.isShared)
-        folderUser <- folderRepository.createFolderUserConnection(folder.id, feideId)
+        folder       <- folderRepository.folderWithId(folderId).filter(f => f.isShared)
+        savedFolders <- folderRepository.getSavedSharedFolder(feideId)
+        newRank = savedFolders.length + 1
+        folderUser <- folderRepository.createFolderUserConnection(folder.id, feideId, newRank)
       } yield folderUser
     }
 

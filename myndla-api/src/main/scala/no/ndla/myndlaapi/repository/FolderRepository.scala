@@ -19,12 +19,12 @@ import no.ndla.myndlaapi.model.domain.{
   Folder,
   FolderResource,
   FolderStatus,
-  SavedSharedFolder,
   MyNDLAUser,
   NDLASQLException,
   NewFolderData,
   Resource,
-  ResourceDocument
+  ResourceDocument,
+  SavedSharedFolder
 }
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject
@@ -499,15 +499,11 @@ trait FolderRepository {
 
     def getSharedFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit
         session: DBSession
-    ): Try[Option[Folder]] =
-      getSharedFolderAndChildrenSubfoldersWithResourcesWhere(id)
-
-    private[repository] def getSharedFolderAndChildrenSubfoldersWithResourcesWhere(id: UUID)(implicit
-        session: DBSession
     ): Try[Option[Folder]] = Try {
-      val u  = MyNDLAUser.syntax("u")
-      val r  = Resource.syntax("r")
-      val fr = FolderResource.syntax("fr")
+      val u   = MyNDLAUser.syntax("u")
+      val r   = Resource.syntax("r")
+      val fr  = FolderResource.syntax("fr")
+      val sfu = SavedSharedFolder.syntax("sfu")
 
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
@@ -520,17 +516,21 @@ trait FolderRepository {
                 JOIN childs AS parent ON parent.f_id = child.parent_id
                 AND child.status = ${FolderStatus.SHARED.toString}
             )
-            SELECT childs.*, ${r.resultAll}, ${u.resultAll}, ${fr.resultAll} FROM childs
+            SELECT childs.*, ${r.resultAll}, ${u.resultAll}, ${fr.resultAll}, ${sfu.resultAll} FROM childs
             LEFT JOIN ${FolderResource.as(fr)} ON ${fr.folderId} = f_id
             LEFT JOIN ${Resource.as(r)} ON ${r.id} = ${fr.resourceId}
-            LEFT JOIN ${MyNDLAUser.as(u)} on ${u.feideId} = f_feide_id;
+            LEFT JOIN ${MyNDLAUser.as(u)} on ${u.feideId} = f_feide_id
+            LEFT JOIN ${SavedSharedFolder.as(sfu)} on ${sfu.folderId} = f_id;
          """
         .one(rs => Folder.fromResultSet(s => s"f_$s")(rs))
         .toManies(
           rs => Resource.fromResultSetSyntaxProviderWithConnection(r, fr)(rs).sequence,
-          rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption
+          rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
+          rs => Try(SavedSharedFolder.fromResultSet(sfu)(rs)).toOption
         )
-        .map((folder, resources, user) => toCompileFolder(folder, resources.toList, user.toList))
+        .map((folder, resources, user, savedSharedFolder) => {
+          toCompileFolder(folder, resources.toList, user.toList, savedSharedFolder.toList)
+        })
         .list()
         .sequence
     }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
@@ -538,13 +538,27 @@ trait FolderRepository {
     private def toCompileFolder(
         folder: Try[Folder],
         resource: Seq[Try[Resource]],
-        users: Seq[MyNDLAUser]
+        users: Seq[MyNDLAUser],
+        savedSharedFolder: Seq[Try[SavedSharedFolder]]
     ): Try[Folder] =
       for {
-        f         <- folder
-        resources <- resource.toList.sequence
-        user      <- findUser(f.feideId, users)
-      } yield f.copy(resources = resources, user = user)
+        f            <- folder
+        resources    <- resource.toList.sequence
+        user         <- findUser(f.feideId, users)
+        savedFolders <- savedSharedFolder.sequence
+        rank         <- findRank(f, savedFolders)
+      } yield f.copy(
+        rank = rank,
+        resources = resources,
+        user = user
+      )
+
+    private def findRank(folder: Folder, sharedFolderConnections: Seq[SavedSharedFolder]): Try[Int] = {
+      sharedFolderConnections.find(_.folderId == folder.id) match {
+        case Some(value) => Success(value.rank)
+        case None        => Success(folder.rank)
+      }
+    }
 
     private def findUser(feideId: FeideID, users: collection.Seq[MyNDLAUser]): Try[Option[MyNDLAUser]] =
       users.find(user => feideId == user.feideId) match {
@@ -846,7 +860,7 @@ trait FolderRepository {
       )
     }
 
-    def createFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
+    def createFolderUserConnection(folderId: UUID, feideId: FeideID, rank: Int)(implicit
         session: DBSession = AutoSession
     ): Try[SavedSharedFolder] = Try {
       withSQL {
@@ -854,12 +868,13 @@ trait FolderRepository {
           .into(SavedSharedFolder)
           .namedValues(
             SavedSharedFolder.column.folderId -> folderId,
-            SavedSharedFolder.column.feideId  -> feideId
+            SavedSharedFolder.column.feideId  -> feideId,
+            SavedSharedFolder.column.rank     -> rank
           )
       }.update(): Unit
       logger.info(s"Inserted new sharedFolder-user connection with folder id $folderId and feide id $feideId")
 
-      SavedSharedFolder(folderId = folderId, feideId = feideId)
+      SavedSharedFolder(folderId = folderId, feideId = feideId, rank = rank)
     }
 
     def deleteFolderUserConnections(
@@ -917,12 +932,18 @@ trait FolderRepository {
       val f   = Folder.syntax("f")
       val sfu = SavedSharedFolder.syntax("sfu")
       sql"""
-          SELECT ${f.result.*}
+          SELECT ${f.result.*}, ${sfu.result.*}
           FROM ${Folder.as(f)}
           LEFT JOIN ${SavedSharedFolder.as(sfu)} on sfu.folder_id = f.id
           WHERE sfu.feide_id = $feideId
         """
-        .map(Folder.fromResultSet(f))
+        .map(rs => {
+          val folder = Folder.fromResultSet(f)(rs)
+          folder.map {
+            val sharedRank = rs.int(sfu.resultName.rank)
+            _.copy(rank = sharedRank)
+          }
+        })
         .list()
         .sequence
     }.flatten
