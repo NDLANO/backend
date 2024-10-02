@@ -15,8 +15,7 @@ object audioapi extends Module {
       sttp,
       catsEffect,
       jsoup,
-      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test"
     ),
     flexmark,
     awsS3,

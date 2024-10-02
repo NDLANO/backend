@@ -8,15 +8,15 @@
 
 package no.ndla.audioapi
 
-import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
-import no.ndla.audioapi.integration._
+import no.ndla.audioapi.integration.*
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
-import no.ndla.audioapi.service._
-import no.ndla.audioapi.service.search._
+import no.ndla.audioapi.service.*
+import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
+import no.ndla.common.aws.NdlaS3Client
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
@@ -27,15 +27,14 @@ trait TestEnvironment
     with AudioRepository
     with SeriesRepository
     with NdlaClient
-    with AmazonClient
     with ReadService
     with WriteService
     with ValidationService
     with ConverterService
-    with AudioStorageService
     with InternController
     with Routes[Eff]
     with HealthController
+    with NdlaS3Client
     with TapirHealthController
     with AudioController
     with SeriesController
@@ -58,12 +57,12 @@ trait TestEnvironment
 
   val dataSource: HikariDataSource       = mock[HikariDataSource]
   val storageName: String                = props.StorageName
-  val audioStorage: AudioStorage         = mock[AudioStorage]
   val audioRepository: AudioRepository   = mock[AudioRepository]
   val seriesRepository: SeriesRepository = mock[SeriesRepository]
 
-  val amazonClient: AmazonS3Client = mock[AmazonS3Client]
-  val ndlaClient: NdlaClient       = mock[NdlaClient]
+  val s3Client: NdlaS3Client = mock[NdlaS3Client]
+
+  val ndlaClient: NdlaClient = mock[NdlaClient]
 
   val readService: ReadService             = mock[ReadService]
   val writeService: WriteService           = mock[WriteService]

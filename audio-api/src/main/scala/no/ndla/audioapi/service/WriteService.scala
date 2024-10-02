@@ -7,7 +7,7 @@
 
 package no.ndla.audioapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException}
 import no.ndla.audioapi.model.domain.Audio
@@ -15,9 +15,10 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
+import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.UploadedFile
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain as common
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -32,7 +33,7 @@ trait WriteService {
     with AudioIndexService
     with SeriesIndexService
     with TagIndexService
-    with AudioStorageService
+    with NdlaS3Client
     with ReadService
     with Clock =>
   val writeService: WriteService
@@ -411,7 +412,7 @@ trait WriteService {
     }
 
     private[service] def deleteFile(audioFile: Audio): Try[Unit] = {
-      audioStorage.deleteObject(audioFile.filePath)
+      s3Client.deleteObject(audioFile.filePath).map(_ => ())
     }
 
     private[service] def getFileExtension(fileName: String): Option[String] = {
@@ -423,12 +424,12 @@ trait WriteService {
 
     private[service] def uploadFile(file: UploadedFile, language: String): Try[Audio] = {
       val fileExtension = file.fileName.flatMap(getFileExtension).getOrElse("")
-      val contentType   = file.contentType.getOrElse("")
-      val fileName      = LazyList.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
+      val fileName      = LazyList.continually(randomFileName(fileExtension)).dropWhile(s3Client.objectExists).head
 
-      audioStorage
-        .storeAudio(file, contentType, fileName)
-        .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
+      for {
+        _    <- s3Client.putObject(fileName, file)
+        head <- s3Client.headObject(fileName)
+      } yield Audio(fileName, head.contentType(), head.contentLength(), language)
     }
 
     private[service] def randomFileName(extension: String, length: Int = 12): String = {

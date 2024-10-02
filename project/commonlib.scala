@@ -14,9 +14,9 @@ object commonlib extends Module {
       enumeratumCirce,
       sttp,
       scalikejdbc,
-      scalaTsi,
-      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV
+      scalaTsi
     ),
+    awsS3,
     melody,
     tapirHttp4sCirce
   )

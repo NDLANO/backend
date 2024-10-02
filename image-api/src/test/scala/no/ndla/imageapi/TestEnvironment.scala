@@ -8,9 +8,9 @@
 
 package no.ndla.imageapi
 
-import com.amazonaws.services.s3.AmazonS3
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.common.aws.NdlaS3Client
 import no.ndla.imageapi.controller.{
   BaseImageController,
   HealthController,
@@ -52,8 +52,8 @@ trait TestEnvironment
     with ImageRepository
     with ReadService
     with WriteService
-    with AmazonClient
     with ImageStorageService
+    with NdlaS3Client
     with ImageIndexService
     with NdlaClient
     with HealthController
@@ -76,7 +76,7 @@ trait TestEnvironment
   val TestData = new TestData
 
   val migrator: DBMigrator   = mock[DBMigrator]
-  val amazonClient: AmazonS3 = mock[AmazonS3]
+  val s3Client: NdlaS3Client = mock[NdlaS3Client]
 
   val dataSource: HikariDataSource           = mock[HikariDataSource]
   val imageIndexService: ImageIndexService   = mock[ImageIndexService]

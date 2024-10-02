@@ -12,8 +12,7 @@ object oembedproxy extends Module {
       scalaUri,
       sttp,
       jsoup,
-      "com.amazonaws"  % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest"               % ScalaTestV % "test"
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test"
     ),
     vulnerabilityOverrides,
     tapirHttp4sCirce

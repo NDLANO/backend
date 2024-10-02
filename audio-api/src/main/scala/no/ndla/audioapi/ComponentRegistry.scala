@@ -8,15 +8,15 @@
 
 package no.ndla.audioapi
 
-import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.audioapi.controller._
-import no.ndla.audioapi.integration._
+import no.ndla.audioapi.controller.*
+import no.ndla.audioapi.integration.*
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
-import no.ndla.audioapi.service._
-import no.ndla.audioapi.service.search._
+import no.ndla.audioapi.service.*
+import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
+import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirHealthController}
@@ -28,12 +28,10 @@ class ComponentRegistry(properties: AudioApiProperties)
     with AudioRepository
     with SeriesRepository
     with NdlaClient
-    with AmazonClient
     with ReadService
     with WriteService
     with ValidationService
     with ConverterService
-    with AudioStorageService
     with InternController
     with HealthController
     with TapirHealthController
@@ -56,20 +54,17 @@ class ComponentRegistry(properties: AudioApiProperties)
     with Props
     with DBMigrator
     with ErrorHelpers
-    with SwaggerDocControllerConfig {
+    with SwaggerDocControllerConfig
+    with NdlaS3Client {
   override val props: AudioApiProperties    = properties
   override val migrator: DBMigrator         = new DBMigrator
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  val amazonClient: AmazonS3 = AmazonS3ClientBuilder
-    .standard()
-    .withRegion(props.StorageRegion.toString)
-    .build()
+  lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
 
   lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository
-  lazy val audioStorage     = new AudioStorage
 
   lazy val ndlaClient = new NdlaClient
 

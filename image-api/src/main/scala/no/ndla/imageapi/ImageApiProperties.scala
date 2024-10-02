@@ -8,9 +8,8 @@
 
 package no.ndla.imageapi
 
-import com.amazonaws.regions.Region
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.{prop, propToAwsRegion}
+import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
@@ -22,8 +21,6 @@ trait Props extends HasBaseProps {
 }
 
 class ImageApiProperties extends BaseProps with StrictLogging {
-  val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
-
   def ApplicationName            = "image-api"
   val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
@@ -106,8 +103,8 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
 
-  val StorageName: String   = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
-  val StorageRegion: Region = propToAwsRegion("IMAGE_FILE_S3_BUCKET_REGION")
+  val StorageName: String           = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
+  val StorageRegion: Option[String] = propOrNone("IMAGE_FILE_S3_BUCKET_REGION")
 
   val S3NewFileCacheControlHeader: String = propOrElse("IMAGE_FILE_S3_BUCKET_CACHE_CONTROL", "max-age=2592000")
 

@@ -7,9 +7,8 @@
 
 package no.ndla.draftapi
 
-import com.amazonaws.regions.Region
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.{prop, propToAwsRegion}
+import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
@@ -91,7 +90,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def AttachmentStorageName: String =
     propOrElse("ARTICLE_ATTACHMENT_S3_BUCKET", s"$Environment.article-attachments.ndla")
 
-  def AttachmentStorageRegion: Region = propToAwsRegion("ARTICLE_ATTACHMENT_S3_BUCKET_REGION")
+  def AttachmentStorageRegion: Option[String] = propOrNone("ARTICLE_ATTACHMENT_S3_BUCKET_REGION")
 
   def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",

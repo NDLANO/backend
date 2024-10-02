@@ -7,9 +7,9 @@
 
 package no.ndla.draftapi
 
-import com.amazonaws.services.s3.AmazonS3
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
@@ -57,7 +57,7 @@ trait TestEnvironment
     with ContentValidator
     with FileController
     with FileStorageService
-    with AmazonClient
+    with NdlaS3Client
     with Clock
     with UUIDUtil
     with ArticleApiClient
@@ -100,7 +100,7 @@ trait TestEnvironment
   val reindexClient: ReindexClient       = mock[ReindexClient]
 
   lazy val fileStorage: FileStorageService = mock[FileStorageService]
-  val amazonClient: AmazonS3               = mock[AmazonS3]
+  val s3Client: NdlaS3Client               = mock[NdlaS3Client]
 
   val ndlaClient: NdlaClient                                = mock[NdlaClient]
   val searchConverterService: SearchConverterService        = mock[SearchConverterService]
