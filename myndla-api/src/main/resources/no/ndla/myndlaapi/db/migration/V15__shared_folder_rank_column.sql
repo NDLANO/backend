@@ -15,3 +15,12 @@ SET rank = ranked_data.new_rank
 FROM ranked_data
 WHERE sf.folder_id = ranked_data.folder_id
   AND sf.feide_id = ranked_data.feide_id;
+
+ALTER TABLE saved_shared_folder
+    ALTER COLUMN "rank" DROP NOT NULL;
+
+ALTER TABLE folders
+    ALTER COLUMN "rank" DROP NOT NULL;
+
+ALTER TABLE folder_resources
+    ALTER COLUMN "rank" DROP NOT NULL;
