@@ -424,7 +424,7 @@ trait FolderWriteService {
     private def sortSavedSharedFolders(sortRequest: api.FolderSortRequest, feideId: FeideID): Try[Unit] = {
       val session = folderRepository.getSession(true)
       folderRepository
-        .getSavedSharedFolder(feideId)(session)
+        .getSavedSharedFolders(feideId)(session)
         .flatMap(savedFolders => performSort(savedFolders, sortRequest, feideId, sharedFolderSort = true))
     }
 
@@ -721,7 +721,7 @@ trait FolderWriteService {
     ): Try[SavedSharedFolder] = {
       for {
         folder       <- folderRepository.folderWithId(folderId).filter(f => f.isShared)
-        savedFolders <- folderRepository.getSavedSharedFolder(feideId)
+        savedFolders <- folderRepository.getSavedSharedFolders(feideId)
         newRank = savedFolders.length + 1
         folderUser <- folderRepository.createFolderUserConnection(folder.id, feideId, newRank)
       } yield folderUser

@@ -1028,7 +1028,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.createFolderUserConnection(any, any, any)(any))
       .thenReturn(Success(SavedSharedFolder(folderId, feideId, 1)))
     when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
-    when(folderRepository.getSavedSharedFolder(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getSavedSharedFolders(any)(any)).thenReturn(Success(List.empty))
 
     val result = service.newSaveSharedFolder(folderId, Some(feideId))
 

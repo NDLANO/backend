@@ -231,7 +231,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.insertFolder(any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.getSavedSharedFolder(any)(any[DBSession])).thenReturn(Success(List.empty))
+    when(folderRepository.getSavedSharedFolders(any)(any[DBSession])).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token")).get.folders
@@ -271,7 +271,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.insertFolder(any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.getSavedSharedFolder(any)(any[DBSession])).thenReturn(Success(List(sharedFolderDomain)))
+    when(folderRepository.getSavedSharedFolders(any)(any[DBSession])).thenReturn(Success(List(sharedFolderDomain)))
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any, any, any)(any[DBSession]))
       .thenReturn(Success(Option(sharedFolderDomain)))
     when(folderRepository.getSharedFolderAndChildrenSubfoldersWithResources(any)(any[DBSession]))
@@ -287,7 +287,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
     verify(folderRepository, times(1)).insertFolder(any, any)(any)
-    verify(folderRepository, times(1)).getSavedSharedFolder(any)(any)
+    verify(folderRepository, times(1)).getSavedSharedFolders(any)(any)
   }
 
   test("That getFolders includes resources for the top folders when includeResources flag is set to true") {
@@ -310,7 +310,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithId(eqTo(folderWithId.id))(any)).thenReturn(Success(folderWithId))
     when(folderRepository.getFolderResources(any)(any))
       .thenReturn(folderResourcesResponse1, folderResourcesResponse2, folderResourcesResponse3)
-    when(folderRepository.getSavedSharedFolder(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getSavedSharedFolders(any)(any)).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = true, Some("token")).get.folders

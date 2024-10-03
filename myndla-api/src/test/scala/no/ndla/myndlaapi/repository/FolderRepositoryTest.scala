@@ -644,7 +644,7 @@ class FolderRepositoryTest
 
     repository.createFolderUserConnection(folder1.id, feideId, 1).failIfFailure
 
-    val res = repository.getSavedSharedFolder(feideId)
+    val res = repository.getSavedSharedFolders(feideId)
 
     res.get should have.length(1)
     res.get should contain(folder1)
@@ -663,7 +663,7 @@ class FolderRepositoryTest
     val userFolder = repository.createFolderUserConnection(folder1.id, feideId, 1)
     val numRows    = repository.deleteFolderUserConnection(folder1.id.some, feideId.some)
 
-    val res = repository.getSavedSharedFolder(feideId).failIfFailure
+    val res = repository.getSavedSharedFolders(feideId).failIfFailure
 
     numRows.get should be(1)
     res should have.length(0)
@@ -695,7 +695,7 @@ class FolderRepositoryTest
     repository.createFolderUserConnection(folder3.id, feideId2, 1).failIfFailure
     repository.createFolderUserConnection(folder4.id, feideId2, 2).failIfFailure
 
-    val user1Shared = repository.getSavedSharedFolder(feideId1).failIfFailure
+    val user1Shared = repository.getSavedSharedFolders(feideId1).failIfFailure
     user1Shared should be(List.empty)
 
     val user1Folders = repository.foldersWithFeideAndParentID(None, feideId1).failIfFailure
@@ -703,7 +703,7 @@ class FolderRepositoryTest
       List((folder1.id, 1), (folder2.id, 2), (folder3.id, 3), (folder4.id, 4))
     )
 
-    val user2Shared = repository.getSavedSharedFolder(feideId2).failIfFailure
+    val user2Shared = repository.getSavedSharedFolders(feideId2).failIfFailure
     user2Shared.map { f => (f.id, f.rank) } should be(List((folder3.id, 1), (folder4.id, 2)))
 
     val user2Folders = repository.foldersWithFeideAndParentID(None, feideId2).failIfFailure

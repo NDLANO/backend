@@ -944,7 +944,7 @@ trait FolderRepository {
       }
     }
 
-    def getSavedSharedFolder(
+    def getSavedSharedFolders(
         feideId: FeideID
     )(implicit session: DBSession = AutoSession): Try[List[Folder]] = Try {
       val f   = Folder.syntax("f")
