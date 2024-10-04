@@ -82,7 +82,7 @@ export interface IFolder {
   breadcrumbs: IBreadcrumb[]
   subfolders: IFolderData[]
   resources: IResource[]
-  rank?: number
+  rank: number
   created: string
   updated: string
   shared?: string
