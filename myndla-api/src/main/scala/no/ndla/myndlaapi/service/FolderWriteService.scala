@@ -15,7 +15,12 @@ import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.integration.SearchApiClient
-import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
+import no.ndla.myndlaapi.model.domain.FolderSortObject.{
+  FolderSorting,
+  ResourceSorting,
+  RootFolderSorting,
+  SharedFolderSorting
+}
 import no.ndla.myndlaapi.model.api.{
   ExportedUserData,
   Folder,
@@ -337,7 +342,7 @@ trait FolderWriteService {
         deletedFolderId <- deleteRecursively(folderWithData, feideId)
         siblingsToSort = parent.childrenFolders.filterNot(_.id == deletedFolderId)
         sortRequest    = FolderSortRequest(sortedIds = siblingsToSort.map(_.id))
-        _ <- performSort(siblingsToSort, sortRequest, feideId)
+        _ <- performSort(siblingsToSort, sortRequest, feideId, sharedFolderSort = false)
       } yield deletedFolderId
     }
 
@@ -359,7 +364,7 @@ trait FolderWriteService {
         siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
         sortRequest    = api.FolderSortRequest(sortedIds = siblingsToSort.map(_.resourceId))
         _              = updateSearchApi(resource)
-        _ <- performSort(siblingsToSort, sortRequest, feideId)
+        _ <- performSort(siblingsToSort, sortRequest, feideId, sharedFolderSort = false)
       } yield id
     }
 
@@ -376,7 +381,8 @@ trait FolderWriteService {
     private def performSort(
         rankables: Seq[Rankable],
         sortRequest: api.FolderSortRequest,
-        feideId: FeideID
+        feideId: FeideID,
+        sharedFolderSort: Boolean
     ): Try[Unit] = {
       val allIds     = rankables.map(_.sortId)
       val hasEveryId = allIds.forall(sortRequest.sortedIds.contains)
@@ -394,6 +400,8 @@ trait FolderWriteService {
             val newRank = idx + 1
             val found   = rankables.find(_.sortId == id)
             found match {
+              case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _, _)) if sharedFolderSort =>
+                folderRepository.setSharedFolderRank(folderId, newRank, feideId)(session)
               case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _, _)) =>
                 folderRepository.setFolderRank(folderId, newRank, feideId)(session)
               case Some(domain.FolderResource(folderId, resourceId, _, _)) =>
@@ -410,7 +418,14 @@ trait FolderWriteService {
       val session = folderRepository.getSession(true)
       folderRepository
         .foldersWithFeideAndParentID(None, feideId)(session)
-        .flatMap(rootFolders => performSort(rootFolders, sortRequest, feideId))
+        .flatMap(rootFolders => performSort(rootFolders, sortRequest, feideId, sharedFolderSort = false))
+    }
+
+    private def sortSavedSharedFolders(sortRequest: api.FolderSortRequest, feideId: FeideID): Try[Unit] = {
+      val session = folderRepository.getSession(true)
+      folderRepository
+        .getSavedSharedFolders(feideId)(session)
+        .flatMap(savedFolders => performSort(savedFolders, sortRequest, feideId, sharedFolderSort = true))
     }
 
     private def sortNonRootFolderResources(
@@ -420,7 +435,8 @@ trait FolderWriteService {
     )(implicit
         session: DBSession
     ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).flatMap {
-      case FolderAndDirectChildren(_, _, resources) => performSort(resources, sortRequest, feideId)
+      case FolderAndDirectChildren(_, _, resources) =>
+        performSort(resources, sortRequest, feideId, sharedFolderSort = false)
     }
 
     private def sortNonRootFolderSubfolders(
@@ -430,7 +446,8 @@ trait FolderWriteService {
     )(implicit
         session: DBSession
     ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).flatMap {
-      case FolderAndDirectChildren(_, subfolders, _) => performSort(subfolders, sortRequest, feideId)
+      case FolderAndDirectChildren(_, subfolders, _) =>
+        performSort(subfolders, sortRequest, feideId, sharedFolderSort = false)
     }
 
     def sortFolder(
@@ -445,6 +462,7 @@ trait FolderWriteService {
         case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
         case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
         case RootFolderSorting()       => sortRootFolders(sortRequest, feideId)
+        case SharedFolderSorting()     => sortSavedSharedFolders(sortRequest, feideId)
       }
     }
 
@@ -556,7 +574,7 @@ trait FolderWriteService {
       val folderWithName =
         withStatus.copy(name = getFolderValidName(makeUniqueNamePostfix, newFolder.name, maybeSiblings))
       val validatedParentId = validateNewFolder(folderWithName.name, parentId, maybeSiblings).?
-      val newFolderData     = folderConverterService.toNewFolderData(folderWithName, validatedParentId, nextRank.some).?
+      val newFolderData     = folderConverterService.toNewFolderData(folderWithName, validatedParentId, nextRank).?
       val inserted          = folderRepository.insertFolder(feideId, newFolderData).?
 
       Success(inserted)
@@ -702,8 +720,10 @@ trait FolderWriteService {
         session: DBSession
     ): Try[SavedSharedFolder] = {
       for {
-        folder     <- folderRepository.folderWithId(folderId).filter(f => f.isShared)
-        folderUser <- folderRepository.createFolderUserConnection(folder.id, feideId)
+        folder       <- folderRepository.folderWithId(folderId).filter(f => f.isShared)
+        savedFolders <- folderRepository.getSavedSharedFolders(feideId)
+        newRank = savedFolders.length + 1
+        folderUser <- folderRepository.createFolderUserConnection(folder.id, feideId, newRank)
       } yield folderUser
     }
 

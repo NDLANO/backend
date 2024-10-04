@@ -8,9 +8,10 @@
 
 package no.ndla.myndlaapi.model.domain
 
+import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.model.NDLADate
 import no.ndla.network.model.FeideID
-import scalikejdbc._
+import scalikejdbc.*
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
@@ -19,7 +20,7 @@ case class NewFolderData(
     parentId: Option[UUID],
     name: String,
     status: FolderStatus.Value,
-    rank: Option[Int],
+    rank: Int,
     description: Option[String]
 ) {
   def toFullFolder(
@@ -57,7 +58,7 @@ case class Folder(
     name: String,
     status: FolderStatus.Value,
     description: Option[String],
-    rank: Option[Int],
+    rank: Int,
     created: NDLADate,
     updated: NDLADate,
     resources: List[Resource],
@@ -68,7 +69,7 @@ case class Folder(
     with Rankable
     with CopyableFolder {
   override val sortId: UUID          = id
-  override val sortRank: Option[Int] = rank
+  override val sortRank: Option[Int] = rank.some
 
   def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
   def isShared: Boolean  = this.status == FolderStatus.SHARED
@@ -82,8 +83,10 @@ case class Folder(
 object Folder extends SQLSyntaxSupport[Folder] {
   override val tableName = "folders"
 
-  def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Try[Folder] =
-    fromResultSet((s: String) => lp.resultName.c(s))(rs)
+  def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Try[Folder] = {
+    val wrapper: String => String = (s: String) => lp.resultName.c(s)
+    fromResultSet(wrapper)(rs)
+  }
 
   def fromResultSet(rs: WrappedResultSet): Try[Folder] = fromResultSet((s: String) => s)(rs)
 
@@ -96,7 +99,7 @@ object Folder extends SQLSyntaxSupport[Folder] {
     val name        = rs.string(colNameWrapper("name"))
     val status      = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
     val description = rs.stringOpt(colNameWrapper("description"))
-    val rank        = rs.intOpt(colNameWrapper("rank"))
+    val rank        = rs.int(colNameWrapper("rank"))
     val created     = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
     val updated     = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("updated")))
     val shared      = rs.localDateTimeOpt(colNameWrapper("shared")).map(NDLADate.fromUtcDate)

@@ -541,7 +541,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -556,7 +556,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -600,7 +600,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -615,7 +615,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 2,
       created = created,
       updated = created,
       shared = None,
@@ -662,7 +662,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -677,7 +677,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 2,
       created = created,
       updated = created,
       shared = None,
@@ -725,7 +725,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -741,7 +741,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 2,
       created = created,
       updated = created,
       shared = None,
@@ -756,7 +756,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -869,7 +869,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       parentId = None,
       name = "parent",
       status = FolderStatus.SHARED,
-      rank = None,
+      rank = 1,
       created = clock.now(),
       updated = clock.now(),
       resources = List(),
@@ -905,7 +905,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       parentId = None,
       name = "parent",
       status = FolderStatus.SHARED,
-      rank = None,
+      rank = 1,
       created = clock.now(),
       updated = clock.now(),
       resources = List(),
@@ -1025,13 +1025,14 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.createFolderUserConnection(any, any)(any))
-      .thenReturn(Success(SavedSharedFolder(folderId, feideId)))
+    when(folderRepository.createFolderUserConnection(any, any, any)(any))
+      .thenReturn(Success(SavedSharedFolder(folderId, feideId, 1)))
     when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
+    when(folderRepository.getSavedSharedFolders(any)(any)).thenReturn(Success(List.empty))
 
     val result = service.newSaveSharedFolder(folderId, Some(feideId))
 
-    result.isSuccess should be(true)
+    result.failIfFailure
   }
 
   test("that folder user connections are deleted when shared folder is unshared") {

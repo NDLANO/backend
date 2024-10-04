@@ -20,7 +20,12 @@ import no.ndla.myndlaapi.model.api.{
   UpdatedResource,
   UserFolder
 }
-import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
+import no.ndla.myndlaapi.model.domain.FolderSortObject.{
+  FolderSorting,
+  ResourceSorting,
+  RootFolderSorting,
+  SharedFolderSorting
+}
 import no.ndla.myndlaapi.model.domain.FolderStatus
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -265,6 +270,19 @@ trait FolderController {
         folderWriteService.sortFolder(sortObject, sortRequest, feideHeader).handleErrorsOrOk
       }
 
+    private def sortSavedSharedFolders: ServerEndpoint[Any, Eff] = endpoint.put
+      .summary("Decide order of saved shared folders")
+      .description("Decide order of saved shared folders")
+      .in("sort-saved")
+      .in(feideHeader)
+      .in(jsonBody[FolderSortRequest])
+      .out(emptyOutput)
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+      .serverLogicPure { case (feideHeader, sortRequest) =>
+        val sortObject = SharedFolderSorting()
+        folderWriteService.sortFolder(sortObject, sortRequest, feideHeader).handleErrorsOrOk
+      }
+
     private def createFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Saves a shared folder")
       .description("Saves a shared folder")
@@ -303,6 +321,7 @@ trait FolderController {
       cloneFolder,
       sortFolderResources,
       sortFolderFolders,
+      sortSavedSharedFolders,
       createFolderUserConnection,
       deleteFolderUserConnection
     )

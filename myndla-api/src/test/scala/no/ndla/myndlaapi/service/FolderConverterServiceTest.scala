@@ -62,15 +62,15 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       parentId = Some(folderUUID),
       name = "kenkaku",
       status = FolderStatus.PRIVATE,
-      rank = None,
+      rank = 1,
       description = None
     )
 
-    service.toNewFolderData(newFolder1, Some(folderUUID), None).get should be(expected1)
-    service.toNewFolderData(newFolder2, Some(folderUUID), None).get should be(
+    service.toNewFolderData(newFolder1, Some(folderUUID), 1).get should be(expected1)
+    service.toNewFolderData(newFolder2, Some(folderUUID), 1).get should be(
       expected1.copy(status = FolderStatus.SHARED, description = Some("descc"))
     )
-    service.toNewFolderData(newFolder3, Some(folderUUID), None).get should be(
+    service.toNewFolderData(newFolder3, Some(folderUUID), 1).get should be(
       expected1.copy(status = FolderStatus.PRIVATE, description = Some(""))
     )
   }
@@ -103,7 +103,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       resources = List(resource),
       subfolders = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -118,7 +118,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.SHARED,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -133,7 +133,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List(folderData1),
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -148,7 +148,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.SHARED,
       subfolders = List(folderData2, folderData3),
       resources = List(resource),
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -176,7 +176,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         api.Breadcrumb(id = subFolder1UUID.toString, name = "folderData1")
       ),
       parentId = Some(subFolder3UUID.toString),
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -194,7 +194,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         api.Breadcrumb(id = subFolder2UUID.toString, name = "folderData2")
       ),
       parentId = Some(mainFolderUUID.toString),
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -212,7 +212,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3")
       ),
       parentId = Some(mainFolderUUID.toString),
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -229,7 +229,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")
       ),
       parentId = None,
-      rank = None,
+      rank = 1,
       created = created,
       updated = created,
       shared = None,
@@ -262,7 +262,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = clock.now(),
       updated = clock.now(),
       shared = None,
@@ -310,7 +310,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.SHARED,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
+      rank = 1,
       created = clock.now(),
       updated = clock.now(),
       shared = Some(sharedBefore),

@@ -98,7 +98,7 @@ trait FolderReadService {
       folderRepository.rollbackOnFailure(session => {
         for {
           myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)
-          savedSharedFolders <- folderRepository.getSavedSharedFolder(feideId)
+          savedSharedFolders <- folderRepository.getSavedSharedFolders(feideId)
           folders       <- getSubFoldersAndResources(myFolders, includeSubfolders, includeResources, feideId)(session)
           sharedFolders <- getSharedSubFoldersAndResources(savedSharedFolders)(session)
 
@@ -264,7 +264,7 @@ trait FolderReadService {
         parentId = None,
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE,
-        rank = 1.some,
+        rank = 1,
         description = None
       )
       folderRepository.insertFolder(feideId, favoriteFolder)

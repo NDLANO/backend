@@ -149,7 +149,7 @@ class FolderRepositoryTest
         parentId = None,
         name = "new",
         status = FolderStatus.PRIVATE,
-        rank = None,
+        rank = 1,
         description = Some("old")
       )
     val updatedFolder = Folder(
@@ -158,7 +158,7 @@ class FolderRepositoryTest
       parentId = None,
       name = "updated",
       status = FolderStatus.SHARED,
-      rank = None,
+      rank = 1,
       resources = List.empty,
       subfolders = List.empty,
       created = created,
@@ -275,7 +275,7 @@ class FolderRepositoryTest
   test("that getFolderResources works as expected") {
     val created = NDLADate.now()
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None, description = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = 1, description = None)
 
     val folder1 = repository.insertFolder("feide", doc)
     val folder2 = repository.insertFolder("feide", doc.copy(parentId = Some(folder1.get.id)))
@@ -321,7 +321,7 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         resources = List.empty,
         subfolders = List.empty,
-        rank = None,
+        rank = 1,
         created = clock.now(),
         updated = clock.now(),
         shared = None,
@@ -379,7 +379,7 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         subfolders = List.empty,
         resources = List.empty,
-        rank = None,
+        rank = 1,
         created = created,
         updated = created,
         shared = None,
@@ -468,7 +468,7 @@ class FolderRepositoryTest
     val created = NDLADate.now()
     when(clock.now()).thenReturn(created)
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None, description = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = 1, description = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -506,7 +506,7 @@ class FolderRepositoryTest
 
   test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None, description = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = 1, description = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -526,7 +526,7 @@ class FolderRepositoryTest
 
   test("that updateFolderStatusInBulk updates status of chosen folders") {
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None, description = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = 1, description = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -554,7 +554,7 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         subfolders = List.empty,
         resources = List.empty,
-        rank = None,
+        rank = 1,
         created = created,
         updated = created,
         shared = None,
@@ -642,9 +642,9 @@ class FolderRepositoryTest
     val folder1 =
       repository.insertFolder("feide", TestData.baseFolderDocument.copy(status = FolderStatus.SHARED)).failIfFailure
 
-    repository.createFolderUserConnection(folder1.id, feideId).failIfFailure
+    repository.createFolderUserConnection(folder1.id, feideId, 1).failIfFailure
 
-    val res = repository.getSavedSharedFolder(feideId)
+    val res = repository.getSavedSharedFolders(feideId)
 
     res.get should have.length(1)
     res.get should contain(folder1)
@@ -660,14 +660,53 @@ class FolderRepositoryTest
 
     val folder1 =
       repository.insertFolder("feide", TestData.baseFolderDocument.copy(status = FolderStatus.SHARED)).failIfFailure
-    val userFolder = repository.createFolderUserConnection(folder1.id, feideId)
+    val userFolder = repository.createFolderUserConnection(folder1.id, feideId, 1)
     val numRows    = repository.deleteFolderUserConnection(folder1.id.some, feideId.some)
 
-    val res = repository.getSavedSharedFolder(feideId).failIfFailure
+    val res = repository.getSavedSharedFolders(feideId).failIfFailure
 
     numRows.get should be(1)
     res should have.length(0)
     res should not contain userFolder
 
+  }
+
+  test("that fetched saved folders come with the rank of the user that saved them") {
+    implicit val session = AutoSession
+    val created          = NDLADate.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
+    val feideId1 = "feide1"
+    val feideId2 = "feide2"
+
+    val folder1 = repository
+      .insertFolder(feideId1, TestData.baseFolderDocument.copy(status = FolderStatus.SHARED, rank = 1))
+      .failIfFailure
+    val folder2 = repository
+      .insertFolder(feideId1, TestData.baseFolderDocument.copy(status = FolderStatus.SHARED, rank = 2))
+      .failIfFailure
+    val folder3 = repository
+      .insertFolder(feideId1, TestData.baseFolderDocument.copy(status = FolderStatus.SHARED, rank = 3))
+      .failIfFailure
+    val folder4 = repository
+      .insertFolder(feideId1, TestData.baseFolderDocument.copy(status = FolderStatus.SHARED, rank = 4))
+      .failIfFailure
+
+    repository.createFolderUserConnection(folder3.id, feideId2, 1).failIfFailure
+    repository.createFolderUserConnection(folder4.id, feideId2, 2).failIfFailure
+
+    val user1Shared = repository.getSavedSharedFolders(feideId1).failIfFailure
+    user1Shared should be(List.empty)
+
+    val user1Folders = repository.foldersWithFeideAndParentID(None, feideId1).failIfFailure
+    user1Folders.map { f => (f.id, f.rank) } should be(
+      List((folder1.id, 1), (folder2.id, 2), (folder3.id, 3), (folder4.id, 4))
+    )
+
+    val user2Shared = repository.getSavedSharedFolders(feideId2).failIfFailure
+    user2Shared.map { f => (f.id, f.rank) } should be(List((folder3.id, 1), (folder4.id, 2)))
+
+    val user2Folders = repository.foldersWithFeideAndParentID(None, feideId2).failIfFailure
+    user2Folders should be(List.empty)
   }
 }

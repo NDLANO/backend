@@ -49,7 +49,7 @@ object TestData {
     status = FolderStatus.PRIVATE,
     subfolders = List.empty,
     resources = List.empty,
-    rank = None,
+    rank = 1,
     created = today,
     updated = today,
     shared = None,
@@ -61,7 +61,7 @@ object TestData {
     parentId = None,
     name = "some-name",
     status = FolderStatus.PRIVATE,
-    rank = None,
+    rank = 1,
     description = None
   )
 
@@ -78,7 +78,7 @@ object TestData {
     resources = List.empty,
     breadcrumbs = List.empty,
     parentId = None,
-    rank = None,
+    rank = 1,
     created = today,
     updated = today,
     shared = None,

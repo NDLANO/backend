@@ -19,4 +19,5 @@ object FolderSortObject extends Enum[FolderSortObject] with CirceEnum[FolderSort
   case class ResourceSorting(parentId: UUID) extends FolderSortObject
   case class FolderSorting(parentId: UUID)   extends FolderSortObject
   case class RootFolderSorting()             extends FolderSortObject
+  case class SharedFolderSorting()           extends FolderSortObject
 }

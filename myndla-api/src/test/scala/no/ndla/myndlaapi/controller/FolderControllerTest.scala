@@ -70,7 +70,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
           breadcrumbs = List.empty,
           subfolders = List.empty,
           resources = List.empty,
-          rank = Some(1),
+          rank = 1,
           created = TestData.today,
           updated = TestData.today,
           shared = None,
