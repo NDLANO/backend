@@ -140,7 +140,7 @@ trait UpdateService {
 
       if (learningPath.isPublished) {
         searchApiClient.indexLearningPathDocument(learningPath, user): Unit
-      } else if (learningPath.status == LearningPathStatus.DELETED) {
+      } else if (learningPath.isDeleted) {
         deleteIsBasedOnReference(learningPath): Unit
       }
 

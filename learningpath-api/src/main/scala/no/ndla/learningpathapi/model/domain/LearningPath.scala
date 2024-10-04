@@ -60,6 +60,10 @@ case class LearningPath(
     status == LearningPathStatus.PUBLISHED
   }
 
+  def isDeleted: Boolean = {
+    status == LearningPathStatus.DELETED
+  }
+
   def canSetStatus(status: LearningPathStatus.Value, user: TokenUser): Try[LearningPath] = {
     if (status == LearningPathStatus.PUBLISHED && !user.canPublish) {
       Failure(AccessDeniedException("You need to be a publisher to publish learningpaths."))
