@@ -524,7 +524,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .status
     }
-    verify(learningPathRepository, times(1)).learningPathsWithIsBasedOn(any[Long])
     verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
@@ -542,7 +541,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .status
     }
-    verify(learningPathRepository, times(1)).learningPathsWithIsBasedOn(any[Long])
     verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
