@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
@@ -24,28 +24,20 @@ import no.ndla.draftapi.service.search.{
   SearchConverterService,
   TagSearchService
 }
-import no.ndla.validation._
+import no.ndla.validation.*
 import org.jsoup.nodes.Element
 import scalikejdbc.ReadOnlyAutoSession
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: DraftRepository
-    with ConverterService
-    with ArticleSearchService
-    with TagSearchService
-    with GrepCodesSearchService
-    with SearchConverterService
-    with UserDataRepository
-    with WriteService
-    with Props
-    with MemoizeHelpers =>
+  this: DraftRepository & ConverterService & ArticleSearchService & TagSearchService & GrepCodesSearchService &
+    SearchConverterService & UserDataRepository & WriteService & Props & MemoizeHelpers =>
   val readService: ReadService
 
-  import props._
+  import props.*
 
   class ReadService {
 
@@ -60,7 +52,7 @@ trait ReadService {
     }
 
     def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.Article] = {
-      draftRepository.withSlug(slug)(ReadOnlyAutoSession) match {
+      draftRepository.withSlug(slug)(ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
         case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
         case Some(article) => converterService.toApiArticle(article, language, fallback)
       }
@@ -131,9 +123,8 @@ trait ReadService {
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
       val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
         case resourceType
-            if resourceType == ResourceType.File.toString
-              || resourceType == ResourceType.H5P.toString
-              && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
+            if resourceType == ResourceType.File.toString || resourceType == ResourceType.H5P.toString && embedTag
+              .hasAttr(TagAttribute.DataPath.toString) =>
           val path = embedTag.attr(TagAttribute.DataPath.toString)
           Some((resourceType, path))
 
@@ -185,7 +176,9 @@ trait ReadService {
           if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
           else Success(articleIds)
         domainArticles <- draftRepository.withIds(ids, offset, pageSize)
-        api            <- domainArticles.traverse(article => converterService.toApiArticle(article, language, fallback))
+        api <- domainArticles.traverse(article =>
+          converterService.toApiArticle(addUrlsOnEmbedResources(article), language, fallback)
+        )
       } yield api
     }
   }

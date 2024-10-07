@@ -38,15 +38,8 @@ import scala.math.max
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: ArticleRepository
-    with FeideApiClient
-    with ConverterService
-    with ArticleSearchService
-    with SearchConverterService
-    with MemoizeHelpers
-    with Props
-    with ErrorHelpers
-    with FrontpageApiClient =>
+  this: ArticleRepository & FeideApiClient & ConverterService & ArticleSearchService & SearchConverterService &
+    MemoizeHelpers & Props & ErrorHelpers & FrontpageApiClient =>
   val readService: ReadService
 
   class ReadService extends StrictLogging {
@@ -153,9 +146,8 @@ trait ReadService {
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
       val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
         case resourceType
-            if resourceType == ResourceType.File.toString
-              || resourceType == ResourceType.H5P.toString
-              && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
+            if resourceType == ResourceType.File.toString || resourceType == ResourceType.H5P.toString && embedTag
+              .hasAttr(TagAttribute.DataPath.toString) =>
           val path = embedTag.attr(TagAttribute.DataPath.toString)
           Some((resourceType, path))
 
@@ -278,9 +270,10 @@ trait ReadService {
     ): Try[Seq[api.ArticleV2]] = {
       if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
-        val offset         = (page - 1) * pageSize
-        val domainArticles = articleRepository.withIds(articleIds, offset, pageSize).toArticles
-        val isFeideNeeded  = domainArticles.exists(article => article.availability == Availability.teacher)
+        val offset = (page - 1) * pageSize
+        val domainArticles =
+          articleRepository.withIds(articleIds, offset, pageSize).toArticles.map(addUrlsOnEmbedResources)
+        val isFeideNeeded = domainArticles.exists(article => article.availability == Availability.teacher)
         val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
         filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))
       }
@@ -307,7 +300,7 @@ trait ReadService {
       articles.map(Cachable.merge)
     }
 
-    def toArticleItem(article: api.ArticleV2): String = {
+    private def toArticleItem(article: api.ArticleV2): String = {
       s"""<item>
          |  <title>${article.title.title}</title>
          |  <description>${article.metaDescription.metaDescription}</description>
@@ -322,7 +315,7 @@ trait ReadService {
       .getOrElse(s"${props.ndlaFrontendUrl}/article/$id")
 
     private val allBlankLinesRegex = """(?m)^\s*$[\r\n]*""".r
-    def toRSSXML(parentArticle: api.ArticleV2, articles: List[api.ArticleV2]): String = {
+    private def toRSSXML(parentArticle: api.ArticleV2, articles: List[api.ArticleV2]): String = {
       val rss = s"""<?xml version="1.0" encoding="utf-8"?>
          |<rss version="2.0">
          |  <channel>
