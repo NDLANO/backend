@@ -11,10 +11,10 @@ package no.ndla.articleapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller.{ArticleControllerV2, InternController, SwaggerDocControllerConfig}
-import no.ndla.articleapi.integration._
+import no.ndla.articleapi.integration.*
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.search._
+import no.ndla.articleapi.service.*
+import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api.ErrorHelpers
@@ -22,12 +22,13 @@ import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: ArticleApiProperties)
     extends BaseComponentRegistry[ArticleApiProperties]
+    with TapirApplication
     with Props
     with DataSource
     with InternController
@@ -53,10 +54,6 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with ErrorHelpers
     with DBArticle
     with DBMigrator
-    with Routes[Eff]
-    with TapirErrorHelpers
-    with TapirHealthController
-    with SwaggerControllerConfig
     with SwaggerDocControllerConfig
     with FrontpageApiClient {
   override val props: ArticleApiProperties = properties
@@ -65,9 +62,9 @@ class ComponentRegistry(properties: ArticleApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  lazy val internController                             = new InternController
-  lazy val articleControllerV2                          = new ArticleControllerV2
-  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
+  lazy val internController                        = new InternController
+  lazy val articleControllerV2                     = new ArticleControllerV2
+  lazy val healthController: TapirHealthController = new TapirHealthController
 
   lazy val articleRepository    = new ArticleRepository
   lazy val articleSearchService = new ArticleSearchService
@@ -98,5 +95,5 @@ class ComponentRegistry(properties: ArticleApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 }

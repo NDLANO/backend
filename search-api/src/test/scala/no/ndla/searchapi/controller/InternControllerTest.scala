@@ -8,10 +8,10 @@
 
 package no.ndla.searchapi.controller
 
-import no.ndla.searchapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 
-class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val converterService    = new ConverterService
   val controller: InternController = new InternController
 }

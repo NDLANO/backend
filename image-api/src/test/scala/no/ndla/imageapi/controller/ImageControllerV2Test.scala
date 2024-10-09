@@ -20,7 +20,7 @@ import no.ndla.imageapi.model.api.{
 }
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
-import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
@@ -30,7 +30,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success, Try}
 
-class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest {
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJpbWFnZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.1_j9R9KML2LTqeAE4bpRByJcR6m6Tv3pTOozpYCnTC8"
 

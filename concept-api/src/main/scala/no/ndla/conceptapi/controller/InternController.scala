@@ -9,14 +9,13 @@ package no.ndla.conceptapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.conceptapi.Eff
 import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResults, ErrorHelpers, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir.server.ServerEndpoint
 
@@ -29,18 +28,11 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 
 trait InternController {
-  this: IndexService
-    with DraftConceptIndexService
-    with PublishedConceptIndexService
-    with ImportService
-    with ConverterService
-    with ReadService
-    with DraftConceptRepository
-    with PublishedConceptRepository
-    with ErrorHelpers =>
+  this: IndexService & DraftConceptIndexService & PublishedConceptIndexService & ImportService & ConverterService &
+    ReadService & DraftConceptRepository & PublishedConceptRepository & ErrorHelpers & TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] {
+  class InternController extends TapirController {
     import ErrorHelpers._
 
     override val prefix: EndpointInput[Unit] = "intern"

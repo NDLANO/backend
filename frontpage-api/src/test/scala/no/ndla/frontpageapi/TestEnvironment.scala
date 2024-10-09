@@ -15,11 +15,12 @@ import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.{Routes, Service}
+import no.ndla.network.tapir.TapirApplication
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends MockitoSugar
+    extends TapirApplication
+    with MockitoSugar
     with DataSource
     with SubjectPageRepository
     with FrontPageRepository
@@ -36,8 +37,7 @@ trait TestEnvironment
     with DBFrontPageData
     with ErrorHelpers
     with Clock
-    with DBMigrator
-    with Routes[Eff] {
+    with DBMigrator {
   override val props = new FrontpageApiProperties
 
   override val clock: SystemClock           = mock[SystemClock]
@@ -53,5 +53,5 @@ trait TestEnvironment
   override val readService: ReadService                         = mock[ReadService]
   override val writeService: WriteService                       = mock[WriteService]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 }

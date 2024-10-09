@@ -8,30 +8,30 @@
 
 package no.ndla.audioapi.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
+import cats.implicits.*
+import io.circe.generic.auto.*
 import no.ndla.audioapi.controller.multipart.{MetaDataAndFileForm, MetaDataAndOptFileForm}
-import no.ndla.audioapi.{Eff, Props}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.common.errors.FileTooBigException
 import no.ndla.language.Language
-import no.ndla.common.implicits._
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.implicits.*
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.UploadedFile
-import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.{NonEmptyString, Service}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.NoNullJsonPrinter.*
+import no.ndla.network.tapir.{NonEmptyString, TapirController}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import sttp.model.Part
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
-import sttp.tapir.generic.auto._
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
+import sttp.tapir.*
 
 import java.io.File
 import scala.util.{Failure, Success, Try}
@@ -44,10 +44,11 @@ trait AudioController {
     with SearchConverterService
     with ConverterService
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with TapirController =>
   val audioApiController: AudioController
 
-  class AudioController() extends Service[Eff] {
+  class AudioController() extends TapirController {
     import props._
     val maxAudioFileSizeBytes                = props.MaxAudioFileSizeBytes
     override val serviceName: String         = "audio"

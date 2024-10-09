@@ -7,25 +7,25 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
-import no.ndla.frontpageapi.{Eff, Props}
-import no.ndla.frontpageapi.model.api._
+import cats.implicits.*
+import io.circe.generic.auto.*
+import no.ndla.frontpageapi.Props
+import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ReadService with WriteService with Props with ErrorHelpers =>
+  this: ReadService & WriteService & Props & ErrorHelpers & TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] {
+  class InternController extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
 

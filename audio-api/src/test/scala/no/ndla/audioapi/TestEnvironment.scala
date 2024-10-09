@@ -18,12 +18,13 @@ import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends DataSource
+    extends TapirApplication
+    with DataSource
     with AudioRepository
     with SeriesRepository
     with NdlaClient
@@ -32,10 +33,8 @@ trait TestEnvironment
     with ValidationService
     with ConverterService
     with InternController
-    with Routes[Eff]
     with HealthController
     with NdlaS3Client
-    with TapirHealthController
     with AudioController
     with SeriesController
     with Elastic4sClient
@@ -83,7 +82,7 @@ trait TestEnvironment
   val tagIndexService: TagIndexService               = mock[TagIndexService]
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
-  val clock: SystemClock           = mock[SystemClock]
-  def services: List[Service[Eff]] = List.empty
+  val clock: SystemClock              = mock[SystemClock]
+  def services: List[TapirController] = List.empty
 
 }

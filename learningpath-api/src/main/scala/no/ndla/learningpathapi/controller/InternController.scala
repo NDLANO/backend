@@ -9,34 +9,29 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.learningpathapi.model.api.{ErrorHelpers, LearningPathDomainDump, LearningPathSummaryV2}
-import no.ndla.learningpathapi.{Eff, Props}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: SearchIndexService
-    with SearchService
-    with LearningPathRepositoryComponent
-    with ReadService
-    with UpdateService
-    with Props
-    with ErrorHelpers =>
+  this: SearchIndexService & SearchService & LearningPathRepositoryComponent & ReadService & UpdateService & Props &
+    ErrorHelpers & TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] {
+  class InternController extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)

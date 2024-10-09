@@ -8,38 +8,33 @@
 
 package no.ndla.audioapi.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
-import no.ndla.audioapi.{Eff, Props}
+import cats.implicits.*
+import io.circe.generic.auto.*
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
-import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.NoNullJsonPrinter.*
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
+import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
-import sttp.tapir.generic.auto._
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
+import sttp.tapir.*
 
 import scala.util.{Failure, Success, Try}
 
 trait SeriesController {
-  this: ReadService
-    with WriteService
-    with SeriesSearchService
-    with SearchConverterService
-    with ConverterService
-    with Props
-    with ErrorHelpers =>
+  this: ReadService & WriteService & SeriesSearchService & SearchConverterService & ConverterService & Props &
+    ErrorHelpers & TapirController =>
   val seriesController: SeriesController
-  class SeriesController() extends Service[Eff] {
+  class SeriesController() extends TapirController {
 
     import ErrorHelpers._
     import props._

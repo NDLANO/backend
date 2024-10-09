@@ -24,12 +24,13 @@ import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends DraftConceptRepository
+    extends TapirApplication
+    with DraftConceptRepository
     with PublishedConceptRepository
     with DraftConceptController
     with ConceptControllerHelpers
@@ -62,7 +63,6 @@ trait TestEnvironment
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
     with DBMigrator
-    with Routes[Eff]
     with InternController {
   override val props: ConceptApiProperties = new ConceptApiProperties {
     override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
@@ -98,5 +98,5 @@ trait TestEnvironment
   val articleApiClient: ArticleApiClient = mock[ArticleApiClient]
   val searchApiClient: SearchApiClient   = mock[SearchApiClient]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 }

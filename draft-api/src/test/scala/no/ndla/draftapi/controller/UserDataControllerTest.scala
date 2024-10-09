@@ -8,7 +8,7 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.draftapi.model.api.UpdatedUserData
-import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
@@ -18,7 +18,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: UserDataController = new UserDataController()
 
   override def beforeEach(): Unit = {

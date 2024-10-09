@@ -7,9 +7,9 @@
 
 package no.ndla.myndlaapi.controller
 
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
 import no.ndla.myndlaapi.model.api.{ArenaUser, MyNDLAUser, PaginatedArenaUsers, UpdatedMyNDLAUser}
-import no.ndla.myndlaapi.{Eff, MyNDLAAuthHelpers}
+import no.ndla.myndlaapi.{MyNDLAAuthHelpers}
 import no.ndla.myndlaapi.model.arena.api.{
   Category,
   CategorySort,
@@ -29,12 +29,12 @@ import no.ndla.myndlaapi.model.arena.api.{
 import no.ndla.myndlaapi.service.{ArenaReadService, UserService}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.{Service, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
 import sttp.model.StatusCode
-import sttp.tapir.generic.auto._
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
+import sttp.tapir.*
 
 trait ArenaController {
   this: ErrorHelpers
@@ -42,10 +42,11 @@ trait ArenaController {
     with MyNDLAAuthHelpers
     with ArenaReadService
     with FeideApiClient
-    with UserService =>
+    with UserService
+    with TapirController =>
   val arenaController: ArenaController
 
-  class ArenaController extends Service[Eff] {
+  class ArenaController extends TapirController {
     import MyNDLAAuthHelpers.authlessEndpointFeideExtension
     override val serviceName: String                   = "arena"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName

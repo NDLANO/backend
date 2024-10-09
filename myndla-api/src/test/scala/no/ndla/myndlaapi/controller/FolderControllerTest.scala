@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.myndlaapi.model.api.Folder
 import no.ndla.myndlaapi.model.domain.{MyNDLAUser, UserRole}
-import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
+import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -19,7 +19,7 @@ import sttp.client3.quick.*
 import java.util.UUID
 import scala.util.Success
 
-class FolderControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
+class FolderControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest {
   val controller: FolderController = new FolderController()
 
   override def beforeEach(): Unit = {

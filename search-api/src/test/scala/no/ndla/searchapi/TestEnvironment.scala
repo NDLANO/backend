@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
@@ -22,7 +22,8 @@ import no.ndla.searchapi.service.ConverterService
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends ArticleApiClient
+    extends TapirApplication
+    with ArticleApiClient
     with MockitoSugar
     with ArticleIndexService
     with MultiSearchService
@@ -51,8 +52,7 @@ trait TestEnvironment
     with ErrorHelpers
     with Clock
     with GrepApiClient
-    with Props
-    with Routes[Eff] {
+    with Props {
   override val props = new SearchApiProperties
 
   val searchController: SearchController = mock[SearchController]
@@ -86,5 +86,5 @@ trait TestEnvironment
 
   val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 
-  override def services: List[Service[Eff]] = List()
+  override def services: List[TapirController] = List()
 }

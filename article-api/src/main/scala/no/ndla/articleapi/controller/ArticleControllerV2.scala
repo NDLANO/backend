@@ -16,14 +16,14 @@ import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.articleapi.{Eff, Props}
+import no.ndla.articleapi.Props
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{DynamicHeaders, Service}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.{DynamicHeaders, TapirController}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.{Header, MediaType}
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.*
@@ -33,19 +33,13 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success, Try}
 
 trait ArticleControllerV2 {
-  this: ReadService
-    with WriteService
-    with ArticleSearchService
-    with SearchConverterService
-    with ConverterService
-    with ContentValidator
-    with Props
-    with ErrorHelpers =>
+  this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
+    ContentValidator & Props & ErrorHelpers & TapirController =>
   val articleControllerV2: ArticleControllerV2
 
   import props._
 
-  class ArticleControllerV2() extends Service[Eff] {
+  class ArticleControllerV2() extends TapirController {
     protected val applicationDescription = "Services for accessing articles from NDLA."
 
     override val serviceName: String         = "articles"

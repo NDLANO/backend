@@ -7,23 +7,22 @@
 
 package no.ndla.draftapi.controller
 
-import io.circe.generic.auto._
-import no.ndla.draftapi.Eff
+import io.circe.generic.auto.*
 import no.ndla.draftapi.model.api.{ErrorHelpers, UpdatedUserData, UserData}
 import no.ndla.draftapi.service.{ReadService, WriteService}
-import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.NoNullJsonPrinter.*
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import sttp.tapir.{EndpointInput, _}
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait UserDataController {
-  this: ReadService with WriteService with ErrorHelpers =>
+  this: ReadService with WriteService with ErrorHelpers with TapirController =>
   val userDataController: UserDataController
 
-  class UserDataController extends Service[Eff] {
+  class UserDataController extends TapirController {
     import ErrorHelpers._
     override val serviceName: String         = "user-data"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName

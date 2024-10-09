@@ -13,7 +13,7 @@ import org.log4s.{Logger, getLogger}
 import scala.concurrent.Future
 import scala.io.Source
 
-trait NdlaTapirMain[F[_]] {
+trait NdlaTapirMain {
   val logger: Logger = getLogger
 
   val props: BaseProps

@@ -12,7 +12,7 @@ import io.circe.parser
 import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
-import no.ndla.audioapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.common.model.api.{Copyright, License}
 import no.ndla.tapirtesting.TapirControllerTest
@@ -27,7 +27,7 @@ import sttp.client3.quick.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
-class AudioControllerTest extends UnitSuite with TestEnvironment with Retries with TapirControllerTest[Eff] {
+class AudioControllerTest extends UnitSuite with TestEnvironment with Retries with TapirControllerTest {
   val controller: AudioController = new AudioController {
     // NOTE: Small max file size when testing to test the failure in the controller without using a bunch of memory
     override val maxAudioFileSizeBytes: Int = 10

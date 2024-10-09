@@ -7,20 +7,20 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.{Eff, Props}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ErrorHelpers
 import no.ndla.learningpathapi.service.ReadService
-import no.ndla.network.tapir.Service
+import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
 import sttp.tapir.EndpointInput
-import sttp.tapir._
+import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait StatsController {
-  this: ReadService with Props with ErrorHelpers =>
+  this: ReadService with Props with ErrorHelpers with TapirController =>
   val statsController: StatsController
 
-  class StatsController extends Service[Eff] {
+  class StatsController extends TapirController {
     override val serviceName: String         = "stats"
     override val prefix: EndpointInput[Unit] = "learningpath-api" / "v1" / serviceName
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

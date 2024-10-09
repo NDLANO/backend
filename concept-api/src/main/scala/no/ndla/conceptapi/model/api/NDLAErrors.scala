@@ -17,7 +17,7 @@ import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
 trait ErrorHelpers extends TapirErrorHelpers {
-  this: Props with Clock with DataSource =>
+  this: Props & Clock & DataSource =>
 
   import ConceptErrorHelpers.*
   import ErrorHelpers.*
@@ -66,6 +66,5 @@ case class NotFoundException(message: String, supportedLanguages: Seq[String] = 
     extends RuntimeException(message)
 case class ConceptMissingIdException(message: String)     extends RuntimeException(message)
 case class ConceptExistsAlreadyException(message: String) extends RuntimeException(message)
-case class ImportException(message: String)               extends RuntimeException(message)
 case class ElasticIndexingException(message: String)      extends RuntimeException(message)
 case class OperationNotAllowedException(message: String)  extends RuntimeException(message)

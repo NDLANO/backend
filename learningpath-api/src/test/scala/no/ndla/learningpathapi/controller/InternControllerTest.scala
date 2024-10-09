@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
@@ -16,7 +16,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: InternController = new InternController
 
   test("that id with value 404 gives OK") {

@@ -8,12 +8,12 @@
 
 package no.ndla.oembedproxy.controller
 
-import no.ndla.oembedproxy.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
-class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
-  lazy val controller: TapirHealthController[Eff] = new TapirHealthController[Eff]
+class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
+  lazy val controller: TapirHealthController = new TapirHealthController
   controller.setWarmedUp()
 
   test("That /health returns 200 ok") {

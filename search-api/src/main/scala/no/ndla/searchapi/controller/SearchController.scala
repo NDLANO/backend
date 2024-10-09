@@ -18,11 +18,11 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, Service}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, TapirController}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.searchapi.controller.parameters.{DraftSearchParams, SearchParams, SubjectAggsInput}
-import no.ndla.searchapi.{Eff, Props}
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
@@ -47,10 +47,10 @@ import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
   this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
-    FeideApiClient & Props & ErrorHelpers =>
+    FeideApiClient & Props & ErrorHelpers & TapirController =>
   val searchController: SearchController
 
-  class SearchController extends Service[Eff] {
+  class SearchController extends TapirController {
     import props.*
     import ErrorHelpers.*
 

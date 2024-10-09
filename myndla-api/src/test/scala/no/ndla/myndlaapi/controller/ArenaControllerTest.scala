@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.controller
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.myndlaapi.model.arena.api.PaginatedTopics
 import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
-import no.ndla.myndlaapi.{Eff, TestData, TestEnvironment}
+import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -19,7 +19,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class ArenaControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
+class ArenaControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest {
   val controller: ArenaController = new ArenaController()
 
   override def beforeEach(): Unit = {

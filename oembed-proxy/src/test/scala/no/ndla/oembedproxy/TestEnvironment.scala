@@ -10,7 +10,7 @@ package no.ndla.oembedproxy
 
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.OEmbedProxyController
 import no.ndla.oembedproxy.model.ErrorHelpers
@@ -19,27 +19,26 @@ import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends OEmbedProxyController
+    extends TapirApplication
+    with OEmbedProxyController
     with OEmbedServiceComponent
     with NdlaClient
     with ProviderService
     with MockitoSugar
-    with TapirHealthController
     with Props
     with MemoizeHelpers
     with ErrorHelpers
-    with Clock
-    with Routes[Eff] {
+    with Clock {
   override val props = new OEmbedProxyProperties
 
   val oEmbedService: OEmbedService                 = mock[OEmbedService]
   val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
   val ndlaClient: NdlaClient                       = mock[NdlaClient]
   val providerService: ProviderService             = mock[ProviderService]
-  val healthController: TapirHealthController[Eff] = mock[TapirHealthController[Eff]]
+  val healthController: TapirHealthController      = mock[TapirHealthController]
   val clock: SystemClock                           = mock[SystemClock]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 
   def resetMocks(): Unit = {
     reset(oEmbedService)

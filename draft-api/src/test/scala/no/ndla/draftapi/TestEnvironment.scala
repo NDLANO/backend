@@ -21,12 +21,13 @@ import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends Elastic4sClient
+    extends TapirApplication
+    with Elastic4sClient
     with ArticleSearchService
     with ArticleIndexService
     with TagSearchService
@@ -66,8 +67,6 @@ trait TestEnvironment
     with MemoizeHelpers
     with DBMigrator
     with Props
-    with Routes[Eff]
-    with TapirErrorHelpers
     with V57__MigrateSavedSearch {
   val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
@@ -115,5 +114,5 @@ trait TestEnvironment
   val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
   val h5pApiClient: H5PApiClient           = mock[H5PApiClient]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 }

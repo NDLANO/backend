@@ -8,30 +8,30 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.{FileTooBigException, ValidationException}
-import no.ndla.draftapi.{Eff, Props}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api._
+import no.ndla.draftapi.model.api.*
 import no.ndla.draftapi.service.WriteService
-import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.Service
+import no.ndla.network.tapir.NoNullJsonPrinter.*
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import sttp.model.{Part, StatusCode}
 import sttp.tapir.EndpointInput
-import sttp.tapir._
-import io.circe.generic.auto._
+import sttp.tapir.*
+import io.circe.generic.auto.*
 import no.ndla.common.model.domain
-import sttp.tapir.generic.auto._
+import no.ndla.network.tapir.TapirController
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import java.io.File
 import scala.util.{Failure, Success, Try}
 
 trait FileController {
-  this: WriteService with ErrorHelpers with Props =>
+  this: WriteService with ErrorHelpers with Props with TapirController =>
   val fileController: FileController
 
-  class FileController extends Service[Eff] {
+  class FileController extends TapirController {
     import ErrorHelpers._
     override val serviceName: String         = "files"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName

@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.api.SingleResourceStats
 import no.ndla.myndlaapi.model.api.Stats
-import no.ndla.myndlaapi.{Eff, TestEnvironment}
+import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
@@ -18,7 +18,7 @@ import sttp.client3.quick.*
 
 import scala.util.Success
 
-class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
+class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest {
   val controller: StatsController = new StatsController()
 
   test("That getting stats returns in fact stats") {

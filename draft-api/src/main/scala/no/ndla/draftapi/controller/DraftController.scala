@@ -19,14 +19,14 @@ import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.draftapi.validation.ContentValidator
-import no.ndla.draftapi.{Eff, Props}
+import no.ndla.draftapi.Props
 import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.tapir.NoNullJsonPrinter.*
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import no.ndla.network.tapir.{DynamicHeaders, Service}
+import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -36,10 +36,10 @@ import scala.util.{Failure, Success, Try}
 
 trait DraftController {
   this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
-    ContentValidator & Props & ErrorHelpers =>
+    ContentValidator & Props & ErrorHelpers & TapirController =>
   val draftController: DraftController
 
-  class DraftController extends Service[Eff] {
+  class DraftController extends TapirController {
     import props.{DefaultPageSize, InitialScrollContextKeywords}
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName

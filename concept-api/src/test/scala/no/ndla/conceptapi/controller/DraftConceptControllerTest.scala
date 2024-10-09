@@ -11,7 +11,7 @@ import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.{api, search}
-import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
@@ -20,7 +20,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class DraftConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class DraftConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: DraftConceptController = new DraftConceptController
 
   override def beforeEach(): Unit = {

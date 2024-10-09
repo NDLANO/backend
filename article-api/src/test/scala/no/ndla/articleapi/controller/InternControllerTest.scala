@@ -8,10 +8,9 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.Author
-import no.ndla.network.tapir.Service
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
@@ -20,10 +19,10 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val author: Author = Author("forfatter", "Henrik")
 
-  val controller: Service[Eff] = new InternController
+  val controller: TapirController = new InternController
 
   when(clock.now()).thenCallRealMethod()
 

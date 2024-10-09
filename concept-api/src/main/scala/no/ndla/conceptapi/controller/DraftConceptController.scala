@@ -16,12 +16,12 @@ import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.conceptapi.{Eff, Props}
+import no.ndla.conceptapi.Props
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
-import no.ndla.network.tapir.{DynamicHeaders, Service}
+import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.headers.CacheDirective
 import sttp.model.{HeaderNames, StatusCode}
 import sttp.tapir._
@@ -38,10 +38,11 @@ trait DraftConceptController {
     with ConverterService
     with Props
     with ConceptControllerHelpers
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with TapirController =>
   val draftConceptController: DraftConceptController
 
-  class DraftConceptController extends Service[Eff] {
+  class DraftConceptController extends TapirController {
     import props._
 
     override val serviceName: String         = "drafts"

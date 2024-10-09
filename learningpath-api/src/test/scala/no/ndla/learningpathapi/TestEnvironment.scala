@@ -19,13 +19,14 @@ import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, 
 import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends LearningpathControllerV2
+    extends TapirApplication
+    with LearningpathControllerV2
     with StatsController
     with LearningPathRepositoryComponent
     with FeideApiClient
@@ -55,8 +56,7 @@ trait TestEnvironment
     with Props
     with InternController
     with DBMigrator
-    with RedisClient
-    with Routes[Eff] {
+    with RedisClient {
   val props = new LearningpathApiProperties
 
   val migrator: DBMigrator         = mock[DBMigrator]
@@ -87,7 +87,7 @@ trait TestEnvironment
   val redisClient: RedisClient                                         = mock[RedisClient]
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 
   def resetMocks(): Unit = {
     reset(dataSource)

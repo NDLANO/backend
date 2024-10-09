@@ -13,7 +13,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
-class SubjectPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class SubjectPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val controller: SubjectPageController = new SubjectPageController()
 
   test("Should return 400 with cool custom message if bad request") {

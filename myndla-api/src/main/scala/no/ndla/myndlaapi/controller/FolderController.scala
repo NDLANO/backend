@@ -9,7 +9,6 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.ResourceType
-import no.ndla.myndlaapi.Eff
 import no.ndla.myndlaapi.model.api.{
   Folder,
   FolderSortRequest,
@@ -30,8 +29,8 @@ import no.ndla.myndlaapi.model.domain.FolderStatus
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
@@ -39,10 +38,10 @@ import sttp.tapir.server.ServerEndpoint
 import java.util.UUID
 
 trait FolderController {
-  this: FolderReadService with FolderWriteService with ErrorHelpers =>
+  this: FolderReadService with FolderWriteService with ErrorHelpers with TapirController =>
   val folderController: FolderController
 
-  class FolderController extends Service[Eff] {
+  class FolderController extends TapirController {
     override val serviceName: String = "folders"
 
     override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName

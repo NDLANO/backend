@@ -11,7 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.TestData.*
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
-import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
 import no.ndla.tapirtesting.TapirControllerTest
@@ -21,7 +21,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val converterService             = new ConverterService
   override val controller: InternController = new InternController
 

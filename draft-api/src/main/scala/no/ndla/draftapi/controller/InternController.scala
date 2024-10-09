@@ -8,31 +8,31 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.draftapi.{Eff, Props}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ArticleDomainDump, ArticleDump, ContentId, NotFoundException}
 import no.ndla.draftapi.model.domain.{ArticleIds, ImportId, ReindexResult}
 import no.ndla.draftapi.repository.DraftRepository
-import no.ndla.draftapi.service._
-import no.ndla.draftapi.service.search._
+import no.ndla.draftapi.service.*
+import no.ndla.draftapi.service.search.*
 import no.ndla.language.Language
-import sttp.tapir._
-import cats.implicits._
+import sttp.tapir.*
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.{Service, TapirErrorHelpers}
+import no.ndla.network.tapir.NoNullJsonPrinter.*
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.ReadOnlyAutoSession
 import sttp.model.StatusCode
 import sttp.tapir.server.ServerEndpoint
-import io.circe.generic.auto._
-import sttp.tapir.generic.auto._
+import io.circe.generic.auto.*
+import sttp.tapir.generic.auto.*
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.annotation.{tailrec, unused}
-import scala.concurrent._
+import scala.concurrent.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
@@ -47,10 +47,11 @@ trait InternController {
     with GrepCodesIndexService
     with ArticleApiClient
     with TapirErrorHelpers
+    with TapirController
     with Props =>
   val internController: InternController
 
-  class InternController extends Service[Eff] with StrictLogging {
+  class InternController extends TapirController with StrictLogging {
     import props.{DraftSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
     import ErrorHelpers._
 

@@ -10,7 +10,7 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.*
-import no.ndla.audioapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
@@ -18,7 +18,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
-class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   var healthControllerResponse: Int = 200
   val controller: HealthController  = new HealthController
   controller.setWarmedUp()

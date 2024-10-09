@@ -17,9 +17,9 @@ import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{AllErrors, Service}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.searchapi.{Eff, Props}
+import no.ndla.network.tapir.{AllErrors, TapirController}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
@@ -45,10 +45,10 @@ import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
   this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
-    TaxonomyApiClient & GrepApiClient & Props & ErrorHelpers & MyNDLAApiClient =>
+    TaxonomyApiClient & GrepApiClient & Props & ErrorHelpers & MyNDLAApiClient & TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] with StrictLogging {
+  class InternController extends TapirController with StrictLogging {
     import ErrorHelpers._
 
     implicit val ec: ExecutionContext =

@@ -7,18 +7,18 @@
 
 package no.ndla.myndlaapi.controller
 
-import cats.implicits._
-import no.ndla.myndlaapi.{Eff, MyNDLAAuthHelpers}
+import cats.implicits.*
+import no.ndla.myndlaapi.MyNDLAAuthHelpers
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{Service, TapirErrorHelpers}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
-import sttp.tapir.generic.auto._
-import io.circe.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
+import io.circe.generic.auto.*
 import no.ndla.myndlaapi.model.api.{ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser}
 import no.ndla.myndlaapi.service.{ArenaReadService, FolderReadService, FolderWriteService, UserService}
 import no.ndla.network.model.FeideID
@@ -31,10 +31,11 @@ trait UserController {
     with TapirErrorHelpers
     with FolderWriteService
     with FolderReadService
-    with ArenaReadService =>
+    with ArenaReadService
+    with TapirController =>
   val userController: UserController
 
-  class UserController extends Service[Eff] {
+  class UserController extends TapirController {
     override val serviceName: String = "users"
 
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName

@@ -7,27 +7,26 @@
 
 package no.ndla.myndlaapi.controller
 
-import no.ndla.myndlaapi.Eff
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.{Service, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
-import sttp.tapir.generic.auto._
-import sttp.tapir.codec.enumeratum._
-import io.circe.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
+import sttp.tapir.codec.enumeratum.*
+import io.circe.generic.auto.*
 import no.ndla.common.model.api.config.{ConfigMeta, ConfigMetaRestricted, ConfigMetaValue}
 import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.myndlaapi.service.ConfigService
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
 trait ConfigController {
-  this: ErrorHelpers with TapirErrorHelpers with ConfigService =>
+  this: ErrorHelpers with TapirErrorHelpers with ConfigService with TapirController =>
 
   val configController: ConfigController
 
-  class ConfigController extends Service[Eff] {
+  class ConfigController extends TapirController {
     override val serviceName: String = "config"
 
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
