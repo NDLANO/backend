@@ -14,7 +14,7 @@ import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.integration.*
-import no.ndla.imageapi.model.api.ErrorHelpers
+import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -61,7 +61,7 @@ class ComponentRegistry(properties: ImageApiProperties)
     with Clock
     with Props
     with DBMigrator
-    with ErrorHelpers
+    with ErrorHandling
     with Random
     with NdlaS3Client
     with SwaggerDocControllerConfig {

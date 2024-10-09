@@ -37,7 +37,7 @@ trait ImageControllerV3 {
     with WriteService
     with SearchConverterService
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with BaseImageController
     with TapirController =>
   val imageControllerV3: ImageControllerV3

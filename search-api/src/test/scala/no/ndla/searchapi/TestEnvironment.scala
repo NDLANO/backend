@@ -16,7 +16,7 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.model.api.ErrorHelpers
+import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 import org.scalatestplus.mockito.MockitoSugar
@@ -49,7 +49,7 @@ trait TestEnvironment
     with LearningPathIndexService
     with InternController
     with SearchApiClient
-    with ErrorHelpers
+    with ErrorHandling
     with Clock
     with GrepApiClient
     with Props {

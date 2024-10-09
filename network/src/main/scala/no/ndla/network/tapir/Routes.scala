@@ -35,7 +35,7 @@ import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 import java.util.concurrent.{ExecutorService, Executors}
 
 trait Routes {
-  this: TapirController & TapirErrorHelpers & HasBaseProps =>
+  this: TapirController & HasBaseProps =>
 
   def services: List[TapirController]
 

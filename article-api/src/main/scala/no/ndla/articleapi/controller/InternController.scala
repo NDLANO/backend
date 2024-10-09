@@ -24,7 +24,7 @@ import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
-import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -37,7 +37,7 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: ReadService & WriteService & ConverterService & ArticleRepository & IndexService & ArticleIndexService &
-    ContentValidator & TapirErrorHelpers & Props & DBArticle & TapirController =>
+    ContentValidator & Props & DBArticle & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {

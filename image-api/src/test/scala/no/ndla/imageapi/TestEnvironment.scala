@@ -20,7 +20,7 @@ import no.ndla.imageapi.controller.{
   RawController
 }
 import no.ndla.imageapi.integration.*
-import no.ndla.imageapi.model.api.ErrorHelpers
+import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.*
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -67,7 +67,7 @@ trait TestEnvironment
     with MockitoSugar
     with Clock
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with DBMigrator
     with TestData
     with Random {

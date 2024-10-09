@@ -11,7 +11,7 @@ import cats.implicits.*
 import no.ndla.myndlaapi.MyNDLAAuthHelpers
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import sttp.tapir.EndpointInput
@@ -25,10 +25,9 @@ import no.ndla.network.model.FeideID
 import no.ndla.network.tapir.auth.TokenUser
 
 trait UserController {
-  this: ErrorHelpers
+  this: ErrorHandling
     with UserService
     with MyNDLAAuthHelpers
-    with TapirErrorHelpers
     with FolderWriteService
     with FolderReadService
     with ArenaReadService

@@ -8,7 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import cats.implicits.*
-import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, *}
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggResult, AggSerde}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
@@ -24,7 +24,7 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.{ErrorHelpers, SubjectAggregation, SubjectAggregations}
+import no.ndla.searchapi.model.api.{ErrorHandling, SubjectAggregation, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
@@ -36,7 +36,7 @@ import no.ndla.common.model.domain.Content
 
 trait MultiDraftSearchService {
   this: Elastic4sClient & SearchConverterService & IndexService & SearchService & DraftIndexService &
-    LearningPathIndexService & Props & ErrorHelpers & DraftConceptIndexService =>
+    LearningPathIndexService & Props & ErrorHandling & DraftConceptIndexService =>
   val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {

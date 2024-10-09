@@ -28,7 +28,7 @@ import java.io.File
 import scala.util.{Failure, Success, Try}
 
 trait FileController {
-  this: WriteService with ErrorHelpers with Props with TapirController =>
+  this: WriteService with ErrorHandling with Props with TapirController =>
   val fileController: FileController
 
   class FileController extends TapirController {

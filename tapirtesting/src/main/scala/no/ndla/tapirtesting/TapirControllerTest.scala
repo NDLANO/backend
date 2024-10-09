@@ -10,7 +10,7 @@ package no.ndla.tapirtesting
 import com.sun.net.httpserver.HttpServer
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.network.tapir.{Routes, TapirController, TapirErrorHelpers}
+import no.ndla.network.tapir.{Routes, TapirController, TapirErrorHandling}
 import no.ndla.scalatestsuite.UnitTestSuite
 
 trait TapirControllerTest
@@ -18,7 +18,7 @@ trait TapirControllerTest
     with Routes
     with TapirController
     with HasBaseProps
-    with TapirErrorHelpers
+    with TapirErrorHandling
     with Clock {
   val serverPort: Int = findFreePort
   val controller: TapirController

@@ -9,7 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirController
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
@@ -22,7 +22,7 @@ import no.ndla.myndlaapi.service.ConfigService
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
 trait ConfigController {
-  this: ErrorHelpers with TapirErrorHelpers with ConfigService with TapirController =>
+  this: ErrorHandling with ConfigService with TapirController =>
 
   val configController: ConfigController
 

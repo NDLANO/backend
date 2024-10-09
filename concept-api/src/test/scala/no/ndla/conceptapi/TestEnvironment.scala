@@ -17,7 +17,7 @@ import no.ndla.conceptapi.controller.{
   PublishedConceptController
 }
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, SearchApiClient, TaxonomyApiClient}
-import no.ndla.conceptapi.model.api.ErrorHelpers
+import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.*
@@ -59,7 +59,7 @@ trait TestEnvironment
     with NdlaClient
     with Clock
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
     with DBMigrator

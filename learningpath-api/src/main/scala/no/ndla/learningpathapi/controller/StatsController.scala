@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.ErrorHelpers
+import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.service.ReadService
 import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
@@ -17,7 +17,7 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait StatsController {
-  this: ReadService with Props with ErrorHelpers with TapirController =>
+  this: ReadService with Props with ErrorHandling with TapirController =>
   val statsController: StatsController
 
   class StatsController extends TapirController {

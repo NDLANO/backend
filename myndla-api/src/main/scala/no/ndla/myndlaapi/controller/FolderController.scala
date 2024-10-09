@@ -38,7 +38,7 @@ import sttp.tapir.server.ServerEndpoint
 import java.util.UUID
 
 trait FolderController {
-  this: FolderReadService with FolderWriteService with ErrorHelpers with TapirController =>
+  this: FolderReadService with FolderWriteService with ErrorHandling with TapirController =>
   val folderController: FolderController
 
   class FolderController extends TapirController {

@@ -21,7 +21,7 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.ReadOnlyAutoSession
@@ -46,7 +46,6 @@ trait InternController {
     with TagIndexService
     with GrepCodesIndexService
     with ArticleApiClient
-    with TapirErrorHelpers
     with TapirController
     with Props =>
   val internController: InternController

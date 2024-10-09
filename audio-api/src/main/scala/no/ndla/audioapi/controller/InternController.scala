@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHelpers, NotFoundException}
+import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHandling, NotFoundException}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
@@ -29,7 +29,7 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: AudioIndexService & ConverterService & AudioRepository & AudioIndexService & SeriesIndexService &
-    TagIndexService & ReadService & Props & ErrorHelpers & TapirController =>
+    TagIndexService & ReadService & Props & ErrorHandling & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController {

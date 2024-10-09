@@ -24,7 +24,7 @@ import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.searchapi.controller.parameters.{DraftSearchParams, SearchParams, SubjectAggsInput}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.SearchApiClient
-import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult, SubjectAggregations}
+import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResult, MultiSearchResult, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -47,12 +47,11 @@ import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
   this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
-    FeideApiClient & Props & ErrorHelpers & TapirController =>
+    FeideApiClient & Props & ErrorHandling & TapirController =>
   val searchController: SearchController
 
   class SearchController extends TapirController {
     import props.*
-    import ErrorHelpers.*
 
     override val serviceName: String         = "search"
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName

@@ -31,7 +31,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ImageControllerV2 {
   this: ImageRepository & ImageSearchService & ConverterService & ReadService & WriteService & SearchConverterService &
-    Props & ErrorHelpers & BaseImageController & TapirController =>
+    Props & ErrorHandling & BaseImageController & TapirController =>
   val imageControllerV2: ImageControllerV2
 
   class ImageControllerV2 extends TapirController with BaseImageController {

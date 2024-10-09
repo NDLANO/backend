@@ -11,7 +11,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.frontpageapi.controller.{FilmPageController, FrontPageController, SubjectPageController}
 import no.ndla.frontpageapi.integration.DataSource
-import no.ndla.frontpageapi.model.api.ErrorHelpers
+import no.ndla.frontpageapi.model.api.ErrorHandling
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
@@ -35,7 +35,7 @@ trait TestEnvironment
     with DBFilmFrontPageData
     with DBSubjectFrontPageData
     with DBFrontPageData
-    with ErrorHelpers
+    with ErrorHandling
     with Clock
     with DBMigrator {
   override val props = new FrontpageApiProperties

@@ -18,13 +18,13 @@ import no.ndla.network.tapir.{
   AllErrors,
   ErrorBody,
   NotFoundWithSupportedLanguages,
-  TapirErrorHelpers,
+  TapirErrorHandling,
   ValidationErrorBody
 }
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
+trait ErrorHandling extends TapirErrorHandling with StrictLogging {
   this: Props with Clock with DataSource =>
 
   import ErrorHelpers._

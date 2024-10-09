@@ -10,7 +10,7 @@ package no.ndla.imageapi.controller
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.api.ErrorHelpers
+import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
@@ -26,7 +26,7 @@ trait RawController {
   this: ImageStorageService
     with ImageConverter
     with ImageRepository
-    with ErrorHelpers
+    with ErrorHandling
     with Props
     with ReadService
     with TapirController =>

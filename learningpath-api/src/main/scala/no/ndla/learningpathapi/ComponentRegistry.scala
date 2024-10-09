@@ -18,7 +18,7 @@ import no.ndla.learningpathapi.controller.{
   SwaggerDocControllerConfig
 }
 import no.ndla.learningpathapi.integration.*
-import no.ndla.learningpathapi.model.api.ErrorHelpers
+import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
@@ -66,7 +66,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with DBMigrator
     with TextValidator
     with UrlValidator
-    with ErrorHelpers
+    with ErrorHandling
     with RedisClient
     with SwaggerDocControllerConfig {
   override val props: LearningpathApiProperties = properties

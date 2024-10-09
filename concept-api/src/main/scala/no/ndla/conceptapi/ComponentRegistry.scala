@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.*
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, SearchApiClient, TaxonomyApiClient}
-import no.ndla.conceptapi.model.api.ErrorHelpers
+import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.*
@@ -54,7 +54,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with NdlaClient
     with Props
     with DBMigrator
-    with ErrorHelpers
+    with ErrorHandling
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
     with TaxonomyApiClient

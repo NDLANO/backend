@@ -11,7 +11,7 @@ package no.ndla.audioapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration.*
-import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
@@ -51,7 +51,7 @@ trait TestEnvironment
     with MockitoSugar
     with Clock
     with Props
-    with ErrorHelpers {
+    with ErrorHandling {
   override val props: AudioApiProperties = new AudioApiProperties
 
   val dataSource: HikariDataSource       = mock[HikariDataSource]

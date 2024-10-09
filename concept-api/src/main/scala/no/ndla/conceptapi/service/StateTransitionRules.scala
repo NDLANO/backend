@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Status, Concept as DomainConcept}
 import no.ndla.common.model.domain.{Responsible, concept}
-import no.ndla.conceptapi.model.api.ErrorHelpers
+import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
 import no.ndla.conceptapi.model.domain.StateTransition
@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 trait StateTransitionRules {
   this: WriteService & DraftConceptRepository & PublishedConceptRepository & WriteService & ConverterService &
-    ContentValidator & DraftConceptIndexService & PublishedConceptRepository & ErrorHelpers & Clock =>
+    ContentValidator & DraftConceptIndexService & PublishedConceptRepository & ErrorHandling & Clock =>
 
   object StateTransitionRules {
 

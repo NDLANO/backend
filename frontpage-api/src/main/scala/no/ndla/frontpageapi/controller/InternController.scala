@@ -22,7 +22,7 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ReadService & WriteService & Props & ErrorHelpers & TapirController =>
+  this: ReadService & WriteService & Props & ErrorHandling & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController {

@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.model.api.Stats
 import no.ndla.myndlaapi.service.FolderReadService
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{TapirController, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
@@ -22,7 +22,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.model.CommaSeparated
 
 trait StatsController {
-  this: FolderReadService with TapirErrorHelpers with TapirController =>
+  this: FolderReadService & TapirController =>
   class StatsController extends TapirController {
     override val serviceName: String                   = "stats"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName

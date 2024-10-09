@@ -20,7 +20,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait FilmPageController {
-  this: ReadService with WriteService with ErrorHelpers with TapirController =>
+  this: ReadService with WriteService with ErrorHandling with TapirController =>
   val filmPageController: FilmPageController
 
   class FilmPageController extends TapirController {

@@ -9,7 +9,7 @@ package no.ndla.conceptapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResults, ErrorHelpers, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResults, ErrorHandling, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
@@ -29,7 +29,7 @@ import sttp.tapir.generic.auto.*
 
 trait InternController {
   this: IndexService & DraftConceptIndexService & PublishedConceptIndexService & ImportService & ConverterService &
-    ReadService & DraftConceptRepository & PublishedConceptRepository & ErrorHelpers & TapirController =>
+    ReadService & DraftConceptRepository & PublishedConceptRepository & ErrorHandling & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController {

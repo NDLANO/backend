@@ -13,7 +13,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.OEmbedProxyController
-import no.ndla.oembedproxy.model.ErrorHelpers
+import no.ndla.oembedproxy.model.ErrorHandling
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
@@ -27,7 +27,7 @@ trait TestEnvironment
     with MockitoSugar
     with Props
     with MemoizeHelpers
-    with ErrorHelpers
+    with ErrorHandling
     with Clock {
   override val props = new OEmbedProxyProperties
 

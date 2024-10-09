@@ -10,7 +10,7 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump, ImageMetaInformationV2}
+import no.ndla.imageapi.model.api.{ErrorHandling, ImageMetaDomainDump, ImageMetaInformationV2}
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
@@ -37,7 +37,7 @@ trait InternController {
     with TagIndexService
     with ImageRepository
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with TapirController =>
   val internController: InternController
 

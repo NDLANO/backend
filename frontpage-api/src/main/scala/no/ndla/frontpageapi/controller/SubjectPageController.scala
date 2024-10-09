@@ -11,7 +11,7 @@ import io.circe.generic.auto.*
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.{
-  ErrorHelpers,
+  ErrorHandling,
   NewSubjectFrontPageData,
   SubjectPageData,
   UpdatedSubjectFrontPageData
@@ -27,7 +27,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait SubjectPageController {
-  this: ReadService & WriteService & Props & ErrorHelpers & TapirController =>
+  this: ReadService & WriteService & Props & ErrorHandling & TapirController =>
   val subjectPageController: SubjectPageController
 
   class SubjectPageController extends TapirController {

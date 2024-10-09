@@ -44,7 +44,7 @@ trait AudioController {
     with SearchConverterService
     with ConverterService
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with TapirController =>
   val audioApiController: AudioController
 

@@ -11,7 +11,7 @@ package no.ndla.audioapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.*
 import no.ndla.audioapi.integration.*
-import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
@@ -51,7 +51,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with Clock
     with Props
     with DBMigrator
-    with ErrorHelpers
+    with ErrorHandling
     with SwaggerDocControllerConfig
     with NdlaS3Client {
   override val props: AudioApiProperties    = properties

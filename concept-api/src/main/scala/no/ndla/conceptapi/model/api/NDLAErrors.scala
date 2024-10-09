@@ -12,11 +12,11 @@ import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHandling extends TapirErrorHandling {
   this: Props & Clock & DataSource =>
 
   import ConceptErrorHelpers.*

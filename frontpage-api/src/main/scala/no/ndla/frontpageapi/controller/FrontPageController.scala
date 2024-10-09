@@ -20,7 +20,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait FrontPageController {
-  this: ReadService with WriteService with ErrorHelpers with TapirController =>
+  this: ReadService with WriteService with ErrorHandling with TapirController =>
   val frontPageController: FrontPageController
 
   class FrontPageController() extends TapirController {

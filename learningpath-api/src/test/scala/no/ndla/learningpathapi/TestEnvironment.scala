@@ -12,7 +12,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
-import no.ndla.learningpathapi.model.api.ErrorHelpers
+import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
@@ -52,7 +52,7 @@ trait TestEnvironment
     with TextValidator
     with UrlValidator
     with MyNDLAApiClient
-    with ErrorHelpers
+    with ErrorHandling
     with Props
     with InternController
     with DBMigrator

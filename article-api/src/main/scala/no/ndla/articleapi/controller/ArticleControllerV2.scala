@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ArticleControllerV2 {
   this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
-    ContentValidator & Props & ErrorHelpers & TapirController =>
+    ContentValidator & Props & ErrorHandling & TapirController =>
   val articleControllerV2: ArticleControllerV2
 
   import props._

@@ -32,7 +32,7 @@ import scala.util.{Failure, Success, Try}
 
 trait SeriesController {
   this: ReadService & WriteService & SeriesSearchService & SearchConverterService & ConverterService & Props &
-    ErrorHelpers & TapirController =>
+    ErrorHandling & TapirController =>
   val seriesController: SeriesController
   class SeriesController extends TapirController {
     import props.*

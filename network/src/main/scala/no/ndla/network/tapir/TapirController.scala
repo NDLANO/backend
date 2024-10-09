@@ -19,8 +19,8 @@ import sttp.tapir.*
 import sttp.tapir.server.{PartialServerEndpoint, ServerEndpoint}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 
-trait TapirController {
-  this: HasBaseProps & Clock & TapirErrorHelpers =>
+trait TapirController extends TapirErrorHandling {
+  this: HasBaseProps & Clock =>
   trait TapirController extends StrictLogging {
     type Eff[A] = Identity[A]
     val enableSwagger: Boolean = true
@@ -61,7 +61,7 @@ trait TapirController {
           requiredPermission: Permission*
       ): PartialServerEndpoint[Option[TokenUser], TokenUser, I, AllErrors, O, R, F] = {
         val newEndpoint   = self.securityIn(TokenUser.oauth2Input(requiredPermission))
-        val authFunc      = requireScope(requiredPermission *)
+        val authFunc      = requireScope(requiredPermission*)
         val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
         PartialServerEndpoint(newEndpoint, securityLogic)
       }

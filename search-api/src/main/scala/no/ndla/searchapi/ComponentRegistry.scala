@@ -17,7 +17,7 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.model.api.ErrorHelpers
+import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 
@@ -31,7 +31,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with LearningPathIndexService
     with DraftIndexService
     with MultiSearchService
-    with ErrorHelpers
+    with ErrorHandling
     with Clock
     with MultiDraftSearchService
     with ConverterService

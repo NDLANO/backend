@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.audioapi.model.domain.{SearchResult, SearchableTag}
 import no.ndla.common.CirceUtil
 import no.ndla.language.model.Iso639
@@ -29,7 +29,7 @@ trait TagSearchService {
     with TagIndexService
     with SearchConverterService
     with Props
-    with ErrorHelpers =>
+    with ErrorHandling =>
   val tagSearchService: TagSearchService
 
   class TagSearchService extends StrictLogging with SearchService[String] {

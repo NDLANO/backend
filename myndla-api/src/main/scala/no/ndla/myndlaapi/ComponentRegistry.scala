@@ -13,7 +13,7 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
-  ErrorHelpers,
+  ErrorHandling,
   FolderController,
   InternController,
   StatsController,
@@ -40,7 +40,7 @@ import no.ndla.network.tapir.TapirApplication
 class ComponentRegistry(properties: MyNdlaApiProperties)
     extends BaseComponentRegistry[MyNdlaApiProperties]
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with TapirApplication
     with Clock
     with SwaggerDocControllerConfig

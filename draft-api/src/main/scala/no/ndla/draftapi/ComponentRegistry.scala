@@ -16,7 +16,7 @@ import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.db.migrationwithdependencies.V57__MigrateSavedSearch
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.ErrorHelpers
+import no.ndla.draftapi.model.api.ErrorHandling
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
@@ -66,7 +66,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with UserDataController
     with Props
     with DBMigrator
-    with ErrorHelpers
+    with ErrorHandling
     with SwaggerDocControllerConfig
     with V57__MigrateSavedSearch {
   override val props: DraftApiProperties = properties

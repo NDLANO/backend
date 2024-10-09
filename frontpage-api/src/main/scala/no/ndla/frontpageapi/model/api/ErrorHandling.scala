@@ -15,9 +15,9 @@ import no.ndla.frontpageapi.model.domain.Errors.{
   SubjectPageNotFoundException,
   ValidationException
 }
-import no.ndla.network.tapir.{ErrorBody, TapirErrorHelpers}
+import no.ndla.network.tapir.{ErrorBody, TapirErrorHandling}
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHandling extends TapirErrorHandling {
   this: Props with Clock =>
 
   import ErrorHelpers._

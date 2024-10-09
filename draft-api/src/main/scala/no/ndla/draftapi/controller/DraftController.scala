@@ -36,7 +36,7 @@ import scala.util.{Failure, Success, Try}
 
 trait DraftController {
   this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
-    ContentValidator & Props & ErrorHelpers & TapirController =>
+    ContentValidator & Props & ErrorHandling & TapirController =>
   val draftController: DraftController
 
   class DraftController extends TapirController {

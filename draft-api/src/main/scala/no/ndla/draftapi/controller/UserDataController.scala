@@ -8,7 +8,7 @@
 package no.ndla.draftapi.controller
 
 import io.circe.generic.auto.*
-import no.ndla.draftapi.model.api.{ErrorHelpers, UpdatedUserData, UserData}
+import no.ndla.draftapi.model.api.{ErrorHandling, UpdatedUserData, UserData}
 import no.ndla.draftapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirController
@@ -19,7 +19,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait UserDataController {
-  this: ReadService with WriteService with ErrorHelpers with TapirController =>
+  this: ReadService with WriteService with ErrorHandling with TapirController =>
   val userDataController: UserDataController
 
   class UserDataController extends TapirController {

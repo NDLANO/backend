@@ -21,7 +21,7 @@ import no.ndla.network.tapir.{AllErrors, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyApiClient}
-import no.ndla.searchapi.model.api.ErrorHelpers
+import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.search.SearchType
@@ -45,7 +45,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
   this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
-    TaxonomyApiClient & GrepApiClient & Props & ErrorHelpers & MyNDLAApiClient & TapirController =>
+    TaxonomyApiClient & GrepApiClient & Props & ErrorHandling & MyNDLAApiClient & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {

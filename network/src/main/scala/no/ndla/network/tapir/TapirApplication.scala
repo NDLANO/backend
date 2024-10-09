@@ -12,7 +12,7 @@ import no.ndla.common.configuration.HasBaseProps
 
 trait TapirApplication
     extends TapirController
-    with TapirErrorHelpers
+    with TapirErrorHandling
     with Clock
     with HasBaseProps
     with Routes

@@ -17,7 +17,7 @@ import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
-import no.ndla.articleapi.model.api.ErrorHelpers
+import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
@@ -49,7 +49,7 @@ trait TestEnvironment
     with WriteService
     with ContentValidator
     with Clock
-    with ErrorHelpers
+    with ErrorHandling
     with MemoizeHelpers
     with DBArticle
     with Props

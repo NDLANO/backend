@@ -38,7 +38,7 @@ trait DraftConceptController {
     with ConverterService
     with Props
     with ConceptControllerHelpers
-    with ErrorHelpers
+    with ErrorHandling
     with TapirController =>
   val draftConceptController: DraftConceptController
 

@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.learningpathapi.model.api.{ErrorHelpers, LearningPathDomainDump, LearningPathSummaryV2}
+import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDump, LearningPathSummaryV2}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
@@ -28,7 +28,7 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: SearchIndexService & SearchService & LearningPathRepositoryComponent & ReadService & UpdateService & Props &
-    ErrorHelpers & TapirController =>
+    ErrorHandling & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController {

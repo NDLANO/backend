@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
-import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
+import no.ndla.imageapi.model.api.{ErrorHandling, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.common.implicits.*
@@ -34,7 +34,7 @@ trait ImageSearchService {
     with SearchService
     with SearchConverterService
     with Props
-    with ErrorHelpers =>
+    with ErrorHandling =>
   val imageSearchService: ImageSearchService
   class ImageSearchService extends StrictLogging with SearchService[(SearchableImage, MatchedLanguage)] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}

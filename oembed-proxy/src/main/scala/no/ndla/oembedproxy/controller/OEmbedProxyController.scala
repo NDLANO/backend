@@ -22,7 +22,7 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
-  this: OEmbedServiceComponent & ErrorHelpers & TapirController =>
+  this: OEmbedServiceComponent & ErrorHandling & TapirController =>
   val oEmbedProxyController: OEmbedProxyController
 
   class OEmbedProxyController extends TapirController {

@@ -34,7 +34,7 @@ trait PublishedConceptController {
     with SearchConverterService
     with Props
     with ConceptControllerHelpers
-    with ErrorHelpers
+    with ErrorHandling
     with TapirController =>
   val publishedConceptController: PublishedConceptController
 

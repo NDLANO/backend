@@ -13,11 +13,11 @@ import no.ndla.audioapi.integration.DataSource
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ValidationErrorBody}
 import no.ndla.search.NdlaSearchException
 import org.postgresql.util.PSQLException
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHandling extends TapirErrorHandling {
   this: Props with Clock with DataSource =>
 
   import ErrorHelpers._

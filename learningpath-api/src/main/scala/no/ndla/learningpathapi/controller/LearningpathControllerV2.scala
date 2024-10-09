@@ -45,7 +45,7 @@ trait LearningpathControllerV2 {
     with TaxonomyApiClient
     with SearchConverterServiceComponent
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with TapirController =>
   val learningpathControllerV2: LearningpathControllerV2
 

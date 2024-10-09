@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.api.ErrorHelpers
+import no.ndla.draftapi.model.api.ErrorHandling
 import no.ndla.draftapi.model.domain.*
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.search.Elastic4sClient
@@ -30,7 +30,7 @@ trait GrepCodesSearchService {
     with GrepCodesIndexService
     with SearchConverterService
     with Props
-    with ErrorHelpers =>
+    with ErrorHandling =>
   val grepCodesSearchService: GrepCodesSearchService
 
   class GrepCodesSearchService extends StrictLogging with BasicSearchService[String] {

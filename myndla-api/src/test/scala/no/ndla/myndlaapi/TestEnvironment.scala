@@ -12,7 +12,7 @@ import no.ndla.common.Clock
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
-  ErrorHelpers,
+  ErrorHandling,
   FolderController,
   StatsController,
   SwaggerDocControllerConfig,
@@ -63,7 +63,7 @@ trait TestEnvironment
     with FolderController
     with UserController
     with StatsController
-    with ErrorHelpers
+    with ErrorHandling
     with ImportService
     with NodeBBClient
     with SearchApiClient
