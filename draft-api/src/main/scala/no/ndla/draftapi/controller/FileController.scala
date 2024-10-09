@@ -63,7 +63,7 @@ trait FileController {
           { formData =>
             doWithStream(formData.file) { uploadedFile =>
               writeService.storeFile(uploadedFile)
-            }.handleErrorsOrOk
+            }
           }
       }
 

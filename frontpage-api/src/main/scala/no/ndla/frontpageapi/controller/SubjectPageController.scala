@@ -47,7 +47,7 @@ trait SubjectPageController {
       .serverLogicPure { case (page, pageSize, language, fallback) =>
         readService
           .subjectPages(page, pageSize, language, fallback)
-          .handleErrorsOrOk
+
       }
 
     def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint.get
@@ -60,7 +60,7 @@ trait SubjectPageController {
       .serverLogicPure { case (id, language, fallback) =>
         readService
           .subjectPage(id, language, fallback)
-          .handleErrorsOrOk
+
       }
 
     def getSubjectPagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
@@ -78,7 +78,7 @@ trait SubjectPageController {
         val parsedPage     = if (page < 1) 1 else page
         readService
           .getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
-          .handleErrorsOrOk
+
       }
 
     def createNewSubjectPage: ServerEndpoint[Any, Eff] = endpoint.post

@@ -46,7 +46,7 @@ trait UserController {
       .out(jsonBody[MyNDLAUser])
       .errorOut(errorOutputsFor(401, 403, 404))
       .serverLogicPure { feideHeader =>
-        userService.getMyNDLAUserData(feideHeader).handleErrorsOrOk
+        userService.getMyNDLAUserData(feideHeader)
       }
 
     def updateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -57,7 +57,7 @@ trait UserController {
       .out(jsonBody[MyNDLAUser])
       .errorOut(errorOutputsFor(401, 403, 404))
       .serverLogicPure { case (feideHeader, updatedMyNdlaUser) =>
-        userService.updateMyNDLAUserData(updatedMyNdlaUser, feideHeader).handleErrorsOrOk
+        userService.updateMyNDLAUserData(updatedMyNdlaUser, feideHeader)
       }
 
     def adminUpdateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -80,7 +80,7 @@ trait UserController {
         case (tokenUser, myndlaUser) => { case (feideId, updatedMyNdlaUser) =>
           userService
             .adminUpdateMyNDLAUserData(updatedMyNdlaUser, feideId, tokenUser, myndlaUser)
-            .handleErrorsOrOk
+
         }
       }
 
@@ -92,7 +92,7 @@ trait UserController {
       .errorOut(errorOutputsFor(401, 403))
       .out(emptyOutput)
       .serverLogicPure { feideHeader =>
-        arenaReadService.deleteAllUserData(feideHeader).handleErrorsOrOk
+        arenaReadService.deleteAllUserData(feideHeader)
       }
 
     def exportUserData: ServerEndpoint[Any, Eff] = endpoint.get
@@ -103,7 +103,7 @@ trait UserController {
       .out(jsonBody[ExportedUserData])
       .errorOut(errorOutputsFor(401, 403))
       .serverLogicPure { feideHeader =>
-        folderReadService.exportUserData(feideHeader).handleErrorsOrOk
+        folderReadService.exportUserData(feideHeader)
       }
 
     def importUserData: ServerEndpoint[Any, Eff] = endpoint.post
@@ -115,7 +115,7 @@ trait UserController {
       .out(jsonBody[ExportedUserData])
       .errorOut(errorOutputsFor(401, 403))
       .serverLogicPure { case (feideHeader, importBody) =>
-        folderWriteService.importUserData(importBody, feideHeader).handleErrorsOrOk
+        folderWriteService.importUserData(importBody, feideHeader)
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

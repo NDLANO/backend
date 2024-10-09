@@ -55,7 +55,7 @@ trait StatsController {
       .out(jsonBody[List[SingleResourceStats]])
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { case (resourceType, resourceIds) =>
-        folderReadService.getFavouriteStatsForResource(resourceIds.values, resourceType.values).handleErrorsOrOk
+        folderReadService.getFavouriteStatsForResource(resourceIds.values, resourceType.values)
       }
 
     def getAllTheFavorites: ServerEndpoint[Any, Eff] = endpoint.get
@@ -65,7 +65,7 @@ trait StatsController {
       .out(jsonBody[Map[String, Map[String, Long]]])
       .errorOut(errorOutputsFor(400))
       .serverLogicPure { _ =>
-        folderReadService.getAllTheFavorites.handleErrorsOrOk
+        folderReadService.getAllTheFavorites
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

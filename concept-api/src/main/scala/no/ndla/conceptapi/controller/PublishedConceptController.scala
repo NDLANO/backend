@@ -129,7 +129,7 @@ trait PublishedConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.publishedConceptWithId(conceptId, language, fallback, user).handleErrorsOrOk
+          readService.publishedConceptWithId(conceptId, language, fallback, user)
         }
       }
 
@@ -193,7 +193,7 @@ trait PublishedConceptController {
               conceptType,
               aggregatePaths.values
             )
-          }.handleErrorsOrOk
+          }
       }
 
     def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
@@ -239,7 +239,7 @@ trait PublishedConceptController {
             conceptType,
             aggregatePaths.getOrElse(List.empty)
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def getSubjects: ServerEndpoint[Any, Eff] = endpoint.get
@@ -249,7 +249,7 @@ trait PublishedConceptController {
       .out(jsonBody[Set[String]])
       .errorOut(errorOutputsFor(400))
       .serverLogicPure { _ =>
-        readService.allSubjects().handleErrorsOrOk
+        readService.allSubjects()
       }
 
     def getTags: ServerEndpoint[Any, Eff] = endpoint.get

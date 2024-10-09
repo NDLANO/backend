@@ -89,7 +89,7 @@ trait SeriesController {
         scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
           search(query, language, Sort.valueOf(sort), pageSize, page, shouldScroll, fallback.getOrElse(false))
-        }.handleErrorsOrOk
+        }
       }
 
     def postSeriesSearch: ServerEndpoint[Any, Eff] = endpoint.post
@@ -110,7 +110,7 @@ trait SeriesController {
           val fallback     = searchParams.fallback.getOrElse(false)
 
           search(query, language, sort, pageSize, page, shouldScroll, fallback)
-        }.handleErrorsOrOk
+        }
       }
 
     def getSingleSeries: ServerEndpoint[Any, Eff] = endpoint.get
@@ -121,7 +121,7 @@ trait SeriesController {
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[Series])
       .serverLogicPure { case (id, language) =>
-        readService.seriesWithId(id, language).handleErrorsOrOk
+        readService.seriesWithId(id, language)
       }
 
     def deleteSeries: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -166,7 +166,7 @@ trait SeriesController {
       .serverLogicPure { _ => newSeries =>
         writeService
           .newSeries(newSeries)
-          .handleErrorsOrOk
+
       }
 
     def putUpdateSeries: ServerEndpoint[Any, Eff] = endpoint.put
@@ -179,7 +179,7 @@ trait SeriesController {
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => input =>
         val (id, updateSeries) = input
-        writeService.updateSeries(id, updateSeries).handleErrorsOrOk
+        writeService.updateSeries(id, updateSeries)
       }
 
     private case class SummaryWithHeader(

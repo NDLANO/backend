@@ -83,7 +83,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[UserFolder])
       .serverLogicPure { case (feideHeader, includeResources, includeSubfolders) =>
-        folderReadService.getFolders(includeSubfolders, includeResources, feideHeader).handleErrorsOrOk
+        folderReadService.getFolders(includeSubfolders, includeResources, feideHeader)
       }
 
     private def getSingleFolder: ServerEndpoint[Any, Eff] = endpoint.get
@@ -98,7 +98,7 @@ trait FolderController {
       .serverLogicPure { case (folderId, feideHeader, includeResources, includeSubfolders) =>
         folderReadService
           .getSingleFolder(folderId, includeSubfolders, includeResources, feideHeader)
-          .handleErrorsOrOk
+
       }
 
     private def createNewFolder: ServerEndpoint[Any, Eff] = endpoint.post
@@ -109,7 +109,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[Folder])
       .serverLogicPure { case (feideHeader, newFolder) =>
-        folderWriteService.newFolder(newFolder, feideHeader).handleErrorsOrOk
+        folderWriteService.newFolder(newFolder, feideHeader)
       }
 
     private def updateFolder: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -121,7 +121,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[Folder])
       .serverLogicPure { case (feideHeader, folderId, updatedFolder) =>
-        folderWriteService.updateFolder(folderId, updatedFolder, feideHeader).handleErrorsOrOk
+        folderWriteService.updateFolder(folderId, updatedFolder, feideHeader)
       }
 
     private def removeFolder: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -132,7 +132,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(emptyOutput)
       .serverLogicPure { case (feideHeader, folderId) =>
-        folderWriteService.deleteFolder(folderId, feideHeader).handleErrorsOrOk.map(_ => ())
+        folderWriteService.deleteFolder(folderId, feideHeader).map(_ => ())
       }
 
     val defaultSize = 5
@@ -150,7 +150,7 @@ trait FolderController {
       .out(jsonBody[List[Resource]])
       .serverLogicPure { case (feideHeader, inputSize) =>
         val size = if (inputSize < 1) defaultSize else inputSize
-        folderReadService.getAllResources(size, feideHeader).handleErrorsOrOk
+        folderReadService.getAllResources(size, feideHeader)
       }
 
     private def fetchRecent: ServerEndpoint[Any, Eff] = endpoint.get
@@ -165,7 +165,7 @@ trait FolderController {
       .serverLogicPure { case (queryRecentSize, queryExcludeResourceTypes) =>
         folderReadService
           .getRecentFavorite(queryRecentSize, queryExcludeResourceTypes.values)
-          .handleErrorsOrOk
+
       }
 
     private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint.post
@@ -177,7 +177,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[Resource])
       .serverLogicPure { case (feideHeader, folderId, newResource) =>
-        folderWriteService.newFolderResourceConnection(folderId, newResource, feideHeader).handleErrorsOrOk
+        folderWriteService.newFolderResourceConnection(folderId, newResource, feideHeader)
       }
 
     private def updateResource: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -189,7 +189,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[Resource])
       .serverLogicPure { case (resourceId, feideHeader, updatedResource) =>
-        folderWriteService.updateResource(resourceId, updatedResource, feideHeader).handleErrorsOrOk
+        folderWriteService.updateResource(resourceId, updatedResource, feideHeader)
       }
 
     private def deleteResource: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -202,7 +202,6 @@ trait FolderController {
       .serverLogicPure { case (feideHeader, folderId, resourceId) =>
         folderWriteService
           .deleteConnection(folderId, resourceId, feideHeader)
-          .handleErrorsOrOk
           .map(_ => ())
       }
 
@@ -214,7 +213,7 @@ trait FolderController {
       .out(jsonBody[Folder])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader) =>
-        folderReadService.getSharedFolder(folderId, feideHeader).handleErrorsOrOk
+        folderReadService.getSharedFolder(folderId, feideHeader)
       }
 
     val folderStatus: EndpointInput.Query[FolderStatus.Value] =
@@ -228,7 +227,7 @@ trait FolderController {
       .out(jsonBody[List[UUID]])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, status, feideHeader) =>
-        folderWriteService.changeStatusOfFolderAndItsSubfolders(folderId, status, feideHeader).handleErrorsOrOk
+        folderWriteService.changeStatusOfFolderAndItsSubfolders(folderId, status, feideHeader)
       }
 
     private def cloneFolder: ServerEndpoint[Any, Eff] = endpoint.post
@@ -240,7 +239,7 @@ trait FolderController {
       .out(jsonBody[Folder])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (sourceFolderId, destinationFolderId, feideId) =>
-        folderWriteService.cloneFolder(sourceFolderId, destinationFolderId, feideId).handleErrorsOrOk
+        folderWriteService.cloneFolder(sourceFolderId, destinationFolderId, feideId)
       }
 
     private def sortFolderResources: ServerEndpoint[Any, Eff] = endpoint.put
@@ -253,7 +252,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader, sortRequest) =>
         val sortObject = ResourceSorting(folderId)
-        folderWriteService.sortFolder(sortObject, sortRequest, feideHeader).handleErrorsOrOk
+        folderWriteService.sortFolder(sortObject, sortRequest, feideHeader)
       }
 
     private def sortFolderFolders: ServerEndpoint[Any, Eff] = endpoint.put
@@ -267,7 +266,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (feideHeader, sortRequest, folderId) =>
         val sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
-        folderWriteService.sortFolder(sortObject, sortRequest, feideHeader).handleErrorsOrOk
+        folderWriteService.sortFolder(sortObject, sortRequest, feideHeader)
       }
 
     private def sortSavedSharedFolders: ServerEndpoint[Any, Eff] = endpoint.put
@@ -280,7 +279,7 @@ trait FolderController {
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (feideHeader, sortRequest) =>
         val sortObject = SharedFolderSorting()
-        folderWriteService.sortFolder(sortObject, sortRequest, feideHeader).handleErrorsOrOk
+        folderWriteService.sortFolder(sortObject, sortRequest, feideHeader)
       }
 
     private def createFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.post
@@ -291,7 +290,7 @@ trait FolderController {
       .out(emptyOutput)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader) =>
-        folderWriteService.newSaveSharedFolder(folderId, feideHeader).handleErrorsOrOk
+        folderWriteService.newSaveSharedFolder(folderId, feideHeader)
       }
 
     private def deleteFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -302,7 +301,7 @@ trait FolderController {
       .out(emptyOutput)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader) =>
-        folderWriteService.deleteSavedSharedFolder(folderId, feideHeader).handleErrorsOrOk
+        folderWriteService.deleteSavedSharedFolder(folderId, feideHeader)
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

@@ -127,7 +127,7 @@ trait AudioController {
               seriesFilter,
               fallback.getOrElse(false)
             )
-          }.handleErrorsOrOk
+          }
       }
 
     def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
@@ -152,7 +152,7 @@ trait AudioController {
             searchParams.filterBySeries,
             searchParams.fallback.getOrElse(false)
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def getSingle: ServerEndpoint[Any, Eff] = endpoint.get
@@ -178,7 +178,7 @@ trait AudioController {
       .summary("Fetch audio that matches ids parameter.")
       .description("Fetch audios that matches ids parameter.")
       .serverLogicPure { case (audioIds, language) =>
-        readService.getAudiosByIds(audioIds.values, language).handleErrorsOrOk
+        readService.getAudiosByIds(audioIds.values, language)
       }
 
     def deleteAudio: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -189,10 +189,7 @@ trait AudioController {
       .out(emptyOutput)
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => audioId =>
-        writeService.deleteAudioAndFiles(audioId) match {
-          case Failure(ex) => returnLeftError(ex)
-          case Success(_)  => Right(())
-        }
+        writeService.deleteAudioAndFiles(audioId).map(_ => ())
       }
 
     def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -227,7 +224,7 @@ trait AudioController {
             uploadedFile,
             user
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def putUpdateAudio: ServerEndpoint[Any, Eff] = endpoint.put
@@ -241,7 +238,7 @@ trait AudioController {
       .serverLogicPure { user => input =>
         {
           val (id, formData) = input
-          val result = formData.file match {
+          formData.file match {
             case Some(f) =>
               doWithStream(f) { stream =>
                 writeService.updateAudio(id, formData.metadata.body, Some(stream), user)
@@ -249,7 +246,6 @@ trait AudioController {
             case None =>
               writeService.updateAudio(id, formData.metadata.body, None, user)
           }
-          result.handleErrorsOrOk
         }
       }
 
@@ -275,7 +271,7 @@ trait AudioController {
 
         val language = lang.getOrElse(Language.AllLanguages)
 
-        readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language).handleErrorsOrOk
+        readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language)
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

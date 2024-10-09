@@ -162,7 +162,7 @@ trait InternController {
       .serverLogicPure { case (importValidate, article) =>
         contentValidator
           .validateArticle(article, isImported = importValidate)
-          .handleErrorsOrOk
+
       }
 
     def updateArticle: ServerEndpoint[Any, Eff] = endpoint.post
@@ -183,7 +183,7 @@ trait InternController {
             useImportValidation,
             useSoftValidation
           )
-          .handleErrorsOrOk
+
       }
 
     def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -194,7 +194,7 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (id, revision) = params
-        writeService.deleteArticle(id, revision).handleErrorsOrOk
+        writeService.deleteArticle(id, revision)
       }
 
     def unpublishArticle: ServerEndpoint[Any, Eff] = endpoint.post
@@ -205,7 +205,7 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (id, revision) = params
-        writeService.unpublishArticle(id, revision).handleErrorsOrOk
+        writeService.unpublishArticle(id, revision)
       }
 
     def partialPublishArticle: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -218,7 +218,7 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (articleId, partialUpdateBody, language, fallback) = params
-        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback).handleErrorsOrOk
+        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback)
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

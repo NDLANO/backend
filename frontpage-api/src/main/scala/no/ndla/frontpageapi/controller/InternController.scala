@@ -51,7 +51,7 @@ trait InternController {
         .serverLogicPure { subjectPage =>
           writeService
             .newSubjectPage(subjectPage)
-            .handleErrorsOrOk
+
         },
       endpoint.put
         .in("subjectpage" / path[Long]("subject-id").description("The subject id"))
@@ -62,7 +62,7 @@ trait InternController {
         .serverLogicPure { case (id, subjectPage) =>
           writeService
             .updateSubjectPage(id, subjectPage, props.DefaultLanguage)
-            .handleErrorsOrOk
+
         }
     )
   }

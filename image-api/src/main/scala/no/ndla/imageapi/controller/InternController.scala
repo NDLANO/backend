@@ -120,7 +120,7 @@ trait InternController {
         { case (externalId, language) =>
           imageRepository.withExternalId(externalId) match {
             case Some(image) =>
-              converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user).handleErrorsOrOk
+              converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user)
             case None => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
           }
         }
@@ -133,7 +133,7 @@ trait InternController {
       .out(jsonBody[ImageMetaInformation])
       .errorOut(errorOutputsFor(400))
       .serverLogicPure {
-        case Some(p) => readService.getDomainImageMetaFromUrl(p).handleErrorsOrOk
+        case Some(p) => readService.getDomainImageMetaFromUrl(p)
         case None    => badRequest(s"Query param '$urlQueryParam' needs to be specified to return an image").asLeft
       }
 

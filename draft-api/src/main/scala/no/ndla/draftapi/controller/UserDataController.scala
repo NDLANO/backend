@@ -40,7 +40,7 @@ trait UserDataController {
       .errorOut(errorOutputsFor(401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { userInfo => _ =>
-        readService.getUserData(userInfo.id).handleErrorsOrOk
+        readService.getUserData(userInfo.id)
       }
 
     def updateUserData: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -51,7 +51,7 @@ trait UserDataController {
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { userInfo => updatedUserData =>
-        writeService.updateUserData(updatedUserData, userInfo).handleErrorsOrOk
+        writeService.updateUserData(updatedUserData, userInfo)
       }
   }
 

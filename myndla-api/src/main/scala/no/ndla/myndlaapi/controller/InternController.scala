@@ -27,7 +27,7 @@ trait InternController {
       .errorOut(errorOutputsFor())
       .out(emptyOutput)
       .serverLogicPure { _ =>
-        importService.importArenaDataFromNodeBB().handleErrorsOrOk
+        importService.importArenaDataFromNodeBB()
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

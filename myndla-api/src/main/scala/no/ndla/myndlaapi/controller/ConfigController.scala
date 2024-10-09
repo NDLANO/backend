@@ -45,7 +45,7 @@ trait ConfigController {
       .out(jsonBody[ConfigMetaRestricted])
       .errorOut(errorOutputsFor(401, 403, 404))
       .serverLogicPure { configKey =>
-        configService.getConfig(configKey).handleErrorsOrOk
+        configService.getConfig(configKey)
       }
 
     def updateConfig: ServerEndpoint[Any, Eff] = endpoint.post
@@ -58,7 +58,7 @@ trait ConfigController {
       .requirePermission(LEARNINGPATH_API_ADMIN)
       .serverLogicPure { user =>
         { case (configKey, configValue) =>
-          configService.updateConfig(configKey, configValue, user).handleErrorsOrOk
+          configService.updateConfig(configKey, configValue, user)
         }
       }
 

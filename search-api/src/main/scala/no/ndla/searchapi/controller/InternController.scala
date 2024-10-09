@@ -114,7 +114,7 @@ trait InternController {
           case learningPathIndexService.documentType => learningPathIndexService.deleteDocument(documentId)
           case draftConceptIndexService.documentType => draftConceptIndexService.deleteDocument(documentId)
           case _                                     => Success(())
-        }).map(_ => ()).handleErrorsOrOk
+        }).map(_ => ())
       }
 
     private def parseBody[T: Decoder](body: String): Try[T] = {
@@ -173,10 +173,10 @@ trait InternController {
       )
       .serverLogicPure { case (indexType, id) =>
         indexType match {
-          case articleIndexService.documentType      => articleIndexService.reindexDocument(id).handleErrorsOrOk
-          case draftIndexService.documentType        => draftIndexService.reindexDocument(id).handleErrorsOrOk
-          case learningPathIndexService.documentType => learningPathIndexService.reindexDocument(id).handleErrorsOrOk
-          case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id).handleErrorsOrOk
+          case articleIndexService.documentType      => articleIndexService.reindexDocument(id)
+          case draftIndexService.documentType        => draftIndexService.reindexDocument(id)
+          case learningPathIndexService.documentType => learningPathIndexService.reindexDocument(id)
+          case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id)
           case _ =>
             badRequest(
               s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"

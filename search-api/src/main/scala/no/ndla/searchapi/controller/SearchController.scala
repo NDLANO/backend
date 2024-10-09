@@ -173,7 +173,7 @@ trait SearchController {
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => input =>
         val subjects = input.subjects.getOrElse(List.empty)
-        multiDraftSearchService.aggregateSubjects(subjects).handleErrorsOrOk
+        multiDraftSearchService.aggregateSubjects(subjects)
       }
 
     def groupSearch: ServerEndpoint[Any, Eff] = endpoint.get
@@ -442,7 +442,7 @@ trait SearchController {
                 case Failure(ex) => Failure(ex)
               }
             })
-          }.handleErrorsOrOk
+          }
 
       }
 
@@ -466,7 +466,6 @@ trait SearchController {
               }
             }
           })
-          .handleErrorsOrOk
       }
 
     def intParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Int] = {
@@ -571,7 +570,7 @@ trait SearchController {
                 val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
                 (result, headers)
               }
-            }.handleErrorsOrOk
+            }
           }
       }
 
@@ -592,7 +591,7 @@ trait SearchController {
             val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
             (result, headers)
           }
-        }.handleErrorsOrOk
+        }
       }
 
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the

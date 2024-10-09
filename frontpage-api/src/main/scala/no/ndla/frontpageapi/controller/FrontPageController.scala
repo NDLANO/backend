@@ -35,7 +35,7 @@ trait FrontPageController {
       .out(jsonBody[FrontPage])
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { _ =>
-        readService.getFrontPage.handleErrorsOrOk
+        readService.getFrontPage
       }
 
     def newFrontPage: ServerEndpoint[Any, Eff] = endpoint.post
@@ -47,7 +47,7 @@ trait FrontPageController {
       .serverLogicPure { _ => frontPage =>
         writeService
           .createFrontPage(frontPage)
-          .handleErrorsOrOk
+
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getFrontPage, newFrontPage)

@@ -7,7 +7,7 @@
 
 package no.ndla.network.tapir
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.Clock
@@ -17,8 +17,8 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
-import sttp.tapir.{Endpoint, EndpointOutput, Schema, emptyOutputAs, oneOf, oneOfVariantValueMatcher, statusCode}
 import sttp.tapir.server.PartialServerEndpoint
+import sttp.tapir.{Endpoint, EndpointOutput, Schema, emptyOutputAs, oneOf, oneOfVariantValueMatcher, statusCode}
 
 import scala.util.{Failure, Success, Try}
 
@@ -136,11 +136,12 @@ trait TapirErrorHelpers extends StrictLogging {
   }
 
   def handleErrors: PartialFunction[Throwable, AllErrors]
-  def returnError(ex: Throwable): AllErrors                   = handleErrors.applyOrElse(ex, handleUnknownError)
-  def returnLeftError[R](ex: Throwable): Either[AllErrors, R] = returnError(ex).asLeft[R]
+  def returnError(ex: Throwable): AllErrors                    = handleErrors.applyOrElse(ex, handleUnknownError)
+  def returnLeftError[R](ex: Throwable): Either[AllErrors, R]  = returnError(ex).asLeft[R]
+  implicit def tryToEither[T](x: Try[T]): Either[AllErrors, T] = x.handleErrorsOrOk
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
-    import cats.implicits._
+    import cats.implicits.*
 
     /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
       * to a generic 500 error.

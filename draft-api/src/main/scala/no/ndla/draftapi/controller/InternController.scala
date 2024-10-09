@@ -236,7 +236,7 @@ trait InternController {
       .serverLogicPure { user => id =>
         deleteArticleWithRetries(id, user)
           .flatMap(id => writeService.deleteArticle(id.id))
-          .handleErrorsOrOk
+
       }
 
     def dumpArticles: ServerEndpoint[Any, Eff] = endpoint.get
@@ -265,7 +265,7 @@ trait InternController {
       .errorOut(errorOutputsFor(400, 500))
       .out(jsonBody[Draft])
       .serverLogicPure { article =>
-        writeService.insertDump(article).handleErrorsOrOk
+        writeService.insertDump(article)
       }
   }
 }

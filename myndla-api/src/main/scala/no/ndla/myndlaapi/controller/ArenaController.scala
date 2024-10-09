@@ -70,7 +70,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (followed, sort) =>
-          arenaReadService.getCategories(user, followed, sort, None)().handleErrorsOrOk
+          arenaReadService.getCategories(user, followed, sort, None)()
         }
       }
 
@@ -85,7 +85,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (categoryId, page, pageSize) =>
-          arenaReadService.getCategory(categoryId, page, pageSize, user)().handleErrorsOrOk
+          arenaReadService.getCategory(categoryId, page, pageSize, user)()
         }
       }
 
@@ -100,7 +100,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (categoryId, page, pageSize) =>
-          arenaReadService.getTopicsForCategory(categoryId, page, pageSize, user)().handleErrorsOrOk
+          arenaReadService.getTopicsForCategory(categoryId, page, pageSize, user)()
         }
       }
 
@@ -115,7 +115,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
         { case (parentId, sortedIds) =>
-          arenaReadService.sortCategories(parentId, sortedIds, user).handleErrorsOrOk
+          arenaReadService.sortCategories(parentId, sortedIds, user)
         }
       }
 
@@ -130,7 +130,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (topicId, page, pageSize) =>
-          arenaReadService.getTopic(topicId, user, page, pageSize)().handleErrorsOrOk
+          arenaReadService.getTopic(topicId, user, page, pageSize)()
         }
       }
 
@@ -146,7 +146,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (page, pageSize, ownerId) =>
-          arenaReadService.getRecentTopics(page, pageSize, ownerId, user)().handleErrorsOrOk
+          arenaReadService.getRecentTopics(page, pageSize, ownerId, user)()
         }
       }
 
@@ -158,7 +158,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => categoryId =>
-        arenaReadService.followCategory(categoryId, user)().handleErrorsOrOk
+        arenaReadService.followCategory(categoryId, user)()
       }
 
     def unfollowCategory: ServerEndpoint[Any, Eff] = endpoint.post
@@ -169,7 +169,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => categoryId =>
-        arenaReadService.unfollowCategory(categoryId, user)().handleErrorsOrOk
+        arenaReadService.unfollowCategory(categoryId, user)()
       }
 
     def followTopic: ServerEndpoint[Any, Eff] = endpoint.post
@@ -180,7 +180,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
-        arenaReadService.followTopic(topicId, user)().handleErrorsOrOk
+        arenaReadService.followTopic(topicId, user)()
       }
 
     def unfollowTopic: ServerEndpoint[Any, Eff] = endpoint.post
@@ -191,7 +191,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
-        arenaReadService.unfollowTopic(topicId, user)().handleErrorsOrOk
+        arenaReadService.unfollowTopic(topicId, user)()
       }
 
     def upvotePost: ServerEndpoint[Any, Eff] = endpoint.put
@@ -202,7 +202,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404, 409))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => postId =>
-        arenaReadService.upvotePost(postId, user)().handleErrorsOrOk
+        arenaReadService.upvotePost(postId, user)()
       }
 
     def unUpvotePost: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -213,7 +213,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404, 409))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => postId =>
-        arenaReadService.unUpvotePost(postId, user)().handleErrorsOrOk
+        arenaReadService.unUpvotePost(postId, user)()
       }
 
     def postTopic: ServerEndpoint[Any, Eff] = endpoint.post
@@ -226,7 +226,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (categoryId, newTopic) =>
-          arenaReadService.postTopic(categoryId, newTopic, user).handleErrorsOrOk
+          arenaReadService.postTopic(categoryId, newTopic, user)
         }
       }
 
@@ -240,7 +240,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (topicId, newTopic) =>
-          arenaReadService.updateTopic(topicId, newTopic, user)().handleErrorsOrOk
+          arenaReadService.updateTopic(topicId, newTopic, user)()
         }
       }
 
@@ -254,7 +254,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (topicId, newPost) =>
-          arenaReadService.postPost(topicId, newPost, user).handleErrorsOrOk
+          arenaReadService.postPost(topicId, newPost, user)
         }
       }
 
@@ -267,7 +267,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { _ => newCategory =>
-        arenaReadService.newCategory(newCategory)().handleErrorsOrOk
+        arenaReadService.newCategory(newCategory)()
       }
 
     def updateCategory: ServerEndpoint[Any, Eff] = endpoint.put
@@ -280,7 +280,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
         { case (categoryId, newCategory) =>
-          arenaReadService.updateCategory(categoryId, newCategory, user)().handleErrorsOrOk
+          arenaReadService.updateCategory(categoryId, newCategory, user)()
         }
       }
 
@@ -294,7 +294,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (postId, newPost) =>
-          arenaReadService.updatePost(postId, newPost, user)().handleErrorsOrOk
+          arenaReadService.updatePost(postId, newPost, user)()
         }
       }
 
@@ -306,7 +306,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => postId =>
-        arenaReadService.deletePost(postId, user)().handleErrorsOrOk
+        arenaReadService.deletePost(postId, user)()
       }
 
     def deleteTopic: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -317,7 +317,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
-        arenaReadService.deleteTopic(topicId, user)().handleErrorsOrOk
+        arenaReadService.deleteTopic(topicId, user)()
       }
 
     def deleteCategory: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -328,7 +328,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user => categoryId =>
-        arenaReadService.deleteCategory(categoryId, user)().handleErrorsOrOk
+        arenaReadService.deleteCategory(categoryId, user)()
       }
 
     def flagPost: ServerEndpoint[Any, Eff] = endpoint.post
@@ -341,7 +341,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (postId, newFlag) =>
-          arenaReadService.flagPost(postId, user, newFlag)().handleErrorsOrOk
+          arenaReadService.flagPost(postId, user, newFlag)()
         }
       }
 
@@ -353,7 +353,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { _ => flagId =>
-        arenaReadService.resolveFlag(flagId)().handleErrorsOrOk
+        arenaReadService.resolveFlag(flagId)()
       }
 
     def getFlags: ServerEndpoint[Any, Eff] = endpoint.get
@@ -367,7 +367,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
         { case (page, pageSize) =>
-          arenaReadService.getFlaggedPosts(page, pageSize, user)().handleErrorsOrOk
+          arenaReadService.getFlaggedPosts(page, pageSize, user)()
         }
       }
 
@@ -382,7 +382,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (page, pageSize) =>
-          arenaReadService.getNotifications(user, page, pageSize)().handleErrorsOrOk
+          arenaReadService.getNotifications(user, page, pageSize)()
         }
       }
 
@@ -394,7 +394,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 404, 403))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => notificationId =>
-        arenaReadService.readNotification(notificationId, user)().handleErrorsOrOk
+        arenaReadService.readNotification(notificationId, user)()
       }
 
     def markNotificationsAsRead: ServerEndpoint[Any, Eff] = endpoint.post
@@ -405,7 +405,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => _ =>
-        arenaReadService.readNotifications(user)().handleErrorsOrOk
+        arenaReadService.readNotifications(user)()
       }
 
     def deleteSingleNotification: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -416,7 +416,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => notificationId =>
-        arenaReadService.deleteNotification(notificationId, user)().handleErrorsOrOk
+        arenaReadService.deleteNotification(notificationId, user)()
       }
 
     def deleteAllNotifications: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -427,7 +427,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => _ =>
-        arenaReadService.deleteNotifications(user)().handleErrorsOrOk
+        arenaReadService.deleteNotifications(user)()
       }
 
     def getPostInContext: ServerEndpoint[Any, Eff] = endpoint.get
@@ -440,7 +440,7 @@ trait ArenaController {
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
         { case (postId, pageSize) =>
-          arenaReadService.getTopicByPostId(postId, user, pageSize)().handleErrorsOrOk
+          arenaReadService.getTopicByPostId(postId, user, pageSize)()
         }
       }
 
@@ -453,7 +453,7 @@ trait ArenaController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { _ => username =>
-        userService.getArenaUserByUserName(username).handleErrorsOrOk
+        userService.getArenaUserByUserName(username)
       }
 
     def listUsers: ServerEndpoint[Any, Eff] = endpoint.get
@@ -476,7 +476,7 @@ trait ArenaController {
               filterTeachers,
               query
             )()
-            .handleErrorsOrOk
+
         }
       }
 
@@ -492,7 +492,7 @@ trait ArenaController {
         { case (userId, updatedMyNdlaUser) =>
           userService
             .adminUpdateMyNDLAUserData(userId, updatedMyNdlaUser, adminUser)()
-            .handleErrorsOrOk
+
         }
       }
 

@@ -151,7 +151,7 @@ trait DraftConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.conceptWithId(conceptId, language, fallback, user).handleErrorsOrOk
+          readService.conceptWithId(conceptId, language, fallback, user)
         }
       }
 
@@ -222,7 +222,7 @@ trait DraftConceptController {
               conceptType,
               aggregatePaths.values
             )
-          }.handleErrorsOrOk
+          }
       }
 
     def getSubjects: ServerEndpoint[Any, Eff] = endpoint.get
@@ -234,7 +234,7 @@ trait DraftConceptController {
       .errorOut(errorOutputsFor(400))
       .serverLogicPure { _ =>
         {
-          readService.allSubjects(true).handleErrorsOrOk
+          readService.allSubjects(true)
         }
       }
 
@@ -318,7 +318,7 @@ trait DraftConceptController {
             conceptType,
             aggregatePaths.getOrElse(List.empty)
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -332,7 +332,7 @@ trait DraftConceptController {
       .requirePermission(CONCEPT_API_WRITE)
       .serverLogicPure { user =>
         { case (conceptId, language) =>
-          writeService.deleteLanguage(conceptId, language, user).handleErrorsOrOk
+          writeService.deleteLanguage(conceptId, language, user)
         }
       }
 
@@ -349,7 +349,6 @@ trait DraftConceptController {
           ConceptStatus
             .valueOfOrError(status)
             .flatMap(writeService.updateConceptStatus(_, conceptId, user))
-            .handleErrorsOrOk
         }
       }
 
@@ -389,12 +388,7 @@ trait DraftConceptController {
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .requirePermission(CONCEPT_API_WRITE)
-      .serverLogicPure {
-        user =>
-          { concept =>
-            writeService.newConcept(concept, user).handleErrorsOrOk
-          }
-      }
+      .serverLogicPure { user => { concept => writeService.newConcept(concept, user) } }
 
     def updateConceptById: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update a concept")
@@ -407,7 +401,7 @@ trait DraftConceptController {
       .requirePermission(CONCEPT_API_WRITE)
       .serverLogicPure { user =>
         { case (conceptId, updatedConcept) =>
-          writeService.updateConcept(conceptId, updatedConcept, user).handleErrorsOrOk
+          writeService.updateConcept(conceptId, updatedConcept, user)
         }
       }
   }

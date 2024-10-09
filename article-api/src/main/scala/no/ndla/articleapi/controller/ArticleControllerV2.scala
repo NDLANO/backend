@@ -251,7 +251,7 @@ trait ArticleControllerV2 {
                 shouldScroll,
                 feideToken
               )
-            }.handleErrorsOrOk
+            }
         }
     }
 
@@ -287,7 +287,6 @@ trait ArticleControllerV2 {
             pageSize,
             feideToken
           )
-          .handleErrorsOrOk
       }
 
     def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
@@ -328,7 +327,7 @@ trait ArticleControllerV2 {
             shouldScroll,
             feideToken
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def getSingle: ServerEndpoint[Any, Eff] = endpoint.get
@@ -348,7 +347,7 @@ trait ArticleControllerV2 {
           case (Success(articleId), inlineRevision) =>
             val revision = inlineRevision.orElse(revisionQuery)
             readService.withIdV2(articleId, language, fallback, revision, feideToken)
-        }).map(_.Ok()).handleErrorsOrOk
+        }).map(_.Ok())
       }
 
     def getRevisions: ServerEndpoint[Any, Eff] = endpoint.get
@@ -359,7 +358,7 @@ trait ArticleControllerV2 {
       .errorOut(errorOutputsFor(404, 500))
       .out(jsonBody[Seq[Int]])
       .serverLogicPure(articleId => {
-        readService.getRevisions(articleId).handleErrorsOrOk
+        readService.getRevisions(articleId)
       })
 
     def getByExternal: ServerEndpoint[Any, Eff] = endpoint.get
@@ -402,7 +401,6 @@ trait ArticleControllerV2 {
         readService
           .getArticleFrontpageRSS(slug)
           .map(_.Ok(List(Header.contentType(MediaType.ApplicationXml))))
-          .handleErrorsOrOk
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
