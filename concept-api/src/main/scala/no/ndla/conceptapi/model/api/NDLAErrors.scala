@@ -15,21 +15,12 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
-import sttp.tapir.Schema.annotations.description
 
-import java.time.LocalDateTime
-
-@description("Information about an error")
-case class Error(
-    @description("Code stating the type of error") code: String,
-    @description("Description of the error") description: String,
-    @description("When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
-)
 trait ErrorHelpers extends TapirErrorHelpers {
   this: Props with Clock with DataSource =>
 
-  import ConceptErrorHelpers._
-  import ErrorHelpers._
+  import ConceptErrorHelpers.*
+  import ErrorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case a: AccessDeniedException         => forbiddenMsg(a.getMessage)
