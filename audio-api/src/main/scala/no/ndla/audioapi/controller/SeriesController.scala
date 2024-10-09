@@ -34,10 +34,8 @@ trait SeriesController {
   this: ReadService & WriteService & SeriesSearchService & SearchConverterService & ConverterService & Props &
     ErrorHelpers & TapirController =>
   val seriesController: SeriesController
-  class SeriesController() extends TapirController {
-
-    import ErrorHelpers._
-    import props._
+  class SeriesController extends TapirController {
+    import props.*
 
     private val queryString = query[Option[String]]("query")
       .description("Return only results with titles or tags matching the specified query.")

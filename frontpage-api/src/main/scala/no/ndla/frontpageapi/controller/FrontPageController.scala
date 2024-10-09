@@ -27,8 +27,6 @@ trait FrontPageController {
     override val serviceName: String         = "frontpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
-    import ErrorHelpers._
-
     def getFrontPage: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get data to display on the front page")
       .out(jsonBody[FrontPage])

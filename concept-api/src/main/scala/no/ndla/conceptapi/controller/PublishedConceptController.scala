@@ -40,7 +40,6 @@ trait PublishedConceptController {
 
   class PublishedConceptController extends TapirController {
     import ConceptControllerHelpers._
-    import ErrorHelpers._
     import props._
 
     override val serviceName: String         = "concepts"

@@ -32,7 +32,6 @@ trait FileController {
   val fileController: FileController
 
   class FileController extends TapirController {
-    import ErrorHelpers._
     override val serviceName: String         = "files"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 

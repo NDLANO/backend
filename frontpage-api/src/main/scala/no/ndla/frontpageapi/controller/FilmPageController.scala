@@ -24,8 +24,6 @@ trait FilmPageController {
   val filmPageController: FilmPageController
 
   class FilmPageController extends TapirController {
-    import ErrorHelpers._
-
     override val serviceName: String         = "filmfrontpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

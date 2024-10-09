@@ -34,8 +34,6 @@ trait SubjectPageController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
-    import ErrorHelpers._
-
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all subjectpages")
       .in(query[Int]("page").default(1).validate(Validator.min(1)))
@@ -45,9 +43,7 @@ trait SubjectPageController {
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[List[SubjectPageData]])
       .serverLogicPure { case (page, pageSize, language, fallback) =>
-        readService
-          .subjectPages(page, pageSize, language, fallback)
-
+        readService.subjectPages(page, pageSize, language, fallback)
       }
 
     def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint.get
@@ -58,9 +54,7 @@ trait SubjectPageController {
       .out(jsonBody[SubjectPageData])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (id, language, fallback) =>
-        readService
-          .subjectPage(id, language, fallback)
-
+        readService.subjectPage(id, language, fallback)
       }
 
     def getSubjectPagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
@@ -76,8 +70,7 @@ trait SubjectPageController {
       .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
         val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
         val parsedPage     = if (page < 1) 1 else page
-        readService
-          .getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
+        readService.getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
 
       }
 

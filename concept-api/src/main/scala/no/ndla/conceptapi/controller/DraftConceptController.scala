@@ -138,7 +138,6 @@ trait DraftConceptController {
       }
     }
     import ConceptControllerHelpers._
-    import ErrorHelpers._
 
     def getConceptById: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show concept with a specified id")

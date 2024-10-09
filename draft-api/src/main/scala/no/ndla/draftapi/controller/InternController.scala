@@ -53,7 +53,6 @@ trait InternController {
 
   class InternController extends TapirController with StrictLogging {
     import props.{DraftSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
-    import ErrorHelpers._
 
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false

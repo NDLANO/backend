@@ -23,7 +23,6 @@ trait UserDataController {
   val userDataController: UserDataController
 
   class UserDataController extends TapirController {
-    import ErrorHelpers._
     override val serviceName: String         = "user-data"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 

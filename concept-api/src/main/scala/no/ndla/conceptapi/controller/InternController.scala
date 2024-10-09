@@ -33,8 +33,6 @@ trait InternController {
   val internController: InternController
 
   class InternController extends TapirController {
-    import ErrorHelpers._
-
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
 

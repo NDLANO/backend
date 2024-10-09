@@ -148,8 +148,6 @@ trait DraftController {
       }
     }
 
-    import ErrorHelpers._
-
     def getTagSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Retrieves a list of all previously used tags in articles")
       .description("Retrieves a list of all previously used tags in articles")

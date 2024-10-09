@@ -41,8 +41,6 @@ trait InternController {
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
-    import ErrorHelpers._
-
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
