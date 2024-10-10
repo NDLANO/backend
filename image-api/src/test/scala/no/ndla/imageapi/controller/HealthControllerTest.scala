@@ -21,11 +21,11 @@ import no.ndla.imageapi.model.domain.{
   ModelReleasedStatus
 }
 import no.ndla.tapirtesting.TapirControllerTest
-import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
-class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   var healthControllerResponse: Int = 200
   val controller: HealthController  = new HealthController
   controller.setWarmedUp()

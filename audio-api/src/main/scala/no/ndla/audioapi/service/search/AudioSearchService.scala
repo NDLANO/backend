@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.model.{api, domain}
@@ -31,7 +31,7 @@ trait AudioSearchService {
     with SearchConverterService
     with SearchService
     with Props
-    with ErrorHelpers =>
+    with ErrorHandling =>
   val audioSearchService: AudioSearchService
 
   class AudioSearchService extends StrictLogging with SearchService[api.AudioSummary] {

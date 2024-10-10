@@ -10,7 +10,7 @@ package no.ndla.oembedproxy.controller
 
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.OEmbed
-import no.ndla.oembedproxy.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
@@ -20,7 +20,7 @@ import sttp.model.{Header, Method, RequestMetadata, StatusCode, Uri}
 
 import scala.util.{Failure, Success}
 
-class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: OEmbedProxyController = new OEmbedProxyController
 
   val oembed: OEmbed = OEmbed(

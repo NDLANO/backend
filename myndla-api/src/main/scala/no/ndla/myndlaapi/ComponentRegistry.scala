@@ -13,7 +13,7 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
-  ErrorHelpers,
+  ErrorHandling,
   FolderController,
   InternController,
   StatsController,
@@ -35,17 +35,14 @@ import no.ndla.myndlaapi.service.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 
 class ComponentRegistry(properties: MyNdlaApiProperties)
     extends BaseComponentRegistry[MyNdlaApiProperties]
     with Props
-    with ErrorHelpers
-    with Routes[Eff]
-    with TapirErrorHelpers
+    with ErrorHandling
+    with TapirApplication
     with Clock
-    with TapirHealthController
-    with SwaggerControllerConfig
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
@@ -75,7 +72,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with NdlaClient {
   override val props: MyNdlaApiProperties = properties
 
-  lazy val healthController: TapirHealthController[Eff]   = new TapirHealthController[Eff]
+  lazy val healthController: TapirHealthController        = new TapirHealthController
   lazy val clock: SystemClock                             = new SystemClock
   lazy val migrator                                       = new DBMigrator
   lazy val folderController: FolderController             = new FolderController
@@ -105,7 +102,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  private val swagger = new SwaggerController[Eff](
+  private val swagger = new SwaggerController(
     List(
       healthController,
       folderController,
@@ -117,6 +114,6 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 
 }

@@ -8,17 +8,17 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.myndlaapi.service.ImportService
-import no.ndla.myndlaapi.{Eff, Props}
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import sttp.tapir._
+import no.ndla.myndlaapi.Props
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
-  this: Props with ErrorHelpers with ImportService =>
+  this: Props with ErrorHandling with ImportService with TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] {
+  class InternController extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
 
@@ -27,7 +27,7 @@ trait InternController {
       .errorOut(errorOutputsFor())
       .out(emptyOutput)
       .serverLogicPure { _ =>
-        importService.importArenaDataFromNodeBB().handleErrorsOrOk
+        importService.importArenaDataFromNodeBB()
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

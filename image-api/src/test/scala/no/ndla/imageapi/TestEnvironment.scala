@@ -20,7 +20,7 @@ import no.ndla.imageapi.controller.{
   RawController
 }
 import no.ndla.imageapi.integration.*
-import no.ndla.imageapi.model.api.ErrorHelpers
+import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.*
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -33,12 +33,13 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends Elastic4sClient
+    extends TapirApplication
+    with Elastic4sClient
     with IndexService
     with BaseIndexService
     with TagIndexService
@@ -57,7 +58,6 @@ trait TestEnvironment
     with ImageIndexService
     with NdlaClient
     with HealthController
-    with TapirHealthController
     with InternController
     with BaseImageController
     with ImageControllerV2
@@ -67,11 +67,10 @@ trait TestEnvironment
     with MockitoSugar
     with Clock
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with DBMigrator
     with TestData
-    with Random
-    with Routes[Eff] {
+    with Random {
   val props    = new ImageApiProperties
   val TestData = new TestData
 
@@ -105,5 +104,5 @@ trait TestEnvironment
   val clock: SystemClock = mock[SystemClock]
   val random: Random     = mock[Random]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 }

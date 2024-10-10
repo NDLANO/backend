@@ -17,11 +17,11 @@ import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{AllErrors, Service}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.searchapi.{Eff, Props}
+import no.ndla.network.tapir.{AllErrors, TapirController}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyApiClient}
-import no.ndla.searchapi.model.api.ErrorHelpers
+import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.search.SearchType
@@ -45,10 +45,10 @@ import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
   this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
-    TaxonomyApiClient & GrepApiClient & Props & ErrorHelpers & MyNDLAApiClient =>
+    TaxonomyApiClient & GrepApiClient & Props & ErrorHandling & MyNDLAApiClient & TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] with StrictLogging {
+  class InternController extends TapirController with StrictLogging {
     import ErrorHelpers._
 
     implicit val ec: ExecutionContext =
@@ -114,7 +114,7 @@ trait InternController {
           case learningPathIndexService.documentType => learningPathIndexService.deleteDocument(documentId)
           case draftConceptIndexService.documentType => draftConceptIndexService.deleteDocument(documentId)
           case _                                     => Success(())
-        }).map(_ => ()).handleErrorsOrOk
+        }).map(_ => ())
       }
 
     private def parseBody[T: Decoder](body: String): Try[T] = {
@@ -173,10 +173,10 @@ trait InternController {
       )
       .serverLogicPure { case (indexType, id) =>
         indexType match {
-          case articleIndexService.documentType      => articleIndexService.reindexDocument(id).handleErrorsOrOk
-          case draftIndexService.documentType        => draftIndexService.reindexDocument(id).handleErrorsOrOk
-          case learningPathIndexService.documentType => learningPathIndexService.reindexDocument(id).handleErrorsOrOk
-          case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id).handleErrorsOrOk
+          case articleIndexService.documentType      => articleIndexService.reindexDocument(id)
+          case draftIndexService.documentType        => draftIndexService.reindexDocument(id)
+          case learningPathIndexService.documentType => learningPathIndexService.reindexDocument(id)
+          case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id)
           case _ =>
             badRequest(
               s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"

@@ -15,7 +15,7 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.integration.FrontpageApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHelpers, NotFoundException}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHandling, NotFoundException}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
@@ -39,7 +39,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: ArticleRepository & FeideApiClient & ConverterService & ArticleSearchService & SearchConverterService &
-    MemoizeHelpers & Props & ErrorHelpers & FrontpageApiClient =>
+    MemoizeHelpers & Props & ErrorHandling & FrontpageApiClient =>
   val readService: ReadService
 
   class ReadService extends StrictLogging {

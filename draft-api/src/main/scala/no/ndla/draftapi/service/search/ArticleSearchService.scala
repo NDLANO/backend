@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.ErrorHelpers
+import no.ndla.draftapi.model.api.ErrorHandling
 import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
@@ -28,7 +28,7 @@ trait ArticleSearchService {
     with ArticleIndexService
     with SearchConverterService
     with Props
-    with ErrorHelpers =>
+    with ErrorHandling =>
   val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummary] {

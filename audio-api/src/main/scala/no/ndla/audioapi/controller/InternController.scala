@@ -8,38 +8,31 @@
 
 package no.ndla.audioapi.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
-import no.ndla.audioapi.{Eff, Props}
+import cats.implicits.*
+import io.circe.generic.auto.*
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHelpers, NotFoundException}
+import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHandling, NotFoundException}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ReadService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: AudioIndexService
-    with ConverterService
-    with AudioRepository
-    with AudioIndexService
-    with SeriesIndexService
-    with TagIndexService
-    with ReadService
-    with Props
-    with ErrorHelpers =>
+  this: AudioIndexService & ConverterService & AudioRepository & AudioIndexService & SeriesIndexService &
+    TagIndexService & ReadService & Props & ErrorHandling & TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] {
+  class InternController extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val internalErrorStringBody      = statusCode(StatusCode.InternalServerError).and(stringBody)

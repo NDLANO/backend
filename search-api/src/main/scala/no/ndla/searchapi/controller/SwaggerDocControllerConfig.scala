@@ -12,8 +12,8 @@ import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
 import no.ndla.searchapi.Props
 import sttp.tapir.*
 
-trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
-  this: Props =>
+trait SwaggerDocControllerConfig {
+  this: Props & SwaggerControllerConfig =>
 
   object SwaggerDocControllerConfig {
     private val scopes = Permission.toSwaggerMap(List.empty)

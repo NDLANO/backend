@@ -9,12 +9,12 @@ package no.ndla.oembedproxy.controller
 
 import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
 import no.ndla.oembedproxy.Props
-import sttp.tapir._
+import sttp.tapir.*
 
 import scala.collection.immutable.ListMap
 
-trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
-  this: Props =>
+trait SwaggerDocControllerConfig {
+  this: Props & SwaggerControllerConfig =>
 
   object SwaggerDocControllerConfig {
     val swaggerInfo: SwaggerInfo = SwaggerInfo(

@@ -7,15 +7,14 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.{Eff, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.Service
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
-class StatsControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class StatsControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
 
-  val controller: StatsController           = new StatsController
-  override def services: List[Service[Eff]] = List(controller)
+  val controller: StatsController              = new StatsController
+  override def services: List[TapirController] = List(controller)
 
   override def beforeEach(): Unit = {
     resetMocks()

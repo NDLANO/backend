@@ -9,28 +9,28 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.{Author, License}
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
-import no.ndla.learningpathapi.{Eff, Props}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
-import no.ndla.learningpathapi.model.api._
+import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
-import no.ndla.learningpathapi.model.domain.{LearningPathStatus => _, License => _, _}
+import no.ndla.learningpathapi.model.domain.{LearningPathStatus as _, License as _, *}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import no.ndla.learningpathapi.validation.LanguageValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.network.tapir.{DynamicHeaders, Service}
+import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -45,10 +45,11 @@ trait LearningpathControllerV2 {
     with TaxonomyApiClient
     with SearchConverterServiceComponent
     with Props
-    with ErrorHelpers =>
+    with ErrorHandling
+    with TapirController =>
   val learningpathControllerV2: LearningpathControllerV2
 
-  class LearningpathControllerV2 extends Service[Eff] {
+  class LearningpathControllerV2 extends TapirController {
 
     import ErrorHelpers._
     import props.{

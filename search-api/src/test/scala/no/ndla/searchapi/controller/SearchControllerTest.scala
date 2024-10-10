@@ -14,7 +14,7 @@ import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -24,7 +24,7 @@ import sttp.client3.quick.*
 import java.time.Month
 import scala.util.Success
 
-class SearchControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class SearchControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val converterService    = new ConverterService
   val controller: SearchController = new SearchController()
 

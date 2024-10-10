@@ -9,24 +9,30 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.imageapi.{Eff, Props}
-import no.ndla.imageapi.model.api.ErrorHelpers
+import no.ndla.imageapi.Props
+import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
-import no.ndla.network.tapir.{AllErrors, DynamicHeaders, Service}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import sttp.tapir._
+import no.ndla.network.tapir.{AllErrors, DynamicHeaders, TapirController}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
 trait RawController {
-  this: ImageStorageService with ImageConverter with ImageRepository with ErrorHelpers with Props with ReadService =>
+  this: ImageStorageService
+    with ImageConverter
+    with ImageRepository
+    with ErrorHandling
+    with Props
+    with ReadService
+    with TapirController =>
   val rawController: RawController
 
-  class RawController extends Service[Eff] {
+  class RawController extends TapirController {
     override val serviceName: String         = "raw"
     override val prefix: EndpointInput[Unit] = "image-api" / serviceName
     override val enableSwagger: Boolean      = true

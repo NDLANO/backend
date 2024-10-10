@@ -10,10 +10,10 @@ package no.ndla.draftapi.controller
 import no.ndla.draftapi.Props
 import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
-import sttp.tapir._
+import sttp.tapir.*
 
-trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
-  this: Props =>
+trait SwaggerDocControllerConfig {
+  this: Props & SwaggerControllerConfig =>
 
   object SwaggerDocControllerConfig {
     private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("drafts"))

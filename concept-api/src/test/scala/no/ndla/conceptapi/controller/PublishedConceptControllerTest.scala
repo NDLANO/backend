@@ -9,7 +9,7 @@ package no.ndla.conceptapi.controller
 import no.ndla.conceptapi.model.api.{ConceptSummary, NotFoundException}
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
-import no.ndla.conceptapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -17,7 +17,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: PublishedConceptController = new PublishedConceptController
 
   override def beforeEach(): Unit = {

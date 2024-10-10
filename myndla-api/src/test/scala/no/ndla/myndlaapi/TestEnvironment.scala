@@ -12,7 +12,7 @@ import no.ndla.common.Clock
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
-  ErrorHelpers,
+  ErrorHandling,
   FolderController,
   StatsController,
   SwaggerDocControllerConfig,
@@ -33,15 +33,14 @@ import no.ndla.myndlaapi.service.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar.mock
 
 trait TestEnvironment
-    extends Props
+    extends TapirApplication
+    with Props
     with Clock
-    with TapirHealthController
-    with SwaggerControllerConfig
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
@@ -64,9 +63,7 @@ trait TestEnvironment
     with FolderController
     with UserController
     with StatsController
-    with ErrorHelpers
-    with Routes[Eff]
-    with TapirErrorHelpers
+    with ErrorHandling
     with ImportService
     with NodeBBClient
     with SearchApiClient
@@ -98,7 +95,7 @@ trait TestEnvironment
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 
   def resetMocks(): Unit = {
     reset(clock)

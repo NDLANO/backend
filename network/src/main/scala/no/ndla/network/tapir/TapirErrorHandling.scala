@@ -7,23 +7,59 @@
 
 package no.ndla.network.tapir
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.{Decoder, Encoder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.errors.ValidationException
-import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.auth.{Permission, TokenUser}
-import sttp.model.StatusCode
-import sttp.monad.MonadError
-import sttp.tapir.{Endpoint, EndpointOutput, Schema, emptyOutputAs, oneOf, oneOfVariantValueMatcher, statusCode}
-import sttp.tapir.server.PartialServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
-trait TapirErrorHelpers extends StrictLogging {
-  this: HasBaseProps with Clock =>
+trait TapirErrorHandling extends StrictLogging {
+  this: HasBaseProps & Clock =>
+
+  def logError(e: Throwable): Unit = {
+    logger.error(e.getMessage, e)
+  }
+
+  private def handleUnknownError(e: Throwable): ErrorBody = {
+    logError(e)
+    ErrorHelpers.generic
+  }
+
+  def handleErrors: PartialFunction[Throwable, AllErrors]
+  def returnError(ex: Throwable): AllErrors                    = handleErrors.applyOrElse(ex, handleUnknownError)
+  def returnLeftError[R](ex: Throwable): Either[AllErrors, R]  = returnError(ex).asLeft[R]
+  implicit def tryToEither[T](x: Try[T]): Either[AllErrors, T] = x.handleErrorsOrOk
+
+  implicit class handleErrorOrOkClass[T](t: Try[T]) {
+    import cats.implicits.*
+
+    /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
+      * to a generic 500 error.
+      */
+    def handleErrorsOrOk: Either[AllErrors, T] = t match {
+      case Success(value) => value.asRight
+      case Failure(ex)    => returnLeftError(ex)
+    }
+
+    /** Function to override one or more of error responses:
+      * {{{
+      *     someMethodThatReturnsTry().partialOverride { case x: SomeExceptionToHandle =>
+      *         ErrorHelpers.unprocessableEntity("Cannot process")
+      *     }
+      * }}}
+      *
+      * If the error is not defined in the callback or in the default errorHandler [[returnError]] we fallback to a
+      * generic 500 error.
+      */
+    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): Either[AllErrors, T] = t match {
+      case Success(value)                          => value.asRight
+      case Failure(ex) if callback.isDefinedAt(ex) => callback(ex).asLeft
+      case Failure(ex)                             => returnLeftError(ex)
+    }
+
+  }
 
   object ErrorHelpers {
     val GENERIC                = "GENERIC"
@@ -85,86 +121,6 @@ trait TapirErrorHelpers extends StrictLogging {
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = ve.errors.some, 400)
     def errorBody(code: String, description: String, statusCode: Int): ErrorBody =
       ErrorBody(code, description, clock.now(), statusCode)
-
-    /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
-      * some endpoint.
-      */
-    def requireScope(scope: Permission*): Option[TokenUser] => Either[AllErrors, TokenUser] = {
-      case Some(user) if user.hasPermissions(scope) => user.asRight
-      case Some(_)                                  => ErrorHelpers.forbidden.asLeft
-      case None                                     => ErrorHelpers.unauthorized.asLeft
-    }
-
-    /** Helper to simplify returning _both_ NoContent and some json body T from an endpoint */
-    def noContentOrBodyOutput[T: Encoder: Decoder: Schema]: EndpointOutput.OneOf[Option[T], Option[T]] =
-      oneOf[Option[T]](
-        oneOfVariantValueMatcher(statusCode(StatusCode.Ok).and(jsonBody[Option[T]])) { case Some(_) => true },
-        oneOfVariantValueMatcher(statusCode(StatusCode.NoContent).and(emptyOutputAs[Option[T]](None))) { case None =>
-          true
-        }
-      )
-
-    implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
-      def requirePermission[F[_]](
-          requiredPermission: Permission*
-      ): PartialServerEndpoint[Option[TokenUser], TokenUser, I, AllErrors, O, R, F] = {
-        val newEndpoint   = self.securityIn(TokenUser.oauth2Input(requiredPermission))
-        val authFunc      = ErrorHelpers.requireScope(requiredPermission: _*)
-        val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
-
-        PartialServerEndpoint(newEndpoint, securityLogic)
-      }
-    }
-
-    implicit class authlessErrorlessEndpoint[A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
-      def withOptionalUser[F[_]]: PartialServerEndpoint[Option[TokenUser], Option[TokenUser], I, X, O, R, F] = {
-        val newEndpoint   = self.securityIn(TokenUser.oauth2Input(Seq.empty))
-        val authFunc      = (tokenUser: Option[TokenUser]) => Right(tokenUser): Either[X, Option[TokenUser]]
-        val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
-        PartialServerEndpoint(newEndpoint, securityLogic)
-      }
-    }
-  }
-
-  def logError(e: Throwable): Unit = {
-    logger.error(e.getMessage, e)
-  }
-
-  private def handleUnknownError(e: Throwable): ErrorBody = {
-    logError(e)
-    ErrorHelpers.generic
-  }
-
-  def handleErrors: PartialFunction[Throwable, AllErrors]
-  def returnError(ex: Throwable): AllErrors                   = handleErrors.applyOrElse(ex, handleUnknownError)
-  def returnLeftError[R](ex: Throwable): Either[AllErrors, R] = returnError(ex).asLeft[R]
-
-  implicit class handleErrorOrOkClass[T](t: Try[T]) {
-    import cats.implicits._
-
-    /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
-      * to a generic 500 error.
-      */
-    def handleErrorsOrOk: Either[AllErrors, T] = t match {
-      case Success(value) => value.asRight
-      case Failure(ex)    => returnLeftError(ex)
-    }
-
-    /** Function to override one or more of error responses:
-      * {{{
-      *     someMethodThatReturnsTry().partialOverride { case x: SomeExceptionToHandle =>
-      *         ErrorHelpers.unprocessableEntity("Cannot process")
-      *     }
-      * }}}
-      *
-      * If the error is not defined in the callback or in the default errorHandler [[returnError]] we fallback to a
-      * generic 500 error.
-      */
-    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): Either[AllErrors, T] = t match {
-      case Success(value)                          => value.asRight
-      case Failure(ex) if callback.isDefinedAt(ex) => callback(ex).asLeft
-      case Failure(ex)                             => returnLeftError(ex)
-    }
 
   }
 }

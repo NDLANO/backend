@@ -11,7 +11,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
-class FilmPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class FilmPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val controller: FilmPageController = new FilmPageController()
 
   test("Should return 200 when frontpage exist") {

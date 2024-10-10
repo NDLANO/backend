@@ -12,11 +12,11 @@ import no.ndla.common.Clock
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model._
-import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHandling extends TapirErrorHandling {
   this: Props with Clock with DataSource =>
 
   import ErrorHelpers._

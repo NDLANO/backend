@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ErrorHelpers, OperationNotAllowedException, SubjectTags}
+import no.ndla.conceptapi.model.api.{ErrorHandling, OperationNotAllowedException, SubjectTags}
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.{SearchSettings, SearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
@@ -37,7 +37,7 @@ trait PublishedConceptSearchService {
     with ConverterService
     with SearchConverterService
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with SearchSettingsHelper =>
   val publishedConceptSearchService: PublishedConceptSearchService
 

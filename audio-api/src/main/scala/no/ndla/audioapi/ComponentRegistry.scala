@@ -11,7 +11,7 @@ package no.ndla.audioapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.*
 import no.ndla.audioapi.integration.*
-import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
@@ -19,11 +19,12 @@ import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: AudioApiProperties)
     extends BaseComponentRegistry[AudioApiProperties]
+    with TapirApplication
     with DataSource
     with AudioRepository
     with SeriesRepository
@@ -34,7 +35,6 @@ class ComponentRegistry(properties: AudioApiProperties)
     with ConverterService
     with InternController
     with HealthController
-    with TapirHealthController
     with AudioController
     with SeriesController
     with SearchService
@@ -48,12 +48,10 @@ class ComponentRegistry(properties: AudioApiProperties)
     with SeriesIndexService
     with TagIndexService
     with SearchConverterService
-    with SwaggerControllerConfig
     with Clock
-    with Routes[Eff]
     with Props
     with DBMigrator
-    with ErrorHelpers
+    with ErrorHandling
     with SwaggerDocControllerConfig
     with NdlaS3Client {
   override val props: AudioApiProperties    = properties
@@ -99,5 +97,5 @@ class ComponentRegistry(properties: AudioApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 }

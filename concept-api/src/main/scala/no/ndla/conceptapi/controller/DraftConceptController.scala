@@ -16,12 +16,12 @@ import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.conceptapi.{Eff, Props}
+import no.ndla.conceptapi.Props
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
-import no.ndla.network.tapir.{DynamicHeaders, Service}
+import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.headers.CacheDirective
 import sttp.model.{HeaderNames, StatusCode}
 import sttp.tapir._
@@ -38,10 +38,11 @@ trait DraftConceptController {
     with ConverterService
     with Props
     with ConceptControllerHelpers
-    with ErrorHelpers =>
+    with ErrorHandling
+    with TapirController =>
   val draftConceptController: DraftConceptController
 
-  class DraftConceptController extends Service[Eff] {
+  class DraftConceptController extends TapirController {
     import props._
 
     override val serviceName: String         = "drafts"
@@ -137,7 +138,6 @@ trait DraftConceptController {
       }
     }
     import ConceptControllerHelpers._
-    import ErrorHelpers._
 
     def getConceptById: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show concept with a specified id")
@@ -151,7 +151,7 @@ trait DraftConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.conceptWithId(conceptId, language, fallback, user).handleErrorsOrOk
+          readService.conceptWithId(conceptId, language, fallback, user)
         }
       }
 
@@ -222,7 +222,7 @@ trait DraftConceptController {
               conceptType,
               aggregatePaths.values
             )
-          }.handleErrorsOrOk
+          }
       }
 
     def getSubjects: ServerEndpoint[Any, Eff] = endpoint.get
@@ -234,7 +234,7 @@ trait DraftConceptController {
       .errorOut(errorOutputsFor(400))
       .serverLogicPure { _ =>
         {
-          readService.allSubjects(true).handleErrorsOrOk
+          readService.allSubjects(true)
         }
       }
 
@@ -318,7 +318,7 @@ trait DraftConceptController {
             conceptType,
             aggregatePaths.getOrElse(List.empty)
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -332,7 +332,7 @@ trait DraftConceptController {
       .requirePermission(CONCEPT_API_WRITE)
       .serverLogicPure { user =>
         { case (conceptId, language) =>
-          writeService.deleteLanguage(conceptId, language, user).handleErrorsOrOk
+          writeService.deleteLanguage(conceptId, language, user)
         }
       }
 
@@ -349,7 +349,6 @@ trait DraftConceptController {
           ConceptStatus
             .valueOfOrError(status)
             .flatMap(writeService.updateConceptStatus(_, conceptId, user))
-            .handleErrorsOrOk
         }
       }
 
@@ -389,12 +388,7 @@ trait DraftConceptController {
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .requirePermission(CONCEPT_API_WRITE)
-      .serverLogicPure {
-        user =>
-          { concept =>
-            writeService.newConcept(concept, user).handleErrorsOrOk
-          }
-      }
+      .serverLogicPure { user => { concept => writeService.newConcept(concept, user) } }
 
     def updateConceptById: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update a concept")
@@ -407,7 +401,7 @@ trait DraftConceptController {
       .requirePermission(CONCEPT_API_WRITE)
       .serverLogicPure { user =>
         { case (conceptId, updatedConcept) =>
-          writeService.updateConcept(conceptId, updatedConcept, user).handleErrorsOrOk
+          writeService.updateConcept(conceptId, updatedConcept, user)
         }
       }
   }

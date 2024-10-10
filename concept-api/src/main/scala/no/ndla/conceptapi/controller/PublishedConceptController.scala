@@ -8,21 +8,21 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.model.api.CommaSeparatedList._
-import no.ndla.common.implicits._
-import no.ndla.conceptapi.model.api._
+import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.implicits.*
+import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ReadService, WriteService}
-import no.ndla.conceptapi.{Eff, Props}
+import no.ndla.conceptapi.Props
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.{DynamicHeaders, Service}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -34,12 +34,12 @@ trait PublishedConceptController {
     with SearchConverterService
     with Props
     with ConceptControllerHelpers
-    with ErrorHelpers =>
+    with ErrorHandling
+    with TapirController =>
   val publishedConceptController: PublishedConceptController
 
-  class PublishedConceptController extends Service[Eff] {
+  class PublishedConceptController extends TapirController {
     import ConceptControllerHelpers._
-    import ErrorHelpers._
     import props._
 
     override val serviceName: String         = "concepts"
@@ -129,7 +129,7 @@ trait PublishedConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.publishedConceptWithId(conceptId, language, fallback, user).handleErrorsOrOk
+          readService.publishedConceptWithId(conceptId, language, fallback, user)
         }
       }
 
@@ -193,7 +193,7 @@ trait PublishedConceptController {
               conceptType,
               aggregatePaths.values
             )
-          }.handleErrorsOrOk
+          }
       }
 
     def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
@@ -239,7 +239,7 @@ trait PublishedConceptController {
             conceptType,
             aggregatePaths.getOrElse(List.empty)
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def getSubjects: ServerEndpoint[Any, Eff] = endpoint.get
@@ -249,7 +249,7 @@ trait PublishedConceptController {
       .out(jsonBody[Set[String]])
       .errorOut(errorOutputsFor(400))
       .serverLogicPure { _ =>
-        readService.allSubjects().handleErrorsOrOk
+        readService.allSubjects()
       }
 
     def getTags: ServerEndpoint[Any, Eff] = endpoint.get

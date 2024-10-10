@@ -16,7 +16,7 @@ import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.model.api.ArticleSearchResult
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
-import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
@@ -26,7 +26,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: DraftController = new DraftController
 
   override def beforeEach(): Unit = {

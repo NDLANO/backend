@@ -11,7 +11,7 @@ package no.ndla.audioapi
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(val props: AudioApiProperties) extends NdlaTapirMain[Eff] {
+class MainClass(val props: AudioApiProperties) extends NdlaTapirMain {
   private val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params)

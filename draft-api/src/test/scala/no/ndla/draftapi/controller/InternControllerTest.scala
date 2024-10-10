@@ -17,7 +17,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: InternController = new InternController
 
   override def beforeEach(): Unit = {

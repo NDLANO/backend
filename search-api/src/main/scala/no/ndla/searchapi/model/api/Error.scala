@@ -11,11 +11,11 @@ package no.ndla.searchapi.model.api
 import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers, ValidationErrorBody}
+import no.ndla.network.tapir.{AllErrors, TapirErrorHandling, ValidationErrorBody}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHandling extends TapirErrorHandling {
   this: Props with Clock =>
 
   import ErrorHelpers._

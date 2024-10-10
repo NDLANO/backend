@@ -8,20 +8,20 @@
 
 package no.ndla.imageapi.controller
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump, ImageMetaInformationV2}
+import no.ndla.imageapi.model.api.{ErrorHandling, ImageMetaDomainDump, ImageMetaInformationV2}
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.imageapi.service.{ConverterService, ReadService}
-import no.ndla.imageapi.{Eff, Props}
+import no.ndla.imageapi.Props
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -37,10 +37,11 @@ trait InternController {
     with TagIndexService
     with ImageRepository
     with Props
-    with ErrorHelpers =>
+    with ErrorHandling
+    with TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] with StrictLogging {
+  class InternController extends TapirController with StrictLogging {
     import ErrorHelpers._
 
     override val prefix: EndpointInput[Unit] = "intern"
@@ -120,7 +121,7 @@ trait InternController {
         { case (externalId, language) =>
           imageRepository.withExternalId(externalId) match {
             case Some(image) =>
-              converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user).handleErrorsOrOk
+              converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user)
             case None => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
           }
         }
@@ -133,7 +134,7 @@ trait InternController {
       .out(jsonBody[ImageMetaInformation])
       .errorOut(errorOutputsFor(400))
       .serverLogicPure {
-        case Some(p) => readService.getDomainImageMetaFromUrl(p).handleErrorsOrOk
+        case Some(p) => readService.getDomainImageMetaFromUrl(p)
         case None    => badRequest(s"Query param '$urlQueryParam' needs to be specified to return an image").asLeft
       }
 

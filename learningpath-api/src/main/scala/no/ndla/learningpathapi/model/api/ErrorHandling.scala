@@ -19,11 +19,11 @@ import no.ndla.learningpathapi.model.domain.{
   OptimisticLockException
 }
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHandling extends TapirErrorHandling {
   this: Props with Clock with DataSource =>
 
   import ErrorHelpers._

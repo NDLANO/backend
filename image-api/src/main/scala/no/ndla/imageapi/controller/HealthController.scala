@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.imageapi.{Eff, Props}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.network.tapir.TapirHealthController
@@ -17,7 +17,7 @@ trait HealthController {
   this: ImageStorageService & ImageRepository & Props & TapirHealthController =>
   val healthController: HealthController
 
-  class HealthController extends TapirHealthController[Eff] {
+  class HealthController extends TapirHealthController {
 
     override def checkReadiness(): Either[String, String] = {
       imageRepository

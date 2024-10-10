@@ -10,7 +10,7 @@ package no.ndla.draftapi.controller
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain
 import no.ndla.draftapi.model.api.UploadedFile
-import no.ndla.draftapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -18,7 +18,7 @@ import sttp.client3.quick.*
 
 import scala.util.Success
 
-class FileControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class FileControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: FileController = new FileController
 
   override def beforeEach(): Unit = {

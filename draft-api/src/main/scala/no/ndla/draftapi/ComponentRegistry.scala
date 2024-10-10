@@ -16,17 +16,18 @@ import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.db.migrationwithdependencies.V57__MigrateSavedSearch
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.ErrorHelpers
+import no.ndla.draftapi.model.api.ErrorHandling
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: DraftApiProperties)
     extends BaseComponentRegistry[DraftApiProperties]
+    with TapirApplication
     with DataSource
     with InternController
     with ConverterService
@@ -34,7 +35,6 @@ class ComponentRegistry(properties: DraftApiProperties)
     with LearningpathApiClient
     with TaxonomyApiClient
     with DraftController
-    with TapirHealthController
     with MemoizeHelpers
     with DraftRepository
     with UserDataRepository
@@ -66,10 +66,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with UserDataController
     with Props
     with DBMigrator
-    with ErrorHelpers
-    with Routes[Eff]
-    with TapirErrorHelpers
-    with SwaggerControllerConfig
+    with ErrorHandling
     with SwaggerDocControllerConfig
     with V57__MigrateSavedSearch {
   override val props: DraftApiProperties = properties
@@ -113,14 +110,14 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val learningpathApiClient = new LearningpathApiClient
   lazy val h5pApiClient          = new H5PApiClient
 
-  lazy val internController                             = new InternController
-  lazy val draftController                              = new DraftController
-  lazy val fileController                               = new FileController
-  lazy val userDataController                           = new UserDataController
-  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
+  lazy val internController                        = new InternController
+  lazy val draftController                         = new DraftController
+  lazy val fileController                          = new FileController
+  lazy val userDataController                      = new UserDataController
+  lazy val healthController: TapirHealthController = new TapirHealthController
 
   private val swagger = new SwaggerController(
-    List[Service[Eff]](
+    List[TapirController](
       draftController,
       fileController,
       userDataController,
@@ -129,5 +126,5 @@ class ComponentRegistry(properties: DraftApiProperties)
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 }

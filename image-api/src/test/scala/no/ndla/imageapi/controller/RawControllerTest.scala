@@ -8,7 +8,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.model.ImageNotFoundException
-import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -19,7 +19,7 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
 import sttp.client3.{Empty, RequestT}
 
-class RawControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class RawControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
   val imageName    = "ndla_logo.jpg"
   val imageGifName = "ndla_logo.gif"

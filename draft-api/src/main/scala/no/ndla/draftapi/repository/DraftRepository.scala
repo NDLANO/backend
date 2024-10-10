@@ -13,7 +13,7 @@ import no.ndla.common.errors.RollbackException
 import no.ndla.common.model.domain.{ArticleType, EditorNote, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.integration.DataSource
-import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, GenerateIDException, NotFoundException}
+import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHandling, GenerateIDException, NotFoundException}
 import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.TokenUser
 import org.postgresql.util.PGobject
@@ -23,7 +23,7 @@ import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
-  this: DataSource with ErrorHelpers with Clock =>
+  this: DataSource with ErrorHandling with Clock =>
   val draftRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging with Repository[Draft] {

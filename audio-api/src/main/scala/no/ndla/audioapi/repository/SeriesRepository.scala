@@ -13,17 +13,17 @@ import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
 import no.ndla.audioapi.model.domain
 import org.postgresql.util.PGobject
-import scalikejdbc.{DBSession, ReadOnlyAutoSession, *}
+import scalikejdbc.*
 import cats.implicits.*
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 
 import scala.util.{Failure, Success, Try}
 
 trait SeriesRepository {
-  this: DataSource with Props with ErrorHelpers =>
+  this: DataSource with Props with ErrorHandling =>
   val seriesRepository: SeriesRepository
 
   class SeriesRepository extends StrictLogging with Repository[Series] {

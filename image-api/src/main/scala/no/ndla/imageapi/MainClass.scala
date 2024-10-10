@@ -11,7 +11,7 @@ package no.ndla.imageapi
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain[Eff] {
+class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain {
   val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path: String, options: Map[String, String]) =>

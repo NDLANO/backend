@@ -18,7 +18,7 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.ErrorHelpers
+import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.SearchSettings
@@ -30,7 +30,7 @@ import no.ndla.common.model.domain.Content
 
 trait MultiSearchService {
   this: Elastic4sClient & SearchConverterService & SearchService & IndexService & ArticleIndexService &
-    LearningPathIndexService & Props & ErrorHelpers =>
+    LearningPathIndexService & Props & ErrorHandling =>
 
   val multiSearchService: MultiSearchService
 

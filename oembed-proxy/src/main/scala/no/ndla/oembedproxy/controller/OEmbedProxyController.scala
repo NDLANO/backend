@@ -8,26 +8,24 @@
 
 package no.ndla.oembedproxy.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
-import no.ndla.network.logging.FLogging
+import cats.implicits.*
+import io.circe.generic.auto.*
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.oembedproxy.Eff
-import no.ndla.oembedproxy.model._
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.oembedproxy.model.*
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
-  this: OEmbedServiceComponent with ErrorHelpers =>
+  this: OEmbedServiceComponent & ErrorHandling & TapirController =>
   val oEmbedProxyController: OEmbedProxyController
 
-  class OEmbedProxyController extends Service[Eff] with FLogging {
+  class OEmbedProxyController extends TapirController {
     override val serviceName: String         = "oembed"
     override val prefix: EndpointInput[Unit] = "oembed-proxy" / "v1" / serviceName
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

@@ -15,7 +15,7 @@ import no.ndla.learningpathapi.integration.Node
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
-import no.ndla.learningpathapi.{Eff, TestData, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
@@ -25,7 +25,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: LearningpathControllerV2 = new LearningpathControllerV2
 
   override def beforeEach(): Unit = {

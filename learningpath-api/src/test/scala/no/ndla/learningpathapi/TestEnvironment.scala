@@ -12,20 +12,21 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
-import no.ndla.learningpathapi.model.api.ErrorHelpers
+import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends LearningpathControllerV2
+    extends TapirApplication
+    with LearningpathControllerV2
     with StatsController
     with LearningPathRepositoryComponent
     with FeideApiClient
@@ -51,12 +52,11 @@ trait TestEnvironment
     with TextValidator
     with UrlValidator
     with MyNDLAApiClient
-    with ErrorHelpers
+    with ErrorHandling
     with Props
     with InternController
     with DBMigrator
-    with RedisClient
-    with Routes[Eff] {
+    with RedisClient {
   val props = new LearningpathApiProperties
 
   val migrator: DBMigrator         = mock[DBMigrator]
@@ -87,7 +87,7 @@ trait TestEnvironment
   val redisClient: RedisClient                                         = mock[RedisClient]
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 
   def resetMocks(): Unit = {
     reset(dataSource)

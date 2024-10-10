@@ -14,7 +14,7 @@ import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
-import no.ndla.imageapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
 import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick.*
@@ -24,7 +24,7 @@ import no.ndla.mapping.LicenseDefinition
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val converterService    = new ConverterService
   val controller: InternController = new InternController
 

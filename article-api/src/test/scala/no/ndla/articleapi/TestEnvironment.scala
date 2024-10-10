@@ -10,24 +10,25 @@ package no.ndla.articleapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.caching.MemoizeHelpers
-import no.ndla.articleapi.controller._
-import no.ndla.articleapi.integration._
+import no.ndla.articleapi.controller.*
+import no.ndla.articleapi.integration.*
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.search._
+import no.ndla.articleapi.service.*
+import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
-import no.ndla.articleapi.model.api.ErrorHelpers
+import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
-    extends Elastic4sClient
+    extends TapirApplication
+    with Elastic4sClient
     with ArticleSearchService
     with ArticleIndexService
     with IndexService
@@ -36,7 +37,6 @@ trait TestEnvironment
     with ArticleControllerV2
     with InternController
     with DataSource
-    with Routes[Eff]
     with ArticleRepository
     with MockitoSugar
     with SearchApiClient
@@ -46,11 +46,10 @@ trait TestEnvironment
     with NdlaClient
     with SearchConverterService
     with ReadService
-    with TapirHealthController
     with WriteService
     with ContentValidator
     with Clock
-    with ErrorHelpers
+    with ErrorHandling
     with MemoizeHelpers
     with DBArticle
     with Props
@@ -70,7 +69,7 @@ trait TestEnvironment
   val internController: InternController       = mock[InternController]
   val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
 
-  val healthController = mock[TapirHealthController[Eff]]
+  val healthController = mock[TapirHealthController]
 
   val dataSource: HikariDataSource         = mock[HikariDataSource]
   val articleRepository: ArticleRepository = mock[ArticleRepository]
@@ -90,5 +89,5 @@ trait TestEnvironment
 
   val clock: SystemClock = mock[SystemClock]
 
-  def services: List[Service[Eff]] = List.empty
+  def services: List[TapirController] = List.empty
 }

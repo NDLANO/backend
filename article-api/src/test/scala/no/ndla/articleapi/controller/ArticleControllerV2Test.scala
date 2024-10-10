@@ -10,7 +10,7 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.model.{api, domain}
-import no.ndla.articleapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{never, reset, times, verify, when}
@@ -18,7 +18,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
-class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest {
 
   val legacyAuthHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfbWV0YWRhdGEiOnsicm9sZXMiOlsiYXJ0aWNsZXM6d3JpdGUiXSwibmRsYV9pZCI6ImFiYzEyMyJ9LCJuYW1lIjoiRG9uYWxkIER1Y2siLCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYWJjIiwiZXhwIjoxNDg2MDcwMDYzLCJpYXQiOjE0ODYwMzQwNjN9.VxqM2bu2UF8IAalibIgdRdmsTDDWKEYpKzHPbCJcFzA"

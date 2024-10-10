@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.{Eff, Props}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.network.tapir.TapirHealthController
@@ -17,7 +17,7 @@ trait HealthController {
   this: NdlaS3Client & AudioRepository & Props & TapirHealthController =>
   val healthController: HealthController
 
-  class HealthController extends TapirHealthController[Eff] {
+  class HealthController extends TapirHealthController {
 
     override def checkReadiness(): Either[String, String] = {
       audioRepository
