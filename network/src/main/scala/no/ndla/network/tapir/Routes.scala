@@ -34,10 +34,10 @@ import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 
 import java.util.concurrent.{ExecutorService, Executors}
 
-trait Routes[F[_]] {
-  this: TapirErrorHelpers & HasBaseProps =>
+trait Routes {
+  this: TapirController & HasBaseProps =>
 
-  def services: List[Service[F]]
+  def services: List[TapirController]
 
   object Routes {
     val logger: Logger = getLogger
@@ -186,7 +186,7 @@ trait Routes[F[_]] {
         .prependInterceptor(RequestInterceptor.transformResultEffect(new JDKMiddleware.after))
         .options
 
-      val endpoints = services.asInstanceOf[List[Service[Identity]]].flatMap(_.builtEndpoints)
+      val endpoints = services.flatMap(_.builtEndpoints)
 
       val server = JdkHttpServer()
         .options(options)

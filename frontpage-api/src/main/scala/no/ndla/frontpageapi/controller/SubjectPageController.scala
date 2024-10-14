@@ -7,11 +7,11 @@
 
 package no.ndla.frontpageapi.controller
 
-import io.circe.generic.auto._
-import no.ndla.common.model.api.CommaSeparatedList._
-import no.ndla.frontpageapi.{Eff, Props}
+import io.circe.generic.auto.*
+import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.{
-  ErrorHelpers,
+  ErrorHandling,
   NewSubjectFrontPageData,
   SubjectPageData,
   UpdatedSubjectFrontPageData
@@ -19,22 +19,20 @@ import no.ndla.frontpageapi.model.api.{
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_WRITE
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait SubjectPageController {
-  this: ReadService with WriteService with Props with ErrorHelpers =>
+  this: ReadService & WriteService & Props & ErrorHandling & TapirController =>
   val subjectPageController: SubjectPageController
 
-  class SubjectPageController extends Service[Eff] {
+  class SubjectPageController extends TapirController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
-
-    import ErrorHelpers._
 
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all subjectpages")
@@ -45,9 +43,7 @@ trait SubjectPageController {
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[List[SubjectPageData]])
       .serverLogicPure { case (page, pageSize, language, fallback) =>
-        readService
-          .subjectPages(page, pageSize, language, fallback)
-          .handleErrorsOrOk
+        readService.subjectPages(page, pageSize, language, fallback)
       }
 
     def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint.get
@@ -58,9 +54,7 @@ trait SubjectPageController {
       .out(jsonBody[SubjectPageData])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (id, language, fallback) =>
-        readService
-          .subjectPage(id, language, fallback)
-          .handleErrorsOrOk
+        readService.subjectPage(id, language, fallback)
       }
 
     def getSubjectPagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
@@ -76,9 +70,8 @@ trait SubjectPageController {
       .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
         val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
         val parsedPage     = if (page < 1) 1 else page
-        readService
-          .getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
-          .handleErrorsOrOk
+        readService.getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
+
       }
 
     def createNewSubjectPage: ServerEndpoint[Any, Eff] = endpoint.post

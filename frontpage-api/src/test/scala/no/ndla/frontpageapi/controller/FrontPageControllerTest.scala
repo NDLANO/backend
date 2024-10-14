@@ -9,7 +9,7 @@ package no.ndla.frontpageapi.controller
 
 import no.ndla.common.{model, errors as common}
 import no.ndla.common.model.api.FrontPage
-import no.ndla.frontpageapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -18,7 +18,7 @@ import sttp.client3.quick.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: FrontPageController = new FrontPageController
   when(clock.now()).thenCallRealMethod()
 

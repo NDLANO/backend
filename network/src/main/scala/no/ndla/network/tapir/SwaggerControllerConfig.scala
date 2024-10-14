@@ -7,23 +7,23 @@
 
 package no.ndla.network.tapir
 
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.common.configuration.HasBaseProps
 import sttp.apispec.openapi.{Components, Contact, Info, License}
 import sttp.apispec.{OAuthFlow, OAuthFlows, SecurityScheme}
-import sttp.tapir._
+import sttp.tapir.*
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.server.ServerEndpoint
 
 import scala.collection.immutable.ListMap
 
 trait SwaggerControllerConfig {
-  this: HasBaseProps =>
+  this: HasBaseProps & TapirController =>
 
-  class SwaggerController[F[_]](services: List[Service[F]], swaggerInfo: SwaggerInfo) extends Service[F] {
-    import props._
+  class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInfo) extends TapirController {
+    import props.*
 
-    def getServices(): List[Service[F]] = services :+ this
+    def getServices(): List[TapirController] = services :+ this
 
     val info: Info = Info(
       title = props.ApplicationName,
@@ -38,7 +38,7 @@ trait SwaggerControllerConfig {
     import sttp.apispec.openapi.circe._
 
     private val swaggerEndpoints = services.collect {
-      case svc: Service[F] if svc.enableSwagger => svc.builtEndpoints
+      case svc: TapirController if svc.enableSwagger => svc.builtEndpoints
     }.flatten
 
     private val securityScheme: SecurityScheme = SecurityScheme(
@@ -74,7 +74,7 @@ trait SwaggerControllerConfig {
     override val enableSwagger: Boolean       = false
     protected val prefix: EndpointInput[Unit] = swaggerInfo.mountPoint
 
-    override val endpoints: List[ServerEndpoint[Any, F]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       addCorsHeaders(endpoint.get)
         .out(stringJsonBody)
         .serverLogicPure { _ =>

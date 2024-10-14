@@ -6,11 +6,11 @@
  */
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.{Eff, TestEnvironment, UnitSuite}
+import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.{reset, when}
 
-class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest[Eff] {
+class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: InternController = new InternController
 
   override def beforeEach(): Unit = {

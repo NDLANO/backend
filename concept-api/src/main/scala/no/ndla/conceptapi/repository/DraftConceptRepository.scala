@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHelpers, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHandling, NotFoundException}
 import no.ndla.conceptapi.model.domain.DBConcept
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -21,7 +21,7 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptRepository {
-  this: DataSource with Props with ErrorHelpers =>
+  this: DataSource with Props with ErrorHandling =>
   val draftConceptRepository: DraftConceptRepository
 
   class DraftConceptRepository extends StrictLogging with Repository[Concept] {

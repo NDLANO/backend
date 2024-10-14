@@ -11,7 +11,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.config.{ConfigMeta, ConfigMetaValue}
 import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.myndlaapi.TestData.{adminAndWriteScopeClientToken, adminScopeClientToken}
-import no.ndla.myndlaapi.{Eff, TestEnvironment}
+import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
@@ -21,7 +21,7 @@ import sttp.client3.quick.*
 
 import scala.util.Success
 
-class ConfigControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest[Eff] {
+class ConfigControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest {
   val controller: ConfigController = new ConfigController()
 
   test("That updating config returns 200 if all is good") {

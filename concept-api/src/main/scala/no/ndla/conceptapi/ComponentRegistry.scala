@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.*
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, SearchApiClient, TaxonomyApiClient}
-import no.ndla.conceptapi.model.api.ErrorHelpers
+import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.*
@@ -21,10 +21,11 @@ import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 
 class ComponentRegistry(properties: ConceptApiProperties)
     extends BaseComponentRegistry[ConceptApiProperties]
+    with TapirApplication
     with DraftConceptController
     with PublishedConceptController
     with Clock
@@ -53,15 +54,11 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with NdlaClient
     with Props
     with DBMigrator
-    with ErrorHelpers
+    with ErrorHandling
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
     with TaxonomyApiClient
-    with Routes[Eff]
-    with TapirErrorHelpers
-    with SwaggerControllerConfig
     with SwaggerDocControllerConfig
-    with TapirHealthController
     with ConceptControllerHelpers {
   override val props: ConceptApiProperties = properties
   override val migrator                    = new DBMigrator
@@ -94,13 +91,13 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val clock            = new SystemClock
   lazy val contentValidator = new ContentValidator
 
-  lazy val draftConceptController                       = new DraftConceptController
-  lazy val publishedConceptController                   = new PublishedConceptController
-  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
-  lazy val internController                             = new InternController
+  lazy val draftConceptController                  = new DraftConceptController
+  lazy val publishedConceptController              = new PublishedConceptController
+  lazy val healthController: TapirHealthController = new TapirHealthController
+  lazy val internController                        = new InternController
 
   private val swagger = new SwaggerController(
-    List[Service[Eff]](
+    List[TapirController](
       draftConceptController,
       publishedConceptController,
       healthController,
@@ -109,6 +106,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 
 }

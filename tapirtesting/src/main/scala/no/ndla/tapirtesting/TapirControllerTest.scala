@@ -10,18 +10,19 @@ package no.ndla.tapirtesting
 import com.sun.net.httpserver.HttpServer
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.network.tapir.{Routes, Service, TapirErrorHelpers}
+import no.ndla.network.tapir.{Routes, TapirController, TapirErrorHandling}
 import no.ndla.scalatestsuite.UnitTestSuite
 
-trait TapirControllerTest[F[_]]
+trait TapirControllerTest
     extends UnitTestSuite
-    with Routes[F]
+    with Routes
+    with TapirController
     with HasBaseProps
-    with TapirErrorHelpers
+    with TapirErrorHandling
     with Clock {
   val serverPort: Int = findFreePort
-  val controller: Service[F]
-  override def services: List[Service[F]] = List(controller)
+  val controller: TapirController
+  override def services: List[TapirController] = List(controller)
 
   var server: HttpServer = _
 

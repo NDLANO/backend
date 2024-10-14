@@ -10,7 +10,7 @@ package no.ndla.frontpageapi
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMain[Eff] {
+class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMain {
   private val componentRegistry = new ComponentRegistry(props)
 
   override def beforeStart(): Unit = {

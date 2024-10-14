@@ -11,7 +11,7 @@ package no.ndla.myndlaapi
 import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.network.model.FeideAccessToken
-import no.ndla.network.tapir.{AllErrors, TapirErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
 import sttp.monad.MonadError
 import sttp.tapir.*
@@ -22,7 +22,7 @@ import sttp.tapir.server.PartialServerEndpoint
 import scala.collection.immutable.ListMap
 
 trait MyNDLAAuthHelpers {
-  this: UserService with TapirErrorHelpers =>
+  this: UserService with TapirErrorHandling =>
 
   object MyNDLAAuthHelpers {
     private val authScheme                           = AuthenticationScheme.Bearer.name

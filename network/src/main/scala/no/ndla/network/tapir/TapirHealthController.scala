@@ -14,7 +14,8 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 
 trait TapirHealthController {
-  class TapirHealthController[F[_]] extends Warmup with Service[F] {
+  this: TapirController =>
+  class TapirHealthController extends Warmup with TapirController {
     override val enableSwagger: Boolean = false
     val prefix: EndpointInput[Unit]     = "health"
 
@@ -24,7 +25,7 @@ trait TapirHealthController {
       else Left("Service is not ready")
     }
 
-    override val endpoints: List[ServerEndpoint[Any, F]] = List(
+    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       endpoint.get
         .description("Readiness probe. Returns 200 if the service is ready to serve traffic.")
         .in("readiness")

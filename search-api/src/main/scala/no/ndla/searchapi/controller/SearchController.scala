@@ -18,13 +18,13 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, Service}
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, TapirController}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.searchapi.controller.parameters.{DraftSearchParams, SearchParams, SubjectAggsInput}
-import no.ndla.searchapi.{Eff, Props}
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.SearchApiClient
-import no.ndla.searchapi.model.api.{ErrorHelpers, GroupSearchResult, MultiSearchResult, SubjectAggregations}
+import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResult, MultiSearchResult, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -47,12 +47,11 @@ import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
   this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
-    FeideApiClient & Props & ErrorHelpers =>
+    FeideApiClient & Props & ErrorHandling & TapirController =>
   val searchController: SearchController
 
-  class SearchController extends Service[Eff] {
+  class SearchController extends TapirController {
     import props.*
-    import ErrorHelpers.*
 
     override val serviceName: String         = "search"
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
@@ -173,7 +172,7 @@ trait SearchController {
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => input =>
         val subjects = input.subjects.getOrElse(List.empty)
-        multiDraftSearchService.aggregateSubjects(subjects).handleErrorsOrOk
+        multiDraftSearchService.aggregateSubjects(subjects)
       }
 
     def groupSearch: ServerEndpoint[Any, Eff] = endpoint.get
@@ -442,7 +441,7 @@ trait SearchController {
                 case Failure(ex) => Failure(ex)
               }
             })
-          }.handleErrorsOrOk
+          }
 
       }
 
@@ -466,7 +465,6 @@ trait SearchController {
               }
             }
           })
-          .handleErrorsOrOk
       }
 
     def intParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Int] = {
@@ -571,7 +569,7 @@ trait SearchController {
                 val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
                 (result, headers)
               }
-            }.handleErrorsOrOk
+            }
           }
       }
 
@@ -592,7 +590,7 @@ trait SearchController {
             val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
             (result, headers)
           }
-        }.handleErrorsOrOk
+        }
       }
 
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the

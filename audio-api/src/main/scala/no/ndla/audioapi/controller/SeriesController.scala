@@ -8,41 +8,34 @@
 
 package no.ndla.audioapi.controller
 
-import cats.implicits._
-import io.circe.generic.auto._
-import no.ndla.audioapi.{Eff, Props}
+import cats.implicits.*
+import io.circe.generic.auto.*
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
-import no.ndla.network.tapir.NoNullJsonPrinter._
-import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.NoNullJsonPrinter.*
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
+import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
-import sttp.tapir.generic.auto._
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
+import sttp.tapir.*
 
 import scala.util.{Failure, Success, Try}
 
 trait SeriesController {
-  this: ReadService
-    with WriteService
-    with SeriesSearchService
-    with SearchConverterService
-    with ConverterService
-    with Props
-    with ErrorHelpers =>
+  this: ReadService & WriteService & SeriesSearchService & SearchConverterService & ConverterService & Props &
+    ErrorHandling & TapirController =>
   val seriesController: SeriesController
-  class SeriesController() extends Service[Eff] {
-
-    import ErrorHelpers._
-    import props._
+  class SeriesController extends TapirController {
+    import props.*
 
     private val queryString = query[Option[String]]("query")
       .description("Return only results with titles or tags matching the specified query.")
@@ -89,7 +82,7 @@ trait SeriesController {
         scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
           search(query, language, Sort.valueOf(sort), pageSize, page, shouldScroll, fallback.getOrElse(false))
-        }.handleErrorsOrOk
+        }
       }
 
     def postSeriesSearch: ServerEndpoint[Any, Eff] = endpoint.post
@@ -110,7 +103,7 @@ trait SeriesController {
           val fallback     = searchParams.fallback.getOrElse(false)
 
           search(query, language, sort, pageSize, page, shouldScroll, fallback)
-        }.handleErrorsOrOk
+        }
       }
 
     def getSingleSeries: ServerEndpoint[Any, Eff] = endpoint.get
@@ -121,7 +114,7 @@ trait SeriesController {
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[Series])
       .serverLogicPure { case (id, language) =>
-        readService.seriesWithId(id, language).handleErrorsOrOk
+        readService.seriesWithId(id, language)
       }
 
     def deleteSeries: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -166,7 +159,7 @@ trait SeriesController {
       .serverLogicPure { _ => newSeries =>
         writeService
           .newSeries(newSeries)
-          .handleErrorsOrOk
+
       }
 
     def putUpdateSeries: ServerEndpoint[Any, Eff] = endpoint.put
@@ -179,7 +172,7 @@ trait SeriesController {
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => input =>
         val (id, updateSeries) = input
-        writeService.updateSeries(id, updateSeries).handleErrorsOrOk
+        writeService.updateSeries(id, updateSeries)
       }
 
     private case class SummaryWithHeader(

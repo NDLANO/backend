@@ -9,16 +9,17 @@ package no.ndla.frontpageapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.frontpageapi.controller._
+import no.ndla.frontpageapi.controller.*
 import no.ndla.frontpageapi.integration.DataSource
-import no.ndla.frontpageapi.model.api.ErrorHelpers
+import no.ndla.frontpageapi.model.api.ErrorHandling
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.{Routes, Service, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 
 class ComponentRegistry(properties: FrontpageApiProperties)
-    extends DataSource
+    extends TapirApplication
+    with DataSource
     with SubjectPageRepository
     with FrontPageRepository
     with FilmFrontPageRepository
@@ -31,13 +32,11 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with DBFilmFrontPageData
     with DBSubjectFrontPageData
     with DBFrontPageData
-    with ErrorHelpers
+    with ErrorHandling
     with Clock
     with Props
     with DBMigrator
     with ConverterService
-    with TapirHealthController
-    with Routes[Eff]
     with SwaggerDocControllerConfig {
   override val props: FrontpageApiProperties = properties
   override val migrator                      = new DBMigrator
@@ -57,7 +56,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val frontPageController   = new FrontPageController
   override val filmPageController    = new FilmPageController
   override val internController      = new InternController
-  val healthController               = new TapirHealthController[Eff]
+  val healthController               = new TapirHealthController
 
   private val swagger = new SwaggerController(
     List(
@@ -70,5 +69,5 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 }

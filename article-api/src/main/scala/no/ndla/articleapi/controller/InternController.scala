@@ -8,49 +8,39 @@
 
 package no.ndla.articleapi.controller
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.generic.auto._
-import no.ndla.articleapi.{Eff, Props}
-import no.ndla.articleapi.model.api._
+import io.circe.generic.auto.*
+import no.ndla.articleapi.Props
+import no.ndla.articleapi.model.api.*
 import no.ndla.articleapi.model.domain.{ArticleIds, DBArticle}
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service._
+import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
-import no.ndla.network.tapir.{Service, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.{Executors, TimeUnit}
-import scala.concurrent._
+import scala.concurrent.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ReadService
-    with WriteService
-    with ConverterService
-    with ArticleRepository
-    with IndexService
-    with ArticleIndexService
-    with ContentValidator
-    with TapirErrorHelpers
-    with Props
-    with DBArticle =>
+  this: ReadService & WriteService & ConverterService & ArticleRepository & IndexService & ArticleIndexService &
+    ContentValidator & Props & DBArticle & TapirController =>
   val internController: InternController
 
-  class InternController extends Service[Eff] with StrictLogging {
-    import ErrorHelpers._
-
+  class InternController extends TapirController with StrictLogging {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -162,7 +152,7 @@ trait InternController {
       .serverLogicPure { case (importValidate, article) =>
         contentValidator
           .validateArticle(article, isImported = importValidate)
-          .handleErrorsOrOk
+
       }
 
     def updateArticle: ServerEndpoint[Any, Eff] = endpoint.post
@@ -183,7 +173,7 @@ trait InternController {
             useImportValidation,
             useSoftValidation
           )
-          .handleErrorsOrOk
+
       }
 
     def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -194,7 +184,7 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (id, revision) = params
-        writeService.deleteArticle(id, revision).handleErrorsOrOk
+        writeService.deleteArticle(id, revision)
       }
 
     def unpublishArticle: ServerEndpoint[Any, Eff] = endpoint.post
@@ -205,7 +195,7 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (id, revision) = params
-        writeService.unpublishArticle(id, revision).handleErrorsOrOk
+        writeService.unpublishArticle(id, revision)
       }
 
     def partialPublishArticle: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -218,7 +208,7 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (articleId, partialUpdateBody, language, fallback) = params
-        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback).handleErrorsOrOk
+        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback)
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

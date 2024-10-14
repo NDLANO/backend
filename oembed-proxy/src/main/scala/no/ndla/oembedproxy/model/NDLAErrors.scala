@@ -14,7 +14,7 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir._
 import no.ndla.oembedproxy.Props
 
-trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
+trait ErrorHandling extends TapirErrorHandling with StrictLogging {
   this: Props with Clock =>
 
   import ErrorHelpers._

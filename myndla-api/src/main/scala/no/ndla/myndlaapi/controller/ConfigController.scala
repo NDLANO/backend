@@ -7,32 +7,29 @@
 
 package no.ndla.myndlaapi.controller
 
-import no.ndla.myndlaapi.Eff
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import no.ndla.network.tapir.{Service, TapirErrorHelpers}
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.network.tapir.TapirController
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
-import sttp.tapir.generic.auto._
-import sttp.tapir.codec.enumeratum._
-import io.circe.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
+import sttp.tapir.codec.enumeratum.*
+import io.circe.generic.auto.*
 import no.ndla.common.model.api.config.{ConfigMeta, ConfigMetaRestricted, ConfigMetaValue}
 import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.myndlaapi.service.ConfigService
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
 trait ConfigController {
-  this: ErrorHelpers with TapirErrorHelpers with ConfigService =>
+  this: ErrorHandling with ConfigService with TapirController =>
 
   val configController: ConfigController
 
-  class ConfigController extends Service[Eff] {
+  class ConfigController extends TapirController {
     override val serviceName: String = "config"
 
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
-
-    import ErrorHelpers._
 
     val pathConfigKey: EndpointInput.PathCapture[ConfigKey] =
       path[ConfigKey]("config-key")
@@ -45,7 +42,7 @@ trait ConfigController {
       .out(jsonBody[ConfigMetaRestricted])
       .errorOut(errorOutputsFor(401, 403, 404))
       .serverLogicPure { configKey =>
-        configService.getConfig(configKey).handleErrorsOrOk
+        configService.getConfig(configKey)
       }
 
     def updateConfig: ServerEndpoint[Any, Eff] = endpoint.post
@@ -58,7 +55,7 @@ trait ConfigController {
       .requirePermission(LEARNINGPATH_API_ADMIN)
       .serverLogicPure { user =>
         { case (configKey, configValue) =>
-          configService.updateConfig(configKey, configValue, user).handleErrorsOrOk
+          configService.updateConfig(configKey, configValue, user)
         }
       }
 

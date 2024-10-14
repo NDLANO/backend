@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.integration._
-import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
+import no.ndla.draftapi.model.api.{ErrorHandling, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.search.ArticleIndexService
@@ -37,7 +37,7 @@ trait StateTransitionRules {
     with ConverterService
     with ContentValidator
     with ArticleIndexService
-    with ErrorHelpers
+    with ErrorHandling
     with SearchApiClient =>
 
   object StateTransitionRules {

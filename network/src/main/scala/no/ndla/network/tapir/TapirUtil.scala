@@ -14,7 +14,7 @@ import sttp.tapir.EndpointOutput.{OneOf, OneOfVariant}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 
-object TapirErrors {
+object TapirUtil {
   val logger: Logger = getLogger
   private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[AllErrors]] = codes
     .map(code => {

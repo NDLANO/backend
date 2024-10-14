@@ -15,10 +15,10 @@ import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.DataSource
 import no.ndla.myndlaapi.model.arena.domain.TopicGoneException
 import no.ndla.myndlaapi.model.domain.InvalidStatusException
-import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHelpers, ValidationErrorBody}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ValidationErrorBody}
 import org.postgresql.util.PSQLException
 
-trait ErrorHelpers extends TapirErrorHelpers with StrictLogging {
+trait ErrorHandling extends TapirErrorHandling with StrictLogging {
   this: Props with Clock with DataSource =>
 
   import ErrorHelpers._

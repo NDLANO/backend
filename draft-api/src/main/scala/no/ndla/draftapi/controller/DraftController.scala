@@ -19,14 +19,14 @@ import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.draftapi.validation.ContentValidator
-import no.ndla.draftapi.{Eff, Props}
+import no.ndla.draftapi.Props
 import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.tapir.NoNullJsonPrinter.*
-import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import no.ndla.network.tapir.{DynamicHeaders, Service}
+import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -36,10 +36,10 @@ import scala.util.{Failure, Success, Try}
 
 trait DraftController {
   this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
-    ContentValidator & Props & ErrorHelpers =>
+    ContentValidator & Props & ErrorHandling & TapirController =>
   val draftController: DraftController
 
-  class DraftController extends Service[Eff] {
+  class DraftController extends TapirController {
     import props.{DefaultPageSize, InitialScrollContextKeywords}
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
@@ -148,8 +148,6 @@ trait DraftController {
       }
     }
 
-    import ErrorHelpers._
-
     def getTagSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Retrieves a list of all previously used tags in articles")
       .description("Retrieves a list of all previously used tags in articles")
@@ -164,7 +162,7 @@ trait DraftController {
       .serverLogicPure { _ =>
         { case (maybeQuery, pageSize, pageNo, language) =>
           val query = maybeQuery.getOrElse("")
-          readService.getAllTags(query, pageSize, pageNo, language).handleErrorsOrOk
+          readService.getAllTags(query, pageSize, pageNo, language)
         }
       }
 
@@ -234,7 +232,7 @@ trait DraftController {
       .serverLogicPure { _ =>
         { case (maybeQuery, pageSize, pageNo) =>
           val query = maybeQuery.getOrElse("")
-          readService.getAllGrepCodes(query, pageSize, pageNo).handleErrorsOrOk
+          readService.getAllGrepCodes(query, pageSize, pageNo)
         }
       }
 
@@ -290,7 +288,7 @@ trait DraftController {
                 grepCodes.values,
                 shouldScroll
               )
-            }.handleErrorsOrOk
+            }
         }
       }
 
@@ -330,7 +328,7 @@ trait DraftController {
             grepCodes.getOrElse(List.empty),
             shouldScroll
           )
-        }.handleErrorsOrOk
+        }
       }
 
     def getArticleById: ServerEndpoint[Any, Eff] = endpoint.get
@@ -349,7 +347,7 @@ trait DraftController {
           val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
           val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus
 
-          if (permitted) article.handleErrorsOrOk
+          if (permitted) article
           else ErrorHelpers.forbidden.asLeft
         }
       }
@@ -376,7 +374,7 @@ trait DraftController {
               page.toLong,
               pageSize.toLong
             )
-            .handleErrorsOrOk
+
         }
       }
 
@@ -474,7 +472,7 @@ trait DraftController {
             oldNdlaUpdatedDate,
             importId
           )
-          .handleErrorsOrOk
+
       }
 
     def updateArticle: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -514,7 +512,7 @@ trait DraftController {
             oldNdlaUpdatedDate,
             importId
           )
-          .handleErrorsOrOk
+
       }
 
     def updateArticleStatus: ServerEndpoint[Any, Eff] = endpoint.put
@@ -532,7 +530,7 @@ trait DraftController {
             .flatMap(
               writeService.updateArticleStatus(_, id, user, isImported)
             )
-            .handleErrorsOrOk
+
         }
       }
 
@@ -554,7 +552,7 @@ trait DraftController {
               case None      => contentValidator.validateArticleApiArticle(articleId, importValidate, user)
             }
 
-            result.handleErrorsOrOk
+            result
           }
       }
 
@@ -567,7 +565,7 @@ trait DraftController {
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
         { case (articleId, language) =>
-          writeService.deleteLanguage(articleId, language, user).handleErrorsOrOk
+          writeService.deleteLanguage(articleId, language, user)
         }
       }
 
@@ -582,7 +580,7 @@ trait DraftController {
       .serverLogicPure {
         user =>
           { id =>
-            converterService.stateTransitionsToApi(user, id).handleErrorsOrOk
+            converterService.stateTransitionsToApi(user, id)
           }
       }
 
@@ -600,7 +598,7 @@ trait DraftController {
         { case (articleId, language, fallback, copiedTitlePostfix) =>
           writeService
             .copyArticleFromId(articleId, user, language, fallback, copiedTitlePostfix)
-            .handleErrorsOrOk
+
         }
       }
 
@@ -624,7 +622,7 @@ trait DraftController {
               fallback,
               user
             )
-            .handleErrorsOrOk
+
         }
       }
 
@@ -641,7 +639,7 @@ trait DraftController {
         { case (language, partialBulk) =>
           writeService
             .partialPublishMultiple(language, partialBulk, user)
-            .handleErrorsOrOk
+
         }
       }
 
@@ -674,7 +672,7 @@ trait DraftController {
           val currentOption  = article.map(_.status.current).toOption
           val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
           val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus
-          if (permitted) article.handleErrorsOrOk
+          if (permitted) article
           else ErrorHelpers.forbidden.asLeft
         }
       }

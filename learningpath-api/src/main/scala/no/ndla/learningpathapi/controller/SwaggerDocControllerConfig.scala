@@ -12,8 +12,8 @@ import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
 import sttp.tapir._
 
-trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
-  this: Props =>
+trait SwaggerDocControllerConfig {
+  this: Props & SwaggerControllerConfig =>
 
   object SwaggerDocControllerConfig {
     private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("learningpath"))

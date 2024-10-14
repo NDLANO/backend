@@ -14,7 +14,7 @@ import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.integration.*
-import no.ndla.imageapi.model.api.ErrorHelpers
+import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -27,11 +27,13 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
+
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: ImageApiProperties)
     extends BaseComponentRegistry[ImageApiProperties]
+    with TapirApplication
     with Elastic4sClient
     with IndexService
     with BaseIndexService
@@ -59,14 +61,10 @@ class ComponentRegistry(properties: ImageApiProperties)
     with Clock
     with Props
     with DBMigrator
-    with ErrorHelpers
+    with ErrorHandling
     with Random
-    with Routes[Eff]
-    with TapirErrorHelpers
-    with SwaggerControllerConfig
     with NdlaS3Client
-    with SwaggerDocControllerConfig
-    with TapirHealthController {
+    with SwaggerDocControllerConfig {
   override val props: ImageApiProperties = properties
 
   override val migrator                     = new DBMigrator
@@ -100,7 +98,7 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val healthController  = new HealthController
 
   private val swagger = new SwaggerController(
-    List[Service[Eff]](
+    List[TapirController](
       imageControllerV2,
       imageControllerV3,
       rawController,
@@ -110,5 +108,5 @@ class ComponentRegistry(properties: ImageApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 }

@@ -20,7 +20,7 @@ import no.ndla.common.implicits.*
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.{ErrorHelpers, LearningPathSummaryV2}
+import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathSummaryV2}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 trait SearchService extends StrictLogging {
-  this: SearchIndexService with Elastic4sClient with SearchConverterServiceComponent with Props with ErrorHelpers =>
+  this: SearchIndexService with Elastic4sClient with SearchConverterServiceComponent with Props with ErrorHandling =>
   val searchService: SearchService
 
   class SearchService {

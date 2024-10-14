@@ -13,16 +13,17 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.model.api.ErrorHelpers
+import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 
 class ComponentRegistry(properties: SearchApiProperties)
     extends BaseComponentRegistry[SearchApiProperties]
+    with TapirApplication
     with ArticleApiClient
     with ArticleIndexService
     with DraftConceptApiClient
@@ -30,7 +31,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with LearningPathIndexService
     with DraftIndexService
     with MultiSearchService
-    with ErrorHelpers
+    with ErrorHandling
     with Clock
     with MultiDraftSearchService
     with ConverterService
@@ -52,11 +53,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with SearchApiClient
     with GrepApiClient
     with Props
-    with Routes[Eff]
-    with TapirErrorHelpers
-    with SwaggerControllerConfig
-    with SwaggerDocControllerConfig
-    with TapirHealthController {
+    with SwaggerDocControllerConfig {
   override val props: SearchApiProperties = properties
   import props._
 
@@ -84,13 +81,13 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val draftIndexService        = new DraftIndexService
   lazy val multiDraftSearchService  = new MultiDraftSearchService
 
-  lazy val searchController                             = new SearchController
-  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
-  lazy val internController                             = new InternController
-  lazy val clock: SystemClock                           = new SystemClock
+  lazy val searchController                        = new SearchController
+  lazy val healthController: TapirHealthController = new TapirHealthController
+  lazy val internController                        = new InternController
+  lazy val clock: SystemClock                      = new SystemClock
 
   private val swagger = new SwaggerController(
-    List[Service[Eff]](
+    List[TapirController](
       searchController,
       internController,
       healthController
@@ -98,5 +95,5 @@ class ComponentRegistry(properties: SearchApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 }

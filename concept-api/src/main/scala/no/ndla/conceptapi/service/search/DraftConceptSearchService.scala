@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.concept.ConceptStatus
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ErrorHelpers, OperationNotAllowedException, SubjectTags}
+import no.ndla.conceptapi.model.api.{ErrorHandling, OperationNotAllowedException, SubjectTags}
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.{DraftSearchSettings, DraftSearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
@@ -36,7 +36,7 @@ trait DraftConceptSearchService {
     with ConverterService
     with SearchConverterService
     with Props
-    with ErrorHelpers
+    with ErrorHandling
     with DraftSearchSettingsHelper =>
   val draftConceptSearchService: DraftConceptSearchService
 

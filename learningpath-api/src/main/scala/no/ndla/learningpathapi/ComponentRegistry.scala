@@ -17,10 +17,10 @@ import no.ndla.learningpathapi.controller.{
   StatsController,
   SwaggerDocControllerConfig
 }
-import no.ndla.learningpathapi.integration._
-import no.ndla.learningpathapi.model.api.ErrorHelpers
+import no.ndla.learningpathapi.integration.*
+import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.learningpathapi.service._
+import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.{
   LanguageValidator,
@@ -32,11 +32,12 @@ import no.ndla.learningpathapi.validation.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.{Routes, Service, SwaggerControllerConfig, TapirErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: LearningpathApiProperties)
     extends BaseComponentRegistry[LearningpathApiProperties]
+    with TapirApplication
     with LearningpathControllerV2
     with InternController
     with StatsController
@@ -65,13 +66,9 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with DBMigrator
     with TextValidator
     with UrlValidator
-    with ErrorHelpers
+    with ErrorHandling
     with RedisClient
-    with Routes[Eff]
-    with TapirErrorHelpers
-    with SwaggerControllerConfig
-    with SwaggerDocControllerConfig
-    with TapirHealthController {
+    with SwaggerDocControllerConfig {
   override val props: LearningpathApiProperties = properties
   override val migrator                         = new DBMigrator
   override val dataSource: HikariDataSource     = DataSource.getHikariDataSource
@@ -98,13 +95,13 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val redisClient            = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val myndlaApiClient        = new MyNDLAApiClient
 
-  lazy val learningpathControllerV2                     = new LearningpathControllerV2
-  lazy val internController                             = new InternController
-  lazy val statsController                              = new StatsController
-  lazy val healthController: TapirHealthController[Eff] = new TapirHealthController[Eff]
+  lazy val learningpathControllerV2                = new LearningpathControllerV2
+  lazy val internController                        = new InternController
+  lazy val statsController                         = new StatsController
+  lazy val healthController: TapirHealthController = new TapirHealthController
 
-  private val swagger = new SwaggerController[Eff](
-    List[Service[Eff]](
+  private val swagger = new SwaggerController(
+    List[TapirController](
       learningpathControllerV2,
       internController,
       statsController,
@@ -113,6 +110,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[Service[Eff]] = swagger.getServices()
+  override def services: List[TapirController] = swagger.getServices()
 
 }
