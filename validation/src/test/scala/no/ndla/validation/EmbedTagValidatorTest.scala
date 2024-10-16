@@ -538,7 +538,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     {
       val tag = generateTagWithAttrs(
         Map(
-          TagAttribute.DataResource -> ResourceType.BlogPost.toString,
+          TagAttribute.DataResource -> ResourceType.Pitch.toString,
           TagAttribute.DataUrl      -> "http://vg.no",
           TagAttribute.DataImage_Id -> "1",
           TagAttribute.DataTitle    -> "Blogpost"
@@ -551,7 +551,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     {
       val tag = generateTagWithAttrs(
         Map(
-          TagAttribute.DataResource -> ResourceType.BlogPost.toString,
+          TagAttribute.DataResource -> ResourceType.Pitch.toString,
           TagAttribute.DataUrl      -> "http://vg.no?this=is&also=valid",
           TagAttribute.DataImage_Id -> "1",
           TagAttribute.DataTitle    -> "Blogpost"
@@ -564,7 +564,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     {
       val tag = generateTagWithAttrs(
         Map(
-          TagAttribute.DataResource -> ResourceType.BlogPost.toString,
+          TagAttribute.DataResource -> ResourceType.Pitch.toString,
           TagAttribute.DataUrl      -> "https://vg.no?t=",
           TagAttribute.DataImage_Id -> "1",
           TagAttribute.DataTitle    -> "Blogpost"

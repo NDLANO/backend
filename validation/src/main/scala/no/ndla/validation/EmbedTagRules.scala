@@ -48,7 +48,6 @@ object ResourceType extends Enum[ResourceType] {
   val values: IndexedSeq[ResourceType] = findValues
 
   case object Audio           extends ResourceType("audio")
-  case object BlogPost        extends ResourceType("blog-post")
   case object Brightcove      extends ResourceType("brightcove")
   case object CampaignBlock   extends ResourceType("campaign-block")
   case object CodeBlock       extends ResourceType("code-block")
@@ -67,6 +66,7 @@ object ResourceType extends Enum[ResourceType] {
   case object KeyFigure       extends ResourceType("key-figure")
   case object LinkBlock       extends ResourceType("link-block")
   case object NRKContent      extends ResourceType("nrk")
+  case object Pitch           extends ResourceType("pitch")
   case object RelatedContent  extends ResourceType("related-content")
   case object UuDisclaimer    extends ResourceType("uu-disclaimer")
 
