@@ -42,6 +42,7 @@ case class ArticleV2(
     @description("A list of content related to the article") relatedContent: Seq[RelatedContent],
     @description("The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[NDLADate],
     @description("The path to the frontpage article") slug: Option[String],
+    @description("The summary of the article") summary: Option[ArticleIntroSummary],
 )
 // format: on
 
