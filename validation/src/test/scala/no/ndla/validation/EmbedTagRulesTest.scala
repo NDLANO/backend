@@ -438,10 +438,10 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
-  test("Html in data-title is ok for blog-post") {
+  test("Html in data-title is ok for pitch") {
     val embedString =
       s"""<$EmbedTagName
-         | data-resource="blog-post"
+         | data-resource="pitch"
          | data-image-id="1"
          | data-title="Hva skjer hos <span lang='en'>NDLA</span>"
          | data-url="https://ndla.no"

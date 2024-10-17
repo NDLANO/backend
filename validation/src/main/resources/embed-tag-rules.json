@@ -949,7 +949,7 @@
         }
       ]
     },
-    "blog-post": {
+    "pitch": {
       "fields": [
         {
           "name": "data-resource",
@@ -962,12 +962,6 @@
           "validation": {
             "required": true,
             "dataType": "NUMBER"
-          }
-        },
-        {
-          "name": "data-language",
-          "validation": {
-            "required": false
           }
         },
         {
@@ -985,22 +979,24 @@
           }
         },
         {
+          "name": "data-description",
+          "validation": {
+            "required": false,
+            "allowedHtml": [
+              "code",
+              "em",
+              "span",
+              "strong",
+              "sub",
+              "sup"
+            ]
+          }
+        },
+        {
           "name": "data-url",
           "validation": {
             "required": true,
             "dataType": "URL"
-          }
-        },
-        {
-          "name": "data-size",
-          "validation": {
-            "required": false
-          }
-        },
-        {
-          "name": "data-author",
-          "validation": {
-            "required": false
           }
         },
         {
