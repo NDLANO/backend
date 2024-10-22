@@ -28,6 +28,11 @@ class V53__StripHideBylineFromSizeTest extends UnitSuite with TestEnvironment {
     ) should be(medium): Unit
 
     migration.convertContent(
+      """<section><ndlaembed data-resource="image" data-resource_id="123" data-alt="Alt" data-caption="Caption" data-size="full---" data-hide-byline="true" data-url="https://api.test.ndla.no/image-api/v2/images/123"></ndlaembed></section>""",
+      "nb"
+    ) should be(full): Unit
+
+    migration.convertContent(
       """<section><ndlaembed data-resource="image" data-resource_id="123" data-alt="Alt" data-caption="Caption" data-size="full---hide-byline" data-hide-byline="true" data-url="https://api.test.ndla.no/image-api/v2/images/123"></ndlaembed></section>""",
       "nb"
     ) should be(full): Unit
