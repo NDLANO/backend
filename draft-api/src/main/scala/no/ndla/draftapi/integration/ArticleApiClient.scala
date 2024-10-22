@@ -69,7 +69,7 @@ trait ArticleApiClient {
           s"$InternalEndpoint/article/$id",
           converted,
           Some(user),
-          params *
+          params*
         )
       } yield draft
     }
@@ -107,12 +107,12 @@ trait ArticleApiClient {
     }
 
     private def post[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params *)), user)
+      ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params*)), user)
     }
 
     private def delete[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest.delete(uri"$endpointUrl".withParams(params *)).readTimeout(deleteTimeout),
+        quickRequest.delete(uri"$endpointUrl".withParams(params*)).readTimeout(deleteTimeout),
         user
       )
     }
@@ -125,7 +125,7 @@ trait ArticleApiClient {
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
-          .patch(uri"$endpointUrl".withParams(params *))
+          .patch(uri"$endpointUrl".withParams(params*))
           .body(CirceUtil.toJsonString(data))
           .header("content-type", "application/json", replaceExisting = true)
           .readTimeout(timeout),
@@ -141,7 +141,7 @@ trait ArticleApiClient {
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
-          .post(uri"$endpointUrl".withParams(params *))
+          .post(uri"$endpointUrl".withParams(params*))
           .body(CirceUtil.toJsonString(data))
           .header("content-type", "application/json", replaceExisting = true),
         user
