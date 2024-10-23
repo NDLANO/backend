@@ -104,7 +104,7 @@ class ArticleApiProperties extends BaseProps {
   )
 
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
-  def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
+  def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p", "strong")
 
   private def H5PAddress: String = propOrElse(
     "NDLA_H5P_ADDRESS",

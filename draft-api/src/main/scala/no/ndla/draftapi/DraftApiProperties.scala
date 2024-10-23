@@ -58,7 +58,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   )
 
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
-  def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
+  def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p", "strong")
 
   private def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   private def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
