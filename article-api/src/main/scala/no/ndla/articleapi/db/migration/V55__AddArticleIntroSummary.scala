@@ -5,7 +5,7 @@ import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import scalikejdbc.{DB, DBSession, *}
 import org.postgresql.util.PGobject
 
-class V53__AddArticleIntroSummary extends BaseJavaMigration {
+class V55__AddArticleIntroSummary extends BaseJavaMigration {
 
   def countAllRows(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from contentdata where document is not NULL"
