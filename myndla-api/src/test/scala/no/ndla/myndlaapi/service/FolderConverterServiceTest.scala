@@ -10,12 +10,12 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
 import no.ndla.myndlaapi.model.api.{Folder, NewFolder, UpdatedFolder}
 import no.ndla.myndlaapi.model.domain.{
-  FolderStatus,
   MyNDLAGroup,
   MyNDLAUser,
   NewFolderData,

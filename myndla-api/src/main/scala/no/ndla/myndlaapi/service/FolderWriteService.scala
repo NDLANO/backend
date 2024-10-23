@@ -14,32 +14,12 @@ import no.ndla.common.errors.{AccessDeniedException, NotFoundException, Validati
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.integration.SearchApiClient
-import no.ndla.myndlaapi.model.domain.FolderSortObject.{
-  FolderSorting,
-  ResourceSorting,
-  RootFolderSorting,
-  SharedFolderSorting
-}
-import no.ndla.myndlaapi.model.api.{
-  ExportedUserData,
-  Folder,
-  FolderSortRequest,
-  NewFolder,
-  NewResource,
-  Resource,
-  UpdatedFolder,
-  UpdatedResource
-}
+import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting, SharedFolderSorting}
+import no.ndla.myndlaapi.model.api.{ExportedUserData, Folder, FolderSortRequest, NewFolder, NewResource, Resource, UpdatedFolder, UpdatedResource}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.model.domain.{
-  CopyableFolder,
-  FolderAndDirectChildren,
-  FolderSortException,
-  FolderStatus,
-  Rankable,
-  SavedSharedFolder
-}
+import no.ndla.myndlaapi.model.domain.{CopyableFolder, FolderAndDirectChildren, FolderSortException, FolderStatus, Rankable, SavedSharedFolder}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
@@ -77,7 +57,7 @@ trait FolderWriteService {
         updatedFolder: UpdatedFolder
     ): Try[_] = {
       getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
-        if (myNDLAUser.isStudent && updatedFolder.status.contains(domain.FolderStatus.SHARED.toString))
+        if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
           Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
         else
           canWriteNow(myNDLAUser).flatMap {

@@ -1,12 +1,11 @@
 /*
- * Part of NDLA myndla-api
+ * Part of NDLA common
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
- *
  */
 
-package no.ndla.myndlaapi.model.domain
+package no.ndla.common.model.domain.myndla
 
 import io.circe.{Decoder, Encoder}
 

@@ -53,6 +53,5 @@ trait MyNDLAApiClient {
     private def doRequest(httpRequest: NdlaRequest): Try[ConfigMetaRestricted] = {
       ndlaClient.fetchWithForwardedAuth[ConfigMetaRestricted](httpRequest, None)
     }
-
   }
 }

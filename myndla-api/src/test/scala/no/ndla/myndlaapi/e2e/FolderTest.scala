@@ -10,9 +10,9 @@ package no.ndla.myndlaapi.e2e
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api.Folder
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.model.domain.FolderStatus
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite

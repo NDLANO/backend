@@ -1,13 +1,13 @@
 /*
- * Part of NDLA myndla-api
+ * Part of NDLA common
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
- *
  */
 
-package no.ndla.myndlaapi.model.domain
+package no.ndla.common.model.domain.myndla
 
+import no.ndla.common.errors.InvalidStatusException
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
 

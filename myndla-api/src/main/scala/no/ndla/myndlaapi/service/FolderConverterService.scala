@@ -11,6 +11,8 @@ package no.ndla.myndlaapi.service
 import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.myndla
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api.{Folder, Owner}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{MyNDLAGroup, MyNDLAUser}
@@ -73,13 +75,13 @@ trait FolderConverterService {
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
       val name        = updated.name.getOrElse(existing.name)
-      val status      = updated.status.flatMap(domain.FolderStatus.valueOf).getOrElse(existing.status)
+      val status      = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
       val description = updated.description.orElse(existing.description)
 
       val shared = (existing.status, status) match {
-        case (domain.FolderStatus.PRIVATE, domain.FolderStatus.SHARED) => Some(clock.now())
-        case (domain.FolderStatus.SHARED, domain.FolderStatus.SHARED)  => existing.shared
-        case (domain.FolderStatus.SHARED, domain.FolderStatus.PRIVATE) => None
+        case (myndla.FolderStatus.PRIVATE, myndla.FolderStatus.SHARED) => Some(clock.now())
+        case (myndla.FolderStatus.SHARED, myndla.FolderStatus.SHARED)  => existing.shared
+        case (myndla.FolderStatus.SHARED, myndla.FolderStatus.PRIVATE) => None
         case _                                                         => None
       }
 
@@ -156,7 +158,7 @@ trait FolderConverterService {
         parentId: Option[UUID],
         newRank: Int
     ): Try[domain.NewFolderData] = {
-      val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+      val newStatus = myndla.FolderStatus.valueOf(newFolder.status).getOrElse(myndla.FolderStatus.PRIVATE)
 
       Success(
         domain.NewFolderData(

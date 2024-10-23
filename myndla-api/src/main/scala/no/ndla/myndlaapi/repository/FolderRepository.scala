@@ -13,12 +13,12 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.myndlaapi.model.domain.{
   Folder,
   FolderResource,
-  FolderStatus,
   MyNDLAUser,
   NDLASQLException,
   NewFolderData,
