@@ -99,7 +99,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     super.beforeAll()
     when(taxonomyApiClient.getTaxonomyBundle)
       .thenReturn(new Memoize[Boolean, Try[TaxonomyBundle]](0, _ => Success(emptyBundle)))
-    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
+    when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
   test("That asSearchableArticle converts titles with correct language") {

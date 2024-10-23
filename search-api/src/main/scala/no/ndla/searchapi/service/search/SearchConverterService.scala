@@ -31,6 +31,7 @@ import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, g
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
@@ -306,7 +307,7 @@ trait SearchConverterService {
       indexingBundle.myndlaBundle match {
         case Some(value) => Success(value.getFavorites(id, resourceTypes))
         case None =>
-          myndlaapiClient
+          myndlaApiClient
             .getStatsFor(id, resourceTypes)
             .map(_.map(_.favourites).sum)
       }
@@ -430,7 +431,7 @@ trait SearchConverterService {
             )
           )
         case None =>
-          myndlaapiClient
+          myndlaApiClient
             .getStatsFor(draft.id.get.toString, List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary))
             .map(_.map(_.favourites).sum)
       }).?

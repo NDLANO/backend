@@ -15,12 +15,13 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.concept.Concept
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{GrepApiClient, MyNDLAApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
@@ -312,7 +313,7 @@ trait InternController {
           taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
           taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
           grepBundle              <- grepApiClient.getGrepBundle()
-          myndlaBundle            <- myndlaapiClient.getMyNDLABundle
+          myndlaBundle            <- myndlaApiClient.getMyNDLABundle
         } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
 
         val start = System.currentTimeMillis()

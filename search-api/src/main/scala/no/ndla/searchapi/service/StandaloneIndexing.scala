@@ -93,7 +93,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       taxonomyBundleDraft     <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(false)
       taxonomyBundlePublished <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(true)
       grepBundle              <- componentRegistry.grepApiClient.getGrepBundle()
-      myndlaBundle            <- componentRegistry.myndlaapiClient.getMyNDLABundle
+      myndlaBundle            <- componentRegistry.myndlaApiClient.getMyNDLABundle
     } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
 
     val start = System.currentTimeMillis()

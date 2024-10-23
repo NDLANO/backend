@@ -50,7 +50,7 @@ class LearningpathApiClientTest
   val learningpathApiBaseUrl: String             = s"http://localhost:$learningpathApiPort"
 
   override def beforeAll(): Unit = {
-    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
+    when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
