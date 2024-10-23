@@ -208,7 +208,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           )
         ),
         tags = Some(Seq(api.ArticleTag(Seq("nye", "Tags"), "nb"))),
-        revisionDate = UpdateWith(revisionDate)
+        revisionDate = UpdateWith(revisionDate),
+        published = Some(revisionDate)
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
@@ -221,7 +222,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Right(42L)
       ),
       tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
-      revisionDate = Some(revisionDate)
+      revisionDate = Some(revisionDate),
+      published = revisionDate
     )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
@@ -260,7 +262,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             api.ArticleTag(Seq("Guten", "Tag"), "de")
           )
         ),
-        revisionDate = UpdateWith(revisionDate)
+        revisionDate = UpdateWith(revisionDate),
+        published = Some(revisionDate)
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
@@ -269,7 +272,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Seq(Description("neuDesc", "de")),
       relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
       tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
-      revisionDate = Some(revisionDate)
+      revisionDate = Some(revisionDate),
+      published = revisionDate
     )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)

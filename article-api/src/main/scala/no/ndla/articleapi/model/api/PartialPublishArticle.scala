@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.model.api
 
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.{eitherDecoder, eitherEncoder}
 import no.ndla.common.model.NDLADate
@@ -26,6 +26,7 @@ case class PartialPublishArticle(
     @description("A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
     @description("A list of tag objects") tags: Option[Seq[ArticleTag]],
     @description("A revision date to specify expected earliest revision date of the article") revisionDate:  UpdateOrDelete[NDLADate],
+    @description("A date to specify published date of the article") published:  Option[NDLADate],
 )
 
 object PartialPublishArticle {

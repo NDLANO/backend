@@ -453,6 +453,7 @@ trait WriteService {
               editorLabels = Seq.empty,
               created = NDLADate.MIN,
               updated = NDLADate.MIN,
+              published = NDLADate.MIN,
               updatedBy = "",
               availability = common.Availability.everyone,
               grepCodes = Seq.empty,
@@ -494,6 +495,7 @@ trait WriteService {
         case `metaDescription` => old.metaDescription.sorted != changed.metaDescription.sorted
         case `license`         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
         case `revisionDate`    => compareRevisionDates(old, changed)
+        case `published`       => old.published != changed.published
       }
 
       Option.when(shouldInclude)(field)
@@ -773,6 +775,7 @@ trait WriteService {
           case `tags` if isAllLanguage            => partial.withTags(article.tags)
           case `tags`                             => partial.withTags(article.tags, language)
           case `revisionDate`                     => partial.withEarliestRevisionDate(article.revisionMeta)
+          case `published`                        => partial.withPublished(article.published)
         }
       })
     }

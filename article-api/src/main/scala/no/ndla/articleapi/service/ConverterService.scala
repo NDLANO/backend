@@ -183,6 +183,7 @@ trait ConverterService {
         case Delete           => None
         case UpdateWith(date) => Some(date)
       }
+      val newPublishedDate = partialArticle.published.getOrElse(existingArticle.published)
 
       existingArticle.copy(
         availability = newAvailability,
@@ -191,7 +192,8 @@ trait ConverterService {
         metaDescription = newMeta,
         relatedContent = newRelatedContent,
         tags = newTags,
-        revisionDate = newRevisionDate
+        revisionDate = newRevisionDate,
+        published = newPublishedDate
       )
     }
 

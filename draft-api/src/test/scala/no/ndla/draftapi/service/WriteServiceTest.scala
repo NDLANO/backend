@@ -62,7 +62,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(contentValidator)
 
     doAnswer((i: InvocationOnMock) => {
-      val x = i.getArgument[DBSession => Try[_]](0)
+      val x = i.getArgument[DBSession => Try[?]](0)
       x(mock[DBSession])
     }).when(draftRepository).rollbackOnFailure(any)
 
@@ -988,7 +988,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           "Test4",
           RevisionStatus.NeedsRevision
         )
-      )
+      ),
+      published = tomorrow
     )
 
     val articleFieldsToUpdate = Seq(
@@ -998,7 +999,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       api.PartialArticleFields.metaDescription,
       api.PartialArticleFields.relatedContent,
       api.PartialArticleFields.tags,
-      api.PartialArticleFields.revisionDate
+      api.PartialArticleFields.revisionDate,
+      api.PartialArticleFields.published
     )
 
     val expectedPartialPublishFields = PartialPublishArticle(
@@ -1008,7 +1010,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Some(Seq(api.ArticleMetaDescription("oldDesc", "nb"))),
       relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb"))),
-      revisionDate = UpdateWith(tomorrow)
+      revisionDate = UpdateWith(tomorrow),
+      published = Some(tomorrow)
     )
     val expectedPartialPublishFieldsLangEN = PartialPublishArticle(
       availability = Some(Availability.everyone),
@@ -1017,7 +1020,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Some(Seq.empty),
       relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq.empty),
-      revisionDate = UpdateWith(tomorrow)
+      revisionDate = UpdateWith(tomorrow),
+      published = Some(tomorrow)
     )
     val expectedPartialPublishFieldsLangALL = PartialPublishArticle(
       availability = Some(Availability.everyone),
@@ -1039,7 +1043,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           api.ArticleTag(Seq("oldd", "tagg"), "es")
         )
       ),
-      revisionDate = UpdateWith(tomorrow)
+      revisionDate = UpdateWith(tomorrow),
+      published = Some(tomorrow)
     )
 
     service.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "nb") should be(
