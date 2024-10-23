@@ -45,7 +45,8 @@ case class Draft(
     comments: Seq[Comment],
     priority: Priority,
     started: Boolean,
-    qualityEvaluation: Option[QualityEvaluation]
+    qualityEvaluation: Option[QualityEvaluation],
+    summary: Seq[ArticleIntroSummary]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =

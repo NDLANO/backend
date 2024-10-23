@@ -8,13 +8,14 @@
 package no.ndla.draftapi.model.api
 
 import com.scalatsi.TypescriptType.{TSNull, TSUndefined, TSUnion}
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{DraftCopyright, RelatedContent, RelatedContentLink, UpdateOrDelete}
 import sttp.tapir.Schema.annotations.description
-import com.scalatsi._
+import com.scalatsi.*
+import no.ndla.common.model.domain.ArticleIntroSummary
 
 // format: off
 @description("Information about the article")
@@ -47,6 +48,7 @@ case class UpdatedArticle(
     @description("If the article should be prioritized") prioritized: Option[Boolean],
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String],
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluation],
+    @description("The summary of the article") summary: Option[Seq[ArticleIntroSummary]]
 
   )
 // format: on

@@ -13,7 +13,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.{Delete, DraftCopyright, Missing, UpdateWith, draft}
-import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
+import no.ndla.common.model.domain.{ArticleContent, ArticleIntroSummary, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi, domain as common}
@@ -124,7 +124,8 @@ trait ConverterService {
           comments = newCommentToDomain(newArticle.comments.getOrElse(List.empty)),
           priority = priority,
           started = false,
-          qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
+          summary = newArticle.summary
         )
       )
     }
@@ -620,7 +621,8 @@ trait ConverterService {
               availability = draft.availability,
               relatedContent = draft.relatedContent,
               revisionDate = getNextRevision(draft.revisionMeta).map(_.revisionDate),
-              slug = draft.slug
+              slug = draft.slug,
+              summary = draft.summary
             )
           )
       }
@@ -843,7 +845,8 @@ trait ConverterService {
         comments = updatedComments,
         priority = priority,
         started = toMergeInto.started,
-        qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
+        qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
+        summary = article.summary.getOrElse(toMergeInto.summary)
       )
 
       Success(converted)
@@ -931,7 +934,8 @@ trait ConverterService {
           comments = comments,
           priority = priority,
           started = false,
-          qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
+          summary = article.summary.getOrElse(Seq.empty)
         )
     }
 
