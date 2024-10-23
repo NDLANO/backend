@@ -9,7 +9,7 @@ package no.ndla.draftapi.db.migration
 
 import io.circe.parser
 import io.circe.syntax.EncoderOps
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{ArticleContent, Title}
 import no.ndla.common.model.domain.draft.Draft
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.jsoup.Jsoup
@@ -81,12 +81,24 @@ class V65__RemoveStrongFromTitle extends BaseJavaMigration {
     t.copy(title = jsoupDocumentToString(doc))
   }
 
+  def convertContent(c: ArticleContent): ArticleContent = {
+    val doc = stringToJsoupDocument(c.content)
+
+    doc
+      .select("h2, h3, h4")
+      .forEach(header => {
+        header.select("strong").forEach(strong => strong.unwrap(): Unit)
+      })
+    c.copy(content = jsoupDocumentToString(doc))
+  }
+
   private[migration] def convertArticleUpdate(document: String): String = {
     val oldArticle = parser.parse(document).flatMap(_.as[Draft]).toTry.get
 
-    val converted = oldArticle.title.map(t => convertTitle(t))
+    val titles   = oldArticle.title.map(t => convertTitle(t))
+    val contents = oldArticle.content.map(c => convertContent(c))
 
-    val newArticle = oldArticle.copy(title = converted)
+    val newArticle = oldArticle.copy(title = titles, content = contents)
     newArticle.asJson.noSpaces
   }
 }

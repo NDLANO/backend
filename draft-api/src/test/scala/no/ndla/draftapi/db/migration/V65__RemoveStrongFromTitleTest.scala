@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.db.migration
 
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{ArticleContent, Title}
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class V65__RemoveStrongFromTitleTest extends UnitSuite with TestEnvironment {
@@ -27,5 +27,15 @@ class V65__RemoveStrongFromTitleTest extends UnitSuite with TestEnvironment {
     val migration = new V65__RemoveStrongFromTitle
     val result    = migration.convertTitle(oldTitle)
     result should be(expectedTitle)
+  }
+
+  test("That strong are removed from title in article") {
+    val oldContent =
+      ArticleContent("<section><h2>This is a <strong>title</strong></h2><p>Some text</p></section>", language = "nb")
+    val expectedContent = ArticleContent("<section><h2>This is a title</h2><p>Some text</p></section>", language = "nb")
+
+    val migration = new V65__RemoveStrongFromTitle
+    val result    = migration.convertContent(oldContent)
+    result should be(expectedContent)
   }
 }
