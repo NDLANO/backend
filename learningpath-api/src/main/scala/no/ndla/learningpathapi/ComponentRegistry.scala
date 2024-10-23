@@ -11,13 +11,25 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController, SwaggerDocControllerConfig}
+import no.ndla.learningpathapi.controller.{
+  InternController,
+  LearningpathControllerV2,
+  StatsController,
+  SwaggerDocControllerConfig
+}
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
-import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator, LearningStepValidator, TextValidator, TitleValidator, UrlValidator}
+import no.ndla.learningpathapi.validation.{
+  LanguageValidator,
+  LearningPathValidator,
+  LearningStepValidator,
+  TextValidator,
+  TitleValidator,
+  UrlValidator
+}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication

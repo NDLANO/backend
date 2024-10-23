@@ -10,6 +10,8 @@ package no.ndla.tapirtesting
 import com.sun.net.httpserver.HttpServer
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.network.NdlaClient
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{Routes, TapirController, TapirErrorHandling}
 import no.ndla.scalatestsuite.UnitTestSuite
 
@@ -17,6 +19,8 @@ trait TapirControllerTest
     extends UnitTestSuite
     with Routes
     with TapirController
+    with MyNDLAApiClient
+    with NdlaClient
     with HasBaseProps
     with TapirErrorHandling
     with Clock {

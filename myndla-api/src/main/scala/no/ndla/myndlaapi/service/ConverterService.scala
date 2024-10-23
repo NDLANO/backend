@@ -7,10 +7,10 @@
 
 package no.ndla.myndlaapi.service
 
+import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.myndlaapi.model.api.ArenaUser
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.{api, domain}
-import no.ndla.myndlaapi.model.domain.MyNDLAUser
 
 trait ConverterService {
   val converterService: ConverterService

@@ -1,16 +1,15 @@
 /*
- * Part of NDLA myndla-api
+ * Part of NDLA common
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
- *
  */
 
-package no.ndla.myndlaapi.model.api
+package no.ndla.common.model.api.myndla
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.myndlaapi.model.domain.ArenaGroup
+import no.ndla.common.model.domain.myndla.ArenaGroup
 import sttp.tapir.Schema.annotations.description
 
 case class MyNDLAGroup(

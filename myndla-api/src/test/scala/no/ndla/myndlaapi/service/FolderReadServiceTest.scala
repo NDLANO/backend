@@ -10,12 +10,13 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
 import no.ndla.myndlaapi.model.api.{Folder, Owner, ResourceStats}
-import no.ndla.myndlaapi.model.domain.{FolderStatus, MyNDLAGroup, MyNDLAUser, Resource, UserRole}
+import no.ndla.myndlaapi.model.domain.Resource
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}

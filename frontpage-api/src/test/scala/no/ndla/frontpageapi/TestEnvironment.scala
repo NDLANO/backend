@@ -53,5 +53,8 @@ trait TestEnvironment
   override val readService: ReadService                         = mock[ReadService]
   override val writeService: WriteService                       = mock[WriteService]
 
+  override val ndlaClient: NdlaClient           = mock[NdlaClient]
+  override val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+
   def services: List[TapirController] = List.empty
 }

@@ -11,7 +11,8 @@ import cats.implicits.*
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
-import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, FolderStatus, NewFolderData, Resource, ResourceDocument}
+import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, NewFolderData, Resource, ResourceDocument}
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.Mockito.when

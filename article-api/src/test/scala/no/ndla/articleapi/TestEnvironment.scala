@@ -80,6 +80,7 @@ trait TestEnvironment
   val contentValidator: ContentValidator = mock[ContentValidator]
 
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
   var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]

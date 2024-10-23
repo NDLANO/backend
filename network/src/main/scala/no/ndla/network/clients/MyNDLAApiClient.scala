@@ -1,5 +1,5 @@
 /*
- * Part of NDLA backend.network.main
+ * Part of NDLA network
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
@@ -12,6 +12,7 @@ import no.ndla.common.model.api.{MyNDLABundle, SingleResourceStats}
 import no.ndla.common.model.api.config.ConfigMetaRestricted
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.config.ConfigKey
+import no.ndla.common.model.api.myndla as api
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.NdlaRequest
 import sttp.client3.quick.*
@@ -25,6 +26,12 @@ trait MyNDLAApiClient {
 
   class MyNDLAApiClient {
     private val statsEndpoint = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
+    private val userEndpoint  = uri"http://${props.MyNDLAApiHost}/myndla-api/v1/users"
+
+    def getUserWithFeideToken(feideToken: String): Try[api.MyNDLAUser] = {
+      val req = quickRequest.get(userEndpoint)
+      ndlaClient.fetchWithForwardedFeideAuth[api.MyNDLAUser](req, Some(feideToken))
+    }
 
     def isWriteRestricted: Try[Boolean] = {
       doRequest(
@@ -53,6 +60,5 @@ trait MyNDLAApiClient {
     private def doRequest(httpRequest: NdlaRequest): Try[ConfigMetaRestricted] = {
       ndlaClient.fetchWithForwardedAuth[ConfigMetaRestricted](httpRequest, None)
     }
-
   }
 }

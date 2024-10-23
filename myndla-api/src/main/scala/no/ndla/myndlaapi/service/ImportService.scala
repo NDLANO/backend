@@ -16,15 +16,15 @@ import no.ndla.myndlaapi.integration.nodebb.{
   SingleTopic,
   TopicInList
 }
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import scalikejdbc._
+import scalikejdbc.*
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.model.arena.domain.InsertCategory
 import no.ndla.myndlaapi.model.arena.domain
-import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.repository.{ArenaRepository, UserRepository}
 import scalikejdbc.DBSession
 

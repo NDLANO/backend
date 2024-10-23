@@ -81,6 +81,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchApiClient     = new SearchApiClient
   lazy val feideApiClient      = new FeideApiClient
+  lazy val myndlaApiClient     = new MyNDLAApiClient
   lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val frontpageApiClient  = new FrontpageApiClient
 

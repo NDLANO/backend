@@ -14,6 +14,7 @@ import no.ndla.common.errors.{AccessDeniedException, NotFoundException, Validati
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   FolderSorting,
@@ -36,7 +37,6 @@ import no.ndla.myndlaapi.model.domain.{
   CopyableFolder,
   FolderAndDirectChildren,
   FolderSortException,
-  FolderStatus,
   Rankable,
   SavedSharedFolder
 }
@@ -65,7 +65,7 @@ trait FolderWriteService {
 
     val MaxFolderDepth = 5L
 
-    private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
+    private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
       userRepository.rollbackOnFailure(session =>
         userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
       )
@@ -75,9 +75,9 @@ trait FolderWriteService {
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken],
         updatedFolder: UpdatedFolder
-    ): Try[_] = {
+    ): Try[?] = {
       getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
-        if (myNDLAUser.isStudent && updatedFolder.status.contains(domain.FolderStatus.SHARED.toString))
+        if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
           Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
         else
           canWriteNow(myNDLAUser).flatMap {
@@ -88,7 +88,7 @@ trait FolderWriteService {
       })
     }
 
-    private def canWriteNow(myNDLAUser: domain.MyNDLAUser): Try[Boolean] = {
+    private def canWriteNow(myNDLAUser: MyNDLAUser): Try[Boolean] = {
       if (myNDLAUser.isTeacher) return Success(true)
       configService.isMyNDLAWriteRestricted.map(!_)
     }
@@ -97,7 +97,7 @@ trait FolderWriteService {
         folderIds: List[UUID],
         newStatus: FolderStatus.Value,
         oldStatus: FolderStatus.Value
-    )(implicit session: DBSession): Try[_] = {
+    )(implicit session: DBSession): Try[?] = {
       (oldStatus, newStatus) match {
         case (FolderStatus.SHARED, FolderStatus.PRIVATE) => folderRepository.deleteFolderUserConnections(folderIds)
         case _                                           => Success(())

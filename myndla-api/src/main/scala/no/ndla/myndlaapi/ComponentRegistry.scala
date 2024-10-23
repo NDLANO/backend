@@ -98,6 +98,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val internController: InternController             = new InternController
   lazy val searchApiClient: SearchApiClient               = new SearchApiClient
   lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  lazy val myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()

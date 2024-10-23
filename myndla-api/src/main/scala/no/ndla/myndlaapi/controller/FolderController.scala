@@ -9,6 +9,7 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api.{
   Folder,
   FolderSortRequest,
@@ -25,7 +26,6 @@ import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   RootFolderSorting,
   SharedFolderSorting
 }
-import no.ndla.myndlaapi.model.domain.FolderStatus
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader

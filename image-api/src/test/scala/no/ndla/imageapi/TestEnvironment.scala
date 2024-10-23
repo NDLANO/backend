@@ -90,6 +90,7 @@ trait TestEnvironment
   val imageStorage: AmazonImageStorageService = mock[AmazonImageStorageService]
 
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
   val rawController: RawController                   = mock[RawController]
   val healthController: HealthController             = mock[HealthController]
   val internController: InternController             = mock[InternController]

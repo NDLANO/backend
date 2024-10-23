@@ -16,9 +16,9 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.validation.DurationValidator
-import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.model.CombinedUser
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
@@ -64,7 +64,7 @@ case class LearningPath(
     status == LearningPathStatus.DELETED
   }
 
-  def canSetStatus(status: LearningPathStatus.Value, user: TokenUser): Try[LearningPath] = {
+  def canSetStatus(status: LearningPathStatus.Value, user: CombinedUser): Try[LearningPath] = {
     if (status == LearningPathStatus.PUBLISHED && !user.canPublish) {
       Failure(AccessDeniedException("You need to be a publisher to publish learningpaths."))
     } else {
@@ -72,9 +72,9 @@ case class LearningPath(
     }
   }
 
-  def canEditLearningpath(user: TokenUser): Try[LearningPath] = {
+  def canEditLearningpath(user: CombinedUser): Try[LearningPath] = {
     if (
-      (user.id == owner) ||
+      user.id.contains(owner) ||
       user.isAdmin ||
       (user.isWriter && verificationStatus == LearningPathVerificationStatus.CREATED_BY_NDLA)
     ) {
@@ -84,7 +84,7 @@ case class LearningPath(
     }
   }
 
-  def isOwnerOrPublic(user: TokenUser): Try[LearningPath] = {
+  def isOwnerOrPublic(user: CombinedUser): Try[LearningPath] = {
     if (isPrivate) {
       canEditLearningpath(user)
     } else {
@@ -92,7 +92,7 @@ case class LearningPath(
     }
   }
 
-  def canEdit(userInfo: TokenUser): Boolean = canEditLearningpath(userInfo).isSuccess
+  def canEdit(userInfo: CombinedUser): Boolean = canEditLearningpath(userInfo).isSuccess
 
   def lsLength: Int = learningsteps.map(_.length).getOrElse(0)
 

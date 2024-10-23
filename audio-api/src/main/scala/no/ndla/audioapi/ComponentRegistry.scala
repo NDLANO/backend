@@ -64,7 +64,8 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository
 
-  lazy val ndlaClient = new NdlaClient
+  lazy val ndlaClient                       = new NdlaClient
+  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
   lazy val readService       = new ReadService
   lazy val writeService      = new WriteService

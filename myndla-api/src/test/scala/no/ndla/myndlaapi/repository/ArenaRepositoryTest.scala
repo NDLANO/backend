@@ -9,8 +9,8 @@ package no.ndla.myndlaapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.myndla.{MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.model.arena.domain.InsertCategory
-import no.ndla.myndlaapi.model.domain.{MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 

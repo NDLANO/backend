@@ -17,7 +17,7 @@ import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
-import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.model.CombinedUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -193,7 +193,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
   }
 
   test("That /with-status returns 400 if invalid status is specified") {
-    when(readService.learningPathWithStatus(any[String], any[TokenUser]))
+    when(readService.learningPathWithStatus(any[String], any[CombinedUser]))
       .thenReturn(Failure(InvalidLpStatusException("Bad status")))
 
     val res = simpleHttpClient.send(
@@ -202,7 +202,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     )
     res.code.code should be(400)
 
-    when(readService.learningPathWithStatus(any[String], any[TokenUser]))
+    when(readService.learningPathWithStatus(any[String], any[CombinedUser]))
       .thenReturn(Success(List.empty))
 
     val res2 = simpleHttpClient.send(

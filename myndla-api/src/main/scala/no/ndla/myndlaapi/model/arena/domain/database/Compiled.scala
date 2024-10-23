@@ -7,8 +7,8 @@
 
 package no.ndla.myndlaapi.model.arena.domain.database
 
+import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.myndlaapi.model.arena.domain
-import no.ndla.myndlaapi.model.domain.MyNDLAUser
 
 case class CompiledFlag(
     flag: domain.Flag,
