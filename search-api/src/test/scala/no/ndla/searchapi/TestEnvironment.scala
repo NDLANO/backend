@@ -11,7 +11,7 @@ package no.ndla.searchapi
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController}
@@ -61,7 +61,7 @@ trait TestEnvironment
   val ndlaClient: NdlaClient   = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
 
-  val myndlaapiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
   val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
   val grepApiClient: GrepApiClient         = mock[GrepApiClient]

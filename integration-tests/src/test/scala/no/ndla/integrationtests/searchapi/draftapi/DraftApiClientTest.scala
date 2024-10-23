@@ -49,7 +49,7 @@ class DraftApiClientTest
   val draftApiBaseUrl: String      = s"http://localhost:$draftApiPort"
 
   override def beforeAll(): Unit = {
-    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
+    when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     draftApi = new draftapi.MainClass(draftApiProperties)

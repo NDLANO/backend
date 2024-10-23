@@ -12,25 +12,19 @@ import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.api as commonApi
-import no.ndla.learningpathapi.integration.MyNDLAApiClient
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
 import no.ndla.learningpathapi.model.domain.{InvalidLpStatusException, StepStatus, LearningPathStatus as _}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: LearningPathRepositoryComponent
-    with FeideApiClient
-    with ConverterService
-    with Clock
-    with RedisClient
-    with MyNDLAApiClient =>
+  this: LearningPathRepositoryComponent & FeideApiClient & ConverterService & Clock & RedisClient & MyNDLAApiClient =>
   val readService: ReadService
 
   class ReadService {
