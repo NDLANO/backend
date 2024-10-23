@@ -17,6 +17,6 @@ case class ArticleIntroSummary(content: String, language: String) extends Langua
 }
 
 object ArticleIntroSummary {
-  implicit def encoder: Encoder[ArticleContent] = deriveEncoder[ArticleContent]
-  implicit def decoder: Decoder[ArticleContent] = deriveDecoder[ArticleContent]
+  implicit def encoder: Encoder[ArticleIntroSummary] = deriveEncoder[ArticleIntroSummary]
+  implicit def decoder: Decoder[ArticleIntroSummary] = deriveDecoder[ArticleIntroSummary]
 }

@@ -373,7 +373,7 @@ trait ConverterService {
     ): api.TagsSearchResult = {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
     }
-    
+
     private def toApiArticleIntroSummary(introSummary: ArticleIntroSummary): api.ArticleIntroSummary = {
       api.ArticleIntroSummary(
         introSummary.content,

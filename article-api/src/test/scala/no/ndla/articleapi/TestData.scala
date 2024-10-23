@@ -82,7 +82,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      summary = None
     )
 
     val apiArticleV2: api.ArticleV2 = api.ArticleV2(
@@ -122,7 +123,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      summary = None
     )
 
     val sampleArticleWithPublicDomain: Article = Article(
@@ -152,7 +154,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = Some(NDLADate.now().withNano(0)),
-      slug = None
+      slug = None,
+      summary = Seq.empty
     )
 
     val sampleDomainArticle: Article = Article(
@@ -177,7 +180,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      summary = Seq.empty
     )
 
     val sampleDomainArticle2: Article = Article(
@@ -202,7 +206,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      summary = Seq(ArticleIntroSummary("summary", "en"))
     )
 
     val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -239,7 +244,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      summary = Seq(ArticleIntroSummary("summary", "en"))
     )
 
     val apiArticleWithHtmlFaultV2: api.ArticleV2 = api.ArticleV2(
@@ -273,7 +279,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      summary = None
     )
 
     val (nodeId, nodeId2)  = ("1234", "4321")
@@ -307,7 +314,8 @@ trait TestData {
         availability = Availability.everyone,
         relatedContent = Seq.empty,
         revisionDate = None,
-        slug = None
+        slug = None,
+        summary = Seq(ArticleIntroSummary("", lang))
       )
     }
 
