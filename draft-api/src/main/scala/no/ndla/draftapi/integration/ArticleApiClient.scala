@@ -30,7 +30,7 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
 
 trait ArticleApiClient {
-  this: NdlaClient with ConverterService with Props =>
+  this: NdlaClient & ConverterService & Props =>
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient(ArticleBaseUrl: String = s"http://${props.ArticleApiHost}") {
@@ -69,7 +69,7 @@ trait ArticleApiClient {
           s"$InternalEndpoint/article/$id",
           converted,
           Some(user),
-          params: _*
+          params*
         )
       } yield draft
     }
@@ -107,12 +107,12 @@ trait ArticleApiClient {
     }
 
     private def post[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params: _*)), user)
+      ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params*)), user)
     }
 
     private def delete[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest.delete(uri"$endpointUrl".withParams(params: _*)).readTimeout(deleteTimeout),
+        quickRequest.delete(uri"$endpointUrl".withParams(params*)).readTimeout(deleteTimeout),
         user
       )
     }
@@ -125,7 +125,7 @@ trait ArticleApiClient {
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
-          .patch(uri"$endpointUrl".withParams(params: _*))
+          .patch(uri"$endpointUrl".withParams(params*))
           .body(CirceUtil.toJsonString(data))
           .header("content-type", "application/json", replaceExisting = true)
           .readTimeout(timeout),
@@ -141,7 +141,7 @@ trait ArticleApiClient {
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
-          .post(uri"$endpointUrl".withParams(params: _*))
+          .post(uri"$endpointUrl".withParams(params*))
           .body(CirceUtil.toJsonString(data))
           .header("content-type", "application/json", replaceExisting = true),
         user
@@ -156,7 +156,8 @@ trait ArticleApiClient {
       metaDescription: Option[Seq[api.ArticleMetaDescription]],
       relatedContent: Option[Seq[common.RelatedContent]],
       tags: Option[Seq[api.ArticleTag]],
-      revisionDate: UpdateOrDelete[NDLADate]
+      revisionDate: UpdateOrDelete[NDLADate],
+      published: Option[NDLADate]
   ) {
     def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
     def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
@@ -184,7 +185,6 @@ trait ArticleApiClient {
       copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
     def withAvailability(availability: Availability): PartialPublishArticle =
       copy(availability = availability.some)
-
     def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticle = {
       val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
       val newRev = earliestRevisionDate match {
@@ -193,10 +193,11 @@ trait ArticleApiClient {
       }
       copy(revisionDate = newRev)
     }
+    def withPublished(published: NDLADate): PartialPublishArticle = copy(published = published.some)
   }
 
   object PartialPublishArticle {
-    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Missing)
+    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Missing, None)
 
     implicit def eitherEnc: Encoder[Either[RelatedContentLink, Long]] = eitherEncoder[RelatedContentLink, Long]
     implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]

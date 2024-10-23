@@ -22,6 +22,7 @@ object PartialArticleFields extends Enum[PartialArticleFields] with CirceEnum[Pa
   case object relatedContent  extends PartialArticleFields
   case object tags            extends PartialArticleFields
   case object revisionDate    extends PartialArticleFields
+  case object published       extends PartialArticleFields
 }
 
 // format: off
