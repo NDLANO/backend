@@ -9,8 +9,8 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain._
-import no.ndla.common.model.domain.draft._
+import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.draft.*
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException, UpdatedArticle}
@@ -21,18 +21,18 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
 import no.ndla.validation.SlugValidator.validateSlug
-import no.ndla.validation._
+import no.ndla.validation.*
 import scalikejdbc.ReadOnlyAutoSession
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftRepository with ConverterService with ArticleApiClient with Props =>
+  this: DraftRepository & ConverterService & ArticleApiClient & Props =>
   val contentValidator: ContentValidator
   val importValidator: ContentValidator
 
-  class ContentValidator() {
+  class ContentValidator {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
     private val inlineHtmlTags       = props.InlineHtmlTags
     private val introductionHtmlTags = props.IntroductionHtmlTags
