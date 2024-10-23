@@ -30,7 +30,8 @@ class V54__RemoveStrongFromTitleTest extends UnitSuite with TestEnvironment {
   }
 
   test("That strong are removed from title in article") {
-    val oldContent      = ArticleContent("<section><h2>This is a <strong>title</strong></h2><p>Some text</p></section>", language = "nb")
+    val oldContent =
+      ArticleContent("<section><h2>This is a <strong>title</strong></h2><p>Some text</p></section>", language = "nb")
     val expectedContent = ArticleContent("<section><h2>This is a title</h2><p>Some text</p></section>", language = "nb")
 
     val migration = new V54__RemoveStrongFromTitle
