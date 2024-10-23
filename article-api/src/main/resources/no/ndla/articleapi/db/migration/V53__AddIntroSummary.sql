@@ -1,2 +1,1 @@
-ALTER TABLE article ADD COLUMN ArticleIntroSummary text;
-CREATE index ON article(ArticleIntroSummary);
+ALTER TABLE contentdata ADD COLUMN ArticleIntroSummary text;
