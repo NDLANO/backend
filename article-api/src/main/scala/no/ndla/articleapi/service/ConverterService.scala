@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.api.{ ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
@@ -20,7 +20,18 @@ import no.ndla.common
 import no.ndla.common.{CirceUtil, Clock, model}
 import no.ndla.common.model.{RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{Delete, License, Missing, UpdateWith}
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ArticleIntroSummary, Description, Introduction, RelatedContent, RequiredLibrary, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  ArticleIntroSummary,
+  Description,
+  Introduction,
+  RelatedContent,
+  RequiredLibrary,
+  Tag,
+  Title,
+  VisualElement
+}
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -249,7 +260,7 @@ trait ConverterService {
           .getOrElse(api.ArticleContentV2("", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val copyright = toApiCopyright(article.copyright)
-        val summary = findByLanguageOrBestEffort(article.summary, language).map(toApiArticleIntroSummary)
+        val summary   = findByLanguageOrBestEffort(article.summary, language).map(toApiArticleIntroSummary)
         Success(
           api.ArticleV2(
             article.id.get,
@@ -376,11 +387,10 @@ trait ConverterService {
 
     private def toApiArticleIntroSummary(introSummary: ArticleIntroSummary): api.ArticleIntroSummary = {
       api.ArticleIntroSummary(
-        introSummary.content,
+        introSummary.summary,
         introSummary.language
       )
     }
-
 
   }
 }

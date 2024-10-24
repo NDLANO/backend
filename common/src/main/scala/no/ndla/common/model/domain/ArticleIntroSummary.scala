@@ -11,9 +11,9 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.LanguageField
 
-case class ArticleIntroSummary(content: String, language: String) extends LanguageField[String] {
-  override def value: String    = content
-  override def isEmpty: Boolean = content.isEmpty
+case class ArticleIntroSummary(summary: String, language: String) extends LanguageField[String] {
+  override def value: String    = summary
+  override def isEmpty: Boolean = summary.isEmpty
 }
 
 object ArticleIntroSummary {
