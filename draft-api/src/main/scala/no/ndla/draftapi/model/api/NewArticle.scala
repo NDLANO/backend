@@ -12,7 +12,6 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{DraftCopyright, RelatedContentLink}
-import no.ndla.common.model.domain.ArticleIntroSummary
 import sttp.tapir.Schema.annotations.description
 
 // format: off
@@ -43,7 +42,7 @@ case class NewArticle(
     @description("If the article should be prioritized") prioritized: Option[Boolean],
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String],
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluation],
-    @description("The summary of the article") summary: Seq[ArticleIntroSummary]
+    @description("The summary of the article") summary: Option[ArticleIntroSummary]
 )
 // format: on
 

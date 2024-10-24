@@ -9,7 +9,7 @@ package no.ndla.draftapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.api.{DraftCopyright, RelatedContent, RelatedContentLink}
@@ -51,6 +51,7 @@ case class Article(
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: String,
     @description("If the article has been edited after last status or responsible change") started: Boolean,
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluation],
+    @description("The summary of the article") summary: Option[ArticleIntroSummary]
 )
 
 object Article {

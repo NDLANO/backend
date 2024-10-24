@@ -328,7 +328,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      summary = Seq.empty
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(
@@ -375,7 +376,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      summary = Seq.empty
     )
 
     val expectedArticle = Draft(
@@ -409,7 +411,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      summary = Seq.empty
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -473,7 +476,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      summary = Seq.empty
     )
 
     val expectedArticle = Draft(
@@ -515,7 +519,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      summary = Seq.empty
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -1116,7 +1121,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      summary = Seq.empty
     )
     val article = common.model.domain.article.Article(
       id = Some(articleId),
@@ -1141,7 +1147,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = Some("kjempe-slug")
+      slug = Some("kjempe-slug"),
+      summary = Seq.empty
     )
 
     val result = service.toArticleApiArticle(draft)

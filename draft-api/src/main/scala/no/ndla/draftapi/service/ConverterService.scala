@@ -13,7 +13,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.{Delete, DraftCopyright, Missing, UpdateWith, draft}
-import no.ndla.common.model.domain.{ArticleContent, ArticleIntroSummary, Priority, Responsible}
+import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi, domain as common}
@@ -125,7 +125,7 @@ trait ConverterService {
           priority = priority,
           started = false,
           qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
-          summary = newArticle.summary
+          summary = newArticle.summary.map(s => toDomainArticleIntroSummary(s, newArticle.language)).toSeq
         )
       )
     }
@@ -293,6 +293,16 @@ trait ConverterService {
       )
     }
 
+    private def toDomainArticleIntroSummary(
+        ArticleIntroSummary: api.ArticleIntroSummary,
+        language: String
+    ): common.ArticleIntroSummary = {
+      common.ArticleIntroSummary(
+        ArticleIntroSummary.summary,
+        language
+      )
+    }
+
     def getEmbeddedConceptIds(article: Draft): Seq[Long] = {
       val htmlElements = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
       val conceptEmbeds = htmlElements.flatMap(elem => {
@@ -372,6 +382,13 @@ trait ConverterService {
         lastUpdated = responsible.lastUpdated
       )
 
+    private def toApiArticleIntroSummary(summary: common.ArticleIntroSummary): api.ArticleIntroSummary = {
+      api.ArticleIntroSummary(
+        summary.summary,
+        summary.language
+      )
+    }
+
     def toApiArticle(article: Draft, language: String, fallback: Boolean = false): Try[api.Article] = {
       val isLanguageNeutral =
         article.supportedLanguages.contains(UnknownLanguage.toString) && article.supportedLanguages.length == 1
@@ -387,6 +404,7 @@ trait ConverterService {
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
         val responsible    = article.responsible.map(toApiResponsible)
+        val summary        = findByLanguageOrBestEffort(article.summary, language).map(toApiArticleIntroSummary)
 
         Success(
           api.Article(
@@ -422,7 +440,8 @@ trait ConverterService {
             prioritized = article.priority == Priority.Prioritized,
             priority = article.priority.entryName,
             started = article.started,
-            qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation)
+            qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
+            summary = summary
           )
         )
       } else {
@@ -814,6 +833,13 @@ trait ConverterService {
           .flatten
       )
 
+      val updatedArticleIntroSummary = mergeLanguageFields(
+        toMergeInto.summary,
+        maybeLang
+          .traverse(lang => articleWithNewContent.summary.map(a => toDomainArticleIntroSummary(a, lang)).toSeq)
+          .flatten
+      )
+
       val converted = Draft(
         id = toMergeInto.id,
         revision = Option(article.revision),
@@ -846,7 +872,7 @@ trait ConverterService {
         priority = priority,
         started = toMergeInto.started,
         qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
-        summary = article.summary.getOrElse(toMergeInto.summary)
+        summary = updatedArticleIntroSummary
       )
 
       Success(converted)
@@ -935,7 +961,7 @@ trait ConverterService {
           priority = priority,
           started = false,
           qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
-          summary = article.summary.getOrElse(Seq.empty)
+          summary = article.summary.map(s => toDomainArticleIntroSummary(s, lang)).toSeq
         )
     }
 
