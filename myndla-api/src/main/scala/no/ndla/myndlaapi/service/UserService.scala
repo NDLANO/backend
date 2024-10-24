@@ -11,9 +11,9 @@ package no.ndla.myndlaapi.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.model.api.{ArenaUser, PaginatedArenaUsers, UpdatedMyNDLAUser}
-import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAGroup, MyNDLAUserDocument}
+import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
@@ -42,7 +42,7 @@ trait UserService {
       }
     }
 
-    private def getUserById(userId: Long)(session: DBSession): Try[domain.MyNDLAUser] = {
+    private def getUserById(userId: Long)(session: DBSession): Try[MyNDLAUser] = {
       userRepository.userWithId(userId)(session) match {
         case Failure(ex)         => Failure(ex)
         case Success(Some(user)) => Success(user)
@@ -63,7 +63,7 @@ trait UserService {
     def getMyNdlaUserDataDomain(
         feideAccessToken: Option[FeideAccessToken],
         arenaEnabledUsers: List[String]
-    ): Try[domain.MyNDLAUser] = {
+    ): Try[MyNDLAUser] = {
       for {
         feideId <- feideApiClient.getFeideID(feideAccessToken)
         userData <- userRepository.rollbackOnFailure(session =>
@@ -72,7 +72,7 @@ trait UserService {
       } yield userData
     }
 
-    def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
+    def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
       for {
         users    <- configService.getMyNDLAEnabledUsers
         userData <- getMyNdlaUserDataDomain(feideAccessToken, users)
@@ -95,7 +95,7 @@ trait UserService {
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken],
         arenaEnabledUsers: List[String]
-    )(implicit session: DBSession): Try[domain.MyNDLAUser] = {
+    )(implicit session: DBSession): Try[MyNDLAUser] = {
       userRepository.reserveFeideIdIfNotExists(feideId)(session).flatMap {
         case false => createMyNDLAUser(feideId, feideAccessToken, arenaEnabledUsers)(session)
         case true =>
@@ -159,7 +159,7 @@ trait UserService {
         updatedUser: api.UpdatedMyNDLAUser,
         feideId: Option[String],
         updaterToken: Option[TokenUser],
-        updaterMyNdla: Option[domain.MyNDLAUser]
+        updaterMyNdla: Option[MyNDLAUser]
     ): Try[api.MyNDLAUser] = {
       feideId match {
         case None => Failure(ValidationException("feideId", "You need to supply a feideId to update a user."))
@@ -184,7 +184,7 @@ trait UserService {
     def adminUpdateMyNDLAUserData(
         userId: Long,
         updatedUser: api.UpdatedMyNDLAUser,
-        updaterMyNdla: domain.MyNDLAUser
+        updaterMyNdla: MyNDLAUser
     )(session: DBSession = AutoSession): Try[api.MyNDLAUser] = {
       for {
         existing     <- userService.getUserById(userId)(session)
@@ -196,7 +196,7 @@ trait UserService {
       } yield api
     }
 
-    private[service] def getMyNDLAUserOrFail(feideId: FeideID): Try[domain.MyNDLAUser] = {
+    private[service] def getMyNDLAUserOrFail(feideId: FeideID): Try[MyNDLAUser] = {
       userRepository.userWithFeideId(feideId) match {
         case Failure(ex)         => Failure(ex)
         case Success(None)       => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
@@ -208,7 +208,7 @@ trait UserService {
       feideGroups
         .filter(group => group.`type` == FeideGroup.FC_ORG)
         .map(feideGroup =>
-          domain.MyNDLAGroup(
+          MyNDLAGroup(
             id = feideGroup.id,
             displayName = feideGroup.displayName,
             isPrimarySchool = feideGroup.membership.primarySchool.getOrElse(false),
@@ -228,14 +228,14 @@ trait UserService {
         arenaEnabledUsers: List[String]
     )(implicit
         session: DBSession
-    ): Try[domain.MyNDLAUser] = {
+    ): Try[MyNDLAUser] = {
       for {
         feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
         organization          <- feideApiClient.getOrganization(feideAccessToken)
         feideGroups           <- feideApiClient.getFeideGroups(feideAccessToken)
         newUser = MyNDLAUserDocument(
           favoriteSubjects = Seq.empty,
-          userRole = if (feideExtendedUserData.isTeacher) domain.UserRole.EMPLOYEE else domain.UserRole.STUDENT,
+          userRole = if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
           lastUpdated = clock.now().plusDays(1),
           organization = organization,
           groups = toDomainGroups(feideGroups),
@@ -253,19 +253,19 @@ trait UserService {
     private def fetchDataAndUpdateMyNDLAUser(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken],
-        userData: domain.MyNDLAUser,
+        userData: MyNDLAUser,
         arenaEnabledUsers: List[String]
     )(implicit
         session: DBSession
-    ): Try[domain.MyNDLAUser] = {
+    ): Try[MyNDLAUser] = {
       val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization = feideApiClient.getOrganization(feideAccessToken).?
       val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
-      val updatedMyNDLAUser = domain.MyNDLAUser(
+      val updatedMyNDLAUser = MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,
         favoriteSubjects = userData.favoriteSubjects,
-        userRole = if (feideUser.isTeacher) domain.UserRole.EMPLOYEE else domain.UserRole.STUDENT,
+        userRole = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
         groups = toDomainGroups(feideGroups),

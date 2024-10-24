@@ -8,15 +8,11 @@
 
 package no.ndla.myndlaapi.model.domain
 
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument}
 import scalikejdbc.*
 
-object MyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
-  implicit val encoder: Encoder[MyNDLAUser] = deriveEncoder
-  implicit val decoder: Decoder[MyNDLAUser] = deriveDecoder
+object DBMyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
 
   override val tableName = "my_ndla_users"
 

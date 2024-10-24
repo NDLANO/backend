@@ -12,7 +12,8 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.DBUtil.buildWhereClause
 import no.ndla.common.errors.{NotFoundException, RollbackException}
-import no.ndla.myndlaapi.model.domain.{MyNDLAUser, MyNDLAUserDocument, NDLASQLException, UserRole}
+import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument, UserRole}
+import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -27,7 +28,7 @@ trait UserRepository {
     def getUsersPaginated(offset: Long, limit: Long, filterTeachers: Boolean, query: Option[String])(implicit
         session: DBSession
     ): Try[(Long, List[MyNDLAUser])] = Try {
-      val u = MyNDLAUser.syntax("u")
+      val u = DBMyNDLAUser.syntax("u")
 
       val teacherClause = Option.when(filterTeachers)(sqls"u.document->>'userRole' = ${UserRole.EMPLOYEE.toString}")
       val queryClause = query.map(q => {
@@ -39,7 +40,7 @@ trait UserRepository {
 
       val count: Long = sql"""
               select count(*)
-              from ${MyNDLAUser.as(u)}
+              from ${DBMyNDLAUser.as(u)}
               $whereClause
            """
         .map(rs => rs.long("count"))
@@ -49,13 +50,13 @@ trait UserRepository {
 
       val users = sql"""
            select ${u.result.*}
-           from ${MyNDLAUser.as(u)}
+           from ${DBMyNDLAUser.as(u)}
            $whereClause
            order by ${u.id} asc
            limit $limit
            offset $offset
            """
-        .map(MyNDLAUser.fromResultSet(u))
+        .map(DBMyNDLAUser.fromResultSet(u))
         .list()
 
       count -> users
@@ -87,7 +88,7 @@ trait UserRepository {
         dataObject.setValue(CirceUtil.toJsonString(document))
 
         val userId = sql"""
-        update ${MyNDLAUser.table}
+        update ${DBMyNDLAUser.table}
         set document=$dataObject
         where feide_id=$feideId
         """.updateAndReturnGeneratedKey()
@@ -106,7 +107,7 @@ trait UserRepository {
         dataObject.setValue(CirceUtil.toJsonString(user))
 
         sql"""
-        update ${MyNDLAUser.table}
+        update ${DBMyNDLAUser.table}
         set document=$dataObject
         where id=$userId
         """.update()
@@ -129,7 +130,7 @@ trait UserRepository {
         dataObject.setValue(CirceUtil.toJsonString(user))
 
         sql"""
-        update ${MyNDLAUser.table}
+        update ${DBMyNDLAUser.table}
                   set document=$dataObject
                   where feide_id=$feideId
         """.update()
@@ -148,7 +149,7 @@ trait UserRepository {
       )
 
     def deleteUser(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[FeideID] = {
-      Try(sql"delete from ${MyNDLAUser.table} where feide_id = $feideId".update()) match {
+      Try(sql"delete from ${DBMyNDLAUser.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) if numRows != 1 =>
           Failure(NotFoundException(s"User with feide_id $feideId does not exist"))
@@ -159,7 +160,7 @@ trait UserRepository {
     }
 
     def deleteAllUsers(implicit session: DBSession): Try[Unit] = Try {
-      sql"delete from ${MyNDLAUser.table}".execute(): Unit
+      sql"delete from ${DBMyNDLAUser.table}".execute(): Unit
     }
 
     def resetSequences(implicit session: DBSession): Try[Unit] = Try {
@@ -172,9 +173,9 @@ trait UserRepository {
     def userWithId(userId: Long)(implicit session: DBSession): Try[Option[MyNDLAUser]] = userWhere(sqls"u.id=$userId")
 
     def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = Try {
-      val u = MyNDLAUser.syntax("u")
-      sql"select ${u.result.*} from ${MyNDLAUser.as(u)} where $whereClause"
-        .map(MyNDLAUser.fromResultSet(u))
+      val u = DBMyNDLAUser.syntax("u")
+      sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"
+        .map(DBMyNDLAUser.fromResultSet(u))
         .single()
     }
 
@@ -183,7 +184,7 @@ trait UserRepository {
       Try {
         sql"""
             with inserted as (
-                insert into ${MyNDLAUser.table}
+                insert into ${DBMyNDLAUser.table}
                 (feide_id, document)
                 values ($feideId, null)
                 on conflict do nothing
@@ -202,21 +203,21 @@ trait UserRepository {
     }
 
     def numberOfUsers()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(*) from ${MyNDLAUser.table}"
+      sql"select count(*) from ${DBMyNDLAUser.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
     def numberOfFavouritedSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${MyNDLAUser.table}) as favoriteSubject"
+      sql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
         .map(rs => rs.long("count"))
         .single()
     }
 
     def getAllUsers(implicit session: DBSession): List[MyNDLAUser] = {
-      val u = MyNDLAUser.syntax("u")
-      sql"select ${u.result.*} from ${MyNDLAUser.as(u)}"
-        .map(MyNDLAUser.fromResultSet(u))
+      val u = DBMyNDLAUser.syntax("u")
+      sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)}"
+        .map(DBMyNDLAUser.fromResultSet(u))
         .list()
     }
 

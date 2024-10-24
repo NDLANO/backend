@@ -8,7 +8,7 @@
 
 package no.ndla.myndlaapi
 
-import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser}
+import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser}
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.network.model.FeideAccessToken
 import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}

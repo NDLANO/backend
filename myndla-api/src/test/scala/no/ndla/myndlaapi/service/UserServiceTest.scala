@@ -10,10 +10,10 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.TestData.emptyMyNDLAUser
 import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.model.domain.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}

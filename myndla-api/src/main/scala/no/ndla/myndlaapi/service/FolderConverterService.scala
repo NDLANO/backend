@@ -12,10 +12,9 @@ import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.myndla
-import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser}
 import no.ndla.myndlaapi.model.api.{Folder, Owner}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.model.domain.{MyNDLAGroup, MyNDLAUser}
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -224,12 +223,12 @@ trait FolderConverterService {
     }
 
     def mergeUserData(
-        domainUserData: domain.MyNDLAUser,
+        domainUserData: MyNDLAUser,
         updatedUser: api.UpdatedMyNDLAUser,
         updaterToken: Option[TokenUser],
         updaterUser: Option[MyNDLAUser],
         arenaEnabledUsers: List[String]
-    ): domain.MyNDLAUser = {
+    ): MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
@@ -243,7 +242,7 @@ trait FolderConverterService {
         if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
         else domainUserData.arenaGroups
 
-      domain.MyNDLAUser(
+      MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         favoriteSubjects = favoriteSubjects,

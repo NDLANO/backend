@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.myndlaapi.model.domain.ArenaGroup
+import no.ndla.common.model.domain.myndla.ArenaGroup
 import sttp.tapir.Schema.annotations.description
 
 case class MyNDLAGroup(

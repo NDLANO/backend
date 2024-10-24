@@ -7,9 +7,6 @@
 
 package no.ndla.common.model.domain.myndla
 
-import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
-import com.scalatsi.{TSNamedType, TSType}
-import enumeratum.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
@@ -57,15 +54,6 @@ object MyNDLAUserDocument {
   implicit val decoder: Decoder[MyNDLAUserDocument] = deriveDecoder
 }
 
-sealed trait ArenaGroup extends EnumEntry
-object ArenaGroup extends Enum[ArenaGroup] with CirceEnum[ArenaGroup] {
-  case object ADMIN extends ArenaGroup
-  override def values: IndexedSeq[ArenaGroup] = findValues
-
-  implicit val enumTsType: TSNamedType[ArenaGroup] =
-    TSType.alias[ArenaGroup]("ArenaGroup", TSUnion(values.map(e => TSLiteralString(e.entryName))))
-}
-
 case class MyNDLAUser(
     id: Long,
     feideId: String,
@@ -87,4 +75,9 @@ case class MyNDLAUser(
   def isStudent: Boolean = userRole == UserRole.STUDENT
   def isTeacher: Boolean = userRole == UserRole.EMPLOYEE
   def isAdmin: Boolean   = arenaGroups.contains(ArenaGroup.ADMIN)
+}
+
+object MyNDLAUser {
+  implicit val encoder: Encoder[MyNDLAUser] = deriveEncoder
+  implicit val decoder: Decoder[MyNDLAUser] = deriveDecoder
 }

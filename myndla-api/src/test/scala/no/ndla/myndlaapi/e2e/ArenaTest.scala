@@ -12,11 +12,11 @@ import io.circe.generic.auto.*
 import io.circe.syntax.EncoderOps
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi.{model, *}
 import no.ndla.myndlaapi.model.api.ArenaUser
 import no.ndla.myndlaapi.model.arena.api.{NewCategory, PaginatedNewPostNotifications, PaginatedPosts}
-import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}

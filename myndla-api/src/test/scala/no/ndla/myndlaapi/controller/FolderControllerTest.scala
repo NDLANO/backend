@@ -7,8 +7,8 @@
 
 package no.ndla.myndlaapi.controller
 
+import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.api.Folder
-import no.ndla.myndlaapi.model.domain.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
