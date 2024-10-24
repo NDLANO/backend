@@ -125,7 +125,8 @@ class ArticleApiClientTest
     comments = Seq.empty,
     priority = Priority.Unspecified,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    summary = Seq.empty
   )
 
   val exampleToken =
