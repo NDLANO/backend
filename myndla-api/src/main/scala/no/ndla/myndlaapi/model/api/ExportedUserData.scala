@@ -9,6 +9,7 @@ package no.ndla.myndlaapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.api.myndla.MyNDLAUser
 import sttp.tapir.Schema.annotations.description
 
 case class ExportedUserData(

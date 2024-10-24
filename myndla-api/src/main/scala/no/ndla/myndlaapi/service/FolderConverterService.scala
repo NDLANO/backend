@@ -9,10 +9,15 @@
 package no.ndla.myndlaapi.service
 
 import cats.implicits.*
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, model}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.api.myndla.{UpdatedMyNDLAUser}
 import no.ndla.common.model.domain.myndla
-import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser}
+import no.ndla.common.model.domain.myndla.{
+  FolderStatus,
+  MyNDLAGroup as DomainMyNDLAGroup,
+  MyNDLAUser as DomainMyNDLAUser
+}
 import no.ndla.myndlaapi.model.api.{Folder, Owner}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
@@ -31,13 +36,13 @@ trait FolderConverterService {
     def toApiFolder(
         domainFolder: domain.Folder,
         breadcrumbs: List[api.Breadcrumb],
-        feideUser: Option[MyNDLAUser],
+        feideUser: Option[DomainMyNDLAUser],
         isOwner: Boolean
     ): Try[Folder] = {
       def loop(
           folder: domain.Folder,
           crumbs: List[api.Breadcrumb],
-          feideUser: Option[MyNDLAUser]
+          feideUser: Option[DomainMyNDLAUser]
       ): Try[Folder] = folder.subfolders
         .traverse(folder => {
           val newCrumb = api.Breadcrumb(
@@ -171,11 +176,11 @@ trait FolderConverterService {
     }
 
     def toApiUserData(
-        domainUserData: MyNDLAUser,
+        domainUserData: DomainMyNDLAUser,
         arenaEnabledOrgs: List[String]
-    ): api.MyNDLAUser = {
+    ): model.api.myndla.MyNDLAUser = {
       val arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs)
-      api.MyNDLAUser(
+      model.api.myndla.MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         username = domainUserData.username,
@@ -191,7 +196,7 @@ trait FolderConverterService {
       )
     }
 
-    def getArenaEnabled(userData: MyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
+    def getArenaEnabled(userData: DomainMyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
       userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization)
 
     def domainToApiModel[Domain, Api](
@@ -213,8 +218,8 @@ trait FolderConverterService {
       loop(domainObjects, List())
     }
 
-    private def toApiGroup(group: MyNDLAGroup): api.MyNDLAGroup = {
-      api.MyNDLAGroup(
+    private def toApiGroup(group: DomainMyNDLAGroup): model.api.myndla.MyNDLAGroup = {
+      model.api.myndla.MyNDLAGroup(
         id = group.id,
         displayName = group.displayName,
         isPrimarySchool = group.isPrimarySchool,
@@ -223,12 +228,12 @@ trait FolderConverterService {
     }
 
     def mergeUserData(
-        domainUserData: MyNDLAUser,
-        updatedUser: api.UpdatedMyNDLAUser,
+        domainUserData: DomainMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUser,
         updaterToken: Option[TokenUser],
-        updaterUser: Option[MyNDLAUser],
+        updaterUser: Option[DomainMyNDLAUser],
         arenaEnabledUsers: List[String]
-    ): MyNDLAUser = {
+    ): DomainMyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
@@ -242,7 +247,7 @@ trait FolderConverterService {
         if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
         else domainUserData.arenaGroups
 
-      MyNDLAUser(
+      DomainMyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         favoriteSubjects = favoriteSubjects,

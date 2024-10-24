@@ -9,6 +9,7 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.myndla.{MyNDLAGroup as ApiGroup, MyNDLAUser as ApiUser, UpdatedMyNDLAUser}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.api
@@ -433,7 +434,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         arenaGroups = List.empty
       )
     val expectedUserData =
-      api.MyNDLAUser(
+      ApiUser(
         id = 42,
         feideId = "feide",
         username = "example@email.com",
@@ -442,7 +443,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         favoriteSubjects = Seq("a", "b"),
         role = "student",
         organization = "oslo",
-        groups = Seq(api.MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
+        groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
         shareName = false,
         arenaGroups = List.empty
@@ -475,16 +476,16 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       arenaGroups = List.empty
     )
     val updatedUserData1 =
-      api.UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None, arenaGroups = None)
+      UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None, arenaGroups = None)
     val updatedUserData2 =
-      api.UpdatedMyNDLAUser(
+      UpdatedMyNDLAUser(
         favoriteSubjects = Some(Seq.empty),
         arenaEnabled = None,
         shareName = None,
         arenaGroups = None
       )
     val updatedUserData3 =
-      api.UpdatedMyNDLAUser(
+      UpdatedMyNDLAUser(
         favoriteSubjects = Some(Seq("x", "y", "z")),
         arenaEnabled = None,
         shareName = None,

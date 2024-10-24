@@ -8,7 +8,8 @@
 package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto.*
-import no.ndla.myndlaapi.model.api.{ArenaUser, MyNDLAUser, PaginatedArenaUsers, UpdatedMyNDLAUser}
+import no.ndla.common.model.api.myndla.{MyNDLAUser, UpdatedMyNDLAUser}
+import no.ndla.myndlaapi.model.api.{ArenaUser, PaginatedArenaUsers}
 import no.ndla.myndlaapi.MyNDLAAuthHelpers
 import no.ndla.myndlaapi.model.arena.api.{
   Category,

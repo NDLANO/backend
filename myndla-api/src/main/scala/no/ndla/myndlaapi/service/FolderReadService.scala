@@ -13,6 +13,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.SingleResourceStats
+import no.ndla.common.model.api.myndla.MyNDLAUser
 import no.ndla.common.model.domain.{ResourceType, myndla}
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
@@ -273,7 +274,7 @@ trait FolderReadService {
     private def getFeideUserDataAuthenticated(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.MyNDLAUser] =
+    ): Try[MyNDLAUser] =
       for {
         users <- configService.getMyNDLAEnabledUsers
         user <- userRepository.rollbackOnFailure(session =>
