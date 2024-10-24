@@ -37,6 +37,10 @@ trait NdlaClient {
       doFetch(addCorrelationId(addForwardedAuth(request, tokenUser)))
     }
 
+    def fetchWithForwardedFeideAuth[A: Decoder](request: NdlaRequest, feideToken: Option[String]): Try[A] = {
+      doFetch(addCorrelationId(addForwardedFeideAuth(request, feideToken)))
+    }
+
     def fetchRaw(request: NdlaRequest): Try[Response[String]] =
       doRequest(addCorrelationId(request))
 
@@ -90,6 +94,10 @@ trait NdlaClient {
 
     private def addBasicAuth(request: NdlaRequest, user: String, password: String) = {
       request.auth.basic(user, password)
+    }
+
+    private def addForwardedFeideAuth(request: NdlaRequest, feideToken: Option[String]) = {
+      request.header("FeideAuthorizaton", s"Bearer $feideToken")
     }
 
     private def addForwardedAuth(request: NdlaRequest, tokenUser: Option[TokenUser]) = tokenUser match {

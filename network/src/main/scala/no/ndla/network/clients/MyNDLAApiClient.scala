@@ -12,6 +12,7 @@ import no.ndla.common.model.api.{MyNDLABundle, SingleResourceStats}
 import no.ndla.common.model.api.config.ConfigMetaRestricted
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.config.ConfigKey
+import no.ndla.common.model.api.myndla as api
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.NdlaRequest
 import sttp.client3.quick.*
@@ -25,6 +26,12 @@ trait MyNDLAApiClient {
 
   class MyNDLAApiClient {
     private val statsEndpoint = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
+    private val userEndpoint  = uri"http://${props.MyNDLAApiHost}/myndla-api/v1/user"
+
+    def getUserWithFeideToken(feideToken: Option[String]): Try[api.MyNDLAUser] = {
+      val req = quickRequest.get(userEndpoint)
+      ndlaClient.fetchWithForwardedFeideAuth(req, feideToken)
+    }
 
     def isWriteRestricted: Try[Boolean] = {
       doRequest(

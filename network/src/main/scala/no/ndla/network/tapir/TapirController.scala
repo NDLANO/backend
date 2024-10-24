@@ -11,6 +11,8 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.model.api.myndla.MyNDLAUser
+import no.ndla.common.model.domain.myndla.MyNDLAUser as DomainMyNDLAUser
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.client3.Identity
 import sttp.model.StatusCode
@@ -70,6 +72,13 @@ trait TapirController extends TapirErrorHandling {
     implicit class authlessErrorlessEndpoint[A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
       def withOptionalUser[F[_]]: PartialServerEndpoint[Option[TokenUser], Option[TokenUser], I, X, O, R, F] = {
         val newEndpoint   = self.securityIn(TokenUser.oauth2Input(Seq.empty))
+        val authFunc      = (tokenUser: Option[TokenUser]) => Right(tokenUser): Either[X, Option[TokenUser]]
+        val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
+        PartialServerEndpoint(newEndpoint, securityLogic)
+      }
+
+      def withOptionalMyNDLAUser[F[_]]: PartialServerEndpoint[Option[MyNDLAUser], Option[MyNDLAUser], I, X, O, R, F] = {
+        val newEndpoint   = self.securityIn(DomainMyNDLAUser.oauth2Input(Seq.empty))
         val authFunc      = (tokenUser: Option[TokenUser]) => Right(tokenUser): Either[X, Option[TokenUser]]
         val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
         PartialServerEndpoint(newEndpoint, securityLogic)
