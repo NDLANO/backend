@@ -13,21 +13,21 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.*
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
 import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation.TextValidator
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: ArticleRepository with Props =>
+  this: ArticleRepository & Props =>
   val contentValidator: ContentValidator
 
-  class ContentValidator() {
+  class ContentValidator {
     private val inlineHtmlTags       = props.InlineHtmlTags
     private val introductionHtmlTags = props.IntroductionHtmlTags
 
@@ -73,7 +73,7 @@ trait ContentValidator {
       }
     }
 
-    private def validateNonEmpty(field: String, values: Seq[LanguageField[_]]): Option[ValidationMessage] = {
+    private def validateNonEmpty(field: String, values: Seq[LanguageField[?]]): Option[ValidationMessage] = {
       if (values.isEmpty || values.forall(_.isEmpty)) {
         Some(ValidationMessage(field, "Field must contain at least one entry"))
       } else
