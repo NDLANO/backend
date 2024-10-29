@@ -19,6 +19,7 @@ export interface IApiTaxonomyContext {
 
 export interface IArticleIntroduction {
   introduction: string
+  htmlIntroduction: string
   language: string
 }
 
@@ -287,6 +288,7 @@ export interface ITermValue {
 
 export interface ITitle {
   title: string
+  htmlTitle: string
   language: string
 }
 
