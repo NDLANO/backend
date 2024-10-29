@@ -63,10 +63,10 @@ object TestData {
     Copyright("copyrighted", Some("New York"), List(Author("Writer", "Clark Kent")), List(), List(), None, None, false)
   val today: NDLADate = NDLADate.now().withNano(0)
 
-  val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "nb")
+  val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "tittell", "nb")
   val sampleArticleVisualElement: ArticleApiVisualElement =
     ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
-  val sampleArticleIntro: ArticleApiIntro = ArticleApiIntro("intro", "nb")
+  val sampleArticleIntro: ArticleApiIntro = ArticleApiIntro("intro", "intro", "nb")
 
   val sampleArticleSearch: ArticleApiSearchResults = ArticleApiSearchResults(
     totalCount = 2,
@@ -86,7 +86,7 @@ object TestData {
       ),
       ArticleApiSearchResult(
         2,
-        ArticleApiTitle("Another title", "nb"),
+        ArticleApiTitle("Another title", "Another title", "nb"),
         Option(sampleArticleVisualElement),
         Option(sampleArticleIntro),
         "http://articles/2",

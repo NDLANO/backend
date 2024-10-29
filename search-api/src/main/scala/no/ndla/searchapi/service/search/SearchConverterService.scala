@@ -242,7 +242,8 @@ trait SearchConverterService {
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
           availability = ai.availability.toString,
-          learningResourceType = LearningResourceType.fromArticleType(ai.articleType)
+          learningResourceType = LearningResourceType.fromArticleType(ai.articleType),
+          domainObject = ai
         )
       )
 
@@ -586,9 +587,17 @@ trait SearchConverterService {
       val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hit.sourceAsString)
 
       val contexts = filterContexts(searchableArticle.contexts, language, filterInactive)
-      val titles   = searchableArticle.title.languageValues.map(lv => api.Title(lv.value, lv.language))
-      val introductions =
-        searchableArticle.introduction.languageValues.map(lv => api.article.ArticleIntroduction(lv.value, lv.language))
+      val titles = searchableArticle.domainObject.title.map(title =>
+        api.Title(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+      )
+      val introductions = searchableArticle.domainObject.introduction.map(intro =>
+        api.article
+          .ArticleIntroduction(
+            Jsoup.parseBodyFragment(intro.introduction).body().text(),
+            intro.introduction,
+            intro.language
+          )
+      )
       val metaDescriptions =
         searchableArticle.metaDescription.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
       val visualElements =
@@ -599,7 +608,7 @@ trait SearchConverterService {
       })
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
         api.MetaDescription("", UnknownLanguage.toString)
       )
@@ -644,9 +653,17 @@ trait SearchConverterService {
       val searchableDraft = CirceUtil.unsafeParseAs[SearchableDraft](hit.sourceAsString)
 
       val contexts = filterContexts(searchableDraft.contexts, language, filterInactive)
-      val titles   = searchableDraft.title.languageValues.map(lv => api.Title(lv.value, lv.language))
-      val introductions =
-        searchableDraft.introduction.languageValues.map(lv => api.article.ArticleIntroduction(lv.value, lv.language))
+      val titles = searchableDraft.domainObject.title.map(title =>
+        api.Title(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+      )
+      val introductions = searchableDraft.domainObject.introduction.map(intro =>
+        api.article
+          .ArticleIntroduction(
+            Jsoup.parseBodyFragment(intro.introduction).body().text(),
+            intro.introduction,
+            intro.language
+          )
+      )
       val metaDescriptions =
         searchableDraft.metaDescription.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
       val visualElements =
@@ -657,7 +674,7 @@ trait SearchConverterService {
       })
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
         api.MetaDescription("", UnknownLanguage.toString)
       )
@@ -711,7 +728,7 @@ trait SearchConverterService {
       val searchableLearningPath = CirceUtil.unsafeParseAs[SearchableLearningPath](hit.sourceAsString)
 
       val contexts = filterContexts(searchableLearningPath.contexts, language, filterInactive)
-      val titles   = searchableLearningPath.title.languageValues.map(lv => api.Title(lv.value, lv.language))
+      val titles   = searchableLearningPath.title.languageValues.map(lv => api.Title(lv.value, lv.value, lv.language))
       val metaDescriptions =
         searchableLearningPath.description.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
       val tags =
@@ -720,7 +737,7 @@ trait SearchConverterService {
       val supportedLanguages = getSupportedLanguages(titles, metaDescriptions, tags)
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
         api.MetaDescription("", UnknownLanguage.toString)
       )
@@ -768,14 +785,14 @@ trait SearchConverterService {
     def conceptHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummary = {
       val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hit.sourceAsString)
 
-      val titles = searchableConcept.title.languageValues.map(lv => api.Title(lv.value, lv.language))
+      val titles = searchableConcept.title.languageValues.map(lv => api.Title(lv.value, lv.value, lv.language))
 
       val content = searchableConcept.content.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
       val tags    = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, content, tags)
 
-      val title = findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", UnknownLanguage.toString))
+      val title = findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
       val url   = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
       val metaImages = searchableConcept.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"

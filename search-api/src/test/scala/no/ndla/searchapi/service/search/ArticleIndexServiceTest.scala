@@ -10,15 +10,13 @@ package no.ndla.searchapi.service.search
 import io.circe.syntax.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
+import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Author, Description, VisualElement}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
-import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType}
-import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
+import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.model.search.SearchableArticle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
@@ -121,40 +119,45 @@ class ArticleIndexServiceTest
   }
 
   test("That mapping contains every field after serialization") {
-    val languageValues = SearchableLanguageValues(Seq(LanguageValue("nb", "hei"), LanguageValue("en", "hå")))
-    val languageList   = SearchableLanguageList(Seq(LanguageValue("nb", Seq("")), LanguageValue("en", Seq(""))))
-    val now            = NDLADate.now()
-
-    val searchableToTestWith = SearchableArticle(
-      id = 10L,
-      title = languageValues,
-      content = languageValues,
-      visualElement = languageValues,
-      introduction = languageValues,
-      metaDescription = languageValues,
-      tags = languageList,
-      lastUpdated = now,
-      license = "CC-BY-SA-4.0",
-      authors = List("hei", "hå"),
-      articleType = "standard",
-      metaImage = List(ArticleMetaImage("hei", "hå", "nb"), ArticleMetaImage("hei", "hå", "en")),
-      defaultTitle = Some("hei"),
-      supportedLanguages = List("nb", "en"),
-      traits = List("hei"),
-      embedAttributes = languageList,
-      embedResourcesAndIds = List(EmbedValues(List("hei"), Some("hei"), "nb")),
-      availability = Availability.everyone.toString,
-      contexts = TestData.searchableTaxonomyContexts,
-      grepContexts = List(
-        SearchableGrepContext("KE12", None),
-        SearchableGrepContext("KM123", None),
-        SearchableGrepContext("TT2", None)
+    val article = TestData.article1.copy(
+      content = Seq(
+        ArticleContent(
+          """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
+          "nb"
+        ),
+        ArticleContent(
+          """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
+          "en"
+        )
       ),
-      learningResourceType = LearningResourceType.Article
+      metaImage = List(ArticleMetaImage("hei", "hå", "nb"), ArticleMetaImage("hei", "hå", "en")),
+      metaDescription = Seq(Description("hei", "nb"), Description("hei", "en")),
+      visualElement = Seq(VisualElement("hei", "nb"), VisualElement("hei", "en")),
+      copyright = Copyright(
+        license = "CC-BY-SA-4.0",
+        origin = None,
+        creators = Seq(Author("writer", "hå")),
+        processors = Seq(Author("writer", "hå")),
+        rightsholders = Seq(Author("writer", "hå")),
+        validFrom = None,
+        validTo = None,
+        processed = false
+      )
     )
 
+    val searchableToTestWith = searchConverterService
+      .asSearchableArticle(
+        article,
+        IndexingBundle(
+          Some(TestData.emptyGrepBundle),
+          Some(TestData.taxonomyTestBundle),
+          None
+        )
+      )
+      .get
+
     val searchableFields = searchableToTestWith.asJson
-    val fields           = getFields(searchableFields, None)
+    val fields           = getFields(searchableFields, None, Seq("domainObject"))
     val mapping          = articleIndexService.getMapping
 
     val staticMappingFields  = getMappingFields(mapping.properties, None)
