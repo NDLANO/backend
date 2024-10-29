@@ -61,7 +61,8 @@ trait TestEnvironment
 
   val s3Client: NdlaS3Client = mock[NdlaS3Client]
 
-  val ndlaClient: NdlaClient = mock[NdlaClient]
+  val ndlaClient: NdlaClient           = mock[NdlaClient]
+  val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
   val readService: ReadService             = mock[ReadService]
   val writeService: WriteService           = mock[WriteService]

@@ -94,6 +94,7 @@ trait TestEnvironment
   val nodebb: NodeBBClient                           = mock[NodeBBClient]
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
 
   def services: List[TapirController] = List.empty
 

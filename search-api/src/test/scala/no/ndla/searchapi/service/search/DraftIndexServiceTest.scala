@@ -40,7 +40,7 @@ class DraftIndexServiceTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(myndlaapiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
+    when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
   override val converterService       = new ConverterService

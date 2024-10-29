@@ -17,7 +17,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
+import no.ndla.learningpathapi.model.domain.UserInfo.{LearningpathCombinedUser}
 import no.ndla.learningpathapi.model.domain.{LearningPathStatus as _, License as _, *}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
@@ -26,7 +26,6 @@ import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -293,7 +292,7 @@ trait LearningpathControllerV2 {
       .in(pageNo)
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(jsonBody[Seq[LearningPathV2]])
-      .requirePermission()
+      .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (idList, fallback, language, pageSizeQ, pageNoQ) =>
           if (!user.isNdla) {
@@ -323,11 +322,10 @@ trait LearningpathControllerV2 {
       .in(fallback)
       .out(jsonBody[LearningPathV2])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .withOptionalUser
-      .serverLogicPure { maybeUser =>
+      .withOptionalMyNDLAUserOrTokenUser
+      .serverLogicPure { combinedUser =>
         { case (id, language, fallback) =>
-          val user = maybeUser.getOrElse(TokenUser.PublicUser)
-          readService.withIdV2(id, language, fallback, user).handleErrorsOrOk
+          readService.withIdV2(id, language, fallback, combinedUser).handleErrorsOrOk
         }
       }
 
@@ -337,13 +335,8 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId / "status")
       .out(jsonBody[LearningPathStatus])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .withOptionalUser
-      .serverLogicPure {
-        maybeUser =>
-          { id =>
-            readService.statusFor(id, maybeUser.getOrElse(TokenUser.PublicUser)).handleErrorsOrOk
-          }
-      }
+      .withOptionalMyNDLAUserOrTokenUser
+      .serverLogicPure { maybeUser => id => readService.statusFor(id, maybeUser).handleErrorsOrOk }
 
     def getLearningsteps: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch learningsteps for given learningpath")
@@ -353,7 +346,7 @@ trait LearningpathControllerV2 {
       .in(language)
       .out(jsonBody[LearningStepContainerSummary])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .withOptionalUser
+      .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { maybeUser =>
         { case (id, fallback, language) =>
           readService
@@ -362,7 +355,7 @@ trait LearningpathControllerV2 {
               StepStatus.ACTIVE,
               language,
               fallback,
-              maybeUser.getOrElse(TokenUser.PublicUser)
+              maybeUser
             )
             .handleErrorsOrOk
         }
@@ -376,11 +369,11 @@ trait LearningpathControllerV2 {
       .in(fallback)
       .out(jsonBody[LearningStepV2])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .withOptionalUser
+      .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { maybeUser =>
         { case (pathId, stepId, language, fallback) =>
           readService
-            .learningstepV2For(pathId, stepId, language, fallback, maybeUser.getOrElse(TokenUser.PublicUser))
+            .learningstepV2For(pathId, stepId, language, fallback, maybeUser)
             .handleErrorsOrOk
         }
       }
@@ -393,7 +386,7 @@ trait LearningpathControllerV2 {
       .in(fallback)
       .out(jsonBody[LearningStepContainerSummary])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (id, language, fallback) =>
           readService.learningstepsForWithStatusV2(id, StepStatus.DELETED, language, fallback, user).handleErrorsOrOk
@@ -407,10 +400,9 @@ trait LearningpathControllerV2 {
       .in(fallback)
       .out(jsonBody[LearningStepStatus])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .withOptionalUser
-      .serverLogicPure { maybeUser =>
+      .withOptionalMyNDLAUserOrTokenUser
+      .serverLogicPure { user =>
         { case (pathId, stepId, fallback) =>
-          val user = maybeUser.getOrElse(TokenUser.PublicUser)
           readService
             .learningStepStatusForV2(
               pathId,
@@ -429,7 +421,7 @@ trait LearningpathControllerV2 {
       .in("mine")
       .out(jsonBody[List[LearningPathSummaryV2]])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user => _ => readService.withOwnerV2(user).asRight }
 
     def getLicenses: ServerEndpoint[Any, Eff] = endpoint.get
@@ -457,7 +449,7 @@ trait LearningpathControllerV2 {
       .out(statusCode(StatusCode.Created).and(jsonBody[LearningPathV2]))
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user => newLearningPath =>
         updateService.addLearningPathV2(newLearningPath, user) match {
           case Failure(ex) => returnLeftError(ex)
@@ -476,7 +468,7 @@ trait LearningpathControllerV2 {
       .out(statusCode(StatusCode.Created).and(jsonBody[LearningPathV2]))
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, newLearningPath) =>
           UserInfo
@@ -501,7 +493,7 @@ trait LearningpathControllerV2 {
       .in(jsonBody[UpdatedLearningPathV2])
       .out(jsonBody[LearningPathV2])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, newLearningPath) =>
           updateService
@@ -522,7 +514,7 @@ trait LearningpathControllerV2 {
       .out(statusCode(StatusCode.Created).and(jsonBody[LearningStepV2]))
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, newLearningStep) =>
           updateService
@@ -543,7 +535,7 @@ trait LearningpathControllerV2 {
       .in(jsonBody[UpdatedLearningStepV2])
       .out(jsonBody[LearningStepV2])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, stepId, updatedLearningStep) =>
           updateService
@@ -565,7 +557,7 @@ trait LearningpathControllerV2 {
       .in(jsonBody[LearningStepSeqNo])
       .out(jsonBody[LearningStepSeqNo])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, stepId, newSeqNo) =>
           updateService.updateSeqNo(pathId, stepId, newSeqNo.seqNo, user).handleErrorsOrOk
@@ -579,7 +571,7 @@ trait LearningpathControllerV2 {
       .in(jsonBody[LearningStepStatus])
       .out(jsonBody[LearningStepV2])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, stepId, learningStepStatus) =>
           val stepStatus = StepStatus.valueOfOrError(learningStepStatus.status)
@@ -602,7 +594,7 @@ trait LearningpathControllerV2 {
       .in(jsonBody[UpdateLearningPathStatus])
       .out(jsonBody[LearningPathV2])
       .errorOut(errorOutputsFor(400, 403, 404, 500))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, updateLearningPathStatus) =>
           val pathStatus = domain.LearningPathStatus.valueOfOrError(updateLearningPathStatus.status)
@@ -622,13 +614,8 @@ trait LearningpathControllerV2 {
       .in("status" / learningPathStatus)
       .out(jsonBody[List[LearningPathV2]])
       .errorOut(errorOutputsFor(400, 401, 403, 500))
-      .withOptionalUser
-      .serverLogicPure { maybeUser =>
-        { case status =>
-          val user = maybeUser.getOrElse(TokenUser.PublicUser)
-          readService.learningPathWithStatus(status, user).handleErrorsOrOk
-        }
-      }
+      .withOptionalMyNDLAUserOrTokenUser
+      .serverLogicPure { user => status => readService.learningPathWithStatus(status, user).handleErrorsOrOk }
 
     def deleteLearningpath: ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete given learningpath")
@@ -636,7 +623,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId)
       .out(statusCode(StatusCode.NoContent).and(emptyOutput))
       .errorOut(errorOutputsFor(403, 404, 500))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user => pathId =>
         updateService.updateLearningPathStatusV2(
           pathId,
@@ -657,7 +644,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
       .out(statusCode(StatusCode.NoContent).and(emptyOutput))
       .errorOut(errorOutputsFor(403, 404, 500))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, stepId) =>
           updateService.updateLearningStepStatusV2(pathId, stepId, StepStatus.DELETED, user) match {
@@ -704,7 +691,7 @@ trait LearningpathControllerV2 {
       .in(createResourceIfMissing)
       .out(jsonBody[LearningPathV2])
       .errorOut(errorOutputsFor(403, 404, 500))
-      .requirePermission()
+      .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { userInfo =>
         { case (pathId, language, fallback, createResourceIfMissing) =>
           updateService

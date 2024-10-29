@@ -12,10 +12,11 @@ import io.circe.parser
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.domain
 import no.ndla.myndlaapi.model.api.{Breadcrumb, Folder}
-import no.ndla.myndlaapi.model.domain.{FolderStatus, NewFolderData, ResourceDocument}
+import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite

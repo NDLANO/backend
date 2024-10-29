@@ -8,35 +8,32 @@
 
 package no.ndla.learningpathapi.service
 
-import cats.implicits._
-import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.common.errors.NotFoundException
+import cats.implicits.*
+import io.lemonlabs.uri.typesafe.dsl.*
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
+import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
-import no.ndla.common.model.{api => commonApi, domain => common}
+import no.ndla.common.model.{api as commonApi, domain as common}
 import no.ndla.common.{Clock, errors}
-import no.ndla.language.Language._
+import no.ndla.language.Language.*
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.integration._
-import no.ndla.learningpathapi.model.api.{LearningPathStatus => _, _}
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.integration.*
+import no.ndla.learningpathapi.model.api.{LearningPathStatus as _, *}
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
-import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
 
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: LearningPathRepositoryComponent
-    with LanguageValidator
-    with LearningPathValidator
-    with OembedProxyClient
-    with Clock
-    with Props =>
+  this: LearningPathRepositoryComponent & LanguageValidator & LearningPathValidator & OembedProxyClient & Clock &
+    Props =>
 
   val converterService: ConverterService
 
@@ -95,7 +92,7 @@ trait ConverterService {
         lp: domain.LearningPath,
         language: String,
         fallback: Boolean,
-        userInfo: TokenUser
+        userInfo: CombinedUser
     ): Try[api.LearningPathV2] = {
       val supportedLanguages = lp.supportedLanguages
       if (languageIsSupported(supportedLanguages, language) || fallback) {
@@ -174,7 +171,7 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def mergeStatus(existing: LearningPath, user: TokenUser): LearningPathStatus.Value = {
+    private def mergeStatus(existing: LearningPath, user: CombinedUser): LearningPathStatus.Value = {
       existing.status match {
         case LearningPathStatus.PUBLISHED if existing.canSetStatus(LearningPathStatus.PUBLISHED, user).isFailure =>
           LearningPathStatus.UNLISTED
@@ -185,7 +182,7 @@ trait ConverterService {
     def mergeLearningPaths(
         existing: LearningPath,
         updated: UpdatedLearningPathV2,
-        userInfo: TokenUser
+        userInfo: CombinedUser
     ): LearningPath = {
       val status = mergeStatus(existing, userInfo)
 
@@ -264,13 +261,21 @@ trait ConverterService {
       )
     }
 
-    def insertLearningSteps(learningPath: LearningPath, steps: Seq[LearningStep], user: TokenUser): LearningPath = {
+    def insertLearningSteps(
+        learningPath: LearningPath,
+        steps: Seq[LearningStep],
+        user: CombinedUserRequired
+    ): LearningPath = {
       steps.foldLeft(learningPath) { (lp, ls) =>
         insertLearningStep(lp, ls, user)
       }
     }
 
-    def insertLearningStep(learningPath: LearningPath, updatedStep: LearningStep, user: TokenUser): LearningPath = {
+    def insertLearningStep(
+        learningPath: LearningPath,
+        updatedStep: LearningStep,
+        user: CombinedUserRequired
+    ): LearningPath = {
       val status                = mergeStatus(learningPath, user)
       val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
       val steps =
@@ -315,7 +320,7 @@ trait ConverterService {
       )
     }
 
-    private def getVerificationStatus(user: TokenUser): LearningPathVerificationStatus.Value =
+    private def getVerificationStatus(user: CombinedUser): LearningPathVerificationStatus.Value =
       if (user.isNdla)
         LearningPathVerificationStatus.CREATED_BY_NDLA
       else LearningPathVerificationStatus.EXTERNAL
@@ -323,8 +328,8 @@ trait ConverterService {
     def newFromExistingLearningPath(
         existing: LearningPath,
         newLearningPath: NewCopyLearningPathV2,
-        user: TokenUser
-    ): LearningPath = {
+        user: CombinedUser
+    ): Try[LearningPath] = {
       val oldTitle = Seq(common.Title(newLearningPath.title, newLearningPath.language))
 
       val oldDescription = newLearningPath.description match {
@@ -339,63 +344,66 @@ trait ConverterService {
           Seq(common.Tag(value, newLearningPath.language))
       }
 
-      val title       = mergeLanguageFields(existing.title, oldTitle)
-      val description = mergeLanguageFields(existing.description, oldDescription)
-      val tags        = converterService.mergeLearningPathTags(existing.tags, oldTags)
-      val coverPhotoId = newLearningPath.coverPhotoMetaUrl
-        .map(converterService.extractImageId)
-        .getOrElse(existing.coverPhotoId)
-      val duration =
-        if (newLearningPath.duration.nonEmpty) newLearningPath.duration
-        else existing.duration
-      val copyright = newLearningPath.copyright
-        .map(converterService.asCopyright)
-        .getOrElse(existing.copyright)
+      user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
+        val title       = mergeLanguageFields(existing.title, oldTitle)
+        val description = mergeLanguageFields(existing.description, oldDescription)
+        val tags        = converterService.mergeLearningPathTags(existing.tags, oldTags)
+        val coverPhotoId = newLearningPath.coverPhotoMetaUrl
+          .map(converterService.extractImageId)
+          .getOrElse(existing.coverPhotoId)
+        val duration =
+          if (newLearningPath.duration.nonEmpty) newLearningPath.duration
+          else existing.duration
+        val copyright = newLearningPath.copyright
+          .map(converterService.asCopyright)
+          .getOrElse(existing.copyright)
 
-      existing.copy(
-        id = None,
-        revision = None,
-        externalId = None,
-        isBasedOn = if (existing.isPrivate) None else existing.id,
-        title = title,
-        description = description,
-        status = LearningPathStatus.PRIVATE,
-        verificationStatus = getVerificationStatus(user),
-        lastUpdated = clock.now(),
-        owner = user.id,
-        copyright = copyright,
-        learningsteps = existing.learningsteps.map(ls =>
-          ls.map(_.copy(id = None, revision = None, externalId = None, learningPathId = None))
-        ),
-        tags = tags,
-        coverPhotoId = coverPhotoId,
-        duration = duration
-      )
+        existing.copy(
+          id = None,
+          revision = None,
+          externalId = None,
+          isBasedOn = if (existing.isPrivate) None else existing.id,
+          title = title,
+          description = description,
+          status = LearningPathStatus.PRIVATE,
+          verificationStatus = getVerificationStatus(user),
+          lastUpdated = clock.now(),
+          owner = ownerId,
+          copyright = copyright,
+          learningsteps = existing.learningsteps
+            .map(ls => ls.map(_.copy(id = None, revision = None, externalId = None, learningPathId = None))),
+          tags = tags,
+          coverPhotoId = coverPhotoId,
+          duration = duration
+        )
+      }
     }
 
-    def newLearningPath(newLearningPath: NewLearningPathV2, user: TokenUser): LearningPath = {
+    def newLearningPath(newLearningPath: NewLearningPathV2, user: CombinedUser): Try[LearningPath] = {
       val domainTags =
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
           Seq(common.Tag(newLearningPath.tags, newLearningPath.language))
 
-      domain.LearningPath(
-        None,
-        None,
-        None,
-        None,
-        Seq(common.Title(newLearningPath.title, newLearningPath.language)),
-        Seq(domain.Description(newLearningPath.description, newLearningPath.language)),
-        newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
-        newLearningPath.duration,
-        domain.LearningPathStatus.PRIVATE,
-        getVerificationStatus(user),
-        clock.now(),
-        domainTags,
-        user.id,
-        converterService.asCopyright(newLearningPath.copyright),
-        Some(Seq.empty)
-      )
+      user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
+        domain.LearningPath(
+          None,
+          None,
+          None,
+          None,
+          Seq(common.Title(newLearningPath.title, newLearningPath.language)),
+          Seq(domain.Description(newLearningPath.description, newLearningPath.language)),
+          newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
+          newLearningPath.duration,
+          domain.LearningPathStatus.PRIVATE,
+          getVerificationStatus(user),
+          clock.now(),
+          domainTags,
+          ownerId,
+          converterService.asCopyright(newLearningPath.copyright),
+          Some(Seq.empty)
+        )
+      }
     }
 
     def getApiIntroduction(learningSteps: Seq[domain.LearningStep]): Seq[api.Introduction] = {
@@ -412,7 +420,7 @@ trait ConverterService {
 
     def asApiLearningpathSummaryV2(
         learningpath: domain.LearningPath,
-        user: TokenUser
+        user: CombinedUser
     ): Try[api.LearningPathSummaryV2] = {
       val supportedLanguages = learningpath.supportedLanguages
 
@@ -463,7 +471,7 @@ trait ConverterService {
         lp: domain.LearningPath,
         language: String,
         fallback: Boolean,
-        user: TokenUser
+        user: CombinedUser
     ): Try[api.LearningStepV2] = {
       val supportedLanguages = ls.supportedLanguages
 

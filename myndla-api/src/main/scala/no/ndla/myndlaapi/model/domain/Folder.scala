@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.model.domain
 
 import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.network.model.FeideID
 import scalikejdbc.*
 

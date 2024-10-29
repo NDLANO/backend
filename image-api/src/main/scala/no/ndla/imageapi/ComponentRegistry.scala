@@ -73,19 +73,20 @@ class ComponentRegistry(properties: ImageApiProperties)
 
   lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
 
-  lazy val imageIndexService      = new ImageIndexService
-  lazy val imageSearchService     = new ImageSearchService
-  lazy val tagIndexService        = new TagIndexService
-  lazy val tagSearchService       = new TagSearchService
-  lazy val imageRepository        = new ImageRepository
-  lazy val readService            = new ReadService
-  lazy val writeService           = new WriteService
-  lazy val validationService      = new ValidationService
-  lazy val imageStorage           = new AmazonImageStorageService
-  lazy val ndlaClient             = new NdlaClient
-  lazy val converterService       = new ConverterService
-  var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
-  lazy val searchConverterService = new SearchConverterService
+  lazy val imageIndexService                = new ImageIndexService
+  lazy val imageSearchService               = new ImageSearchService
+  lazy val tagIndexService                  = new TagIndexService
+  lazy val tagSearchService                 = new TagSearchService
+  lazy val imageRepository                  = new ImageRepository
+  lazy val readService                      = new ReadService
+  lazy val writeService                     = new WriteService
+  lazy val validationService                = new ValidationService
+  lazy val imageStorage                     = new AmazonImageStorageService
+  lazy val ndlaClient                       = new NdlaClient
+  lazy val converterService                 = new ConverterService
+  var e4sClient: NdlaE4sClient              = Elastic4sClientFactory.getClient(props.SearchServer)
+  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  lazy val searchConverterService           = new SearchConverterService
 
   lazy val imageConverter = new ImageConverter
   lazy val clock          = new SystemClock

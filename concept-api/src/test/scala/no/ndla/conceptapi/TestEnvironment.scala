@@ -95,6 +95,7 @@ trait TestEnvironment
   val importService: ImportService       = mock[ImportService]
 
   val ndlaClient: NdlaClient             = mock[NdlaClient]
+  val myndlaApiClient: MyNDLAApiClient   = mock[MyNDLAApiClient]
   val articleApiClient: ArticleApiClient = mock[ArticleApiClient]
   val searchApiClient: SearchApiClient   = mock[SearchApiClient]
 

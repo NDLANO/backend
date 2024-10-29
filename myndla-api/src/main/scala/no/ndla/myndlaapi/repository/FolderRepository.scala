@@ -13,13 +13,13 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{NotFoundException, RollbackException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.myndlaapi.model.domain.{
+  DBMyNDLAUser,
   Folder,
   FolderResource,
-  FolderStatus,
-  MyNDLAUser,
   NDLASQLException,
   NewFolderData,
   Resource,
@@ -500,7 +500,7 @@ trait FolderRepository {
     def getSharedFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit
         session: DBSession
     ): Try[Option[Folder]] = Try {
-      val u   = MyNDLAUser.syntax("u")
+      val u   = DBMyNDLAUser.syntax("u")
       val r   = Resource.syntax("r")
       val fr  = FolderResource.syntax("fr")
       val sfu = SavedSharedFolder.syntax("sfu")
@@ -519,13 +519,13 @@ trait FolderRepository {
             SELECT childs.*, ${r.resultAll}, ${u.resultAll}, ${fr.resultAll}, ${sfu.resultAll} FROM childs
             LEFT JOIN ${FolderResource.as(fr)} ON ${fr.folderId} = f_id
             LEFT JOIN ${Resource.as(r)} ON ${r.id} = ${fr.resourceId}
-            LEFT JOIN ${MyNDLAUser.as(u)} on ${u.feideId} = f_feide_id
+            LEFT JOIN ${DBMyNDLAUser.as(u)} on ${u.feideId} = f_feide_id
             LEFT JOIN ${SavedSharedFolder.as(sfu)} on ${sfu.folderId} = f_id;
          """
         .one(rs => Folder.fromResultSet(s => s"f_$s")(rs))
         .toManies(
           rs => Resource.fromResultSetSyntaxProviderWithConnection(r, fr)(rs).sequence,
-          rs => Try(MyNDLAUser.fromResultSet(u)(rs)).toOption,
+          rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
           rs => Try(SavedSharedFolder.fromResultSet(sfu)(rs)).toOption
         )
         .map((folder, resources, user, savedSharedFolder) => {

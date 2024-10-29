@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
@@ -60,7 +60,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val ndlaClient          = new NdlaClient
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
 
-  lazy val myndlaapiClient: MyNDLAApiClient = new MyNDLAApiClient
+  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
   lazy val taxonomyApiClient = new TaxonomyApiClient
   lazy val grepApiClient     = new GrepApiClient

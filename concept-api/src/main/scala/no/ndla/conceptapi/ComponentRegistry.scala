@@ -79,9 +79,10 @@ class ComponentRegistry(properties: ConceptApiProperties)
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  lazy val ndlaClient       = new NdlaClient
-  lazy val articleApiClient = new ArticleApiClient
-  lazy val searchApiClient  = new SearchApiClient
+  lazy val ndlaClient                       = new NdlaClient
+  lazy val articleApiClient                 = new ArticleApiClient
+  lazy val searchApiClient                  = new SearchApiClient
+  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
   lazy val importService = new ImportService
 

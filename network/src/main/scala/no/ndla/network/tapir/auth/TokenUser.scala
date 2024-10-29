@@ -7,14 +7,14 @@
 
 package no.ndla.network.tapir.auth
 
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.network.jwt.JWTExtractor
-import no.ndla.network.model.JWTClaims
+import no.ndla.network.model.{CombinedUserWithTokenUser, JWTClaims}
 import sttp.model.HeaderNames
 import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.EndpointInput.{AuthInfo, AuthType}
-import sttp.tapir._
+import sttp.tapir.*
 
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
@@ -27,6 +27,7 @@ case class TokenUser(
 ) {
   def hasPermission(permission: Permission): Boolean             = permissions.contains(permission)
   def hasPermissions(permissions: Iterable[Permission]): Boolean = permissions.forall(hasPermission)
+  def toCombined: CombinedUserWithTokenUser                      = CombinedUserWithTokenUser(this, None)
 }
 
 object TokenUser {

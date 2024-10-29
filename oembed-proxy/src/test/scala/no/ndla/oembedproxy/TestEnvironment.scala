@@ -34,6 +34,7 @@ trait TestEnvironment
   val oEmbedService: OEmbedService                 = mock[OEmbedService]
   val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
   val ndlaClient: NdlaClient                       = mock[NdlaClient]
+  val myndlaApiClient: MyNDLAApiClient             = mock[MyNDLAApiClient]
   val providerService: ProviderService             = mock[ProviderService]
   val healthController: TapirHealthController      = mock[TapirHealthController]
   val clock: SystemClock                           = mock[SystemClock]

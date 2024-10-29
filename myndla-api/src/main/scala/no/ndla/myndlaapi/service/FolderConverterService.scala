@@ -9,11 +9,17 @@
 package no.ndla.myndlaapi.service
 
 import cats.implicits.*
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, model}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.api.myndla.{UpdatedMyNDLAUser}
+import no.ndla.common.model.domain.myndla
+import no.ndla.common.model.domain.myndla.{
+  FolderStatus,
+  MyNDLAGroup as DomainMyNDLAGroup,
+  MyNDLAUser as DomainMyNDLAUser
+}
 import no.ndla.myndlaapi.model.api.{Folder, Owner}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.model.domain.{MyNDLAGroup, MyNDLAUser}
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -30,13 +36,13 @@ trait FolderConverterService {
     def toApiFolder(
         domainFolder: domain.Folder,
         breadcrumbs: List[api.Breadcrumb],
-        feideUser: Option[MyNDLAUser],
+        feideUser: Option[DomainMyNDLAUser],
         isOwner: Boolean
     ): Try[Folder] = {
       def loop(
           folder: domain.Folder,
           crumbs: List[api.Breadcrumb],
-          feideUser: Option[MyNDLAUser]
+          feideUser: Option[DomainMyNDLAUser]
       ): Try[Folder] = folder.subfolders
         .traverse(folder => {
           val newCrumb = api.Breadcrumb(
@@ -73,13 +79,13 @@ trait FolderConverterService {
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
       val name        = updated.name.getOrElse(existing.name)
-      val status      = updated.status.flatMap(domain.FolderStatus.valueOf).getOrElse(existing.status)
+      val status      = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
       val description = updated.description.orElse(existing.description)
 
       val shared = (existing.status, status) match {
-        case (domain.FolderStatus.PRIVATE, domain.FolderStatus.SHARED) => Some(clock.now())
-        case (domain.FolderStatus.SHARED, domain.FolderStatus.SHARED)  => existing.shared
-        case (domain.FolderStatus.SHARED, domain.FolderStatus.PRIVATE) => None
+        case (myndla.FolderStatus.PRIVATE, myndla.FolderStatus.SHARED) => Some(clock.now())
+        case (myndla.FolderStatus.SHARED, myndla.FolderStatus.SHARED)  => existing.shared
+        case (myndla.FolderStatus.SHARED, myndla.FolderStatus.PRIVATE) => None
         case _                                                         => None
       }
 
@@ -156,7 +162,7 @@ trait FolderConverterService {
         parentId: Option[UUID],
         newRank: Int
     ): Try[domain.NewFolderData] = {
-      val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+      val newStatus = myndla.FolderStatus.valueOf(newFolder.status).getOrElse(myndla.FolderStatus.PRIVATE)
 
       Success(
         domain.NewFolderData(
@@ -170,11 +176,11 @@ trait FolderConverterService {
     }
 
     def toApiUserData(
-        domainUserData: MyNDLAUser,
+        domainUserData: DomainMyNDLAUser,
         arenaEnabledOrgs: List[String]
-    ): api.MyNDLAUser = {
+    ): model.api.myndla.MyNDLAUser = {
       val arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs)
-      api.MyNDLAUser(
+      model.api.myndla.MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         username = domainUserData.username,
@@ -190,7 +196,7 @@ trait FolderConverterService {
       )
     }
 
-    def getArenaEnabled(userData: MyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
+    def getArenaEnabled(userData: DomainMyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
       userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization)
 
     def domainToApiModel[Domain, Api](
@@ -212,8 +218,8 @@ trait FolderConverterService {
       loop(domainObjects, List())
     }
 
-    private def toApiGroup(group: MyNDLAGroup): api.MyNDLAGroup = {
-      api.MyNDLAGroup(
+    private def toApiGroup(group: DomainMyNDLAGroup): model.api.myndla.MyNDLAGroup = {
+      model.api.myndla.MyNDLAGroup(
         id = group.id,
         displayName = group.displayName,
         isPrimarySchool = group.isPrimarySchool,
@@ -222,12 +228,12 @@ trait FolderConverterService {
     }
 
     def mergeUserData(
-        domainUserData: domain.MyNDLAUser,
-        updatedUser: api.UpdatedMyNDLAUser,
+        domainUserData: DomainMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUser,
         updaterToken: Option[TokenUser],
-        updaterUser: Option[MyNDLAUser],
+        updaterUser: Option[DomainMyNDLAUser],
         arenaEnabledUsers: List[String]
-    ): domain.MyNDLAUser = {
+    ): DomainMyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
@@ -241,7 +247,7 @@ trait FolderConverterService {
         if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
         else domainUserData.arenaGroups
 
-      domain.MyNDLAUser(
+      DomainMyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         favoriteSubjects = favoriteSubjects,

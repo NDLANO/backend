@@ -29,6 +29,7 @@ import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
 import no.ndla.learningpathapi.model.api.Copyright
+import no.ndla.network.model.CombinedUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{never, times, verify, when}
 
@@ -248,7 +249,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   override def beforeEach(): Unit = {
     service = new UpdateService
     resetMocks()
-    when(readService.canWriteNow(any[TokenUser])).thenReturn(Success(true))
+    when(readService.canWriteNow(any[CombinedUser])).thenReturn(Success(true))
     when(searchIndexService.deleteDocument(any[domain.LearningPath], any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.LearningPath](0))
     )
@@ -267,7 +268,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(PRIVATE_LEARNINGPATH)
 
     val saved =
-      service.addLearningPathV2(NEW_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER)
+      service.addLearningPathV2(NEW_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
     assert(saved.get.id == PRIVATE_LEARNINGPATH.id.get)
 
     verify(learningPathRepository, times(1)).insert(any[domain.LearningPath])(any)
@@ -276,7 +277,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That updateLearningPathV2 returns Failure when the given ID does not exist") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER)
+    val Failure(ex) = service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
     ex should be(NotFoundException("Could not find learningpath with id '2'."))
   }
 
@@ -287,7 +288,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult(PRIVATE_LEARNINGPATH.id.get) {
       service
-        .updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER)
+        .updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
         .get
         .id
     }
@@ -306,7 +307,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult(PRIVATE_LEARNINGPATH.id.get) {
       service
-        .updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER)
+        .updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
         .get
         .id
     }
@@ -322,7 +323,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult(PUBLISHED_LEARNINGPATH.id.get) {
       service
-        .updateLearningPathV2(PUBLISHED_ID, UPDATED_PUBLISHED_LEARNINGPATHV2, PUBLISHED_OWNER)
+        .updateLearningPathV2(PUBLISHED_ID, UPDATED_PUBLISHED_LEARNINGPATHV2, PUBLISHED_OWNER.toCombined)
         .get
         .id
     }
@@ -335,7 +336,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       service.updateLearningPathV2(
         PRIVATE_ID,
         UPDATED_PRIVATE_LEARNINGPATHV2,
-        TokenUser("not_the_owner", Set.empty, None)
+        TokenUser("not_the_owner", Set.empty, None).toCombined
       )
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
@@ -346,7 +347,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(PUBLISHED_LEARNINGPATH.copy(status = LearningPathStatus.UNLISTED))
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val result = service.updateLearningPathV2(PUBLISHED_ID, UPDATED_PUBLISHED_LEARNINGPATHV2, PUBLISHED_OWNER).get
+    val result =
+      service.updateLearningPathV2(PUBLISHED_ID, UPDATED_PUBLISHED_LEARNINGPATHV2, PUBLISHED_OWNER.toCombined).get
     result.id should be(PUBLISHED_LEARNINGPATH.id.get)
     result.status should be(LearningPathStatus.UNLISTED.toString)
   }
@@ -356,14 +358,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.update(any[domain.LearningPath])(any[DBSession])).thenReturn(PRIVATE_LEARNINGPATH)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val result = service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER).get
+    val result = service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined).get
     result.id should be(PRIVATE_LEARNINGPATH.id.get)
     result.status should be(LearningPathStatus.PRIVATE.toString)
   }
 
   test("That updateLearningPathStatusV2 returns None when the given ID does not exist") {
     when(learningPathRepository.withIdIncludingDeleted(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.PUBLISHED, PRIVATE_OWNER, "nb")
+    val Failure(ex) =
+      service.updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.PUBLISHED, PRIVATE_OWNER.toCombined, "nb")
     ex should be(NotFoundException(s"Could not find learningpath with id '$PRIVATE_ID'."))
   }
 
@@ -379,7 +382,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PUBLISHED_ID,
           LearningPathStatus.PRIVATE,
-          PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
+          PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined,
           "nb"
         )
         .get
@@ -404,7 +407,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PUBLISHED_ID,
           LearningPathStatus.PRIVATE,
-          TokenUser("not_the_owner", Set(LEARNINGPATH_API_ADMIN), None),
+          TokenUser("not_the_owner", Set(LEARNINGPATH_API_ADMIN), None).toCombined,
           "nb"
         )
         .get
@@ -426,7 +429,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult("DELETED") {
       service
-        .updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.DELETED, PRIVATE_OWNER, "nb")
+        .updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.DELETED, PRIVATE_OWNER.toCombined, "nb")
         .get
         .status
     }
@@ -442,7 +445,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult("UNLISTED") {
       service
-        .updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.UNLISTED, PRIVATE_OWNER, "nb")
+        .updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.UNLISTED, PRIVATE_OWNER.toCombined, "nb")
         .get
         .status
     }
@@ -463,7 +466,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PRIVATE_ID,
           LearningPathStatus.PUBLISHED,
-          PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
+          PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined,
           "nb"
         )
         .get
@@ -491,7 +494,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .updateLearningPathStatusV2(
           PUBLISHED_ID,
           LearningPathStatus.DELETED,
-          PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
+          PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined,
           "nb"
         )
         .get
@@ -507,7 +510,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That updateLearningPathStatusV2 throws an AccessDeniedException when non-admin tries to publish") {
     when(learningPathRepository.withIdIncludingDeleted(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.PUBLISHED, PRIVATE_OWNER, "nb")
+    val Failure(ex) =
+      service.updateLearningPathStatusV2(PRIVATE_ID, LearningPathStatus.PUBLISHED, PRIVATE_OWNER.toCombined, "nb")
     ex should be(AccessDeniedException("You need to be a publisher to publish learningpaths."))
   }
 
@@ -520,7 +524,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult("PRIVATE") {
       service
-        .updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.PRIVATE, PUBLISHED_OWNER, "nb")
+        .updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.PRIVATE, PUBLISHED_OWNER.toCombined, "nb")
         .get
         .status
     }
@@ -537,7 +541,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult("UNLISTED") {
       service
-        .updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.UNLISTED, PUBLISHED_OWNER, "nb")
+        .updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.UNLISTED, PUBLISHED_OWNER.toCombined, "nb")
         .get
         .status
     }
@@ -548,7 +552,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That updateLearningPathStatusV2 throws an AccessDeniedException when non-owner tries to change status") {
     when(learningPathRepository.withIdIncludingDeleted(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    val Failure(ex) = service.updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.PRIVATE, PRIVATE_OWNER, "nb")
+    val Failure(ex) =
+      service.updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.PRIVATE, PRIVATE_OWNER.toCombined, "nb")
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -570,7 +575,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     service.updateLearningPathStatusV2(
       PUBLISHED_ID,
       LearningPathStatus.PRIVATE,
-      PUBLISHED_OWNER,
+      PUBLISHED_OWNER.toCombined,
       "nb",
       Some("new message")
     )
@@ -589,7 +594,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     service.updateLearningPathStatusV2(
       PUBLISHED_ID,
       LearningPathStatus.PRIVATE,
-      PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)),
+      PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined,
       "nb",
       Some("new message")
     )
@@ -604,7 +609,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That addLearningStepV2 returns None when the given learningpath does not exist") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.addLearningStepV2(PRIVATE_ID, NEW_STEPV2, PRIVATE_OWNER)
+    val Failure(ex) = service.addLearningStepV2(PRIVATE_ID, NEW_STEPV2, PRIVATE_OWNER.toCombined)
     ex.isInstanceOf[NotFoundException] should be(true)
     verify(learningPathRepository, never).insertLearningStep(any[domain.LearningStep])(any)
     verify(learningPathRepository, never).update(any[domain.LearningPath])(any)
@@ -621,7 +626,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     assertResult(STEP1.id.get) {
-      service.addLearningStepV2(PRIVATE_ID, NEW_STEPV2, PRIVATE_OWNER).get.id
+      service.addLearningStepV2(PRIVATE_ID, NEW_STEPV2, PRIVATE_OWNER.toCombined).get.id
     }
     verify(learningPathRepository, times(1))
       .insertLearningStep(any[domain.LearningStep])(any[DBSession])
@@ -641,7 +646,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
     assertResult(STEP2.id.get) {
       service
-        .addLearningStepV2(PUBLISHED_ID, NEW_STEPV2, PUBLISHED_OWNER)
+        .addLearningStepV2(PUBLISHED_ID, NEW_STEPV2, PUBLISHED_OWNER.toCombined)
         .get
         .id
     }
@@ -655,14 +660,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That addLearningStepV2 throws an AccessDeniedException when the given user is NOT the owner") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    val Failure(ex) = service.addLearningStepV2(PUBLISHED_ID, NEW_STEPV2, PRIVATE_OWNER)
+    val Failure(ex) = service.addLearningStepV2(PUBLISHED_ID, NEW_STEPV2, PRIVATE_OWNER.toCombined)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
   test("That updateLearningStepV2 returns None when the learningpathV2 does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
 
-    val Failure(ex) = service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER)
+    val Failure(ex) =
+      service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER.toCombined)
     ex.isInstanceOf[NotFoundException] should be(true)
 
     verify(learningPathRepository, never).updateLearningStep(any[domain.LearningStep])(any)
@@ -673,7 +679,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(any[DBSession]))
       .thenReturn(None)
-    val Failure(ex) = service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER)
+    val Failure(ex) =
+      service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER.toCombined)
     ex.isInstanceOf[NotFoundException] should be(true)
     verify(learningPathRepository, never).updateLearningStep(any[domain.LearningStep])(any[DBSession])
     verify(learningPathRepository, never).update(any[domain.LearningPath])(any[DBSession])
@@ -696,7 +703,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
           PUBLISHED_ID,
           STEP1.id.get,
           UPDATED_STEPV2,
-          PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN))
+          PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined
         )
         .get
         .id
@@ -722,7 +729,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     assertResult(STEP1.id.get) {
       service
-        .updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PRIVATE_OWNER)
+        .updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PRIVATE_OWNER.toCombined)
         .get
         .id
     }
@@ -736,7 +743,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That updateLearningStepV2 throws an AccessDeniedException when the given user is NOT the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get)).thenReturn(Some(STEP1))
-    val Failure(ex) = service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER)
+    val Failure(ex) = service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER.toCombined)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -744,7 +751,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
 
     val Failure(ex) =
-      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER)
+      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
     ex.isInstanceOf[NotFoundException] should be(true)
   }
 
@@ -755,7 +762,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(None)
 
     val Failure(ex) =
-      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER)
+      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
     ex.isInstanceOf[NotFoundException] should be(true)
   }
 
@@ -775,7 +782,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PRIVATE_OWNER)
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PRIVATE_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
@@ -804,7 +811,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER)
+      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
@@ -837,7 +844,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PRIVATE_OWNER)
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PRIVATE_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
@@ -869,7 +876,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.ACTIVE, PRIVATE_OWNER)
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.ACTIVE, PRIVATE_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.ACTIVE.entryName)
 
@@ -898,7 +905,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PRIVATE_ID, STEP3.id.get, StepStatus.DELETED, PRIVATE_OWNER)
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP3.id.get, StepStatus.DELETED, PRIVATE_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
@@ -926,7 +933,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PRIVATE_ID, STEP3.id.get, StepStatus.ACTIVE, PRIVATE_OWNER)
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP3.id.get, StepStatus.ACTIVE, PRIVATE_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.ACTIVE.entryName)
 
@@ -951,7 +958,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PRIVATE_ID, STEP2.id.get, StepStatus.DELETED, PRIVATE_OWNER)
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP2.id.get, StepStatus.DELETED, PRIVATE_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
@@ -981,7 +988,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PRIVATE_ID, STEP2.id.get, StepStatus.ACTIVE, PRIVATE_OWNER)
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP2.id.get, StepStatus.ACTIVE, PRIVATE_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.ACTIVE.entryName)
 
@@ -999,7 +1006,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get))
       .thenReturn(Some(STEP1))
-    val Failure(ex) = service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER)
+    val Failure(ex) =
+      service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -1009,7 +1017,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP1.id.get))(any[DBSession]))
       .thenReturn(Some(STEP1))
 
-    val Failure(exception: ValidationException) = service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 100, PRIVATE_OWNER)
+    val Failure(exception: ValidationException) =
+      service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 100, PRIVATE_OWNER.toCombined)
 
     exception.errors.length should be(1)
     exception.errors.head.field should equal("seqNo")
@@ -1023,7 +1032,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(STEP1))
 
     val updatedStep =
-      service.updateSeqNo(PRIVATE_ID, STEP1.id.get, STEP6.seqNo, PRIVATE_OWNER)
+      service.updateSeqNo(PRIVATE_ID, STEP1.id.get, STEP6.seqNo, PRIVATE_OWNER.toCombined)
     updatedStep.get.seqNo should equal(STEP6.seqNo)
 
     verify(learningPathRepository, times(1))
@@ -1047,7 +1056,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(STEP6))
 
     val updatedStep =
-      service.updateSeqNo(PRIVATE_ID, STEP6.id.get, STEP1.seqNo, PRIVATE_OWNER)
+      service.updateSeqNo(PRIVATE_ID, STEP6.id.get, STEP1.seqNo, PRIVATE_OWNER.toCombined)
     updatedStep.get.seqNo should equal(STEP1.seqNo)
 
     verify(learningPathRepository, times(1))
@@ -1071,7 +1080,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(STEP2))
 
     val updatedStep =
-      service.updateSeqNo(PRIVATE_ID, STEP2.id.get, STEP3.seqNo, PRIVATE_OWNER)
+      service.updateSeqNo(PRIVATE_ID, STEP2.id.get, STEP3.seqNo, PRIVATE_OWNER.toCombined)
     updatedStep.get.seqNo should equal(STEP3.seqNo)
 
     verify(learningPathRepository, times(1))
@@ -1087,7 +1096,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(STEP1))
 
     val updatedStep =
-      service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 1, PRIVATE_OWNER)
+      service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 1, PRIVATE_OWNER.toCombined)
     updatedStep.get.seqNo should equal(1)
 
     verify(learningPathRepository, times(2))
@@ -1105,7 +1114,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newCopy =
       NewCopyLearningPathV2("hehe", None, "nb", None, None, None, None)
     service
-      .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty, None))
+      .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty, None).toCombined)
       .isSuccess should be(true)
   }
 
@@ -1113,7 +1122,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
 
-    val Failure(ex) = service.newFromExistingV2(PRIVATE_ID, NEW_COPIED_LEARNINGPATHV2, PUBLISHED_OWNER)
+    val Failure(ex) = service.newFromExistingV2(PRIVATE_ID, NEW_COPIED_LEARNINGPATHV2, PUBLISHED_OWNER.toCombined)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -1133,7 +1142,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedLs = UpdatedLearningStepV2(1, Some("Dårlig tittel"), "nb", None, None, None, None, None)
-    service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, updatedLs, PUBLISHED_OWNER)
+    service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, updatedLs, PUBLISHED_OWNER.toCombined)
     val updatedPath = PUBLISHED_LEARNINGPATH.copy(
       status = LearningPathStatus.UNLISTED,
       lastUpdated = newDate,
@@ -1159,7 +1168,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val lpToUpdate = UpdatedLearningPathV2(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None)
-    service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER)
+    service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
       title = List(Title("YapThisUpdated", "nb")),
@@ -1188,7 +1197,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedLs = UpdatedLearningStepV2(1, Some("Dårlig tittel"), "nb", None, None, None, None, None)
-    service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, updatedLs, PRIVATE_OWNER)
+    service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, updatedLs, PRIVATE_OWNER.toCombined)
     val updatedPath = PRIVATE_LEARNINGPATH.copy(
       lastUpdated = newDate,
       learningsteps = Some(PRIVATE_LEARNINGPATH.learningsteps.get.tail ++ List(stepWithBadTitle))
@@ -1219,7 +1228,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       PUBLISHED_ID,
       STEP1.id.get,
       updatedLs,
-      PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN))
+      PUBLISHED_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined
     )
     val updatedPath = PUBLISHED_LEARNINGPATH.copy(
       lastUpdated = newDate,
@@ -1233,7 +1242,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That newFromExistingV2 returns None when given id does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PUBLISHED_OWNER)
+    val Failure(ex) = service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PUBLISHED_OWNER.toCombined)
     ex.isInstanceOf[NotFoundException] should be(true)
   }
 
@@ -1246,7 +1255,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.insert(any[domain.LearningPath])(any[DBSession]))
       .thenReturn(PUBLISHED_LEARNINGPATH_NO_STEPS)
 
-    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER)
+    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
 
     val expectedNewLearningPath = PUBLISHED_LEARNINGPATH_NO_STEPS.copy(
       id = None,
@@ -1271,7 +1280,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.insert(any[domain.LearningPath])(any[DBSession]))
       .thenReturn(PRIVATE_LEARNINGPATH_NO_STEPS)
 
-    service.newFromExistingV2(PRIVATE_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER)
+    service.newFromExistingV2(PRIVATE_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
 
     val expectedNewLearningPath = PRIVATE_LEARNINGPATH_NO_STEPS.copy(
       id = None,
@@ -1296,7 +1305,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.insert(any[domain.LearningPath])(any[DBSession]))
       .thenReturn(PUBLISHED_LEARNINGPATH_NO_STEPS)
 
-    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER)
+    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
 
     val expectedNewLearningPath = PUBLISHED_LEARNINGPATH_NO_STEPS.copy(
       id = None,
@@ -1338,7 +1347,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         coverPhotoMetaUrl = coverPhotoToOverride,
         duration = durationOverride
       ),
-      PRIVATE_OWNER
+      PRIVATE_OWNER.toCombined
     )
 
     val expectedNewLearningPath = PUBLISHED_LEARNINGPATH_NO_STEPS.copy(
@@ -1374,7 +1383,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.insert(any[domain.LearningPath])(any[DBSession]))
       .thenReturn(PUBLISHED_LEARNINGPATH)
 
-    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER)
+    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
 
     val expectedNewLearningPath = PUBLISHED_LEARNINGPATH.copy(
       id = None,
@@ -1410,7 +1419,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val lpToUpdate = UpdatedLearningPathV2(1, None, "nb", None, None, None, None, None, Some(true))
-    service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER)
+    service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
       status = LearningPathStatus.UNLISTED,
@@ -1423,9 +1432,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That writeOrAccessDenied denies writes while write restriction is enabled.") {
     val readMock = mock[ReadService]
-    when(readService.canWriteNow(any[TokenUser])).thenReturn(Success(false))
+    when(readService.canWriteNow(any[CombinedUser])).thenReturn(Success(false))
 
-    service.writeDuringWriteRestrictionOrAccessDenied(TokenUser("SomeDude", scopes = Set(), None)) {
+    service.writeDuringWriteRestrictionOrAccessDenied(TokenUser("SomeDude", scopes = Set(), None).toCombined) {
       Success(readMock.tags)
     }
     verify(readMock, times(0)).tags

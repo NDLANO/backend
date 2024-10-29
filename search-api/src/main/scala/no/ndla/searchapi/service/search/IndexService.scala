@@ -16,6 +16,7 @@ import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateR
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.common.model.domain.Content
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
@@ -68,7 +69,7 @@ trait IndexService {
       val bundles = for {
         taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(shouldUsePublishedTax)
         grepBundle     <- grepApiClient.getGrepBundle()
-        myndlaBundle   <- myndlaapiClient.getMyNDLABundle
+        myndlaBundle   <- myndlaApiClient.getMyNDLABundle
       } yield IndexingBundle(Some(grepBundle), Some(taxonomyBundle), Some(myndlaBundle))
       bundles match {
         case Failure(ex) =>

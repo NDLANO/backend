@@ -36,6 +36,7 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
   lazy val ndlaClient                              = new NdlaClient
   lazy val oEmbedProxyController                   = new OEmbedProxyController
   lazy val healthController: TapirHealthController = new TapirHealthController
+  lazy val myndlaApiClient: MyNDLAApiClient        = new MyNDLAApiClient
 
   lazy val clock = new SystemClock
 

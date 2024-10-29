@@ -19,7 +19,9 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import io.circe.generic.auto.*
-import no.ndla.myndlaapi.model.api.{ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser}
+import no.ndla.common.model.api.myndla.{MyNDLAUser, UpdatedMyNDLAUser}
+import no.ndla.common.model.domain.myndla.auth.AuthUtility
+import no.ndla.myndlaapi.model.api.ExportedUserData
 import no.ndla.myndlaapi.service.{ArenaReadService, FolderReadService, FolderWriteService, UserService}
 import no.ndla.network.model.FeideID
 import no.ndla.network.tapir.auth.TokenUser
@@ -69,7 +71,7 @@ trait UserController {
       .out(jsonBody[MyNDLAUser])
       .errorOut(errorOutputsFor(401, 403, 404))
       .securityIn(TokenUser.oauth2Input(Seq.empty))
-      .securityIn(MyNDLAAuthHelpers.feideOauth())
+      .securityIn(AuthUtility.feideOauth())
       .serverSecurityLogicPure { case (tokenUser, feideToken) =>
         val arenaUser = feideToken.traverse(token => userService.getArenaEnabledUser(Some(token))).toOption.flatten
         if (tokenUser.hasPermission(LEARNINGPATH_API_ADMIN) || arenaUser.exists(_.isAdmin)) {

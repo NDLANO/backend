@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.model.api
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import no.ndla.myndlaapi.model.domain.{ArenaGroup, MyNDLAUser}
+import no.ndla.common.model.domain
 import sttp.tapir.Schema.annotations.description
 
 @description("Arena owner data")
@@ -19,12 +19,12 @@ case class ArenaUser(
     @description("The name") displayName: String,
     @description("The username") username: String,
     @description("The location") location: String,
-    @description("Which groups the user belongs to") groups: List[ArenaGroup]
+    @description("Which groups the user belongs to") groups: List[domain.myndla.ArenaGroup]
 )
 
 object ArenaUser {
 
-  def from(user: MyNDLAUser): ArenaUser = {
+  def from(user: domain.myndla.MyNDLAUser): ArenaUser = {
     val location = user.groups
       .find(_.isPrimarySchool)
       .map(_.displayName)

@@ -89,11 +89,12 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val contentValidator = new ContentValidator()
   lazy val importValidator  = new ContentValidator()
 
-  lazy val ndlaClient             = new NdlaClient
-  lazy val searchConverterService = new SearchConverterService
-  lazy val readService            = new ReadService
-  lazy val writeService           = new WriteService
-  lazy val reindexClient          = new ReindexClient
+  lazy val ndlaClient                       = new NdlaClient
+  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  lazy val searchConverterService           = new SearchConverterService
+  lazy val readService                      = new ReadService
+  lazy val writeService                     = new WriteService
+  lazy val reindexClient                    = new ReindexClient
 
   lazy val fileStorage = new FileStorageService
 

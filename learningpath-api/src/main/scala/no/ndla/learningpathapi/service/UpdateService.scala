@@ -8,20 +8,20 @@
 
 package no.ndla.learningpathapi.service
 
-import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
-import no.ndla.learningpathapi.model.api._
+import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathTokenUser
-import no.ndla.learningpathapi.model.domain.{LearningPathStatus, LearningPath => _, LearningStep => _, _}
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
+import no.ndla.learningpathapi.model.domain.{LearningPathStatus, LearningPath as _, LearningStep as _, *}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.annotation.tailrec
@@ -49,14 +49,14 @@ trait UpdateService {
         createResourceIfMissing: Boolean,
         language: String,
         fallback: Boolean,
-        userInfo: TokenUser
+        userInfo: CombinedUser
     ): Try[LearningPathV2] = {
       writeOrAccessDenied(userInfo.isWriter) {
         readService.withIdAndAccessGranted(pathId, userInfo) match {
           case Failure(ex) => Failure(ex)
           case Success(lp) =>
             taxonomyApiClient
-              .updateTaxonomyForLearningPath(lp, createResourceIfMissing, Some(userInfo))
+              .updateTaxonomyForLearningPath(lp, createResourceIfMissing, userInfo.tokenUser)
               .flatMap(l => converterService.asApiLearningpathV2(l, language, fallback, userInfo))
         }
       }
@@ -64,7 +64,7 @@ trait UpdateService {
 
     def insertDump(dump: domain.LearningPath): domain.LearningPath = learningPathRepository.insert(dump)
 
-    private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: TokenUser)(w: => Try[T]): Try[T] = for {
+    private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: CombinedUser)(w: => Try[T]): Try[T] = for {
       canWrite <- readService.canWriteNow(owner)
       result   <- writeOrAccessDenied(canWrite, "You do not have write access while write restriction is active.")(w)
     } yield result
@@ -76,40 +76,39 @@ trait UpdateService {
       if (willExecute) w
       else Failure(AccessDeniedException(reason))
 
-    def newFromExistingV2(id: Long, newLearningPath: NewCopyLearningPathV2, owner: TokenUser): Try[LearningPathV2] =
+    def newFromExistingV2(id: Long, newLearningPath: NewCopyLearningPathV2, owner: CombinedUser): Try[LearningPathV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
           case None              => Failure(NotFoundException("Could not find learningpath to copy."))
           case Some(Failure(ex)) => Failure(ex)
           case Some(Success(existing)) =>
-            val toInsert = converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
-            learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
-            converterService.asApiLearningpathV2(
-              learningPathRepository.insert(toInsert),
-              newLearningPath.language,
-              fallback = true,
-              owner
-            )
+            for {
+              toInsert <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
+              _ = learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
+              converted <- converterService.asApiLearningpathV2(
+                learningPathRepository.insert(toInsert),
+                newLearningPath.language,
+                fallback = true,
+                owner
+              )
+            } yield converted
         }
       }
 
-    def addLearningPathV2(newLearningPath: NewLearningPathV2, owner: TokenUser): Try[LearningPathV2] =
+    def addLearningPathV2(newLearningPath: NewLearningPathV2, owner: CombinedUser): Try[LearningPathV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
-        val learningPath = converterService.newLearningPath(newLearningPath, owner)
-        learningPathValidator.validate(learningPath)
-
-        converterService.asApiLearningpathV2(
-          learningPathRepository.insert(learningPath),
-          newLearningPath.language,
-          fallback = true,
-          owner
-        )
+        for {
+          learningPath <- converterService.newLearningPath(newLearningPath, owner)
+          _        = learningPathValidator.validate(learningPath)
+          inserted = learningPathRepository.insert(learningPath)
+          converted <- converterService.asApiLearningpathV2(inserted, newLearningPath.language, fallback = true, owner)
+        } yield converted
       }
 
     def updateLearningPathV2(
         id: Long,
         learningPathToUpdate: UpdatedLearningPathV2,
-        owner: TokenUser
+        owner: CombinedUser
     ): Try[LearningPathV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       learningPathValidator.validate(learningPathToUpdate)
 
@@ -124,7 +123,7 @@ trait UpdateService {
 
           val updatedLearningPath = learningPathRepository.update(toUpdate)
 
-          updateSearchAndTaxonomy(updatedLearningPath, owner.some).flatMap(_ =>
+          updateSearchAndTaxonomy(updatedLearningPath, owner.tokenUser).flatMap(_ =>
             converterService.asApiLearningpathV2(
               updatedLearningPath,
               learningPathToUpdate.language,
@@ -150,14 +149,14 @@ trait UpdateService {
     def updateLearningPathStatusV2(
         learningPathId: Long,
         status: LearningPathStatus.Value,
-        owner: TokenUser,
+        owner: CombinedUserRequired,
         language: String,
         message: Option[String] = None
     ): Try[LearningPathV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
-        withId(learningPathId, includeDeleted = true).flatMap(_.canSetStatus(status, owner)) match {
-          case Failure(ex) => Failure(ex)
-          case Success(existing) =>
+        withId(learningPathId, includeDeleted = true)
+          .flatMap(_.canSetStatus(status, owner))
+          .flatMap { existing =>
             val validatedLearningPath =
               if (status == domain.LearningPathStatus.PUBLISHED) existing.validateForPublishing() else Success(existing)
 
@@ -171,7 +170,7 @@ trait UpdateService {
                 valid.copy(message = newMessage, status = status, lastUpdated = clock.now())
               )
 
-              updateSearchAndTaxonomy(updatedLearningPath, owner.some)
+              updateSearchAndTaxonomy(updatedLearningPath, owner.tokenUser)
                 .flatMap(_ =>
                   converterService.asApiLearningpathV2(
                     updatedLearningPath,
@@ -182,7 +181,7 @@ trait UpdateService {
                 )
 
             })
-        }
+          }
       }
 
     private[service] def deleteIsBasedOnReference(updatedLearningPath: domain.LearningPath): Unit = {
@@ -201,7 +200,7 @@ trait UpdateService {
     def addLearningStepV2(
         learningPathId: Long,
         newLearningStep: NewLearningStepV2,
-        owner: TokenUser
+        owner: CombinedUserRequired
     ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       optimisticLockRetries(10) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
@@ -224,7 +223,7 @@ trait UpdateService {
                   (insertedStep, updatedPath)
                 }
 
-                updateSearchAndTaxonomy(updatedPath, owner.some)
+                updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
                   .flatMap(_ =>
                     converterService.asApiLearningStepV2(
                       insertedStep,
@@ -243,7 +242,7 @@ trait UpdateService {
         learningPathId: Long,
         learningStepId: Long,
         learningStepToUpdate: UpdatedLearningStepV2,
-        owner: TokenUser
+        owner: CombinedUserRequired
     ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
         case Failure(ex) => Failure(ex)
@@ -275,7 +274,7 @@ trait UpdateService {
                     (updatedStep, updatedPath)
                   }
 
-                  updateSearchAndTaxonomy(updatedPath, owner.some)
+                  updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
                     .flatMap(_ =>
                       converterService.asApiLearningStepV2(
                         updatedStep,
@@ -295,7 +294,7 @@ trait UpdateService {
         learningPathId: Long,
         learningStepId: Long,
         newStatus: StepStatus,
-        owner: TokenUser
+        owner: CombinedUserRequired
     ): Try[LearningStepV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
@@ -340,7 +339,7 @@ trait UpdateService {
                   (updatedPath, updatedStep)
                 }
 
-                updateSearchAndTaxonomy(updatedPath, owner.some).flatMap(_ =>
+                updateSearchAndTaxonomy(updatedPath, owner.tokenUser).flatMap(_ =>
                   converterService.asApiLearningStepV2(
                     updatedStep,
                     updatedPath,
@@ -358,7 +357,7 @@ trait UpdateService {
         learningPathId: Long,
         learningStepId: Long,
         seqNo: Int,
-        owner: TokenUser
+        owner: CombinedUser
     ): Try[LearningStepSeqNo] = {
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         optimisticLockRetries(10) {

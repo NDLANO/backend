@@ -13,11 +13,12 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.SingleResourceStats
-import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.api.myndla.MyNDLAUser
+import no.ndla.common.model.domain.{ResourceType, myndla}
+import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.model.api.{ExportedUserData, Folder, Resource, UserFolder}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.model.domain.FolderStatus
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
@@ -263,7 +264,7 @@ trait FolderReadService {
       val favoriteFolder = domain.NewFolderData(
         parentId = None,
         name = FavoriteFolderDefaultName,
-        status = domain.FolderStatus.PRIVATE,
+        status = myndla.FolderStatus.PRIVATE,
         rank = 1,
         description = None
       )
@@ -273,7 +274,7 @@ trait FolderReadService {
     private def getFeideUserDataAuthenticated(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.MyNDLAUser] =
+    ): Try[MyNDLAUser] =
       for {
         users <- configService.getMyNDLAEnabledUsers
         user <- userRepository.rollbackOnFailure(session =>
