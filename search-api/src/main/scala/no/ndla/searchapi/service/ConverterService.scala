@@ -45,8 +45,8 @@ trait ConverterService {
     private def articleSearchResultToApi(article: ArticleApiSearchResult): api.ArticleResult = {
       api.ArticleResult(
         article.id,
-        api.Title(article.title.title, article.title.language),
-        article.introduction.map(i => ArticleIntroduction(i.introduction, i.language)),
+        api.Title(article.title.title, article.title.htmlTitle, article.title.language),
+        article.introduction.map(i => ArticleIntroduction(i.introduction, i.htmlIntroduction, i.language)),
         article.articleType,
         article.supportedLanguages
       )
@@ -66,7 +66,7 @@ trait ConverterService {
     private def learningpathSearchResultToApi(learningpath: LearningpathApiSearchResult): api.LearningpathResult = {
       api.LearningpathResult(
         learningpath.id,
-        api.Title(learningpath.title.title, learningpath.title.language),
+        api.Title(learningpath.title.title, learningpath.title.title, learningpath.title.language),
         LearningPathIntroduction(learningpath.introduction.introduction, learningpath.introduction.language),
         learningpath.supportedLanguages
       )
@@ -92,7 +92,7 @@ trait ConverterService {
 
       api.ImageResult(
         image.id.toLong,
-        api.Title(image.title.title, image.title.language),
+        api.Title(image.title.title, image.title.title, image.title.language),
         api.ImageAltText(image.altText.alttext, image.altText.language),
         previewUrl.toString,
         metaUrl.toString,
@@ -116,7 +116,12 @@ trait ConverterService {
       val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
 
       val url = audio.url.withHost(host).withScheme(scheme).toString
-      api.AudioResult(audio.id, api.Title(audio.title.title, audio.title.language), url, audio.supportedLanguages)
+      api.AudioResult(
+        audio.id,
+        api.Title(audio.title.title, audio.title.title, audio.title.language),
+        url,
+        audio.supportedLanguages
+      )
     }
   }
 }

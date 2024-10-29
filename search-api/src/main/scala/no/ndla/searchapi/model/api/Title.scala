@@ -15,6 +15,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Title of resource")
 case class Title(
     @description("The freetext title of the resource") title: String,
+    @description("The freetext html-version title of the article") htmlTitle: String,
     @description("ISO 639-1 code that represents the language used in title") language: String
 ) extends LanguageField[String] {
   override def value: String    = title
