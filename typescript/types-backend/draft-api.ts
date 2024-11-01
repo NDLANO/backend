@@ -2,6 +2,17 @@
 
 export type Availability = ("everyone" | "teacher")
 
+export enum DraftSortEnum {
+  ByRelevanceDesc = "-relevance",
+  ByRelevanceAsc = "relevance",
+  ByTitleDesc = "-title",
+  ByTitleAsc = "title",
+  ByLastUpdatedDesc = "-lastUpdated",
+  ByLastUpdatedAsc = "lastUpdated",
+  ByIdDesc = "-id",
+  ByIdAsc = "id",
+}
+
 export type Grade = (1 | 2 | 3 | 4 | 5)
 
 export interface IArticle {
@@ -60,6 +71,20 @@ export interface IArticleMetaImage {
   url: string
   alt: string
   language: string
+}
+
+export interface IArticleSearchParams {
+  query?: string
+  language?: string
+  license?: string
+  page?: number
+  pageSize?: number
+  ids?: number[]
+  articleTypes?: string[]
+  sort?: Sort
+  scrollId?: string
+  fallback?: boolean
+  grepCodes?: string[]
 }
 
 export interface IArticleSummary {
@@ -291,6 +316,8 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
+
+export type Sort = DraftSortEnum
 
 export type UpdateOrDeleteNewArticleMetaImage = (null | undefined | INewArticleMetaImage)
 
