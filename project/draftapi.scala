@@ -43,7 +43,8 @@ object draftapi extends Module {
       "UpdatedArticle",
       "UpdatedUserData",
       "UploadedFile",
-      "UserData"
+      "UserData",
+      "ArticleSearchParams"
     )
   )
 
