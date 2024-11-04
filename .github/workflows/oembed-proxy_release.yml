@@ -14,6 +14,8 @@ on:
       - project/network*.scala
       - common/**
       - project/common*.scala
+      - database/**
+      - project/database*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - tapirtesting/**

@@ -16,8 +16,8 @@ on:
       - project/language*.scala
       - mapping/**
       - project/mapping*.scala
-      - concept-api/**
-      - project/conceptapi*.scala
+      - database/**
+      - project/database*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - project/Dependencies.scala
@@ -34,8 +34,8 @@ on:
       - project/language*.scala
       - mapping/**
       - project/mapping*.scala
-      - concept-api/**
-      - project/conceptapi*.scala
+      - database/**
+      - project/database*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - project/Dependencies.scala

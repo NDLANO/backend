@@ -20,6 +20,8 @@ on:
       - project/common*.scala
       - search/**
       - project/search*.scala
+      - database/**
+      - project/database*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - tapirtesting/**
@@ -42,6 +44,8 @@ on:
       - project/common*.scala
       - search/**
       - project/search*.scala
+      - database/**
+      - project/database*.scala
       - scalatestsuite/**
       - project/scalatestsuite*.scala
       - tapirtesting/**
