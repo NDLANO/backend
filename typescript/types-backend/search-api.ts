@@ -241,6 +241,29 @@ export interface ISearchError {
   errorMsg: string
 }
 
+export interface ISearchParams {
+  page?: number
+  pageSize?: number
+  articleTypes?: string[]
+  scrollId?: string
+  query?: string
+  fallback?: boolean
+  language?: string
+  license?: string
+  ids?: number[]
+  subjects?: string[]
+  resourceTypes?: string[]
+  contextTypes?: string[]
+  relevance?: string[]
+  languageFilter?: string[]
+  grepCodes?: string[]
+  aggregatePaths?: string[]
+  embedResource?: string[]
+  embedId?: string
+  filterInactive?: boolean
+  sort?: string
+}
+
 export interface ISearchSuggestion {
   text: string
   offset: number
