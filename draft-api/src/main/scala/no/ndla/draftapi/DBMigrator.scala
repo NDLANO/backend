@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi
 
+import no.ndla.database.DataSource
 import no.ndla.draftapi.db.migrationwithdependencies.{
   R__RemoveEmptyStringLanguageFields,
   R__RemoveStatusPublishedArticles,
@@ -17,7 +18,6 @@ import no.ndla.draftapi.db.migrationwithdependencies.{
   V33__ConvertLanguageUnknown,
   V57__MigrateSavedSearch
 }
-import no.ndla.draftapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 

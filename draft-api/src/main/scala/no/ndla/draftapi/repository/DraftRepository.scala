@@ -12,7 +12,7 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.errors.RollbackException
 import no.ndla.common.model.domain.{ArticleType, EditorNote, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.draftapi.integration.DataSource
+import no.ndla.database.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHandling, GenerateIDException, NotFoundException}
 import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.TokenUser

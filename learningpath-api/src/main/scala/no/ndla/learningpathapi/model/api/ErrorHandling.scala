@@ -10,8 +10,8 @@ package no.ndla.learningpathapi.model.api
 
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.database.DataSource
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.{
   ElasticIndexingException,
   ImportException,

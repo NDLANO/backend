@@ -10,6 +10,7 @@ package no.ndla.myndlaapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.database.DataSource
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
@@ -20,7 +21,7 @@ import no.ndla.myndlaapi.controller.{
   SwaggerDocControllerConfig,
   UserController
 }
-import no.ndla.myndlaapi.integration.{DataSource, SearchApiClient}
+import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ArenaRepository, ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.{

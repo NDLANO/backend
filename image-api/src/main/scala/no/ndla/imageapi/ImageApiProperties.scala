@@ -9,22 +9,19 @@
 package no.ndla.imageapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.common.secrets.PropertyKeys
+import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps {
+trait Props extends HasBaseProps with HasDatabaseProps {
   val props: ImageApiProperties
 }
 
-class ImageApiProperties extends BaseProps with StrictLogging {
+class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging {
   def ApplicationName            = "image-api"
   val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
-
-  val RoleWithWriteAccess = "images:write"
 
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
@@ -94,14 +91,6 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val MaxImageFileSizeBytes: Int    = 1024 * 1024 * 40 // 40 MiB
   val ImageScalingUltraMinSize: Int = 640
   val ImageScalingUltraMaxSize: Int = 2080
-
-  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
-  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
 
   val StorageName: String           = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
   val StorageRegion: Option[String] = propOrNone("IMAGE_FILE_S3_BUCKET_REGION")

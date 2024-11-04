@@ -9,7 +9,6 @@
 package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
 import no.ndla.audioapi.model.domain
 import org.postgresql.util.PGobject
@@ -19,6 +18,7 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
+import no.ndla.database.DataSource
 
 import scala.util.{Failure, Success, Try}
 

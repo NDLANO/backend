@@ -8,8 +8,8 @@
 
 package no.ndla.imageapi
 
+import no.ndla.database.DataSource
 import no.ndla.imageapi.db.migrationwithdependencies.{V6__AddAgreementToImages, V7__TranslateUntranslatedAuthors}
-import no.ndla.imageapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 

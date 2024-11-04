@@ -7,7 +7,7 @@
 
 package no.ndla.frontpageapi
 
-import no.ndla.frontpageapi.integration.DataSource
+import no.ndla.database.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 

@@ -9,18 +9,17 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.common.secrets.PropertyKeys
+import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps {
+trait Props extends HasBaseProps with HasDatabaseProps {
   val props: AudioApiProperties
 }
 
-class AudioApiProperties extends BaseProps with StrictLogging {
+class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   def ApplicationName            = "audio-api"
@@ -31,14 +30,6 @@ class AudioApiProperties extends BaseProps with StrictLogging {
 
   val AudioControllerPath  = "/audio-api/v1/audio/"
   val SeriesControllerPath = "/audio-api/v1/series/"
-
-  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   val MaxAudioFileSizeBytes: Int = 1024 * 1024 * 100 // 100 MiB
 

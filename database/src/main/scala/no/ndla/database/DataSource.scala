@@ -1,23 +1,24 @@
 /*
- * Part of NDLA image-api
- * Copyright (C) 2016 NDLA
+ * Part of NDLA database
+ * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.imageapi.integration
+package no.ndla.database
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import no.ndla.imageapi.Props
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 trait DataSource {
-  this: Props =>
-  val dataSource: HikariDataSource
-  import props._
-  object DataSource {
+  this: HasDatabaseProps =>
 
+  import props.*
+
+  val dataSource: HikariDataSource
+
+  object DataSource {
     def getHikariDataSource: HikariDataSource = {
       val dataSourceConfig = new HikariConfig()
       dataSourceConfig.setUsername(MetaUserName)
@@ -31,5 +32,4 @@ trait DataSource {
 
     def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
-
 }

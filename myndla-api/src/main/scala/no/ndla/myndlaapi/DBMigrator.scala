@@ -8,7 +8,7 @@
 
 package no.ndla.myndlaapi
 
-import no.ndla.myndlaapi.integration.DataSource
+import no.ndla.database.DataSource
 import org.flywaydb.core.Flyway
 
 trait DBMigrator {

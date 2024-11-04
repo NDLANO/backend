@@ -11,9 +11,9 @@ package no.ndla.articleapi.model.api
 import cats.implicits.catsSyntaxOptionId
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.integration.DataSource
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.database.DataSource
 import no.ndla.network.tapir.{
   AllErrors,
   ErrorBody,

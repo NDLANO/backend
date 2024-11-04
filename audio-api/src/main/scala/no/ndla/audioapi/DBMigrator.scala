@@ -9,7 +9,7 @@
 package no.ndla.audioapi
 
 import no.ndla.audioapi.db.migrationwithdependencies.{V5__AddAgreementToAudio, V6__TranslateUntranslatedAuthors}
-import no.ndla.audioapi.integration.DataSource
+import no.ndla.database.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 

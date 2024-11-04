@@ -10,18 +10,18 @@ package no.ndla.myndlaapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException, InvalidStateException}
+import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotFoundException, ValidationException}
+import no.ndla.database.DataSource
 import no.ndla.myndlaapi.Props
-import no.ndla.myndlaapi.integration.DataSource
 import no.ndla.myndlaapi.model.arena.domain.TopicGoneException
 import no.ndla.myndlaapi.model.domain.InvalidStatusException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ValidationErrorBody}
 import org.postgresql.util.PSQLException
 
 trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props with Clock with DataSource =>
+  this: Props & Clock & DataSource =>
 
-  import ErrorHelpers._
+  import ErrorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case tge: TopicGoneException =>

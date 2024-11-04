@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi
 
+import no.ndla.database.DataSource
 import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V11__CreatedByNdlaStatusForOwnersWithRoles,
   V13__StoreNDLAStepsAsIframeTypes,
@@ -16,7 +17,6 @@ import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V31__ArenaDefaultEnabledOrgs,
   V33__AiDefaultEnabledOrgs
 }
-import no.ndla.learningpathapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 

@@ -10,6 +10,7 @@ package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.database.DataSource
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.ErrorHandling

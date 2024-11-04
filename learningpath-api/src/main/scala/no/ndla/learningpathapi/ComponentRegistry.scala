@@ -11,6 +11,7 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.database.DataSource
 import no.ndla.learningpathapi.controller.{
   InternController,
   LearningpathControllerV2,

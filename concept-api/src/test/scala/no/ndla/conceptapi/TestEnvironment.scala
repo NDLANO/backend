@@ -16,13 +16,14 @@ import no.ndla.conceptapi.controller.{
   InternController,
   PublishedConceptController
 }
-import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, SearchApiClient, TaxonomyApiClient}
+import no.ndla.conceptapi.integration.{ArticleApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
+import no.ndla.database.DataSource
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}

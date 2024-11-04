@@ -10,31 +10,23 @@ package no.ndla.articleapi
 
 import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.common.secrets.PropertyKeys
+import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps {
+trait Props extends HasBaseProps with HasDatabaseProps {
   val props: ArticleApiProperties
 }
 
-class ArticleApiProperties extends BaseProps {
+class ArticleApiProperties extends BaseProps with DatabaseProps {
 
   def ApplicationName            = "article-api"
   def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-
-  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def SearchServer: String                       = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
   def ArticleSearchIndex: String                 = propOrElse("SEARCH_INDEX_NAME", "articles")

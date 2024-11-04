@@ -12,8 +12,8 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.database.DataSource
 import no.ndla.imageapi.controller.*
-import no.ndla.imageapi.integration.*
 import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
@@ -28,7 +28,6 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: ImageApiProperties)

@@ -9,11 +9,11 @@
 package no.ndla.articleapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleRow, DBArticle}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
+import no.ndla.database.DataSource
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 

@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi.repository
 
 import io.circe.syntax.*
-import no.ndla.frontpageapi.integration.DataSource
+import no.ndla.database.DataSource
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, FilmFrontPageData}
 import org.log4s.Logger
 import org.postgresql.util.PGobject

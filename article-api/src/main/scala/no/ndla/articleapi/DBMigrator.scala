@@ -9,7 +9,7 @@
 package no.ndla.articleapi
 
 import no.ndla.articleapi.db.migrationwithdependencies.*
-import no.ndla.articleapi.integration.DataSource
+import no.ndla.database.DataSource
 import org.flywaydb.core.Flyway
 
 trait DBMigrator {

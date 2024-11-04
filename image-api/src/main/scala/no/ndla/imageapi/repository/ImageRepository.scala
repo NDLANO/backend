@@ -11,7 +11,7 @@ package no.ndla.imageapi.repository
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.imageapi.integration.DataSource
+import no.ndla.database.DataSource
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.service.ConverterService
 import org.postgresql.util.PGobject

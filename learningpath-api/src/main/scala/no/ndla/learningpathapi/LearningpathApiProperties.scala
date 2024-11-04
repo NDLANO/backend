@@ -9,18 +9,17 @@
 package no.ndla.learningpathapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.common.secrets.PropertyKeys
+import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 
-import scala.util.Properties._
+import scala.util.Properties.*
 
-trait Props extends HasBaseProps {
+trait Props extends HasBaseProps with HasDatabaseProps {
   val props: LearningpathApiProperties
 }
 
-class LearningpathApiProperties extends BaseProps with StrictLogging {
+class LearningpathApiProperties extends BaseProps with DatabaseProps with StrictLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   def ApplicationName            = "learningpath-api"
@@ -114,14 +113,6 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
     "u",
     "ul"
   )
-
-  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def SearchServer: String =
     propOrElse("SEARCH_SERVER", "http://search-learningpath-api.ndla-local")
