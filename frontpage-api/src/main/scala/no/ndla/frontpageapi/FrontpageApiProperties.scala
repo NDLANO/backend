@@ -30,4 +30,6 @@ class FrontpageApiProperties extends BaseProps with DatabaseProps {
 
   val BrightcoveAccountId: String = prop("BRIGHTCOVE_ACCOUNT")
   val BrightcovePlayer: String    = prop("BRIGHTCOVE_PLAYER")
+
+  override def MetaMigrationLocation: String = "no/ndla/frontpageapi/db/migration"
 }

@@ -121,4 +121,7 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
   def H5PResizerScriptUrl = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
   def NRKVideoScriptUrl: Seq[String] =
     Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
+
+  override def MetaMigrationLocation: String      = "no/ndla/articleapi/db/migration"
+  override def MetaMigrationTable: Option[String] = Some("schema_version")
 }

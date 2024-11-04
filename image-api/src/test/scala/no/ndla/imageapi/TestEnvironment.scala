@@ -11,7 +11,7 @@ package no.ndla.imageapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
-import no.ndla.database.DataSource
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.imageapi.controller.{
   BaseImageController,
   HealthController,

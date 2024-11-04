@@ -60,4 +60,6 @@ class ConceptApiProperties extends BaseProps with DatabaseProps with StrictLoggi
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
     "raw-image"                 -> s"$Domain/image-api/raw/id"
   )
+
+  override def MetaMigrationLocation: String = "no/ndla/conceptapi/db/migration"
 }

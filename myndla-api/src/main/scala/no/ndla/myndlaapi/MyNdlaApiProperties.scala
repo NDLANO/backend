@@ -27,4 +27,6 @@ class MyNdlaApiProperties extends BaseProps with DatabaseProps {
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
   def nodeBBUrl: String = propOrElse("NODEBB_URL", s"$ApiGatewayUrl/groups")
+
+  override def MetaMigrationLocation: String = "no/ndla/myndlaapi/db/migration"
 }

@@ -127,4 +127,7 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   def multipartFileSizeThresholdBytes: Int = 1024 * 1024 * 30 // 30MB
   def auth0ManagmentClientId: String       = prop("AUTH0_MANAGEMENT_CLIENT_ID")
   def auth0ManagmentClientSecret: String   = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
+
+  override def MetaMigrationLocation: String      = "no/ndla/draftapi/db/migration"
+  override def MetaMigrationTable: Option[String] = Some("schema_version")
 }

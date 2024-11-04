@@ -29,7 +29,7 @@ class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain {
   override def beforeStart(): Unit = {
     logger.info("Starting DB Migration")
     val DbStartMillis = System.currentTimeMillis()
-    componentRegistry.migrator.migrate(): Unit
+    componentRegistry.migrator.migrate()
     logger.info(s"Done DB Migration took ${System.currentTimeMillis() - DbStartMillis} ms")
 
     componentRegistry.imageSearchService.createEmptyIndexIfNoIndexesExist()

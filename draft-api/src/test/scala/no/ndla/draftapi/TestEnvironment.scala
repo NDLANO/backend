@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.{Clock, UUIDUtil}
-import no.ndla.database.DataSource
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.db.migrationwithdependencies.V57__MigrateSavedSearch

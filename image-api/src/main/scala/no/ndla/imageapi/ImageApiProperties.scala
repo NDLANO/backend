@@ -114,4 +114,7 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val ImageApiV2UrlBase: String = Domain + ImageControllerV2Path + "/"
   val ImageApiV3UrlBase: String = Domain + ImageControllerV3Path + "/"
   val RawImageUrlBase: String   = Domain + RawControllerPath
+
+  override def MetaMigrationLocation: String      = "no/ndla/imageapi/db/migration"
+  override def MetaMigrationTable: Option[String] = Some("schema_version")
 }

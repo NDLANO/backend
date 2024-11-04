@@ -21,7 +21,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.database.DataSource
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.tapir.TapirApplication
 
 class ComponentRegistry(properties: ConceptApiProperties)
@@ -62,7 +62,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with SwaggerDocControllerConfig
     with ConceptControllerHelpers {
   override val props: ConceptApiProperties = properties
-  override val migrator                    = new DBMigrator
+  override val migrator: DBMigrator        = DBMigrator()
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()

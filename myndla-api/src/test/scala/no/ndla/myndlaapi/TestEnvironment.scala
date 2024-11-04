@@ -9,7 +9,7 @@ package no.ndla.myndlaapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.database.DataSource
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,

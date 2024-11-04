@@ -119,4 +119,7 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
 
   def RunWithSignedSearchRequests: Boolean =
     propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+
+  override def MetaMigrationLocation: String      = "no/ndla/learningpathapi/db/migration"
+  override def MetaMigrationTable: Option[String] = Some("schema_version")
 }

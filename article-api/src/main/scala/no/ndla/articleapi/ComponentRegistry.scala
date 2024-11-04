@@ -11,6 +11,15 @@ package no.ndla.articleapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller.{ArticleControllerV2, InternController, SwaggerDocControllerConfig}
+import no.ndla.articleapi.db.migrationwithdependencies.{
+  R__SetArticleLanguageFromTaxonomy,
+  R__SetArticleTypeFromTaxonomy,
+  V20__UpdateH5PDomainForFF,
+  V22__UpdateH5PDomainForFFVisualElement,
+  V33__ConvertLanguageUnknown,
+  V8__CopyrightFormatUpdated,
+  V9__TranslateUntranslatedAuthors
+}
 import no.ndla.articleapi.integration.*
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
@@ -21,7 +30,7 @@ import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.database.DataSource
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
@@ -58,7 +67,15 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with SwaggerDocControllerConfig
     with FrontpageApiClient {
   override val props: ArticleApiProperties = properties
-  override val migrator                    = new DBMigrator
+  override val migrator: DBMigrator = DBMigrator(
+    new R__SetArticleLanguageFromTaxonomy(props),
+    new R__SetArticleTypeFromTaxonomy,
+    new V8__CopyrightFormatUpdated,
+    new V9__TranslateUntranslatedAuthors,
+    new V20__UpdateH5PDomainForFF,
+    new V22__UpdateH5PDomainForFFVisualElement,
+    new V33__ConvertLanguageUnknown(props)
+  )
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()

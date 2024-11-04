@@ -21,6 +21,9 @@ trait DatabaseProps {
   def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
   def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+
+  def MetaMigrationLocation: String
+  def MetaMigrationTable: Option[String] = None
 }
 
 trait HasDatabaseProps {

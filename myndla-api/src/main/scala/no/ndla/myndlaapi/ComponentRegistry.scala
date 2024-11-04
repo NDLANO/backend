@@ -10,7 +10,7 @@ package no.ndla.myndlaapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.database.DataSource
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
@@ -75,7 +75,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
 
   lazy val healthController: TapirHealthController        = new TapirHealthController
   lazy val clock: SystemClock                             = new SystemClock
-  lazy val migrator                                       = new DBMigrator
+  lazy val migrator: DBMigrator                           = DBMigrator()
   lazy val folderController: FolderController             = new FolderController
   lazy val feideApiClient: FeideApiClient                 = new FeideApiClient
   lazy val redisClient                                    = new RedisClient(props.RedisHost, props.RedisPort)
