@@ -23,7 +23,7 @@ import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
-  this: DataSource with ErrorHandling with Clock =>
+  this: DataSource & ErrorHandling & Clock =>
   val draftRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging with Repository[Draft] {
@@ -401,10 +401,27 @@ trait DraftRepository {
       }
     }
 
-    override def documentsWithIdBetween(min: Long, max: Long): List[Draft] =
-      articlesWhere(
-        sqls"ar.id between $min and $max and ar.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}"
-      ).toList
+    override def documentsWithIdBetween(min: Long, max: Long)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): List[Draft] = {
+      val ar       = DBArticle.syntax("ar")
+      val subquery = DBArticle.syntax("b")
+      sql"""
+           select ${ar.result.*}
+           from ${DBArticle.as(ar)}
+           where ar.document is not NULL
+           and ar.id between $min and $max
+           and ar.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}
+           and ar.revision = (
+             select max(b.revision)
+             from ${DBArticle.as(subquery)}
+             where b.article_id = ar.article_id
+           )
+
+           """
+        .map(DBArticle.fromResultSet(ar))
+        .list()
+    }
 
     private def articleWhere(
         whereClause: SQLSyntax
