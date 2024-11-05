@@ -8,32 +8,31 @@
 
 package no.ndla.articleapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.domain.ReindexResult
-import no.ndla.articleapi.repository.Repository
+import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.common.model.domain.article.Article
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import cats.implicits._
-import no.ndla.common.model.domain.Content
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService with Props =>
+  this: Elastic4sClient with BaseIndexService with Props with ArticleRepository =>
 
-  trait IndexService[D <: Content, T <: AnyRef] extends BaseIndexService with StrictLogging {
-    val repository: Repository[D]
+  trait IndexService extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
-    def createIndexRequest(domainModel: D, indexName: String): IndexRequest
+    def createIndexRequest(domainModel: Article, indexName: String): IndexRequest
 
-    def indexDocument(imported: D): Try[D] = {
+    def indexDocument(imported: Article): Try[Article] = {
       for {
         _ <- createIndexIfNotExists()
         _ <- e4sClient.execute {
@@ -65,7 +64,7 @@ trait IndexService {
       getRanges
         .flatMap(ranges => {
           ranges.traverse { case (start, end) =>
-            val toIndex = repository.documentsWithIdBetween(start, end)
+            val toIndex = articleRepository.documentsWithIdBetween(start, end)
             indexDocuments(toIndex, indexName)
           }
         })
@@ -74,7 +73,7 @@ trait IndexService {
 
     def getRanges: Try[List[(Long, Long)]] = {
       Try {
-        val (minId, maxId) = repository.minMaxId
+        val (minId, maxId) = articleRepository.minMaxId
         Seq
           .range(minId, maxId + 1)
           .grouped(props.IndexBulkSize)
@@ -83,7 +82,7 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
+    def indexDocuments(contents: Seq[Article], indexName: String): Try[Int] = {
       if (contents.isEmpty) {
         Success(0)
       } else {

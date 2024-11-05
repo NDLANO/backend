@@ -23,7 +23,7 @@ trait ArticleRepository {
   this: DataSource with DBArticle =>
   val articleRepository: ArticleRepository
 
-  class ArticleRepository extends StrictLogging with Repository[Article] {
+  class ArticleRepository extends StrictLogging {
     def updateArticleFromDraftApi(article: Article, externalIds: List[String])(implicit
         session: DBSession = AutoSession
     ): Try[Article] = {
@@ -291,7 +291,7 @@ trait ArticleRepository {
 
     }
 
-    override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+    def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(article_id),0) as mi, coalesce(MAX(article_id),0) as ma from ${Article.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
@@ -302,8 +302,27 @@ trait ArticleRepository {
       }
     }
 
-    override def documentsWithIdBetween(min: Long, max: Long): List[Article] =
-      articlesWhere(sqls"ar.article_id between $min and $max").toList
+    def documentsWithIdBetween(min: Long, max: Long)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Seq[Article] = {
+      val article         = Article.syntax("a")
+      val subqueryArticle = Article.syntax("b")
+
+      sql"""
+        select ${article.result.*}
+        from ${Article.as(article)}
+        where a.document is not NULL
+        and a.article_id between $min and $max
+        and a.revision = (
+            select max(b.revision)
+            from ${Article.as(subqueryArticle)}
+            where b.article_id = a.article_id
+          )
+         """
+        .map(Article.fromResultSet(article))
+        .list()
+        .toArticles
+    }
 
     private def articleWhere(
         whereClause: SQLSyntax
@@ -316,21 +335,6 @@ trait ArticleRepository {
          """
         .map(Article.fromResultSet(ar))
         .single()
-    }
-
-    private def articlesWhere(
-        whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
-      val ar = Article.syntax("ar")
-      sql"""
-        select ${ar.result.*}
-        from ${Article.as(ar)}
-        where ar.document is not NULL
-        and $whereClause
-         """
-        .map(Article.fromResultSet(ar))
-        .list()
-        .toArticles
     }
 
     def getArticleIdsFromExternalId(
