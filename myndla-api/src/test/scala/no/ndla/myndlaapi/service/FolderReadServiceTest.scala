@@ -352,7 +352,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq.empty,
       userRole = UserRole.EMPLOYEE,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -523,7 +523,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             favoriteSubjects = Seq.empty,
             userRole = UserRole.EMPLOYEE,
             lastUpdated = TestData.today,
-            organization = "lal",
+            organization = Some("lal"),
             groups = Seq.empty,
             username = "username",
             displayName = "User Name",
@@ -545,7 +545,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             favoriteSubjects = Seq.empty,
             userRole = UserRole.EMPLOYEE,
             lastUpdated = TestData.today,
-            organization = "lal",
+            organization = Some("lal"),
             groups = Seq.empty,
             username = "username",
             displayName = "User Name",

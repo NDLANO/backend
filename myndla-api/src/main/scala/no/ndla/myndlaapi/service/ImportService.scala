@@ -59,7 +59,7 @@ trait ImportService {
             favoriteSubjects = Seq.empty,
             userRole = UserRole.EMPLOYEE,
             lastUpdated = clock.now(),
-            organization = "NDLA",
+            organization = "NDLA".some,
             groups = Seq.empty,
             username = "ndla_admin",
             displayName = "ndla_admin",

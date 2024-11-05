@@ -32,7 +32,7 @@ case class MyNDLAUser(
     @description("Name of the user") displayName: String,
     @description("Favorite subjects of the user") favoriteSubjects: Seq[String],
     @description("User role") role: String,
-    @description("User root organization") organization: String,
+    @description("User root organization") organization: Option[String],
     @description("User groups") groups: Seq[MyNDLAGroup],
     @description("Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
     @description("Whether users name is shared with folders or not") shareName: Boolean,

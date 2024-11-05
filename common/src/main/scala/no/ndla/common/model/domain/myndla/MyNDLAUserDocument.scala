@@ -16,7 +16,7 @@ case class MyNDLAUserDocument(
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
     lastUpdated: NDLADate,
-    organization: String,
+    organization: Option[String],
     groups: Seq[MyNDLAGroup],
     username: String,
     displayName: String,

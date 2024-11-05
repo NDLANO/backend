@@ -7,6 +7,7 @@
 
 package no.ndla.myndlaapi.controller
 
+import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api.PaginatedTopics
@@ -36,7 +37,7 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment with TapirC
     favoriteSubjects = Seq.empty,
     userRole = UserRole.EMPLOYEE,
     lastUpdated = TestData.today,
-    organization = "yap",
+    organization = "yap".some,
     groups = Seq.empty,
     username = "username",
     displayName = "displayName",

@@ -75,7 +75,7 @@ class ArenaTest
         .thenReturn(
           Success(FeideExtendedUserInfo("", Seq("employee"), None, "email@ndla.no", Some(Seq("email@ndla.no"))))
         )
-      when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
+      when(feideApiClient.getOrganization(any)).thenReturn(Success(Some("zxc")))
       when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List("zxc")))
       when(clock.now()).thenReturn(someDate)
     }
@@ -118,7 +118,7 @@ class ArenaTest
     favoriteSubjects = Seq.empty,
     userRole = UserRole.EMPLOYEE,
     lastUpdated = TestData.today,
-    organization = "yap",
+    organization = Some("yap"),
     groups = Seq.empty,
     username = "username",
     displayName = "displayName",
@@ -134,7 +134,7 @@ class ArenaTest
     favoriteSubjects = Seq.empty,
     userRole = UserRole.EMPLOYEE,
     lastUpdated = TestData.today,
-    organization = "yap",
+    organization = Some("yap"),
     groups = Seq.empty,
     username = "username",
     displayName = "displayName",
@@ -161,7 +161,11 @@ class ArenaTest
         .header("FeideAuthorization", s"Bearer asd")
         .readTimeout(10.seconds)
     )
-    if (shouldSucceed) { res.code.code should be(201) }
+    if (shouldSucceed && res.code.code != 201) {
+      fail(
+        s"Failed to create category, got status ${res.code.code} when expecting 201.\nResponse body was:\n\n${res.body}\n\n"
+      )
+    }
     res
   }
 

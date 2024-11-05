@@ -14,6 +14,10 @@ import no.ndla.network.model.{FeideAccessToken, FeideID}
 
 import scala.util.{Failure, Success, Try}
 
+sealed trait CacheResult[T]
+case class CacheHit[T](value: T) extends CacheResult[T]
+case class CacheMiss[T]()        extends CacheResult[T]
+
 trait RedisClient {
   val redisClient: RedisClient
   class RedisClient(
@@ -40,6 +44,10 @@ trait RedisClient {
         _             <- jedis.hset(accessToken, field, data)
         _             <- jedis.expire(accessToken, newExpireTime)
       } yield ()
+    }
+
+    private def cacheEmptyField(accessToken: FeideAccessToken, field: String): Try[?] = {
+      updateCache(accessToken, field, "")
     }
 
     def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = {
@@ -69,11 +77,23 @@ trait RedisClient {
       updateCache(accessToken, feideIdField, feideId).map(_ => feideId)
     }
 
-    def getOrganizationFromCache(accessToken: FeideAccessToken): Try[Option[String]] =
-      jedis.hget(accessToken, feideGroupField)
+    def getOrganizationFromCache(accessToken: FeideAccessToken): Try[CacheResult[Option[String]]] = {
+      val cachedValue = jedis.hget(accessToken, feideGroupField).?
+      cachedValue match {
+        case Some(value) if value.nonEmpty => Success(CacheHit(Some(value)))
+        case Some(_)                       => Success(CacheHit(None))
+        case None                          => Success(CacheMiss())
+      }
+    }
 
-    def updateCacheAndReturnOrganization(accessToken: FeideAccessToken, feideOrganization: String): Try[String] = {
-      updateCache(accessToken, feideGroupField, feideOrganization).map(_ => feideOrganization)
+    def updateCacheAndReturnOrganization(
+        accessToken: FeideAccessToken,
+        feideOrganization: Option[String]
+    ): Try[Option[String]] = {
+      (feideOrganization match {
+        case Some(value) => updateCache(accessToken, feideGroupField, value)
+        case None        => cacheEmptyField(accessToken, feideGroupField)
+      }).map(_ => feideOrganization)
     }
 
     def getGroupsFromCache(accessToken: FeideAccessToken): Try[Option[Seq[FeideGroup]]] = {

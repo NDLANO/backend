@@ -417,7 +417,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         favoriteSubjects = Seq("a", "b"),
         userRole = UserRole.STUDENT,
         lastUpdated = clock.now(),
-        organization = "oslo",
+        organization = Some("oslo"),
         groups = Seq(
           MyNDLAGroup(
             id = "id",
@@ -442,7 +442,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         displayName = "Feide",
         favoriteSubjects = Seq("a", "b"),
         role = "student",
-        organization = "oslo",
+        organization = Some("oslo"),
         groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
         shareName = false,
@@ -459,7 +459,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("a", "b"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -498,7 +498,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("a", "b"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -520,7 +520,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq.empty,
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -542,7 +542,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("x", "y", "z"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",

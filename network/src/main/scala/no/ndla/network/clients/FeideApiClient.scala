@@ -137,22 +137,12 @@ trait FeideApiClient {
       }
     }
 
-    private def findOrganization(feideGroups: Seq[FeideGroup]): Try[String] = {
+    private def findOrganization(feideGroups: Seq[FeideGroup]): Option[String] = {
       val primarySchoolGroup = feideGroups.find(group => group.membership.primarySchool.contains(true))
       val maybePrimaryGroup  = primarySchoolGroup.flatMap(e => feideGroups.find(group => e.parent.contains(group.id)))
       val fallback           = feideGroups.headOption
-      maybePrimaryGroup.orElse(fallback) match {
-        case Some(value) => Success(value.displayName)
-        case None =>
-          logger.error(
-            "Can not determine organization. It is impossible to distinguish between the old and the current organization."
-          )
-          Failure(
-            new NoSuchFieldException(
-              "Can not determine organization. It is impossible to distinguish between the old and the current organization."
-            )
-          )
-      }
+
+      maybePrimaryGroup.orElse(fallback).map(_.displayName)
     }
 
     def getFeideAccessTokenOrFail(maybeFeideAccessToken: Option[FeideAccessToken]): Try[FeideAccessToken] = {
@@ -213,17 +203,17 @@ trait FeideApiClient {
       redisClient.updateCacheAndReturnGroups(accessToken, feideGroups)
     }
 
-    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = permitTry {
+    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[Option[String]] = permitTry {
       val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?
-      val organization = (maybeOrganization match {
-        case Some(organization) => Success(organization)
-        case None =>
-          getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken)).flatMap(findOrganization)
-      }).?
-      redisClient.updateCacheAndReturnOrganization(accessToken, organization)
+      maybeOrganization match {
+        case CacheHit(organization) => Success(organization)
+        case CacheMiss() =>
+          val feideGroupResponse = fetchFeideGroupInfo(accessToken)
+          val feideGroupData     = getFeideDataOrFail[Seq[FeideGroup]](feideGroupResponse).?
+          val organization       = findOrganization(feideGroupData)
+          redisClient.updateCacheAndReturnOrganization(accessToken, organization)
+      }
     }
-
   }
-
 }

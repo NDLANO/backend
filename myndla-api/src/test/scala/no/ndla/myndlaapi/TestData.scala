@@ -93,7 +93,7 @@ object TestData {
     favoriteSubjects = Seq.empty,
     userRole = UserRole.EMPLOYEE,
     lastUpdated = today,
-    organization = "",
+    organization = None,
     groups = Seq.empty,
     username = "",
     email = "",

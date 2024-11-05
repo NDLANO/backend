@@ -41,7 +41,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("h", "b"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -70,7 +70,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -94,7 +94,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
       shareName = true,
@@ -167,7 +167,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -191,7 +191,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false,
@@ -211,7 +211,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
     when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(any)).thenReturn(Success("oslo"))
+    when(feideApiClient.getOrganization(any)).thenReturn(Success(Some("oslo")))
     when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[MyNDLAUserDocument])(any))
       .thenReturn(Success(domainUserData))
@@ -241,7 +241,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -265,7 +265,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false,
@@ -311,7 +311,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1),
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(
         MyNDLAGroup(
           id = "id",
@@ -342,7 +342,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       favoriteSubjects = Seq("r", "e"),
       role = "student",
-      organization = "oslo",
+      organization = Some("oslo"),
       groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false,
@@ -354,7 +354,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
     when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success("oslo"))
+    when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success(Some("oslo")))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
 

@@ -8,6 +8,7 @@
 
 package no.ndla.myndlaapi.model.api
 
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.domain
@@ -22,13 +23,18 @@ case class ArenaUser(
     @description("Which groups the user belongs to") groups: List[domain.myndla.ArenaGroup]
 )
 
-object ArenaUser {
+object ArenaUser extends StrictLogging {
 
   def from(user: domain.myndla.MyNDLAUser): ArenaUser = {
     val location = user.groups
       .find(_.isPrimarySchool)
       .map(_.displayName)
-      .getOrElse(user.organization)
+      .getOrElse(user.organization.getOrElse {
+        // TODO: Maybe this needs to be optional instead?
+        logger.warn(s"User ${user.id} has no stored organization")
+        "Unknown"
+      })
+
     ArenaUser(
       id = user.id,
       displayName = user.displayName,

@@ -7,6 +7,7 @@
 
 package no.ndla.myndlaapi.controller
 
+import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.api.Folder
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
@@ -36,7 +37,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     favoriteSubjects = Seq.empty,
     userRole = UserRole.EMPLOYEE,
     lastUpdated = TestData.today,
-    organization = "yap",
+    organization = "yap".some,
     groups = Seq.empty,
     username = "username",
     displayName = "displayName",

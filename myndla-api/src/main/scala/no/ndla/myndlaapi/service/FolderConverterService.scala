@@ -197,7 +197,7 @@ trait FolderConverterService {
     }
 
     def getArenaEnabled(userData: DomainMyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
-      userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization)
+      userData.arenaEnabled || userData.organization.exists(arenaEnabledOrgs.contains)
 
     def domainToApiModel[Domain, Api](
         domainObjects: List[Domain],

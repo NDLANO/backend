@@ -76,7 +76,7 @@ class CloneFolderTest
             FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
           )
         )
-      when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
+      when(feideApiClient.getOrganization(any)).thenReturn(Success(Some("zxc")))
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
     }
   }
