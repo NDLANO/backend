@@ -107,7 +107,7 @@ export interface IMyNDLAUser {
   displayName: string
   favoriteSubjects: string[]
   role: string
-  organization: string
+  organization?: string
   groups: IMyNDLAGroup[]
   arenaEnabled: boolean
   shareName: boolean
