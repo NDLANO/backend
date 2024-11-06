@@ -8,24 +8,22 @@
 
 package no.ndla.articleapi.service.search
 
-import no.ndla.common.CirceUtil
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.search.SearchableArticle
-import no.ndla.articleapi.repository.{ArticleRepository, Repository}
+import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
 
 trait ArticleIndexService {
-  this: SearchConverterService with IndexService with ArticleRepository with Props =>
+  this: SearchConverterService & IndexService & ArticleRepository & Props =>
   val articleIndexService: ArticleIndexService
 
-  class ArticleIndexService extends StrictLogging with IndexService[Article, SearchableArticle] {
-    override val documentType: String            = props.ArticleSearchDocument
-    override val searchIndex: String             = props.ArticleSearchIndex
-    override val repository: Repository[Article] = articleRepository
+  class ArticleIndexService extends StrictLogging with IndexService {
+    override val documentType: String = props.ArticleSearchDocument
+    override val searchIndex: String  = props.ArticleSearchIndex
 
     override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
       val searchable = searchConverterService.asSearchableArticle(domainModel)

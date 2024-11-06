@@ -8,15 +8,15 @@
 
 package no.ndla.articleapi.repository
 
-import java.net.Socket
-import no.ndla.articleapi._
+import cats.implicits.*
+import no.ndla.articleapi.*
 import no.ndla.articleapi.model.domain.ArticleIds
-import no.ndla.scalatestsuite.IntegrationSuite
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
-import cats.implicits._
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Article
+import no.ndla.scalatestsuite.IntegrationSuite
+import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
+import java.net.Socket
 import scala.util.{Success, Try}
 
 class ArticleRepositoryTest
@@ -262,6 +262,30 @@ class ArticleRepositoryTest
     val inserted3 = repository.updateArticleFromDraftApi(article3, List.empty).get
 
     repository.withSlug("Detti-er-ein-slug").get.article.get should be(inserted3)
+  }
+
+  test("That fetching articles in range excludes unpublished") {
+    val article = TestData.sampleDomainArticle.copy(id = Some(1L))
+
+    val article1 = article.copy(id = 1L.some, revision = 1.some)
+    val article2 = article.copy(id = 2L.some, revision = 1.some)
+    val article3 = article.copy(id = 3L.some, revision = 1.some)
+    val article4 = article.copy(id = 4L.some, revision = 1.some)
+
+    repository.updateArticleFromDraftApi(article1, List.empty).get
+    repository.updateArticleFromDraftApi(article2, List.empty).get
+    repository.updateArticleFromDraftApi(article3, List.empty).get
+    repository.updateArticleFromDraftApi(article4, List.empty).get
+
+    repository.updateArticleFromDraftApi(article3.copy(revision = 2.some), List.empty).get
+    repository.updateArticleFromDraftApi(article3.copy(revision = 3.some), List.empty).get
+    val resultBefore = repository.documentsWithIdBetween(1, 10)
+    resultBefore.size should be(4)
+
+    repository.unpublishMaxRevision(3).get
+
+    val result = repository.documentsWithIdBetween(1, 10)
+    result.size should be(3)
   }
 
 }

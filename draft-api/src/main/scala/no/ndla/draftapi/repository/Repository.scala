@@ -7,9 +7,9 @@
 
 package no.ndla.draftapi.repository
 
-import scalikejdbc.{AutoSession, DBSession}
+import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
 trait Repository[T] {
   def minMaxId(implicit session: DBSession = AutoSession): (Long, Long)
-  def documentsWithIdBetween(min: Long, max: Long): Seq[T]
+  def documentsWithIdBetween(min: Long, max: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[T]
 }
