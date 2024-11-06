@@ -29,11 +29,7 @@ object ArenaUser extends StrictLogging {
     val location = user.groups
       .find(_.isPrimarySchool)
       .map(_.displayName)
-      .getOrElse(user.organization.getOrElse {
-        // TODO: Maybe this needs to be optional instead?
-        logger.warn(s"User ${user.id} has no stored organization")
-        "Unknown"
-      })
+      .getOrElse(user.organization.getOrElse(""))
 
     ArenaUser(
       id = user.id,
