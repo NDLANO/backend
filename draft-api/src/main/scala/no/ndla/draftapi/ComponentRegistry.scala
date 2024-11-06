@@ -12,9 +12,19 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
-import no.ndla.draftapi.db.migrationwithdependencies.V57__MigrateSavedSearch
+import no.ndla.draftapi.db.migrationwithdependencies.{
+  R__RemoveEmptyStringLanguageFields,
+  R__RemoveStatusPublishedArticles,
+  R__SetArticleLanguageFromTaxonomy,
+  R__SetArticleTypeFromTaxonomy,
+  V20__UpdateH5PDomainForFF,
+  V23__UpdateH5PDomainForFFVisualElement,
+  V33__ConvertLanguageUnknown,
+  V57__MigrateSavedSearch
+}
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.ErrorHandling
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
@@ -70,8 +80,16 @@ class ComponentRegistry(properties: DraftApiProperties)
     with SwaggerDocControllerConfig
     with V57__MigrateSavedSearch {
   override val props: DraftApiProperties = properties
-
-  override val migrator                     = new DBMigrator
+  override val migrator: DBMigrator = DBMigrator(
+    new R__RemoveEmptyStringLanguageFields(props),
+    new R__RemoveStatusPublishedArticles(props),
+    new R__SetArticleLanguageFromTaxonomy(props),
+    new R__SetArticleTypeFromTaxonomy(props),
+    new V20__UpdateH5PDomainForFF,
+    new V23__UpdateH5PDomainForFFVisualElement,
+    new V33__ConvertLanguageUnknown(props),
+    new V57__MigrateSavedSearch
+  )
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 

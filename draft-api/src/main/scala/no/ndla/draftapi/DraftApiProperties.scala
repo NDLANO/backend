@@ -10,33 +10,22 @@ package no.ndla.draftapi
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.common.secrets.PropertyKeys
+import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps {
+trait Props extends HasBaseProps with HasDatabaseProps {
   val props: DraftApiProperties
 }
 
-class DraftApiProperties extends BaseProps with StrictLogging {
-  def ApplicationName              = "draft-api"
-  def Auth0LoginEndpoint: String   = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
-  def DraftRoleWithWriteAccess     = "drafts:write"
-  def DraftRoleWithPublishAccess   = "drafts:publish"
-  def ArticleRoleWithPublishAccess = "articles:publish"
+class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging {
+  def ApplicationName            = "draft-api"
+  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-
-  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
@@ -138,4 +127,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def multipartFileSizeThresholdBytes: Int = 1024 * 1024 * 30 // 30MB
   def auth0ManagmentClientId: String       = prop("AUTH0_MANAGEMENT_CLIENT_ID")
   def auth0ManagmentClientSecret: String   = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
+
+  override def MetaMigrationLocation: String      = "no/ndla/draftapi/db/migration"
+  override def MetaMigrationTable: Option[String] = Some("schema_version")
 }

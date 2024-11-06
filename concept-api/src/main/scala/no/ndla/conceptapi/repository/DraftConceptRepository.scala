@@ -12,9 +12,9 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHandling, NotFoundException}
 import no.ndla.conceptapi.model.domain.DBConcept
+import no.ndla.database.DataSource
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 

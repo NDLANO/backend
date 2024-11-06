@@ -9,7 +9,7 @@ package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.draftapi.integration.DataSource
+import no.ndla.database.DataSource
 import no.ndla.draftapi.model.domain.UserData
 import org.postgresql.util.PGobject
 import scalikejdbc.*

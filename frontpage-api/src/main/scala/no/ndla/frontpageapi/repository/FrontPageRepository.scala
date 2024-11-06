@@ -8,12 +8,12 @@
 package no.ndla.frontpageapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.syntax._
-import no.ndla.frontpageapi.integration.DataSource
+import io.circe.syntax.*
 import no.ndla.frontpageapi.model.domain.{DBFrontPageData, FrontPage}
 import org.postgresql.util.PGobject
-import scalikejdbc._
-import cats.implicits._
+import scalikejdbc.*
+import cats.implicits.*
+import no.ndla.database.DataSource
 
 import scala.util.Try
 

@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
+import no.ndla.database.DataSource
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*

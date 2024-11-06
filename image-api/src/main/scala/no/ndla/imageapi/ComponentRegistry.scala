@@ -12,8 +12,9 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.imageapi.controller.*
-import no.ndla.imageapi.integration.*
+import no.ndla.imageapi.db.migrationwithdependencies.{V6__AddAgreementToImages, V7__TranslateUntranslatedAuthors}
 import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
@@ -28,7 +29,6 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
 class ComponentRegistry(properties: ImageApiProperties)
@@ -67,7 +67,10 @@ class ComponentRegistry(properties: ImageApiProperties)
     with SwaggerDocControllerConfig {
   override val props: ImageApiProperties = properties
 
-  override val migrator                     = new DBMigrator
+  override val migrator: DBMigrator = DBMigrator(
+    new V6__AddAgreementToImages,
+    new V7__TranslateUntranslatedAuthors
+  )
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 

@@ -26,7 +26,7 @@ class LearningPathRepositoryComponentIntegrationTest
     with TestEnvironment {
 
   override val dataSource: HikariDataSource = testDataSource.get
-  override val migrator                     = new DBMigrator
+  override val migrator: DBMigrator         = DBMigrator()
 
   var repository: LearningPathRepository = _
 

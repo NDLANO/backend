@@ -10,7 +10,7 @@ package no.ndla.audioapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.*
-import no.ndla.audioapi.integration.*
+import no.ndla.audioapi.db.migrationwithdependencies.{V5__AddAgreementToAudio, V6__TranslateUntranslatedAuthors}
 import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
@@ -18,6 +18,7 @@ import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
@@ -54,8 +55,11 @@ class ComponentRegistry(properties: AudioApiProperties)
     with ErrorHandling
     with SwaggerDocControllerConfig
     with NdlaS3Client {
-  override val props: AudioApiProperties    = properties
-  override val migrator: DBMigrator         = new DBMigrator
+  override val props: AudioApiProperties = properties
+  override val migrator: DBMigrator = DBMigrator(
+    new V5__AddAgreementToAudio,
+    new V6__TranslateUntranslatedAuthors
+  )
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 

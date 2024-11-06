@@ -9,8 +9,8 @@ package no.ndla.frontpageapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.frontpageapi.controller.{FilmPageController, FrontPageController, SubjectPageController}
-import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.api.ErrorHandling
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}

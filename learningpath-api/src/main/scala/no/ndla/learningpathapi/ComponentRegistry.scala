@@ -11,11 +11,20 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.learningpathapi.controller.{
   InternController,
   LearningpathControllerV2,
   StatsController,
   SwaggerDocControllerConfig
+}
+import no.ndla.learningpathapi.db.migrationwithdependencies.{
+  V11__CreatedByNdlaStatusForOwnersWithRoles,
+  V13__StoreNDLAStepsAsIframeTypes,
+  V14__ConvertLanguageUnknown,
+  V15__MergeDuplicateLanguageFields,
+  V31__ArenaDefaultEnabledOrgs,
+  V33__AiDefaultEnabledOrgs
 }
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.ErrorHandling
@@ -70,8 +79,15 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with RedisClient
     with SwaggerDocControllerConfig {
   override val props: LearningpathApiProperties = properties
-  override val migrator                         = new DBMigrator
-  override val dataSource: HikariDataSource     = DataSource.getHikariDataSource
+  override val migrator: DBMigrator = DBMigrator(
+    new V11__CreatedByNdlaStatusForOwnersWithRoles,
+    new V13__StoreNDLAStepsAsIframeTypes,
+    new V14__ConvertLanguageUnknown,
+    new V15__MergeDuplicateLanguageFields,
+    new V31__ArenaDefaultEnabledOrgs,
+    new V33__AiDefaultEnabledOrgs
+  )
+  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
   lazy val learningPathRepository = new LearningPathRepository

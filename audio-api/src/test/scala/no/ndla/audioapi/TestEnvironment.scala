@@ -10,13 +10,13 @@ package no.ndla.audioapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
-import no.ndla.audioapi.integration.*
 import no.ndla.audioapi.model.api.ErrorHandling
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
+import no.ndla.database.DataSource
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}

@@ -10,7 +10,7 @@ package no.ndla.conceptapi.model.api
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.integration.DataSource
+import no.ndla.database.DataSource
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}

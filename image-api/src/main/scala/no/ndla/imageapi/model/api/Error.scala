@@ -9,9 +9,9 @@ package no.ndla.imageapi.model.api
 
 import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
 import no.ndla.common.Clock
+import no.ndla.database.DataSource
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.integration.DataSource
-import no.ndla.imageapi.model._
+import no.ndla.imageapi.model.*
 import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
