@@ -16,11 +16,12 @@ import scala.util.{Failure, Success, Try}
 sealed trait LearningPathStatus extends EnumEntry {}
 object LearningPathStatus extends Enum[LearningPathStatus] with CirceEnum[LearningPathStatus] {
 
-  case object PUBLISHED extends LearningPathStatus
-  case object PRIVATE   extends LearningPathStatus
-  case object DELETED   extends LearningPathStatus
-  case object UNLISTED  extends LearningPathStatus
-  case object SUBMITTED extends LearningPathStatus
+  case object PUBLISHED         extends LearningPathStatus
+  case object PRIVATE           extends LearningPathStatus
+  case object DELETED           extends LearningPathStatus
+  case object UNLISTED          extends LearningPathStatus
+  case object SUBMITTED         extends LearningPathStatus
+  case object READY_FOR_SHARING extends LearningPathStatus
 
   override def values: IndexedSeq[LearningPathStatus] = findValues
 
