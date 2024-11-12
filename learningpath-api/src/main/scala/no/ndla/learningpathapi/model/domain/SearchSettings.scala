@@ -19,5 +19,5 @@ case class SearchSettings(
     fallback: Boolean,
     verificationStatus: Option[String],
     shouldScroll: Boolean,
-    status: List[LearningPathStatus.Value]
+    status: List[LearningPathStatus]
 )

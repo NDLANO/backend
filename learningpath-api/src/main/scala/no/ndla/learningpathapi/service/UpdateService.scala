@@ -148,7 +148,7 @@ trait UpdateService {
 
     def updateLearningPathStatusV2(
         learningPathId: Long,
-        status: LearningPathStatus.Value,
+        status: LearningPathStatus,
         owner: CombinedUserRequired,
         language: String,
         message: Option[String] = None

@@ -171,7 +171,7 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def mergeStatus(existing: LearningPath, user: CombinedUser): LearningPathStatus.Value = {
+    private def mergeStatus(existing: LearningPath, user: CombinedUser): LearningPathStatus = {
       existing.status match {
         case LearningPathStatus.PUBLISHED if existing.canSetStatus(LearningPathStatus.PUBLISHED, user).isFailure =>
           LearningPathStatus.UNLISTED
@@ -320,7 +320,7 @@ trait ConverterService {
       )
     }
 
-    private def getVerificationStatus(user: CombinedUser): LearningPathVerificationStatus.Value =
+    private def getVerificationStatus(user: CombinedUser): LearningPathVerificationStatus =
       if (user.isNdla)
         LearningPathVerificationStatus.CREATED_BY_NDLA
       else LearningPathVerificationStatus.EXTERNAL

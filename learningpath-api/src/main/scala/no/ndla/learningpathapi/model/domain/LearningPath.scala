@@ -32,8 +32,8 @@ case class LearningPath(
     description: Seq[Description],
     coverPhotoId: Option[String],
     duration: Option[Int],
-    status: LearningPathStatus.Value,
-    verificationStatus: LearningPathVerificationStatus.Value,
+    status: LearningPathStatus,
+    verificationStatus: LearningPathVerificationStatus,
     lastUpdated: NDLADate,
     tags: Seq[Tag],
     owner: String,
@@ -64,7 +64,7 @@ case class LearningPath(
     status == LearningPathStatus.DELETED
   }
 
-  def canSetStatus(status: LearningPathStatus.Value, user: CombinedUser): Try[LearningPath] = {
+  def canSetStatus(status: LearningPathStatus, user: CombinedUser): Try[LearningPath] = {
     if (status == LearningPathStatus.PUBLISHED && !user.canPublish) {
       Failure(AccessDeniedException("You need to be a publisher to publish learningpaths."))
     } else {
@@ -111,47 +111,6 @@ case class LearningPath(
     else
       Failure(new ValidationException(errors = validationResult))
   }
-}
-
-object LearningPathStatus extends Enumeration {
-  val PUBLISHED, PRIVATE, DELETED, UNLISTED, SUBMITTED = Value
-
-  def valueOf(s: String): Option[LearningPathStatus.Value] = {
-    LearningPathStatus.values.find(_.toString == s.toUpperCase)
-  }
-
-  def valueOfOrError(status: String): LearningPathStatus.Value = {
-    valueOf(status) match {
-      case Some(status) => status
-      case None =>
-        throw new ValidationException(
-          errors = List(ValidationMessage("status", s"'$status' is not a valid publishingstatus."))
-        )
-    }
-  }
-
-  def valueOfOrDefault(s: String): LearningPathStatus.Value = {
-    valueOf(s).getOrElse(LearningPathStatus.PRIVATE)
-  }
-
-  implicit val encoder: Encoder[LearningPathStatus.Value] = Encoder.encodeEnumeration(LearningPathStatus)
-  implicit val decoder: Decoder[LearningPathStatus.Value] = Decoder.decodeEnumeration(LearningPathStatus)
-}
-
-object LearningPathVerificationStatus extends Enumeration {
-  val EXTERNAL, CREATED_BY_NDLA, VERIFIED_BY_NDLA = Value
-
-  def valueOf(s: String): Option[LearningPathVerificationStatus.Value] = {
-    LearningPathVerificationStatus.values.find(_.toString == s.toUpperCase)
-  }
-
-  def valueOfOrDefault(s: String): LearningPathVerificationStatus.Value = {
-    valueOf(s).getOrElse(LearningPathVerificationStatus.EXTERNAL)
-  }
-  implicit val encoder: Encoder[LearningPathVerificationStatus.Value] =
-    Encoder.encodeEnumeration(LearningPathVerificationStatus)
-  implicit val decoder: Decoder[LearningPathVerificationStatus.Value] =
-    Decoder.decodeEnumeration(LearningPathVerificationStatus)
 }
 
 object LearningPath extends SQLSyntaxSupport[LearningPath] {

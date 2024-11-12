@@ -401,7 +401,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
     }
 
     def learningPathsWithStatus(
-        status: LearningPathStatus.Value
+        status: LearningPathStatus
     )(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
       learningPathsWhere(sqls"lp.document#>>'{status}' = ${status.toString}")
     }

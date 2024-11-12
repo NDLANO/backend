@@ -148,8 +148,8 @@ trait SearchService extends StrictLogging {
     }
 
     private def getStatusFilter(settings: SearchSettings) = settings.status match {
-      case Nil      => Some(termQuery("status", "PUBLISHED"))
-      case statuses => Some(termsQuery("status", statuses))
+      case Nil      => Some(termQuery("status", LearningPathStatus.PUBLISHED.entryName))
+      case statuses => Some(termsQuery("status", statuses.map(_.entryName)))
     }
 
     private def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult] = {
