@@ -38,13 +38,18 @@ import no.ndla.common.model.domain.concept.{
   WordClass
 }
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.learningpath.LearningpathCopyright
+import no.ndla.common.model.domain.learningpath.{
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningpathCopyright,
+  Description as LPDescription
+}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningPathVerificationStatus}
 import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -944,7 +949,7 @@ object TestData {
   val learningPath1: LearningPath = DefaultLearningPath.copy(
     id = Some(PenguinId),
     title = List(Title("Pingvinen er en kjeltring", "nb")),
-    description = List(learningpath.Description("Dette handler om fugler", "nb")),
+    description = List(LPDescription("Dette handler om fugler", "nb")),
     duration = Some(1),
     lastUpdated = today.minusDays(34),
     tags = List(Tag(List("superhelt", "kanikkefly"), "nb"))
@@ -953,7 +958,7 @@ object TestData {
   val learningPath2: LearningPath = DefaultLearningPath.copy(
     id = Some(BatmanId),
     title = List(Title("Batman er en tøff og morsom helt", "nb"), Title("Batman is a tough guy", "en")),
-    description = List(learningpath.Description("Dette handler om flaggermus, som kan ligne litt på en fugl", "nb")),
+    description = List(LPDescription("Dette handler om flaggermus, som kan ligne litt på en fugl", "nb")),
     duration = Some(2),
     lastUpdated = today.minusDays(3),
     tags = List(Tag(Seq("superhelt", "kanfly"), "nb"))
@@ -962,8 +967,7 @@ object TestData {
   val learningPath3: LearningPath = DefaultLearningPath.copy(
     id = Some(DonaldId),
     title = List(Title("Donald er en tøff, rar og morsom and", "nb"), Title("Donald is a weird duck", "en")),
-    description =
-      List(learningpath.Description("Dette handler om en and, som også minner om både flaggermus og fugler.", "nb")),
+    description = List(LPDescription("Dette handler om en and, som også minner om både flaggermus og fugler.", "nb")),
     duration = Some(3),
     lastUpdated = today.minusDays(4),
     tags = List(Tag(Seq("disney", "kanfly"), "nb"))
@@ -973,8 +977,8 @@ object TestData {
     id = Some(UnrelatedId),
     title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
     description = List(
-      learningpath.Description("This is unrelated", "en"),
-      learningpath.Description("Dette er en urelatert", "nb")
+      LPDescription("This is unrelated", "en"),
+      LPDescription("Dette er en urelatert", "nb")
     ),
     duration = Some(4),
     lastUpdated = today.minusDays(5),
@@ -984,7 +988,7 @@ object TestData {
   val learningPath5: LearningPath = DefaultLearningPath.copy(
     id = Some(EnglandoId),
     title = List(Title("Englando", "en")),
-    description = List(learningpath.Description("This is a englando learningpath", "en")),
+    description = List(LPDescription("This is a englando learningpath", "en")),
     duration = Some(5),
     lastUpdated = today.minusDays(6),
     tags = List(),
@@ -994,7 +998,7 @@ object TestData {
   val learningPath6: LearningPath = DefaultLearningPath.copy(
     id = Some(KekId),
     title = List(Title("Kek", "en")),
-    description = List(learningpath.Description("This is kek", "en")),
+    description = List(LPDescription("This is kek", "en")),
     duration = Some(5),
     lastUpdated = today.minusDays(7),
     tags = List()

@@ -18,6 +18,7 @@ import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
+import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -41,7 +42,6 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType}
-import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.taxonomy.*
@@ -287,7 +287,7 @@ trait SearchConverterService {
           lastUpdated = lp.lastUpdated,
           defaultTitle = defaultTitle.map(_.title),
           tags = SearchableLanguageList(lp.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-          learningsteps = lp.learningsteps.map(asSearchableLearningStep),
+          learningsteps = lp.learningsteps.map(_.map(asSearchableLearningStep)).getOrElse(Seq.empty).toList,
           copyright = license,
           license = lp.copyright.license,
           isBasedOn = lp.isBasedOn,

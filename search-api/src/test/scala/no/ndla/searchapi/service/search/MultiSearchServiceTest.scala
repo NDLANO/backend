@@ -9,13 +9,13 @@ package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.MetaImage
-import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
