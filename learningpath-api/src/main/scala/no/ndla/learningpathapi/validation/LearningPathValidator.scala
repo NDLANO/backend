@@ -11,13 +11,12 @@ package no.ndla.learningpathapi.validation
 import io.lemonlabs.uri.Url
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.domain.learningpath.LearningpathCopyright
+import no.ndla.common.model.domain.learningpath.{Description, LearningPath, LearningpathCopyright}
 import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2
-import no.ndla.learningpathapi.model.domain._
 import no.ndla.mapping.License.getLicense
 
 trait LearningPathValidator {
-  this: LanguageValidator with TitleValidator with TextValidator =>
+  this: LanguageValidator & TitleValidator & TextValidator =>
   val learningPathValidator: LearningPathValidator
 
   class LearningPathValidator(descriptionRequired: Boolean = true) {

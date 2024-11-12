@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.learningpathapi.model.domain.{LearningPathStatus, StepStatus}
+import no.ndla.common.model.domain.learningpath.{LearningPathStatus, StepStatus}
 
 class StatusValidator {
 

@@ -12,10 +12,12 @@ import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.api as commonApi
+import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.learningpath.{LearningPath, StepStatus, LearningPathStatus as _}
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
-import no.ndla.learningpathapi.model.domain.{InvalidLpStatusException, StepStatus, LearningPathStatus as _}
+import no.ndla.learningpathapi.model.domain.InvalidLpStatusException
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
@@ -125,7 +127,7 @@ trait ReadService {
       }
     }
 
-    def withIdAndAccessGranted(learningPathId: Long, user: CombinedUser): Try[domain.LearningPath] = {
+    def withIdAndAccessGranted(learningPathId: Long, user: CombinedUser): Try[LearningPath] = {
       val learningPath = learningPathRepository.withId(learningPathId)
       learningPath.map(_.isOwnerOrPublic(user)) match {
         case Some(Success(lp)) => Success(lp)
@@ -152,7 +154,7 @@ trait ReadService {
 
     def learningPathWithStatus(status: String, user: CombinedUser): Try[List[LearningPathV2]] = {
       if (user.isAdmin) {
-        domain.LearningPathStatus.valueOf(status) match {
+        learningpath.LearningPathStatus.valueOf(status) match {
           case Some(ps) =>
             Success(
               learningPathRepository

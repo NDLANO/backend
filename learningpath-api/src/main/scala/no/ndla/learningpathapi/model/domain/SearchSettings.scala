@@ -7,6 +7,8 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.common.model.domain.learningpath.LearningPathStatus
+
 case class SearchSettings(
     query: Option[String],
     withIdIn: List[Long],

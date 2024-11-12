@@ -9,6 +9,7 @@ package no.ndla.learningpathapi.integration
 import java.util.concurrent.Executors
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 import no.ndla.learningpathapi.Props
@@ -23,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
   val searchApiClient: SearchApiClient
 
   class SearchApiClient extends StrictLogging {

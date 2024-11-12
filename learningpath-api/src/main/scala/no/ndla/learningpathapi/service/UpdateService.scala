@@ -11,12 +11,14 @@ package no.ndla.learningpathapi.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
+import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.learningpath.{LearningPath, LearningPathStatus, Message, StepStatus}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.domain.*
+import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
-import no.ndla.learningpathapi.model.domain.{LearningPathStatus, LearningPath as _, LearningStep as _, *}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
@@ -62,7 +64,7 @@ trait UpdateService {
       }
     }
 
-    def insertDump(dump: domain.LearningPath): domain.LearningPath = learningPathRepository.insert(dump)
+    def insertDump(dump: learningpath.LearningPath): learningpath.LearningPath = learningPathRepository.insert(dump)
 
     private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: CombinedUser)(w: => Try[T]): Try[T] = for {
       canWrite <- readService.canWriteNow(owner)
@@ -134,7 +136,7 @@ trait UpdateService {
       }
     }
 
-    private def updateSearchAndTaxonomy(learningPath: domain.LearningPath, user: Option[TokenUser]) = {
+    private def updateSearchAndTaxonomy(learningPath: LearningPath, user: Option[TokenUser]) = {
       val sRes = searchIndexService.indexDocument(learningPath)
 
       if (learningPath.isPublished) {
@@ -158,11 +160,12 @@ trait UpdateService {
           .flatMap(_.canSetStatus(status, owner))
           .flatMap { existing =>
             val validatedLearningPath =
-              if (status == domain.LearningPathStatus.PUBLISHED) existing.validateForPublishing() else Success(existing)
+              if (status == learningpath.LearningPathStatus.PUBLISHED) existing.validateForPublishing()
+              else Success(existing)
 
             validatedLearningPath.flatMap(valid => {
               val newMessage = message match {
-                case Some(msg) if owner.isAdmin => Some(domain.Message(msg, owner.id, clock.now()))
+                case Some(msg) if owner.isAdmin => Some(Message(msg, owner.id, clock.now()))
                 case _                          => valid.message
               }
 
@@ -184,7 +187,7 @@ trait UpdateService {
           }
       }
 
-    private[service] def deleteIsBasedOnReference(updatedLearningPath: domain.LearningPath): Unit = {
+    private[service] def deleteIsBasedOnReference(updatedLearningPath: LearningPath): Unit = {
       learningPathRepository
         .learningPathsWithIsBasedOn(updatedLearningPath.id.get)
         .foreach(lp => {
@@ -396,7 +399,7 @@ trait UpdateService {
 
     private def rangeToUpdate(from: Int, to: Int): Range = if (from > to) to until from else from + 1 to to
 
-    private def withId(learningPathId: Long, includeDeleted: Boolean = false): Try[domain.LearningPath] = {
+    private def withId(learningPathId: Long, includeDeleted: Boolean = false): Try[LearningPath] = {
       val lpOpt = if (includeDeleted) {
         learningPathRepository.withIdIncludingDeleted(learningPathId)
       } else {

@@ -13,7 +13,6 @@ import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{learningpathapi, searchapi}
 import org.mockito.ArgumentMatchers.any

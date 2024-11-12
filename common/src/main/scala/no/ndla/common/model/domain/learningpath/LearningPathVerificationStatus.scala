@@ -1,12 +1,12 @@
 /*
- * Part of NDLA learningpath-api
+ * Part of NDLA common
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.learningpathapi.model.domain
+package no.ndla.common.model.domain.learningpath
 
 import enumeratum.*
 

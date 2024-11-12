@@ -13,7 +13,17 @@ import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.learningpath
-import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.learningpath.{
+  Description,
+  EmbedType,
+  EmbedUrl,
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningStep,
+  StepStatus,
+  StepType
+}
 import no.ndla.common.model.{api as commonApi, domain as common}
 import no.ndla.common.{Clock, errors}
 import no.ndla.language.Language.*
@@ -21,7 +31,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.{LearningPathStatus as _, *}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
-import no.ndla.learningpathapi.model.domain.*
+import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
@@ -44,8 +54,8 @@ trait ConverterService {
       learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
     }
 
-    def asDescription(description: api.Description): domain.Description = {
-      domain.Description(description.description, description.language)
+    def asDescription(description: api.Description): learningpath.Description = {
+      Description(description.description, description.language)
     }
 
     def asTitle(title: api.Title): common.Title = {
@@ -89,7 +99,7 @@ trait ConverterService {
     }
 
     def asApiLearningpathV2(
-        lp: domain.LearningPath,
+        lp: LearningPath,
         language: String,
         fallback: Boolean,
         userInfo: CombinedUser
@@ -150,7 +160,7 @@ trait ConverterService {
         )
     }
 
-    private def asApiMessage(message: domain.Message): api.Message =
+    private def asApiMessage(message: learningpath.Message): api.Message =
       api.Message(message.message, message.date)
 
     private def extractImageId(url: String): Option[String] = {
@@ -195,7 +205,7 @@ trait ConverterService {
       val descriptions = updated.description match {
         case None => Seq.empty
         case Some(value) =>
-          Seq(domain.Description(value, updated.language))
+          Seq(Description(value, updated.language))
       }
 
       val tags = updated.tags match {
@@ -230,7 +240,7 @@ trait ConverterService {
 
     def asDomainLearningStep(newLearningStep: NewLearningStepV2, learningPath: LearningPath): Try[LearningStep] = {
       val description = newLearningStep.description
-        .map(domain.Description(_, newLearningStep.language))
+        .map(Description(_, newLearningStep.language))
         .toSeq
 
       val embedUrlT = newLearningStep.embedUrl
@@ -245,7 +255,7 @@ trait ConverterService {
         else listOfLearningSteps.map(_.seqNo).max + 1
 
       embedUrlT.map(embedUrl =>
-        domain.LearningStep(
+        LearningStep(
           None,
           None,
           None,
@@ -294,7 +304,7 @@ trait ConverterService {
       val descriptions = updated.description match {
         case None => existing.description
         case Some(value) =>
-          mergeLanguageFields(existing.description, Seq(domain.Description(value, updated.language)))
+          mergeLanguageFields(existing.description, Seq(Description(value, updated.language)))
       }
 
       val embedUrlsT = updated.embedUrl match {
@@ -313,7 +323,7 @@ trait ConverterService {
           embedUrl = embedUrls,
           showTitle = updated.showTitle.getOrElse(existing.showTitle),
           `type` = updated.`type`
-            .map(domain.StepType.valueOfOrError)
+            .map(learningpath.StepType.valueOfOrError)
             .getOrElse(existing.`type`),
           license = updated.license
         )
@@ -335,7 +345,7 @@ trait ConverterService {
       val oldDescription = newLearningPath.description match {
         case None => Seq.empty
         case Some(value) =>
-          Seq(domain.Description(value, newLearningPath.language))
+          Seq(Description(value, newLearningPath.language))
       }
 
       val oldTags = newLearningPath.tags match {
@@ -386,16 +396,16 @@ trait ConverterService {
           Seq(common.Tag(newLearningPath.tags, newLearningPath.language))
 
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
-        domain.LearningPath(
+        LearningPath(
           None,
           None,
           None,
           None,
           Seq(common.Title(newLearningPath.title, newLearningPath.language)),
-          Seq(domain.Description(newLearningPath.description, newLearningPath.language)),
+          Seq(Description(newLearningPath.description, newLearningPath.language)),
           newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
           newLearningPath.duration,
-          domain.LearningPathStatus.PRIVATE,
+          learningpath.LearningPathStatus.PRIVATE,
           getVerificationStatus(user),
           clock.now(),
           domainTags,
@@ -406,9 +416,9 @@ trait ConverterService {
       }
     }
 
-    def getApiIntroduction(learningSteps: Seq[domain.LearningStep]): Seq[api.Introduction] = {
+    def getApiIntroduction(learningSteps: Seq[LearningStep]): Seq[api.Introduction] = {
       learningSteps
-        .find(_.`type` == domain.StepType.INTRODUCTION)
+        .find(_.`type` == learningpath.StepType.INTRODUCTION)
         .toList
         .flatMap(x => x.description)
         .map(x => api.Introduction(x.description, x.language))
@@ -419,7 +429,7 @@ trait ConverterService {
     }
 
     def asApiLearningpathSummaryV2(
-        learningpath: domain.LearningPath,
+        learningpath: LearningPath,
         user: CombinedUser
     ): Try[api.LearningPathSummaryV2] = {
       val supportedLanguages = learningpath.supportedLanguages
@@ -467,8 +477,8 @@ trait ConverterService {
     }
 
     def asApiLearningStepV2(
-        ls: domain.LearningStep,
-        lp: domain.LearningPath,
+        ls: LearningStep,
+        lp: LearningPath,
         language: String,
         fallback: Boolean,
         user: CombinedUser
@@ -513,8 +523,8 @@ trait ConverterService {
     }
 
     def asApiLearningStepSummaryV2(
-        ls: domain.LearningStep,
-        lp: domain.LearningPath,
+        ls: LearningStep,
+        lp: LearningPath,
         language: String
     ): Option[api.LearningStepSummaryV2] = {
       findByLanguageOrBestEffort(ls.title, language).map(title =>
@@ -530,7 +540,7 @@ trait ConverterService {
 
     def asLearningStepContainerSummary(
         status: StepStatus,
-        learningPath: domain.LearningPath,
+        learningPath: LearningPath,
         language: String,
         fallback: Boolean
     ): Try[api.LearningStepContainerSummary] = {
@@ -592,7 +602,7 @@ trait ConverterService {
       api.Title(title.title, title.language)
     }
 
-    private def asApiDescription(description: domain.Description): api.Description = {
+    private def asApiDescription(description: Description): api.Description = {
       api.Description(description.description, description.language)
     }
 
@@ -627,15 +637,15 @@ trait ConverterService {
       }
     }
 
-    private def createUrlToLearningStep(ls: domain.LearningStep, lp: domain.LearningPath): String = {
+    private def createUrlToLearningStep(ls: LearningStep, lp: LearningPath): String = {
       s"${createUrlToLearningSteps(lp)}/${ls.id.get}"
     }
 
-    private def createUrlToLearningSteps(lp: domain.LearningPath): String = {
+    private def createUrlToLearningSteps(lp: LearningPath): String = {
       s"${createUrlToLearningPath(lp)}/learningsteps"
     }
 
-    def createUrlToLearningPath(lp: domain.LearningPath): String = {
+    def createUrlToLearningPath(lp: LearningPath): String = {
       s"${ApplicationUrl.get}${lp.id.get}"
     }
 

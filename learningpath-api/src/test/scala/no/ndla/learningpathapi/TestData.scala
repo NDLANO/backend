@@ -7,13 +7,20 @@
 
 package no.ndla.learningpathapi
 
-import no.ndla.common.model.domain.learningpath.LearningpathCopyright
+import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.learningpath.{
+  Description,
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningStep,
+  LearningpathCopyright,
+  StepType
+}
 import no.ndla.language.Language.DefaultLanguage
-
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.mapping.License.CC_BY
-import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep, SearchSettings, Sort}
+import no.ndla.learningpathapi.model.domain.{SearchSettings, Sort}
 
 object TestData {
 
@@ -35,43 +42,43 @@ object TestData {
   val writeScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $writeScopeClientToken")
   val adminScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $adminScopeClientToken")
 
-  val domainLearningStep1: LearningStep = domain.LearningStep(
+  val domainLearningStep1: LearningStep = LearningStep(
     None,
     None,
     None,
     None,
     1,
     List(common.Title("Step1Title", "nb")),
-    List(domain.Description("Step1Description", "nb")),
+    List(Description("Step1Description", "nb")),
     List(),
-    domain.StepType.INTRODUCTION,
+    StepType.INTRODUCTION,
     None
   )
 
-  val domainLearningStep2: LearningStep = domain.LearningStep(
+  val domainLearningStep2: LearningStep = LearningStep(
     None,
     None,
     None,
     None,
     2,
     List(common.Title("Step2Title", "nb")),
-    List(domain.Description("Step2Description", "nb")),
+    List(Description("Step2Description", "nb")),
     List(),
-    domain.StepType.TEXT,
+    learningpath.StepType.TEXT,
     None
   )
 
-  val sampleDomainLearningPath: LearningPath = domain.LearningPath(
+  val sampleDomainLearningPath: LearningPath = LearningPath(
     Some(1),
     Some(1),
     None,
     None,
     List(common.Title("tittel", DefaultLanguage)),
-    List(domain.Description("deskripsjon", DefaultLanguage)),
+    List(Description("deskripsjon", DefaultLanguage)),
     None,
     Some(60),
-    domain.LearningPathStatus.PUBLISHED,
-    domain.LearningPathVerificationStatus.CREATED_BY_NDLA,
+    LearningPathStatus.PUBLISHED,
+    LearningPathVerificationStatus.CREATED_BY_NDLA,
     today,
     List(common.Tag(List("tag"), DefaultLanguage)),
     "me",
@@ -91,6 +98,6 @@ object TestData {
     fallback = false,
     verificationStatus = None,
     shouldScroll = false,
-    status = List(domain.LearningPathStatus.PUBLISHED)
+    status = List(learningpath.LearningPathStatus.PUBLISHED)
   )
 }

@@ -10,7 +10,19 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
+import no.ndla.common.model.domain.learningpath.{
+  Description,
+  EmbedType,
+  EmbedUrl,
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningStep,
+  LearningpathCopyright,
+  Message,
+  StepStatus,
+  StepType
+}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
