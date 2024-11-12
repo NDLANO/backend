@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 trait SearchService extends StrictLogging {
-  this: SearchIndexService with Elastic4sClient with SearchConverterServiceComponent with Props with ErrorHandling =>
+  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & Props & ErrorHandling =>
   val searchService: SearchService
 
   class SearchService {
@@ -54,7 +54,7 @@ trait SearchService extends StrictLogging {
           )
         })
 
-    def getHitsV2(response: SearchResponse, language: String): Seq[LearningPathSummaryV2] = {
+    private def getHitsV2(response: SearchResponse, language: String): Seq[LearningPathSummaryV2] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
@@ -74,7 +74,7 @@ trait SearchService extends StrictLogging {
       }
     }
 
-    def hitAsLearningPathSummaryV2(hitString: String, language: String): LearningPathSummaryV2 = {
+    private def hitAsLearningPathSummaryV2(hitString: String, language: String): LearningPathSummaryV2 = {
       val searchable = CirceUtil.unsafeParseAs[SearchableLearningPath](hitString)
       searchConverterService.asApiLearningPathSummaryV2(searchable, language)
     }
@@ -219,7 +219,7 @@ trait SearchService extends StrictLogging {
       }
     }
 
-    def pathsFilterQuery(paths: List[String]): Option[NestedQuery] = {
+    private def pathsFilterQuery(paths: List[String]): Option[NestedQuery] = {
       if (paths.isEmpty) None
       else {
         Some(

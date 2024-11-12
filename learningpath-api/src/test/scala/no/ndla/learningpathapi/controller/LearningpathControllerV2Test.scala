@@ -48,11 +48,14 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     None,
     None,
     "",
+    "",
     NDLADate.now(),
     api.LearningPathTags(Seq(), "nb"),
     copyright,
     List("nb"),
     None,
+    "",
+    false,
     None
   )
 

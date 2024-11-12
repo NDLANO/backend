@@ -56,11 +56,14 @@ export interface ILearningPathSummaryV2 {
   coverPhotoUrl?: string
   duration?: number
   status: string
+  verificationStatus: string
   lastUpdated: string
   tags: ILearningPathTags
   copyright: ICopyright
   supportedLanguages: string[]
   isBasedOn?: number
+  learningstepUrl: string
+  canEdit: boolean
   message?: string
 }
 

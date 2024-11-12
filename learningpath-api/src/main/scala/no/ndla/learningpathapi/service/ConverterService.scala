@@ -450,11 +450,14 @@ trait ConverterService {
           learningpath.coverPhotoId.flatMap(asCoverPhoto).map(_.url),
           learningpath.duration,
           learningpath.status.toString,
+          learningpath.verificationStatus.toString,
           learningpath.lastUpdated,
           tags,
           asApiCopyright(learningpath.copyright),
           supportedLanguages,
           learningpath.isBasedOn,
+          createUrlToLearningSteps(learningpath),
+          learningpath.canEdit(user),
           message
         )
       )

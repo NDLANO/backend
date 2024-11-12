@@ -198,6 +198,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Some(60),
         LearningPathStatus.PRIVATE.toString,
+        LearningPathVerificationStatus.CREATED_BY_NDLA.toString,
         randomDate,
         api.LearningPathTags(Seq("tag"), DefaultLanguage),
         api.Copyright(
@@ -210,6 +211,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         ),
         List("nb", "en"),
         None,
+        "null1/learningsteps",
+        false,
         None
       )
     )

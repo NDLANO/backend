@@ -28,12 +28,8 @@ import no.ndla.common.CirceUtil
 import no.ndla.network.tapir.auth.TokenUser
 
 trait SearchIndexService {
-  this: Elastic4sClient
-    with SearchConverterServiceComponent
-    with LearningPathRepositoryComponent
-    with SearchApiClient
-    with BaseIndexService
-    with Props =>
+  this: Elastic4sClient & SearchConverterServiceComponent & LearningPathRepositoryComponent & SearchApiClient &
+    BaseIndexService & Props =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends BaseIndexService with StrictLogging {

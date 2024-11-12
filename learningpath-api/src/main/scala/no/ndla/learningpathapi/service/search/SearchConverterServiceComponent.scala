@@ -11,10 +11,10 @@ package no.ndla.learningpathapi.service.search
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model._
+import no.ndla.learningpathapi.model.*
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
-import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.model.search._
+import no.ndla.learningpathapi.model.domain.*
+import no.ndla.learningpathapi.model.search.*
 import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
@@ -22,7 +22,7 @@ import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 trait SearchConverterServiceComponent {
-  this: ConverterService with Props =>
+  this: ConverterService & Props =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService {
@@ -56,12 +56,15 @@ trait SearchConverterServiceComponent {
         searchableLearningPath.coverPhotoUrl,
         searchableLearningPath.duration,
         searchableLearningPath.status,
+        searchableLearningPath.verificationStatus,
         searchableLearningPath.lastUpdated,
         findByLanguageOrBestEffort(tags, language)
           .getOrElse(api.LearningPathTags(Seq(), DefaultLanguage)),
         searchableLearningPath.copyright,
         supportedLanguages,
         searchableLearningPath.isBasedOn,
+        createUrlToLearningSteps(searchableLearningPath.id),
+        canEdit = false,
         message = None
       )
     }
@@ -94,7 +97,7 @@ trait SearchConverterServiceComponent {
       )
     }
 
-    def asSearchableLearningStep(learningStep: LearningStep): SearchableLearningStep = {
+    private def asSearchableLearningStep(learningStep: LearningStep): SearchableLearningStep = {
       SearchableLearningStep(
         learningStep.`type`.toString,
         learningStep.embedUrl.map(_.url).toList,
@@ -106,6 +109,10 @@ trait SearchConverterServiceComponent {
 
     def createUrlToLearningPath(id: Long): String = {
       s"${ApplicationUrl.get}$id"
+    }
+
+    def createUrlToLearningSteps(id: Long): String = {
+      s"${ApplicationUrl.get}$id/learningsteps"
     }
 
     def getLanguageFromHit(result: SearchHit): Option[String] = {

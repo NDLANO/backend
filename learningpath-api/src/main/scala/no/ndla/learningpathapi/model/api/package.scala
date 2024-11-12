@@ -8,6 +8,4 @@
 
 package no.ndla.learningpathapi.model
 
-package object api {
-  type FeideID = String
-}
+package object api {}
