@@ -37,10 +37,10 @@ trait ReadService {
       learningPathRepository.allPublishedContributors.map(author => commonApi.Author(author.`type`, author.name))
     }
 
-    def withOwnerV2(user: CombinedUserRequired): List[LearningPathSummaryV2] = {
+    def withOwnerV2(user: CombinedUserRequired, language: String, fallback: Boolean): List[LearningPathV2] = {
       learningPathRepository
         .withOwner(user.id)
-        .flatMap(value => converterService.asApiLearningpathSummaryV2(value, user).toOption)
+        .flatMap(value => converterService.asApiLearningpathV2(value, language, fallback, user).toOption)
     }
 
     def withIdV2List(

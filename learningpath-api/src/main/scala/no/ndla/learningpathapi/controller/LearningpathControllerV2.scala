@@ -36,16 +36,8 @@ import scala.util.{Failure, Success, Try}
 
 trait LearningpathControllerV2 {
 
-  this: ReadService
-    with UpdateService
-    with SearchService
-    with LanguageValidator
-    with ConverterService
-    with TaxonomyApiClient
-    with SearchConverterServiceComponent
-    with Props
-    with ErrorHandling
-    with TapirController =>
+  this: ReadService &
+    UpdateService with SearchService with LanguageValidator with ConverterService with TaxonomyApiClient with SearchConverterServiceComponent with Props with ErrorHandling with TapirController =>
   val learningpathControllerV2: LearningpathControllerV2
 
   class LearningpathControllerV2 extends TapirController {
@@ -419,10 +411,10 @@ trait LearningpathControllerV2 {
       .summary("Fetch all learningspaths you have created")
       .description("Shows your learningpaths.")
       .in("mine")
-      .out(jsonBody[List[LearningPathSummaryV2]])
+      .out(jsonBody[List[LearningPathV2]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
-      .serverLogicPure { user => _ => readService.withOwnerV2(user).asRight }
+      .serverLogicPure { user => _ => readService.withOwnerV2(user, DefaultLanguage, true).asRight }
 
     def getLicenses: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show all valid licenses")
