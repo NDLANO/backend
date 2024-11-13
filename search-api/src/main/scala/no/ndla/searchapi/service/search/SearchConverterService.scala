@@ -287,7 +287,7 @@ trait SearchConverterService {
           lastUpdated = lp.lastUpdated,
           defaultTitle = defaultTitle.map(_.title),
           tags = SearchableLanguageList(lp.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-          learningsteps = lp.learningsteps.map(_.map(asSearchableLearningStep)).getOrElse(Seq.empty).toList,
+          learningsteps = lp.learningsteps.getOrElse(Seq.empty).map(asSearchableLearningStep).toList,
           copyright = license,
           license = lp.copyright.license,
           isBasedOn = lp.isBasedOn,
