@@ -17,12 +17,11 @@ class DurationValidator {
   def validateRequired(durationOpt: Option[Int]): Option[ValidationMessage] = {
     durationOpt match {
       case None => Some(ValidationMessage("duration", DURATION_REQUIRED))
-      case Some(duration) => {
+      case Some(duration) =>
         duration < 1 match {
           case true  => Some(ValidationMessage("duration", DURATION_INVALID))
           case false => None
         }
-      }
     }
   }
 }

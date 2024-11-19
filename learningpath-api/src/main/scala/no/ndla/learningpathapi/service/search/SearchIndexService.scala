@@ -16,7 +16,7 @@ import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateR
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.SearchApiClient
-import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, LearningPath, ReindexResult}
+import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, ReindexResult}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
@@ -25,6 +25,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 import cats.implicits.*
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.network.tapir.auth.TokenUser
 
 trait SearchIndexService {

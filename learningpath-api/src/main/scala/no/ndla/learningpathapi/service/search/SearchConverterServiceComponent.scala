@@ -9,12 +9,13 @@
 package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
+import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep, StepType}
 import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model._
+import no.ndla.learningpathapi.model.*
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
-import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.model.search._
+import no.ndla.learningpathapi.model.domain.*
+import no.ndla.learningpathapi.model.search.*
 import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl

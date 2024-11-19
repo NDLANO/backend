@@ -1,11 +1,12 @@
 /*
- * Part of NDLA learningpath-api
- * Copyright (C) 2018 NDLA
+ * Part of NDLA common
+ * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
-package no.ndla.learningpathapi.model.domain
+package no.ndla.common.model.domain.learningpath
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}

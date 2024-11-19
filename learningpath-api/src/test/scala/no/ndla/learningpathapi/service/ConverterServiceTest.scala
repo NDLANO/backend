@@ -9,12 +9,21 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{NotFoundException, ValidationException}
-import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
+import no.ndla.common.model.domain.learningpath.{
+  Description,
+  EmbedType,
+  EmbedUrl,
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningStep,
+  LearningpathCopyright,
+  StepType
+}
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
-import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl

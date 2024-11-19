@@ -10,9 +10,14 @@ package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.common.model.domain.learningpath.LearningpathCopyright
+import no.ndla.common.model.domain.learningpath.{
+  Description,
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningpathCopyright
+}
 import no.ndla.learningpathapi.*
-import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
 

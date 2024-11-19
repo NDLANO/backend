@@ -9,8 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.learningpath.EmbedUrl
-import no.ndla.learningpathapi.model.domain._
+import no.ndla.common.model.domain.learningpath.{Description, EmbedUrl, LearningStep}
 
 import scala.util.{Failure, Success, Try}
 

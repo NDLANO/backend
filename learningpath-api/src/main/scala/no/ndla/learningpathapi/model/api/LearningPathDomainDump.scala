@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep}
+import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about learningpaths")

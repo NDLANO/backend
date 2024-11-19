@@ -10,9 +10,16 @@ package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.LearningpathCopyright
+import no.ndla.common.model.domain.learningpath.{
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningStep,
+  LearningpathCopyright,
+  StepStatus,
+  StepType
+}
 import no.ndla.common.model.domain.{Author, Title}
-import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}

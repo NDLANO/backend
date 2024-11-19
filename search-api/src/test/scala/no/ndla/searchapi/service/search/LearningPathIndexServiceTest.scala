@@ -9,11 +9,17 @@ package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
 import no.ndla.common.model.domain.Title
-import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.learningpath.{
+  EmbedType,
+  EmbedUrl,
+  LearningStep,
+  StepStatus,
+  StepType,
+  Description as LPDescription
+}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.domain.learningpath.{Description, LearningStep, StepStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -46,20 +52,22 @@ class LearningPathIndexServiceTest
 
   test("That mapping contains every field after serialization") {
     val domainLearningPath = TestData.learningPath1.copy(
-      learningsteps = List(
-        LearningStep(
-          id = Some(1L),
-          revision = Some(1),
-          externalId = Some("hei"),
-          learningPathId = Some(1L),
-          seqNo = 1,
-          title = Seq(Title("hei", "nb")),
-          description = Seq(Description("hei", "nb")),
-          embedUrl = Seq(EmbedUrl("hei", "nb", EmbedType.OEmbed)),
-          `type` = StepType.TEXT,
-          license = Some("hei"),
-          showTitle = false,
-          status = StepStatus.ACTIVE
+      learningsteps = Some(
+        List(
+          LearningStep(
+            id = Some(1L),
+            revision = Some(1),
+            externalId = Some("hei"),
+            learningPathId = Some(1L),
+            seqNo = 1,
+            title = Seq(Title("hei", "nb")),
+            description = Seq(LPDescription("hei", "nb")),
+            embedUrl = Seq(EmbedUrl("hei", "nb", EmbedType.OEmbed)),
+            `type` = StepType.TEXT,
+            license = Some("hei"),
+            showTitle = false,
+            status = StepStatus.ACTIVE
+          )
         )
       )
     )

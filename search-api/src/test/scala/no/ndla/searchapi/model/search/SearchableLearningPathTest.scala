@@ -9,9 +9,9 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.{Author, License}
+import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.Copyright
-import no.ndla.searchapi.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.LearningResourceType

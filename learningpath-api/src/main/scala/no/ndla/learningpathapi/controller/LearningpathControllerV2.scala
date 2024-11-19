@@ -11,14 +11,15 @@ package no.ndla.learningpathapi.controller
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.{Author, License}
+import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.learningpath.{StepStatus, LearningPathStatus as _}
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.UserInfo.{LearningpathCombinedUser}
-import no.ndla.learningpathapi.model.domain.{LearningPathStatus as _, License as _, *}
+import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
+import no.ndla.learningpathapi.model.domain.{License as _, *}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import no.ndla.learningpathapi.validation.LanguageValidator
@@ -155,7 +156,7 @@ trait LearningpathControllerV2 {
             fallback = fallback,
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
-            status = List(domain.LearningPathStatus.PUBLISHED)
+            status = List(learningpath.LearningPathStatus.PUBLISHED)
           )
         case None =>
           SearchSettings(
@@ -170,7 +171,7 @@ trait LearningpathControllerV2 {
             fallback = fallback,
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
-            status = List(domain.LearningPathStatus.PUBLISHED)
+            status = List(learningpath.LearningPathStatus.PUBLISHED)
           )
       }
 
@@ -589,14 +590,22 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, updateLearningPathStatus) =>
-          val pathStatus = domain.LearningPathStatus.valueOfOrError(updateLearningPathStatus.status)
-          updateService
-            .updateLearningPathStatusV2(pathId, pathStatus, user, DefaultLanguage, updateLearningPathStatus.message)
-            .map(learningPath => {
-              logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
-              learningPath
+          learningpath.LearningPathStatus
+            .valueOfOrError(updateLearningPathStatus.status)
+            .flatMap(pathStatus => {
+              updateService
+                .updateLearningPathStatusV2(
+                  pathId,
+                  pathStatus,
+                  user,
+                  DefaultLanguage,
+                  updateLearningPathStatus.message
+                )
+                .map { learningPath =>
+                  logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
+                  learningPath
+                }
             })
-            .handleErrorsOrOk
         }
       }
 
@@ -619,7 +628,7 @@ trait LearningpathControllerV2 {
       .serverLogicPure { user => pathId =>
         updateService.updateLearningPathStatusV2(
           pathId,
-          domain.LearningPathStatus.DELETED,
+          learningpath.LearningPathStatus.DELETED,
           user,
           DefaultLanguage
         ) match {

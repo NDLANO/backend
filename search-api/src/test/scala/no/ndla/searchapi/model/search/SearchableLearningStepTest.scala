@@ -8,7 +8,7 @@
 package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
-import no.ndla.searchapi.model.domain.learningpath.StepType
+import no.ndla.common.model.domain.learningpath.StepType
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 class SearchableLearningStepTest extends UnitSuite with TestEnvironment {

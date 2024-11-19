@@ -10,9 +10,9 @@ package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDump, LearningPathSummaryV2}
+import no.ndla.common.model.domain.learningpath as commonDomain
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDump, LearningPathSummaryV2}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
@@ -35,7 +35,7 @@ trait InternController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
-    import ErrorHelpers._
+    import ErrorHelpers.*
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getByExternalId,
@@ -117,7 +117,7 @@ trait InternController {
 
     def dumpSingleLearningPath: ServerEndpoint[Any, Eff] = endpoint.get
       .in("dump" / "learningpath" / path[Long]("learningpath_id"))
-      .out(jsonBody[domain.LearningPath])
+      .out(jsonBody[commonDomain.LearningPath])
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { learningpathId =>
         learningPathRepository.withId(learningpathId) match {
@@ -128,8 +128,8 @@ trait InternController {
 
     def postLearningPathDump: ServerEndpoint[Any, Eff] = endpoint.post
       .in("dump" / "learningpath")
-      .in(jsonBody[domain.LearningPath])
-      .out(jsonBody[domain.LearningPath])
+      .in(jsonBody[commonDomain.LearningPath])
+      .out(jsonBody[commonDomain.LearningPath])
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { dumpToInsert =>
         updateService.insertDump(dumpToInsert).asRight

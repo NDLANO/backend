@@ -9,12 +9,22 @@
 package no.ndla.learningpathapi.service.search
 
 import no.ndla.common.model.{NDLADate, api as commonApi}
-import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl, LearningpathCopyright}
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.learningpath.{
+  Description,
+  EmbedType,
+  EmbedUrl,
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
+  LearningStep,
+  LearningpathCopyright,
+  StepStatus,
+  StepType
+}
+import no.ndla.common.model.domain.{Author, Tag, Title, learningpath}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
@@ -720,7 +730,7 @@ class SearchServiceTest
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
-        status = List(domain.LearningPathStatus.PUBLISHED, domain.LearningPathStatus.UNLISTED)
+        status = List(learningpath.LearningPathStatus.PUBLISHED, learningpath.LearningPathStatus.UNLISTED)
       )
     )
 
@@ -731,7 +741,7 @@ class SearchServiceTest
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
-        status = List(domain.LearningPathStatus.UNLISTED)
+        status = List(learningpath.LearningPathStatus.UNLISTED)
       )
     )
 

@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.learningpathapi.model.domain.{LearningPath, TaxonomyUpdateException}
+import no.ndla.learningpathapi.model.domain.TaxonomyUpdateException
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import sttp.client3.quick.*
@@ -17,6 +17,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.language.Language
 import no.ndla.learningpathapi.Props
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
