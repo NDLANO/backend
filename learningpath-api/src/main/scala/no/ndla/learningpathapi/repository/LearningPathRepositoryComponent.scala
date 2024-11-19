@@ -28,7 +28,7 @@ import java.util.UUID
 import scala.util.Try
 
 trait LearningPathRepositoryComponent extends StrictLogging {
-  this: DataSource with Props =>
+  this: DataSource & Props =>
   val learningPathRepository: LearningPathRepository
 
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {

@@ -25,6 +25,7 @@ case class LearningPath(
     duration: Option[Int],
     status: LearningPathStatus,
     verificationStatus: LearningPathVerificationStatus,
+    created: NDLADate,
     lastUpdated: NDLADate,
     tags: Seq[Tag],
     owner: String,

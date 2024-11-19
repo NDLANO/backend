@@ -80,6 +80,7 @@ object TestData {
     LearningPathStatus.PUBLISHED,
     LearningPathVerificationStatus.CREATED_BY_NDLA,
     today,
+    today,
     List(common.Tag(List("tag"), DefaultLanguage)),
     "me",
     LearningpathCopyright(CC_BY.toString, List.empty),

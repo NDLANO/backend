@@ -12,11 +12,11 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.Title
 
 trait TitleValidator {
-  this: LanguageValidator with TextValidator =>
+  this: LanguageValidator & TextValidator =>
   val titleValidator: TitleValidator
 
   class TitleValidator(titleRequired: Boolean = true) {
-    val MISSING_TITLE = "At least one title is required."
+    private val MISSING_TITLE = "At least one title is required."
 
     val noHtmlTextValidator = new TextValidator(allowHtml = false)
 

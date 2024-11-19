@@ -14,18 +14,18 @@ import no.ndla.common.model.domain.learningpath.{LearningPathStatus, StepStatus}
 class StatusValidator {
 
   def validateLearningStepStatus(status: String): Option[ValidationMessage] = {
-    StepStatus.valueOf(status).isEmpty match {
-      case true =>
-        Some(ValidationMessage("status", s"'$status' is not a valid status."))
-      case false => None
+    if (StepStatus.valueOf(status).isEmpty) {
+      Some(ValidationMessage("status", s"'$status' is not a valid status."))
+    } else {
+      None
     }
   }
 
   def validateLearningPathStatus(status: String): Option[ValidationMessage] = {
-    LearningPathStatus.valueOf(status).isEmpty match {
-      case true =>
-        Some(ValidationMessage("status", s"'$status' is not a valid publishingstatus."))
-      case false => None
+    if (LearningPathStatus.valueOf(status).isEmpty) {
+      Some(ValidationMessage("status", s"'$status' is not a valid publishingstatus."))
+    } else {
+      None
     }
   }
 }

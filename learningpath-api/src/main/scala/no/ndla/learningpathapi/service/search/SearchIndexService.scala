@@ -29,12 +29,8 @@ import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.network.tapir.auth.TokenUser
 
 trait SearchIndexService {
-  this: Elastic4sClient
-    with SearchConverterServiceComponent
-    with LearningPathRepositoryComponent
-    with SearchApiClient
-    with BaseIndexService
-    with Props =>
+  this: Elastic4sClient & SearchConverterServiceComponent & LearningPathRepositoryComponent & SearchApiClient &
+    BaseIndexService & Props =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends BaseIndexService with StrictLogging {
@@ -165,6 +161,7 @@ trait SearchIndexService {
         intField("duration"),
         keywordField("status"),
         keywordField("verificationStatus"),
+        dateField("created"),
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
         textField("author"),

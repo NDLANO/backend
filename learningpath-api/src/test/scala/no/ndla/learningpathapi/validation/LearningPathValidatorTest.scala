@@ -34,7 +34,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   val trump: Author                    = Author("author", "Donald Drumpf")
-  val license                          = PublicDomain.toString
+  val license: String                  = PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(trump))
 
   val ValidLearningPath: LearningPath = LearningPath(
@@ -49,6 +49,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     isBasedOn = None,
     status = LearningPathStatus.PRIVATE,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    created = clock.now(),
     lastUpdated = clock.now(),
     owner = "",
     copyright = copyright

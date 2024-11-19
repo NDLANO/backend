@@ -22,6 +22,7 @@ case class SearchableLearningPath(
     duration: Option[Int],
     status: String,
     verificationStatus: String,
+    created: NDLADate,
     lastUpdated: NDLADate,
     defaultTitle: Option[String],
     tags: SearchableLanguageList,

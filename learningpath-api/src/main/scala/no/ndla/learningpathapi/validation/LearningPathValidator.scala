@@ -21,13 +21,13 @@ trait LearningPathValidator {
 
   class LearningPathValidator(descriptionRequired: Boolean = true) {
 
-    val MISSING_DESCRIPTION = "At least one description is required."
+    private val MISSING_DESCRIPTION = "At least one description is required."
 
-    val INVALID_COVER_PHOTO =
+    private val INVALID_COVER_PHOTO =
       "The url to the coverPhoto must point to an image in NDLA Image API."
 
-    val noHtmlTextValidator = new TextValidator(allowHtml = false)
-    val durationValidator   = new DurationValidator
+    val noHtmlTextValidator       = new TextValidator(allowHtml = false)
+    private val durationValidator = new DurationValidator
 
     def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Unit = {
       validateLearningPath(newLearningPath, allowUnknownLanguage) match {

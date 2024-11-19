@@ -48,7 +48,7 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService {
-    import props._
+    import props.*
 
     def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): EmbedUrl = {
       learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
@@ -145,6 +145,7 @@ trait ConverterService {
             lp.duration,
             lp.status.toString,
             lp.verificationStatus.toString,
+            lp.created,
             lp.lastUpdated,
             tags,
             asApiCopyright(lp.copyright),
@@ -408,6 +409,7 @@ trait ConverterService {
           learningpath.LearningPathStatus.PRIVATE,
           getVerificationStatus(user),
           clock.now(),
+          clock.now(),
           domainTags,
           ownerId,
           converterService.asCopyright(newLearningPath.copyright),
@@ -460,6 +462,7 @@ trait ConverterService {
           learningpath.coverPhotoId.flatMap(asCoverPhoto).map(_.url),
           learningpath.duration,
           learningpath.status.toString,
+          learningpath.created,
           learningpath.lastUpdated,
           tags,
           asApiCopyright(learningpath.copyright),
