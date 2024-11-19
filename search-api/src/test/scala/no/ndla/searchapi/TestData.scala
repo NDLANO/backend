@@ -933,6 +933,7 @@ object TestData {
     duration = Some(0),
     status = LearningPathStatus.PUBLISHED,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    created = today,
     lastUpdated = today,
     tags = List(),
     owner = "owner",
