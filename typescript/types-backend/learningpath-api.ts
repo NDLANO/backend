@@ -56,6 +56,7 @@ export interface ILearningPathSummaryV2 {
   coverPhotoUrl?: string
   duration?: number
   status: string
+  created: string
   lastUpdated: string
   tags: ILearningPathTags
   copyright: ICopyright
@@ -88,6 +89,7 @@ export interface ILearningPathV2 {
   duration?: number
   status: string
   verificationStatus: string
+  created: string
   lastUpdated: string
   tags: ILearningPathTags
   copyright: ICopyright
