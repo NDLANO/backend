@@ -8,14 +8,14 @@
 
 package no.ndla.learningpathapi.validation
 
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.learningpathapi.Props
 
 trait UrlValidator {
-  this: Props with TextValidator =>
+  this: Props & TextValidator =>
 
-  class UrlValidator() {
+  class UrlValidator {
     val noHtmlTextValidator = new TextValidator(allowHtml = false)
 
     def validate(fieldPath: String, url: String): Seq[ValidationMessage] = {

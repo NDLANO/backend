@@ -58,6 +58,7 @@ class LearningPathRepositoryComponentIntegrationTest
     LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.EXTERNAL,
     NDLADate.now().withNano(0),
+    NDLADate.now().withNano(0),
     List(),
     "UNIT-TEST",
     copyright

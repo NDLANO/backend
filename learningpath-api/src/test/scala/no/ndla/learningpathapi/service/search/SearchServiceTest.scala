@@ -59,6 +59,7 @@ class SearchServiceTest
     duration = Some(0),
     status = LearningPathStatus.PUBLISHED,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    created = clock.now(),
     lastUpdated = clock.now(),
     tags = List(),
     owner = "owner",
@@ -91,7 +92,7 @@ class SearchServiceTest
     if (elasticSearchContainer.isSuccess) {
       searchIndexService.createIndexAndAlias().get
 
-      doReturn(commonApi.Author("Forfatter", "En eier"), Nil: _*).when(converterService).asAuthor(any[NdlaUserName])
+      doReturn(commonApi.Author("Forfatter", "En eier"), Nil*).when(converterService).asAuthor(any[NdlaUserName])
 
       val today      = NDLADate.now()
       val yesterday  = NDLADate.now().minusDays(1)
@@ -119,6 +120,7 @@ class SearchServiceTest
         title = List(Title("Pingvinen er en kjeltring", "nb")),
         description = List(Description("Dette handler om fugler", "nb")),
         duration = Some(1),
+        created = yesterday,
         lastUpdated = yesterday,
         tags = List(Tag(Seq("superhelt", "kanikkefly"), "nb")),
         learningsteps = Some(List(activeStep))
@@ -129,6 +131,7 @@ class SearchServiceTest
         title = List(Title("Batman er en tøff og morsom helt", "nb"), Title("Batman is a tough guy", "en")),
         description = List(Description("Dette handler om flaggermus, som kan ligne litt på en fugl", "nb")),
         duration = Some(2),
+        created = yesterday,
         lastUpdated = today,
         tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
         learningsteps = Some(List(activeStep, deletedStep))
@@ -139,6 +142,7 @@ class SearchServiceTest
         title = List(Title("Donald er en tøff, rar og morsom and", "nb"), Title("Donald is a weird duck", "en")),
         description = List(Description("Dette handler om en and, som også minner om både flaggermus og fugler.", "nb")),
         duration = Some(3),
+        created = yesterday,
         lastUpdated = tomorrow,
         tags = List(Tag(Seq("disney", "kanfly"), "nb")),
         learningsteps = Some(List(deletedStep)),
@@ -150,6 +154,7 @@ class SearchServiceTest
         title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
         description = List(Description("This is unrelated", "en"), Description("Dette er en urelatert", "nb")),
         duration = Some(4),
+        created = yesterday,
         lastUpdated = tomorrowp1,
         tags = List()
       )
@@ -159,6 +164,7 @@ class SearchServiceTest
         title = List(Title("Englando", "en"), Title("Djinba", "djb")),
         description = List(Description("This is a englando learningpath", "en"), Description("This is djinba", "djb")),
         duration = Some(5),
+        created = yesterday,
         lastUpdated = tomorrowp2,
         tags = List()
       )
@@ -168,6 +174,7 @@ class SearchServiceTest
         title = List(Title("Brumle", "nb")),
         description = List(Description("Dette er brumle", "nb")),
         duration = Some(5),
+        created = yesterday,
         lastUpdated = tomorrowp2,
         tags = List(),
         status = LearningPathStatus.UNLISTED

@@ -24,10 +24,10 @@ trait LanguageValidator {
     }
 
     def validate(fieldPath: String, languageCode: String, allowUnknownLanguage: Boolean): Option[ValidationMessage] = {
-      languageCode.nonEmpty && languageCodeSupported6391(languageCode, allowUnknownLanguage) match {
-        case true => None
-        case false =>
-          Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
+      if (languageCode.nonEmpty && languageCodeSupported6391(languageCode, allowUnknownLanguage)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 

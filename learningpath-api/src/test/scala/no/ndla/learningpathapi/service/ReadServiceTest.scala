@@ -53,6 +53,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathStatus.PUBLISHED,
     LearningPathVerificationStatus.EXTERNAL,
     NDLADate.now(),
+    NDLADate.now(),
     List(),
     PUBLISHED_OWNER.id,
     copyright
@@ -69,6 +70,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.EXTERNAL,
+    NDLADate.now(),
     NDLADate.now(),
     List(),
     PRIVATE_OWNER.id,

@@ -57,6 +57,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     "PRIVATE",
     "CREATED_BY_NDLA",
     NDLADate.now(),
+    NDLADate.now(),
     api.LearningPathTags(List(), "nb"),
     copyright,
     true,
@@ -96,6 +97,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.CREATED_BY_NDLA,
     randomDate,
+    randomDate,
     List(Tag(List("tag"), DefaultLanguage)),
     "me",
     LearningpathCopyright(CC_BY.toString, List.empty),
@@ -121,6 +123,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Some(60),
         LearningPathStatus.PRIVATE.toString,
         LearningPathVerificationStatus.CREATED_BY_NDLA.toString,
+        randomDate,
         randomDate,
         api.LearningPathTags(Seq("tag"), DefaultLanguage),
         api.Copyright(
@@ -172,6 +175,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         LearningPathStatus.PRIVATE.toString,
         LearningPathVerificationStatus.CREATED_BY_NDLA.toString,
         randomDate,
+        randomDate,
         api.LearningPathTags(Seq("tag"), DefaultLanguage),
         api.Copyright(
           commonApi.License(
@@ -207,6 +211,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Some(60),
         LearningPathStatus.PRIVATE.toString,
+        randomDate,
         randomDate,
         api.LearningPathTags(Seq("tag"), DefaultLanguage),
         api.Copyright(
@@ -414,7 +419,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     assertResult("Validation Error") {
       intercept[ValidationException] {
         service.asEmbedUrlV2(api.EmbedUrlV2("http://test.no/2/oembed/", "test"), "nb")
-      }.getMessage()
+      }.getMessage
     }
   }
 

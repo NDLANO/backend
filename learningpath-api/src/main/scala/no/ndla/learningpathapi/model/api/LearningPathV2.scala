@@ -28,6 +28,7 @@ case class LearningPathV2(
     @description("The duration of the learningpath in minutes") duration: Option[Int],
     @description("The publishing status of the learningpath") status: String,
     @description("Verification status") verificationStatus: String,
+    @description("The date when this learningpath was created.") created: NDLADate,
     @description("The date when this learningpath was last updated.") lastUpdated: NDLADate,
     @description("Searchable tags for the learningpath") tags: LearningPathTags,
     @description("Describes the copyright information for the learningpath") copyright: Copyright,

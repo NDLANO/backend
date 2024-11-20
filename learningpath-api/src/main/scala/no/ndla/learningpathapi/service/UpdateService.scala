@@ -30,18 +30,9 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait UpdateService {
-  this: LearningPathRepositoryComponent
-    with ReadService
-    with ConverterService
-    with SearchIndexService
-    with Clock
-    with LearningStepValidator
-    with LearningPathValidator
-    with TaxonomyApiClient
-    with FeideApiClient
-    with SearchApiClient
-    with Props
-    with RedisClient =>
+  this: LearningPathRepositoryComponent & ReadService & ConverterService & SearchIndexService & Clock &
+    LearningStepValidator & LearningPathValidator & TaxonomyApiClient & FeideApiClient & SearchApiClient & Props &
+    RedisClient =>
   val updateService: UpdateService
 
   class UpdateService {

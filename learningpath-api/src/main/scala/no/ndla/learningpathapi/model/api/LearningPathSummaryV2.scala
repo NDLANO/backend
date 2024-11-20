@@ -25,6 +25,7 @@ case class LearningPathSummaryV2(
     @description("Url to where a cover photo can be found") coverPhotoUrl: Option[String],
     @description("The duration of the learningpath in minutes") duration: Option[Int],
     @description("The publishing status of the learningpath.") status: String,
+    @description("The date when this learningpath was created.") created: NDLADate,
     @description("The date when this learningpath was last updated.") lastUpdated: NDLADate,
     @description("Searchable tags for the learningpath") tags: LearningPathTags,
     @description("The contributors of this learningpath") copyright: Copyright,

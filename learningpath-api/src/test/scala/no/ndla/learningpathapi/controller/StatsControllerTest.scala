@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 class StatsControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
 

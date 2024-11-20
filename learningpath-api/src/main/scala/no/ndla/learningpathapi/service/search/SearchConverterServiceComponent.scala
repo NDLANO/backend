@@ -23,7 +23,7 @@ import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 trait SearchConverterServiceComponent {
-  this: ConverterService with Props =>
+  this: ConverterService & Props =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService {
@@ -57,6 +57,7 @@ trait SearchConverterServiceComponent {
         searchableLearningPath.coverPhotoUrl,
         searchableLearningPath.duration,
         searchableLearningPath.status,
+        searchableLearningPath.created,
         searchableLearningPath.lastUpdated,
         findByLanguageOrBestEffort(tags, language)
           .getOrElse(api.LearningPathTags(Seq(), DefaultLanguage)),
@@ -86,6 +87,7 @@ trait SearchConverterServiceComponent {
         learningPath.duration,
         learningPath.status.toString,
         learningPath.verificationStatus.toString,
+        learningPath.created,
         learningPath.lastUpdated,
         defaultTitle.map(_.title),
         SearchableLanguageList(learningPath.tags.map(tags => LanguageValue(tags.language, tags.tags))),
@@ -95,7 +97,7 @@ trait SearchConverterServiceComponent {
       )
     }
 
-    def asSearchableLearningStep(learningStep: LearningStep): SearchableLearningStep = {
+    private def asSearchableLearningStep(learningStep: LearningStep): SearchableLearningStep = {
       SearchableLearningStep(
         learningStep.`type`.toString,
         learningStep.embedUrl.map(_.url).toList,
@@ -125,7 +127,7 @@ trait SearchConverterServiceComponent {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
