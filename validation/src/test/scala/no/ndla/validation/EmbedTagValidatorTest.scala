@@ -279,6 +279,10 @@ class EmbedTagValidatorTest extends UnitSuite {
         |<summary>Tittel</summary>
         |Innhold
         |</details>
+        |<dl>
+        |<dt>Term</dt>
+        |<dd>Definisjon</dd>
+        |</dl>
         |<div data-type="framed-content"><p>Tekst</p></div>
         |""".stripMargin
     )
