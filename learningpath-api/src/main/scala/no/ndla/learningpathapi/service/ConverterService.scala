@@ -152,7 +152,8 @@ trait ConverterService {
             lp.canEdit(userInfo),
             supportedLanguages,
             owner,
-            message
+            message,
+            lp.madeAvailable
           )
         )
       } else

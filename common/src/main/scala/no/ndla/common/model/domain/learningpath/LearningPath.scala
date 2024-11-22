@@ -31,7 +31,8 @@ case class LearningPath(
     owner: String,
     copyright: LearningpathCopyright,
     learningsteps: Option[Seq[LearningStep]] = None,
-    message: Option[Message] = None
+    message: Option[Message] = None,
+    madeAvailable: Option[NDLADate] = None
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {

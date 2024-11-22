@@ -160,9 +160,21 @@ trait UpdateService {
                 case _                          => valid.message
               }
 
-              val updatedLearningPath = learningPathRepository.update(
-                valid.copy(message = newMessage, status = status, lastUpdated = clock.now())
+              val madeAvailable = valid.madeAvailable.orElse {
+                status match {
+                  case LearningPathStatus.PUBLISHED | LearningPathStatus.UNLISTED => Some(clock.now())
+                  case _                                                          => None
+                }
+              }
+
+              val toUpdateWith = valid.copy(
+                message = newMessage,
+                status = status,
+                lastUpdated = clock.now(),
+                madeAvailable = madeAvailable
               )
+
+              val updatedLearningPath = learningPathRepository.update(toUpdateWith)
 
               updateSearchAndTaxonomy(updatedLearningPath, owner.tokenUser)
                 .flatMap(_ =>
