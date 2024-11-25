@@ -97,6 +97,7 @@ export interface ILearningPathV2 {
   supportedLanguages: string[]
   ownerId?: string
   message?: IMessage
+  madeAvailable?: string
 }
 
 export interface ILearningStepContainerSummary {
