@@ -35,7 +35,8 @@ case class LearningPathV2(
     @description("True if authenticated user may edit this learningpath") canEdit: Boolean,
     @description("The supported languages for this learningpath") supportedLanguages: Seq[String],
     @description("Visible if administrator or owner of LearningPath") ownerId: Option[String],
-    @description("Message set by administrator. Visible if administrator or owner of LearningPath") message: Option[Message]
+    @description("Message set by administrator. Visible if administrator or owner of LearningPath") message: Option[Message],
+    @description("The date when this learningpath was made available to the public.") madeAvailable: Option[NDLADate]
 )
 
 object LearningPathV2 {

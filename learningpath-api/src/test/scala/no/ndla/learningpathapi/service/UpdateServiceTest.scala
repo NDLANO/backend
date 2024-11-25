@@ -406,6 +406,26 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(searchIndexService, times(1)).indexDocument(any[LearningPath])
   }
 
+  test("That updateLearningPathStatusV2 updates madeAvailable when going to UNLISTED") {
+    when(learningPathRepository.withIdIncludingDeleted(eqTo(PUBLISHED_ID))(any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.update(any[LearningPath])(any[DBSession]))
+      .thenReturn(PUBLISHED_LEARNINGPATH.copy(status = learningpath.LearningPathStatus.PRIVATE))
+    when(learningPathRepository.learningPathsWithIsBasedOn(PUBLISHED_ID)).thenReturn(List())
+    val nowDate = NDLADate.fromUnixTime(1337)
+    when(clock.now()).thenReturn(nowDate)
+    val user = PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined
+
+    service.updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.UNLISTED, user, "nb").failIfFailure
+
+    val expectedLearningPath = PUBLISHED_LEARNINGPATH.copy(
+      status = LearningPathStatus.UNLISTED,
+      lastUpdated = nowDate,
+      madeAvailable = Some(nowDate)
+    )
+    verify(learningPathRepository, times(1)).update(eqTo(expectedLearningPath))(any)
+  }
+
   test(
     "That updateLearningPathStatusV2 updates the status when the given user is not the owner, but is admin and the status is PUBLISHED"
   ) {

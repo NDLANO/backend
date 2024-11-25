@@ -63,6 +63,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     true,
     List("nb"),
     None,
+    None,
     None
   )
   val domainLearningStep: LearningStep =
@@ -137,6 +138,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         canEdit = true,
         List("nb", "en"),
         None,
+        None,
         None
       )
     )
@@ -187,6 +189,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         ),
         true,
         List("nb", "en"),
+        None,
         None,
         None
       )
