@@ -473,7 +473,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiCopyright = api.Copyright(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp     = NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+    val newLp     = NewLearningPathV2("Tittel", Some("Beskrivelse"), None, Some(1), List(), "nb", Some(apiCopyright))
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)

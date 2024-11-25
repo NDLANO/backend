@@ -35,6 +35,7 @@ import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearnin
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
@@ -395,6 +396,8 @@ trait ConverterService {
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
           Seq(common.Tag(newLearningPath.tags, newLearningPath.language))
+      val description = newLearningPath.description.map(Description(_, newLearningPath.language)).toSeq
+      val copyright   = newLearningPath.copyright.getOrElse(newDefaultCopyright(user))
 
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
         LearningPath(
@@ -403,7 +406,7 @@ trait ConverterService {
           None,
           None,
           Seq(common.Title(newLearningPath.title, newLearningPath.language)),
-          Seq(Description(newLearningPath.description, newLearningPath.language)),
+          description,
           newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
           newLearningPath.duration,
           learningpath.LearningPathStatus.PRIVATE,
@@ -412,10 +415,16 @@ trait ConverterService {
           clock.now(),
           domainTags,
           ownerId,
-          converterService.asCopyright(newLearningPath.copyright),
+          converterService.asCopyright(copyright),
           Some(Seq.empty)
         )
       }
+    }
+
+    private def newDefaultCopyright(user: CombinedUser): Copyright = {
+      val contributors =
+        user.myndlaUser.map(_.displayName).map(name => Seq(commonApi.Author("Forfatter", name))).getOrElse(Seq.empty)
+      Copyright(asApiLicense(License.CC_BY.toString), contributors)
     }
 
     def getApiIntroduction(learningSteps: Seq[LearningStep]): Seq[api.Introduction] = {

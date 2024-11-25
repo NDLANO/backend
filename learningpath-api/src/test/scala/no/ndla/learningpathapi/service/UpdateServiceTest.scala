@@ -250,7 +250,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2 =
-    NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+    NewLearningPathV2("Tittel", Some("Beskrivelse"), None, Some(1), List(), "nb", Some(apiCopyright))
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2 =
     NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 

@@ -17,7 +17,7 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait StatsController {
-  this: ReadService with Props with ErrorHandling with TapirController =>
+  this: ReadService & Props & ErrorHandling & TapirController =>
   val statsController: StatsController
 
   class StatsController extends TapirController {
@@ -27,7 +27,7 @@ trait StatsController {
       getStats
     )
 
-    def getStats: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getStats: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get stats for my-ndla usage.")
       .description("Get stats for my-ndla usage.")
       .deprecated()
