@@ -50,15 +50,8 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait FolderWriteService {
-  this: FolderReadService
-    with Clock
-    with FeideApiClient
-    with FolderRepository
-    with FolderConverterService
-    with UserRepository
-    with ConfigService
-    with UserService
-    with SearchApiClient =>
+  this: FolderReadService & Clock & FeideApiClient & FolderRepository & FolderConverterService & UserRepository &
+    ConfigService & UserService & SearchApiClient =>
 
   val folderWriteService: FolderWriteService
   class FolderWriteService {
@@ -543,7 +536,7 @@ trait FolderWriteService {
       _                 <- checkDepth(validatedParentId)
     } yield validatedParentId
 
-    private def getNextRank(siblings: Seq[_]): Int = siblings.length + 1
+    private def getNextRank(siblings: Seq[?]): Int = siblings.length + 1
 
     private[service] def changeStatusToSharedIfParentIsShared(
         newFolder: NewFolder,
@@ -630,6 +623,7 @@ trait FolderWriteService {
       resource.resourceType match {
         case ResourceType.Multidisciplinary => searchApiClient.reindexDraft(resource.resourceId)
         case ResourceType.Article           => searchApiClient.reindexDraft(resource.resourceId)
+        case ResourceType.Topic             => searchApiClient.reindexDraft(resource.resourceId)
         case ResourceType.Learningpath      => searchApiClient.reindexLearningpath(resource.resourceId)
         case _                              =>
       }
@@ -697,7 +691,7 @@ trait FolderWriteService {
     def canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[_] = {
+    ): Try[?] = {
       getMyNDLAUser(feideId, feideAccessToken)
         .flatMap(myNDLAUser =>
           canWriteNow(myNDLAUser).flatMap {
@@ -739,7 +733,7 @@ trait FolderWriteService {
       folderRepository.deleteFolderUserConnection(folderId.some, feideId.some)
     }
 
-    private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[_] = {
+    private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[?] = {
       getMyNDLAUser(feideId, feideAccessToken)
         .flatMap(myNDLAUser => {
           if (myNDLAUser.isTeacher) Success(())

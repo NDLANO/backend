@@ -38,7 +38,7 @@ import sttp.tapir.server.ServerEndpoint
 import java.util.UUID
 
 trait FolderController {
-  this: FolderReadService with FolderWriteService with ErrorHandling with TapirController =>
+  this: FolderReadService & FolderWriteService & ErrorHandling & TapirController =>
   val folderController: FolderController
 
   class FolderController extends TapirController {
@@ -71,7 +71,7 @@ trait FolderController {
           s"Which resource types to exclude. If None all resource types are included. To provide multiple resource types, separate by comma (,)."
         )
 
-    import io.circe.generic.auto._
+    import io.circe.generic.auto.*
 
     private def getAllFolders: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch top folders that belongs to a user")
@@ -111,7 +111,7 @@ trait FolderController {
         folderWriteService.newFolder(newFolder, feideHeader)
       }
 
-    private def updateFolder: ServerEndpoint[Any, Eff] = endpoint.patch
+    private def updateFolder(): ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update folder with new data")
       .description("Update folder with new data")
       .in(feideHeader)
@@ -123,7 +123,7 @@ trait FolderController {
         folderWriteService.updateFolder(folderId, updatedFolder, feideHeader)
       }
 
-    private def removeFolder: ServerEndpoint[Any, Eff] = endpoint.delete
+    private def removeFolder(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Remove folder from user folders")
       .description("Remove folder from user folders")
       .in(feideHeader)
@@ -134,7 +134,7 @@ trait FolderController {
         folderWriteService.deleteFolder(folderId, feideHeader).map(_ => ())
       }
 
-    val defaultSize = 5
+    private val defaultSize: Int = 5
     val size: EndpointInput.Query[Int] = query[Int]("size")
       .description("Limit the number of results to this many elements")
       .default(defaultSize)
@@ -179,7 +179,7 @@ trait FolderController {
         folderWriteService.newFolderResourceConnection(folderId, newResource, feideHeader)
       }
 
-    private def updateResource: ServerEndpoint[Any, Eff] = endpoint.patch
+    private def updateResource(): ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Updated selected resource")
       .description("Updates selected resource")
       .in("resources" / pathResourceId)
@@ -191,7 +191,7 @@ trait FolderController {
         folderWriteService.updateResource(resourceId, updatedResource, feideHeader)
       }
 
-    private def deleteResource: ServerEndpoint[Any, Eff] = endpoint.delete
+    private def deleteResource(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete selected resource")
       .description("Delete selected resource")
       .in(feideHeader)
@@ -215,7 +215,7 @@ trait FolderController {
         folderReadService.getSharedFolder(folderId, feideHeader)
       }
 
-    val folderStatus: EndpointInput.Query[FolderStatus.Value] =
+    private val folderStatus: EndpointInput.Query[FolderStatus.Value] =
       query[FolderStatus.Value]("folder-status").description("Status of the folder")
     private def changeStatusForFolderAndSubFolders: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Change status for given folder and all its subfolders")
@@ -292,7 +292,7 @@ trait FolderController {
         folderWriteService.newSaveSharedFolder(folderId, feideHeader)
       }
 
-    private def deleteFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint.delete
+    private def deleteFolderUserConnection(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Deletes a saved shared folder")
       .description("Deletes a saved shared folder")
       .in("shared" / pathFolderId / "save")
@@ -309,11 +309,11 @@ trait FolderController {
       fetchRecent,
       getSingleFolder,
       createNewFolder,
-      updateFolder,
-      removeFolder,
+      updateFolder(),
+      removeFolder(),
       createFolderResource,
-      updateResource,
-      deleteResource,
+      updateResource(),
+      deleteResource(),
       fetchSharedFolder,
       changeStatusForFolderAndSubFolders,
       cloneFolder,
@@ -321,7 +321,7 @@ trait FolderController {
       sortFolderFolders,
       sortSavedSharedFolders,
       createFolderUserConnection,
-      deleteFolderUserConnection
+      deleteFolderUserConnection()
     )
   }
 }

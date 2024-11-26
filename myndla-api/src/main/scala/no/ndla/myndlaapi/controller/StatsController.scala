@@ -47,7 +47,7 @@ trait StatsController {
     private val pathResourceIds =
       path[CommaSeparated[String]]("resourceIds").description("IDs of the resources to look up")
 
-    def getFolderResourceFavorites: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getFolderResourceFavorites: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get folder resource favorites")
       .description("Get folder resource favorites")
       .in("favorites" / pathResourceType / pathResourceIds)
@@ -57,7 +57,7 @@ trait StatsController {
         folderReadService.getFavouriteStatsForResource(resourceIds.values, resourceType.values)
       }
 
-    def getAllTheFavorites: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getAllTheFavorites: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get number of favorites for favorited resources")
       .description("Get number of favorites for favorited resources")
       .in("favorites")
