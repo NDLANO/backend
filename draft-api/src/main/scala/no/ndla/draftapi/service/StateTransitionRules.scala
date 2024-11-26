@@ -95,11 +95,10 @@ trait StateTransitionRules {
               val h5pPaths = converterService.getEmbeddedH5PPaths(article)
               h5pApiClient.publishH5Ps(h5pPaths, user): Unit
 
-              val taxonomyT    = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-              val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = true, user)
+              val taxonomyT = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
               val articleUdpT =
                 articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation, user)
-              val failures = Seq(taxonomyT, taxMetadataT, articleUdpT).collectFirst { case Failure(ex) =>
+              val failures = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
                 Failure(ex)
               }
               failures.getOrElse(articleUdpT)
