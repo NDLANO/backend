@@ -61,14 +61,7 @@ trait StateTransitionRules {
     private[service] val unpublishArticle: SideEffect =
       SideEffect.withDraftAndUser("unpublishArticle")((article: Draft, user: TokenUser) =>
         doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
-          article.id match {
-            case Some(id) =>
-              val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false, user)
-              val articleUpdT  = articleApiClient.unpublishArticle(article, user)
-              val failures     = Seq(taxMetadataT, articleUpdT).collectFirst { case Failure(ex) => Failure(ex) }
-              failures.getOrElse(articleUpdT)
-            case _ => Failure(NotFoundException("This is a bug, article to unpublish has no id."))
-          }
+          articleApiClient.unpublishArticle(article, user)
         }
       )
 
