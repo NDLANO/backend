@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestEnvironment
 
