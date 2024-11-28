@@ -61,14 +61,7 @@ trait StateTransitionRules {
     private[service] val unpublishArticle: SideEffect =
       SideEffect.withDraftAndUser("unpublishArticle")((article: Draft, user: TokenUser) =>
         doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
-          article.id match {
-            case Some(id) =>
-              val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false, user)
-              val articleUpdT  = articleApiClient.unpublishArticle(article, user)
-              val failures     = Seq(taxMetadataT, articleUpdT).collectFirst { case Failure(ex) => Failure(ex) }
-              failures.getOrElse(articleUpdT)
-            case _ => Failure(NotFoundException("This is a bug, article to unpublish has no id."))
-          }
+          articleApiClient.unpublishArticle(article, user)
         }
       )
 
@@ -95,11 +88,10 @@ trait StateTransitionRules {
               val h5pPaths = converterService.getEmbeddedH5PPaths(article)
               h5pApiClient.publishH5Ps(h5pPaths, user): Unit
 
-              val taxonomyT    = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-              val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = true, user)
+              val taxonomyT = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
               val articleUdpT =
                 articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation, user)
-              val failures = Seq(taxonomyT, taxMetadataT, articleUdpT).collectFirst { case Failure(ex) =>
+              val failures = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
                 Failure(ex)
               }
               failures.getOrElse(articleUdpT)
