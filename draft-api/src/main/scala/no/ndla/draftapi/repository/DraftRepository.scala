@@ -454,7 +454,7 @@ trait DraftRepository {
     }
 
     def withSlug(slug: String)(implicit session: DBSession): Option[Draft] = articleWhere(
-      sqls"ar.slug=${slug.toLowerCase}"
+      sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1"
     )
 
     def slugExists(slug: String, articleId: Option[Long])(implicit
