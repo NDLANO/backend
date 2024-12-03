@@ -73,6 +73,7 @@ class SearchServiceTest
     learningPathId = None,
     seqNo = 0,
     title = List(),
+    introduction = List(),
     description = List(),
     embedUrl = List(),
     `type` = StepType.INTRODUCTION,

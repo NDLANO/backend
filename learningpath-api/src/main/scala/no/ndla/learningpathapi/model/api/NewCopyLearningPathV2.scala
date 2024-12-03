@@ -15,6 +15,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Meta information for a new learningpath based on a copy")
 case class NewCopyLearningPathV2(
     @description("The titles of the learningpath") title: String,
+    @description("The introductions of the learningpath") introduction: Option[String],
     @description("The descriptions of the learningpath") description: Option[String],
     @description("The chosen language") language: String,
     @description("Url to cover-photo in NDLA image-api.") coverPhotoMetaUrl: Option[String],

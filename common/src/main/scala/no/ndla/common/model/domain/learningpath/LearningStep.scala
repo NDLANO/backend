@@ -20,6 +20,7 @@ case class LearningStep(
     learningPathId: Option[Long],
     seqNo: Int,
     title: Seq[Title],
+    introduction: Seq[Introduction],
     description: Seq[Description],
     embedUrl: Seq[EmbedUrl],
     `type`: StepType,

@@ -20,6 +20,7 @@ case class LearningStepV2(
     @description("The revision number for this learningstep") revision: Int,
     @description("The sequence number for the step. The first step has seqNo 0.") seqNo: Int,
     @description("The title of the learningstep") title: Title,
+    @description("The introduction of the learningstep") introduction: Option[Introduction],
     @description("The description of the learningstep") description: Option[Description],
     @description("The embed content for the learningstep") embedUrl: Option[EmbedUrlV2],
     @description("Determines if the title of the step should be displayed in viewmode") showTitle: Boolean,
