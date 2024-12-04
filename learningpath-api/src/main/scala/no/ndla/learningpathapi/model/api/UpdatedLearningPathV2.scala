@@ -16,7 +16,6 @@ import sttp.tapir.Schema.annotations.description
 case class UpdatedLearningPathV2(
     @description("The revision number for this learningpath") revision: Int,
     @description("The title of the learningpath") title: Option[String],
-    @description("The introduction of the learningpath") introduction: Option[String],
     @description("The chosen language") language: String,
     @description("The description of the learningpath") description: Option[String],
     @description("Url to cover-photo in NDLA image-api.") coverPhotoMetaUrl: Option[String],

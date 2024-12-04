@@ -255,13 +255,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2 =
     NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2 =
-    NewCopyLearningPathV2("Tittel", None, Some("Beskrivelse"), "nb", None, Some(1), None, None)
+    NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2 =
-    UpdatedLearningPathV2(1, None, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+    UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
   val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2 =
-    UpdatedLearningPathV2(1, None, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+    UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
   override def beforeEach(): Unit = {
     service = new UpdateService
@@ -1149,7 +1149,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(learningpathWithUnknownLang)
 
     val newCopy =
-      NewCopyLearningPathV2("hehe", None, None, "nb", None, None, None, None)
+      NewCopyLearningPathV2("hehe", None, "nb", None, None, None, None)
     service
       .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty, None).toCombined)
       .isSuccess should be(true)
@@ -1204,7 +1204,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2(1, Some("YapThisUpdated"), None, "nb", None, None, None, None, None, None)
+    val lpToUpdate = UpdatedLearningPathV2(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None)
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
@@ -1455,7 +1455,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2(1, None, None, "nb", None, None, None, None, None, Some(true))
+    val lpToUpdate = UpdatedLearningPathV2(1, None, "nb", None, None, None, None, None, Some(true))
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(

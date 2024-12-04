@@ -478,7 +478,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
     val apiCopyright = api.Copyright(apiLicense, List(apiRubio))
 
-    val newCopyLp = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), None, "nb", None, Some(1), None, None)
+    val newCopyLp = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
     val newLp     = NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
 
     service
