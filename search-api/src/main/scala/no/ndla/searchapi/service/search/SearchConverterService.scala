@@ -237,6 +237,8 @@ trait SearchConverterService {
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
+          contextids =
+            indexingBundle.taxonomyBundle.map(getTaxonomyContexids(articleId, "article", _)).getOrElse(List.empty),
           grepContexts = getGrepContexts(ai.grepCodes, indexingBundle.grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
@@ -294,6 +296,8 @@ trait SearchConverterService {
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
+          contextids =
+            indexingBundle.taxonomyBundle.map(getTaxonomyContexids(lp.id.get, "learningpath", _)).getOrElse(List.empty),
           favorited = favorited,
           learningResourceType = LearningResourceType.LearningPath
         )
@@ -464,6 +468,8 @@ trait SearchConverterService {
           supportedLanguages = supportedLanguages,
           notes = notes,
           contexts = asSearchableTaxonomyContexts(taxonomyContexts),
+          contextids =
+            indexingBundle.taxonomyBundle.map(getTaxonomyContexids(draft.id.get, "article", _)).getOrElse(List.empty),
           users = users.distinct,
           previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
           grepContexts = getGrepContexts(draft.grepCodes, indexingBundle.grepBundle),
@@ -911,6 +917,22 @@ trait SearchConverterService {
       val allContexts = nodes.flatMap(node => node.contexts)
       val visibles    = if (filterVisibles) allContexts.filter(c => c.isVisible) else allContexts
       if (filterContexts) visibles.filter(c => c.rootId.contains("subject")) else visibles
+    }
+
+    /** Parses [[TaxonomyBundle]] to get all contextids for a single node.
+      *
+      * @param id
+      *   of article/learningpath
+      * @param taxonomyType
+      *   Type of resource used in contentUri. Example: "learningpath" in "urn:learningpath:123"
+      * @param bundle
+      *   All taxonomy in an object.
+      * @return
+      *   List of strings to be indexed.
+      */
+    private def getTaxonomyContexids(id: Long, taxonomyType: String, bundle: TaxonomyBundle) = {
+      val nodes = bundle.nodeByContentUri.getOrElse(s"urn:$taxonomyType:$id", List.empty)
+      nodes.flatMap(node => node.contextids)
     }
 
     private[service] def getGrepContexts(

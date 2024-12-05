@@ -66,9 +66,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       "Resource1",
       Some("urn:article:1"),
       Some("/subject:1/topic:10/resource:1"),
+      Some("/r/resource1/asdf3456"),
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List("asdf3456"),
       List.empty
     ),
     Node(
@@ -76,9 +78,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       "Topic1",
       Some("urn:article:10"),
       Some("/subject:1/topic:10"),
+      Some("/e/topic1/asdf3457"),
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List("asdf3457"),
       List.empty
     ),
     Node(
@@ -86,9 +90,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       "Subject1",
       None,
       Some("/subject:1"),
+      Some("/f/subject1/asdf3458"),
       visibleMetadata,
       List.empty,
       NodeType.SUBJECT,
+      List("asdf3458"),
       List.empty
     )
   )
