@@ -41,10 +41,10 @@ import org.jsoup.Jsoup
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ArticleRepository with Props =>
+  this: Clock & ArticleRepository & Props =>
   val converterService: ConverterService
 
-  import props._
+  import props.*
 
   class ConverterService extends StrictLogging {
 
@@ -70,7 +70,7 @@ trait ConverterService {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {

@@ -21,12 +21,7 @@ import no.ndla.common.model.domain.article.Article
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ArticleRepository
-    with ConverterService
-    with ContentValidator
-    with ArticleIndexService
-    with ReadService
-    with SearchApiClient =>
+  this: ArticleRepository & ConverterService & ContentValidator & ArticleIndexService & ReadService & SearchApiClient =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {

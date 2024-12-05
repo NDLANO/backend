@@ -37,9 +37,9 @@ trait ArticleControllerV2 {
     ContentValidator & Props & ErrorHandling & TapirController =>
   val articleControllerV2: ArticleControllerV2
 
-  import props._
+  import props.*
 
-  class ArticleControllerV2() extends TapirController {
+  class ArticleControllerV2 extends TapirController {
     protected val applicationDescription = "Services for accessing articles from NDLA."
 
     override val serviceName: String         = "articles"
@@ -97,7 +97,7 @@ trait ArticleControllerV2 {
         searchContext: Option[String]
     )
 
-    /** Does a scroll with [[AudioSearchService]] If no scrollId is specified execute the function @orFunction in the
+    /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
       *
       * @param orFunction

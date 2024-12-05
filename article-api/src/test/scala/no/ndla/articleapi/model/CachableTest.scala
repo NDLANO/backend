@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.model
 
-import no.ndla.articleapi._
+import no.ndla.articleapi.*
 import no.ndla.articleapi.model.domain.Cachable
 
 import scala.util.{Success, Try}
@@ -28,7 +28,7 @@ class CachableTest extends UnitSuite with TestEnvironment {
       a <- c1
       b <- c2
       c <- c3
-    } yield (a + b + c)
+    } yield a + b + c
 
     x should be(Cachable(6, true))
   }

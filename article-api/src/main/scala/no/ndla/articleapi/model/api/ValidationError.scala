@@ -18,5 +18,5 @@ case class ValidationError(
     @description("Code stating the type of error") code: String,
     @description("Description of the error") description: String,
     @description("List of validation messages") messages: Seq[ValidationMessage],
-    @description("When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
+    @description("When the error occurred") occuredAt: LocalDateTime = LocalDateTime.now()
 )

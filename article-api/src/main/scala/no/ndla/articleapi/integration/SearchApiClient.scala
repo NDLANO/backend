@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with ConverterService with Props =>
+  this: NdlaClient & ConverterService & Props =>
   val searchApiClient: SearchApiClient
 
   class SearchApiClient(SearchApiBaseUrl: String = props.SearchApiUrl) extends StrictLogging {
