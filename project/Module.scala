@@ -168,7 +168,6 @@ trait Module {
       )
     )
   }
-
   val checkfmt = taskKey[Unit]("Check for code style errors")
   val fmt      = taskKey[Unit]("Automatically apply code style fixes")
 

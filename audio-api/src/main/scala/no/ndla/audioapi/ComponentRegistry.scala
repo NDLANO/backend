@@ -17,6 +17,7 @@ import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
+import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
@@ -38,6 +39,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with HealthController
     with AudioController
     with SeriesController
+    with TranscriptionController
     with SearchService
     with AudioSearchService
     with SeriesSearchService
@@ -54,7 +56,9 @@ class ComponentRegistry(properties: AudioApiProperties)
     with DBMigrator
     with ErrorHandling
     with SwaggerDocControllerConfig
-    with NdlaS3Client {
+    with NdlaS3Client
+    with TranscriptionService
+    with NdlaBrightcoveClient {
   override val props: AudioApiProperties = properties
   override val migrator: DBMigrator = DBMigrator(
     new V5__AddAgreementToAudio,
@@ -63,7 +67,8 @@ class ComponentRegistry(properties: AudioApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  lazy val s3Client         = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  lazy val brightcoveClient = new NdlaBrightcoveClient()
 
   lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository
@@ -71,15 +76,17 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val ndlaClient                       = new NdlaClient
   lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  lazy val readService       = new ReadService
-  lazy val writeService      = new WriteService
-  lazy val validationService = new ValidationService
-  lazy val converterService  = new ConverterService
+  lazy val readService          = new ReadService
+  lazy val writeService         = new WriteService
+  lazy val validationService    = new ValidationService
+  lazy val converterService     = new ConverterService
+  lazy val transcriptionService = new TranscriptionService
 
-  lazy val internController   = new InternController
-  lazy val audioApiController = new AudioController
-  lazy val seriesController   = new SeriesController
-  lazy val healthController   = new HealthController
+  lazy val internController        = new InternController
+  lazy val audioApiController      = new AudioController
+  lazy val seriesController        = new SeriesController
+  lazy val healthController        = new HealthController
+  lazy val transcriptionController = new TranscriptionController
 
   var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchConverterService = new SearchConverterService
@@ -97,7 +104,8 @@ class ComponentRegistry(properties: AudioApiProperties)
       audioApiController,
       seriesController,
       internController,
-      healthController
+      healthController,
+      transcriptionController
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )
