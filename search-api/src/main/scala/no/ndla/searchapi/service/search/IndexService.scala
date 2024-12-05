@@ -30,7 +30,83 @@ trait IndexService {
   this: Elastic4sClient & SearchApiClient & BaseIndexService & TaxonomyApiClient & GrepApiClient & Props &
     MyNDLAApiClient =>
 
-  trait IndexService[D <: Content] extends BaseIndexService with StrictLogging {
+  trait BulkIndexingService extends BaseIndexService {
+
+    /** Returns Sequence of DynamicTemplateRequest for a given field.
+      *
+      * @param fieldName
+      *   Name of field in mapping.
+      * @param keepRaw
+      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
+      * @return
+      *   Sequence of DynamicTemplateRequest for a field.
+      */
+    protected def generateLanguageSupportedDynamicTemplates(
+        fieldName: String,
+        keepRaw: Boolean = false
+    ): Seq[DynamicTemplateRequest] = {
+      val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
+        val field = textField(name).analyzer(analyzer).fields(subFields)
+        DynamicTemplateRequest(
+          name = name,
+          mapping = field,
+          matchMappingType = Some("string"),
+          pathMatch = Some(name)
+        )
+      }
+
+      val sf = List(
+        textField("trigram").analyzer("trigram"),
+        textField("decompounded").searchAnalyzer("standard").analyzer("compound_analyzer"),
+        textField("exact").analyzer("exact")
+      )
+      val subFields = if (keepRaw) sf :+ keywordField("raw") else sf
+
+      val languageTemplates = SearchLanguage.languageAnalyzers.map(languageAnalyzer => {
+        val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
+        dynamicFunc(name, languageAnalyzer.analyzer, subFields)
+      })
+      val languageSubTemplates = SearchLanguage.languageAnalyzers.map(languageAnalyzer => {
+        val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
+        dynamicFunc(name, languageAnalyzer.analyzer, subFields)
+      })
+      val catchAllTemplate    = dynamicFunc(s"$fieldName.*", "standard", subFields)
+      val catchAllSubTemplate = dynamicFunc(s"*.$fieldName.*", "standard", subFields)
+      languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate, catchAllSubTemplate)
+    }
+
+    private val hyphDecompounderTokenFilter: CompoundWordTokenFilter = CompoundWordTokenFilter(
+      name = "hyphenation_decompounder",
+      `type` = HyphenationDecompounder,
+      wordListPath = Some("compound-words-norwegian-wordlist.txt"),
+      hyphenationPatternsPath = Some("hyph/no.xml"),
+      minSubwordSize = Some(4),
+      onlyLongestMatch = Some(false)
+    )
+
+    private val customCompoundAnalyzer =
+      CustomAnalyzer(
+        "compound_analyzer",
+        "whitespace",
+        tokenFilters = List(hyphDecompounderTokenFilter.name)
+      )
+
+    private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
+
+    val shingle: ShingleTokenFilter =
+      ShingleTokenFilter(name = "shingle", minShingleSize = Some(2), maxShingleSize = Some(3))
+
+    val trigram: CustomAnalyzer =
+      CustomAnalyzer(name = "trigram", tokenizer = "standard", tokenFilters = List("lowercase", "shingle"))
+
+    override val analysis: Analysis =
+      Analysis(
+        analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, NynorskLanguageAnalyzer),
+        tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters
+      )
+  }
+
+  trait IndexService[D <: Content] extends BulkIndexingService with StrictLogging {
     val apiClient: SearchApiClient
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
@@ -180,36 +256,6 @@ trait IndexService {
       }
     }
 
-    private val hyphDecompounderTokenFilter: CompoundWordTokenFilter = CompoundWordTokenFilter(
-      name = "hyphenation_decompounder",
-      `type` = HyphenationDecompounder,
-      wordListPath = Some("compound-words-norwegian-wordlist.txt"),
-      hyphenationPatternsPath = Some("hyph/no.xml"),
-      minSubwordSize = Some(4),
-      onlyLongestMatch = Some(false)
-    )
-
-    private val customCompoundAnalyzer =
-      CustomAnalyzer(
-        "compound_analyzer",
-        "whitespace",
-        tokenFilters = List(hyphDecompounderTokenFilter.name)
-      )
-
-    private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
-
-    val shingle: ShingleTokenFilter =
-      ShingleTokenFilter(name = "shingle", minShingleSize = Some(2), maxShingleSize = Some(3))
-
-    val trigram: CustomAnalyzer =
-      CustomAnalyzer(name = "trigram", tokenizer = "standard", tokenFilters = List("lowercase", "shingle"))
-
-    override val analysis: Analysis =
-      Analysis(
-        analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, NynorskLanguageAnalyzer),
-        tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters
-      )
-
     /** Returns Sequence of FieldDefinitions for a given field.
       *
       * @param fieldName
@@ -239,51 +285,6 @@ trait IndexService {
           .analyzer(langAnalyzer.analyzer)
           .fields(subFields)
       })
-    }
-
-    /** Returns Sequence of DynamicTemplateRequest for a given field.
-      *
-      * @param fieldName
-      *   Name of field in mapping.
-      * @param keepRaw
-      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
-      * @return
-      *   Sequence of DynamicTemplateRequest for a field.
-      */
-    protected def generateLanguageSupportedDynamicTemplates(
-        fieldName: String,
-        keepRaw: Boolean = false
-    ): Seq[DynamicTemplateRequest] = {
-      val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
-        DynamicTemplateRequest(
-          name = name,
-          mapping = textField(name).analyzer(analyzer).fields(subFields),
-          matchMappingType = Some("string"),
-          pathMatch = Some(name)
-        )
-      }
-
-      val sf = List(
-        textField("trigram").analyzer("trigram"),
-        textField("decompounded")
-          .searchAnalyzer("standard")
-          .analyzer("compound_analyzer"),
-        textField("exact")
-          .analyzer("exact")
-      )
-      val subFields = if (keepRaw) sf :+ keywordField("raw") else sf
-
-      val languageTemplates = SearchLanguage.languageAnalyzers.map(languageAnalyzer => {
-        val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
-        dynamicFunc(name, languageAnalyzer.analyzer, subFields)
-      })
-      val languageSubTemplates = SearchLanguage.languageAnalyzers.map(languageAnalyzer => {
-        val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
-        dynamicFunc(name, languageAnalyzer.analyzer, subFields)
-      })
-      val catchAllTemplate    = dynamicFunc(s"$fieldName.*", "standard", subFields)
-      val catchAllSubTemplate = dynamicFunc(s"*.$fieldName.*", "standard", subFields)
-      languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate, catchAllSubTemplate)
     }
 
     protected def getTaxonomyContextMapping: NestedField = {

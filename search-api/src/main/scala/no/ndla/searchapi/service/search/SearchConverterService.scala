@@ -13,8 +13,8 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.api.draft.Comment
+import no.ndla.common.model.api.{Author, License}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
@@ -35,7 +35,7 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
-import no.ndla.search.model.domain.{ElasticIndexingException, EmbedValues}
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
@@ -53,7 +53,7 @@ import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 trait SearchConverterService {
   this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient =>
@@ -247,6 +247,30 @@ trait SearchConverterService {
         )
       )
 
+    }
+
+    def asSearchableGrep(grepElement: GrepElement): Try[SearchableGrepElement] = {
+      val defaultTitle = grepElement.tittel.find(_.spraak == "default")
+      val titles = grepElement.tittel.flatMap(gt => {
+        ISO639.get6391CodeFor6392Code(gt.spraak) match {
+          case Some(convertedLanguage) =>
+            Some(LanguageValue(language = convertedLanguage, value = gt.verdi.trim))
+          case None if gt.spraak == "default" => None
+          case None =>
+            logger.warn(s"Could not convert language code '${gt.spraak}' for grep code '${grepElement.kode}'")
+            None
+        }
+      })
+
+      val title = SearchableLanguageValues.fromFields(titles.distinctBy(_.language))
+
+      Success(
+        SearchableGrepElement(
+          code = grepElement.kode,
+          title = title,
+          defaultTitle = defaultTitle.map(_.verdi)
+        )
+      )
     }
 
     def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] = {

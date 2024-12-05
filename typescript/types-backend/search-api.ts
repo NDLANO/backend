@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type GrepSort = ("-relevance" | "relevance" | "-title" | "title" | "-code" | "code")
+
 export interface IApiTaxonomyContext {
   publicId: string
   root: string
@@ -25,7 +27,7 @@ export interface IArticleIntroduction {
 
 export interface IArticleResult {
   id: number
-  title: ITitle
+  title: ITitleWithHtml
   introduction?: IArticleIntroduction
   articleType: string
   supportedLanguages: string[]
@@ -42,7 +44,7 @@ export interface IArticleResults {
 
 export interface IAudioResult {
   id: number
-  title: ITitle
+  title: ITitleWithHtml
   url: string
   supportedLanguages: string[]
 }
@@ -107,6 +109,16 @@ export interface IDraftSearchParams {
   resultTypes?: SearchType[]
 }
 
+export interface IGrepSearchInput {
+  prefixFilter?: string[]
+  codes?: string[]
+  query?: string
+  page?: number
+  pageSize?: number
+  sort?: GrepSort
+  language?: string
+}
+
 export interface IGroupSearchResult {
   totalCount: number
   page?: number
@@ -130,7 +142,7 @@ export interface IImageAltText {
 
 export interface IImageResult {
   id: number
-  title: ITitle
+  title: ITitleWithHtml
   altText: IImageAltText
   previewUrl: string
   metaUrl: string
@@ -153,7 +165,7 @@ export interface ILearningPathIntroduction {
 
 export interface ILearningpathResult {
   id: number
-  title: ITitle
+  title: ITitleWithHtml
   introduction: ILearningPathIntroduction
   supportedLanguages: string[]
 }
@@ -195,7 +207,7 @@ export interface IMultiSearchSuggestion {
 
 export interface IMultiSearchSummary {
   id: number
-  title: ITitle
+  title: ITitleWithHtml
   metaDescription: IMetaDescription
   metaImage?: IMetaImage
   url: string
@@ -309,7 +321,7 @@ export interface ITermValue {
   count: number
 }
 
-export interface ITitle {
+export interface ITitleWithHtml {
   title: string
   htmlTitle: string
   language: string
@@ -317,7 +329,7 @@ export interface ITitle {
 
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
-export type SearchType = ("article" | "draft" | "learningpath" | "concept")
+export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep")
 
 export type Sort = SortEnum
 
