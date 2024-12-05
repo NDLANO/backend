@@ -73,7 +73,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(tagIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Draft](0))
     )
-    when(grepCodesIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
+    when(grepCodesIndexService.indexDocument(any)).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Draft](0))
     )
     when(readService.addUrlsOnEmbedResources(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>

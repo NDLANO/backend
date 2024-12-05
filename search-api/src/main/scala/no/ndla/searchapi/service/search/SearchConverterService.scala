@@ -35,7 +35,7 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
-import no.ndla.search.model.domain.EmbedValues
+import no.ndla.search.model.domain.{ElasticIndexingException, EmbedValues}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
@@ -53,7 +53,7 @@ import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
   this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient =>

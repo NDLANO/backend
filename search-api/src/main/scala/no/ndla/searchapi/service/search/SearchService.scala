@@ -325,7 +325,16 @@ trait SearchService {
           }
         case t: Throwable => Failure(t)
       }
+    private val maxResultWindow = props.ElasticSearchIndexMaxResultWindow
+    def getStartAtAndNumResults(page: Int, pageSize: Int): Try[SearchPagination] = {
+      val safePageSize = max(pageSize.min(MaxPageSize), 0)
+      val safePage     = page.max(1)
+      val startAt      = page - 1
+      val resultWindow = (startAt + 1) * safePageSize
+      if (resultWindow > maxResultWindow) {
+        logger.info(s"Max supported results are $maxResultWindow, user requested $resultWindow")
+        Failure(ResultWindowTooLargeException())
+      } else Success(SearchPagination(safePage, safePageSize, startAt))
     }
-
   }
 }

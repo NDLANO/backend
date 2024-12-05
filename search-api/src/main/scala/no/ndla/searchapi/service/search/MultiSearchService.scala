@@ -86,30 +86,22 @@ trait MultiSearchService {
 
       val filteredSearch = baseQuery.filter(getSearchFilters(settings))
 
-      val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
-      val requestedResultWindow = settings.pageSize * settings.page
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
-        logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
-        )
-        Failure(ResultWindowTooLargeException())
-      } else {
-
+      getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
         val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
 
         val searchToExecute = search(searchIndex)
           .query(filteredSearch)
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
-          .from(startAt)
+          .from(pagination.startAt)
           .trackTotalHits(true)
-          .size(numResults)
+          .size(pagination.pageSize)
           .highlighting(highlight("*"))
           .aggs(aggregations)
           .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
         // Only add scroll param if it is first page
         val searchWithScroll =
-          if (startAt == 0 && settings.shouldScroll) {
+          if (pagination.startAt == 0 && settings.shouldScroll) {
             searchToExecute.scroll(ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
@@ -119,7 +111,7 @@ trait MultiSearchService {
               SearchResult(
                 totalCount = response.result.totalHits,
                 page = Some(settings.page),
-                pageSize = numResults,
+                pageSize = pagination.pageSize,
                 language = searchLanguage,
                 results = hits,
                 suggestions = getSuggestions(response.result),

@@ -18,11 +18,11 @@ import io.circe.Decoder
 import no.ndla.common.model.domain.Content
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
+import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.model.api.ElasticIndexingException
-import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
+import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.{Failure, Success, Try}
 
@@ -102,41 +102,14 @@ trait IndexService {
     )(implicit
         d: Decoder[D]
     ): Try[ReindexResult] = {
-      val start = System.currentTimeMillis()
-      createIndexWithGeneratedName(numShards).flatMap(indexName => {
-        sendToElastic(indexName, indexingBundle) match {
-          case Failure(ex) =>
-            deleteIndexWithName(Some(indexName)): Unit
-            Failure(ex)
-          case Success((count, totalCount)) =>
-            val numErrors = totalCount - count
-
-            if (numErrors > 0) {
-              logger.error(s"Indexing completed, but with $numErrors errors.")
-              deleteIndexWithName(Some(indexName)): Unit
-              Failure(
-                ElasticIndexingException(
-                  s"Indexing $documentType completed with $numErrors errors, will not replace index."
-                )
-              )
-            } else {
-              val operations = getAliasTarget.flatMap(updateAliasTarget(_, indexName))
-              operations.map(_ =>
-                ReindexResult(
-                  documentType,
-                  numErrors,
-                  count,
-                  System.currentTimeMillis() - start
-                )
-              )
-            }
-        }
-      })
+      indexDocumentsInBulk(numShards) { indexName =>
+        sendToElastic(indexName, indexingBundle)
+      }
     }
 
     private def sendToElastic(indexName: String, indexingBundle: IndexingBundle)(implicit
         d: Decoder[D]
-    ): Try[(Int, Int)] = {
+    ): Try[BulkIndexResult] = {
 
       val chunks = apiClient.getChunks[D]
       val results = chunks
@@ -154,13 +127,11 @@ trait IndexService {
             (chunkIndexed, chunkSize)
           }
 
-          val (count, totalCount) = successfulChunks.foldLeft((0, 0)) {
-            case ((totalIndexed, totalSize), (chunkIndexed, chunkSize)) =>
-              (totalIndexed + chunkIndexed, totalSize + chunkSize)
-          }
-
-          logger.info(s"$count/$totalCount documents ($documentType) were indexed successfully.")
-          Success((count, totalCount))
+          val indexResult = countIndexed(successfulChunks)
+          logger.info(
+            s"${indexResult.count}/${indexResult.totalCount} documents ($documentType) were indexed successfully."
+          )
+          Success(indexResult)
 
         case notEmpty => notEmpty.head
       }
