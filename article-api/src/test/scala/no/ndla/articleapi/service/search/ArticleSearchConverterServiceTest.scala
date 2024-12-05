@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.service.search
 
-import no.ndla.articleapi.model.search._
+import no.ndla.articleapi.model.search.*
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}

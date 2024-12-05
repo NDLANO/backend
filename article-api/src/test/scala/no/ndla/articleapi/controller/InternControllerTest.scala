@@ -43,7 +43,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(contentValidator.validateArticle(any[Article], any))
       .thenReturn(Success(TestData.sampleArticleWithByNcSa))
 
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val jsonStr = TestData.sampleArticleWithByNcSa.asJson.deepDropNullValues.noSpaces
 
     val response = simpleHttpClient.send(
@@ -59,8 +59,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("That DELETE /index removes all indexes") {
     reset(articleIndexService)
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
     val response = simpleHttpClient.send(
       quickRequest.delete(
         uri"http://localhost:$serverPort/intern/index"
@@ -78,11 +78,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
     reset(articleIndexService)
 
-    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
+    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil*)
       .when(articleIndexService)
       .findAllIndexes(props.ArticleSearchIndex)
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
     val response = simpleHttpClient.send(
       quickRequest.delete(
         uri"http://localhost:$serverPort/intern/index"
@@ -101,8 +101,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
 
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil*)
       .when(articleIndexService)
       .deleteIndexWithName(Some("index2"))
     val response = simpleHttpClient.send(
@@ -126,7 +126,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val authHeaderWithWriteRole =
       "Bearer eyJhbGciOiJIUzI1NiJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW86d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6WyJhdWRpbzp3cml0ZSIsImFydGljbGVzOnB1Ymxpc2giLCJhcnRpY2xlczp3cml0ZSIsImNvbmNlcHQ6YWRtaW4iLCJjb25jZXB0OndyaXRlIiwiZHJhZnRzOmFkbWluIiwiZHJhZnRzOmh0bWwiLCJkcmFmdHM6cHVibGlzaCIsImRyYWZ0czp3cml0ZSIsImZyb250cGFnZTphZG1pbiIsImZyb250cGFnZTp3cml0ZSIsImltYWdlczp3cml0ZSIsImxlYXJuaW5ncGF0aDphZG1pbiIsImxlYXJuaW5ncGF0aDpwdWJsaXNoIiwibGVhcm5pbmdwYXRoOndyaXRlIl19.nm77NIe8aFACafNhC1nROU1bTspbT-hCvxlg6_8ztDk"
 
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val art     = TestData.sampleArticleWithByNcSa.copy(id = Some(10L))
     val jsonStr = art.asJson.deepDropNullValues.noSpaces
 

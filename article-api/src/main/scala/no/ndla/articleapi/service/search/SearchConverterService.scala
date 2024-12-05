@@ -10,7 +10,7 @@ package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, SearchResultV2}
-import no.ndla.articleapi.model.search._
+import no.ndla.articleapi.model.search.*
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.common.model.domain.article.Article
 import no.ndla.search.SearchLanguage.languageAnalyzers

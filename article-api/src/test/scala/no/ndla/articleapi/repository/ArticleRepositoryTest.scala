@@ -9,6 +9,7 @@
 package no.ndla.articleapi.repository
 
 import cats.implicits.*
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.*
 import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.common.model.domain.Tag
@@ -23,9 +24,9 @@ class ArticleRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
     with UnitSuite
     with TestEnvironment {
-  override val dataSource           = testDataSource.get
-  override val migrator             = new DBMigrator
-  var repository: ArticleRepository = _
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator                     = new DBMigrator
+  var repository: ArticleRepository         = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
@@ -229,7 +230,7 @@ class ArticleRepositoryTest
     )
 
     val Right(relatedId) = repository.withId(1).toArticle.get.relatedContent.head
-    relatedId.toLong should be(2L)
+    relatedId should be(2L)
   }
 
   test("Dumping articles should ignore unpublished ones") {
