@@ -116,7 +116,13 @@ class FolderRepositoryTest
     val resource2 =
       repository.insertResource("feide", "/path2", ResourceType.Topic, created, TestData.baseResourceDocument)
     val resource3 =
-      repository.insertResource("feide", "/path3", ResourceType.Multidisciplinary, created, TestData.baseResourceDocument)
+      repository.insertResource(
+        "feide",
+        "/path3",
+        ResourceType.Multidisciplinary,
+        created,
+        TestData.baseResourceDocument
+      )
     val resource4 =
       repository.insertResource("feide", "/path4", ResourceType.Image, created, TestData.baseResourceDocument)
     val resource5 =
