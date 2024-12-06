@@ -512,7 +512,16 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asDomainLearningStep should work with learningpaths no matter the amount of steps") {
     val newLs =
-      NewLearningStepV2("Tittel", Some("Beskrivelse"), None, "nb", Some(api.EmbedUrlV2("", "oembed")), true, "TEXT", None)
+      NewLearningStepV2(
+        "Tittel",
+        Some("Beskrivelse"),
+        None,
+        "nb",
+        Some(api.EmbedUrlV2("", "oembed")),
+        true,
+        "TEXT",
+        None
+      )
     val lpId = 5591L
     val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
     val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))

@@ -65,4 +65,3 @@ case class CouldNotFindLanguageException(message: String)            extends Run
 class AudioStorageException(message: String)                         extends RuntimeException(message)
 class LanguageMappingException(message: String)                      extends RuntimeException(message)
 class ImportException(message: String)                               extends RuntimeException(message)
-case class ElasticIndexingException(message: String)                 extends RuntimeException(message)

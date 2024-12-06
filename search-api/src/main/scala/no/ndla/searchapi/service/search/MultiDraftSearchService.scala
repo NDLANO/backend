@@ -16,11 +16,10 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.{Content, Priority}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.network.model.RequestInfo
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
@@ -29,10 +28,7 @@ import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
-import no.ndla.common.model.domain.Content
 
 trait MultiDraftSearchService {
   this: Elastic4sClient & SearchConverterService & IndexService & SearchService & DraftIndexService &
@@ -40,7 +36,7 @@ trait MultiDraftSearchService {
   val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
-    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndex}
+    import props.{ElasticSearchScrollKeepAlive, SearchIndex}
     override val searchIndex: List[String] = List(
       SearchType.Drafts,
       SearchType.LearningPaths,
@@ -216,52 +212,41 @@ trait MultiDraftSearchService {
         case _                                                        => AllLanguages
       }
       val filteredSearch = baseQuery.filter(getSearchFilters(settings))
+      val pagination     = getStartAtAndNumResults(settings.page, settings.pageSize).?
+      val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      val index          = getSearchIndexes(settings).?
+      val searchToExecute = search(index)
+        .query(filteredSearch)
+        .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
+        .trackTotalHits(true)
+        .from(pagination.startAt)
+        .size(pagination.pageSize)
+        .highlighting(highlight("*"))
+        .aggs(aggregations)
+        .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
-      val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
-      val requestedResultWindow = settings.pageSize * settings.page
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
-        logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
-        )
-        Failure(ResultWindowTooLargeException())
-      } else {
+      // Only add scroll param if it is first page
+      val searchWithScroll =
+        if (pagination.startAt == 0 && settings.shouldScroll) {
+          searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+        } else { searchToExecute }
 
-        val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      e4sClient.execute(searchWithScroll) match {
+        case Success(response) =>
+          getHits(response.result, settings.language, settings.filterInactive).map(hits => {
+            SearchResult(
+              totalCount = response.result.totalHits,
+              page = Some(settings.page),
+              pageSize = pagination.pageSize,
+              language = searchLanguage,
+              results = hits,
+              suggestions = getSuggestions(response.result),
+              aggregations = getAggregationsFromResult(response.result),
+              scrollId = response.result.scrollId
+            )
+          })
 
-        val index = getSearchIndexes(settings).?
-        val searchToExecute = search(index)
-          .query(filteredSearch)
-          .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
-          .trackTotalHits(true)
-          .from(startAt)
-          .size(numResults)
-          .highlighting(highlight("*"))
-          .aggs(aggregations)
-          .sortBy(getSortDefinition(settings.sort, searchLanguage))
-
-        // Only add scroll param if it is first page
-        val searchWithScroll =
-          if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
-          } else { searchToExecute }
-
-        e4sClient.execute(searchWithScroll) match {
-          case Success(response) =>
-            getHits(response.result, settings.language, settings.filterInactive).map(hits => {
-              SearchResult(
-                totalCount = response.result.totalHits,
-                page = Some(settings.page),
-                pageSize = numResults,
-                language = searchLanguage,
-                results = hits,
-                suggestions = getSuggestions(response.result),
-                aggregations = getAggregationsFromResult(response.result),
-                scrollId = response.result.scrollId
-              )
-            })
-
-          case Failure(ex) => Failure(ex)
-        }
+        case Failure(ex) => Failure(ex)
       }
     }
 
@@ -402,31 +387,6 @@ trait MultiDraftSearchService {
         Some(
           boolQuery().should(users.map(simpleStringQuery(_).field("users", 1)))
         )
-
-    override def scheduleIndexDocuments(): Unit = {
-      val threadPoolSize = if (searchIndex.nonEmpty) searchIndex.size else 1
-      implicit val ec: ExecutionContextExecutor =
-        ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threadPoolSize))
-      val requestInfo = RequestInfo.fromThreadContext()
-
-      val draftFuture = Future {
-        requestInfo.setThreadContextRequestInfo()
-        draftIndexService.indexDocuments(shouldUsePublishedTax = false)
-      }
-      val learningPathFuture = Future {
-        requestInfo.setThreadContextRequestInfo()
-        learningPathIndexService.indexDocuments(shouldUsePublishedTax = true)
-      }
-
-      val conceptFuture = Future {
-        requestInfo.setThreadContextRequestInfo()
-        draftConceptIndexService.indexDocuments(shouldUsePublishedTax = true)
-      }
-
-      handleScheduledIndexResults(SearchIndex(SearchType.Drafts), draftFuture)
-      handleScheduledIndexResults(SearchIndex(SearchType.LearningPaths), learningPathFuture)
-      handleScheduledIndexResults(SearchIndex(SearchType.Concepts), conceptFuture)
-    }
   }
 
 }

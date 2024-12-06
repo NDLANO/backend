@@ -16,7 +16,6 @@ import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateR
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.SearchApiClient
-import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, ReindexResult}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
@@ -27,6 +26,7 @@ import cats.implicits.*
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 
 trait SearchIndexService {
   this: Elastic4sClient & SearchConverterServiceComponent & LearningPathRepositoryComponent & SearchApiClient &
@@ -40,24 +40,8 @@ trait SearchIndexService {
     override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
     def indexDocuments: Try[ReindexResult] = indexDocuments(None)
-    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = {
-      synchronized {
-        val start = System.currentTimeMillis()
-        createIndexWithGeneratedName(numShards).flatMap(indexName => {
-          val operations = for {
-            numIndexed  <- sendToElastic(indexName)
-            aliasTarget <- getAliasTarget
-            _           <- updateAliasTarget(aliasTarget, indexName)
-          } yield numIndexed
-
-          operations match {
-            case Failure(f) =>
-              deleteIndexWithName(Some(indexName)): Unit
-              Failure(f)
-            case Success(totalIndexed) => Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
-          }
-        })
-      }
+    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
+      indexDocumentsInBulk(numShards)(sendToElastic)
     }
 
     def indexDocument(learningPath: LearningPath): Try[LearningPath] = for {
@@ -88,28 +72,16 @@ trait SearchIndexService {
         .getOrElse(Success(learningPath))
     }
 
-    def findAllIndexes(indexName: String): Try[Seq[String]] = {
-      val response = e4sClient.execute {
-        getAliases()
-      }
-
-      response match {
-        case Success(results) =>
-          Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
-        case Failure(ex) =>
-          Failure(ex)
-      }
-    }
-
-    private def sendToElastic(indexName: String): Try[Int] = {
+    private def sendToElastic(indexName: String): Try[BulkIndexResult] = {
       getRanges
         .flatMap(ranges => {
-          ranges.traverse { case (start, end) =>
-            val toIndex = learningPathRepository.learningPathsWithIdBetween(start, end)
-            indexLearningPaths(toIndex, indexName)
-          }
+          ranges
+            .traverse { case (start, end) =>
+              val toIndex = learningPathRepository.learningPathsWithIdBetween(start, end)
+              indexLearningPaths(toIndex, indexName).map(numIndexed => (numIndexed, toIndex.size))
+            }
+            .map(countIndexed)
         })
-        .map(_.sum)
     }
 
     private def getRanges: Try[List[(Long, Long)]] = {

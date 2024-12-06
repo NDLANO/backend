@@ -22,6 +22,7 @@ object SearchType extends Enum[SearchType] with CirceEnumWithErrors[SearchType] 
   case object Drafts        extends SearchType("draft")
   case object LearningPaths extends SearchType("learningpath")
   case object Concepts      extends SearchType("concept")
+  case object Grep          extends SearchType("grep")
 
   def all: List[String]                       = SearchType.values.map(_.toString).toList
   override def values: IndexedSeq[SearchType] = findValues

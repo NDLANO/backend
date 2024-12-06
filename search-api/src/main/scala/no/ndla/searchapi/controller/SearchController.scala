@@ -21,14 +21,16 @@ import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import no.ndla.searchapi.controller.parameters.{DraftSearchParams, SearchParams, SubjectAggsInput}
+import no.ndla.searchapi.controller.parameters.{DraftSearchParams, GrepSearchInput, SearchParams, SubjectAggsInput}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.SearchApiClient
+import no.ndla.searchapi.model.api.grep.GrepSearchResults
 import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResult, MultiSearchResult, SubjectAggregations}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
+  GrepSearchService,
   MultiDraftSearchService,
   MultiSearchService,
   SearchConverterService,
@@ -47,7 +49,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait SearchController {
   this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
-    FeideApiClient & Props & ErrorHandling & TapirController =>
+    FeideApiClient & Props & ErrorHandling & TapirController & GrepSearchService =>
   val searchController: SearchController
 
   class SearchController extends TapirController {
@@ -159,7 +161,8 @@ trait SearchController {
       searchDraftLearningResources,
       searchDraftLearningResourcesGet,
       postSearchLearningResources,
-      subjectAggs
+      subjectAggs,
+      searchGrep
     )
 
     def subjectAggs: ServerEndpoint[Any, Eff] = endpoint.post
@@ -592,6 +595,16 @@ trait SearchController {
           }
         }
       }
+
+    def searchGrep: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Search for grep codes")
+      .description("Search for grep codes")
+      .in("grep")
+      .in(jsonBody[GrepSearchInput])
+      .out(jsonBody[GrepSearchResults])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ => input => grepSearchService.searchGreps(input) }
 
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the
       * feide api and should be used sparingly.

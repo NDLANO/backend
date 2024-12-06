@@ -11,7 +11,7 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ArticleDomainDump, ArticleDump, ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain.{ArticleIds, ImportId, ReindexResult}
+import no.ndla.draftapi.model.domain.{ArticleIds, ImportId}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
@@ -28,6 +28,7 @@ import scalikejdbc.ReadOnlyAutoSession
 import sttp.model.StatusCode
 import sttp.tapir.server.ServerEndpoint
 import io.circe.generic.auto.*
+import no.ndla.search.model.domain.ReindexResult
 import sttp.tapir.generic.auto.*
 
 import java.util.concurrent.{Executors, TimeUnit}

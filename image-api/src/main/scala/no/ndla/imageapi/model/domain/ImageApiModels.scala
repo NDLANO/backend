@@ -103,5 +103,3 @@ object ModelReleasedStatus extends Enumeration {
   implicit val encoder: Encoder[ModelReleasedStatus.Value] = Encoder.encodeEnumeration(ModelReleasedStatus)
   implicit val decoder: Decoder[ModelReleasedStatus.Value] = Decoder.decodeEnumeration(ModelReleasedStatus)
 }
-
-case class ReindexResult(totalIndexed: Int, millisUsed: Long)

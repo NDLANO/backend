@@ -30,7 +30,7 @@ object HighlightedField {
 @description("Short summary of information about the resource")
 case class MultiSearchSummary(
     @description("The unique id of the resource") id: Long,
-    @description("The title of the resource") title: Title,
+    @description("The title of the resource") title: TitleWithHtml,
     @description("The meta description of the resource") metaDescription: MetaDescription,
     @description("The meta image for the resource") metaImage: Option[MetaImage],
     @description("Url pointing to the resource") url: String,

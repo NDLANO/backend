@@ -20,10 +20,10 @@ import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.integration.model.TaxonomyData
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ElasticIndexingException}
-import no.ndla.conceptapi.model.domain.ReindexResult
+import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
+import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
@@ -70,36 +70,19 @@ trait IndexService {
       } yield imported
     }
 
-    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = {
-      synchronized {
-        val start = System.currentTimeMillis()
-        createIndexWithGeneratedName(numShards).flatMap(indexName => {
-          val operations = for {
-            numIndexed  <- sendToElastic(indexName)
-            aliasTarget <- getAliasTarget
-            _           <- updateAliasTarget(aliasTarget, indexName)
-          } yield numIndexed
-
-          operations match {
-            case Failure(f) =>
-              deleteIndexWithName(Some(indexName)): Unit
-              Failure(f)
-            case Success(totalIndexed) =>
-              Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
-          }
-        })
-      }
+    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
+      indexDocumentsInBulk(numShards)(sendToElastic)
     }
 
-    private def sendToElastic(indexName: String): Try[Int] = {
+    private def sendToElastic(indexName: String): Try[BulkIndexResult] = {
       for {
         taxonomyData <- taxonomyApiClient.getSubjects
         ranges       <- getRanges
         indexed <- ranges.traverse { case (start, end) =>
           val toIndex = repository.documentsWithIdBetween(start, end)
-          indexDocuments(toIndex, indexName, taxonomyData)
+          indexDocuments(toIndex, indexName, taxonomyData).map(numIndexed => (numIndexed, toIndex.size))
         }
-      } yield indexed.sum
+      } yield countIndexed(indexed)
     }
 
     private def getRanges: Try[List[(Long, Long)]] = {
@@ -141,19 +124,6 @@ trait IndexService {
     }
 
     def findAllIndexes: Try[Seq[String]] = findAllIndexes(this.searchIndex)
-
-    private def findAllIndexes(indexName: String): Try[Seq[String]] = {
-      val response = e4sClient.execute {
-        getAliases()
-      }
-
-      response match {
-        case Success(results) =>
-          Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
-        case Failure(ex) =>
-          Failure(ex)
-      }
-    }
 
     /** Returns Sequence of DynamicTemplateRequest for a given field.
       *

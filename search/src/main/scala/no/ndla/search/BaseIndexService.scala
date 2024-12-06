@@ -8,17 +8,18 @@
 
 package no.ndla.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.Indexes
 import com.sksamuel.elastic4s.analysis.Analysis
 import com.sksamuel.elastic4s.requests.alias.AliasAction
-import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
+import com.sksamuel.elastic4s.requests.indexes.{CreateIndexRequest, IndexRequest}
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
+import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -31,6 +32,9 @@ trait BaseIndexService {
     val documentType: String
     val searchIndex: String
     val MaxResultWindowOption: Int
+
+    /** Replace index even if bulk indexing had failures */
+    protected val allowIndexingErrors: Boolean = false
 
     val analysis: Analysis =
       Analysis(
@@ -69,9 +73,8 @@ trait BaseIndexService {
       if (indexWithNameExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
-        val response = e4sClient.execute {
-          buildCreateIndexRequest(indexName, numShards)
-        }
+        val request  = buildCreateIndexRequest(indexName, numShards)
+        val response = e4sClient.execute(request)
 
         response match {
           case Success(_)  => Success(indexName)
@@ -95,6 +98,50 @@ trait BaseIndexService {
 
     def createIndexWithGeneratedName(numShards: Option[Int]): Try[String] =
       createIndexWithName(getNewIndexName(), numShards)
+
+    protected def validateBulkIndexing(indexResult: BulkIndexResult): Try[BulkIndexResult] = {
+      if (indexResult.failed == 0 || allowIndexingErrors) Success(indexResult)
+      else {
+        logger.error(
+          s"Indexing completed for index $searchIndex ($documentType), but with ${indexResult.failed} errors."
+        )
+        Failure(
+          ElasticIndexingException(
+            s"Indexing $documentType completed with ${indexResult.failed} errors, will not replace index."
+          )
+        )
+      }
+    }
+
+    def countBulkIndexed(indexChunks: List[BulkIndexResult]): BulkIndexResult = {
+      indexChunks.foldLeft(BulkIndexResult(0, 0)) { case (total, chunk) =>
+        BulkIndexResult(total.count + chunk.count, total.totalCount + chunk.totalCount)
+      }
+    }
+
+    def countIndexed(indexChunks: List[(Int, Int)]): BulkIndexResult = {
+      val (count, totalCount) = indexChunks.foldLeft((0, 0)) {
+        case ((totalIndexed, totalSize), (chunkIndexed, chunkSize)) =>
+          (totalIndexed + chunkIndexed, totalSize + chunkSize)
+      }
+      BulkIndexResult(count, totalCount)
+    }
+
+    type SendToElastic = String => Try[BulkIndexResult]
+    def indexDocumentsInBulk(numShards: Option[Int])(sendToElasticFunction: SendToElastic): Try[ReindexResult] =
+      for {
+        start       <- Try(System.currentTimeMillis())
+        indexName   <- createIndexWithGeneratedName(numShards)
+        indexResult <- sendToElasticFunction(indexName)
+        result      <- validateBulkIndexing(indexResult)
+        aliasTarget <- getAliasTarget
+        _           <- updateAliasTarget(aliasTarget, indexName)
+      } yield ReindexResult(
+        documentType,
+        result.failed,
+        result.count,
+        System.currentTimeMillis() - start
+      )
 
     def createIndexWithGeneratedName: Try[String] =
       createIndexWithName(getNewIndexName())
@@ -279,5 +326,41 @@ trait BaseIndexService {
     }
 
     def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
+
+    def findAllIndexes(indexName: String): Try[Seq[String]] = {
+      val response = e4sClient.execute {
+        getAliases()
+      }
+
+      response match {
+        case Success(results) =>
+          Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
+        case Failure(ex) =>
+          Failure(ex)
+      }
+    }
+
+    /** Executes elasticsearch requests in bulk. Returns success (without executing anything) if supplied with an empty
+      * list.
+      *
+      * @param requests
+      *   a list of elasticsearch [[IndexRequest]]'s
+      * @return
+      *   A Try suggesting if the request was successful or not with a tuple containing number of successful requests
+      *   and number of failed requests (in that order)
+      */
+    protected def executeRequests(requests: Seq[IndexRequest]): Try[BulkIndexResult] = {
+      requests match {
+        case Nil =>
+          Success(BulkIndexResult(0, requests.size))
+        case head :: Nil =>
+          e4sClient
+            .execute(head)
+            .map(r => if (r.isSuccess) BulkIndexResult(1, requests.size) else BulkIndexResult(0, requests.size))
+        case reqs =>
+          e4sClient.execute(bulk(reqs)).map(r => BulkIndexResult(r.result.successes.size, requests.size))
+      }
+    }
+
   }
 }
