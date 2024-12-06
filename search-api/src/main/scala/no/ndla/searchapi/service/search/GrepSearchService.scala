@@ -62,29 +62,36 @@ trait GrepSearchService {
               searchDecompounded = true
             )
 
+          val codeQueries = boolQuery().should(
+            prefixQuery("code", q.underlying).boost(50),
+            matchQuery("code", q.underlying).boost(10),
+            termQuery("code", q.underlying).boost(100)
+          )
+          val titleQuery = langQueryFunc("title", 6)
+
+          val onlyCodeQuery = boolQuery()
+            .must(codeQueries)
+            .not(titleQuery)
+
           boolQuery()
-            .should(
-              langQueryFunc("title", 6),
-              prefixQuery("code", q.underlying).boost(50),
-              matchQuery("code", q.underlying).boost(10),
-              termQuery("code", q.underlying).boost(100)
-            )
+            .must(boolQuery().should(titleQuery, onlyCodeQuery))
         }
         .getOrElse(boolQuery())
-      query.filter(
-        Seq(
-          idsFilter(input),
-          prefixFilter(input)
-        ).flatten
-      )
+      query.filter(getFilters(input))
     }
 
-    def idsFilter(input: GrepSearchInput): Option[Query] = input.codes match {
+    private def getFilters(input: GrepSearchInput): List[Query] =
+      List(
+        idsFilter(input),
+        prefixFilter(input)
+      ).flatten
+
+    private def idsFilter(input: GrepSearchInput): Option[Query] = input.codes match {
       case Some(ids) if ids.nonEmpty => termsQuery("code", ids).some
       case _                         => None
     }
 
-    def prefixFilter(input: GrepSearchInput): Option[Query] = input.prefixFilter match {
+    private def prefixFilter(input: GrepSearchInput): Option[Query] = input.prefixFilter match {
       case Some(prefixes) if prefixes.nonEmpty =>
         Some(
           boolQuery().should(

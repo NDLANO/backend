@@ -84,6 +84,17 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     result.results.map(_.code).sorted should be(grepTestBundle.grepContext.map(_.kode).sorted)
   }
 
+  test("That querying grep codes with prefixes returns nothing") {
+    grepIndexService.indexDocuments(1.some, Some(grepTestBundle)).get
+    blockUntil(() => grepIndexService.countDocuments == grepTestBundle.grepContext.size)
+
+    val result = grepSearchService
+      .searchGreps(emptyInput.copy(query = NonEmptyString.fromString("kakepenger"), prefixFilter = Some(List("TT"))))
+      .get
+
+    result.results.map(_.code).sorted should be(Seq.empty)
+  }
+
   test("That searching for all grep prefixes works as expected") {
     grepIndexService.indexDocuments(1.some, Some(grepTestBundle)).get
     blockUntil(() => grepIndexService.countDocuments == grepTestBundle.grepContext.size)
