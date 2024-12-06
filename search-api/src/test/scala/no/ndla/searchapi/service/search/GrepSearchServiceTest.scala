@@ -109,6 +109,10 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     val input  = emptyInput.copy(codes = Some(List("KM123", "ENUKJENT123")))
     val result = grepSearchService.searchGreps(input).get
     result.results.map(_.code).sorted should be(List("KM123"))
+
+    val input2  = emptyInput.copy(codes = Some(List("km123", "ENUKJENT123")))
+    val result2 = grepSearchService.searchGreps(input2).get
+    result2.results.map(_.code).sorted should be(List("KM123"))
   }
 
   test("That querying based on id works as expected") {

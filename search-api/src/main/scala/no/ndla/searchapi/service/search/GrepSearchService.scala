@@ -67,7 +67,7 @@ trait GrepSearchService {
               langQueryFunc("title", 6),
               prefixQuery("code", q.underlying).boost(50),
               matchQuery("code", q.underlying).boost(10),
-              idsQuery(q.underlying).boost(100)
+              termQuery("code", q.underlying).boost(100)
             )
         }
         .getOrElse(boolQuery())
@@ -80,7 +80,7 @@ trait GrepSearchService {
     }
 
     def idsFilter(input: GrepSearchInput): Option[Query] = input.codes match {
-      case Some(ids) if ids.nonEmpty => idsQuery(ids).some
+      case Some(ids) if ids.nonEmpty => termsQuery("code", ids).some
       case _                         => None
     }
 
