@@ -44,7 +44,7 @@ export interface IArticleResults {
 
 export interface IAudioResult {
   id: number
-  title: ITitleWithHtml
+  title: ITitle
   url: string
   supportedLanguages: string[]
 }
@@ -109,6 +109,11 @@ export interface IDraftSearchParams {
   resultTypes?: SearchType[]
 }
 
+export interface IGrepResult {
+  code: string
+  title: ITitle
+}
+
 export interface IGrepSearchInput {
   prefixFilter?: string[]
   codes?: string[]
@@ -117,6 +122,14 @@ export interface IGrepSearchInput {
   pageSize?: number
   sort?: GrepSort
   language?: string
+}
+
+export interface IGrepSearchResults {
+  totalCount: number
+  page: number
+  pageSize: number
+  language: string
+  results: IGrepResult[]
 }
 
 export interface IGroupSearchResult {
@@ -142,7 +155,7 @@ export interface IImageAltText {
 
 export interface IImageResult {
   id: number
-  title: ITitleWithHtml
+  title: ITitle
   altText: IImageAltText
   previewUrl: string
   metaUrl: string
@@ -165,7 +178,7 @@ export interface ILearningPathIntroduction {
 
 export interface ILearningpathResult {
   id: number
-  title: ITitleWithHtml
+  title: ITitle
   introduction: ILearningPathIntroduction
   supportedLanguages: string[]
 }
@@ -319,6 +332,11 @@ export interface ITaxonomyResourceType {
 export interface ITermValue {
   value: string
   count: number
+}
+
+export interface ITitle {
+  title: string
+  language: string
 }
 
 export interface ITitleWithHtml {

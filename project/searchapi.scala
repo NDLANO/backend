@@ -43,7 +43,8 @@ object searchapi extends Module {
       "DraftSearchParams",
       "SubjectAggregations",
       "SubjectAggsInput",
-      "GrepSearchInput"
+      "GrepSearchInput",
+      "grep.GrepSearchResults"
     )
   )
 
