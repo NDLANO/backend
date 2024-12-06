@@ -17,7 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
 
   val searchApiClient: SearchApiClient
 
