@@ -1566,6 +1566,7 @@ object TestData {
   val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
+    kompetansemaalsett = List.empty,
     tverrfagligeTemaer = List.empty
   )
 

@@ -57,6 +57,7 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
         )
       )
     ),
+    kompetansemaalsett = List.empty,
     tverrfagligeTemaer = List(
       GrepElement(
         "TT2",
