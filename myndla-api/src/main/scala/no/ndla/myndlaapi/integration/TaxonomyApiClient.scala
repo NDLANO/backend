@@ -14,9 +14,7 @@ import no.ndla.myndlaapi.Props
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait TaxonomyApiClient {
   this: NdlaClient & Props =>
@@ -32,6 +30,7 @@ trait TaxonomyApiClient {
     }
   }
 }
+
 case class ResolvePathResponse(url: String)
 object ResolvePathResponse {
   implicit def decoder: Decoder[ResolvePathResponse] = deriveDecoder

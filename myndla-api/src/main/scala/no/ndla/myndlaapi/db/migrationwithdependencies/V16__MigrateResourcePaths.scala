@@ -18,6 +18,7 @@ trait V16__MigrateResourcePaths {
   this: TaxonomyApiClient & NdlaClient =>
 
   class V16__MigrateResourcePaths extends BaseJavaMigration {
+    private val chunkSize = 100;
 
     override def migrate(context: Context): Unit = DB(context.getConnection)
       .autoClose(false)
@@ -27,16 +28,16 @@ trait V16__MigrateResourcePaths {
 
     private def migrateResources(implicit session: DBSession): Unit = {
       val count        = countResources.get
-      var numPagesLeft = (count / 100) + 1
+      var numPagesLeft = (count / chunkSize) + 1
       var offset       = 0L
 
       while (numPagesLeft > 0) {
-        allResources(offset * 100).map { case (id, resourceType, path) =>
+        allResources(offset * chunkSize).foreach { case (id, resourceType, path) =>
           resourceType match {
             case "article" | "learningpath" | "multidisciplinary" | "topic" =>
               val updatedPath = taxonomyApiClient.resolveUrl(path)
               updatedPath.map(updateResource(UUID.fromString(id), _))
-            case _ =>
+            case _ => ()
           }
         }
         numPagesLeft -= 1
@@ -49,7 +50,7 @@ trait V16__MigrateResourcePaths {
     }
 
     private def allResources(offset: Long)(implicit session: DBSession): Seq[(String, String, String)] = {
-      sql"select id, resource_type, path from resources order by id limit 100 offset $offset"
+      sql"select id, resource_type, path from resources order by id limit $chunkSize offset $offset"
         .map(rs => {
           (rs.string("id"), rs.string("resource_type"), rs.string("path"))
         })
