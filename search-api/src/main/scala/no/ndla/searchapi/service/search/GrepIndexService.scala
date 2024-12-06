@@ -34,7 +34,9 @@ trait GrepIndexService {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     override def getMapping: MappingDefinition = {
-      val fields   = List(keywordField("code"))
+      val fields = List(
+        keywordField("code").normalizer("lower")
+      )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true)
 
       properties(fields).dynamicTemplates(dynamics)

@@ -99,10 +99,14 @@ trait IndexService {
     val trigram: CustomAnalyzer =
       CustomAnalyzer(name = "trigram", tokenizer = "standard", tokenFilters = List("lowercase", "shingle"))
 
+    val lowerNormalizer: CustomNormalizer =
+      CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
+
     override val analysis: Analysis =
       Analysis(
         analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, NynorskLanguageAnalyzer),
-        tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters
+        tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters,
+        normalizers = List(lowerNormalizer)
       )
   }
 

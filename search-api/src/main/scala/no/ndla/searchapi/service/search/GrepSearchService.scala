@@ -61,10 +61,12 @@ trait GrepSearchService {
               fallback = true,
               searchDecompounded = true
             )
+
           boolQuery()
             .should(
               langQueryFunc("title", 6),
-              prefixQuery("code", q).boost(50),
+              prefixQuery("code", q.underlying).boost(50),
+              matchQuery("code", q.underlying).boost(10),
               idsQuery(q.underlying).boost(100)
             )
         }

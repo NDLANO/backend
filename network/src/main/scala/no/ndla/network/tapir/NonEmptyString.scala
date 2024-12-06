@@ -20,6 +20,8 @@ class NonEmptyString private (val underlying: String) {
     case other: NonEmptyString => other.underlying == underlying
     case _                     => false
   }
+
+  override def toString: String = underlying
 }
 
 object NonEmptyString {
