@@ -13,9 +13,9 @@ import scala.util.{Failure, Success, Try}
 trait TranscriptionService {
   this: NdlaS3Client & Props & NdlaBrightcoveClient =>
   val transcriptionService: TranscriptionService
-  class TranscriptionService {
+  val s3TranscribeClient: NdlaS3Client
 
-    private lazy val s3TranscribeClient = new NdlaS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)
+  class TranscriptionService {
 
     def extractAudioFromVideo(videoId: String, language: String): Try[Unit] = {
       val accountId = props.BrightcoveAccountId
@@ -46,11 +46,18 @@ trait TranscriptionService {
           s3TranscribeClient.putObject(s3Key, audioFile, "audio/mpeg") match {
             case Success(_) =>
               s3TranscribeClient.deleteObject(videoFile.getName).map(_ => ())
-            case _ =>
-              Failure(new RuntimeException(s"Failed to upload audio file to S3."))
+            case Failure(ex) =>
+              Failure(new RuntimeException(s"Failed to upload audio file to S3.", ex))
           }
         case Failure(exception) => Failure(exception)
 
+      }
+    }
+
+    def getAudioExtractionStatus(videoId: String, language: String): Try[Unit] = {
+      s3TranscribeClient.getObject(s"audio/$language/${videoId}.mp3") match {
+        case Success(_)         => Success(())
+        case Failure(exception) => Failure(exception)
       }
     }
 

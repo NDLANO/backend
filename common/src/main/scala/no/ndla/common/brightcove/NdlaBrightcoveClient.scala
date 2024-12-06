@@ -1,27 +1,11 @@
 package no.ndla.common.brightcove
 
-import io.circe.{Decoder, Json}
+import io.circe.Json
 import io.circe.generic.codec.DerivedAsObjectCodec.deriveCodec
-import io.circe.generic.semiauto.deriveDecoder
 import io.circe.parser.*
 import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
 
 case class TokenResponse(access_token: String, token_type: String, expires_in: Int)
-case class VideoSource(
-    src: String,
-    `type`: String,
-    container: String,
-    codec: Option[String] = None,
-    encoding_rate: Option[Int] = None,
-    duration: Option[Int] = None,
-    height: Option[Int] = None,
-    width: Option[Int] = None,
-    size: Option[Long] = None,
-    uploaded_at: Option[String] = None,
-    ext_x_version: Option[String] = None,
-    profiles: Option[String] = None,
-    remote: Option[Boolean] = None
-)
 
 trait NdlaBrightcoveClient {
   val brightcoveClient: NdlaBrightcoveClient

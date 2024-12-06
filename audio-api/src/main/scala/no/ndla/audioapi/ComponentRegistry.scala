@@ -67,8 +67,9 @@ class ComponentRegistry(properties: AudioApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  lazy val s3Client         = new NdlaS3Client(props.StorageName, props.StorageRegion)
-  lazy val brightcoveClient = new NdlaBrightcoveClient()
+  lazy val s3Client           = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  lazy val s3TranscribeClient = new NdlaS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)
+  lazy val brightcoveClient   = new NdlaBrightcoveClient()
 
   lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository
