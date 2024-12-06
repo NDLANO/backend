@@ -12,7 +12,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Search result for audio api")
 case class AudioResult(
     @description("The unique id of this audio") id: Long,
-    @description("The title of this audio") title: TitleWithHtml,
+    @description("The title of this audio") title: Title,
     @description("A direct link to the audio") url: String,
     @description("List of supported languages") supportedLanguages: Seq[String]
 )

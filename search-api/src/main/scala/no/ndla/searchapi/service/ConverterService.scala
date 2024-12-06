@@ -66,7 +66,7 @@ trait ConverterService {
     private def learningpathSearchResultToApi(learningpath: LearningpathApiSearchResult): api.LearningpathResult = {
       api.LearningpathResult(
         learningpath.id,
-        api.TitleWithHtml(learningpath.title.title, learningpath.title.title, learningpath.title.language),
+        api.Title(learningpath.title.title, learningpath.title.language),
         LearningPathIntroduction(learningpath.introduction.introduction, learningpath.introduction.language),
         learningpath.supportedLanguages
       )
@@ -92,7 +92,7 @@ trait ConverterService {
 
       api.ImageResult(
         image.id.toLong,
-        api.TitleWithHtml(image.title.title, image.title.title, image.title.language),
+        api.Title(image.title.title, image.title.language),
         api.ImageAltText(image.altText.alttext, image.altText.language),
         previewUrl.toString,
         metaUrl.toString,
@@ -118,7 +118,7 @@ trait ConverterService {
       val url = audio.url.withHost(host).withScheme(scheme).toString
       api.AudioResult(
         audio.id,
-        api.TitleWithHtml(audio.title.title, audio.title.title, audio.title.language),
+        api.Title(audio.title.title, audio.title.language),
         url,
         audio.supportedLanguages
       )
