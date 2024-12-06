@@ -17,6 +17,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
+import no.ndla.searchapi.model.search.SearchTrait
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
@@ -708,7 +709,7 @@ class MultiSearchServiceTest
       multiSearchService.matchingQuery(searchSettings.copy(query = Some(NonEmptyString.fromString("Ekstrastoff").get)))
     search.totalCount should be(1)
     search.results.head.id should be(12)
-    search.results.head.traits should be(List("H5P"))
+    search.results.head.traits should be(List(SearchTrait.H5p))
   }
 
   test("That searches for embed attributes matches") {

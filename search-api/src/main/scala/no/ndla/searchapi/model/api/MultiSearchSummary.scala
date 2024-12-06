@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.Comment
 import no.ndla.searchapi.model.domain.LearningResourceType
-import no.ndla.searchapi.model.search.SearchType
+import no.ndla.searchapi.model.search.{SearchTrait, SearchType}
 import sttp.tapir.Schema.annotations.description
 
 @description("Object describing matched field with matching words emphasized")
@@ -38,7 +38,7 @@ case class MultiSearchSummary(
     @description("Languages the resource exists in") supportedLanguages: Seq[String],
     @description("Learning resource type") learningResourceType: LearningResourceType,
     @description("Status information of the resource") status: Option[Status],
-    @description("Traits for the resource") traits: List[String],
+    @description("Traits for the resource") traits: List[SearchTrait],
     @description("Relevance score. The higher the score, the better the document matches your search criteria.") score: Float,
     @description("List of objects describing matched field with matching words emphasized") highlights: List[HighlightedField],
     @description("The taxonomy paths for the resource") paths: List[String],

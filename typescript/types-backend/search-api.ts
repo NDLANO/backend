@@ -203,7 +203,7 @@ export interface IMultiSearchSummary {
   supportedLanguages: string[]
   learningResourceType: LearningResourceType
   status?: IStatus
-  traits: string[]
+  traits: SearchTrait[]
   score: number
   highlights: IHighlightedField[]
   paths: string[]
@@ -316,6 +316,8 @@ export interface ITitle {
 }
 
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
+
+export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "FILE")
 
 export type SearchType = ("article" | "draft" | "learningpath" | "concept")
 
