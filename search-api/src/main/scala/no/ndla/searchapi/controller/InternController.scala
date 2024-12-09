@@ -21,15 +21,17 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.search.model.domain.ReindexResult
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHandling
-import no.ndla.searchapi.model.domain.{IndexingBundle, ReindexResult}
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.service.search.{
   ArticleIndexService,
   DraftConceptIndexService,
   DraftIndexService,
+  GrepIndexService,
   IndexService,
   LearningPathIndexService
 }
@@ -46,7 +48,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
   this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
-    TaxonomyApiClient & GrepApiClient & Props & ErrorHandling & MyNDLAApiClient & TapirController =>
+    TaxonomyApiClient & GrepApiClient & GrepIndexService & Props & ErrorHandling & MyNDLAApiClient & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
@@ -100,6 +102,7 @@ trait InternController {
       reindexById,
       reindexArticle,
       reindexDraft,
+      reindexGrep,
       reindexLearningpath,
       reindexConcept
     )
@@ -230,6 +233,21 @@ trait InternController {
         resolveResultFutures(List(articleIndex))
       }
 
+    def reindexGrep: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("index" / "grep")
+      .in(query[Option[Int]]("numShards"))
+      .errorOut(stringInternalServerError)
+      .out(stringBody)
+      .serverLogicPure { numShards =>
+        val requestInfo = RequestInfo.fromThreadContext()
+        val grepIndex = Future {
+          requestInfo.setThreadContextRequestInfo()
+          ("greps", grepIndexService.indexDocuments(numShards, None))
+        }
+
+        resolveResultFutures(List(grepIndex))
+      }
+
     def reindexLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
       .in("index" / "learningpath")
       .in(query[Option[Int]]("numShards"))
@@ -256,12 +274,14 @@ trait InternController {
         draftIndexService.cleanupIndexes(): Unit
         learningPathIndexService.cleanupIndexes(): Unit
         draftConceptIndexService.cleanupIndexes(): Unit
+        grepIndexService.cleanupIndexes(): Unit
 
         val articles      = articleIndexService.reindexWithShards(numShards)
         val drafts        = draftIndexService.reindexWithShards(numShards)
         val learningpaths = learningPathIndexService.reindexWithShards(numShards)
         val concept       = draftConceptIndexService.reindexWithShards(numShards)
-        List(articles, drafts, learningpaths, concept).sequence match {
+        val greps         = grepIndexService.reindexWithShards(numShards)
+        List(articles, drafts, learningpaths, concept, greps).sequence match {
           case Success(_) =>
             s"Reindexing with $numShards shards completed in ${System.currentTimeMillis() - startTime}ms".asRight
           case Failure(ex) =>
@@ -280,12 +300,14 @@ trait InternController {
         draftIndexService.cleanupIndexes(): Unit
         learningPathIndexService.cleanupIndexes(): Unit
         draftConceptIndexService.cleanupIndexes(): Unit
+        grepIndexService.cleanupIndexes(): Unit
 
         val articles      = articleIndexService.updateReplicaNumber(numReplicas)
         val drafts        = draftIndexService.updateReplicaNumber(numReplicas)
         val learningpaths = learningPathIndexService.updateReplicaNumber(numReplicas)
         val concepts      = draftConceptIndexService.updateReplicaNumber(numReplicas)
-        List(articles, drafts, learningpaths, concepts).sequence match {
+        val greps         = grepIndexService.updateReplicaNumber(numReplicas)
+        List(articles, drafts, learningpaths, concepts, greps).sequence match {
           case Success(_) =>
             s"Updated replication setting for indexes to $numReplicas replicas. Populating may take some time.".asRight
           case Failure(ex) =>
@@ -326,6 +348,7 @@ trait InternController {
             articleIndexService.cleanupIndexes(): Unit
             draftIndexService.cleanupIndexes(): Unit
             draftConceptIndexService.cleanupIndexes(): Unit
+            grepIndexService.cleanupIndexes(): Unit
 
             val publishedIndexingBundle = IndexingBundle(
               grepBundle = Some(grepBundle),
@@ -356,6 +379,10 @@ trait InternController {
               Future {
                 requestInfo.setThreadContextRequestInfo()
                 ("concepts", draftConceptIndexService.indexDocuments(numShards, draftIndexingBundle))
+              },
+              Future {
+                requestInfo.setThreadContextRequestInfo()
+                ("greps", grepIndexService.indexDocuments(numShards, Some(grepBundle)))
               }
             )
             if (runInBackground) {

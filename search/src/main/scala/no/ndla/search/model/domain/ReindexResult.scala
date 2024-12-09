@@ -5,6 +5,6 @@
  * See LICENSE
  */
 
-package no.ndla.searchapi.model.domain
+package no.ndla.search.model.domain
 
 case class ReindexResult(name: String, failedIndexed: Int, totalIndexed: Int, millisUsed: Long)

@@ -36,6 +36,9 @@ trait GrepApiClient {
     private def getAllKompetansemaal: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/kompetansemaal-lk20/").map(_.distinct)
 
+    private def getAllKompetansemaalSett: Try[List[GrepElement]] =
+      get[List[GrepElement]](s"$GrepApiEndpoint/kompetansemaalsett-lk20/").map(_.distinct)
+
     private def getAllTverrfagligeTemaer: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/tverrfaglige-temaer-lk20/").map(_.distinct)
 
@@ -60,13 +63,20 @@ trait GrepApiClient {
 
       val kjerneelementer    = tryToFuture(() => getAllKjerneelementer)
       val kompetansemaal     = tryToFuture(() => getAllKompetansemaal)
+      val kompetansemaalsett = tryToFuture(() => getAllKompetansemaalSett)
       val tverrfagligeTemaer = tryToFuture(() => getAllTverrfagligeTemaer)
 
       val x = for {
-        f1 <- kjerneelementer
-        f2 <- kompetansemaal
-        f3 <- tverrfagligeTemaer
-      } yield GrepBundle(f1, f2, f3)
+        kjerne         <- kjerneelementer
+        kompetanse     <- kompetansemaal
+        kompetansesett <- kompetansemaalsett
+        tverrfag       <- tverrfagligeTemaer
+      } yield GrepBundle(
+        kjerneelementer = kjerne,
+        kompetansemaal = kompetanse,
+        kompetansemaalsett = kompetansesett,
+        tverrfagligeTemaer = tverrfag
+      )
 
       Try(Await.result(x, Duration(300, "seconds"))) match {
         case Success(bundle) =>

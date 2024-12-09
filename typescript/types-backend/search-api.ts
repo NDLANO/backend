@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type GrepSort = ("-relevance" | "relevance" | "-title" | "title" | "-code" | "code")
+
 export interface IApiTaxonomyContext {
   publicId: string
   root: string
@@ -25,7 +27,7 @@ export interface IArticleIntroduction {
 
 export interface IArticleResult {
   id: number
-  title: ITitle
+  title: ITitleWithHtml
   introduction?: IArticleIntroduction
   articleType: string
   supportedLanguages: string[]
@@ -105,6 +107,29 @@ export interface IDraftSearchParams {
   publishedDateFrom?: string
   publishedDateTo?: string
   resultTypes?: SearchType[]
+}
+
+export interface IGrepResult {
+  code: string
+  title: ITitle
+}
+
+export interface IGrepSearchInput {
+  prefixFilter?: string[]
+  codes?: string[]
+  query?: string
+  page?: number
+  pageSize?: number
+  sort?: GrepSort
+  language?: string
+}
+
+export interface IGrepSearchResults {
+  totalCount: number
+  page: number
+  pageSize: number
+  language: string
+  results: IGrepResult[]
 }
 
 export interface IGroupSearchResult {
@@ -195,7 +220,7 @@ export interface IMultiSearchSuggestion {
 
 export interface IMultiSearchSummary {
   id: number
-  title: ITitle
+  title: ITitleWithHtml
   metaDescription: IMetaDescription
   metaImage?: IMetaImage
   url: string
@@ -311,13 +336,18 @@ export interface ITermValue {
 
 export interface ITitle {
   title: string
+  language: string
+}
+
+export interface ITitleWithHtml {
+  title: string
   htmlTitle: string
   language: string
 }
 
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
-export type SearchType = ("article" | "draft" | "learningpath" | "concept")
+export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep")
 
 export type Sort = SortEnum
 

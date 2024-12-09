@@ -46,8 +46,10 @@ trait TestEnvironment
     with MyNDLAApiClient
     with SearchService
     with SearchController
+    with GrepSearchService
     with LearningPathIndexService
     with InternController
+    with GrepIndexService
     with SearchApiClient
     with ErrorHandling
     with Clock
@@ -78,11 +80,13 @@ trait TestEnvironment
   val converterService: ConverterService             = mock[ConverterService]
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
   val multiSearchService: MultiSearchService         = mock[MultiSearchService]
+  val grepSearchService: GrepSearchService           = mock[GrepSearchService]
 
   val articleIndexService: ArticleIndexService           = mock[ArticleIndexService]
   val learningPathIndexService: LearningPathIndexService = mock[LearningPathIndexService]
   val draftIndexService: DraftIndexService               = mock[DraftIndexService]
   val draftConceptIndexService: DraftConceptIndexService = mock[DraftConceptIndexService]
+  val grepIndexService: GrepIndexService                 = mock[GrepIndexService]
 
   val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 

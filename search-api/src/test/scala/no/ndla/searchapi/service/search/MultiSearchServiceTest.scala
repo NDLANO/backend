@@ -17,6 +17,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
+import no.ndla.searchapi.model.search.SearchPagination
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
@@ -112,21 +113,17 @@ class MultiSearchServiceTest
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    multiSearchService.getStartAtAndNumResults(0, 10001) should equal((0, props.MaxPageSize))
-  }
-
-  test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
-  ) {
-    val page            = 74
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    multiSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
+    multiSearchService.getStartAtAndNumResults(0, 10001) should equal(
+      Success(SearchPagination(1, props.MaxPageSize, 0))
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page            = 123
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
-    multiSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
+    multiSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
+      Success(SearchPagination(page, DefaultPageSize, expectedStartAt))
+    )
   }
 
   test("That all returns all documents ordered by id ascending") {
