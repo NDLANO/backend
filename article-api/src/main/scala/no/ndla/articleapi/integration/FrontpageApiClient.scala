@@ -10,7 +10,7 @@ package no.ndla.articleapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.service.ConverterService
-import no.ndla.common.model.api.FrontPage
+import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 
@@ -24,9 +24,9 @@ trait FrontpageApiClient {
 
     private val frontpageApiBaseUrl = s"$FrontpageApiBaseUrl/frontpage-api/v1/frontpage"
 
-    def getFrontpage: Try[FrontPage] = {
+    def getFrontpage: Try[FrontPageDTO] = {
       val req = quickRequest.get(uri"$frontpageApiBaseUrl")
-      ndlaClient.fetch[FrontPage](req)
+      ndlaClient.fetch[FrontPageDTO](req)
     }
   }
 

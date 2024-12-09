@@ -9,7 +9,7 @@ package no.ndla.draftapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
-import no.ndla.common.model.api.{DraftCopyright, Missing}
+import no.ndla.common.model.api.{DraftCopyrightDTO, Missing}
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.*
@@ -67,18 +67,18 @@ object TestData {
 
   val (articleId, externalId) = (1L, "751234")
 
-  val sampleArticleV2: api.Article = api.Article(
+  val sampleArticleV2: api.ArticleDTO = api.ArticleDTO(
     id = 1,
     oldNdlaUrl = None,
     revision = 1,
-    status = api.Status(PLANNED.toString, Seq.empty),
-    title = Some(api.ArticleTitle("title", "title", "nb")),
-    content = Some(api.ArticleContent("this is content", "nb")),
+    status = api.StatusDTO(PLANNED.toString, Seq.empty),
+    title = Some(api.ArticleTitleDTO("title", "title", "nb")),
+    content = Some(api.ArticleContentDTO("this is content", "nb")),
     copyright = Some(
-      DraftCopyright(
-        Some(commonApi.License("licence", None, None)),
+      DraftCopyrightDTO(
+        Some(commonApi.LicenseDTO("licence", None, None)),
         Some("origin"),
-        Seq(commonApi.Author("developer", "Per")),
+        Seq(commonApi.AuthorDTO("developer", "Per")),
         List(),
         List(),
         None,
@@ -86,11 +86,11 @@ object TestData {
         false
       )
     ),
-    tags = Some(api.ArticleTag(Seq("tag"), "nb")),
-    requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
+    tags = Some(api.ArticleTagDTO(Seq("tag"), "nb")),
+    requiredLibraries = Seq(api.RequiredLibraryDTO("JS", "JavaScript", "url")),
     visualElement = None,
     introduction = None,
-    metaDescription = Some(api.ArticleMetaDescription("metaDesc", "nb")),
+    metaDescription = Some(api.ArticleMetaDescriptionDTO("metaDesc", "nb")),
     None,
     created = NDLADate.of(2017, 1, 1, 12, 15, 32),
     updated = NDLADate.of(2017, 4, 1, 12, 15, 32),
@@ -114,7 +114,7 @@ object TestData {
     qualityEvaluation = None
   )
 
-  val blankUpdatedArticle: UpdatedArticle = api.UpdatedArticle(
+  val blankUpdatedArticle: UpdatedArticleDTO = api.UpdatedArticleDTO(
     revision = 1,
     language = None,
     title = None,
@@ -145,7 +145,7 @@ object TestData {
     qualityEvaluation = None
   )
 
-  val sampleApiUpdateArticle: UpdatedArticle = blankUpdatedArticle.copy(
+  val sampleApiUpdateArticle: UpdatedArticleDTO = blankUpdatedArticle.copy(
     revision = 1,
     language = Some("nb"),
     title = Some("tittel")
@@ -180,17 +180,17 @@ object TestData {
                       |}
                     """.stripMargin
 
-  val apiArticleV2: api.Article = api.Article(
+  val apiArticleV2: api.ArticleDTO = api.ArticleDTO(
     articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
-    api.Status(PLANNED.toString, Seq.empty),
-    Some(api.ArticleTitle("title", "title", "nb")),
-    Some(api.ArticleContent("content", "nb")),
+    api.StatusDTO(PLANNED.toString, Seq.empty),
+    Some(api.ArticleTitleDTO("title", "title", "nb")),
+    Some(api.ArticleContentDTO("content", "nb")),
     Some(
-      model.api.DraftCopyright(
+      model.api.DraftCopyrightDTO(
         Some(
-          commonApi.License(
+          commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -209,7 +209,7 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Some(api.ArticleMetaDescription("meta description", "nb")),
+    Some(api.ArticleMetaDescriptionDTO("meta description", "nb")),
     None,
     today,
     today,
@@ -233,17 +233,17 @@ object TestData {
     None
   )
 
-  val apiArticleUserTest: api.Article = api.Article(
+  val apiArticleUserTest: api.ArticleDTO = api.ArticleDTO(
     articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
-    api.Status(EXTERNAL_REVIEW.toString, Seq.empty),
-    Some(api.ArticleTitle("title", "title", "nb")),
-    Some(api.ArticleContent("content", "nb")),
+    api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty),
+    Some(api.ArticleTitleDTO("title", "title", "nb")),
+    Some(api.ArticleContentDTO("content", "nb")),
     Some(
-      model.api.DraftCopyright(
+      model.api.DraftCopyrightDTO(
         Some(
-          commonApi.License(
+          commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -262,7 +262,7 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Some(api.ArticleMetaDescription("meta description", "nb")),
+    Some(api.ArticleMetaDescriptionDTO("meta description", "nb")),
     None,
     today,
     today,
@@ -390,7 +390,7 @@ object TestData {
     None
   )
 
-  val newArticle: NewArticle = api.NewArticle(
+  val newArticle: NewArticleDTO = api.NewArticleDTO(
     "en",
     "test",
     Some(today),
@@ -401,8 +401,8 @@ object TestData {
     None,
     None,
     Some(
-      model.api.DraftCopyright(
-        Some(commonApi.License("publicdomain", None, None)),
+      model.api.DraftCopyrightDTO(
+        Some(commonApi.LicenseDTO("publicdomain", None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,
@@ -479,14 +479,14 @@ object TestData {
     qualityEvaluation = None
   )
 
-  val apiArticleWithHtmlFaultV2: api.Article = api.Article(
+  val apiArticleWithHtmlFaultV2: api.ArticleDTO = api.ArticleDTO(
     id = 1,
     oldNdlaUrl = None,
     revision = 1,
-    status = api.Status(PLANNED.toString, Seq.empty),
-    title = Some(api.ArticleTitle("test", "title", "en")),
+    status = api.StatusDTO(PLANNED.toString, Seq.empty),
+    title = Some(api.ArticleTitleDTO("test", "title", "en")),
     content = Some(
-      api.ArticleContent(
+      api.ArticleContentDTO(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
           |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
           |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
@@ -496,8 +496,8 @@ object TestData {
       )
     ),
     copyright = Some(
-      model.api.DraftCopyright(
-        Some(commonApi.License("publicdomain", None, None)),
+      model.api.DraftCopyrightDTO(
+        Some(commonApi.LicenseDTO("publicdomain", None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,
@@ -507,11 +507,11 @@ object TestData {
         false
       )
     ),
-    tags = Some(api.ArticleTag(Seq.empty, "en")),
+    tags = Some(api.ArticleTagDTO(Seq.empty, "en")),
     requiredLibraries = Seq.empty,
     visualElement = None,
     introduction = None,
-    metaDescription = Some(api.ArticleMetaDescription("so meta", "en")),
+    metaDescription = Some(api.ArticleMetaDescriptionDTO("so meta", "en")),
     metaImage = None,
     created = NDLADate.now().minusDays(4),
     updated = NDLADate.now().minusDays(2),
@@ -553,8 +553,8 @@ object TestData {
       latestEditedConcepts = None
     )
 
-  val emptyApiUserData: api.UserData =
-    api.UserData(
+  val emptyApiUserData: api.UserDataDTO =
+    api.UserDataDTO(
       userId = "",
       savedSearches = None,
       latestEditedArticles = None,
@@ -571,8 +571,8 @@ object TestData {
 
   val sampleLearningPath: LearningPath = LearningPath(1, Title("Title", "nb"))
 
-  val sampleApiGrepCodesSearchResult: GrepCodesSearchResult = api.GrepCodesSearchResult(10, 1, 1, Seq("a", "b"))
-  val sampleApiTagsSearchResult: TagsSearchResult           = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+  val sampleApiGrepCodesSearchResult: GrepCodesSearchResultDTO = api.GrepCodesSearchResultDTO(10, 1, 1, Seq("a", "b"))
+  val sampleApiTagsSearchResult: TagsSearchResultDTO           = api.TagsSearchResultDTO(10, 1, 1, "nb", Seq("a", "b"))
 
   val searchSettings: domain.SearchSettings = domain.SearchSettings(
     query = None,

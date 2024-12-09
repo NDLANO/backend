@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.{NewComment, UpdatedComment}
+import no.ndla.draftapi.model.api.{NewCommentDTO, UpdatedCommentDTO}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
@@ -34,12 +34,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
   test("toApiLicense defaults to unknown if the license was not found") {
-    service.toApiLicense("invalid") should equal(commonApi.License("unknown", None, None))
+    service.toApiLicense("invalid") should equal(commonApi.LicenseDTO("unknown", None, None))
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
     service.toApiLicense(CC_BY.toString) should equal(
-      commonApi.License(
+      commonApi.LicenseDTO(
         CC_BY.toString,
         Some("Creative Commons Attribution 4.0 International"),
         Some("https://creativecommons.org/licenses/by/4.0/")
@@ -50,14 +50,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("toApiArticleTitle returns both title and plainTitle") {
     val title = Title("Title with <span data-language=\"uk\">ukrainian</span> word", "en")
     service.toApiArticleTitle(title) should equal(
-      api.ArticleTitle("Title with ukrainian word", "Title with <span data-language=\"uk\">ukrainian</span> word", "en")
+      api.ArticleTitleDTO(
+        "Title with ukrainian word",
+        "Title with <span data-language=\"uk\">ukrainian</span> word",
+        "en"
+      )
     )
   }
 
   test("toApiArticleIntroduction returns both introduction and plainIntroduction") {
     val introduction = Introduction("<p>Introduction with <em>emphasis</em></p>", "en")
     service.toApiArticleIntroduction(introduction) should equal(
-      api.ArticleIntroduction("Introduction with emphasis", "<p>Introduction with <em>emphasis</em></p>", "en")
+      api.ArticleIntroductionDTO("Introduction with emphasis", "<p>Introduction with <em>emphasis</em></p>", "en")
     )
   }
 
@@ -422,7 +426,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = UpdateWith(api.NewArticleMetaImage("321", "NyAlt")),
+      metaImage = UpdateWith(api.NewArticleMetaImageDTO("321", "NyAlt")),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -528,7 +532,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = UpdateWith(api.NewArticleMetaImage("321", "NyAlt")),
+      metaImage = UpdateWith(api.NewArticleMetaImageDTO("321", "NyAlt")),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -756,7 +760,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res2) = service.toDomainArticle(
       beforeUpdate,
       TestData.sampleApiUpdateArticle
-        .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImage("1", "Hola"))),
+        .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "Hola"))),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -790,7 +794,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success(res2) = service.toDomainArticle(
       2,
-      TestData.sampleApiUpdateArticle.copy(metaImage = UpdateWith(api.NewArticleMetaImage("1", "Hola"))),
+      TestData.sampleApiUpdateArticle.copy(metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "Hola"))),
       isImported = false,
       TestData.userWithWriteAccess,
       None,
@@ -1162,8 +1166,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val updatedComments =
       List(
-        UpdatedComment(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
-        UpdatedComment(id = Some(uuid.toString), content = "yoo", isOpen = Some(false), solved = Some(false))
+        UpdatedCommentDTO(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
+        UpdatedCommentDTO(id = Some(uuid.toString), content = "yoo", isOpen = Some(false), solved = Some(false))
       )
     val existingComments =
       Seq(Comment(id = uuid, created = now, updated = now, content = "nja", isOpen = true, solved = false))
@@ -1182,7 +1186,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(now)
 
     val updatedComments = List(
-      UpdatedComment(id = Some(uuid.toString), content = "updated keep", isOpen = Some(true), solved = Some(false))
+      UpdatedCommentDTO(id = Some(uuid.toString), content = "updated keep", isOpen = Some(true), solved = Some(false))
     )
     val existingComments = Seq(
       Comment(id = uuid, created = now, updated = now, content = "keep", isOpen = true, solved = false),
@@ -1200,7 +1204,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val now  = NDLADate.now()
     when(clock.now()).thenReturn(now)
 
-    val newComments = List(NewComment(content = "hei", isOpen = None))
+    val newComments = List(NewCommentDTO(content = "hei", isOpen = None))
     val expectedComment =
       Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false)
     service.newCommentToDomain(newComments).head.copy(id = uuid) should be(expectedComment)
@@ -1214,8 +1218,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val updatedComments =
       List(
-        UpdatedComment(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
-        UpdatedComment(id = Some(uuid.toString), content = "yoo", isOpen = None, solved = Some(false))
+        UpdatedCommentDTO(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
+        UpdatedCommentDTO(id = Some(uuid.toString), content = "yoo", isOpen = None, solved = Some(false))
       )
     val expectedComments = Success(
       Seq(
@@ -1228,7 +1232,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("that updatedCommentToDomainNullDocument fails if UUID is malformed") {
     val updatedComments =
-      List(UpdatedComment(id = Some("malformed-UUID"), content = "yoo", isOpen = Some(true), solved = Some(false)))
+      List(UpdatedCommentDTO(id = Some("malformed-UUID"), content = "yoo", isOpen = Some(true), solved = Some(false)))
     service.updatedCommentToDomainNullDocument(updatedComments).isFailure should be(true)
   }
 

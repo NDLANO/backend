@@ -9,7 +9,7 @@
 package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, SearchResultV2}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, SearchResultV2DTO}
 import no.ndla.articleapi.model.search.*
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.common.model.domain.article.Article
@@ -59,8 +59,8 @@ trait SearchConverterService {
       )
     }
 
-    def asApiSearchResultV2(searchResult: SearchResult[ArticleSummaryV2]): SearchResultV2 =
-      SearchResultV2(
+    def asApiSearchResultV2(searchResult: SearchResult[ArticleSummaryV2DTO]): SearchResultV2DTO =
+      SearchResultV2DTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,

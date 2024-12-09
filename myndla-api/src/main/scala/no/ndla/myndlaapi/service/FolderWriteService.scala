@@ -23,14 +23,14 @@ import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   SharedFolderSorting
 }
 import no.ndla.myndlaapi.model.api.{
-  ExportedUserData,
-  Folder,
-  FolderSortRequest,
-  NewFolder,
-  NewResource,
-  Resource,
-  UpdatedFolder,
-  UpdatedResource
+  ExportedUserDataDTO,
+  FolderDTO,
+  FolderSortRequestDTO,
+  NewFolderDTO,
+  NewResourceDTO,
+  ResourceDTO,
+  UpdatedFolderDTO,
+  UpdatedResourceDTO
 }
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{
@@ -67,7 +67,7 @@ trait FolderWriteService {
     private[service] def isOperationAllowedOrAccessDenied(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken],
-        updatedFolder: UpdatedFolder
+        updatedFolder: UpdatedFolderDTO
     ): Try[?] = {
       getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
         if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
@@ -123,7 +123,7 @@ trait FolderWriteService {
 
       val clonedResources = sourceFolder.resources.traverse(res => {
         val newResource =
-          NewResource(
+          NewResourceDTO(
             resourceType = res.resourceType,
             path = res.path,
             tags = if (isOwner) res.tags.some else None,
@@ -160,7 +160,7 @@ trait FolderWriteService {
     )(implicit
         session: DBSession
     ): Try[domain.Folder] = {
-      val sourceFolderCopy = NewFolder(
+      val sourceFolderCopy = NewFolderDTO(
         name = sourceFolder.name,
         parentId = None,
         status = FolderStatus.PRIVATE.toString.some,
@@ -197,7 +197,7 @@ trait FolderWriteService {
         sourceId: UUID,
         destinationId: Option[UUID],
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[Folder] = {
+    ): Try[FolderDTO] = {
       folderRepository.rollbackOnFailure { implicit session =>
         for {
           feideId <- feideApiClient.getFeideID(feideAccessToken)
@@ -218,7 +218,7 @@ trait FolderWriteService {
       }
     }
 
-    private def importFolders(toImport: Seq[Folder], feideId: FeideID)(implicit
+    private def importFolders(toImport: Seq[FolderDTO], feideId: FeideID)(implicit
         session: DBSession
     ): Try[Seq[domain.Folder]] =
       toImport.traverse(folder =>
@@ -232,10 +232,10 @@ trait FolderWriteService {
       )
 
     private def importUserDataAuthenticated(
-        toImport: ExportedUserData,
+        toImport: ExportedUserDataDTO,
         feideId: FeideID,
         maybeFeideToken: Option[FeideAccessToken]
-    ): Try[ExportedUserData] = {
+    ): Try[ExportedUserDataDTO] = {
       folderRepository.rollbackOnFailure { session =>
         for {
           _ <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
@@ -246,9 +246,9 @@ trait FolderWriteService {
     }
 
     def importUserData(
-        toImport: ExportedUserData,
+        toImport: ExportedUserDataDTO,
         maybeFeideToken: Option[FeideAccessToken]
-    ): Try[ExportedUserData] = {
+    ): Try[ExportedUserDataDTO] = {
       feideApiClient
         .getFeideID(maybeFeideToken)
         .flatMap(feideId => importUserDataAuthenticated(toImport, feideId, maybeFeideToken))
@@ -265,9 +265,9 @@ trait FolderWriteService {
 
     def updateFolder(
         id: UUID,
-        updatedFolder: UpdatedFolder,
+        updatedFolder: UpdatedFolderDTO,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[Folder] = {
+    ): Try[FolderDTO] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId        <- feideApiClient.getFeideID(feideAccessToken)
@@ -286,9 +286,9 @@ trait FolderWriteService {
 
     def updateResource(
         id: UUID,
-        updatedResource: UpdatedResource,
+        updatedResource: UpdatedResourceDTO,
         feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[Resource] = {
+    ): Try[ResourceDTO] = {
       for {
         feideId          <- feideApiClient.getFeideID(feideAccessToken)
         _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
@@ -334,7 +334,7 @@ trait FolderWriteService {
         )
         deletedFolderId <- deleteRecursively(folderWithData, feideId)
         siblingsToSort = parent.childrenFolders.filterNot(_.id == deletedFolderId)
-        sortRequest    = FolderSortRequest(sortedIds = siblingsToSort.map(_.id))
+        sortRequest    = FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.id))
         _ <- performSort(siblingsToSort, sortRequest, feideId, sharedFolderSort = false)
       } yield deletedFolderId
     }
@@ -355,7 +355,7 @@ trait FolderWriteService {
         id       <- deleteResourceIfNoConnection(folderId, resourceId)
         parent   <- getFolderWithDirectChildren(folder.id.some, feideId)
         siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
-        sortRequest    = api.FolderSortRequest(sortedIds = siblingsToSort.map(_.resourceId))
+        sortRequest    = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
         _              = updateSearchApi(resource)
         _ <- performSort(siblingsToSort, sortRequest, feideId, sharedFolderSort = false)
       } yield id
@@ -373,7 +373,7 @@ trait FolderWriteService {
 
     private def performSort(
         rankables: Seq[Rankable],
-        sortRequest: api.FolderSortRequest,
+        sortRequest: api.FolderSortRequestDTO,
         feideId: FeideID,
         sharedFolderSort: Boolean
     ): Try[Unit] = {
@@ -407,14 +407,14 @@ trait FolderWriteService {
       }
     }
 
-    private def sortRootFolders(sortRequest: api.FolderSortRequest, feideId: FeideID): Try[Unit] = {
+    private def sortRootFolders(sortRequest: api.FolderSortRequestDTO, feideId: FeideID): Try[Unit] = {
       val session = folderRepository.getSession(true)
       folderRepository
         .foldersWithFeideAndParentID(None, feideId)(session)
         .flatMap(rootFolders => performSort(rootFolders, sortRequest, feideId, sharedFolderSort = false))
     }
 
-    private def sortSavedSharedFolders(sortRequest: api.FolderSortRequest, feideId: FeideID): Try[Unit] = {
+    private def sortSavedSharedFolders(sortRequest: api.FolderSortRequestDTO, feideId: FeideID): Try[Unit] = {
       val session = folderRepository.getSession(true)
       folderRepository
         .getSavedSharedFolders(feideId)(session)
@@ -423,7 +423,7 @@ trait FolderWriteService {
 
     private def sortNonRootFolderResources(
         folderId: UUID,
-        sortRequest: api.FolderSortRequest,
+        sortRequest: api.FolderSortRequestDTO,
         feideId: FeideID
     )(implicit
         session: DBSession
@@ -434,7 +434,7 @@ trait FolderWriteService {
 
     private def sortNonRootFolderSubfolders(
         folderId: UUID,
-        sortRequest: api.FolderSortRequest,
+        sortRequest: api.FolderSortRequestDTO,
         feideId: FeideID
     )(implicit
         session: DBSession
@@ -445,7 +445,7 @@ trait FolderWriteService {
 
     def sortFolder(
         folderSortObject: domain.FolderSortObject,
-        sortRequest: api.FolderSortRequest,
+        sortRequest: api.FolderSortRequestDTO,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[Unit] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
@@ -539,10 +539,10 @@ trait FolderWriteService {
     private def getNextRank(siblings: Seq[?]): Int = siblings.length + 1
 
     private[service] def changeStatusToSharedIfParentIsShared(
-        newFolder: NewFolder,
+        newFolder: NewFolderDTO,
         parentFolder: Option[domain.Folder],
         isCloning: Boolean
-    ): NewFolder = {
+    ): NewFolderDTO = {
       import FolderStatus.SHARED
 
       parentFolder match {
@@ -552,7 +552,7 @@ trait FolderWriteService {
     }
 
     private def createNewFolder(
-        newFolder: NewFolder,
+        newFolder: NewFolderDTO,
         feideId: FeideID,
         makeUniqueNamePostfix: Option[String],
         isCloning: Boolean
@@ -591,7 +591,7 @@ trait FolderWriteService {
       }
     }
 
-    def newFolder(newFolder: NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[Folder] = {
+    def newFolder(newFolder: NewFolderDTO, feideAccessToken: Option[FeideAccessToken]): Try[FolderDTO] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId   <- feideApiClient.getFeideID(feideAccessToken)
@@ -605,7 +605,7 @@ trait FolderWriteService {
 
     private def createOrUpdateFolderResourceConnection(
         folderId: UUID,
-        newResource: NewResource,
+        newResource: NewResourceDTO,
         feideId: FeideID
     )(implicit
         session: DBSession
@@ -631,9 +631,9 @@ trait FolderWriteService {
 
     def newFolderResourceConnection(
         folderId: UUID,
-        newResource: NewResource,
+        newResource: NewResourceDTO,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[Resource] = {
+    ): Try[ResourceDTO] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId   <- feideApiClient.getFeideID(feideAccessToken)
@@ -644,7 +644,7 @@ trait FolderWriteService {
     }
 
     private[service] def createNewResourceOrUpdateExisting(
-        newResource: NewResource,
+        newResource: NewResourceDTO,
         folderId: UUID,
         siblings: domain.FolderAndDirectChildren,
         feideId: FeideID

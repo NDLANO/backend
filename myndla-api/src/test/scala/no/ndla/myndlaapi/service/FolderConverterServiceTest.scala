@@ -9,14 +9,13 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.myndla.{MyNDLAGroup as ApiGroup, MyNDLAUser as ApiUser, UpdatedMyNDLAUser}
+import no.ndla.common.model.api.myndla.{MyNDLAGroupDTO, MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser, UserRole}
-import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.{TestData, TestEnvironment}
-import no.ndla.myndlaapi.model.domain
-import no.ndla.myndlaapi.model.api.{Folder, NewFolder, UpdatedFolder}
+import no.ndla.myndlaapi.model.api.{FolderDTO, NewFolderDTO, UpdatedFolderDTO}
+import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, Resource, ResourceDocument}
+import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.Mockito.when
 
@@ -32,20 +31,20 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     when(clock.now()).thenReturn(shared)
 
     val folderUUID = UUID.randomUUID()
-    val newFolder1 = NewFolder(
+    val newFolder1 = NewFolderDTO(
       name = "kenkaku",
       parentId = Some(folderUUID.toString),
       status = Some("private"),
       description = None
     )
-    val newFolder2 = NewFolder(
+    val newFolder2 = NewFolderDTO(
       name = "kenkaku",
       parentId = Some(folderUUID.toString),
       status = Some("shared"),
       description = Some("descc")
     )
     val newFolder3 =
-      NewFolder(
+      NewFolderDTO(
         name = "kenkaku",
         parentId = Some(folderUUID.toString),
         status = Some("ikkeesksisterendestatus"),
@@ -149,7 +148,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       description = Some("mainFolder"),
       user = None
     )
-    val apiResource = api.Resource(
+    val apiResource = api.ResourceDTO(
       id = resourceUUID.toString,
       resourceType = ResourceType.Concept,
       tags = List("a", "b", "c"),
@@ -158,16 +157,16 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       resourceId = "1",
       rank = None
     )
-    val apiData1 = Folder(
+    val apiData1 = FolderDTO(
       id = subFolder1UUID.toString,
       name = "folderData1",
       status = "private",
       resources = List(apiResource),
       subfolders = List(),
       breadcrumbs = List(
-        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
-        api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3"),
-        api.Breadcrumb(id = subFolder1UUID.toString, name = "folderData1")
+        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.BreadcrumbDTO(id = subFolder3UUID.toString, name = "folderData3"),
+        api.BreadcrumbDTO(id = subFolder1UUID.toString, name = "folderData1")
       ),
       parentId = Some(subFolder3UUID.toString),
       rank = 1,
@@ -177,15 +176,15 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       description = Some("folderData1"),
       owner = None
     )
-    val apiData2 = api.Folder(
+    val apiData2 = api.FolderDTO(
       id = subFolder2UUID.toString,
       name = "folderData2",
       status = "shared",
       resources = List.empty,
       subfolders = List.empty,
       breadcrumbs = List(
-        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
-        api.Breadcrumb(id = subFolder2UUID.toString, name = "folderData2")
+        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.BreadcrumbDTO(id = subFolder2UUID.toString, name = "folderData2")
       ),
       parentId = Some(mainFolderUUID.toString),
       rank = 1,
@@ -195,15 +194,15 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       description = Some("folderData2"),
       owner = None
     )
-    val apiData3 = api.Folder(
+    val apiData3 = api.FolderDTO(
       id = subFolder3UUID.toString,
       name = "folderData3",
       status = "private",
       subfolders = List(apiData1),
       resources = List(),
       breadcrumbs = List(
-        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
-        api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3")
+        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.BreadcrumbDTO(id = subFolder3UUID.toString, name = "folderData3")
       ),
       parentId = Some(mainFolderUUID.toString),
       rank = 1,
@@ -213,14 +212,14 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       description = Some("folderData3"),
       owner = None
     )
-    val expected = api.Folder(
+    val expected = api.FolderDTO(
       id = mainFolderUUID.toString,
       name = "mainFolder",
       status = "shared",
       subfolders = List(apiData2, apiData3),
       resources = List(apiResource),
       breadcrumbs = List(
-        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")
+        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder")
       ),
       parentId = None,
       rank = 1,
@@ -234,7 +233,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     val Success(result) =
       service.toApiFolder(
         mainFolder,
-        List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")),
+        List(api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder")),
         None,
         true
       )
@@ -264,10 +263,10 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       user = None
     )
     val updatedWithData =
-      UpdatedFolder(name = Some("newNamae"), status = Some("shared"), description = Some("halla"))
-    val updatedWithoutData = UpdatedFolder(name = None, status = None, description = None)
+      UpdatedFolderDTO(name = Some("newNamae"), status = Some("shared"), description = Some("halla"))
+    val updatedWithoutData = UpdatedFolderDTO(name = None, status = None, description = None)
     val updatedWithGarbageData =
-      UpdatedFolder(
+      UpdatedFolderDTO(
         name = Some("huehueuheasdasd+++"),
         status = Some("det å joike er noe kult"),
         description = Some("jog ska visa deg garbage jog")
@@ -313,8 +312,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val existingShared  = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
     val existingPrivate = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
-    val updatedShared   = UpdatedFolder(name = None, status = Some("shared"), description = None)
-    val updatedPrivate  = UpdatedFolder(name = None, status = Some("private"), description = None)
+    val updatedShared   = UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
+    val updatedPrivate  = UpdatedFolderDTO(name = None, status = Some("private"), description = None)
     val expected1       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
     val expected2       = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
     val expected3       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedNow))
@@ -347,7 +346,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         connection = None
       )
     val expected =
-      api.Resource(
+      api.ResourceDTO(
         id = folderUUID.toString,
         resourceType = ResourceType.Article,
         path = "/subject/1/topic/1/resource/4",
@@ -364,14 +363,14 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     val created = NDLADate.now()
     when(clock.now()).thenReturn(created)
     val newResource1 =
-      api.NewResource(
+      api.NewResourceDTO(
         resourceType = ResourceType.Audio,
         path = "/subject/1/topic/1/resource/4",
         tags = Some(List("a", "b")),
         resourceId = "1"
       )
     val newResource2 =
-      api.NewResource(
+      api.NewResourceDTO(
         resourceType = ResourceType.Audio,
         path = "/subject/1/topic/1/resource/4",
         tags = None,
@@ -434,7 +433,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         arenaGroups = List.empty
       )
     val expectedUserData =
-      ApiUser(
+      MyNDLAUserDTO(
         id = 42,
         feideId = "feide",
         username = "example@email.com",
@@ -443,7 +442,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         favoriteSubjects = Seq("a", "b"),
         role = "student",
         organization = "oslo",
-        groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
+        groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
         shareName = false,
         arenaGroups = List.empty
@@ -476,16 +475,16 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       arenaGroups = List.empty
     )
     val updatedUserData1 =
-      UpdatedMyNDLAUser(favoriteSubjects = None, arenaEnabled = None, shareName = None, arenaGroups = None)
+      UpdatedMyNDLAUserDTO(favoriteSubjects = None, arenaEnabled = None, shareName = None, arenaGroups = None)
     val updatedUserData2 =
-      UpdatedMyNDLAUser(
+      UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq.empty),
         arenaEnabled = None,
         shareName = None,
         arenaGroups = None
       )
     val updatedUserData3 =
-      UpdatedMyNDLAUser(
+      UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("x", "y", "z")),
         arenaEnabled = None,
         shareName = None,

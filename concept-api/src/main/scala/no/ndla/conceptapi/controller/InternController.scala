@@ -9,7 +9,7 @@ package no.ndla.conceptapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResults, ErrorHandling, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResultsDTO, ErrorHandling, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
@@ -176,8 +176,8 @@ trait InternController {
 
     def importConcept: ServerEndpoint[Any, Eff] = endpoint.post
       .in("import" / "concept")
-      .out(jsonBody[ConceptImportResults])
-      .errorOut(statusCode(StatusCode.InternalServerError).and(jsonBody[ConceptImportResults]))
+      .out(jsonBody[ConceptImportResultsDTO])
+      .errorOut(statusCode(StatusCode.InternalServerError).and(jsonBody[ConceptImportResultsDTO]))
       .errorOutEither(statusCode(StatusCode.InternalServerError).and(stringBody))
       .in(query[Boolean]("forceUpdate").default(false))
       .withOptionalUser

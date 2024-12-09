@@ -7,7 +7,7 @@
 
 package no.ndla.oembedproxy.service
 
-import no.ndla.oembedproxy.model.OEmbed
+import no.ndla.oembedproxy.model.OEmbedDTO
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 
 class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -22,7 +22,7 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
       "https://www.youtube.com/watch?start=43&end=58&v=vZCsuV7Rb_w"
     val requestUrlWithtoutTimestamp =
       "https://www.youtube.com/watch?v=vZCsuV7Rb_w"
-    val oembed = OEmbed(
+    val oembed = OEmbedDTO(
       "video",
       "1.0",
       Some("ESS® expandable sand screen"),
@@ -75,7 +75,7 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That rel=0 also is added to youtube url if defined in request") {
     val requestUrl =
       "https://www.youtube.com/watch?v=vZCsuV7Rb_w&rel=0&time_continue=5&meh=1"
-    val oembed = OEmbed(
+    val oembed = OEmbedDTO(
       "video",
       "1.0",
       Some("ESS® expandable sand screen"),

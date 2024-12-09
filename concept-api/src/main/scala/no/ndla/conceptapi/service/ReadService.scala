@@ -21,7 +21,7 @@ trait ReadService {
 
   class ReadService {
 
-    def conceptWithId(id: Long, language: String, fallback: Boolean, user: Option[TokenUser]): Try[api.Concept] =
+    def conceptWithId(id: Long, language: String, fallback: Boolean, user: Option[TokenUser]): Try[api.ConceptDTO] =
       draftConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
         case Some(concept) =>
           converterService.toApiConcept(concept, language, fallback, user)
@@ -34,7 +34,7 @@ trait ReadService {
         language: String,
         fallback: Boolean,
         user: Option[TokenUser]
-    ): Try[api.Concept] =
+    ): Try[api.ConceptDTO] =
       publishedConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
         case Some(concept) =>
           converterService.toApiConcept(concept, language, fallback, user)
@@ -74,7 +74,7 @@ trait ReadService {
        }).flatMap(_.tags).distinct
     }
 
-    def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
+    def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResultDTO = {
       val (tags, tagsCount) = draftConceptRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
       converterService.toApiConceptTags(tags, tagsCount, pageSize, offset, language)
     }

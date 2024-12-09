@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.common.model.api.myndla.MyNDLAUser
+import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.{
@@ -80,9 +80,9 @@ trait TapirController extends TapirErrorHandling {
       }
 
       def withOptionalMyNDLAUser[F[_]]
-          : PartialServerEndpoint[Option[String], Option[MyNDLAUser], I, AllErrors, O, R, F] = {
+          : PartialServerEndpoint[Option[String], Option[MyNDLAUserDTO], I, AllErrors, O, R, F] = {
         val newEndpoint = self.securityIn(AuthUtility.feideOauth())
-        val authFunc: Option[String] => Either[AllErrors, Option[MyNDLAUser]] = (maybeToken: Option[String]) => {
+        val authFunc: Option[String] => Either[AllErrors, Option[MyNDLAUserDTO]] = (maybeToken: Option[String]) => {
           maybeToken match {
             case None => Right(None)
             case Some(token) =>

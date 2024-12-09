@@ -8,8 +8,8 @@
 package no.ndla.network.clients
 
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.common.model.api.{MyNDLABundle, SingleResourceStats}
-import no.ndla.common.model.api.config.ConfigMetaRestricted
+import no.ndla.common.model.api.{MyNDLABundleDTO, SingleResourceStatsDTO}
+import no.ndla.common.model.api.config.ConfigMetaRestrictedDTO
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.common.model.api.myndla as api
@@ -28,9 +28,9 @@ trait MyNDLAApiClient {
     private val statsEndpoint = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
     private val userEndpoint  = uri"http://${props.MyNDLAApiHost}/myndla-api/v1/users"
 
-    def getUserWithFeideToken(feideToken: String): Try[api.MyNDLAUser] = {
+    def getUserWithFeideToken(feideToken: String): Try[api.MyNDLAUserDTO] = {
       val req = quickRequest.get(userEndpoint)
-      ndlaClient.fetchWithForwardedFeideAuth[api.MyNDLAUser](req, Some(feideToken))
+      ndlaClient.fetchWithForwardedFeideAuth[api.MyNDLAUserDTO](req, Some(feideToken))
     }
 
     def isWriteRestricted: Try[Boolean] = {
@@ -44,21 +44,21 @@ trait MyNDLAApiClient {
       })
     }
 
-    def getStatsFor(id: String, resourceTypes: List[ResourceType]): Try[List[SingleResourceStats]] = {
+    def getStatsFor(id: String, resourceTypes: List[ResourceType]): Try[List[SingleResourceStatsDTO]] = {
       val url = uri"$statsEndpoint/favorites/${resourceTypes.map(_.toString).mkString(",")}/$id"
       val req = quickRequest.get(url)
-      ndlaClient.fetch[List[SingleResourceStats]](req)
+      ndlaClient.fetch[List[SingleResourceStatsDTO]](req)
     }
 
-    def getMyNDLABundle: Try[MyNDLABundle] = {
+    def getMyNDLABundle: Try[MyNDLABundleDTO] = {
       val url = uri"$statsEndpoint/favorites"
       val req = quickRequest.get(url)
       val res = ndlaClient.fetch[Map[String, Map[String, Long]]](req)
-      res.map(favMap => MyNDLABundle(favMap))
+      res.map(favMap => MyNDLABundleDTO(favMap))
     }
 
-    private def doRequest(httpRequest: NdlaRequest): Try[ConfigMetaRestricted] = {
-      ndlaClient.fetchWithForwardedAuth[ConfigMetaRestricted](httpRequest, None)
+    private def doRequest(httpRequest: NdlaRequest): Try[ConfigMetaRestrictedDTO] = {
+      ndlaClient.fetchWithForwardedAuth[ConfigMetaRestrictedDTO](httpRequest, None)
     }
   }
 }

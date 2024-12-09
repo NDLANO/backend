@@ -11,7 +11,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, Responsible, Tag, Title, concept}
 import no.ndla.conceptapi.*
-import no.ndla.conceptapi.model.api.SubjectTags
+import no.ndla.conceptapi.model.api.SubjectTagsDTO
 import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
@@ -614,12 +614,12 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
     tagSearch1 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("burugle"),
           language = "nb"
         ),
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"
@@ -629,7 +629,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
     tagSearch2 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("cageowl"),
           language = "en"
@@ -646,12 +646,12 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
     tagSearch1 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("burugle"),
           language = "nb"
         ),
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"
@@ -661,12 +661,12 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
     tagSearch2 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("cageowl"),
           language = "en"
         ),
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"

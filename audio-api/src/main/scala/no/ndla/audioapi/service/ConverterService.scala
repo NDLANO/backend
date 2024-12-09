@@ -11,7 +11,7 @@ package no.ndla.audioapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
+import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, TagDTO}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.common.Clock
@@ -31,7 +31,7 @@ trait ConverterService {
   class ConverterService extends StrictLogging {
     import props._
 
-    def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeries): domain.Series = {
+    def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeriesDTO): domain.Series = {
       val newTitle       = common.Title(updatedSeries.title, updatedSeries.language)
       val newDescription = domain.Description(updatedSeries.description, updatedSeries.language)
       val coverPhoto = domain.CoverPhoto(
@@ -52,7 +52,7 @@ trait ConverterService {
       )
     }
 
-    def toDomainSeries(newSeries: api.NewSeries): domain.SeriesWithoutId = {
+    def toDomainSeries(newSeries: api.NewSeriesDTO): domain.SeriesWithoutId = {
       val titles       = Seq(common.Title(newSeries.title, newSeries.language))
       val descriptions = Seq(domain.Description(newSeries.description, newSeries.language))
 
@@ -100,12 +100,12 @@ trait ConverterService {
     def toApiAudioMetaInformation(
         audioMeta: domain.AudioMetaInformation,
         language: Option[String]
-    ): Try[api.AudioMetaInformation] = {
+    ): Try[api.AudioMetaInformationDTO] = {
 
       val apiSeries = audioMeta.series.traverse(series => toApiSeries(series, language))
 
       apiSeries.map(series =>
-        api.AudioMetaInformation(
+        api.AudioMetaInformationDTO(
           id = audioMeta.id.get,
           revision = audioMeta.revision.get,
           title = maybeToApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
@@ -123,42 +123,42 @@ trait ConverterService {
       )
     }
 
-    private def toApiTitle(title: common.Title): api.Title = api.Title(title.title, title.language)
-    private def toApiDescription(desc: domain.Description): api.Description =
-      api.Description(desc.description, desc.language)
+    private def toApiTitle(title: common.Title): api.TitleDTO = api.TitleDTO(title.title, title.language)
+    private def toApiDescription(desc: domain.Description): api.DescriptionDTO =
+      api.DescriptionDTO(desc.description, desc.language)
 
-    private def maybeToApiTitle(maybeTitle: Option[common.Title]): api.Title = {
+    private def maybeToApiTitle(maybeTitle: Option[common.Title]): api.TitleDTO = {
       maybeTitle match {
         case Some(title) => toApiTitle(title)
-        case None        => api.Title("", DefaultLanguage)
+        case None        => api.TitleDTO("", DefaultLanguage)
       }
     }
 
-    private def toApiTags(maybeTag: Option[common.Tag]): Tag = {
+    private def toApiTags(maybeTag: Option[common.Tag]): TagDTO = {
       maybeTag match {
-        case Some(tag) => api.Tag(tag.tags, tag.language)
-        case None      => api.Tag(Seq(), DefaultLanguage)
+        case Some(tag) => api.TagDTO(tag.tags, tag.language)
+        case None      => api.TagDTO(Seq(), DefaultLanguage)
       }
     }
 
-    def toApiAudio(audio: Option[domain.Audio]): api.Audio = {
+    def toApiAudio(audio: Option[domain.Audio]): api.AudioDTO = {
       audio match {
-        case Some(x) => api.Audio(s"$Domain/$AudioFilesUrlSuffix/${x.filePath}", x.mimeType, x.fileSize, x.language)
-        case None    => api.Audio("", "", 0, DefaultLanguage)
+        case Some(x) => api.AudioDTO(s"$Domain/$AudioFilesUrlSuffix/${x.filePath}", x.mimeType, x.fileSize, x.language)
+        case None    => api.AudioDTO("", "", 0, DefaultLanguage)
       }
     }
 
-    def toApiLicence(licenseAbbrevation: String): commonApi.License = {
+    def toApiLicence(licenseAbbrevation: String): commonApi.LicenseDTO = {
       getLicense(licenseAbbrevation) match {
-        case Some(license) => commonApi.License(license.license.toString, Option(license.description), license.url)
+        case Some(license) => commonApi.LicenseDTO(license.license.toString, Option(license.description), license.url)
         case None =>
           logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
-          commonApi.License("unknown", None, None)
+          commonApi.LicenseDTO("unknown", None, None)
       }
     }
 
-    def toApiCopyright(copyright: Copyright): commonApi.Copyright = {
-      commonApi.Copyright(
+    def toApiCopyright(copyright: Copyright): commonApi.CopyrightDTO = {
+      commonApi.CopyrightDTO(
         toApiLicence(copyright.license),
         copyright.origin,
         copyright.creators.map(_.toApi),
@@ -170,21 +170,21 @@ trait ConverterService {
       )
     }
 
-    def toDomainTags(tags: api.Tag): Seq[common.Tag] = {
+    def toDomainTags(tags: api.TagDTO): Seq[common.Tag] = {
       if (tags.tags.nonEmpty) { Seq() }
       else { Seq(common.Tag(tags.tags, tags.language)) }
     }
 
-    def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMeta = {
-      api.PodcastMeta(
+    def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMetaDTO = {
+      api.PodcastMetaDTO(
         introduction = meta.introduction,
         coverPhoto = toApiCoverPhoto(meta.coverPhoto),
         language = meta.language
       )
     }
 
-    def toApiManuscript(meta: domain.Manuscript): api.Manuscript = {
-      api.Manuscript(
+    def toApiManuscript(meta: domain.Manuscript): api.ManuscriptDTO = {
+      api.ManuscriptDTO(
         manuscript = meta.manuscript,
         language = meta.language
       )
@@ -192,15 +192,15 @@ trait ConverterService {
 
     def getPhotoUrl(meta: domain.CoverPhoto): String = s"$RawImageApiUrl/${meta.imageId}"
 
-    def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
-      api.CoverPhoto(
+    def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhotoDTO = {
+      api.CoverPhotoDTO(
         id = meta.imageId,
         url = getPhotoUrl(meta),
         altText = meta.altText
       )
     }
 
-    def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
+    def toDomainPodcastMeta(meta: api.NewPodcastMetaDTO, language: String): PodcastMeta = {
       domain.PodcastMeta(
         introduction = meta.introduction,
         coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
@@ -213,7 +213,7 @@ trait ConverterService {
     }
 
     def toDomainAudioMetaInformation(
-        audioMeta: api.NewAudioMetaInformation,
+        audioMeta: api.NewAudioMetaInformationDTO,
         audio: domain.Audio,
         maybeSeries: Option[domain.Series],
         tokenUser: TokenUser
@@ -236,7 +236,7 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(copyright: commonApi.Copyright): Copyright = {
+    def toDomainCopyright(copyright: commonApi.CopyrightDTO): Copyright = {
       Copyright(
         copyright.license.license,
         copyright.origin,
@@ -264,13 +264,13 @@ trait ConverterService {
       }
     }
 
-    def toApiSeries(series: domain.Series, language: Option[String]): Try[api.Series] = {
+    def toApiSeries(series: domain.Series, language: Option[String]): Try[api.SeriesDTO] = {
       for {
         title       <- findAndConvertDomainToApiField(series.title, language).map(toApiTitle)
         description <- findAndConvertDomainToApiField(series.description, language).map(toApiDescription)
         coverPhoto = toApiCoverPhoto(series.coverPhoto)
         episodes <- series.episodes.traverse(eps => eps.traverse(toApiAudioMetaInformation(_, language)))
-      } yield api.Series(
+      } yield api.SeriesDTO(
         id = series.id,
         revision = series.revision,
         title = title,

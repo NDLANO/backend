@@ -29,19 +29,19 @@ object audioapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq("no.ndla.audioapi.model.api._"),
     exports = Seq(
-      "Audio",
-      "AudioSummarySearchResult",
-      "NewAudioMetaInformation",
-      "NewSeries",
-      "SearchParams",
-      "Series",
-      "SeriesSummary",
-      "AudioSummary",
-      "TagsSearchResult",
-      "AudioMetaInformation",
-      "UpdatedAudioMetaInformation",
-      "SeriesSummarySearchResult",
-      "SeriesSearchParams"
+      "AudioDTO",
+      "AudioSummarySearchResultDTO",
+      "NewAudioMetaInformationDTO",
+      "NewSeriesDTO",
+      "SearchParamsDTO",
+      "SeriesDTO",
+      "SeriesSummaryDTO",
+      "AudioSummaryDTO",
+      "TagsSearchResultDTO",
+      "AudioMetaInformationDTO",
+      "UpdatedAudioMetaInformationDTO",
+      "SeriesSummarySearchResultDTO",
+      "SeriesSearchParamsDTO"
     )
   )
 

@@ -31,15 +31,15 @@ trait ReadService {
 
   class ReadService {
 
-    def tags: List[LearningPathTags] = {
-      learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
+    def tags: List[LearningPathTagsDTO] = {
+      learningPathRepository.allPublishedTags.map(tags => LearningPathTagsDTO(tags.tags, tags.language))
     }
 
-    def contributors: List[commonApi.Author] = {
-      learningPathRepository.allPublishedContributors.map(author => commonApi.Author(author.`type`, author.name))
+    def contributors: List[commonApi.AuthorDTO] = {
+      learningPathRepository.allPublishedContributors.map(author => commonApi.AuthorDTO(author.`type`, author.name))
     }
 
-    def withOwnerV2(user: CombinedUserRequired, language: String, fallback: Boolean): List[LearningPathV2] = {
+    def withOwnerV2(user: CombinedUserRequired, language: String, fallback: Boolean): List[LearningPathV2DTO] = {
       learningPathRepository
         .withOwner(user.id)
         .flatMap(value => converterService.asApiLearningpathV2(value, language, fallback, user).toOption)
@@ -52,7 +52,7 @@ trait ReadService {
         page: Int,
         pageSize: Int,
         userInfo: CombinedUser
-    ): Try[Seq[LearningPathV2]] = {
+    ): Try[Seq[LearningPathV2DTO]] = {
       if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
         val offset        = (page - 1) * pageSize
@@ -68,14 +68,14 @@ trait ReadService {
         language: String,
         fallback: Boolean,
         user: CombinedUser
-    ): Try[LearningPathV2] = {
+    ): Try[LearningPathV2DTO] = {
       withIdAndAccessGranted(learningPathId, user).flatMap(lp =>
         converterService.asApiLearningpathV2(lp, language, fallback, user)
       )
     }
 
-    def statusFor(learningPathId: Long, user: CombinedUser): Try[LearningPathStatus] = {
-      withIdAndAccessGranted(learningPathId, user).map(lp => LearningPathStatus(lp.status.toString))
+    def statusFor(learningPathId: Long, user: CombinedUser): Try[LearningPathStatusDTO] = {
+      withIdAndAccessGranted(learningPathId, user).map(lp => LearningPathStatusDTO(lp.status.toString))
     }
 
     def learningStepStatusForV2(
@@ -84,9 +84,9 @@ trait ReadService {
         language: String,
         fallback: Boolean,
         user: CombinedUser
-    ): Try[LearningStepStatus] = {
+    ): Try[LearningStepStatusDTO] = {
       learningstepV2For(learningPathId, learningStepId, language, fallback, user).map(ls =>
-        LearningStepStatus(ls.status)
+        LearningStepStatusDTO(ls.status)
       )
     }
 
@@ -96,7 +96,7 @@ trait ReadService {
         language: String,
         fallback: Boolean,
         user: CombinedUser
-    ): Try[LearningStepContainerSummary] = {
+    ): Try[LearningStepContainerSummaryDTO] = {
       withIdAndAccessGranted(learningPathId, user) match {
         case Success(lp) => converterService.asLearningStepContainerSummary(status, lp, language, fallback)
         case Failure(ex) => Failure(ex)
@@ -109,7 +109,7 @@ trait ReadService {
         language: String,
         fallback: Boolean,
         user: CombinedUser
-    ): Try[LearningStepV2] = {
+    ): Try[LearningStepV2DTO] = {
       withIdAndAccessGranted(learningPathId, user) match {
         case Success(lp) =>
           learningPathRepository
@@ -136,7 +136,11 @@ trait ReadService {
       }
     }
 
-    def getLearningPathDomainDump(pageNo: Int, pageSize: Int, onlyIncludePublished: Boolean): LearningPathDomainDump = {
+    def getLearningPathDomainDump(
+        pageNo: Int,
+        pageSize: Int,
+        onlyIncludePublished: Boolean
+    ): LearningPathDomainDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
 
       val resultFunc =
@@ -149,10 +153,10 @@ trait ReadService {
 
       val results = resultFunc(safePageSize, (safePageNo - 1) * safePageSize)
 
-      LearningPathDomainDump(count, safePageNo, safePageSize, results)
+      LearningPathDomainDumpDTO(count, safePageNo, safePageSize, results)
     }
 
-    def learningPathWithStatus(status: String, user: CombinedUser): Try[List[LearningPathV2]] = {
+    def learningPathWithStatus(status: String, user: CombinedUser): Try[List[LearningPathV2DTO]] = {
       if (user.isAdmin) {
         learningpath.LearningPathStatus.valueOf(status) match {
           case Some(ps) =>

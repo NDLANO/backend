@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
 import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.PartialArticleFields
+import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -198,19 +198,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedIntro           = "introintro"
     val updatedMetaId          = "1234"
     val updatedMetaAlt         = "HeheAlt"
-    val newImageMeta           = api.NewArticleMetaImage(updatedMetaId, updatedMetaAlt)
+    val newImageMeta           = api.NewArticleMetaImageDTO(updatedMetaId, updatedMetaAlt)
     val updatedVisualElement   = s"<$EmbedTagName something />"
-    val updatedCopyright = model.api.DraftCopyright(
-      Some(commonApi.License("a", Some("b"), None)),
+    val updatedCopyright = model.api.DraftCopyrightDTO(
+      Some(commonApi.LicenseDTO("a", Some("b"), None)),
       Some("c"),
-      Seq(commonApi.Author("Opphavsmann", "Jonas")),
+      Seq(commonApi.AuthorDTO("Opphavsmann", "Jonas")),
       List(),
       List(),
       None,
       None,
       false
     )
-    val updatedRequiredLib = api.RequiredLibrary("tjup", "tjap", "tjim")
+    val updatedRequiredLib = api.RequiredLibraryDTO("tjup", "tjap", "tjim")
     val updatedArticleType = "topic-article"
 
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
@@ -277,7 +277,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None
     )
-    result.status should equal(api.Status("IN_PROGRESS", Seq.empty))
+    result.status should equal(api.StatusDTO("IN_PROGRESS", Seq.empty))
   }
 
   test(
@@ -300,7 +300,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None
     )
-    result.status should equal(api.Status("IN_PROGRESS", Seq("PUBLISHED")))
+    result.status should equal(api.StatusDTO("IN_PROGRESS", Seq("PUBLISHED")))
   }
 
   test("updateArticle should use current status if user-defined status is not set") {
@@ -322,7 +322,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       )
-      result.status should equal(api.Status("IN_PROGRESS", Seq.empty))
+      result.status should equal(api.StatusDTO("IN_PROGRESS", Seq.empty))
     }
 
     {
@@ -341,7 +341,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       )
-      result.status should equal(api.Status("EXTERNAL_REVIEW", Seq.empty))
+      result.status should equal(api.StatusDTO("EXTERNAL_REVIEW", Seq.empty))
     }
 
     {
@@ -360,7 +360,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       )
-      result.status should equal(api.Status("INTERNAL_REVIEW", Seq.empty))
+      result.status should equal(api.StatusDTO("INTERNAL_REVIEW", Seq.empty))
     }
 
     {
@@ -385,7 +385,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       )
-      result.status should equal(api.Status("END_CONTROL", Seq.empty))
+      result.status should equal(api.StatusDTO("END_CONTROL", Seq.empty))
     }
   }
 
@@ -663,8 +663,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        model.api.DraftCopyright(
-          license = Some(commonApi.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyrightDTO(
+          license = Some(commonApi.LicenseDTO("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
@@ -675,7 +675,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       metaDescription = Some("newMeta"),
-      relatedContent = Some(Seq(Left(commonApi.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(commonApi.RelatedContentLinkDTO("title1", "url2")), Right(12L))),
       tags = Some(Seq("new", "tag"))
     )
 
@@ -712,7 +712,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.grepCodes should be(Seq("a", "b", "c"))
     result1.copyright.get.license.get.license should be("COPYRIGHTED")
     result1.metaDescription.get.metaDescription should be("newMeta")
-    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLink("title1", "url2")))
+    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLinkDTO("title1", "url2")))
     result1.relatedContent.reverse.head should be(Right(12L))
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
@@ -725,8 +725,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       language = Some("nb"),
       title = Some(existingTitle),
       copyright = Some(
-        model.api.DraftCopyright(
-          license = Some(commonApi.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyrightDTO(
+          license = Some(commonApi.LicenseDTO("COPYRIGHTED", None, None)),
           origin = Some("shouldCauseStatusChange"),
           creators = Seq.empty,
           processors = Seq.empty,
@@ -780,8 +780,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        model.api.DraftCopyright(
-          license = Some(commonApi.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyrightDTO(
+          license = Some(commonApi.LicenseDTO("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
@@ -792,7 +792,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       metaDescription = Some("newMeta"),
-      relatedContent = Some(Seq(Left(commonApi.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(commonApi.RelatedContentLinkDTO("title1", "url2")), Right(12L))),
       tags = Some(Seq("new", "tag")),
       conceptIds = Some(Seq(1, 2, 3))
     )
@@ -833,7 +833,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.grepCodes should be(Seq("a", "b", "c"))
     result1.copyright.get.license.get.license should be("COPYRIGHTED")
     result1.metaDescription.get.metaDescription should be("newMeta")
-    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLink("title1", "url2")))
+    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLinkDTO("title1", "url2")))
     result1.relatedContent.reverse.head should be(Right(12L))
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.conceptIds should be(Seq(1, 2, 3))
@@ -993,23 +993,23 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val articleFieldsToUpdate = Seq(
-      api.PartialArticleFields.availability,
-      api.PartialArticleFields.grepCodes,
-      api.PartialArticleFields.license,
-      api.PartialArticleFields.metaDescription,
-      api.PartialArticleFields.relatedContent,
-      api.PartialArticleFields.tags,
-      api.PartialArticleFields.revisionDate,
-      api.PartialArticleFields.published
+      api.PartialArticleFieldsDTO.availability,
+      api.PartialArticleFieldsDTO.grepCodes,
+      api.PartialArticleFieldsDTO.license,
+      api.PartialArticleFieldsDTO.metaDescription,
+      api.PartialArticleFieldsDTO.relatedContent,
+      api.PartialArticleFieldsDTO.tags,
+      api.PartialArticleFieldsDTO.revisionDate,
+      api.PartialArticleFieldsDTO.published
     )
 
     val expectedPartialPublishFields = PartialPublishArticle(
       availability = Some(Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
-      metaDescription = Some(Seq(api.ArticleMetaDescription("oldDesc", "nb"))),
+      metaDescription = Some(Seq(api.ArticleMetaDescriptionDTO("oldDesc", "nb"))),
       relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
-      tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb"))),
+      tags = Some(Seq(api.ArticleTagDTO(Seq("old", "tag"), "nb"))),
       revisionDate = UpdateWith(tomorrow),
       published = Some(tomorrow)
     )
@@ -1029,18 +1029,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       license = Some("CC-BY-4.0"),
       metaDescription = Some(
         Seq(
-          api.ArticleMetaDescription("oldDesc", "nb"),
-          api.ArticleMetaDescription("oldDescc", "es"),
-          api.ArticleMetaDescription("oldDesccc", "ru"),
-          api.ArticleMetaDescription("oldDescccc", "nn")
+          api.ArticleMetaDescriptionDTO("oldDesc", "nb"),
+          api.ArticleMetaDescriptionDTO("oldDescc", "es"),
+          api.ArticleMetaDescriptionDTO("oldDesccc", "ru"),
+          api.ArticleMetaDescriptionDTO("oldDescccc", "nn")
         )
       ),
       relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(
         Seq(
-          api.ArticleTag(Seq("old", "tag"), "nb"),
-          api.ArticleTag(Seq("guten", "tag"), "de"),
-          api.ArticleTag(Seq("oldd", "tagg"), "es")
+          api.ArticleTagDTO(Seq("old", "tag"), "nb"),
+          api.ArticleTagDTO(Seq("guten", "tag"), "de"),
+          api.ArticleTagDTO(Seq("oldd", "tagg"), "es")
         )
       ),
       revisionDate = UpdateWith(tomorrow),
@@ -1059,7 +1059,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle updates relatedContent") {
-    val apiRelatedContent1    = commonApi.RelatedContentLink("url1", "title1")
+    val apiRelatedContent1    = commonApi.RelatedContentLinkDTO("url1", "title1")
     val domainRelatedContent1 = RelatedContentLink("url1", "title1")
     val relatedContent2       = 2L
 
@@ -1088,7 +1088,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateArticle should get editor notes if RevisionMeta is added or updated") {
     when(uuidUtil.randomUUID()).thenCallRealMethod()
-    val revision = api.RevisionMeta(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
+    val revision = api.RevisionMetaDTO(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       revisionMeta = Some(Seq(revision))
@@ -1148,8 +1148,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       availability = Some(Availability.teacher.toString),
       grepCodes = Some(Seq("a", "b", "c")),
       copyright = Some(
-        model.api.DraftCopyright(
-          license = Some(commonApi.License("COPYRIGHTED", None, None)),
+        model.api.DraftCopyrightDTO(
+          license = Some(commonApi.LicenseDTO("COPYRIGHTED", None, None)),
           origin = None,
           creators = Seq.empty,
           processors = Seq.empty,
@@ -1160,7 +1160,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       metaDescription = Some("newMeta"),
-      relatedContent = Some(Seq(Left(commonApi.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(commonApi.RelatedContentLinkDTO("title1", "url2")), Right(12L))),
       tags = Some(Seq("new", "tag"))
     )
 
@@ -1197,7 +1197,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.grepCodes should be(Seq("a", "b", "c"))
     result1.copyright.get.license.get.license should be("COPYRIGHTED")
     result1.metaDescription.get.metaDescription should be("newMeta")
-    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLink("title1", "url2")))
+    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLinkDTO("title1", "url2")))
     result1.relatedContent.reverse.head should be(Right(12L))
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
@@ -1343,8 +1343,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.shouldPartialPublish(Some(article1), article2) should be(
       Set(
-        PartialArticleFields.metaDescription,
-        PartialArticleFields.grepCodes
+        PartialArticleFieldsDTO.metaDescription,
+        PartialArticleFieldsDTO.grepCodes
       )
     )
   }

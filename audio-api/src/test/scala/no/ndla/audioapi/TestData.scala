@@ -112,13 +112,13 @@ object TestData {
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
-  val DefaultApiImageMetaInformation: api.AudioMetaInformation = api.AudioMetaInformation(
+  val DefaultApiImageMetaInformation: api.AudioMetaInformationDTO = api.AudioMetaInformationDTO(
     1,
     1,
-    api.Title("title", "nb"),
-    api.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb"),
-    commonApi.Copyright(commonApi.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, false),
-    api.Tag(Seq("tag"), "nb"),
+    api.TitleDTO("title", "nb"),
+    api.AudioDTO("audio/test.mp3", "audio/mpeg", 1024, "nb"),
+    commonApi.CopyrightDTO(commonApi.LicenseDTO("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+    api.TagDTO(Seq("tag"), "nb"),
     Seq("nb"),
     "standard",
     None,

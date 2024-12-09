@@ -71,8 +71,8 @@ trait DraftConceptController {
     )
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(
-        orFunction: => Try[(ConceptSearchResult, DynamicHeaders)]
-    ): Try[(ConceptSearchResult, DynamicHeaders)] =
+        orFunction: => Try[(ConceptSearchResultDTO, DynamicHeaders)]
+    ): Try[(ConceptSearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           draftConceptSearchService.scroll(scroll, language) match {
@@ -103,7 +103,7 @@ trait DraftConceptController {
         responsibleId: List[String],
         conceptType: Option[String],
         aggregatePaths: List[String]
-    ): Try[(ConceptSearchResult, DynamicHeaders)] = {
+    ): Try[(ConceptSearchResultDTO, DynamicHeaders)] = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
         searchLanguage = language,
@@ -146,7 +146,7 @@ trait DraftConceptController {
       .in(language)
       .in(fallback)
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-      .out(jsonBody[Concept])
+      .out(jsonBody[ConceptDTO])
       .errorOut(errorOutputsFor(404))
       .withOptionalUser
       .serverLogicPure { user =>
@@ -158,7 +158,7 @@ trait DraftConceptController {
     def getAllConcepts: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show all concepts")
       .description("Shows all concepts. You can search it too.")
-      .out(jsonBody[ConceptSearchResult])
+      .out(jsonBody[ConceptSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400))
@@ -248,7 +248,7 @@ trait DraftConceptController {
       .out(
         oneOf[TagOutput](
           oneOfVariant[SomeTagList](
-            statusCode(StatusCode.Ok).and(jsonBody[List[SubjectTags]]).map(x => SomeTagList(x))(x => x.list)
+            statusCode(StatusCode.Ok).and(jsonBody[List[SubjectTagsDTO]]).map(x => SomeTagList(x))(x => x.list)
           ),
           oneOfDefaultVariant[SomeStringList](
             statusCode(StatusCode.Ok).and(jsonBody[List[String]]).map(x => SomeStringList(x))(x => x.list)
@@ -271,8 +271,8 @@ trait DraftConceptController {
       .in("search")
       .summary("Show all concepts")
       .description("Shows all concepts. You can search it too.")
-      .in(jsonBody[DraftConceptSearchParams])
-      .out(jsonBody[ConceptSearchResult])
+      .in(jsonBody[DraftConceptSearchParamsDTO])
+      .out(jsonBody[ConceptSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
@@ -326,7 +326,7 @@ trait DraftConceptController {
       .description("Delete language from concept")
       .in(pathConceptId)
       .in(language)
-      .out(jsonBody[Concept])
+      .out(jsonBody[ConceptDTO])
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .requirePermission(CONCEPT_API_WRITE)
@@ -340,7 +340,7 @@ trait DraftConceptController {
       .summary("Update status of a concept")
       .description("Update status of a concept")
       .in(pathConceptId / "status" / pathStatus)
-      .out(jsonBody[Concept])
+      .out(jsonBody[ConceptDTO])
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .requirePermission(CONCEPT_API_WRITE)
@@ -372,7 +372,7 @@ trait DraftConceptController {
       .in(pageSize)
       .in(pageNo)
       .in(language)
-      .out(jsonBody[TagsSearchResult])
+      .out(jsonBody[TagsSearchResultDTO])
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (query, pageSize, pageNo, language) =>
@@ -383,8 +383,8 @@ trait DraftConceptController {
     def postNewConcept: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Create new concept")
       .description("Create new concept")
-      .in(jsonBody[NewConcept])
-      .out(statusCode(StatusCode.Created).and(jsonBody[Concept]))
+      .in(jsonBody[NewConceptDTO])
+      .out(statusCode(StatusCode.Created).and(jsonBody[ConceptDTO]))
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .requirePermission(CONCEPT_API_WRITE)
@@ -394,8 +394,8 @@ trait DraftConceptController {
       .summary("Update a concept")
       .description("Update a concept")
       .in(pathConceptId)
-      .in(jsonBody[UpdatedConcept])
-      .out(jsonBody[Concept])
+      .in(jsonBody[UpdatedConceptDTO])
+      .out(jsonBody[ConceptDTO])
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .requirePermission(CONCEPT_API_WRITE)

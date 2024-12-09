@@ -92,7 +92,7 @@ trait ArticleControllerV2 {
 
     private case class SummaryWithHeader(
         @jsonbody
-        body: SearchResultV2,
+        body: SearchResultV2DTO,
         @header("search-context")
         searchContext: Option[String]
     )
@@ -106,8 +106,8 @@ trait ArticleControllerV2 {
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(
-        orFunction: => Try[(SearchResultV2, DynamicHeaders)]
-    ): Try[(SearchResultV2, DynamicHeaders)] =
+        orFunction: => Try[(SearchResultV2DTO, DynamicHeaders)]
+    ): Try[(SearchResultV2DTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           articleSearchService.scroll(scroll, language) match {
@@ -129,7 +129,7 @@ trait ArticleControllerV2 {
         .in(pageSize)
         .in(pageNo)
         .in(language)
-        .out(jsonBody[TagsSearchResult])
+        .out(jsonBody[TagsSearchResultDTO])
         .errorOut(errorOutputsFor())
         .serverLogicPure { case (query, pageSize, pageNo, language) =>
           val queryOrEmpty = query.getOrElse("")
@@ -165,7 +165,7 @@ trait ArticleControllerV2 {
         grepCodes: Seq[String],
         shouldScroll: Boolean,
         feideToken: Option[String]
-    ): Try[(SearchResultV2, DynamicHeaders)] = {
+    ): Try[(SearchResultV2DTO, DynamicHeaders)] = {
       val result = readService.search(
         query,
         sort,
@@ -207,7 +207,7 @@ trait ArticleControllerV2 {
         .in(fallback)
         .in(scrollId)
         .in(grepCodes)
-        .out(jsonBody[SearchResultV2])
+        .out(jsonBody[SearchResultV2DTO])
         .out(EndpointOutput.derived[DynamicHeaders])
         .errorOut(errorOutputsFor())
         .serverLogicPure {
@@ -260,7 +260,7 @@ trait ArticleControllerV2 {
       .in(pageSize)
       .in(pageNo)
       .errorOut(errorOutputsFor())
-      .out(jsonBody[Seq[ArticleV2]])
+      .out(jsonBody[Seq[ArticleV2DTO]])
       .serverLogicPure { case (feideToken, ids, fallback, language, mbPageSize, mbPageNo) =>
         val pageSize = mbPageSize.getOrElse(props.DefaultPageSize) match {
 
@@ -288,9 +288,9 @@ trait ArticleControllerV2 {
       .summary("Find published articles.")
       .description("Search all articles.")
       .in(feideHeader)
-      .in(jsonBody[ArticleSearchParams])
+      .in(jsonBody[ArticleSearchParamsDTO])
       .errorOut(errorOutputsFor())
-      .out(jsonBody[SearchResultV2])
+      .out(jsonBody[SearchResultV2DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .serverLogicPure { case (feideToken, searchParams) =>
         val language = searchParams.language.getOrElse(AllLanguages)
@@ -331,7 +331,7 @@ trait ArticleControllerV2 {
       .in(language)
       .in(fallback)
       .errorOut(errorOutputsFor(410))
-      .out(jsonBody[ArticleV2])
+      .out(jsonBody[ArticleV2DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .serverLogicPure { params =>
         val (articleId, revisionQuery, feideToken, language, fallback) = params
@@ -361,7 +361,7 @@ trait ArticleControllerV2 {
       .in("external_id")
       .in(deprecatedNodeId)
       .errorOut(errorOutputsFor(404, 500))
-      .out(jsonBody[ArticleIdV2])
+      .out(jsonBody[ArticleIdV2DTO])
       .serverLogicPure(externalId => {
         readService.getInternalIdByExternalId(externalId) match {
           case Some(id) => Right(id)
@@ -377,7 +377,7 @@ trait ArticleControllerV2 {
       .in("external_ids")
       .in(deprecatedNodeId)
       .errorOut(errorOutputsFor(404, 500))
-      .out(jsonBody[api.ArticleIds])
+      .out(jsonBody[api.ArticleIdsDTO])
       .serverLogicPure(externalId => {
         readService.getArticleIdsByExternalId(externalId) match {
           case Some(idObject) => Right(idObject)
