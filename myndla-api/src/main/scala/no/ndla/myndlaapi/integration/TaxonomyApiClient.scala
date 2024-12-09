@@ -14,7 +14,7 @@ import no.ndla.myndlaapi.Props
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 trait TaxonomyApiClient {
   this: NdlaClient & Props =>
@@ -26,7 +26,7 @@ trait TaxonomyApiClient {
 
     def resolveUrl(path: String): Try[String] = {
       val req = quickRequest.get(uri"$resolveEndpoint?path=$path")
-      ndlaClient.fetch[ResolvePathResponse](req).map(resolved => resolved.url)
+      ndlaClient.fetch[ResolvePathResponse](req).map(resolved => resolved.url).orElse(Success(path))
     }
   }
 }
