@@ -9,11 +9,12 @@
 package no.ndla.database
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import scalikejdbc.{DB, DBSession, *}
+import scalikejdbc.*
 
 abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
   val tableName: String
   val whereClause: SQLSyntax
+  val chunkSize: Int = 1000
   def extractRowData(rs: WrappedResultSet): ROW_DATA
   def updateRow(rowData: ROW_DATA)(implicit session: DBSession): Int
   lazy val tableNameSQL: SQLSyntax = SQLSyntax.createUnsafely(tableName)
@@ -25,7 +26,7 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
   }
 
   private def allRows(offset: Long)(implicit session: DBSession): Seq[ROW_DATA] = {
-    sql"select * from $tableNameSQL where $whereClause order by id limit 1000 offset $offset"
+    sql"select * from $tableNameSQL where $whereClause order by id limit $chunkSize offset $offset"
       .map(rs => extractRowData(rs))
       .list()
   }
@@ -36,11 +37,11 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
 
   private def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get
-    var numPagesLeft = (count / 1000) + 1
+    var numPagesLeft = (count / chunkSize) + 1
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allRows(offset * 1000).map { rowData => updateRow(rowData) }: Unit
+      allRows(offset * chunkSize).map { rowData => updateRow(rowData) }: Unit
       numPagesLeft -= 1
       offset += 1
     }
