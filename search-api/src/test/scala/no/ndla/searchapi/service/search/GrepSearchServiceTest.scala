@@ -11,8 +11,8 @@ import cats.implicits.catsSyntaxOptionId
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestEnvironment
-import no.ndla.searchapi.controller.parameters.GrepSearchInput
-import no.ndla.searchapi.model.api.grep.GrepSort.{ByCodeAsc, ByCodeDesc}
+import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
+import no.ndla.searchapi.model.api.grep.GrepSortDTO.{ByCodeAsc, ByCodeDesc}
 import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
 
 class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -66,7 +66,7 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     )
   )
 
-  val emptyInput: GrepSearchInput = GrepSearchInput(
+  val emptyInput: GrepSearchInputDTO = GrepSearchInputDTO(
     codes = None,
     language = None,
     page = None,

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.model.api.UpdatedUserData
+import no.ndla.draftapi.model.api.UpdatedUserDataDTO
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
@@ -59,7 +59,7 @@ class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirCo
   }
 
   test("PATCH / should return 200 if user has access roles and data has been updated correctly") {
-    when(writeService.updateUserData(any[UpdatedUserData], any[TokenUser]))
+    when(writeService.updateUserData(any[UpdatedUserDataDTO], any[TokenUser]))
       .thenReturn(Success(TestData.emptyApiUserData))
 
     val res = simpleHttpClient.send(

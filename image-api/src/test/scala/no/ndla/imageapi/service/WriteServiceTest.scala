@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.api.{Copyright, License, Missing, UpdateWith}
+import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.common.model.domain.article.Copyright as DomainCopyright
@@ -33,10 +33,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newFileName               = "AbCdeF.mp3"
   val fileMock1: UploadedFile   = mock[UploadedFile]
 
-  val newImageMeta: NewImageMetaInformationV2 = NewImageMetaInformationV2(
+  val newImageMeta: NewImageMetaInformationV2DTO = NewImageMetaInformationV2DTO(
     "title",
     Some("alt text"),
-    Copyright(License("by", None, None), None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
+    CopyrightDTO(LicenseDTO("by", None, None), None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
     Seq.empty,
     "",
     "en",
@@ -291,7 +291,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       1
     )
 
-    val toUpdate = UpdateImageMetaInformation(
+    val toUpdate = UpdateImageMetaInformationDTO(
       "en",
       Some("Title"),
       UpdateWith("AltText"),
@@ -317,7 +317,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val date     = NDLADate.now()
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
-    val toUpdate = UpdateImageMetaInformation(
+    val toUpdate = UpdateImageMetaInformationDTO(
       "nb",
       Some("Title"),
       UpdateWith("AltText"),
@@ -342,15 +342,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val date     = NDLADate.now()
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
-    val toUpdate = UpdateImageMetaInformation(
+    val toUpdate = UpdateImageMetaInformationDTO(
       "nb",
       Some("Title"),
       UpdateWith("AltText"),
       Some(
-        Copyright(
-          License("testLic", Some("License for testing"), None),
+        CopyrightDTO(
+          LicenseDTO("testLic", Some("License for testing"), None),
           Some("test"),
-          List(commonApi.Author("Opphavsmann", "Testerud")),
+          List(commonApi.AuthorDTO("Opphavsmann", "Testerud")),
           List(),
           List(),
           None,
@@ -415,7 +415,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = user,
       images = Some(Seq(image))
     )
-    val toUpdate = UpdateImageMetaInformation(
+    val toUpdate = UpdateImageMetaInformationDTO(
       "nn",
       None,
       Missing,
@@ -544,7 +544,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
-    val upd = UpdateImageMetaInformation(
+    val upd = UpdateImageMetaInformationDTO(
       language = "nb",
       title = Some("new title"),
       alttext = Missing,
@@ -638,7 +638,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
-    val upd = UpdateImageMetaInformation(
+    val upd = UpdateImageMetaInformationDTO(
       language = "nb",
       title = Some("new title"),
       alttext = Missing,

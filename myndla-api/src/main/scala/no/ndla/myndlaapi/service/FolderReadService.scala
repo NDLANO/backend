@@ -12,12 +12,12 @@ import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.api.SingleResourceStats
-import no.ndla.common.model.api.myndla.MyNDLAUser
+import no.ndla.common.model.api.SingleResourceStatsDTO
+import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.{ResourceType, myndla}
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
-import no.ndla.myndlaapi.model.api.{ExportedUserData, Folder, Resource, UserFolder}
+import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, UserFolderDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
@@ -40,7 +40,7 @@ trait FolderReadService {
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideId: FeideID
-    )(session: DBSession): Try[List[Folder]] = {
+    )(session: DBSession): Try[List[FolderDTO]] = {
       for {
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(session)
@@ -50,7 +50,7 @@ trait FolderReadService {
           v =>
             folderConverterService.toApiFolder(
               v,
-              List(api.Breadcrumb(id = v.id.toString, name = v.name)),
+              List(api.BreadcrumbDTO(id = v.id.toString, name = v.name)),
               feideUser,
               feideUser.exists(_.feideId == v.feideId)
             )
@@ -76,7 +76,7 @@ trait FolderReadService {
           (v: domain.Folder) => {
             folderConverterService.toApiFolder(
               v,
-              List(api.Breadcrumb(id = v.id.toString, name = v.name)),
+              List(api.BreadcrumbDTO(id = v.id.toString, name = v.name)),
               v.user,
               v.user.exists(_.feideId == v.feideId)
             )
@@ -90,7 +90,7 @@ trait FolderReadService {
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideId: FeideID
-    ): Try[UserFolder] = {
+    ): Try[UserFolderDTO] = {
       folderRepository.rollbackOnFailure(session => {
         for {
           myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)
@@ -98,11 +98,11 @@ trait FolderReadService {
           folders       <- getSubFoldersAndResources(myFolders, includeSubfolders, includeResources, feideId)(session)
           sharedFolders <- getSharedSubFoldersAndResources(savedSharedFolders)(session)
 
-        } yield UserFolder(folders = folders, sharedFolders = sharedFolders)
+        } yield UserFolderDTO(folders = folders, sharedFolders = sharedFolders)
       })
     }
 
-    def getSharedFolder(id: UUID, maybeFeideToken: Option[FeideAccessToken]): Try[Folder] = {
+    def getSharedFolder(id: UUID, maybeFeideToken: Option[FeideAccessToken]): Try[FolderDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
         feideId <- maybeFeideToken.traverse(token => feideApiClient.getFeideID(Some(token)))
@@ -184,20 +184,20 @@ trait FolderReadService {
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[UserFolder] = {
+    ): Try[UserFolderDTO] = {
       withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, _))
     }
 
-    def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.Breadcrumb]] = {
+    def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.BreadcrumbDTO]] = {
       @tailrec
-      def getParentRecursively(folder: domain.Folder, crumbs: List[api.Breadcrumb]): Try[List[api.Breadcrumb]] = {
+      def getParentRecursively(folder: domain.Folder, crumbs: List[api.BreadcrumbDTO]): Try[List[api.BreadcrumbDTO]] = {
         folder.parentId match {
           case None => Success(crumbs)
           case Some(parentId) =>
             folderRepository.folderWithId(parentId) match {
               case Failure(ex) => Failure(ex)
               case Success(p) =>
-                val newCrumb = api.Breadcrumb(
+                val newCrumb = api.BreadcrumbDTO(
                   id = p.id.toString,
                   name = p.name
                 )
@@ -209,7 +209,7 @@ trait FolderReadService {
       getParentRecursively(folder, List.empty) match {
         case Failure(ex) => Failure(ex)
         case Success(value) =>
-          val newCrumb = api.Breadcrumb(
+          val newCrumb = api.BreadcrumbDTO(
             id = folder.id.toString,
             name = folder.name
           )
@@ -222,7 +222,7 @@ trait FolderReadService {
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[Folder] = {
+    ): Try[FolderDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
         feideId           <- feideApiClient.getFeideID(feideAccessToken)
@@ -242,7 +242,7 @@ trait FolderReadService {
     def getAllResources(
         size: Int,
         feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[List[Resource]] = {
+    ): Try[List[ResourceDTO]] = {
       for {
         feideId   <- feideApiClient.getFeideID(feideAccessToken)
         resources <- folderRepository.resourcesWithFeideId(feideId, size)
@@ -269,7 +269,7 @@ trait FolderReadService {
     private def getFeideUserDataAuthenticated(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[MyNDLAUser] =
+    ): Try[MyNDLAUserDTO] =
       for {
         users <- configService.getMyNDLAEnabledUsers
         user <- userRepository.rollbackOnFailure(session =>
@@ -278,10 +278,10 @@ trait FolderReadService {
         orgs <- configService.getMyNDLAEnabledOrgs
       } yield folderConverterService.toApiUserData(user, orgs)
 
-    def getStats: Option[api.Stats] = {
+    def getStats: Option[api.StatsDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
-      val favouritedResources         = groupedResources.map(gr => api.ResourceStats(gr._2, gr._1))
+      val favouritedResources         = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
       val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
       for {
         numberOfUsers         <- userRepository.numberOfUsers()
@@ -290,7 +290,7 @@ trait FolderReadService {
         numberOfTags          <- folderRepository.numberOfTags()
         numberOfSubjects      <- userRepository.numberOfFavouritedSubjects()
         numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
-        stats = api.Stats(
+        stats = api.StatsDTO(
           numberOfUsers,
           numberOfFolders,
           numberOfResources,
@@ -303,7 +303,7 @@ trait FolderReadService {
       } yield stats
     }
 
-    def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[ExportedUserData] = {
+    def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[ExportedUserDataDTO] = {
       withFeideId(maybeFeideToken)(feideId => exportUserDataAuthenticated(maybeFeideToken, feideId))
     }
 
@@ -312,7 +312,7 @@ trait FolderReadService {
       folderRepository.getAllFavorites(session)
     }
 
-    def getRecentFavorite(size: Option[Int], excludeResourceTypes: List[ResourceType]): Try[List[Resource]] = {
+    def getRecentFavorite(size: Option[Int], excludeResourceTypes: List[ResourceType]): Try[List[ResourceDTO]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       folderRepository.getRecentFavorited(size, excludeResourceTypes)(session) match {
         case Failure(ex)    => Failure(ex)
@@ -323,7 +323,7 @@ trait FolderReadService {
     def getFavouriteStatsForResource(
         resourceIds: List[String],
         resourceTypes: List[String]
-    ): Try[List[SingleResourceStats]] = {
+    ): Try[List[SingleResourceStatsDTO]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
 
       val result =
@@ -331,7 +331,7 @@ trait FolderReadService {
           val countList = resourceTypes.map(rt => {
             folderRepository.numberOfFavouritesForResource(id, rt).?
           })
-          SingleResourceStats(id, countList.sum)
+          SingleResourceStatsDTO(id, countList.sum)
 
         })
 
@@ -341,11 +341,11 @@ trait FolderReadService {
     private def exportUserDataAuthenticated(
         maybeFeideAccessToken: Option[FeideAccessToken],
         feideId: FeideID
-    ): Try[ExportedUserData] =
+    ): Try[ExportedUserDataDTO] =
       for {
         folders   <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, feideId)
         feideUser <- getFeideUserDataAuthenticated(feideId, maybeFeideAccessToken)
-      } yield api.ExportedUserData(
+      } yield api.ExportedUserDataDTO(
         userData = feideUser,
         folders = folders.folders
       )

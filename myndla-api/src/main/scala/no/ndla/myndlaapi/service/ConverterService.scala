@@ -8,7 +8,7 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.model.domain.myndla.MyNDLAUser
-import no.ndla.myndlaapi.model.api.ArenaUser
+import no.ndla.myndlaapi.model.api.ArenaUserDTO
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.{api, domain}
 
@@ -22,10 +22,10 @@ trait ConverterService {
         topicCount: Long,
         postCount: Long,
         isFollowing: Boolean,
-        subcategories: List[api.Category],
-        breadcrumbs: List[api.CategoryBreadcrumb]
-    ): api.Category = {
-      api.Category(
+        subcategories: List[api.CategoryDTO],
+        breadcrumbs: List[api.CategoryBreadcrumbDTO]
+    ): api.CategoryDTO = {
+      api.CategoryDTO(
         id = category.id,
         title = category.title,
         description = category.description,
@@ -41,8 +41,8 @@ trait ConverterService {
       )
     }
 
-    def toApiTopic(compiledTopic: CompiledTopic): api.Topic = {
-      api.Topic(
+    def toApiTopic(compiledTopic: CompiledTopic): api.TopicDTO = {
+      api.TopicDTO(
         id = compiledTopic.topic.id,
         title = compiledTopic.topic.title,
         created = compiledTopic.topic.created,
@@ -60,17 +60,17 @@ trait ConverterService {
         compiledTopic: CompiledTopic,
         page: Long,
         pageSize: Long,
-        posts: List[api.Post]
-    ): api.TopicWithPosts = {
+        posts: List[api.PostDTO]
+    ): api.TopicWithPostsDTO = {
 
-      val pagination = api.PaginatedPosts(
+      val pagination = api.PaginatedPostsDTO(
         page = page,
         pageSize = pageSize,
         totalCount = compiledTopic.postCount,
         items = posts
       )
 
-      api.TopicWithPosts(
+      api.TopicWithPostsDTO(
         id = compiledTopic.topic.id,
         title = compiledTopic.topic.title,
         created = compiledTopic.topic.created,
@@ -85,12 +85,12 @@ trait ConverterService {
       )
     }
 
-    def toApiFlag(flag: CompiledFlag): api.Flag = {
-      api.Flag(
+    def toApiFlag(flag: CompiledFlag): api.FlagDTO = {
+      api.FlagDTO(
         id = flag.flag.id,
         reason = flag.flag.reason,
         created = flag.flag.created,
-        flagger = flag.flagger.map(ArenaUser.from),
+        flagger = flag.flagger.map(ArenaUserDTO.from),
         resolved = flag.flag.resolved,
         isResolved = flag.flag.resolved.isDefined
       )
@@ -99,16 +99,16 @@ trait ConverterService {
     def toApiPost(
         compiledPost: CompiledPost,
         requester: MyNDLAUser,
-        replies: List[api.Post]
-    ): api.Post = {
+        replies: List[api.PostDTO]
+    ): api.PostDTO = {
       val maybeFlags = Option.when(requester.isAdmin)(compiledPost.flags.map(toApiFlag))
 
-      api.Post(
+      api.PostDTO(
         id = compiledPost.post.id,
         content = compiledPost.post.content,
         created = compiledPost.post.created,
         updated = compiledPost.post.updated,
-        owner = compiledPost.owner.map(ArenaUser.from),
+        owner = compiledPost.owner.map(ArenaUserDTO.from),
         flags = maybeFlags,
         topicId = compiledPost.post.topic_id,
         replies = replies,

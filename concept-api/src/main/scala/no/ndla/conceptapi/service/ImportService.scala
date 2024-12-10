@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.integration.ArticleApiClient
-import no.ndla.conceptapi.model.api.ConceptImportResults
+import no.ndla.conceptapi.model.api.ConceptImportResultsDTO
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -22,7 +22,7 @@ trait ImportService {
 
   class ImportService extends StrictLogging {
 
-    def importConcepts(forceUpdate: Boolean, user: TokenUser): Try[ConceptImportResults] = {
+    def importConcepts(forceUpdate: Boolean, user: TokenUser): Try[ConceptImportResultsDTO] = {
       val start      = System.currentTimeMillis()
       val pageStream = articleApiClient.getChunks(user)
       pageStream
@@ -48,7 +48,7 @@ trait ImportService {
 
       val usedTime = System.currentTimeMillis() - startTime
       logger.info(s"Successfully saved $totalSaved out of $totalAttempted attempted imported concepts in $usedTime ms.")
-      ConceptImportResults(totalSaved, totalAttempted, allWarnings)
+      ConceptImportResultsDTO(totalSaved, totalAttempted, allWarnings)
     }
 
   }

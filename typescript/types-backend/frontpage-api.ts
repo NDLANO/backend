@@ -1,19 +1,19 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export interface IAboutFilmSubject {
+export interface IAboutFilmSubjectDTO {
   title: string
   description: string
-  visualElement: IVisualElement
+  visualElement: IVisualElementDTO
   language: string
 }
 
-export interface IAboutSubject {
+export interface IAboutSubjectDTO {
   title: string
   description: string
-  visualElement: IVisualElement
+  visualElement: IVisualElementDTO
 }
 
-export interface IBannerImage {
+export interface IBannerImageDTO {
   mobileUrl?: string
   mobileId?: number
   desktopUrl: string
@@ -27,95 +27,95 @@ export interface IErrorBody {
   statusCode: number
 }
 
-export interface IFilmFrontPageData {
+export interface IFilmFrontPageDataDTO {
   name: string
-  about: IAboutFilmSubject[]
-  movieThemes: IMovieTheme[]
+  about: IAboutFilmSubjectDTO[]
+  movieThemes: IMovieThemeDTO[]
   slideShow: string[]
   article?: string
 }
 
-export interface IFrontPage {
+export interface IFrontPageDTO {
   articleId: number
-  menu: IMenu[]
+  menu: IMenuDTO[]
 }
 
-export interface IMenu {
+export interface IMenuDTO {
   articleId: number
-  menu: IMenuData[]
+  menu: IMenuDataDTO[]
   hideLevel?: boolean
 }
 
-export type IMenuData = IMenu
+export type IMenuDataDTO = IMenuDTO
 
-export interface IMovieTheme {
-  name: IMovieThemeName[]
+export interface IMovieThemeDTO {
+  name: IMovieThemeNameDTO[]
   movies: string[]
 }
 
-export interface IMovieThemeName {
+export interface IMovieThemeNameDTO {
   name: string
   language: string
 }
 
-export interface INewOrUpdateBannerImage {
+export interface INewOrUpdateBannerImageDTO {
   mobileImageId?: number
   desktopImageId: number
 }
 
-export interface INewOrUpdatedAboutSubject {
+export interface INewOrUpdatedAboutSubjectDTO {
   title: string
   description: string
   language: string
-  visualElement: INewOrUpdatedVisualElement
+  visualElement: INewOrUpdatedVisualElementDTO
 }
 
-export interface INewOrUpdatedFilmFrontPageData {
+export interface INewOrUpdatedFilmFrontPageDataDTO {
   name: string
-  about: INewOrUpdatedAboutSubject[]
-  movieThemes: INewOrUpdatedMovieTheme[]
+  about: INewOrUpdatedAboutSubjectDTO[]
+  movieThemes: INewOrUpdatedMovieThemeDTO[]
   slideShow: string[]
   article?: string
 }
 
-export interface INewOrUpdatedMetaDescription {
+export interface INewOrUpdatedMetaDescriptionDTO {
   metaDescription: string
   language: string
 }
 
-export interface INewOrUpdatedMovieName {
+export interface INewOrUpdatedMovieNameDTO {
   name: string
   language: string
 }
 
-export interface INewOrUpdatedMovieTheme {
-  name: INewOrUpdatedMovieName[]
+export interface INewOrUpdatedMovieThemeDTO {
+  name: INewOrUpdatedMovieNameDTO[]
   movies: string[]
 }
 
-export interface INewOrUpdatedVisualElement {
+export interface INewOrUpdatedVisualElementDTO {
   type: string
   id: string
   alt?: string
 }
 
-export interface INewSubjectFrontPageData {
+export interface INewSubjectFrontPageDataDTO {
   name: string
   externalId?: string
-  banner: INewOrUpdateBannerImage
-  about: INewOrUpdatedAboutSubject[]
-  metaDescription: INewOrUpdatedMetaDescription[]
+  banner: INewOrUpdateBannerImageDTO
+  about: INewOrUpdatedAboutSubjectDTO[]
+  metaDescription: INewOrUpdatedMetaDescriptionDTO[]
   editorsChoices?: string[]
   connectedTo?: string[]
   buildsOn?: string[]
   leadsTo?: string[]
 }
 
-export interface ISubjectPageData {
+export interface ISubjectPageDataDTO {
   id: number
   name: string
-  banner: IBannerImage
-  about?: IAboutSubject
+  banner: IBannerImageDTO
+  about?: IAboutSubjectDTO
   metaDescription?: string
   editorsChoices: string[]
   supportedLanguages: string[]
@@ -124,19 +124,19 @@ export interface ISubjectPageData {
   leadsTo: string[]
 }
 
-export interface IUpdatedSubjectFrontPageData {
+export interface IUpdatedSubjectFrontPageDataDTO {
   name?: string
   externalId?: string
-  banner?: INewOrUpdateBannerImage
-  about?: INewOrUpdatedAboutSubject[]
-  metaDescription?: INewOrUpdatedMetaDescription[]
+  banner?: INewOrUpdateBannerImageDTO
+  about?: INewOrUpdatedAboutSubjectDTO[]
+  metaDescription?: INewOrUpdatedMetaDescriptionDTO[]
   editorsChoices?: string[]
   connectedTo?: string[]
   buildsOn?: string[]
   leadsTo?: string[]
 }
 
-export interface IVisualElement {
+export interface IVisualElementDTO {
   type: string
   url: string
   alt?: string

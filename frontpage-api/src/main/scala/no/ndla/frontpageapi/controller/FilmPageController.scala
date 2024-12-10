@@ -30,7 +30,7 @@ trait FilmPageController {
       endpoint.get
         .summary("Get data to display on the film front page")
         .in(query[Option[String]]("language"))
-        .out(jsonBody[FilmFrontPageData])
+        .out(jsonBody[FilmFrontPageDataDTO])
         .errorOut(errorOutputsFor(404))
         .serverLogicPure { language =>
           readService.filmFrontPage(language) match {
@@ -41,8 +41,8 @@ trait FilmPageController {
       endpoint.post
         .summary("Update film front page")
         .errorOut(errorOutputsFor(400, 401, 403, 404, 422))
-        .in(jsonBody[NewOrUpdatedFilmFrontPageData])
-        .out(jsonBody[FilmFrontPageData])
+        .in(jsonBody[NewOrUpdatedFilmFrontPageDataDTO])
+        .out(jsonBody[FilmFrontPageDataDTO])
         .requirePermission(FRONTPAGE_API_WRITE)
         .serverLogicPure { _ => filmFrontPage =>
           writeService.updateFilmFrontPage(filmFrontPage).partialOverride { case ex: ValidationException =>

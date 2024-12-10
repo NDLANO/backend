@@ -21,11 +21,16 @@ import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import no.ndla.searchapi.controller.parameters.{DraftSearchParams, GrepSearchInput, SearchParams, SubjectAggsInput}
+import no.ndla.searchapi.controller.parameters.{
+  DraftSearchParamsDTO,
+  GrepSearchInputDTO,
+  SearchParamsDTO,
+  SubjectAggsInputDTO
+}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.SearchApiClient
-import no.ndla.searchapi.model.api.grep.GrepSearchResults
-import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResult, MultiSearchResult, SubjectAggregations}
+import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
+import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResultDTO, MultiSearchResultDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -169,8 +174,8 @@ trait SearchController {
       .summary("List subjects with aggregated data about their contents")
       .description("List subjects with aggregated data about their contents")
       .in("subjects")
-      .in(jsonBody[SubjectAggsInput])
-      .out(jsonBody[SubjectAggregations])
+      .in(jsonBody[SubjectAggsInputDTO])
+      .out(jsonBody[SubjectAggregationsDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => input =>
@@ -202,7 +207,7 @@ trait SearchController {
       .in(embedId)
       .in(filterInactive)
       .in(feideHeader)
-      .out(jsonBody[Seq[GroupSearchResult]])
+      .out(jsonBody[Seq[GroupSearchResultDTO]])
       .errorOut(errorOutputsFor(401, 403))
       .serverLogicPure {
         case (
@@ -263,7 +268,7 @@ trait SearchController {
           }
       }
 
-    private def searchInGroup(group: String, settings: SearchSettings): Try[GroupSearchResult] = {
+    private def searchInGroup(group: String, settings: SearchSettings): Try[GroupSearchResultDTO] = {
       multiSearchService
         .matchingQuery(settings)
         .map(res => searchConverterService.toApiGroupMultiSearchResult(group, res))
@@ -275,7 +280,7 @@ trait SearchController {
     private def groupSearch(
         settings: SearchSettings,
         includeMissingResourceTypeGroup: Boolean
-    ): Either[AllErrors, Seq[GroupSearchResult]] = {
+    ): Either[AllErrors, Seq[GroupSearchResultDTO]] = {
       val numMissingRtThreads = if (includeMissingResourceTypeGroup) 1 else 0
       val numGroups           = settings.resourceTypes.size + settings.learningResourceTypes.size + numMissingRtThreads
       if (numGroups >= 1) {
@@ -342,8 +347,8 @@ trait SearchController {
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollWithOr[T <: SearchService](scrollId: Option[String], language: String, scroller: T)(
-        orFunction: => Try[(MultiSearchResult, DynamicHeaders)]
-    ): Try[(MultiSearchResult, DynamicHeaders)] = {
+        orFunction: => Try[(MultiSearchResultDTO, DynamicHeaders)]
+    ): Try[(MultiSearchResultDTO, DynamicHeaders)] = {
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           for {
@@ -359,7 +364,7 @@ trait SearchController {
       .summary("Find learning resources")
       .description("Shows all learning resources. You can search too.")
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[MultiSearchResult])
+      .out(jsonBody[MultiSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .in(pageNo)
       .in(pageSize)
@@ -452,9 +457,9 @@ trait SearchController {
       .summary("Find learning resources")
       .description("Shows all learning resources. You can search too.")
       .errorOut(errorOutputsFor(400))
-      .out(jsonBody[MultiSearchResult])
+      .out(jsonBody[MultiSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
-      .in(jsonBody[Option[SearchParams]].schema(SearchParams.schema.asOption))
+      .in(jsonBody[Option[SearchParamsDTO]].schema(SearchParamsDTO.schema.asOption))
       .in(feideHeader)
       .serverLogicPure { case (searchParams, feideToken) =>
         getAvailability(feideToken)
@@ -520,14 +525,14 @@ trait SearchController {
       .in("editorial")
       .in(queryParams)
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[MultiSearchResult])
+      .out(jsonBody[MultiSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure {
         _ =>
           { implicit queryParams =>
             val searchParams = Some(
-              DraftSearchParams(
+              DraftSearchParamsDTO(
                 page = intParamOrNone("page"),
                 pageSize = intParamOrNone("page-size"),
                 articleTypes = stringListParam("article-types").some,
@@ -580,9 +585,9 @@ trait SearchController {
       .summary("Find draft learning resources")
       .description("Shows all draft learning resources. You can search too.")
       .in("editorial")
-      .in(jsonBody[Option[DraftSearchParams]].schema(DraftSearchParams.schema.asOption))
+      .in(jsonBody[Option[DraftSearchParamsDTO]].schema(DraftSearchParamsDTO.schema.asOption))
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[MultiSearchResult])
+      .out(jsonBody[MultiSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => searchParams =>
@@ -600,8 +605,8 @@ trait SearchController {
       .summary("Search for grep codes")
       .description("Search for grep codes")
       .in("grep")
-      .in(jsonBody[GrepSearchInput])
-      .out(jsonBody[GrepSearchResults])
+      .in(jsonBody[GrepSearchInputDTO])
+      .out(jsonBody[GrepSearchResultsDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => input => grepSearchService.searchGreps(input) }
@@ -628,7 +633,7 @@ trait SearchController {
       }
     }
 
-    def asSettings(p: Option[SearchParams], availability: List[Availability]): SearchSettings = {
+    def asSettings(p: Option[SearchParamsDTO], availability: List[Availability]): SearchSettings = {
       p match {
         case None => SearchSettings.default
         case Some(params) =>
@@ -662,7 +667,7 @@ trait SearchController {
 
     }
 
-    def asDraftSettings(p: Option[DraftSearchParams]): MultiDraftSearchSettings = {
+    def asDraftSettings(p: Option[DraftSearchParamsDTO]): MultiDraftSearchSettings = {
       p match {
         case None => MultiDraftSearchSettings.default
         case Some(params) =>

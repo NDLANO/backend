@@ -8,7 +8,7 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.config.{ConfigMeta, ConfigMetaValue}
+import no.ndla.common.model.api.config.{ConfigMetaDTO, ConfigMetaValueDTO}
 import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.myndlaapi.TestData.{adminAndWriteScopeClientToken, adminScopeClientToken}
 import no.ndla.myndlaapi.TestEnvironment
@@ -25,10 +25,10 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
   val controller: ConfigController = new ConfigController()
 
   test("That updating config returns 200 if all is good") {
-    when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValue], any[TokenUser]))
+    when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValueDTO], any[TokenUser]))
       .thenReturn(
         Success(
-          ConfigMeta(
+          ConfigMetaDTO(
             ConfigKey.LearningpathWriteRestricted.entryName,
             Left(true),
             NDLADate.now(),

@@ -36,19 +36,19 @@ trait SeriesSearchService {
     with ErrorHandling =>
   val seriesSearchService: SeriesSearchService
 
-  class SeriesSearchService extends StrictLogging with SearchService[api.SeriesSummary] {
+  class SeriesSearchService extends StrictLogging with SearchService[api.SeriesSummaryDTO] {
     import props._
 
     override val searchIndex: String = SeriesSearchIndex
 
-    override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummary] = {
+    override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummaryDTO] = {
       for {
         searchable <- CirceUtil.tryParseAs[SearchableSeries](hitString)
         result     <- searchConverterService.asSeriesSummary(searchable, language)
       } yield result
     }
 
-    def matchingQuery(settings: SeriesSearchSettings): Try[domain.SearchResult[api.SeriesSummary]] = {
+    def matchingQuery(settings: SeriesSearchSettings): Try[domain.SearchResult[api.SeriesSummaryDTO]] = {
 
       val fullSearch = settings.query.emptySomeToNone match {
         case Some(query) =>
@@ -79,7 +79,7 @@ trait SeriesSearchService {
     def executeSearch(
         settings: SeriesSearchSettings,
         queryBuilder: BoolQuery
-    ): Try[domain.SearchResult[api.SeriesSummary]] = {
+    ): Try[domain.SearchResult[api.SeriesSummaryDTO]] = {
 
       val (languageFilter, searchLanguage) = settings.language match {
         case None | Some(AllLanguages) => (None, "*")

@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.{Tag, Title, concept}
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, ConceptType, VisualElement}
 import no.ndla.conceptapi.integration.model.TaxonomyData
-import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
+import no.ndla.conceptapi.model.api.{ConceptResponsibleDTO, ConceptSearchResultDTO, SubjectTagsDTO}
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.*
 import no.ndla.conceptapi.model.api
@@ -123,7 +123,7 @@ trait SearchConverterService {
       )
     }
 
-    def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummary = {
+    def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummaryDTO = {
       val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hitString)
       val titles            = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
       val contents          = searchableConcept.content.languageValues.map(lv => ConceptContent(lv.value, lv.language))
@@ -135,20 +135,20 @@ trait SearchConverterService {
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiConceptTitle)
-        .getOrElse(api.ConceptTitle("", UnknownLanguage.toString()))
+        .getOrElse(api.ConceptTitleDTO("", UnknownLanguage.toString()))
       val content = findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
         .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString()))
       val metaImage = findByLanguageOrBestEffort(searchableConcept.metaImage, language)
         .map(converterService.toApiMetaImage)
-        .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage.toString()))
+        .getOrElse(api.ConceptMetaImageDTO("", "", UnknownLanguage.toString()))
       val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
       val visualElement =
         findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
       val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
       val license    = converterService.toApiLicense(searchableConcept.license)
       val copyright = searchableConcept.copyright.map(c => {
-        commonApi.DraftCopyright(
+        commonApi.DraftCopyrightDTO(
           license = Some(license),
           origin = c.origin,
           creators = c.creators.map(_.toApi),
@@ -160,14 +160,14 @@ trait SearchConverterService {
         )
       })
 
-      val responsible = searchableConcept.responsible.map(r => ConceptResponsible(r.responsibleId, r.lastUpdated))
+      val responsible = searchableConcept.responsible.map(r => ConceptResponsibleDTO(r.responsibleId, r.lastUpdated))
       val glossData   = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
       val subjectName = searchableConcept.sortableSubject.getLanguageOrDefault(language)
       val conceptTypeName = searchableConcept.sortableConceptType
         .getLanguageOrDefault(language)
         .getOrElse(searchableConcept.conceptType)
 
-      api.ConceptSummary(
+      api.ConceptSummaryDTO(
         id = searchableConcept.id,
         title = title,
         content = content,
@@ -192,12 +192,12 @@ trait SearchConverterService {
       )
     }
 
-    def groupSubjectTagsByLanguage(subjectId: String, tags: List[api.ConceptTags]): List[SubjectTags] =
+    def groupSubjectTagsByLanguage(subjectId: String, tags: List[api.ConceptTagsDTO]): List[SubjectTagsDTO] =
       tags
         .groupBy(_.language)
         .map { case (lang, conceptTags) =>
           val tagsForLang = conceptTags.flatMap(_.tags).distinct
-          api.SubjectTags(subjectId, tagsForLang, lang)
+          api.SubjectTagsDTO(subjectId, tagsForLang, lang)
         }
         .toList
 
@@ -235,8 +235,8 @@ trait SearchConverterService {
       }
     }
 
-    def asApiConceptSearchResult(searchResult: SearchResult[api.ConceptSummary]): ConceptSearchResult =
-      api.ConceptSearchResult(
+    def asApiConceptSearchResult(searchResult: SearchResult[api.ConceptSummaryDTO]): ConceptSearchResultDTO =
+      api.ConceptSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
@@ -245,8 +245,8 @@ trait SearchConverterService {
         searchResult.aggregations.map(toApiMultiTermsAggregation)
       )
 
-    def toApiStatus(status: Status): api.Status = {
-      api.Status(
+    def toApiStatus(status: Status): api.StatusDTO = {
+      api.StatusDTO(
         current = status.current,
         other = status.other
       )

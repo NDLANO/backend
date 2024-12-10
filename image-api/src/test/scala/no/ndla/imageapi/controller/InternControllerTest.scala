@@ -12,7 +12,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.imageapi.model.api
-import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
+import no.ndla.imageapi.model.api.{ImageAltTextDTO, ImageCaptionDTO, ImageTagDTO, ImageTitleDTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
@@ -31,16 +31,16 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   val updated: NDLADate       = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val BySa: LicenseDefinition = getLicense(CC_BY.toString).get
 
-  val DefaultApiImageMetaInformation: api.ImageMetaInformationV2 = api.ImageMetaInformationV2(
+  val DefaultApiImageMetaInformation: api.ImageMetaInformationV2DTO = api.ImageMetaInformationV2DTO(
     "1",
     s"${props.ImageApiV2UrlBase}1",
-    ImageTitle("", "nb"),
-    ImageAltText("", "nb"),
+    ImageTitleDTO("", "nb"),
+    ImageAltTextDTO("", "nb"),
     s"${props.RawImageUrlBase}/test.jpg",
     0,
     "",
-    commonApi.Copyright(
-      commonApi.License(BySa.license.toString, Some(BySa.description), BySa.url),
+    commonApi.CopyrightDTO(
+      commonApi.LicenseDTO(BySa.license.toString, Some(BySa.description), BySa.url),
       None,
       List(),
       List(),
@@ -49,8 +49,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       None,
       false
     ),
-    ImageTag(Seq.empty, "nb"),
-    ImageCaption("", "nb"),
+    ImageTagDTO(Seq.empty, "nb"),
+    ImageCaptionDTO("", "nb"),
     Seq("und"),
     updated,
     "ndla124",
@@ -119,7 +119,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val res = simpleHttpClient
       .send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123"))
     res.code.code should be(200)
-    CirceUtil.unsafeParseAs[api.ImageMetaInformationV2](res.body) should equal(DefaultApiImageMetaInformation)
+    CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body) should equal(DefaultApiImageMetaInformation)
   }
 
   test("That DELETE /index removes all indexes") {

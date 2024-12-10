@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField, Te
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
-import no.ndla.search.api.{MultiSearchTermsAggregation, TermValue}
+import no.ndla.search.api.{MultiSearchTermsAggregationDTO, TermValueDTO}
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 
 import scala.annotation.tailrec
@@ -143,13 +143,13 @@ object AggregationBuilder {
     }
   }
 
-  def toApiMultiTermsAggregation(agg: TermAggregation): MultiSearchTermsAggregation =
-    MultiSearchTermsAggregation(
+  def toApiMultiTermsAggregation(agg: TermAggregation): MultiSearchTermsAggregationDTO =
+    MultiSearchTermsAggregationDTO(
       field = agg.field.mkString("."),
       sumOtherDocCount = agg.sumOtherDocCount,
       docCountErrorUpperBound = agg.docCountErrorUpperBound,
       values = agg.buckets.map(b =>
-        TermValue(
+        TermValueDTO(
           value = b.value,
           count = b.count
         )

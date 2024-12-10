@@ -71,7 +71,7 @@ object TestData {
     resourceId = "1"
   )
 
-  val emptyApiFolder: api.Folder = api.Folder(
+  val emptyApiFolder: api.FolderDTO = api.FolderDTO(
     id = "",
     name = "",
     status = "",

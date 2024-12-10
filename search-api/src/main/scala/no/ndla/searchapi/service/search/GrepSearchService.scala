@@ -23,10 +23,10 @@ import no.ndla.language.model.Iso639
 import no.ndla.search.model.LanguageValue
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.controller.parameters.GrepSearchInput
-import no.ndla.searchapi.model.api.Title
-import no.ndla.searchapi.model.api.grep.GrepSort.*
-import no.ndla.searchapi.model.api.grep.{GrepResult, GrepSearchResults, GrepSort}
+import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
+import no.ndla.searchapi.model.api.TitleDTO
+import no.ndla.searchapi.model.api.grep.GrepSortDTO.*
+import no.ndla.searchapi.model.api.grep.{GrepResultDTO, GrepSearchResultsDTO, GrepSortDTO}
 import no.ndla.searchapi.model.search.{SearchType, SearchableGrepElement}
 
 import scala.util.{Success, Try}
@@ -40,7 +40,7 @@ trait GrepSearchService {
     override val searchIndex: List[String]             = List(SearchType.Grep).map(SearchIndex)
     override val indexServices: List[BaseIndexService] = List(grepIndexService)
 
-    def grepSortDefinition(maybeSort: Option[GrepSort], language: String): FieldSort = maybeSort match {
+    def grepSortDefinition(maybeSort: Option[GrepSortDTO], language: String): FieldSort = maybeSort match {
       case Some(ByRelevanceAsc)         => sortField("_score", Asc, missingLast = false)
       case Some(ByRelevanceDesc) | None => sortField("_score", Desc, missingLast = false)
       case Some(ByTitleAsc)             => defaultSort("defaultTitle", "title", Asc, language)
@@ -49,7 +49,7 @@ trait GrepSearchService {
       case Some(ByCodeDesc)             => sortField("code", Desc, missingLast = false)
     }
 
-    protected def buildQuery(input: GrepSearchInput, searchLanguage: String): Query = {
+    protected def buildQuery(input: GrepSearchInputDTO, searchLanguage: String): Query = {
       val query = input.query
         .map { q =>
           val langQueryFunc = (fieldName: String, boost: Double) =>
@@ -80,18 +80,18 @@ trait GrepSearchService {
       query.filter(getFilters(input))
     }
 
-    private def getFilters(input: GrepSearchInput): List[Query] =
+    private def getFilters(input: GrepSearchInputDTO): List[Query] =
       List(
         idsFilter(input),
         prefixFilter(input)
       ).flatten
 
-    private def idsFilter(input: GrepSearchInput): Option[Query] = input.codes match {
+    private def idsFilter(input: GrepSearchInputDTO): Option[Query] = input.codes match {
       case Some(ids) if ids.nonEmpty => termsQuery("code", ids).some
       case _                         => None
     }
 
-    private def prefixFilter(input: GrepSearchInput): Option[Query] = input.prefixFilter match {
+    private def prefixFilter(input: GrepSearchInputDTO): Option[Query] = input.prefixFilter match {
       case Some(prefixes) if prefixes.nonEmpty =>
         Some(
           boolQuery().should(
@@ -101,7 +101,7 @@ trait GrepSearchService {
       case _ => None
     }
 
-    def searchGreps(input: GrepSearchInput): Try[GrepSearchResults] = {
+    def searchGreps(input: GrepSearchInputDTO): Try[GrepSearchResultsDTO] = {
       val searchLanguage = input.language match {
         case Some(lang) if Iso639.get(lang).isSuccess => lang
         case _                                        => AllLanguages
@@ -122,7 +122,7 @@ trait GrepSearchService {
 
       e4sClient.execute(searchToExecute).flatMap { response =>
         getGrepHits(response, searchLanguage).map { results =>
-          GrepSearchResults(
+          GrepSearchResultsDTO(
             totalCount = response.result.totalHits,
             page = pagination.page,
             pageSize = searchPageSize,
@@ -133,22 +133,22 @@ trait GrepSearchService {
       }
     }
 
-    def hitToResult(hit: SearchHit, language: String): Try[GrepResult] = {
+    def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
       val jsonString = hit.sourceAsString
       val searchable = CirceUtil.tryParseAs[SearchableGrepElement](jsonString).?
       val titleLv = findByLanguageOrBestEffort(searchable.title.languageValues, language)
         .getOrElse(LanguageValue(Language.DefaultLanguage, ""))
-      val title = Title(title = titleLv.value, language = titleLv.language)
+      val title = TitleDTO(title = titleLv.value, language = titleLv.language)
 
       Success(
-        GrepResult(
+        GrepResultDTO(
           code = searchable.code,
           title = title
         )
       )
     }
 
-    def getGrepHits(response: RequestSuccess[SearchResponse], language: String): Try[List[GrepResult]] = {
+    def getGrepHits(response: RequestSuccess[SearchResponse], language: String): Try[List[GrepResultDTO]] = {
       response.result.hits.hits.toList.traverse { hit => hitToResult(hit, language) }
     }
   }

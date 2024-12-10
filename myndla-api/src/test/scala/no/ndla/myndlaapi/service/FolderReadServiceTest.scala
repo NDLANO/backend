@@ -15,7 +15,7 @@ import no.ndla.myndlaapi.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomai
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
-import no.ndla.myndlaapi.model.api.{Folder, Owner, ResourceStats}
+import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO, ResourceStatsDTO}
 import no.ndla.myndlaapi.model.domain.Resource
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -109,14 +109,14 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       connection = None
     )
 
-    val expected = Folder(
+    val expected = FolderDTO(
       id = mainFolderUUID.toString,
       name = "mainFolder",
       status = "private",
-      breadcrumbs = List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")),
+      breadcrumbs = List(api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder")),
       parentId = None,
       resources = List(
-        api.Resource(
+        api.ResourceDTO(
           id = resource1UUID.toString,
           resourceType = ResourceType.Article,
           tags = List.empty,
@@ -127,15 +127,15 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       subfolders = List(
-        api.Folder(
+        api.FolderDTO(
           id = subFolder1UUID.toString,
           name = "subFolder1",
           status = "private",
           subfolders = List.empty,
           resources = List.empty,
           breadcrumbs = List(
-            api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
-            api.Breadcrumb(id = subFolder1UUID.toString, name = "subFolder1")
+            api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
+            api.BreadcrumbDTO(id = subFolder1UUID.toString, name = "subFolder1")
           ),
           parentId = Some(mainFolderUUID.toString),
           rank = 1,
@@ -145,15 +145,15 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
           description = None,
           owner = None
         ),
-        api.Folder(
+        api.FolderDTO(
           id = subFolder2UUID.toString,
           name = "subFolder2",
           status = "private",
           resources = List.empty,
           subfolders = List.empty,
           breadcrumbs = List(
-            api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
-            api.Breadcrumb(id = subFolder2UUID.toString, name = "subFolder2")
+            api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
+            api.BreadcrumbDTO(id = subFolder2UUID.toString, name = "subFolder2")
           ),
           parentId = Some(mainFolderUUID.toString),
           rank = 1,
@@ -225,7 +225,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         id = favoriteUUID.toString,
         name = "favorite",
         status = "private",
-        breadcrumbs = List(api.Breadcrumb(id = favoriteUUID.toString, name = "favorite"))
+        breadcrumbs = List(api.BreadcrumbDTO(id = favoriteUUID.toString, name = "favorite"))
       )
 
     when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
@@ -252,7 +252,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         id = favoriteUUID.toString,
         name = "favorite",
         status = "private",
-        breadcrumbs = List(api.Breadcrumb(id = favoriteUUID.toString, name = "favorite"))
+        breadcrumbs = List(api.BreadcrumbDTO(id = favoriteUUID.toString, name = "favorite"))
       )
 
     val user               = emptyMyNDLAUser.copy(id = 1996, shareName = true, displayName = "hallois")
@@ -264,8 +264,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       id = folderId.toString,
       name = "SharedFolder",
       status = "shared",
-      breadcrumbs = List(api.Breadcrumb(id = folderId.toString, name = "SharedFolder")),
-      owner = Some(Owner(name = user.displayName))
+      breadcrumbs = List(api.BreadcrumbDTO(id = folderId.toString, name = "SharedFolder")),
+      owner = Some(OwnerDTO(name = user.displayName))
     )
 
     when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
@@ -330,7 +330,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         id = folderUUID.toString,
         name = "",
         status = "shared",
-        breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
+        breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID.toString, name = ""))
       )
 
     when(
@@ -376,8 +376,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         id = folderUUID.toString,
         name = "",
         status = "shared",
-        breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = "")),
-        owner = Some(Owner("Feide"))
+        breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID.toString, name = "")),
+        owner = Some(OwnerDTO("Feide"))
       )
 
     when(
@@ -417,14 +417,14 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       .thenReturn(List((1, "article"), (2, "learningpath"), (3, "video")))
 
     service.getStats.get should be(
-      api.Stats(
+      api.StatsDTO(
         5,
         10,
         20,
         10,
         15,
         5,
-        List(ResourceStats("article", 1), ResourceStats("learningpath", 2), ResourceStats("video", 3)),
+        List(ResourceStatsDTO("article", 1), ResourceStatsDTO("learningpath", 2), ResourceStatsDTO("video", 3)),
         Map("article" -> 1, "learningpath" -> 2, "video" -> 3)
       )
     )
@@ -439,7 +439,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         id = folderUUID.toString,
         name = "",
         status = "private",
-        breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
+        breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID.toString, name = ""))
       )
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
@@ -478,7 +478,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       resources = List(resource)
     )
 
-    val apiResource = api.Resource(
+    val apiResource = api.ResourceDTO(
       id = resourceUUID.toString,
       resourceType = ResourceType.Article,
       path = "/path",
@@ -491,7 +491,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       id = folderUUID.toString,
       name = "",
       status = "shared",
-      breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = "")),
+      breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID.toString, name = "")),
       resources = List(apiResource)
     )
 

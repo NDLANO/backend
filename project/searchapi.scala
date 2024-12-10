@@ -27,24 +27,23 @@ object searchapi extends Module {
       "no.ndla.searchapi.controller.parameters._"
     ),
     exports = Seq(
-      "ApiTaxonomyContext",
-      "ArticleResult",
-      "AudioResult",
-      "GroupSearchResult",
-      "ImageResult",
-      "LearningpathResult",
-      "MultiSearchResult",
-      "ArticleResults",
-      "AudioResults",
-      "ImageResults",
-      "LearningpathResults",
-      "SearchError",
-      "SearchParams",
-      "DraftSearchParams",
-      "SubjectAggregations",
-      "SubjectAggsInput",
-      "GrepSearchInput",
-      "grep.GrepSearchResults"
+      "ApiTaxonomyContextDTO",
+      "ArticleResultDTO",
+      "AudioResultDTO",
+      "GroupSearchResultDTO",
+      "ImageResultDTO",
+      "LearningpathResultDTO",
+      "MultiSearchResultDTO",
+      "ArticleResultsDTO",
+      "AudioResultsDTO",
+      "ImageResultsDTO",
+      "LearningpathResultsDTO",
+      "SearchParamsDTO",
+      "DraftSearchParamsDTO",
+      "SubjectAggregationsDTO",
+      "SubjectAggsInputDTO",
+      "GrepSearchInputDTO",
+      "grep.GrepSearchResultsDTO"
     )
   )
 

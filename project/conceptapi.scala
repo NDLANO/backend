@@ -28,16 +28,15 @@ object conceptapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq("no.ndla.conceptapi.model.api._", "no.ndla.conceptapi.model.api.TSTypes._"),
     exports = Seq(
-      "Concept",
-      "ConceptSearchParams",
-      "ConceptSearchResult",
-      "ConceptSummary",
-      "DraftConceptSearchParams",
-      "NewConcept",
-      "SubjectTags",
-      "TagsSearchResult",
-      "UpdatedConcept",
-      "ValidationError"
+      "ConceptDTO",
+      "ConceptSearchParamsDTO",
+      "ConceptSearchResultDTO",
+      "ConceptSummaryDTO",
+      "DraftConceptSearchParamsDTO",
+      "NewConceptDTO",
+      "SubjectTagsDTO",
+      "TagsSearchResultDTO",
+      "UpdatedConceptDTO"
     )
   )
 

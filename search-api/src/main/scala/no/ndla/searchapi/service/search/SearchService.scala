@@ -25,10 +25,10 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaSearchException, S
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{
   ErrorHandling,
-  MultiSearchSuggestion,
-  MultiSearchSummary,
-  SearchSuggestion,
-  SuggestOption
+  MultiSearchSuggestionDTO,
+  MultiSearchSummaryDTO,
+  SearchSuggestionDTO,
+  SuggestOptionDTO
 }
 import no.ndla.searchapi.model.domain.Sort.*
 import no.ndla.searchapi.model.domain.*
@@ -55,7 +55,7 @@ trait SearchService {
       * @return
       *   api-model summary of hit
       */
-    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSearchSummary] = {
+    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSearchSummaryDTO] = {
       val indexName = hit.index.split("_").headOption.traverse(x => props.indexToSearchType(x))
       indexName.flatMap {
         case Some(SearchType.Articles) =>
@@ -143,7 +143,7 @@ trait SearchService {
         response: SearchResponse,
         language: String,
         filterInactive: Boolean
-    ): Try[Seq[MultiSearchSummary]] = {
+    ): Try[Seq[MultiSearchSummaryDTO]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
@@ -181,15 +181,15 @@ trait SearchService {
         .text(query)
     }
 
-    protected def getSuggestions(response: SearchResponse): Seq[MultiSearchSuggestion] = {
+    protected def getSuggestions(response: SearchResponse): Seq[MultiSearchSuggestionDTO] = {
       response.suggestions.map { case (key, value) =>
-        MultiSearchSuggestion(name = key, suggestions = getSuggestion(value))
+        MultiSearchSuggestionDTO(name = key, suggestions = getSuggestion(value))
       }.toSeq
     }
 
-    private def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestion] = {
+    private def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestionDTO] = {
       results.map(result =>
-        SearchSuggestion(
+        SearchSuggestionDTO(
           text = result.text,
           offset = result.offset,
           length = result.length,
@@ -198,10 +198,10 @@ trait SearchService {
       )
     }
 
-    private def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOption = {
+    private def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOptionDTO = {
       val text  = optionsMap.getOrElse("text", "")
       val score = optionsMap.getOrElse("score", 1)
-      SuggestOption(
+      SuggestOptionDTO(
         text.asInstanceOf[String],
         score.asInstanceOf[Double]
       )

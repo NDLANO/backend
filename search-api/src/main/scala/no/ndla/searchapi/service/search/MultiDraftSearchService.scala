@@ -23,7 +23,7 @@ import no.ndla.language.model.Iso639
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.{ErrorHandling, SubjectAggregation, SubjectAggregations}
+import no.ndla.searchapi.model.api.{ErrorHandling, SubjectAggregationDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
@@ -69,12 +69,12 @@ trait MultiDraftSearchService {
       }
     }
 
-    def aggregateSubjects(subjects: List[String]): Try[SubjectAggregations] = {
+    def aggregateSubjects(subjects: List[String]): Try[SubjectAggregationsDTO] = {
       val fiveYearsAgo        = NDLADate.now().minusYears(5)
       val inOneYear           = NDLADate.now().plusYears(1)
       val flowExcludeStatuses = List(DraftStatus.ARCHIVED, DraftStatus.PUBLISHED, DraftStatus.UNPUBLISHED)
       val flowStatuses        = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
-      def aggregateSubject(subjectId: String): Try[SubjectAggregation] = for {
+      def aggregateSubject(subjectId: String): Try[SubjectAggregationDTO] = for {
         old <- filteredCountSearch(
           MultiDraftSearchSettings.default.copy(
             subjects = List(subjectId),
@@ -100,7 +100,7 @@ trait MultiDraftSearchService {
           )
         )
         favorited <- aggregateFavorites(subjectId)
-      } yield SubjectAggregation(
+      } yield SubjectAggregationDTO(
         subjectId = subjectId,
         publishedArticleCount = publishedArticles,
         oldArticleCount = old,
@@ -111,7 +111,7 @@ trait MultiDraftSearchService {
 
       subjects
         .traverse(subjectId => aggregateSubject(subjectId))
-        .map(aggregations => SubjectAggregations(aggregations))
+        .map(aggregations => SubjectAggregationsDTO(aggregations))
     }
 
     private def getSearchIndexes(settings: MultiDraftSearchSettings): Try[List[String]] = {

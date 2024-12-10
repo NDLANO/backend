@@ -54,8 +54,8 @@ trait PublishedConceptController {
     )
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(
-        orFunction: => Try[(ConceptSearchResult, DynamicHeaders)]
-    ): Try[(ConceptSearchResult, DynamicHeaders)] =
+        orFunction: => Try[(ConceptSearchResultDTO, DynamicHeaders)]
+    ): Try[(ConceptSearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           publishedConceptSearchService.scroll(scroll, language) match {
@@ -124,7 +124,7 @@ trait PublishedConceptController {
       .in(pathConceptId)
       .in(language)
       .in(fallback)
-      .out(jsonBody[Concept])
+      .out(jsonBody[ConceptDTO])
       .errorOut(errorOutputsFor(404))
       .withOptionalUser
       .serverLogicPure { user =>
@@ -151,7 +151,7 @@ trait PublishedConceptController {
       .in(embedId)
       .in(conceptType)
       .in(aggregatePaths)
-      .out(jsonBody[ConceptSearchResult])
+      .out(jsonBody[ConceptSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure {
@@ -200,8 +200,8 @@ trait PublishedConceptController {
       .summary("Show all concepts")
       .description("Shows all concepts. You can search it too.")
       .in("search")
-      .in(jsonBody[ConceptSearchParams])
-      .out(jsonBody[ConceptSearchResult])
+      .in(jsonBody[ConceptSearchParamsDTO])
+      .out(jsonBody[ConceptSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { searchParams =>
@@ -262,7 +262,7 @@ trait PublishedConceptController {
       .out(
         oneOf[TagOutput](
           oneOfVariant[SomeTagList](
-            statusCode(StatusCode.Ok).and(jsonBody[List[SubjectTags]]).map(x => SomeTagList(x))(x => x.list)
+            statusCode(StatusCode.Ok).and(jsonBody[List[SubjectTagsDTO]]).map(x => SomeTagList(x))(x => x.list)
           ),
           oneOfDefaultVariant[SomeStringList](
             statusCode(StatusCode.Ok).and(jsonBody[List[String]]).map(x => SomeStringList(x))(x => x.list)

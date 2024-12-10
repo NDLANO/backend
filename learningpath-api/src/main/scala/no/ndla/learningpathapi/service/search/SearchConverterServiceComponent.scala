@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep, Ste
 import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.*
-import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
+import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2DTO, SearchResultV2DTO}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.*
 import no.ndla.learningpathapi.service.ConverterService
@@ -32,27 +32,27 @@ trait SearchConverterServiceComponent {
     def asApiLearningPathSummaryV2(
         searchableLearningPath: SearchableLearningPath,
         language: String
-    ): LearningPathSummaryV2 = {
-      val titles = searchableLearningPath.titles.languageValues.map(lv => api.Title(lv.value, lv.language))
+    ): LearningPathSummaryV2DTO = {
+      val titles = searchableLearningPath.titles.languageValues.map(lv => api.TitleDTO(lv.value, lv.language))
       val descriptions =
-        searchableLearningPath.descriptions.languageValues.map(lv => api.Description(lv.value, lv.language))
+        searchableLearningPath.descriptions.languageValues.map(lv => api.DescriptionDTO(lv.value, lv.language))
       val introductions =
         searchableLearningPath.learningsteps.find(_.stepType == StepType.INTRODUCTION.toString) match {
-          case Some(step) => step.descriptions.languageValues.map(lv => api.Introduction(lv.value, lv.language))
+          case Some(step) => step.descriptions.languageValues.map(lv => api.IntroductionDTO(lv.value, lv.language))
           case _          => Seq.empty
         }
-      val tags = searchableLearningPath.tags.languageValues.map(lv => api.LearningPathTags(lv.value, lv.language))
+      val tags = searchableLearningPath.tags.languageValues.map(lv => api.LearningPathTagsDTO(lv.value, lv.language))
       val supportedLanguages = getSupportedLanguages(titles, descriptions, introductions, tags)
 
-      LearningPathSummaryV2(
+      LearningPathSummaryV2DTO(
         searchableLearningPath.id,
         revision = None,
         findByLanguageOrBestEffort(titles, language)
-          .getOrElse(api.Title("", DefaultLanguage)),
+          .getOrElse(api.TitleDTO("", DefaultLanguage)),
         findByLanguageOrBestEffort(descriptions, language)
-          .getOrElse(api.Description("", DefaultLanguage)),
+          .getOrElse(api.DescriptionDTO("", DefaultLanguage)),
         findByLanguageOrBestEffort(introductions, language)
-          .getOrElse(api.Introduction("", DefaultLanguage)),
+          .getOrElse(api.IntroductionDTO("", DefaultLanguage)),
         createUrlToLearningPath(searchableLearningPath.id),
         searchableLearningPath.coverPhotoUrl,
         searchableLearningPath.duration,
@@ -60,7 +60,7 @@ trait SearchConverterServiceComponent {
         searchableLearningPath.created,
         searchableLearningPath.lastUpdated,
         findByLanguageOrBestEffort(tags, language)
-          .getOrElse(api.LearningPathTags(Seq(), DefaultLanguage)),
+          .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage)),
         searchableLearningPath.copyright,
         supportedLanguages,
         searchableLearningPath.isBasedOn,
@@ -138,8 +138,8 @@ trait SearchConverterServiceComponent {
       }
     }
 
-    def asApiSearchResult(searchResult: SearchResult): SearchResultV2 =
-      SearchResultV2(
+    def asApiSearchResult(searchResult: SearchResult): SearchResultV2DTO =
+      SearchResultV2DTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,

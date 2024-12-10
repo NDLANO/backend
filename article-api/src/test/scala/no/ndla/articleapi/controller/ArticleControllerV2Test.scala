@@ -127,12 +127,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   test("That scrollId is in header, and not in body") {
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[api.ArticleSummaryV2](
+    val searchResponse = SearchResult[api.ArticleSummaryV2DTO](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[api.ArticleSummaryV2],
+      Seq.empty[api.ArticleSummaryV2DTO],
       Some(scrollId)
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
@@ -154,12 +154,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[api.ArticleSummaryV2](
+    val searchResponse = SearchResult[api.ArticleSummaryV2DTO](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[api.ArticleSummaryV2],
+      Seq.empty[api.ArticleSummaryV2DTO],
       Some(scrollId)
     )
 
@@ -180,12 +180,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     reset(articleSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[api.ArticleSummaryV2](
+    val searchResponse = SearchResult[api.ArticleSummaryV2DTO](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[api.ArticleSummaryV2],
+      Seq.empty[api.ArticleSummaryV2DTO],
       Some(scrollId)
     )
 
@@ -220,7 +220,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   test("That initial search-context doesn't scroll") {
     reset(articleSearchService, readService)
 
-    val result = SearchResult[api.ArticleSummaryV2](
+    val result = SearchResult[api.ArticleSummaryV2DTO](
       totalCount = 0,
       page = None,
       pageSize = 10,

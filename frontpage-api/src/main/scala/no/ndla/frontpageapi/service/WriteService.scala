@@ -7,7 +7,7 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.common.model.api.FrontPage
+import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.domain.Errors.{SubjectPageNotFoundException, ValidationException}
@@ -21,7 +21,7 @@ trait WriteService {
 
   class WriteService {
 
-    def newSubjectPage(subject: api.NewSubjectFrontPageData): Try[api.SubjectPageData] = {
+    def newSubjectPage(subject: api.NewSubjectFrontPageDataDTO): Try[api.SubjectPageDataDTO] = {
       for {
         convertedSubject <- ConverterService.toDomainSubjectPage(subject)
         subjectPage      <- subjectPageRepository.newSubjectPage(convertedSubject, subject.externalId.getOrElse(""))
@@ -31,9 +31,9 @@ trait WriteService {
 
     def updateSubjectPage(
         id: Long,
-        subject: api.NewSubjectFrontPageData,
+        subject: api.NewSubjectFrontPageDataDTO,
         language: String
-    ): Try[api.SubjectPageData] = {
+    ): Try[api.SubjectPageDataDTO] = {
       subjectPageRepository.exists(id) match {
         case Success(exists) if exists =>
           for {
@@ -49,10 +49,10 @@ trait WriteService {
 
     def updateSubjectPage(
         id: Long,
-        subject: api.UpdatedSubjectFrontPageData,
+        subject: api.UpdatedSubjectFrontPageDataDTO,
         language: String,
         fallback: Boolean
-    ): Try[api.SubjectPageData] = {
+    ): Try[api.SubjectPageDataDTO] = {
       subjectPageRepository.withId(id) match {
         case Failure(ex) => Failure(ex)
         case Success(Some(existingSubject)) =>
@@ -70,14 +70,14 @@ trait WriteService {
     }
 
     private def newFromUpdatedSubjectPage(
-        updatedSubjectPage: api.UpdatedSubjectFrontPageData
-    ): Option[api.NewSubjectFrontPageData] = {
+        updatedSubjectPage: api.UpdatedSubjectFrontPageDataDTO
+    ): Option[api.NewSubjectFrontPageDataDTO] = {
       for {
         name            <- updatedSubjectPage.name
         banner          <- updatedSubjectPage.banner
         about           <- updatedSubjectPage.about
         metaDescription <- updatedSubjectPage.metaDescription
-      } yield api.NewSubjectFrontPageData(
+      } yield api.NewSubjectFrontPageDataDTO(
         name = name,
         externalId = updatedSubjectPage.externalId,
         banner = banner,
@@ -90,7 +90,7 @@ trait WriteService {
       )
     }
 
-    def createFrontPage(page: FrontPage): Try[FrontPage] = {
+    def createFrontPage(page: FrontPageDTO): Try[FrontPageDTO] = {
       for {
         domainFrontpage <- Try(ConverterService.toDomainFrontPage(page))
         inserted        <- frontPageRepository.newFrontPage(domainFrontpage)
@@ -98,7 +98,7 @@ trait WriteService {
       } yield api
     }
 
-    def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageData): Try[api.FilmFrontPageData] = {
+    def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageDataDTO): Try[api.FilmFrontPageDataDTO] = {
       val domainFilmFrontPageT = ConverterService.toDomainFilmFrontPage(page)
       for {
         domainFilmFrontPage <- domainFilmFrontPageT

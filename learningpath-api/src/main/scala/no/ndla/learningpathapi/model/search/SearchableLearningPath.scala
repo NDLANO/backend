@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.learningpathapi.model.api.Copyright
+import no.ndla.learningpathapi.model.api.CopyrightDTO
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 case class SearchableLearningPath(
@@ -27,7 +27,7 @@ case class SearchableLearningPath(
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
     learningsteps: Seq[SearchableLearningStep],
-    copyright: Copyright,
+    copyright: CopyrightDTO,
     isBasedOn: Option[Long]
 )
 

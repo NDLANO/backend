@@ -17,7 +17,7 @@ import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.domain
-import no.ndla.myndlaapi.model.api.{Folder, FolderSortRequest, NewFolder, NewResource}
+import no.ndla.myndlaapi.model.api.{FolderDTO, FolderSortRequestDTO, NewFolderDTO, NewResourceDTO}
 import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, FolderResource, Resource, SavedSharedFolder}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -292,7 +292,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
     val newResource =
-      NewResource(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
+      NewResourceDTO(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
     val resource =
       Resource(
         id = resourceId,
@@ -344,7 +344,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       any
     )(any)
     verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(any)
-    verify(folderConverterService, times(0)).mergeResource(any, any[NewResource])
+    verify(folderConverterService, times(0)).mergeResource(any, any[NewResourceDTO])
     verify(folderRepository, times(0)).updateResource(any)(any)
   }
 
@@ -359,7 +359,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
     val newResource =
-      NewResource(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
+      NewResourceDTO(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
     val resource =
       Resource(
         id = resourceId,
@@ -499,7 +499,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   test("that folder is not created if depth limit is reached") {
     val feideId   = "FEIDE"
     val parentId  = UUID.randomUUID()
-    val newFolder = NewFolder(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
+    val newFolder = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
@@ -526,7 +526,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId   = "FEIDE"
     val folderId  = UUID.randomUUID()
     val parentId  = UUID.randomUUID()
-    val newFolder = NewFolder(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
+    val newFolder = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
     val domainFolder = domain.Folder(
       id = folderId,
       feideId = feideId,
@@ -542,7 +542,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       description = None,
       user = None
     )
-    val apiFolder = Folder(
+    val apiFolder = FolderDTO(
       id = folderId.toString,
       name = "asd",
       status = "private",
@@ -585,7 +585,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId   = "FEIDE"
     val folderId  = UUID.randomUUID()
     val parentId  = UUID.randomUUID()
-    val newFolder = NewFolder(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
+    val newFolder = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
     val domainFolder = domain.Folder(
       id = folderId,
       feideId = feideId,
@@ -646,7 +646,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
-    val updateFolder = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
+    val updateFolder = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
 
     val existingFolder = domain.Folder(
       id = folderId,
@@ -709,7 +709,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
-    val updateFolder = api.UpdatedFolder(name = None, status = Some("shared"), description = None)
+    val updateFolder = api.UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
 
     val existingFolder = domain.Folder(
       id = folderId,
@@ -742,7 +742,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       description = None,
       user = None
     )
-    val expectedFolder = api.Folder(
+    val expectedFolder = api.FolderDTO(
       id = folderId.toString,
       name = "noe unikt",
       status = "shared",
@@ -817,7 +817,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       feideId = feideId
     )
 
-    val sortRequest = FolderSortRequest(
+    val sortRequest = FolderSortRequestDTO(
       sortedIds = List(
         child1.id,
         child3.id,
@@ -851,7 +851,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("that changeStatusToSharedIfParentIsShared actually changes the status if parent is shared") {
     val newFolder =
-      NewFolder(
+      NewFolderDTO(
         name = "folder",
         parentId = Some("string"),
         status = Some(FolderStatus.PRIVATE.toString),
@@ -873,7 +873,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       user = None
     )
     val expectedFolder =
-      NewFolder(
+      NewFolderDTO(
         name = "folder",
         parentId = Some("string"),
         status = Some(FolderStatus.SHARED.toString),
@@ -887,7 +887,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("that changeStatusToSharedIfParentIsShared does not alter the status if during cloning or parent is None") {
     val newFolder =
-      NewFolder(
+      NewFolderDTO(
         name = "folder",
         parentId = Some("string"),
         status = Some(FolderStatus.PRIVATE.toString),
@@ -909,7 +909,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       user = None
     )
     val expectedFolder =
-      NewFolder(
+      NewFolderDTO(
         name = "folder",
         parentId = Some("string"),
         status = Some(FolderStatus.PRIVATE.toString),
@@ -966,7 +966,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
 
-    val updatedFolder   = api.UpdatedFolder(name = None, status = Some("shared"), description = None)
+    val updatedFolder   = api.UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
     val Failure(result) = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
     result.getMessage should be("You do not have necessary permissions to share folders.")
   }
@@ -978,7 +978,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
-    val updatedFolder   = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
+    val updatedFolder   = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
     val Failure(result) = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
     result.getMessage should be("You do not have write access while write restriction is active.")
   }
@@ -988,7 +988,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(false))
 
-    val updatedFolder = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
+    val updatedFolder = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
     val result        = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
     result.isSuccess should be(true)
   }
@@ -1000,8 +1000,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
-    val folderWithUpdatedName   = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
-    val folderWithUpdatedStatus = api.UpdatedFolder(name = None, status = Some("shared"), description = None)
+    val folderWithUpdatedName   = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
+    val folderWithUpdatedStatus = api.UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
     val result1 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedName)
     val result2 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedStatus)
     result1.isSuccess should be(true)
