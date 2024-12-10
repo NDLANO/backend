@@ -134,5 +134,9 @@ object Dependencies {
       "org.apache.httpcomponents" % "httpclient"    % "4.5.14",
       "org.yaml"                  % "snakeyaml"     % "2.0"
     )
+    lazy val jave: Seq[ModuleID] = Seq(
+      "ws.schild" % "jave-core"     % "3.5.0",
+      "ws.schild" % "jave-all-deps" % "3.5.0"
+    )
   }
 }
