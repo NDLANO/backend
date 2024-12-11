@@ -35,10 +35,12 @@ trait GrepIndexService {
 
     override def getMapping: MappingDefinition = {
       val fields = List(
-        keywordField("code").normalizer("lower")
+        keywordField("defaultTitle"),
+        keywordField("code").normalizer("lower"),
+        keywordField("laereplanCode").normalizer("lower")
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true)
 
+      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true)
       properties(fields).dynamicTemplates(dynamics)
     }
 
