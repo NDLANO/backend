@@ -49,6 +49,32 @@ trait GrepSearchService {
       case Some(ByCodeDesc)             => sortField("code", Desc, missingLast = false)
     }
 
+    protected def buildCodeQueries(query: String): Query = {
+      boolQuery().should(
+        List(
+          prefixQuery("code", query).boost(50),
+          matchQuery("code", query).boost(10),
+          termQuery("code", query).boost(100),
+          prefixQuery("laereplanCode", query).boost(50),
+          matchQuery("laereplanCode", query).boost(10),
+          termQuery("laereplanCode", query).boost(100)
+        )
+      )
+    }
+
+    protected def buildPartialPrefixQuery(query: String): List[Query] = {
+      query
+        .split(" ")
+        .slice(0, 10) // Limit to 10 prefixes for performance reasons
+        .flatMap { qp =>
+          List(
+            prefixQuery("laereplanCode", qp).boost(5),
+            prefixQuery("code", qp).boost(10)
+          )
+        }
+        .toList
+    }
+
     protected def buildQuery(input: GrepSearchInputDTO, searchLanguage: String): Query = {
       val query = input.query
         .map { q =>
@@ -62,19 +88,14 @@ trait GrepSearchService {
               searchDecompounded = true
             )
 
-          val codeQueries = boolQuery().should(
-            prefixQuery("code", q.underlying).boost(50),
-            matchQuery("code", q.underlying).boost(10),
-            termQuery("code", q.underlying).boost(100)
-          )
-          val titleQuery = langQueryFunc("title", 6)
-
-          val onlyCodeQuery = boolQuery()
-            .must(codeQueries)
-            .not(titleQuery)
+          val codeQueries          = buildCodeQueries(q.underlying)
+          val titleQuery           = langQueryFunc("title", 6)
+          val partialPrefixQueries = buildPartialPrefixQuery(q.underlying)
+          val onlyCodeQuery        = boolQuery().must(codeQueries).not(titleQuery)
 
           boolQuery()
-            .must(boolQuery().should(titleQuery, onlyCodeQuery))
+            .should(Seq(titleQuery, onlyCodeQuery) ++ partialPrefixQueries)
+            .minimumShouldMatch(1)
         }
         .getOrElse(boolQuery())
       query.filter(getFilters(input))
@@ -143,7 +164,8 @@ trait GrepSearchService {
       Success(
         GrepResultDTO(
           code = searchable.code,
-          title = title
+          title = title,
+          laereplanCode = searchable.laereplanCode
         )
       )
     }

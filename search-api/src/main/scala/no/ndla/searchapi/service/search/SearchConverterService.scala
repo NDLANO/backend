@@ -252,6 +252,10 @@ trait SearchConverterService {
     }
 
     def asSearchableGrep(grepElement: GrepElement): Try[SearchableGrepElement] = {
+      val laererplan = grepElement match {
+        case lp: BelongsToLaerePlan => Some(lp.tilhoerer_laereplan.kode)
+        case _                      => None
+      }
       val defaultTitle = grepElement.tittel.find(_.spraak == "default")
       val titles = grepElement.tittel.flatMap(gt => {
         ISO639.get6391CodeFor6392Code(gt.spraak) match {
@@ -265,12 +269,12 @@ trait SearchConverterService {
       })
 
       val title = SearchableLanguageValues.fromFields(titles.distinctBy(_.language))
-
       Success(
         SearchableGrepElement(
           code = grepElement.kode,
           title = title,
-          defaultTitle = defaultTitle.map(_.verdi)
+          defaultTitle = defaultTitle.map(_.verdi),
+          laereplanCode = laererplan
         )
       )
     }
