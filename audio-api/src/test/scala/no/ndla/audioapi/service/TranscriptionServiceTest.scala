@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.transcribe.model.{
   TranscriptionJobStatus
 }
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Success
 
 class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
   override val transcriptionService: TranscriptionService = new TranscriptionService
