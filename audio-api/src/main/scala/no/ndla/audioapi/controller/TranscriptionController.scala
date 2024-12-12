@@ -26,6 +26,7 @@ trait TranscriptionController {
       .description("Extracts audio from a Brightcove video and uploads it to S3.")
       .in(videoId)
       .in(language)
+      .in("extract-audio")
       .errorOut(errorOutputsFor(400, 500))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
@@ -42,6 +43,7 @@ trait TranscriptionController {
       .description("Get the status of the audio extraction from a Brightcove video.")
       .in(videoId)
       .in(language)
+      .in("extract-audio")
       .errorOut(errorOutputsFor(400, 500))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
@@ -53,7 +55,57 @@ trait TranscriptionController {
         }
       }
 
-    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(postExtractAudio, getAudioExtraction)
+    def postTranscription: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Transcribe video")
+      .description("Transcribes a video to a specific language, and uploads the transcription to S3.")
+      .in(videoId)
+      .in(language)
+      .errorOut(errorOutputsFor(400, 500))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (videoId, language) =>
+          transcriptionService.transcribeVideo(videoId, language) match {
+            case Success(_)  => Right(())
+            case Failure(ex) => returnLeftError(ex)
+          }
+        }
+      }
+
+    def getTranscription: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Get transcription")
+      .description("Get the transcription of a video.")
+      .in(videoId)
+      .in(language)
+      .errorOut(errorOutputsFor(400, 404, 500))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (videoId, language) =>
+          transcriptionService.getTranscription(videoId, language) match {
+            case Success(_)                          => Right(())
+            case Failure(ex: NoSuchElementException) => returnLeftError(ex)
+            case Failure(ex)                         => returnLeftError(ex)
+          }
+        }
+      }
+
+    /*def postTranscriptionFormatting: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Format transcription")
+      .description("Formats a transcription to a specific format.")
+      .in(videoId)
+      .in(language)
+      .errorOut(errorOutputsFor(400, 500))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (videoId, language) =>
+          transcriptionService.formatTranscription(videoId, language) match {
+            case Success(_)  => Right(())
+            case Failure(ex) => returnLeftError(ex)
+          }
+        }
+      }*/
+
+    override val endpoints: List[ServerEndpoint[Any, Eff]] =
+      List(postExtractAudio, getAudioExtraction, postTranscription, getTranscription)
   }
 
 }

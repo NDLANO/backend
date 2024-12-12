@@ -1,7 +1,8 @@
 package no.ndla.audioapi.service
 
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.common.aws.NdlaS3Client
+import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
 import no.ndla.common.brightcove.NdlaBrightcoveClient
 import sttp.client3.{HttpURLConnectionBackend, UriContext, asFile, basicRequest}
 import ws.schild.jave.{Encoder, MultimediaObject}
@@ -11,11 +12,50 @@ import java.io.File
 import scala.util.{Failure, Success, Try}
 
 trait TranscriptionService {
-  this: NdlaS3Client & Props & NdlaBrightcoveClient =>
+  this: NdlaS3Client & Props & NdlaBrightcoveClient & NdlaAWSTranscribeClient =>
   val transcriptionService: TranscriptionService
   val s3TranscribeClient: NdlaS3Client
 
-  class TranscriptionService {
+  class TranscriptionService extends StrictLogging {
+
+    def transcribeVideo(videoId: String, language: String): Try[Unit] = {
+      getAudioExtractionStatus(videoId, language) match {
+        case Success(_) =>
+          logger.info(s"Audio already extracted for videoId: $videoId")
+        case Failure(_) =>
+          logger.info(s"Audio extraction required for videoId: $videoId")
+          extractAudioFromVideo(videoId, language) match {
+            case Success(_) =>
+              logger.info(s"Audio extracted for videoId: $videoId")
+            case Failure(exception) =>
+              return Failure(new RuntimeException(s"Failed to extract audio for videoId: $videoId", exception))
+
+          }
+      }
+
+      val audioUri = s"s3://${props.TranscribeStorageName}/audio/$language/$videoId.mp3"
+      logger.info(s"Transcribing audio from: $audioUri")
+      val jobName      = s"transcription-$videoId-$language"
+      val mediaFormat  = "mp3"
+      val languageCode = language
+
+      transcribeClient.startTranscriptionJob(jobName, audioUri, mediaFormat, languageCode) match {
+        case Success(_) =>
+          logger.info(s"Transcription job started for videoId: $videoId")
+          Success(())
+        case Failure(exception) =>
+          Failure(new RuntimeException(s"Failed to start transcription for videoId: $videoId", exception))
+      }
+    }
+
+    def getTranscription(videoId: String, language: String): Try[String] = {
+      val jobName = s"transcription-$videoId-$language"
+
+      transcribeClient.getTranscriptionJob(jobName).map { transcriptionJobResponse =>
+        val transcriptionJobStatus = transcriptionJobResponse.transcriptionJob().transcriptionJobStatus()
+        transcriptionJobStatus.toString
+      }
+    }
 
     def extractAudioFromVideo(videoId: String, language: String): Try[Unit] = {
       val accountId = props.BrightcoveAccountId
@@ -42,10 +82,16 @@ trait TranscriptionService {
         encoder.encode(new MultimediaObject(videoFile), audioFile, encodingAttributes)
       } match {
         case Success(_) =>
-          val s3Key = s"/audio/$language/${videoId}.mp3"
+          logger.info("dasjhkdaidashjdas")
+          val s3Key = s"audio/$language/$videoId.mp3"
+          logger.info(s"Uploading audio file to S3: $s3Key")
           s3TranscribeClient.putObject(s3Key, audioFile, "audio/mpeg") match {
             case Success(_) =>
-              s3TranscribeClient.deleteObject(videoFile.getName).map(_ => ())
+              logger.info(s"Audio file uploaded to S3: $s3Key")
+              for {
+                _ <- Try(audioFile.delete())
+                _ <- Try(videoFile.delete())
+              } yield ()
             case Failure(ex) =>
               Failure(new RuntimeException(s"Failed to upload audio file to S3.", ex))
           }
