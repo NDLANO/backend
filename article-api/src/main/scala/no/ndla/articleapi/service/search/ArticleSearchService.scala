@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHandling}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ErrorHandling}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
@@ -34,16 +34,16 @@ trait ArticleSearchService {
 
   import props.*
 
-  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryV2] {
+  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryV2DTO] {
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = ArticleSearchIndex
 
-    override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2 = {
+    override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2DTO = {
       converterService.hitAsArticleSummaryV2(hit, language)
     }
 
-    def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
+    def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2DTO]] = {
       val fullQuery = settings.query.emptySomeToNone match {
         case Some(query) =>
           val language      = if (settings.fallback) "*" else settings.language
@@ -70,7 +70,7 @@ trait ArticleSearchService {
       executeSearch(fullQuery, settings)
     }
 
-    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
+    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[ArticleSummaryV2DTO]] = {
 
       val articleTypesFilter =
         if (settings.articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", settings.articleTypes)))
@@ -138,7 +138,7 @@ trait ArticleSearchService {
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             Success(
-              SearchResult[ArticleSummaryV2](
+              SearchResult[ArticleSummaryV2DTO](
                 response.result.totalHits,
                 Some(settings.page),
                 numResults,

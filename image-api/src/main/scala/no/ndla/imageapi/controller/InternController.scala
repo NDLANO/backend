@@ -10,7 +10,7 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.imageapi.model.api.{ErrorHandling, ImageMetaDomainDump, ImageMetaInformationV2}
+import no.ndla.imageapi.model.api.{ErrorHandling, ImageMetaDomainDumpDTO, ImageMetaInformationV2DTO}
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
@@ -114,7 +114,7 @@ trait InternController {
     def getExternImageId: ServerEndpoint[Any, Eff] = endpoint.get
       .in("extern" / path[String]("image_id"))
       .in(query[Option[String]]("language"))
-      .out(jsonBody[ImageMetaInformationV2])
+      .out(jsonBody[ImageMetaInformationV2DTO])
       .errorOut(errorOutputsFor(404))
       .withOptionalUser
       .serverLogicPure { user =>
@@ -142,7 +142,7 @@ trait InternController {
       .in("dump" / "image")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(250))
-      .out(jsonBody[ImageMetaDomainDump])
+      .out(jsonBody[ImageMetaDomainDumpDTO])
       .serverLogicPure { case (page, pageSize) =>
         readService.getMetaImageDomainDump(page, pageSize).asRight
       }

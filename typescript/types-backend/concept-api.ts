@@ -19,32 +19,9 @@ export enum ConceptSortEnum {
   ByConceptTypeDesc = "-conceptType",
 }
 
-export interface IAuthor {
+export interface IAuthorDTO {
   type: string
   name: string
-}
-
-export interface IConcept {
-  id: number
-  revision: number
-  title: IConceptTitle
-  content?: IConceptContent
-  copyright?: IDraftCopyright
-  source?: string
-  metaImage?: IConceptMetaImage
-  tags?: IConceptTags
-  subjectIds?: string[]
-  created: string
-  updated: string
-  updatedBy?: string[]
-  supportedLanguages: string[]
-  articleIds: number[]
-  status: IStatus
-  visualElement?: IVisualElement
-  responsible?: IConceptResponsible
-  conceptType: string
-  glossData?: IGlossData
-  editorNotes?: IEditorNote[]
 }
 
 export interface IConceptContent {
@@ -53,18 +30,41 @@ export interface IConceptContent {
   language: string
 }
 
-export interface IConceptMetaImage {
+export interface IConceptDTO {
+  id: number
+  revision: number
+  title: IConceptTitleDTO
+  content?: IConceptContent
+  copyright?: IDraftCopyrightDTO
+  source?: string
+  metaImage?: IConceptMetaImageDTO
+  tags?: IConceptTagsDTO
+  subjectIds?: string[]
+  created: string
+  updated: string
+  updatedBy?: string[]
+  supportedLanguages: string[]
+  articleIds: number[]
+  status: IStatusDTO
+  visualElement?: IVisualElementDTO
+  responsible?: IConceptResponsibleDTO
+  conceptType: string
+  glossData?: IGlossDataDTO
+  editorNotes?: IEditorNoteDTO[]
+}
+
+export interface IConceptMetaImageDTO {
   url: string
   alt: string
   language: string
 }
 
-export interface IConceptResponsible {
+export interface IConceptResponsibleDTO {
   responsibleId: string
   lastUpdated: string
 }
 
-export interface IConceptSearchParams {
+export interface IConceptSearchParamsDTO {
   query?: string
   language?: string
   page?: number
@@ -82,50 +82,50 @@ export interface IConceptSearchParams {
   aggregatePaths?: string[]
 }
 
-export interface IConceptSearchResult {
+export interface IConceptSearchResultDTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: IConceptSummary[]
-  aggregations: IMultiSearchTermsAggregation[]
+  results: IConceptSummaryDTO[]
+  aggregations: IMultiSearchTermsAggregationDTO[]
 }
 
-export interface IConceptSummary {
+export interface IConceptSummaryDTO {
   id: number
-  title: IConceptTitle
+  title: IConceptTitleDTO
   content: IConceptContent
-  metaImage: IConceptMetaImage
-  tags?: IConceptTags
+  metaImage: IConceptMetaImageDTO
+  tags?: IConceptTagsDTO
   subjectIds?: string[]
   supportedLanguages: string[]
   lastUpdated: string
   created: string
-  status: IStatus
+  status: IStatusDTO
   updatedBy: string[]
   license?: string
-  copyright?: IDraftCopyright
-  visualElement?: IVisualElement
+  copyright?: IDraftCopyrightDTO
+  visualElement?: IVisualElementDTO
   articleIds: number[]
   source?: string
-  responsible?: IConceptResponsible
+  responsible?: IConceptResponsibleDTO
   conceptType: string
-  glossData?: IGlossData
+  glossData?: IGlossDataDTO
   subjectName?: string
   conceptTypeName: string
 }
 
-export interface IConceptTags {
+export interface IConceptTagsDTO {
   tags: string[]
   language: string
 }
 
-export interface IConceptTitle {
+export interface IConceptTitleDTO {
   title: string
   language: string
 }
 
-export interface IDraftConceptSearchParams {
+export interface IDraftConceptSearchParamsDTO {
   query?: string
   language?: string
   page?: number
@@ -145,83 +145,83 @@ export interface IDraftConceptSearchParams {
   aggregatePaths?: string[]
 }
 
-export interface IDraftCopyright {
-  license?: ILicense
+export interface IDraftCopyrightDTO {
+  license?: ILicenseDTO
   origin?: string
-  creators: IAuthor[]
-  processors: IAuthor[]
-  rightsholders: IAuthor[]
+  creators: IAuthorDTO[]
+  processors: IAuthorDTO[]
+  rightsholders: IAuthorDTO[]
   validFrom?: string
   validTo?: string
   processed: boolean
 }
 
-export interface IEditorNote {
+export interface IEditorNoteDTO {
   note: string
   updatedBy: string
-  status: IStatus
+  status: IStatusDTO
   timestamp: string
 }
 
-export interface IGlossData {
+export interface IGlossDataDTO {
   gloss: string
   wordClass: string
   originalLanguage: string
   transcriptions: { [ key: string ]: string }
-  examples: IGlossExample[][]
+  examples: IGlossExampleDTO[][]
 }
 
-export interface IGlossExample {
+export interface IGlossExampleDTO {
   example: string
   language: string
   transcriptions: { [ key: string ]: string }
 }
 
-export interface ILicense {
+export interface ILicenseDTO {
   license: string
   description?: string
   url?: string
 }
 
-export interface IMultiSearchTermsAggregation {
+export interface IMultiSearchTermsAggregationDTO {
   field: string
   sumOtherDocCount: number
   docCountErrorUpperBound: number
-  values: ITermValue[]
+  values: ITermValueDTO[]
 }
 
-export interface INewConcept {
+export interface INewConceptDTO {
   language: string
   title: string
   content?: string
-  copyright?: IDraftCopyright
-  metaImage?: INewConceptMetaImage
+  copyright?: IDraftCopyrightDTO
+  metaImage?: INewConceptMetaImageDTO
   tags?: string[]
   subjectIds?: string[]
   articleIds?: number[]
   visualElement?: string
   responsibleId?: string
   conceptType: string
-  glossData?: IGlossData
+  glossData?: IGlossDataDTO
 }
 
-export interface INewConceptMetaImage {
+export interface INewConceptMetaImageDTO {
   id: string
   alt: string
 }
 
-export interface IStatus {
+export interface IStatusDTO {
   current: string
   other: string[]
 }
 
-export interface ISubjectTags {
+export interface ISubjectTagsDTO {
   subjectId: string
   tags: string[]
   language: string
 }
 
-export interface ITagsSearchResult {
+export interface ITagsSearchResultDTO {
   totalCount: number
   page: number
   pageSize: number
@@ -229,17 +229,17 @@ export interface ITagsSearchResult {
   results: string[]
 }
 
-export interface ITermValue {
+export interface ITermValueDTO {
   value: string
   count: number
 }
 
-export interface IUpdatedConcept {
+export interface IUpdatedConceptDTO {
   language: string
   title?: string
   content?: string
-  metaImage: UpdateOrDeleteNewConceptMetaImage
-  copyright?: IDraftCopyright
+  metaImage: UpdateOrDeleteNewConceptMetaImageDTO
+  copyright?: IDraftCopyrightDTO
   tags?: string[]
   subjectIds?: string[]
   articleIds?: number[]
@@ -247,28 +247,16 @@ export interface IUpdatedConcept {
   visualElement?: string
   responsibleId: UpdateOrDeleteString
   conceptType?: string
-  glossData?: IGlossData
+  glossData?: IGlossDataDTO
 }
 
-export interface IValidationError {
-  code: string
-  description: string
-  messages: IValidationMessage[]
-  occuredAt: string
-}
-
-export interface IValidationMessage {
-  field: string
-  message: string
-}
-
-export interface IVisualElement {
+export interface IVisualElementDTO {
   visualElement: string
   language: string
 }
 
 export type Sort = ConceptSortEnum
 
-export type UpdateOrDeleteNewConceptMetaImage = (null | undefined | INewConceptMetaImage)
+export type UpdateOrDeleteNewConceptMetaImageDTO = (null | undefined | INewConceptMetaImageDTO)
 
 export type UpdateOrDeleteString = (null | undefined | string)

@@ -9,14 +9,14 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ArticleSummaryV2
+import no.ndla.articleapi.model.api.ArticleSummaryV2DTO
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{FrontPage, Menu}
+import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -76,7 +76,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withId(1)).thenReturn(Some(toArticleRow(article)))
     when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
-    val expectedResult: Try[Cachable[api.ArticleV2]] = Cachable.yes(
+    val expectedResult: Try[Cachable[api.ArticleV2DTO]] = Cachable.yes(
       converterService.toApiArticleV2(
         article
           .copy(content = Seq(expectedArticleContent1), visualElement = Seq(VisualElement(visualElementAfter, "nb"))),
@@ -133,7 +133,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("search should use size of id-list as page-size if defined") {
-    val searchMock = mock[SearchResult[ArticleSummaryV2]]
+    val searchMock = mock[SearchResult[ArticleSummaryV2DTO]]
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new AccessDeniedException("not allowed")))
 
@@ -323,9 +323,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       published = date
     )
 
-    val frontPage = FrontPage(
+    val frontPage = FrontPageDTO(
       100,
-      List(Menu(1, List(Menu(2, List.empty, Some(true)), Menu(3, List.empty, Some(true))), Some(false)))
+      List(MenuDTO(1, List(MenuDTO(2, List.empty, Some(true)), MenuDTO(3, List.empty, Some(true))), Some(false)))
     )
 
     val rowOne   = Some(ArticleRow(1, 1, 1, Some("some-slug"), Some(parentArticle)))

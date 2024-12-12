@@ -1,98 +1,98 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export interface IAuthor {
+export interface IAuthorDTO {
   type: string
   name: string
 }
 
-export interface ICopyright {
-  license: ILicense
+export interface ICopyrightDTO {
+  license: ILicenseDTO
   origin?: string
-  creators: IAuthor[]
-  processors: IAuthor[]
-  rightsholders: IAuthor[]
+  creators: IAuthorDTO[]
+  processors: IAuthorDTO[]
+  rightsholders: IAuthorDTO[]
   validFrom?: string
   validTo?: string
   processed: boolean
 }
 
-export interface IEditorNote {
+export interface IEditorNoteDTO {
   timestamp: string
   updatedBy: string
   note: string
 }
 
-export interface IImage {
+export interface IImageAltTextDTO {
+  alttext: string
+  language: string
+}
+
+export interface IImageCaptionDTO {
+  caption: string
+  language: string
+}
+
+export interface IImageDTO {
   url: string
   size: number
   contentType: string
 }
 
-export interface IImageAltText {
-  alttext: string
-  language: string
-}
-
-export interface IImageCaption {
-  caption: string
-  language: string
-}
-
-export interface IImageDimensions {
+export interface IImageDimensionsDTO {
   width: number
   height: number
 }
 
-export interface IImageFile {
+export interface IImageFileDTO {
   fileName: string
   size: number
   contentType: string
   imageUrl: string
-  dimensions?: IImageDimensions
+  dimensions?: IImageDimensionsDTO
   language: string
 }
 
-export interface IImageMetaInformationV2 {
+export interface IImageMetaInformationV2DTO {
   id: string
   metaUrl: string
-  title: IImageTitle
-  alttext: IImageAltText
+  title: IImageTitleDTO
+  alttext: IImageAltTextDTO
   imageUrl: string
   size: number
   contentType: string
-  copyright: ICopyright
-  tags: IImageTag
-  caption: IImageCaption
+  copyright: ICopyrightDTO
+  tags: IImageTagDTO
+  caption: IImageCaptionDTO
   supportedLanguages: string[]
   created: string
   createdBy: string
   modelRelease: string
-  editorNotes?: IEditorNote[]
-  imageDimensions?: IImageDimensions
+  editorNotes?: IEditorNoteDTO[]
+  imageDimensions?: IImageDimensionsDTO
 }
 
-export interface IImageMetaInformationV3 {
+export interface IImageMetaInformationV3DTO {
   id: string
   metaUrl: string
-  title: IImageTitle
-  alttext: IImageAltText
-  copyright: ICopyright
-  tags: IImageTag
-  caption: IImageCaption
+  title: IImageTitleDTO
+  alttext: IImageAltTextDTO
+  copyright: ICopyrightDTO
+  tags: IImageTagDTO
+  caption: IImageCaptionDTO
   supportedLanguages: string[]
   created: string
   createdBy: string
   modelRelease: string
-  editorNotes?: IEditorNote[]
-  image: IImageFile
+  editorNotes?: IEditorNoteDTO[]
+  image: IImageFileDTO
 }
 
-export interface IImageMetaSummary {
+export interface IImageMetaSummaryDTO {
   id: string
-  title: IImageTitle
+  title: IImageTitleDTO
   contributors: string[]
-  altText: IImageAltText
-  caption: IImageCaption
+  altText: IImageAltTextDTO
+  caption: IImageCaptionDTO
   previewUrl: string
   metaUrl: string
   license: string
@@ -102,36 +102,36 @@ export interface IImageMetaSummary {
   lastUpdated: string
   fileSize: number
   contentType: string
-  imageDimensions?: IImageDimensions
+  imageDimensions?: IImageDimensionsDTO
 }
 
-export interface IImageTag {
+export interface IImageTagDTO {
   tags: string[]
   language: string
 }
 
-export interface IImageTitle {
+export interface IImageTitleDTO {
   title: string
   language: string
 }
 
-export interface ILicense {
+export interface ILicenseDTO {
   license: string
   description?: string
   url?: string
 }
 
-export interface INewImageMetaInformationV2 {
+export interface INewImageMetaInformationV2DTO {
   title: string
   alttext?: string
-  copyright: ICopyright
+  copyright: ICopyrightDTO
   tags: string[]
   caption: string
   language: string
   modelReleased?: string
 }
 
-export interface ISearchParams {
+export interface ISearchParamsDTO {
   query?: string
   license?: string
   language?: string
@@ -146,23 +146,23 @@ export interface ISearchParams {
   modelReleased?: string[]
 }
 
-export interface ISearchResult {
+export interface ISearchResultDTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: IImageMetaSummary[]
+  results: IImageMetaSummaryDTO[]
 }
 
-export interface ISearchResultV3 {
+export interface ISearchResultV3DTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: IImageMetaInformationV3[]
+  results: IImageMetaInformationV3DTO[]
 }
 
-export interface ITagsSearchResult {
+export interface ITagsSearchResultDTO {
   totalCount: number
   page: number
   pageSize: number
@@ -170,26 +170,14 @@ export interface ITagsSearchResult {
   results: string[]
 }
 
-export interface IUpdateImageMetaInformation {
+export interface IUpdateImageMetaInformationDTO {
   language: string
   title?: string
   alttext: UpdateOrDeleteString
-  copyright?: ICopyright
+  copyright?: ICopyrightDTO
   tags?: string[]
   caption?: string
   modelReleased?: string
-}
-
-export interface IValidationError {
-  code: string
-  description: string
-  messages: IValidationMessage[]
-  occurredAt: string
-}
-
-export interface IValidationMessage {
-  field: string
-  message: string
 }
 
 export enum ImageSortEnum {

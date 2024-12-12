@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.myndla.{MyNDLAGroup as ApiGroup, MyNDLAUser as ApiUser, UpdatedMyNDLAUser}
+import no.ndla.common.model.api.myndla.{MyNDLAGroupDTO, MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.TestData.emptyMyNDLAUser
 import no.ndla.myndlaapi.TestEnvironment
@@ -58,7 +58,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaGroups = List.empty
     )
     val updatedUserData =
-      UpdatedMyNDLAUser(
+      UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
         shareName = Some(true),
@@ -86,7 +86,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       shareName = true,
       arenaGroups = List.empty
     )
-    val expected = ApiUser(
+    val expected = MyNDLAUserDTO(
       id = 42,
       feideId = "feide",
       username = "example@email.com",
@@ -95,7 +95,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
+      groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
       shareName = true,
       arenaGroups = List.empty
@@ -120,7 +120,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   test("That updateUserData fails if user does not exist") {
     val feideId = "feide"
     val updatedUserData =
-      UpdatedMyNDLAUser(
+      UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
         shareName = None,
@@ -183,7 +183,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       shareName = false,
       arenaGroups = List.empty
     )
-    val apiUserData = ApiUser(
+    val apiUserData = MyNDLAUserDTO(
       id = 42,
       feideId = "feide",
       username = "example@email.com",
@@ -192,7 +192,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
+      groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false,
       arenaGroups = List.empty
@@ -257,7 +257,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       shareName = false,
       arenaGroups = List.empty
     )
-    val apiUserData = ApiUser(
+    val apiUserData = MyNDLAUserDTO(
       id = 42,
       feideId = "feide",
       username = "example@email.com",
@@ -266,7 +266,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
+      groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false,
       arenaGroups = List.empty
@@ -334,7 +334,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       eduPersonPrincipalName = "example@email.com",
       mail = Some(Seq("example@email.com"))
     )
-    val apiUserData = ApiUser(
+    val apiUserData = MyNDLAUserDTO(
       id = 42,
       feideId = "feide",
       username = "example@email.com",
@@ -343,7 +343,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       role = "student",
       organization = "oslo",
-      groups = Seq(ApiGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
+      groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       shareName = false,
       arenaGroups = List.empty

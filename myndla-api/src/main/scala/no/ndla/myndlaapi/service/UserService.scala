@@ -12,9 +12,9 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.myndla
-import no.ndla.common.model.api.myndla.UpdatedMyNDLAUser
+import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.myndlaapi.model.api.{ArenaUser, PaginatedArenaUsers}
+import no.ndla.myndlaapi.model.api.{ArenaUserDTO, PaginatedArenaUsersDTO}
 import no.ndla.myndlaapi.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
@@ -30,10 +30,10 @@ trait UserService {
   val userService: UserService
 
   class UserService {
-    def getArenaUserByUserName(username: String): Try[ArenaUser] = {
+    def getArenaUserByUserName(username: String): Try[ArenaUserDTO] = {
       userRepository.userWithUsername(username) match {
         case Failure(ex)         => Failure(ex)
-        case Success(Some(user)) => Success(ArenaUser.from(user))
+        case Success(Some(user)) => Success(ArenaUserDTO.from(user))
         case Success(None)       => Failure(NotFoundException(s"User with username '$username' was not found"))
       }
     }
@@ -48,12 +48,12 @@ trait UserService {
 
     def getArenaUsersPaginated(page: Long, pageSize: Long, filterTeachers: Boolean, query: Option[String])(
         session: DBSession = ReadOnlyAutoSession
-    ): Try[PaginatedArenaUsers] = {
+    ): Try[PaginatedArenaUsersDTO] = {
       val offset = (page - 1) * pageSize
       for {
         (totalCount, users) <- userRepository.getUsersPaginated(offset, pageSize, filterTeachers, query)(session)
-        arenaUsers = users.map(ArenaUser.from)
-      } yield PaginatedArenaUsers(totalCount, page, pageSize, arenaUsers)
+        arenaUsers = users.map(ArenaUserDTO.from)
+      } yield PaginatedArenaUsersDTO(totalCount, page, pageSize, arenaUsers)
     }
 
     def getMyNdlaUserDataDomain(
@@ -78,7 +78,7 @@ trait UserService {
       } yield user
     }
 
-    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[myndla.MyNDLAUser] = {
+    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[myndla.MyNDLAUserDTO] = {
       for {
         users    <- configService.getMyNDLAEnabledUsers
         userData <- getMyNdlaUserDataDomain(feideAccessToken, users)
@@ -105,22 +105,22 @@ trait UserService {
     }
 
     def updateMyNDLAUserData(
-        updatedUser: UpdatedMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUserDTO,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[myndla.MyNDLAUser] = {
+    ): Try[myndla.MyNDLAUserDTO] = {
       feideApiClient
         .getFeideID(feideAccessToken)
         .flatMap(feideId => updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(AutoSession))
     }
 
-    def importUser(userData: myndla.MyNDLAUser, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
-        session: DBSession
-    ): Try[myndla.MyNDLAUser] =
+    def importUser(userData: myndla.MyNDLAUserDTO, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(
+        implicit session: DBSession
+    ): Try[myndla.MyNDLAUserDTO] =
       for {
         existingUser <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
         newFavorites = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
         shareName    = existingUser.shareName || userData.shareName
-        updatedFeideUser = UpdatedMyNDLAUser(
+        updatedFeideUser = UpdatedMyNDLAUserDTO(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
           shareName = Some(shareName),
@@ -130,10 +130,10 @@ trait UserService {
       } yield updated
 
     private def updateFeideUserDataAuthenticated(
-        updatedUser: UpdatedMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUserDTO,
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    )(implicit session: DBSession): Try[myndla.MyNDLAUser] = {
+    )(implicit session: DBSession): Try[myndla.MyNDLAUserDTO] = {
       for {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
@@ -152,11 +152,11 @@ trait UserService {
     }
 
     def adminUpdateMyNDLAUserData(
-        updatedUser: UpdatedMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUserDTO,
         feideId: Option[String],
         updaterToken: Option[TokenUser],
         updaterMyNdla: Option[MyNDLAUser]
-    ): Try[myndla.MyNDLAUser] = {
+    ): Try[myndla.MyNDLAUserDTO] = {
       feideId match {
         case None => Failure(ValidationException("feideId", "You need to supply a feideId to update a user."))
         case Some(id) =>
@@ -179,9 +179,9 @@ trait UserService {
 
     def adminUpdateMyNDLAUserData(
         userId: Long,
-        updatedUser: UpdatedMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUserDTO,
         updaterMyNdla: MyNDLAUser
-    )(session: DBSession = AutoSession): Try[myndla.MyNDLAUser] = {
+    )(session: DBSession = AutoSession): Try[myndla.MyNDLAUserDTO] = {
       for {
         existing     <- userService.getUserById(userId)(session)
         enabledUsers <- configService.getMyNDLAEnabledUsers

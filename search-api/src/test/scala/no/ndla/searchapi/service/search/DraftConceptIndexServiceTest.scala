@@ -53,7 +53,7 @@ class DraftConceptIndexServiceTest
       tags = languageList,
       subjectIds = List("urn:subject:1"),
       lastUpdated = now,
-      draftStatus = api.Status("IN_PROGRESS", Seq("PUBLISHED")),
+      draftStatus = api.StatusDTO("IN_PROGRESS", Seq("PUBLISHED")),
       users = List("noen", "some-id"),
       updatedBy = Seq("noen"),
       license = Some("CC-BY-SA-4.0"),

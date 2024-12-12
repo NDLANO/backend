@@ -54,7 +54,7 @@ trait FileController {
       .summary("Uploads provided file")
       .description("Uploads provided file")
       .in(multipartBody[FileForm])
-      .out(jsonBody[api.UploadedFile])
+      .out(jsonBody[api.UploadedFileDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure {

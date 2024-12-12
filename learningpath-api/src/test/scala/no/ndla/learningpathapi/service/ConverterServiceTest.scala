@@ -23,7 +23,12 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
-import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
+import no.ndla.learningpathapi.model.api.{
+  CoverPhotoDTO,
+  NewCopyLearningPathV2DTO,
+  NewLearningPathV2DTO,
+  NewLearningStepV2DTO
+}
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
@@ -38,17 +43,17 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
-  val clinton: commonApi.Author = commonApi.Author("author", "Crooked Hillary")
-  val license: commonApi.License =
-    commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
-  val copyright: api.Copyright = api.Copyright(license, List(clinton))
+  val clinton: commonApi.AuthorDTO = commonApi.AuthorDTO("author", "Crooked Hillary")
+  val license: commonApi.LicenseDTO =
+    commonApi.LicenseDTO("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+  val copyright: api.CopyrightDTO = api.CopyrightDTO(license, List(clinton))
 
-  val apiLearningPath: api.LearningPathV2 = api.LearningPathV2(
+  val apiLearningPath: api.LearningPathV2DTO = api.LearningPathV2DTO(
     1,
     1,
     None,
-    api.Title("Tittel", "nb"),
-    api.Description("Beskrivelse", "nb"),
+    api.TitleDTO("Tittel", "nb"),
+    api.DescriptionDTO("Beskrivelse", "nb"),
     "",
     List(),
     "",
@@ -58,7 +63,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     "CREATED_BY_NDLA",
     NDLADate.now(),
     NDLADate.now(),
-    api.LearningPathTags(List(), "nb"),
+    api.LearningPathTagsDTO(List(), "nb"),
     copyright,
     true,
     List("nb"),
@@ -82,7 +87,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     StepType.INTRODUCTION,
     None
   )
-  val apiTags: List[api.LearningPathTags] = List(api.LearningPathTags(Seq("tag"), DefaultLanguage))
+  val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage))
 
   val randomDate: NDLADate      = NDLADate.now()
   var service: ConverterService = _
@@ -112,12 +117,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningpathV2 converts domain to api LearningPathV2") {
     val expected = Success(
-      api.LearningPathV2(
+      api.LearningPathV2DTO(
         1,
         1,
         None,
-        api.Title("tittel", DefaultLanguage),
-        api.Description("deskripsjon", DefaultLanguage),
+        api.TitleDTO("tittel", DefaultLanguage),
+        api.DescriptionDTO("deskripsjon", DefaultLanguage),
         "null1",
         List.empty,
         "null1/learningsteps",
@@ -127,9 +132,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         LearningPathVerificationStatus.CREATED_BY_NDLA.toString,
         randomDate,
         randomDate,
-        api.LearningPathTags(Seq("tag"), DefaultLanguage),
-        api.Copyright(
-          commonApi.License(
+        api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage),
+        api.CopyrightDTO(
+          commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -164,12 +169,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningpathV2 converts domain to api LearningPathV2 with fallback if true") {
     val expected = Success(
-      api.LearningPathV2(
+      api.LearningPathV2DTO(
         1,
         1,
         None,
-        api.Title("tittel", DefaultLanguage),
-        api.Description("deskripsjon", DefaultLanguage),
+        api.TitleDTO("tittel", DefaultLanguage),
+        api.DescriptionDTO("deskripsjon", DefaultLanguage),
         "null1",
         List.empty,
         "null1/learningsteps",
@@ -179,9 +184,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         LearningPathVerificationStatus.CREATED_BY_NDLA.toString,
         randomDate,
         randomDate,
-        api.LearningPathTags(Seq("tag"), DefaultLanguage),
-        api.Copyright(
-          commonApi.License(
+        api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage),
+        api.CopyrightDTO(
+          commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -205,21 +210,21 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningpathSummaryV2 converts domain to api LearningpathSummaryV2") {
     val expected = Success(
-      api.LearningPathSummaryV2(
+      api.LearningPathSummaryV2DTO(
         1,
         Some(1),
-        api.Title("tittel", DefaultLanguage),
-        api.Description("deskripsjon", DefaultLanguage),
-        api.Introduction("", DefaultLanguage),
+        api.TitleDTO("tittel", DefaultLanguage),
+        api.DescriptionDTO("deskripsjon", DefaultLanguage),
+        api.IntroductionDTO("", DefaultLanguage),
         "null1",
         None,
         Some(60),
         LearningPathStatus.PRIVATE.toString,
         randomDate,
         randomDate,
-        api.LearningPathTags(Seq("tag"), DefaultLanguage),
-        api.Copyright(
-          commonApi.License(
+        api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage),
+        api.CopyrightDTO(
+          commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
             Some("https://creativecommons.org/licenses/by/4.0/")
@@ -239,13 +244,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningStepV2 converts domain learningstep to api LearningStepV2") {
     val learningstep = Success(
-      api.LearningStepV2(
+      api.LearningStepV2DTO(
         1,
         1,
         1,
-        api.Title("tittel", DefaultLanguage),
+        api.TitleDTO("tittel", DefaultLanguage),
         None,
-        Some(api.Description("deskripsjon", DefaultLanguage)),
+        Some(api.DescriptionDTO("deskripsjon", DefaultLanguage)),
         None,
         showTitle = false,
         "INTRODUCTION",
@@ -285,13 +290,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     "asApiLearningStepV2 converts domain learningstep to api LearningStepV2 if fallback is true and language undefined"
   ) {
     val learningstep = Success(
-      api.LearningStepV2(
+      api.LearningStepV2DTO(
         1,
         1,
         1,
-        api.Title("tittel", DefaultLanguage),
+        api.TitleDTO("tittel", DefaultLanguage),
         None,
-        Some(api.Description("deskripsjon", DefaultLanguage)),
+        Some(api.DescriptionDTO("deskripsjon", DefaultLanguage)),
         None,
         showTitle = false,
         "INTRODUCTION",
@@ -313,10 +318,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningStepSummaryV2 converts domain learningstep to LearningStepSummaryV2") {
     val expected = Some(
-      api.LearningStepSummaryV2(
+      api.LearningStepSummaryV2DTO(
         1,
         1,
-        api.Title("tittel", DefaultLanguage),
+        api.TitleDTO("tittel", DefaultLanguage),
         "INTRODUCTION",
         "null1/learningsteps/1"
       )
@@ -327,10 +332,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningStepSummaryV2 returns what we have when not supported language is given") {
     val expected = Some(
-      api.LearningStepSummaryV2(
+      api.LearningStepSummaryV2DTO(
         1,
         1,
-        api.Title("tittel", DefaultLanguage),
+        api.TitleDTO("tittel", DefaultLanguage),
         "INTRODUCTION",
         "null1/learningsteps/1"
       )
@@ -343,7 +348,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningPathTagsSummary converts api LearningPathTags to api LearningPathTagsSummary") {
     val expected =
-      Some(api.LearningPathTagsSummary(DefaultLanguage, Seq(DefaultLanguage), Seq("tag")))
+      Some(api.LearningPathTagsSummaryDTO(DefaultLanguage, Seq(DefaultLanguage), Seq("tag")))
     service.asApiLearningPathTagsSummary(apiTags, DefaultLanguage, false) should equal(expected)
   }
 
@@ -355,7 +360,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     "asApiLearningPathTagsSummary converts api LearningPathTags to api LearningPathTagsSummary if language is undefined and fallback is true"
   ) {
     val expected =
-      Some(api.LearningPathTagsSummary(DefaultLanguage, Seq(DefaultLanguage), Seq("tag")))
+      Some(api.LearningPathTagsSummaryDTO(DefaultLanguage, Seq(DefaultLanguage), Seq("tag")))
     service.asApiLearningPathTagsSummary(apiTags, "hurr durr I'm a language", true) should equal(expected)
   }
 
@@ -403,7 +408,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLicense returns a License object for a given valid license") {
     service.asApiLicense("CC-BY-4.0") should equal(
-      commonApi.License(
+      commonApi.LicenseDTO(
         CC_BY.toString,
         Option("Creative Commons Attribution 4.0 International"),
         Some("https://creativecommons.org/licenses/by/4.0/")
@@ -412,11 +417,11 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("asApiLicense returns a default license object for an invalid license") {
-    service.asApiLicense("invalid") should equal(commonApi.License("invalid", Option("Invalid license"), None))
+    service.asApiLicense("invalid") should equal(commonApi.LicenseDTO("invalid", Option("Invalid license"), None))
   }
 
   test("asEmbedUrl returns embedUrl if embedType is oembed") {
-    service.asEmbedUrlV2(api.EmbedUrlV2("http://test.no/2/oembed/", "oembed"), "nb") should equal(
+    service.asEmbedUrlV2(api.EmbedUrlV2DTO("http://test.no/2/oembed/", "oembed"), "nb") should equal(
       EmbedUrl("http://test.no/2/oembed/", "nb", EmbedType.OEmbed)
     )
   }
@@ -424,14 +429,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("asEmbedUrl throws error if an not allowed value for embedType is used") {
     assertResult("Validation Error") {
       intercept[ValidationException] {
-        service.asEmbedUrlV2(api.EmbedUrlV2("http://test.no/2/oembed/", "test"), "nb")
+        service.asEmbedUrlV2(api.EmbedUrlV2DTO("http://test.no/2/oembed/", "test"), "nb")
       }.getMessage
     }
   }
 
   test("asCoverPhoto converts an image id to CoverPhoto") {
     val expectedResult =
-      CoverPhoto(
+      CoverPhotoDTO(
         s"${props.Domain}/image-api/raw/id/1",
         s"${props.Domain}/image-api/v3/images/1"
       )
@@ -442,12 +447,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("asDomainEmbed should only use context path if hostname is ndla-frontend but full url when not") {
     val url = "https://ndla.no/subjects/resource:1234?a=test"
     when(oembedProxyClient.getIframeUrl(eqTo(url))).thenReturn(Success(url))
-    service.asDomainEmbedUrl(api.EmbedUrlV2(url, "oembed"), "nb") should equal(
+    service.asDomainEmbedUrl(api.EmbedUrlV2DTO(url, "oembed"), "nb") should equal(
       Success(EmbedUrl(s"/subjects/resource:1234?a=test", "nb", EmbedType.IFrame))
     )
 
     val externalUrl = "https://youtube.com/watch?v=8992BFHks"
-    service.asDomainEmbedUrl(api.EmbedUrlV2(externalUrl, "oembed"), "nb") should equal(
+    service.asDomainEmbedUrl(api.EmbedUrlV2DTO(externalUrl, "oembed"), "nb") should equal(
       Success(EmbedUrl(externalUrl, "nb", EmbedType.OEmbed))
     )
   }
@@ -473,13 +478,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("New learningPaths get correct verification") {
-    val apiRubio = commonApi.Author("author", "Little Marco")
+    val apiRubio = commonApi.AuthorDTO("author", "Little Marco")
     val apiLicense =
-      commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
-    val apiCopyright = api.Copyright(apiLicense, List(apiRubio))
+      commonApi.LicenseDTO("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+    val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
-    val newCopyLp = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp     = NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+    val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
+    val newLp     = NewLearningPathV2DTO("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)
@@ -512,7 +517,16 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asDomainLearningStep should work with learningpaths no matter the amount of steps") {
     val newLs =
-      NewLearningStepV2("Tittel", Some("Beskrivelse"), None, "nb", Some(api.EmbedUrlV2("", "oembed")), true, "TEXT", None)
+      NewLearningStepV2DTO(
+        "Tittel",
+        Some("Beskrivelse"),
+        None,
+        "nb",
+        Some(api.EmbedUrlV2DTO("", "oembed")),
+        true,
+        "TEXT",
+        None
+      )
     val lpId = 5591L
     val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
     val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))

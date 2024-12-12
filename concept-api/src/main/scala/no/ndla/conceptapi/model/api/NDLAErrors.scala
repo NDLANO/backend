@@ -66,5 +66,4 @@ case class NotFoundException(message: String, supportedLanguages: Seq[String] = 
     extends RuntimeException(message)
 case class ConceptMissingIdException(message: String)     extends RuntimeException(message)
 case class ConceptExistsAlreadyException(message: String) extends RuntimeException(message)
-case class ElasticIndexingException(message: String)      extends RuntimeException(message)
 case class OperationNotAllowedException(message: String)  extends RuntimeException(message)

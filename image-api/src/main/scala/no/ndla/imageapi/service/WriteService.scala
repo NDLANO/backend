@@ -19,10 +19,10 @@ import no.ndla.common.model.{NDLADate, domain => common}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model._
 import no.ndla.imageapi.model.api.{
-  ImageMetaInformationV2,
-  ImageMetaInformationV3,
-  NewImageMetaInformationV2,
-  UpdateImageMetaInformation
+  ImageMetaInformationV2DTO,
+  ImageMetaInformationV3DTO,
+  NewImageMetaInformationV2DTO,
+  UpdateImageMetaInformationDTO
 }
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.repository.ImageRepository
@@ -54,7 +54,7 @@ trait WriteService {
         imageId: Long,
         language: String,
         user: TokenUser
-    ): Try[Option[ImageMetaInformationV2]] = {
+    ): Try[Option[ImageMetaInformationV2DTO]] = {
       deleteImageLanguageVersion(imageId, language, user).flatMap {
         case Some(updated) =>
           converterService.asApiImageMetaInformationWithDomainUrlV2(updated, None, user.some).map(_.some)
@@ -66,7 +66,7 @@ trait WriteService {
         imageId: Long,
         language: String,
         user: TokenUser
-    ): Try[Option[ImageMetaInformationV3]] = {
+    ): Try[Option[ImageMetaInformationV3DTO]] = {
       deleteImageLanguageVersion(imageId, language, user).flatMap {
         case Some(updated) => converterService.asApiImageMetaInformationV3(updated, None, user.some).map(_.some)
         case None          => Success(None)
@@ -143,7 +143,7 @@ trait WriteService {
     }
 
     def storeNewImage(
-        newImage: NewImageMetaInformationV2,
+        newImage: NewImageMetaInformationV2DTO,
         file: UploadedFile,
         user: TokenUser
     ): Try[ImageMetaInformation] = {
@@ -212,7 +212,7 @@ trait WriteService {
 
     private[service] def mergeImages(
         existing: ImageMetaInformation,
-        toMerge: UpdateImageMetaInformation,
+        toMerge: UpdateImageMetaInformationDTO,
         user: TokenUser
     ): Try[ImageMetaInformation] = {
       val now    = clock.now()
@@ -341,7 +341,7 @@ trait WriteService {
 
     private[service] def updateImageAndFile(
         imageId: Long,
-        updateMeta: UpdateImageMetaInformation,
+        updateMeta: UpdateImageMetaInformationDTO,
         newFile: Option[UploadedFile],
         user: TokenUser
     ): Try[domain.ImageMetaInformation] = {
@@ -367,10 +367,10 @@ trait WriteService {
 
     def updateImage(
         imageId: Long,
-        updateMeta: UpdateImageMetaInformation,
+        updateMeta: UpdateImageMetaInformationDTO,
         newFile: Option[UploadedFile],
         user: TokenUser
-    ): Try[ImageMetaInformationV2] =
+    ): Try[ImageMetaInformationV2DTO] =
       for {
         updated <- updateImageAndFile(imageId, updateMeta, newFile, user)
         converted <- converterService.asApiImageMetaInformationWithDomainUrlV2(
@@ -382,10 +382,10 @@ trait WriteService {
 
     def updateImageV3(
         imageId: Long,
-        updateMeta: UpdateImageMetaInformation,
+        updateMeta: UpdateImageMetaInformationDTO,
         newFile: Option[UploadedFile],
         user: TokenUser
-    ): Try[ImageMetaInformationV3] =
+    ): Try[ImageMetaInformationV3DTO] =
       for {
         updated   <- updateImageAndFile(imageId, updateMeta, newFile, user)
         converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some, user.some)

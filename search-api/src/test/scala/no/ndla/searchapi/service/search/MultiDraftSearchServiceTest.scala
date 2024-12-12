@@ -14,14 +14,15 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.api.MetaImage
+import no.ndla.searchapi.model.api.MetaImageDTO
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
+import no.ndla.searchapi.model.search.SearchPagination
 import no.ndla.searchapi.{TestData, TestEnvironment}
 
 import scala.util.Success
 
 class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
-  import props.{DefaultPageSize, MaxPageSize}
+  import props.DefaultPageSize
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
@@ -88,24 +89,16 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    multiDraftSearchService.getStartAtAndNumResults(0, 10001) should equal((0, MaxPageSize))
-  }
-
-  test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
-  ) {
-    val page            = 74
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    multiDraftSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize)
+    multiDraftSearchService.getStartAtAndNumResults(0, 10001) should equal(
+      Success(SearchPagination(1, props.MaxPageSize, 0))
     )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page            = 123
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
     multiDraftSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize)
+      Success(SearchPagination(page, DefaultPageSize, expectedStartAt))
     )
   }
 
@@ -627,7 +620,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     search.totalCount should be(1)
     search.results.head.id should be(10)
     search.results.head.metaImage should be(
-      Some(MetaImage("http://api-gateway.ndla-local/image-api/raw/id/123", "alt", "en"))
+      Some(MetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/123", "alt", "en"))
     )
   }
 

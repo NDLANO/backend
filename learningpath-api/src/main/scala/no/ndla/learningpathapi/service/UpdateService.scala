@@ -43,7 +43,7 @@ trait UpdateService {
         language: String,
         fallback: Boolean,
         userInfo: CombinedUser
-    ): Try[LearningPathV2] = {
+    ): Try[LearningPathV2DTO] = {
       writeOrAccessDenied(userInfo.isWriter) {
         readService.withIdAndAccessGranted(pathId, userInfo) match {
           case Failure(ex) => Failure(ex)
@@ -69,7 +69,11 @@ trait UpdateService {
       if (willExecute) w
       else Failure(AccessDeniedException(reason))
 
-    def newFromExistingV2(id: Long, newLearningPath: NewCopyLearningPathV2, owner: CombinedUser): Try[LearningPathV2] =
+    def newFromExistingV2(
+        id: Long,
+        newLearningPath: NewCopyLearningPathV2DTO,
+        owner: CombinedUser
+    ): Try[LearningPathV2DTO] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
           case None              => Failure(NotFoundException("Could not find learningpath to copy."))
@@ -88,7 +92,7 @@ trait UpdateService {
         }
       }
 
-    def addLearningPathV2(newLearningPath: NewLearningPathV2, owner: CombinedUser): Try[LearningPathV2] =
+    def addLearningPathV2(newLearningPath: NewLearningPathV2DTO, owner: CombinedUser): Try[LearningPathV2DTO] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         for {
           learningPath <- converterService.newLearningPath(newLearningPath, owner)
@@ -100,9 +104,9 @@ trait UpdateService {
 
     def updateLearningPathV2(
         id: Long,
-        learningPathToUpdate: UpdatedLearningPathV2,
+        learningPathToUpdate: UpdatedLearningPathV2DTO,
         owner: CombinedUser
-    ): Try[LearningPathV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+    ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       learningPathValidator.validate(learningPathToUpdate)
 
       withId(id).flatMap(_.canEditLearningpath(owner)) match {
@@ -145,7 +149,7 @@ trait UpdateService {
         owner: CombinedUserRequired,
         language: String,
         message: Option[String] = None
-    ): Try[LearningPathV2] =
+    ): Try[LearningPathV2DTO] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId, includeDeleted = true)
           .flatMap(_.canSetStatus(status, owner))
@@ -205,9 +209,9 @@ trait UpdateService {
 
     def addLearningStepV2(
         learningPathId: Long,
-        newLearningStep: NewLearningStepV2,
+        newLearningStep: NewLearningStepV2DTO,
         owner: CombinedUserRequired
-    ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+    ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       optimisticLockRetries(10) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
           case Failure(ex) => Failure(ex)
@@ -247,9 +251,9 @@ trait UpdateService {
     def updateLearningStepV2(
         learningPathId: Long,
         learningStepId: Long,
-        learningStepToUpdate: UpdatedLearningStepV2,
+        learningStepToUpdate: UpdatedLearningStepV2DTO,
         owner: CombinedUserRequired
-    ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+    ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
         case Failure(ex) => Failure(ex)
         case Success(learningPath) =>
@@ -301,7 +305,7 @@ trait UpdateService {
         learningStepId: Long,
         newStatus: StepStatus,
         owner: CombinedUserRequired
-    ): Try[LearningStepV2] =
+    ): Try[LearningStepV2DTO] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
           case Failure(ex) => Failure(ex)
@@ -364,7 +368,7 @@ trait UpdateService {
         learningStepId: Long,
         seqNo: Int,
         owner: CombinedUser
-    ): Try[LearningStepSeqNo] = {
+    ): Try[LearningStepSeqNoDTO] = {
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         optimisticLockRetries(10) {
           withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
@@ -393,7 +397,7 @@ trait UpdateService {
                     })
                   }
 
-                  Success(LearningStepSeqNo(seqNo))
+                  Success(LearningStepSeqNoDTO(seqNo))
               }
           }
         }

@@ -8,13 +8,13 @@
 package no.ndla.oembedproxy.service
 
 import io.lemonlabs.uri.Url
-import no.ndla.oembedproxy.model.OEmbed
+import no.ndla.oembedproxy.model.OEmbedDTO
 import io.lemonlabs.uri.typesafe.dsl._
 import org.jsoup.Jsoup
 
 object OEmbedConverterService {
 
-  def addYoutubeTimestampIfdefinedInRequest(requestUrl: String, oembed: OEmbed): OEmbed = {
+  def addYoutubeTimestampIfdefinedInRequest(requestUrl: String, oembed: OEmbedDTO): OEmbedDTO = {
     val paramTypesToTransfer  = List("start", "time_continue", "t", "end", "rel")
     val queryParamsToTransfer = requestUrl.query.filterNames(pn => paramTypesToTransfer.contains(pn)).params
 

@@ -33,7 +33,7 @@ trait InternController {
       endpoint.get
         .in("subjectpage" / "external" / path[String]("externalId").description("old NDLA node id"))
         .summary("Get subject page id from external id")
-        .out(jsonBody[SubjectPageId])
+        .out(jsonBody[SubjectPageIdDTO])
         .errorOut(errorOutputsFor(400, 404))
         .serverLogicPure { nid =>
           readService.getIdFromExternalId(nid) match {
@@ -45,9 +45,9 @@ trait InternController {
       endpoint.post
         .summary("Create new subject page")
         .in("subjectpage")
-        .in(jsonBody[NewSubjectFrontPageData])
+        .in(jsonBody[NewSubjectFrontPageDataDTO])
         .errorOut(errorOutputsFor())
-        .out(jsonBody[SubjectPageData])
+        .out(jsonBody[SubjectPageDataDTO])
         .serverLogicPure { subjectPage =>
           writeService
             .newSubjectPage(subjectPage)
@@ -55,10 +55,10 @@ trait InternController {
         },
       endpoint.put
         .in("subjectpage" / path[Long]("subject-id").description("The subject id"))
-        .in(jsonBody[NewSubjectFrontPageData])
+        .in(jsonBody[NewSubjectFrontPageDataDTO])
         .errorOut(errorOutputsFor(400, 404))
         .summary("Update subject page")
-        .out(jsonBody[SubjectPageData])
+        .out(jsonBody[SubjectPageDataDTO])
         .serverLogicPure { case (id, subjectPage) =>
           writeService
             .updateSubjectPage(id, subjectPage, props.DefaultLanguage)

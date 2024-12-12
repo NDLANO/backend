@@ -11,106 +11,106 @@ export enum AudioSortEnum {
   ByIdAsc = "id",
 }
 
-export interface IAudio {
+export interface IAudioDTO {
   url: string
   mimeType: string
   fileSize: number
   language: string
 }
 
-export interface IAudioMetaInformation {
+export interface IAudioMetaInformationDTO {
   id: number
   revision: number
-  title: ITitle
-  audioFile: IAudio
-  copyright: ICopyright
-  tags: ITag
+  title: ITitleDTO
+  audioFile: IAudioDTO
+  copyright: ICopyrightDTO
+  tags: ITagDTO
   supportedLanguages: string[]
   audioType: string
-  podcastMeta?: IPodcastMeta
-  series?: ISeries
-  manuscript?: IManuscript
+  podcastMeta?: IPodcastMetaDTO
+  series?: ISeriesDTO
+  manuscript?: IManuscriptDTO
   created: string
   updated: string
 }
 
-export interface IAudioSummary {
+export interface IAudioSummaryDTO {
   id: number
-  title: ITitle
+  title: ITitleDTO
   audioType: string
   url: string
   license: string
   supportedLanguages: string[]
-  manuscript?: IManuscript
-  podcastMeta?: IPodcastMeta
-  series?: ISeriesSummary
+  manuscript?: IManuscriptDTO
+  podcastMeta?: IPodcastMetaDTO
+  series?: ISeriesSummaryDTO
   lastUpdated: string
 }
 
-export interface IAudioSummarySearchResult {
+export interface IAudioSummarySearchResultDTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: IAudioSummary[]
+  results: IAudioSummaryDTO[]
 }
 
-export interface IAuthor {
+export interface IAuthorDTO {
   type: string
   name: string
 }
 
-export interface ICopyright {
-  license: ILicense
+export interface ICopyrightDTO {
+  license: ILicenseDTO
   origin?: string
-  creators: IAuthor[]
-  processors: IAuthor[]
-  rightsholders: IAuthor[]
+  creators: IAuthorDTO[]
+  processors: IAuthorDTO[]
+  rightsholders: IAuthorDTO[]
   validFrom?: string
   validTo?: string
   processed: boolean
 }
 
-export interface ICoverPhoto {
+export interface ICoverPhotoDTO {
   id: string
   url: string
   altText: string
 }
 
-export interface IDescription {
+export interface IDescriptionDTO {
   description: string
   language: string
 }
 
-export interface ILicense {
+export interface ILicenseDTO {
   license: string
   description?: string
   url?: string
 }
 
-export interface IManuscript {
+export interface IManuscriptDTO {
   manuscript: string
   language: string
 }
 
-export interface INewAudioMetaInformation {
+export interface INewAudioMetaInformationDTO {
   title: string
   language: string
-  copyright: ICopyright
+  copyright: ICopyrightDTO
   tags: string[]
   audioType?: string
-  podcastMeta?: INewPodcastMeta
+  podcastMeta?: INewPodcastMetaDTO
   seriesId?: number
   manuscript?: string
 }
 
-export interface INewPodcastMeta {
+export interface INewPodcastMetaDTO {
   introduction: string
   coverPhotoId: string
   coverPhotoAltText: string
 }
 
-export interface INewSeries {
+export interface INewSeriesDTO {
   title: string
   description: string
   coverPhotoId: string
@@ -121,13 +121,13 @@ export interface INewSeries {
   hasRSS?: boolean
 }
 
-export interface IPodcastMeta {
+export interface IPodcastMetaDTO {
   introduction: string
-  coverPhoto: ICoverPhoto
+  coverPhoto: ICoverPhotoDTO
   language: string
 }
 
-export interface ISearchParams {
+export interface ISearchParamsDTO {
   query?: string
   license?: string
   language?: string
@@ -140,18 +140,18 @@ export interface ISearchParams {
   fallback?: boolean
 }
 
-export interface ISeries {
+export interface ISeriesDTO {
   id: number
   revision: number
-  title: ITitle
-  description: IDescription
-  coverPhoto: ICoverPhoto
-  episodes?: IAudioMetaInformation[]
+  title: ITitleDTO
+  description: IDescriptionDTO
+  coverPhoto: ICoverPhotoDTO
+  episodes?: IAudioMetaInformationDTO[]
   supportedLanguages: string[]
   hasRSS: boolean
 }
 
-export interface ISeriesSearchParams {
+export interface ISeriesSearchParamsDTO {
   query?: string
   language?: string
   page?: number
@@ -161,29 +161,29 @@ export interface ISeriesSearchParams {
   fallback?: boolean
 }
 
-export interface ISeriesSummary {
+export interface ISeriesSummaryDTO {
   id: number
-  title: ITitle
-  description: IDescription
+  title: ITitleDTO
+  description: IDescriptionDTO
   supportedLanguages: string[]
-  episodes?: IAudioSummary[]
-  coverPhoto: ICoverPhoto
+  episodes?: IAudioSummaryDTO[]
+  coverPhoto: ICoverPhotoDTO
 }
 
-export interface ISeriesSummarySearchResult {
+export interface ISeriesSummarySearchResultDTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: ISeriesSummary[]
+  results: ISeriesSummaryDTO[]
 }
 
-export interface ITag {
+export interface ITagDTO {
   tags: string[]
   language: string
 }
 
-export interface ITagsSearchResult {
+export interface ITagsSearchResultDTO {
   totalCount: number
   page: number
   pageSize: number
@@ -191,19 +191,19 @@ export interface ITagsSearchResult {
   results: string[]
 }
 
-export interface ITitle {
+export interface ITitleDTO {
   title: string
   language: string
 }
 
-export interface IUpdatedAudioMetaInformation {
+export interface IUpdatedAudioMetaInformationDTO {
   revision: number
   title: string
   language: string
-  copyright: ICopyright
+  copyright: ICopyrightDTO
   tags: string[]
   audioType?: string
-  podcastMeta?: INewPodcastMeta
+  podcastMeta?: INewPodcastMetaDTO
   seriesId?: number
   manuscript?: string
 }

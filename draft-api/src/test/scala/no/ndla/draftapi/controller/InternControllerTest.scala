@@ -8,7 +8,7 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.draftapi.*
-import no.ndla.draftapi.model.api.ContentId
+import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -32,7 +32,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       failedApiCall,
       failedApiCall,
       failedApiCall,
-      Success(ContentId(10))
+      Success(ContentIdDTO(10))
     )
 
     simpleHttpClient.send(

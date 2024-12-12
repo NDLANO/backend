@@ -93,7 +93,7 @@ class SearchServiceTest
     if (elasticSearchContainer.isSuccess) {
       searchIndexService.createIndexAndAlias().get
 
-      doReturn(commonApi.Author("Forfatter", "En eier"), Nil*).when(converterService).asAuthor(any[NdlaUserName])
+      doReturn(commonApi.AuthorDTO("Forfatter", "En eier"), Nil*).when(converterService).asAuthor(any[NdlaUserName])
 
       val today      = NDLADate.now()
       val yesterday  = NDLADate.now().minusDays(1)

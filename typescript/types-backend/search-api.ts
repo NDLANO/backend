@@ -1,6 +1,8 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export interface IApiTaxonomyContext {
+export type GrepSort = ("-relevance" | "relevance" | "-title" | "title" | "-code" | "code")
+
+export interface IApiTaxonomyContextDTO {
   publicId: string
   root: string
   rootId: string
@@ -10,53 +12,53 @@ export interface IApiTaxonomyContext {
   breadcrumbs: string[]
   contextId: string
   contextType: string
-  resourceTypes: ITaxonomyResourceType[]
+  resourceTypes: ITaxonomyResourceTypeDTO[]
   language: string
   isPrimary: boolean
   isActive: boolean
   url: string
 }
 
-export interface IArticleIntroduction {
+export interface IArticleIntroductionDTO {
   introduction: string
   htmlIntroduction: string
   language: string
 }
 
-export interface IArticleResult {
+export interface IArticleResultDTO {
   id: number
-  title: ITitle
-  introduction?: IArticleIntroduction
+  title: ITitleWithHtmlDTO
+  introduction?: IArticleIntroductionDTO
   articleType: string
   supportedLanguages: string[]
 }
 
-export interface IArticleResults {
+export interface IArticleResultsDTO {
   type: string
   language: string
   totalCount: number
   page: number
   pageSize: number
-  results: IArticleResult[]
+  results: IArticleResultDTO[]
 }
 
-export interface IAudioResult {
+export interface IAudioResultDTO {
   id: number
-  title: ITitle
+  title: ITitleDTO
   url: string
   supportedLanguages: string[]
 }
 
-export interface IAudioResults {
+export interface IAudioResultsDTO {
   type: string
   language: string
   totalCount: number
   page: number
   pageSize: number
-  results: IAudioResult[]
+  results: IAudioResultDTO[]
 }
 
-export interface IComment {
+export interface ICommentDTO {
   id: string
   content: string
   created: string
@@ -65,12 +67,12 @@ export interface IComment {
   solved: boolean
 }
 
-export interface IDraftResponsible {
+export interface IDraftResponsibleDTO {
   responsibleId: string
   lastUpdated: string
 }
 
-export interface IDraftSearchParams {
+export interface IDraftSearchParamsDTO {
   page?: number
   pageSize?: number
   articleTypes?: string[]
@@ -107,111 +109,134 @@ export interface IDraftSearchParams {
   resultTypes?: SearchType[]
 }
 
-export interface IGroupSearchResult {
+export interface IGrepResultDTO {
+  code: string
+  title: ITitleDTO
+}
+
+export interface IGrepSearchInputDTO {
+  prefixFilter?: string[]
+  codes?: string[]
+  query?: string
+  page?: number
+  pageSize?: number
+  sort?: GrepSort
+  language?: string
+}
+
+export interface IGrepSearchResultsDTO {
+  totalCount: number
+  page: number
+  pageSize: number
+  language: string
+  results: IGrepResultDTO[]
+}
+
+export interface IGroupSearchResultDTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: IMultiSearchSummary[]
-  suggestions: IMultiSearchSuggestion[]
-  aggregations: IMultiSearchTermsAggregation[]
+  results: IMultiSearchSummaryDTO[]
+  suggestions: IMultiSearchSuggestionDTO[]
+  aggregations: IMultiSearchTermsAggregationDTO[]
   resourceType: string
 }
 
-export interface IHighlightedField {
+export interface IHighlightedFieldDTO {
   field: string
   matches: string[]
 }
 
-export interface IImageAltText {
+export interface IImageAltTextDTO {
   altText: string
   language: string
 }
 
-export interface IImageResult {
+export interface IImageResultDTO {
   id: number
-  title: ITitle
-  altText: IImageAltText
+  title: ITitleDTO
+  altText: IImageAltTextDTO
   previewUrl: string
   metaUrl: string
   supportedLanguages: string[]
 }
 
-export interface IImageResults {
+export interface IImageResultsDTO {
   type: string
   language: string
   totalCount: number
   page: number
   pageSize: number
-  results: IImageResult[]
+  results: IImageResultDTO[]
 }
 
-export interface ILearningPathIntroduction {
+export interface ILearningPathIntroductionDTO {
   introduction: string
   language: string
 }
 
-export interface ILearningpathResult {
+export interface ILearningpathResultDTO {
   id: number
-  title: ITitle
-  introduction: ILearningPathIntroduction
+  title: ITitleDTO
+  introduction: ILearningPathIntroductionDTO
   supportedLanguages: string[]
 }
 
-export interface ILearningpathResults {
+export interface ILearningpathResultsDTO {
   type: string
   language: string
   totalCount: number
   page: number
   pageSize: number
-  results: ILearningpathResult[]
+  results: ILearningpathResultDTO[]
 }
 
-export interface IMetaDescription {
+export interface IMetaDescriptionDTO {
   metaDescription: string
   language: string
 }
 
-export interface IMetaImage {
+export interface IMetaImageDTO {
   url: string
   alt: string
   language: string
 }
 
-export interface IMultiSearchResult {
+export interface IMultiSearchResultDTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: IMultiSearchSummary[]
-  suggestions: IMultiSearchSuggestion[]
-  aggregations: IMultiSearchTermsAggregation[]
+  results: IMultiSearchSummaryDTO[]
+  suggestions: IMultiSearchSuggestionDTO[]
+  aggregations: IMultiSearchTermsAggregationDTO[]
 }
 
-export interface IMultiSearchSuggestion {
+export interface IMultiSearchSuggestionDTO {
   name: string
-  suggestions: ISearchSuggestion[]
+  suggestions: ISearchSuggestionDTO[]
 }
 
-export interface IMultiSearchSummary {
+export interface IMultiSearchSummaryDTO {
   id: number
-  title: ITitle
-  metaDescription: IMetaDescription
-  metaImage?: IMetaImage
+  title: ITitleWithHtmlDTO
+  metaDescription: IMetaDescriptionDTO
+  metaImage?: IMetaImageDTO
   url: string
-  contexts: IApiTaxonomyContext[]
+  contexts: IApiTaxonomyContextDTO[]
   supportedLanguages: string[]
   learningResourceType: LearningResourceType
-  status?: IStatus
-  traits: SearchTrait[]
+  status?: IStatusDTO
+  traits: string[]
   score: number
-  highlights: IHighlightedField[]
+  highlights: IHighlightedFieldDTO[]
   paths: string[]
   lastUpdated: string
   license?: string
-  revisions: IRevisionMeta[]
-  responsible?: IDraftResponsible
-  comments?: IComment[]
+  revisions: IRevisionMetaDTO[]
+  responsible?: IDraftResponsibleDTO
+  comments?: ICommentDTO[]
   prioritized?: boolean
   priority?: string
   resourceTypeName?: string
@@ -223,25 +248,20 @@ export interface IMultiSearchSummary {
   conceptSubjectIds?: string[]
 }
 
-export interface IMultiSearchTermsAggregation {
+export interface IMultiSearchTermsAggregationDTO {
   field: string
   sumOtherDocCount: number
   docCountErrorUpperBound: number
-  values: ITermValue[]
+  values: ITermValueDTO[]
 }
 
-export interface IRevisionMeta {
+export interface IRevisionMetaDTO {
   revisionDate: string
   note: string
   status: string
 }
 
-export interface ISearchError {
-  type: string
-  errorMsg: string
-}
-
-export interface ISearchParams {
+export interface ISearchParamsDTO {
   page?: number
   pageSize?: number
   articleTypes?: string[]
@@ -264,19 +284,19 @@ export interface ISearchParams {
   sort?: string
 }
 
-export interface ISearchSuggestion {
+export interface ISearchSuggestionDTO {
   text: string
   offset: number
   length: number
-  options: ISuggestOption[]
+  options: ISuggestOptionDTO[]
 }
 
-export interface IStatus {
+export interface IStatusDTO {
   current: string
   other: string[]
 }
 
-export interface ISubjectAggregation {
+export interface ISubjectAggregationDTO {
   subjectId: string
   publishedArticleCount: number
   oldArticleCount: number
@@ -285,31 +305,36 @@ export interface ISubjectAggregation {
   favoritedCount: number
 }
 
-export interface ISubjectAggregations {
-  subjects: ISubjectAggregation[]
+export interface ISubjectAggregationsDTO {
+  subjects: ISubjectAggregationDTO[]
 }
 
-export interface ISubjectAggsInput {
+export interface ISubjectAggsInputDTO {
   subjects?: string[]
 }
 
-export interface ISuggestOption {
+export interface ISuggestOptionDTO {
   text: string
   score: number
 }
 
-export interface ITaxonomyResourceType {
+export interface ITaxonomyResourceTypeDTO {
   id: string
   name: string
   language: string
 }
 
-export interface ITermValue {
+export interface ITermValueDTO {
   value: string
   count: number
 }
 
-export interface ITitle {
+export interface ITitleDTO {
+  title: string
+  language: string
+}
+
+export interface ITitleWithHtmlDTO {
   title: string
   htmlTitle: string
   language: string
@@ -317,9 +342,7 @@ export interface ITitle {
 
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
-export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "FILE")
-
-export type SearchType = ("article" | "draft" | "learningpath" | "concept")
+export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep")
 
 export type Sort = SortEnum
 

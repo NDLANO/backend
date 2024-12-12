@@ -8,7 +8,7 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
-import no.ndla.myndlaapi.model.api.Folder
+import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
@@ -62,7 +62,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     val someId = UUID.randomUUID()
     when(folderReadService.getSingleFolder(eqTo(someId), any, any, any)).thenReturn(
       Success(
-        Folder(
+        FolderDTO(
           id = someId.toString,
           name = "folderName",
           status = "private",

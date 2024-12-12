@@ -13,42 +13,42 @@ export enum ArticleSortEnum {
 
 export type Availability = ("everyone" | "teacher")
 
-export interface IArticleContentV2 {
+export interface IArticleContentV2DTO {
   content: string
   language: string
 }
 
-export interface IArticleDump {
+export interface IArticleDumpDTO {
   totalCount: number
   page: number
   pageSize: number
   language: string
-  results: IArticleV2[]
+  results: IArticleV2DTO[]
 }
 
-export interface IArticleIds {
+export interface IArticleIdsDTO {
   articleId: number
   externalIds: string[]
 }
 
-export interface IArticleIntroduction {
+export interface IArticleIntroductionDTO {
   introduction: string
   htmlIntroduction: string
   language: string
 }
 
-export interface IArticleMetaDescription {
+export interface IArticleMetaDescriptionDTO {
   metaDescription: string
   language: string
 }
 
-export interface IArticleMetaImage {
+export interface IArticleMetaImageDTO {
   url: string
   alt: string
   language: string
 }
 
-export interface IArticleSearchParams {
+export interface IArticleSearchParamsDTO {
   query?: string
   language?: string
   license?: string
@@ -62,13 +62,13 @@ export interface IArticleSearchParams {
   grepCodes?: string[]
 }
 
-export interface IArticleSummaryV2 {
+export interface IArticleSummaryV2DTO {
   id: number
-  title: IArticleTitle
-  visualElement?: IVisualElement
-  introduction?: IArticleIntroduction
-  metaDescription?: IArticleMetaDescription
-  metaImage?: IArticleMetaImage
+  title: IArticleTitleDTO
+  visualElement?: IVisualElementDTO
+  introduction?: IArticleIntroductionDTO
+  metaDescription?: IArticleMetaDescriptionDTO
+  metaImage?: IArticleMetaImageDTO
   url: string
   license: string
   articleType: string
@@ -78,30 +78,30 @@ export interface IArticleSummaryV2 {
   availability: string
 }
 
-export interface IArticleTag {
+export interface IArticleTagDTO {
   tags: string[]
   language: string
 }
 
-export interface IArticleTitle {
+export interface IArticleTitleDTO {
   title: string
   htmlTitle: string
   language: string
 }
 
-export interface IArticleV2 {
+export interface IArticleV2DTO {
   id: number
   oldNdlaUrl?: string
   revision: number
-  title: IArticleTitle
-  content: IArticleContentV2
-  copyright: ICopyright
-  tags: IArticleTag
-  requiredLibraries: IRequiredLibrary[]
-  visualElement?: IVisualElement
-  metaImage?: IArticleMetaImage
-  introduction?: IArticleIntroduction
-  metaDescription: IArticleMetaDescription
+  title: IArticleTitleDTO
+  content: IArticleContentV2DTO
+  copyright: ICopyrightDTO
+  tags: IArticleTagDTO
+  requiredLibraries: IRequiredLibraryDTO[]
+  visualElement?: IVisualElementDTO
+  metaImage?: IArticleMetaImageDTO
+  introduction?: IArticleIntroductionDTO
+  metaDescription: IArticleMetaDescriptionDTO
   created: string
   updated: string
   updatedBy: string
@@ -111,53 +111,53 @@ export interface IArticleV2 {
   grepCodes: string[]
   conceptIds: number[]
   availability: string
-  relatedContent: (IRelatedContentLink | number)[]
+  relatedContent: (IRelatedContentLinkDTO | number)[]
   revisionDate?: string
   slug?: string
 }
 
-export interface IAuthor {
+export interface IAuthorDTO {
   type: string
   name: string
 }
 
-export interface ICopyright {
-  license: ILicense
+export interface ICopyrightDTO {
+  license: ILicenseDTO
   origin?: string
-  creators: IAuthor[]
-  processors: IAuthor[]
-  rightsholders: IAuthor[]
+  creators: IAuthorDTO[]
+  processors: IAuthorDTO[]
+  rightsholders: IAuthorDTO[]
   validFrom?: string
   validTo?: string
   processed: boolean
 }
 
-export interface ILicense {
+export interface ILicenseDTO {
   license: string
   description?: string
   url?: string
 }
 
-export interface IRelatedContentLink {
+export interface IRelatedContentLinkDTO {
   title: string
   url: string
 }
 
-export interface IRequiredLibrary {
+export interface IRequiredLibraryDTO {
   mediaType: string
   name: string
   url: string
 }
 
-export interface ISearchResultV2 {
+export interface ISearchResultV2DTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: IArticleSummaryV2[]
+  results: IArticleSummaryV2DTO[]
 }
 
-export interface ITagsSearchResult {
+export interface ITagsSearchResultDTO {
   totalCount: number
   page: number
   pageSize: number
@@ -165,19 +165,7 @@ export interface ITagsSearchResult {
   results: string[]
 }
 
-export interface IValidationError {
-  code: string
-  description: string
-  messages: IValidationMessage[]
-  occuredAt: string
-}
-
-export interface IValidationMessage {
-  field: string
-  message: string
-}
-
-export interface IVisualElement {
+export interface IVisualElementDTO {
   visualElement: string
   language: string
 }

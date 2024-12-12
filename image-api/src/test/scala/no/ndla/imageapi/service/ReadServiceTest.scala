@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
-import no.ndla.imageapi.model.api.ImageMetaInformationV2
+import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -52,7 +52,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"$dateString","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
 
-    val expectedObject: ImageMetaInformationV2 = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2](expectedBody)
+    val expectedObject: ImageMetaInformationV2DTO = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
     val agreementElg = new ImageMetaInformation(
       id = Some(1),
       titles = List(domain.ImageTitle("Elg i busk", "nb")),

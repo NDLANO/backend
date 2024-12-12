@@ -567,7 +567,7 @@ class ArticleSearchServiceTest
     search.totalCount should be(1)
     search.results.head.metaImage should be(
       Some(
-        api.ArticleMetaImage("http://api-gateway.ndla-local/image-api/raw/id/5555", "Alt text is here friend", "nb")
+        api.ArticleMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/5555", "Alt text is here friend", "nb")
       )
     )
   }

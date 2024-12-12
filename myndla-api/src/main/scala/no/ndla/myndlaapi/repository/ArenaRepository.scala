@@ -19,7 +19,7 @@ import no.ndla.common.errors.{InvalidStateException, RollbackException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.MyNDLAUser
-import no.ndla.myndlaapi.model.arena.api.{CategoryBreadcrumb, CategorySort}
+import no.ndla.myndlaapi.model.arena.api.{CategoryBreadcrumbDTO, CategorySortDTO}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
 import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
@@ -566,7 +566,7 @@ trait ArenaRepository {
       )
     }
 
-    def getBreadcrumbs(categoryId: Long)(implicit session: DBSession): Try[List[CategoryBreadcrumb]] = Try {
+    def getBreadcrumbs(categoryId: Long)(implicit session: DBSession): Try[List[CategoryBreadcrumbDTO]] = Try {
       sql"""
               WITH RECURSIVE breadcrumbs AS (
                  SELECT id, title, parent_category_id
@@ -580,7 +580,7 @@ trait ArenaRepository {
               SELECT id, title
               FROM breadcrumbs
          """
-        .map(rs => CategoryBreadcrumb(id = rs.long("id"), title = rs.string("title")))
+        .map(rs => CategoryBreadcrumbDTO(id = rs.long("id"), title = rs.string("title")))
         .list
         .apply()
         .reverse
@@ -1297,7 +1297,7 @@ trait ArenaRepository {
     def getCategories(
         user: MyNDLAUser,
         filterFollowed: Boolean,
-        sort: CategorySort,
+        sort: CategorySortDTO,
         parentCategoryId: Option[Long]
     )(implicit session: DBSession): Try[List[domain.Category]] = {
       val ca = domain.Category.syntax("ca")
@@ -1325,8 +1325,8 @@ trait ArenaRepository {
       } else buildWhereClause(visibleSql.toSeq :+ parentFilter)
 
       val orderByClause = sort match {
-        case CategorySort.ByTitle => sqls"order by ${ca.title}"
-        case CategorySort.ByRank  => sqls"order by ${ca.rank}"
+        case CategorySortDTO.ByTitle => sqls"order by ${ca.title}"
+        case CategorySortDTO.ByRank  => sqls"order by ${ca.rank}"
       }
 
       Try {

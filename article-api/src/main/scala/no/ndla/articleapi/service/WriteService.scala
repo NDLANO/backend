@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticle}
+import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticleDTO}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
@@ -70,10 +70,10 @@ trait WriteService {
 
     def partialUpdate(
         articleId: Long,
-        partialArticle: PartialPublishArticle,
+        partialArticle: PartialPublishArticleDTO,
         language: String,
         fallback: Boolean
-    ): Try[api.ArticleV2] = {
+    ): Try[api.ArticleV2DTO] = {
       articleRepository.withId(articleId).toArticle match {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
         case Some(existingArticle) =>
@@ -89,7 +89,7 @@ trait WriteService {
       }
     }
 
-    def unpublishArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2] = {
+    def unpublishArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2DTO] = {
       val updated = revision match {
         case Some(rev) => articleRepository.unpublish(id, rev)
         case None      => articleRepository.unpublishMaxRevision(id)
@@ -98,10 +98,10 @@ trait WriteService {
       updated
         .flatMap(articleIndexService.deleteDocument)
         .map(searchApiClient.deleteArticle)
-        .map(api.ArticleIdV2.apply)
+        .map(api.ArticleIdV2DTO.apply)
     }
 
-    def deleteArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2] = {
+    def deleteArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2DTO] = {
       val deleted = revision match {
         case Some(rev) => articleRepository.delete(id, rev)
         case None      => articleRepository.deleteMaxRevision(id)
@@ -110,7 +110,7 @@ trait WriteService {
       deleted
         .flatMap(articleIndexService.deleteDocument)
         .map(searchApiClient.deleteArticle)
-        .map(api.ArticleIdV2.apply)
+        .map(api.ArticleIdV2DTO.apply)
     }
 
   }

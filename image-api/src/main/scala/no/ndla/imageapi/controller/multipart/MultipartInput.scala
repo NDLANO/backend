@@ -7,17 +7,17 @@
 
 package no.ndla.imageapi.controller.multipart
 
-import no.ndla.imageapi.model.api.{NewImageMetaInformationV2, UpdateImageMetaInformation}
+import no.ndla.imageapi.model.api.{NewImageMetaInformationV2DTO, UpdateImageMetaInformationDTO}
 import sttp.model.Part
 
 import java.io.File
 
 case class MetaDataAndFileForm(
-    metadata: Part[NewImageMetaInformationV2],
+    metadata: Part[NewImageMetaInformationV2DTO],
     file: Part[File]
 )
 
 case class UpdateMetaDataAndFileForm(
-    metadata: Part[UpdateImageMetaInformation],
+    metadata: Part[UpdateImageMetaInformationDTO],
     file: Option[Part[File]]
 )
