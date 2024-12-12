@@ -15,6 +15,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Information about a new learningstep")
 case class NewLearningStepV2(
     @description("The titles of the learningstep") title: String,
+    @description("The introduction of the learningstep") introduction: Option[String],
     @description("The descriptions of the learningstep") description: Option[String],
     @description("The chosen language") language: String,
     @description("The embed content for the learningstep") embedUrl: Option[EmbedUrlV2],

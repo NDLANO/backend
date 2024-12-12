@@ -10,7 +10,7 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val controller: TapirHealthController = new TapirHealthController()

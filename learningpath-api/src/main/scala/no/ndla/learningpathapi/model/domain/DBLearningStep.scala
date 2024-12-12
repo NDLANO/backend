@@ -27,6 +27,7 @@ object DBLearningStep extends SQLSyntaxSupport[LearningStep] {
       Some(rs.long(ls.c("learning_path_id"))),
       meta.seqNo,
       meta.title,
+      meta.introduction,
       meta.description,
       meta.embedUrl,
       meta.`type`,

@@ -10,7 +10,7 @@ package no.ndla.articleapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{Copyright, RelatedContent, RelatedContentLink}
 import sttp.tapir.Schema.annotations.description

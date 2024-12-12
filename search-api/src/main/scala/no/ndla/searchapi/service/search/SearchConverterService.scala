@@ -431,12 +431,15 @@ trait SearchConverterService {
           Success(
             value.getFavorites(
               draft.id.get.toString,
-              List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary)
+              List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary, MyNDLAResourceType.Topic)
             )
           )
         case None =>
           myndlaApiClient
-            .getStatsFor(draft.id.get.toString, List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary))
+            .getStatsFor(
+              draft.id.get.toString,
+              List(MyNDLAResourceType.Article, MyNDLAResourceType.Multidisciplinary, MyNDLAResourceType.Topic)
+            )
             .map(_.map(_.favourites).sum)
       }).?
 

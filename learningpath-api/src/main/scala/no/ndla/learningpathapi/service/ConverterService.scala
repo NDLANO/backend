@@ -15,6 +15,7 @@ import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{
   Description,
+  Introduction,
   EmbedType,
   EmbedUrl,
   LearningPath,
@@ -241,6 +242,10 @@ trait ConverterService {
     }
 
     def asDomainLearningStep(newLearningStep: NewLearningStepV2, learningPath: LearningPath): Try[LearningStep] = {
+      val introduction = newLearningStep.introduction
+        .map(Introduction(_, newLearningStep.language))
+        .toSeq
+
       val description = newLearningStep.description
         .map(Description(_, newLearningStep.language))
         .toSeq
@@ -264,6 +269,7 @@ trait ConverterService {
           learningPath.id,
           newSeqNo,
           Seq(common.Title(newLearningStep.title, newLearningStep.language)),
+          introduction,
           description,
           embedUrl,
           StepType.valueOfOrError(newLearningStep.`type`),
@@ -303,6 +309,12 @@ trait ConverterService {
           mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
       }
 
+      val introductions = updated.introduction match {
+        case None => existing.introduction
+        case Some(value) =>
+          mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
+      }
+
       val descriptions = updated.description match {
         case None => existing.description
         case Some(value) =>
@@ -321,6 +333,7 @@ trait ConverterService {
         existing.copy(
           revision = Some(updated.revision),
           title = titles,
+          introduction = introductions,
           description = descriptions,
           embedUrl = embedUrls,
           showTitle = updated.showTitle.getOrElse(existing.showTitle),
@@ -493,6 +506,9 @@ trait ConverterService {
         val title = findByLanguageOrBestEffort(ls.title, language)
           .map(asApiTitle)
           .getOrElse(api.Title("", DefaultLanguage))
+        val introduction =
+          findByLanguageOrBestEffort(ls.introduction, language)
+            .map(asApiIntroduction)
         val description =
           findByLanguageOrBestEffort(ls.description, language)
             .map(asApiDescription)
@@ -506,6 +522,7 @@ trait ConverterService {
             ls.revision.get,
             ls.seqNo,
             title,
+            introduction,
             description,
             embedUrl,
             ls.showTitle,
@@ -604,6 +621,10 @@ trait ConverterService {
 
     private def asApiTitle(title: common.Title): api.Title = {
       api.Title(title.title, title.language)
+    }
+
+    private def asApiIntroduction(introduction: Introduction): api.Introduction = {
+      api.Introduction(introduction.introduction, introduction.language)
     }
 
     private def asApiDescription(description: Description): api.Description = {

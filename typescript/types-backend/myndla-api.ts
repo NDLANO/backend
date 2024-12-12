@@ -288,4 +288,4 @@ export interface IUserFolder {
   sharedFolders: IFolder[]
 }
 
-export type ResourceType = ("concept" | "image" | "audio" | "multidisciplinary" | "article" | "learningpath" | "video")
+export type ResourceType = ("article" | "audio" | "concept" | "image" | "learningpath" | "multidisciplinary" | "topic" | "video")

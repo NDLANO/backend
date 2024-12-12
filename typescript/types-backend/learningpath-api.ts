@@ -127,6 +127,7 @@ export interface ILearningStepV2 {
   revision: number
   seqNo: number
   title: ITitle
+  introduction?: IIntroduction
   description?: IDescription
   embedUrl?: IEmbedUrlV2
   showTitle: boolean

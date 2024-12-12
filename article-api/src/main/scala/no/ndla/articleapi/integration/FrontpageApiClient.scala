@@ -17,7 +17,7 @@ import sttp.client3.quick.*
 import scala.util.Try
 
 trait FrontpageApiClient {
-  this: NdlaClient with ConverterService with Props =>
+  this: NdlaClient & ConverterService & Props =>
   val frontpageApiClient: FrontpageApiClient
 
   class FrontpageApiClient(FrontpageApiBaseUrl: String = props.FrontpageApiUrl) extends StrictLogging {

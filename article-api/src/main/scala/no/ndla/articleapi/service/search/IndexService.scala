@@ -25,7 +25,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService with Props with ArticleRepository =>
+  this: Elastic4sClient & BaseIndexService & Props & ArticleRepository =>
 
   trait IndexService extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -124,20 +124,19 @@ trait IndexService {
       *   Sequence of FieldDefinitions for a field.
       */
     protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
-      keepRaw match {
-        case true =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-              .fielddata(false)
-              .analyzer(langAnalyzer.analyzer)
-              .fields(keywordField("raw"))
-          )
-        case false =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-              .fielddata(false)
-              .analyzer(langAnalyzer.analyzer)
-          )
+      if (keepRaw) {
+        languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
+      } else {
+        languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+        )
       }
     }
 
@@ -167,13 +166,13 @@ trait IndexService {
           pathMatch = Some(name)
         )
       })
-      val catchAlltemplate = DynamicTemplateRequest(
+      val catchAllTemplate = DynamicTemplateRequest(
         name = fieldName,
         mapping = textField(fieldName).analyzer(SearchLanguage.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )
-      languageTemplates ++ Seq(catchAlltemplate)
+      languageTemplates ++ Seq(catchAllTemplate)
     }
   }
 

@@ -70,7 +70,7 @@ trait TestEnvironment
   val internController: InternController       = mock[InternController]
   val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
 
-  val healthController = mock[TapirHealthController]
+  val healthController: TapirHealthController = mock[TapirHealthController]
 
   val dataSource: HikariDataSource         = mock[HikariDataSource]
   val articleRepository: ArticleRepository = mock[ArticleRepository]

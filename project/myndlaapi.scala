@@ -33,6 +33,7 @@ object myndlaapi extends Module {
       "ConfigMetaRestricted",
       "no.ndla.common.model.api.myndla.MyNDLAUser",
       "no.ndla.common.model.api.myndla.UpdatedMyNDLAUser",
+      "no.ndla.common.model.domain.ResourceType",
       "config.ConfigMeta",
       "Folder",
       "FolderData",

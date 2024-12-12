@@ -29,13 +29,8 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait FolderReadService {
-  this: FolderConverterService
-    with FolderRepository
-    with UserRepository
-    with FeideApiClient
-    with Clock
-    with ConfigService
-    with UserService =>
+  this: FolderConverterService & FolderRepository & UserRepository & FeideApiClient & Clock & ConfigService &
+    UserService =>
 
   val folderReadService: FolderReadService
 

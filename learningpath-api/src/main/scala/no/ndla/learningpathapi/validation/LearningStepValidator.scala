@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.learningpath.{Description, EmbedUrl, LearningStep}
+import no.ndla.common.model.domain.learningpath.{Description, EmbedUrl, Introduction, LearningStep}
 
 import scala.util.{Failure, Success, Try}
 
@@ -34,10 +34,29 @@ trait LearningStepValidator {
 
     def validateLearningStep(newLearningStep: LearningStep, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       titleValidator.validate(newLearningStep.title, allowUnknownLanguage) ++
+        validateIntroduction(newLearningStep.introduction, allowUnknownLanguage) ++
         validateDescription(newLearningStep.description, allowUnknownLanguage) ++
         validateEmbedUrl(newLearningStep.embedUrl, allowUnknownLanguage) ++
         validateLicense(newLearningStep.license).toList ++
         validateThatDescriptionOrEmbedUrlOrBothIsDefined(newLearningStep).toList
+    }
+
+    def validateIntroduction(
+        introductions: Seq[Introduction],
+        allowUnknownLanguage: Boolean
+    ): Seq[ValidationMessage] = {
+      if (introductions.isEmpty) {
+        List()
+      } else {
+        introductions.flatMap(introduction => {
+          basicHtmlTextValidator
+            .validate("introduction", introduction.introduction)
+            .toList :::
+            languageValidator
+              .validate("language", introduction.language, allowUnknownLanguage)
+              .toList
+        })
+      }
     }
 
     def validateDescription(descriptions: Seq[Description], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {

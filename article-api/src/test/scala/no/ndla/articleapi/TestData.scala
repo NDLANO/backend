@@ -9,12 +9,12 @@
 package no.ndla.articleapi
 
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.*
 import no.ndla.mapping.License
 
 trait TestData {

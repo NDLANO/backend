@@ -8,7 +8,7 @@
 
 package no.ndla.common.model.domain.learningpath
 
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Content, Tag, Title}
@@ -52,7 +52,11 @@ case class LearningPath(
 }
 
 object LearningPath {
-  implicit val encoder: Encoder[LearningPath] = deriveEncoder
-  implicit val decoder: Decoder[LearningPath] = deriveDecoder
-
+  // NOTE: We remove learningsteps from the JSON object before decoding it since it is stored in a separate table
+  implicit val encoder: Encoder[LearningPath] = deriveEncoder[LearningPath].mapJsonObject(_.remove("learningsteps"))
+  implicit val decoder: Decoder[LearningPath] = deriveDecoder[LearningPath].prepare { obj =>
+    val learningsteps = obj.downField("learningsteps")
+    if (learningsteps.succeeded) learningsteps.delete
+    else obj
+  }
 }

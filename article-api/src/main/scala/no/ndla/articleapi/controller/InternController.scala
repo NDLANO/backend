@@ -51,7 +51,8 @@ trait InternController {
       .out(stringBody)
       .errorOut(stringInternalServerError)
       .serverLogicPure(numShards => {
-        implicit val ec  = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+        implicit val ec: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
         val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
 
         Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
@@ -71,7 +72,8 @@ trait InternController {
       .out(stringBody)
       .errorOut(stringInternalServerError)
       .serverLogicPure { _ =>
-        implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+        implicit val ec: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
         def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
         val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }

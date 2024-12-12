@@ -93,4 +93,21 @@ class NonEmptyStringTest extends UnitSuite {
     failure.message should be(NonEmptyString.parseErrorMessage)
   }
 
+  test("That comparisons works as expected") {
+    val a = NonEmptyString.fromString("hei").get
+    val b = NonEmptyString.fromString("hei").get
+    val c = NonEmptyString.fromString("hallo").get
+
+    a == b should be(true)
+    a == c should be(false)
+    a == "hei" should be(true)
+    a == "hallo" should be(false)
+  }
+
+  test("That only whitespace strings are not parsed as NonEmptyString") {
+    NonEmptyString.fromString(" ") should be(None)
+    NonEmptyString.fromString("  ") should be(None)
+    NonEmptyString.fromString("   ") should be(None)
+  }
+
 }
