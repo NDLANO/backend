@@ -20,7 +20,8 @@ import no.ndla.searchapi.model.grep.{
   GrepKompetansemaal,
   GrepLaererplan,
   GrepTitle,
-  GrepTverrfagligTema
+  GrepTverrfagligTema,
+  TitleObj
 }
 
 class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -49,21 +50,27 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     kjerneelementer = List(
       GrepKjerneelement(
         "KE12",
-        Seq(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning")),
+        TitleObj(
+          List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
+        ),
         BelongsToObj("LP1")
       ),
       GrepKjerneelement(
         "KE34",
-        Seq(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering")),
+        TitleObj(
+          List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
+        ),
         BelongsToObj("LP2")
       )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         "KM123",
-        Seq(
-          GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
-          GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
+        TitleObj(
+          List(
+            GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
+            GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
+          )
         ),
         BelongsToObj("LP2")
       )
@@ -78,11 +85,11 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     laereplaner = List(
       GrepLaererplan(
         "LP1",
-        Seq(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))
+        TitleObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk")))
       ),
       GrepLaererplan(
         "LP2",
-        Seq(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))
+        TitleObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk")))
       )
     )
   )
