@@ -12,11 +12,12 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHandling, NotFoundException}
+import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHandling}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ReadService}
+import no.ndla.common.errors.NotFoundException
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -116,7 +117,7 @@ trait InternController {
         .serverLogicPure { id =>
           audioRepository.withId(id) match {
             case Some(image) => image.asRight
-            case None        => returnLeftError(new NotFoundException(s"Could not find audio with id: '$id'"))
+            case None        => returnLeftError(NotFoundException(s"Could not find audio with id: '$id'"))
           }
         },
       endpoint.post

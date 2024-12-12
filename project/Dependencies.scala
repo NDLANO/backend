@@ -65,6 +65,10 @@ object Dependencies {
       "software.amazon.awssdk" % "s3" % AwsSdkV
     )
 
+    lazy val awsTranscribe: Seq[ModuleID] = Seq(
+      "software.amazon.awssdk" % "transcribe" % AwsSdkV
+    )
+
     lazy val awsCloudwatch: Seq[ModuleID] = Seq(
       "software.amazon.awssdk" % "cloudwatch" % AwsSdkV
     )

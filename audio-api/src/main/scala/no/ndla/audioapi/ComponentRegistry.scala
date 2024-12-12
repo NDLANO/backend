@@ -16,7 +16,7 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
-import no.ndla.common.aws.NdlaS3Client
+import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
 import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DataSource}
@@ -58,6 +58,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with SwaggerDocControllerConfig
     with NdlaS3Client
     with TranscriptionService
+    with NdlaAWSTranscribeClient
     with NdlaBrightcoveClient {
   override val props: AudioApiProperties = properties
   override val migrator: DBMigrator = DBMigrator(
@@ -70,6 +71,7 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val s3Client           = new NdlaS3Client(props.StorageName, props.StorageRegion)
   lazy val s3TranscribeClient = new NdlaS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)
   lazy val brightcoveClient   = new NdlaBrightcoveClient()
+  lazy val transcribeClient   = new NdlaAWSTranscribeClient(props.TranscribeStorageRegion)
 
   lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository
