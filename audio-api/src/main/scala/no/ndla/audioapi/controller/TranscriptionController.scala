@@ -20,6 +20,8 @@ trait TranscriptionController {
 
     private val videoId  = path[String]("videoId").description("The video id to transcribe")
     private val language = path[String]("language").description("The language to transcribe the video to")
+    private val maxSpeaker =
+      query[Int]("maxSpeaker").description("The maximum number of speakers in the video").default(2)
 
     def postExtractAudio: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Extract audio from video")
@@ -60,11 +62,12 @@ trait TranscriptionController {
       .description("Transcribes a video to a specific language, and uploads the transcription to S3.")
       .in(videoId)
       .in(language)
+      .in(maxSpeaker)
       .errorOut(errorOutputsFor(400, 500))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
-        { case (videoId, language) =>
-          transcriptionService.transcribeVideo(videoId, language) match {
+        { case (videoId, language, maxSpeakerOpt) =>
+          transcriptionService.transcribeVideo(videoId, language, maxSpeakerOpt) match {
             case Success(_)  => Right(())
             case Failure(ex) => returnLeftError(ex)
           }
@@ -87,22 +90,6 @@ trait TranscriptionController {
           }
         }
       }
-
-    /*def postTranscriptionFormatting: ServerEndpoint[Any, Eff] = endpoint.post
-      .summary("Format transcription")
-      .description("Formats a transcription to a specific format.")
-      .in(videoId)
-      .in(language)
-      .errorOut(errorOutputsFor(400, 500))
-      .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { _ =>
-        { case (videoId, language) =>
-          transcriptionService.formatTranscription(videoId, language) match {
-            case Success(_)  => Right(())
-            case Failure(ex) => returnLeftError(ex)
-          }
-        }
-      }*/
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] =
       List(postExtractAudio, getAudioExtraction, postTranscription, getTranscription)

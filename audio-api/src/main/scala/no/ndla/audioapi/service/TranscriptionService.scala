@@ -18,7 +18,7 @@ trait TranscriptionService {
 
   class TranscriptionService extends StrictLogging {
 
-    def transcribeVideo(videoId: String, language: String): Try[Unit] = {
+    def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
       getAudioExtractionStatus(videoId, language) match {
         case Success(_) =>
           logger.info(s"Audio already extracted for videoId: $videoId")
@@ -37,9 +37,18 @@ trait TranscriptionService {
       logger.info(s"Transcribing audio from: $audioUri")
       val jobName      = s"transcription-$videoId-$language"
       val mediaFormat  = "mp3"
+      val outputKey    = s"transcription/$language/$videoId"
       val languageCode = language
 
-      transcribeClient.startTranscriptionJob(jobName, audioUri, mediaFormat, languageCode) match {
+      transcribeClient.startTranscriptionJob(
+        jobName,
+        audioUri,
+        mediaFormat,
+        languageCode,
+        props.TranscribeStorageName,
+        outputKey,
+        maxSpeakers
+      ) match {
         case Success(_) =>
           logger.info(s"Transcription job started for videoId: $videoId")
           Success(())

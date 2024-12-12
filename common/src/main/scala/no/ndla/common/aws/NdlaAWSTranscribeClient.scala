@@ -7,8 +7,8 @@
 
 package no.ndla.common.aws
 
-import software.amazon.awssdk.services.transcribe.{TranscribeClient, TranscribeClientBuilder}
 import software.amazon.awssdk.services.transcribe.model.*
+import software.amazon.awssdk.services.transcribe.{TranscribeClient, TranscribeClientBuilder}
 
 import scala.util.{Failure, Try}
 
@@ -28,7 +28,11 @@ trait NdlaAWSTranscribeClient {
         jobName: String,
         mediaUri: String,
         mediaFormat: String,
-        languageCode: String
+        languageCode: String,
+        outputBucket: String,
+        outputKey: String,
+        maxSpeakers: Int,
+        outputSubtitleFormat: String = "VTT"
     ): Try[StartTranscriptionJobResponse] = Try {
       val request = StartTranscriptionJobRequest
         .builder()
@@ -36,6 +40,21 @@ trait NdlaAWSTranscribeClient {
         .media(Media.builder().mediaFileUri(mediaUri).build())
         .mediaFormat(mediaFormat)
         .languageCode(languageCode)
+        .outputBucketName(outputBucket)
+        .outputKey(outputKey)
+        .settings(
+          Settings
+            .builder()
+            .showSpeakerLabels(true)
+            .maxSpeakerLabels(maxSpeakers)
+            .build()
+        )
+        .subtitles(
+          Subtitles
+            .builder()
+            .formats(SubtitleFormat.valueOf(outputSubtitleFormat))
+            .build()
+        )
         .build()
 
       client.startTranscriptionJob(request)
