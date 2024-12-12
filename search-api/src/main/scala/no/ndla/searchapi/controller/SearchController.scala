@@ -608,8 +608,7 @@ trait SearchController {
       .in(jsonBody[GrepSearchInputDTO])
       .out(jsonBody[GrepSearchResultsDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
-      .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { _ => input => grepSearchService.searchGreps(input) }
+      .serverLogicPure { input => grepSearchService.searchGreps(input) }
 
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the
       * feide api and should be used sparingly.
