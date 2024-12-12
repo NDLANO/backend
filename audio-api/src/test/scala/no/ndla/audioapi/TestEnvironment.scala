@@ -59,7 +59,6 @@ trait TestEnvironment
   override val props: AudioApiProperties = new AudioApiProperties
 
   val dataSource: HikariDataSource       = mock[HikariDataSource]
-  val storageName: String                = props.StorageName
   val audioRepository: AudioRepository   = mock[AudioRepository]
   val seriesRepository: SeriesRepository = mock[SeriesRepository]
 
