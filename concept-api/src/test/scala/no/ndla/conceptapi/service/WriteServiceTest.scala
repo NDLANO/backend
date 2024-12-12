@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.model.api as commonApi
-import no.ndla.conceptapi.model.api.ConceptResponsible
+import no.ndla.conceptapi.model.api.ConceptResponsibleDTO
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
@@ -41,12 +41,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val conceptId           = 13L
   val userInfo: TokenUser = TokenUser.SystemUser
 
-  val concept: api.Concept =
+  val concept: api.ConceptDTO =
     TestData.sampleNbApiConcept.copy(
       id = conceptId,
       updated = today,
       supportedLanguages = Set("nb"),
-      responsible = Some(ConceptResponsible("hei", TestData.today))
+      responsible = Some(ConceptResponsibleDTO("hei", TestData.today))
     )
 
   val domainConcept: Concept = TestData.sampleNbDomainConcept.copy(
@@ -87,7 +87,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only content properly") {
     val newContent = "NewContentTest"
     val updatedApiConcept =
-      api.UpdatedConcept(
+      api.UpdatedConceptDTO(
         "en",
         None,
         content = Some(newContent),
@@ -109,7 +109,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       editorNotes = Some(
         Seq(
-          api.EditorNote("New language 'en' added", "", api.Status("IN_PROGRESS", Seq.empty), today)
+          api.EditorNoteDTO("New language 'en' added", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today)
         )
       )
     )
@@ -120,7 +120,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only title properly") {
     val newTitle = "NewTitleTest"
     val updatedApiConcept =
-      api.UpdatedConcept(
+      api.UpdatedConceptDTO(
         "nn",
         title = Some(newTitle),
         None,
@@ -136,13 +136,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None
       )
     val expectedConcept = concept.copy(
-      title = api.ConceptTitle(newTitle, "nn"),
+      title = api.ConceptTitleDTO(newTitle, "nn"),
       updated = today,
       supportedLanguages = Set("nb", "nn"),
       articleIds = Seq.empty,
       editorNotes = Some(
         Seq(
-          api.EditorNote("New language 'nn' added", "", api.Status("IN_PROGRESS", Seq.empty), today)
+          api.EditorNoteDTO("New language 'nn' added", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today)
         )
       )
     )
@@ -153,19 +153,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedTitle   = "NyTittelTestJee"
     val updatedContent = "NyContentTestYepp"
     val updatedCopyright =
-      commonApi.DraftCopyright(
+      commonApi.DraftCopyrightDTO(
         None,
         Some("https://ndla.no"),
-        Seq(commonApi.Author("Opphavsmann", "Katrine")),
+        Seq(commonApi.AuthorDTO("Opphavsmann", "Katrine")),
         List(),
         List(),
         None,
         None,
         false
       )
-    val updatedMetaImage = api.NewConceptMetaImage("2", "AltTxt")
+    val updatedMetaImage = api.NewConceptMetaImageDTO("2", "AltTxt")
 
-    val updatedApiConcept = api.UpdatedConcept(
+    val updatedApiConcept = api.UpdatedConceptDTO(
       "en",
       Some(updatedTitle),
       Some(updatedContent),
@@ -182,14 +182,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val expectedConcept = concept.copy(
-      title = api.ConceptTitle(updatedTitle, "en"),
+      title = api.ConceptTitleDTO(updatedTitle, "en"),
       content = Option(api.ConceptContent(updatedContent, updatedContent, "en")),
-      metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
+      metaImage = Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
-        commonApi.DraftCopyright(
+        commonApi.DraftCopyrightDTO(
           None,
           Some("https://ndla.no"),
-          Seq(commonApi.Author("Opphavsmann", "Katrine")),
+          Seq(commonApi.AuthorDTO("Opphavsmann", "Katrine")),
           List(),
           List(),
           None,
@@ -199,14 +199,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
       source = Some("https://ndla.no"),
       supportedLanguages = Set("nb", "en"),
-      tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
+      tags = Some(api.ConceptTagsDTO(Seq("Nye", "Tags"), "en")),
       subjectIds = Some(Set("urn:subject:900")),
       articleIds = Seq(69L),
-      responsible = Some(api.ConceptResponsible("123", today)),
+      responsible = Some(api.ConceptResponsibleDTO("123", today)),
       editorNotes = Some(
         Seq(
-          api.EditorNote("New language 'en' added", "", api.Status("IN_PROGRESS", Seq.empty), today),
-          api.EditorNote("Responsible changed", "", api.Status("IN_PROGRESS", Seq.empty), today)
+          api.EditorNoteDTO("New language 'en' added", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today),
+          api.EditorNoteDTO("Responsible changed", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today)
         )
       )
     )
@@ -276,7 +276,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only responsible properly") {
     val responsibleId = "ResponsibleId"
     val updatedApiConcept =
-      api.UpdatedConcept(
+      api.UpdatedConceptDTO(
         language = "nb",
         title = None,
         content = None,
@@ -295,10 +295,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today,
       supportedLanguages = Set("nb"),
       articleIds = Seq(42),
-      responsible = Some(api.ConceptResponsible(responsibleId, today)),
+      responsible = Some(api.ConceptResponsibleDTO(responsibleId, today)),
       editorNotes = Some(
         Seq(
-          api.EditorNote("Responsible changed", "", api.Status("IN_PROGRESS", Seq.empty), today)
+          api.EditorNoteDTO("Responsible changed", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today)
         )
       )
     )

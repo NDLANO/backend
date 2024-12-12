@@ -72,8 +72,8 @@ class ImageSearchServiceTest
   )
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val agreement1Copyright: commonApi.Copyright = commonApi.Copyright(
-    commonApi.License("gnu", Some("gnustuff"), Some("http://gnugnusen")),
+  val agreement1Copyright: commonApi.CopyrightDTO = commonApi.CopyrightDTO(
+    commonApi.LicenseDTO("gnu", Some("gnustuff"), Some("http://gnugnusen")),
     Some("Simsalabim"),
     List(),
     List(),

@@ -11,16 +11,16 @@ package no.ndla.articleapi.model.api
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about search-results")
-case class SearchResultV2(
+case class SearchResultV2DTO(
     @description("The total number of articles matching this query") totalCount: Long,
     @description("For which page results are shown from") page: Option[Int],
     @description("The number of results per page") pageSize: Int,
     @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[ArticleSummaryV2]
+    @description("The search results") results: Seq[ArticleSummaryV2DTO]
 )
 
 @description("Information about tags-search-results")
-case class TagsSearchResult(
+case class TagsSearchResultDTO(
     @description("The total number of tags matching this query") totalCount: Long,
     @description("For which page results are shown from") page: Int,
     @description("The number of results per page") pageSize: Int,
@@ -29,10 +29,10 @@ case class TagsSearchResult(
 )
 
 @description("Information about articles")
-case class ArticleDump(
+case class ArticleDumpDTO(
     @description("The total number of articles in the database") totalCount: Long,
     @description("For which page results are shown from") page: Int,
     @description("The number of results per page") pageSize: Int,
     @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[ArticleV2]
+    @description("The search results") results: Seq[ArticleV2DTO]
 )

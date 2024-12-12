@@ -12,20 +12,28 @@ import io.circe.{Decoder, DecodingFailure, Encoder, FailedCursor, HCursor, Json}
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
 
-/** Class that cannot be constructed with an empty string (""), therefore it means that if you have one of these the
-  * underlying string is not empty
+/** Class that cannot be constructed with an empty string ("") or a whitespace only string (" "), therefore it means
+  * that if you have one of these the underlying string is not empty.
   */
 class NonEmptyString private (val underlying: String) {
   override def equals(obj: Any): Boolean = obj match {
     case other: NonEmptyString => other.underlying == underlying
+    case other: String         => other == underlying
     case _                     => false
   }
+
+  override def toString: String = underlying
 }
 
 object NonEmptyString {
-  def apply(underlying: String): Option[NonEmptyString]        = fromString(underlying)
-  def fromOptString(s: Option[String]): Option[NonEmptyString] = s.filter(_.nonEmpty).map(f => new NonEmptyString(f))
-  def fromString(s: String): Option[NonEmptyString]            = Option.when(s.nonEmpty)(new NonEmptyString(s))
+  def apply(underlying: String): Option[NonEmptyString] = fromString(underlying)
+
+  private def validateString(underlying: String): Boolean = underlying.trim.nonEmpty
+
+  def fromOptString(s: Option[String]): Option[NonEmptyString] =
+    s.filter(validateString).map(f => new NonEmptyString(f))
+  def fromString(s: String): Option[NonEmptyString] =
+    Option.when(validateString(s))(new NonEmptyString(s))
 
   implicit val schema: Schema[NonEmptyString]            = Schema.string
   implicit val schemaOpt: Schema[Option[NonEmptyString]] = Schema.string.asOption
@@ -60,7 +68,7 @@ object NonEmptyString {
 
   implicit def circeEncoder: Encoder[NonEmptyString] = (a: NonEmptyString) => Json.fromString(a.underlying)
 
-  /** Helpers that should make working with a bit `Option[NonEmptyString]` easier */
+  /** Helpers that should make working with `Option[NonEmptyString]` a bit easier */
   implicit class NonEmptyStringImplicit(self: Option[NonEmptyString]) {
     def underlying: Option[String]                   = self.map(_.underlying)
     def underlyingOrElse(default: => String): String = self.map(_.underlying).getOrElse(default)

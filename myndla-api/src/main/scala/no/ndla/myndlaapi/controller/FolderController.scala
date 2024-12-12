@@ -11,14 +11,14 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api.{
-  Folder,
-  FolderSortRequest,
-  NewFolder,
-  NewResource,
-  Resource,
-  UpdatedFolder,
-  UpdatedResource,
-  UserFolder
+  FolderDTO,
+  FolderSortRequestDTO,
+  NewFolderDTO,
+  NewResourceDTO,
+  ResourceDTO,
+  UpdatedFolderDTO,
+  UpdatedResourceDTO,
+  UserFolderDTO
 }
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   FolderSorting,
@@ -80,7 +80,7 @@ trait FolderController {
       .in(includeResources)
       .in(includeSubfolders)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[UserFolder])
+      .out(jsonBody[UserFolderDTO])
       .serverLogicPure { case (feideHeader, includeResources, includeSubfolders) =>
         folderReadService.getFolders(includeSubfolders, includeResources, feideHeader)
       }
@@ -93,7 +93,7 @@ trait FolderController {
       .in(includeResources)
       .in(includeSubfolders)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[Folder])
+      .out(jsonBody[FolderDTO])
       .serverLogicPure { case (folderId, feideHeader, includeResources, includeSubfolders) =>
         folderReadService
           .getSingleFolder(folderId, includeSubfolders, includeResources, feideHeader)
@@ -104,9 +104,9 @@ trait FolderController {
       .summary("Creates new folder")
       .description("Creates new folder")
       .in(feideHeader)
-      .in(jsonBody[NewFolder])
+      .in(jsonBody[NewFolderDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[Folder])
+      .out(jsonBody[FolderDTO])
       .serverLogicPure { case (feideHeader, newFolder) =>
         folderWriteService.newFolder(newFolder, feideHeader)
       }
@@ -116,9 +116,9 @@ trait FolderController {
       .description("Update folder with new data")
       .in(feideHeader)
       .in(pathFolderId)
-      .in(jsonBody[UpdatedFolder])
+      .in(jsonBody[UpdatedFolderDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[Folder])
+      .out(jsonBody[FolderDTO])
       .serverLogicPure { case (feideHeader, folderId, updatedFolder) =>
         folderWriteService.updateFolder(folderId, updatedFolder, feideHeader)
       }
@@ -146,7 +146,7 @@ trait FolderController {
       .in(feideHeader)
       .in(size)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[List[Resource]])
+      .out(jsonBody[List[ResourceDTO]])
       .serverLogicPure { case (feideHeader, inputSize) =>
         val size = if (inputSize < 1) defaultSize else inputSize
         folderReadService.getAllResources(size, feideHeader)
@@ -160,7 +160,7 @@ trait FolderController {
       .in(queryRecentSize)
       .in(queryExcludeResourceTypes)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[Seq[Resource]])
+      .out(jsonBody[Seq[ResourceDTO]])
       .serverLogicPure { case (queryRecentSize, queryExcludeResourceTypes) =>
         folderReadService
           .getRecentFavorite(queryRecentSize, queryExcludeResourceTypes.values)
@@ -172,9 +172,9 @@ trait FolderController {
       .description("Creates new folder resource")
       .in(feideHeader)
       .in(pathFolderId / "resources")
-      .in(jsonBody[NewResource])
+      .in(jsonBody[NewResourceDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[Resource])
+      .out(jsonBody[ResourceDTO])
       .serverLogicPure { case (feideHeader, folderId, newResource) =>
         folderWriteService.newFolderResourceConnection(folderId, newResource, feideHeader)
       }
@@ -184,9 +184,9 @@ trait FolderController {
       .description("Updates selected resource")
       .in("resources" / pathResourceId)
       .in(feideHeader)
-      .in(jsonBody[UpdatedResource])
+      .in(jsonBody[UpdatedResourceDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[Resource])
+      .out(jsonBody[ResourceDTO])
       .serverLogicPure { case (resourceId, feideHeader, updatedResource) =>
         folderWriteService.updateResource(resourceId, updatedResource, feideHeader)
       }
@@ -209,7 +209,7 @@ trait FolderController {
       .description("Fetch a shared folder and all its content")
       .in("shared" / pathFolderId)
       .in(feideHeader)
-      .out(jsonBody[Folder])
+      .out(jsonBody[FolderDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader) =>
         folderReadService.getSharedFolder(folderId, feideHeader)
@@ -235,7 +235,7 @@ trait FolderController {
       .in("clone" / sourceFolderId)
       .in(destinationFolderId)
       .in(feideHeader)
-      .out(jsonBody[Folder])
+      .out(jsonBody[FolderDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (sourceFolderId, destinationFolderId, feideId) =>
         folderWriteService.cloneFolder(sourceFolderId, destinationFolderId, feideId)
@@ -246,7 +246,7 @@ trait FolderController {
       .description("Decide order of resource ids in a folder")
       .in("sort-resources" / pathFolderId)
       .in(feideHeader)
-      .in(jsonBody[FolderSortRequest])
+      .in(jsonBody[FolderSortRequestDTO])
       .out(emptyOutput)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader, sortRequest) =>
@@ -259,7 +259,7 @@ trait FolderController {
       .description("Decide order of subfolder ids in a folder")
       .in("sort-subfolders")
       .in(feideHeader)
-      .in(jsonBody[FolderSortRequest])
+      .in(jsonBody[FolderSortRequestDTO])
       .in(queryFolderId)
       .out(emptyOutput)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
@@ -273,7 +273,7 @@ trait FolderController {
       .description("Decide order of saved shared folders")
       .in("sort-saved")
       .in(feideHeader)
-      .in(jsonBody[FolderSortRequest])
+      .in(jsonBody[FolderSortRequestDTO])
       .out(emptyOutput)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (feideHeader, sortRequest) =>

@@ -46,13 +46,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("that toApiAudioMetaInformation converts a domain class to an api class") {
 
-    val expected = api.AudioMetaInformation(
+    val expected = api.AudioMetaInformationDTO(
       audioMeta.id.get,
       audioMeta.revision.get,
-      api.Title("Batmen er på vift med en bil", "nb"),
+      api.TitleDTO("Batmen er på vift med en bil", "nb"),
       service.toApiAudio(audioMeta.filePaths.headOption),
       service.toApiCopyright(audioMeta.copyright),
-      api.Tag(Seq("fisk"), "nb"),
+      api.TagDTO(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
       None,
@@ -66,13 +66,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toApiAudioMetaInformation should return DefaultLanguage if language is not supported") {
-    val expectedDefaultLanguage = api.AudioMetaInformation(
+    val expectedDefaultLanguage = api.AudioMetaInformationDTO(
       audioMeta.id.get,
       audioMeta.revision.get,
-      api.Title("Batmen er på vift med en bil", "nb"),
+      api.TitleDTO("Batmen er på vift med en bil", "nb"),
       service.toApiAudio(audioMeta.filePaths.headOption),
       service.toApiCopyright(audioMeta.copyright),
-      api.Tag(Seq("fisk"), "nb"),
+      api.TagDTO(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
       None,
@@ -82,7 +82,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updated
     )
 
-    val expectedNoTitles = expectedDefaultLanguage.copy(title = api.Title("", "nb"))
+    val expectedNoTitles = expectedDefaultLanguage.copy(title = api.TitleDTO("", "nb"))
 
     val audioWithNoTitles = audioMeta.copy(titles = Seq.empty)
     val randomLanguage    = "norsk"
@@ -93,7 +93,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That toApiLicense converts to an api.License") {
     val licenseAbbr = CC_BY_SA.toString
-    val license = commonApi.License(
+    val license = commonApi.LicenseDTO(
       licenseAbbr,
       Some("Creative Commons Attribution-ShareAlike 4.0 International"),
       Some("https://creativecommons.org/licenses/by-sa/4.0/")
@@ -105,7 +105,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That toApiLicense returns unknown if the license is invalid") {
     val licenseAbbr = "garbage"
 
-    service.toApiLicence(licenseAbbr) should equal(commonApi.License("unknown", None, None))
+    service.toApiLicence(licenseAbbr) should equal(commonApi.LicenseDTO("unknown", None, None))
   }
 
   test("That mergeLanguageField merges language fields as expected") {

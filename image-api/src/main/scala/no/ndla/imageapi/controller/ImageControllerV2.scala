@@ -61,8 +61,8 @@ trait ImageControllerV2 {
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     protected def scrollSearchOr(scrollId: Option[String], language: String, user: Option[TokenUser])(
-        orFunction: => Try[(SearchResult, DynamicHeaders)]
-    ): Try[(SearchResult, DynamicHeaders)] =
+        orFunction: => Try[(SearchResultDTO, DynamicHeaders)]
+    ): Try[(SearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           imageSearchService.scrollV2(scroll, language, user) match {
@@ -148,7 +148,7 @@ trait ImageControllerV2 {
       .in(scrollId)
       .in(modelReleased)
       .errorOut(errorOutputsFor(400))
-      .out(jsonBody[SearchResult])
+      .out(jsonBody[SearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .withOptionalUser
       .serverLogicPure { user =>
@@ -195,9 +195,9 @@ trait ImageControllerV2 {
       .summary("Find images.")
       .description("Search for images in the ndla.no database.")
       .in("search")
-      .in(jsonBody[SearchParams])
+      .in(jsonBody[SearchParamsDTO])
       .errorOut(errorOutputsFor(400))
-      .out(jsonBody[SearchResult])
+      .out(jsonBody[SearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .withOptionalUser
       .serverLogicPure(user => { searchParams =>
@@ -239,7 +239,7 @@ trait ImageControllerV2 {
       .description("Shows info of the image with submitted id.")
       .in(pathImageId)
       .in(languageOpt)
-      .out(jsonBody[ImageMetaInformationV2])
+      .out(jsonBody[ImageMetaInformationV2DTO])
       .errorOut(errorOutputsFor(404))
       .withOptionalUser
       .serverLogicPure { user =>
@@ -258,7 +258,7 @@ trait ImageControllerV2 {
       .description("Shows info of the image with submitted external id.")
       .in("external_id" / pathExternalId)
       .in(languageOpt)
-      .out(jsonBody[ImageMetaInformationV2])
+      .out(jsonBody[ImageMetaInformationV2DTO])
       .errorOut(errorOutputsFor(404))
       .withOptionalUser
       .serverLogicPure { user =>
@@ -276,7 +276,7 @@ trait ImageControllerV2 {
       .description("Upload a new image file with meta data.")
       .in(multipartBody[MetaDataAndFileForm](implicitly))
       .errorOut(errorOutputsFor(400, 401, 403, 413))
-      .out(jsonBody[ImageMetaInformationV2])
+      .out(jsonBody[ImageMetaInformationV2DTO])
       .requirePermission(IMAGE_API_WRITE)
       .serverLogicPure { user => formData =>
         doWithStream(formData.file) { uploadedFile =>
@@ -308,7 +308,7 @@ trait ImageControllerV2 {
       .summary("Delete language version of image metadata.")
       .description("Delete language version of image metadata.")
       .in(pathImageId / "language" / pathLanguage)
-      .out(noContentOrBodyOutput[ImageMetaInformationV2])
+      .out(noContentOrBodyOutput[ImageMetaInformationV2DTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(IMAGE_API_WRITE)
       .serverLogicPure { user =>
@@ -323,7 +323,7 @@ trait ImageControllerV2 {
       .in(pathImageId)
       .in(multipartBody[UpdateMetaDataAndFileForm])
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[ImageMetaInformationV2])
+      .out(jsonBody[ImageMetaInformationV2DTO])
       .requirePermission(IMAGE_API_WRITE)
       .serverLogicPure { user => input =>
         val (imageId, formData) = input
@@ -341,7 +341,7 @@ trait ImageControllerV2 {
       .in(pageNo)
       .in(language)
       .in(sort)
-      .out(jsonBody[TagsSearchResult])
+      .out(jsonBody[TagsSearchResultDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .serverLogicPure { case (q, pageSizeParam, pageNoParam, language, sortStr) =>
         val query = q.getOrElse("")

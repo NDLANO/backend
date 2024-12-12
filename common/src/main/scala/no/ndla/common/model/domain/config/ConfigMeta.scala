@@ -40,7 +40,7 @@ object ConfigMetaValue {
     ).reduceLeft(_ or _)
   }
 
-  def from(configMetaValue: api.config.ConfigMetaValue): ConfigMetaValue = configMetaValue.value match {
+  def from(configMetaValue: api.config.ConfigMetaValueDTO): ConfigMetaValue = configMetaValue.value match {
     case Left(value)  => config.BooleanValue(value)
     case Right(value) => config.StringListValue(value)
   }

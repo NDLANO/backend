@@ -8,7 +8,7 @@
 package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.MyNDLABundle
+import no.ndla.common.model.api.MyNDLABundleDTO
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -1561,11 +1561,12 @@ object TestData {
 
   val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
 
-  val myndlaTestBundle: MyNDLABundle = MyNDLABundle(Map.empty)
+  val myndlaTestBundle: MyNDLABundleDTO = MyNDLABundleDTO(Map.empty)
 
   val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
+    kompetansemaalsett = List.empty,
     tverrfagligeTemaer = List.empty
   )
 

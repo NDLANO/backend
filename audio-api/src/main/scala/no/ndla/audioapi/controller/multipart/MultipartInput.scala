@@ -7,16 +7,16 @@
 
 package no.ndla.audioapi.controller.multipart
 
-import no.ndla.audioapi.model.api.{NewAudioMetaInformation, UpdatedAudioMetaInformation}
+import no.ndla.audioapi.model.api.{NewAudioMetaInformationDTO, UpdatedAudioMetaInformationDTO}
 import sttp.model.Part
 
 import java.io.File
 
 case class MetaDataAndFileForm(
-    metadata: Part[NewAudioMetaInformation],
+    metadata: Part[NewAudioMetaInformationDTO],
     file: Part[File]
 )
 case class MetaDataAndOptFileForm(
-    metadata: Part[UpdatedAudioMetaInformation],
+    metadata: Part[UpdatedAudioMetaInformationDTO],
     file: Option[Part[File]]
 )

@@ -7,8 +7,8 @@
 
 package no.ndla.myndlaapi.controller
 
-import no.ndla.common.model.api.SingleResourceStats
-import no.ndla.myndlaapi.model.api.Stats
+import no.ndla.common.model.api.SingleResourceStatsDTO
+import no.ndla.myndlaapi.model.api.StatsDTO
 import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
@@ -22,7 +22,7 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
   val controller: StatsController = new StatsController()
 
   test("That getting stats returns in fact stats") {
-    when(folderReadService.getStats).thenReturn(Some(Stats(1, 2, 3, 4, 5, 6, List.empty, Map.empty)))
+    when(folderReadService.getStats).thenReturn(Some(StatsDTO(1, 2, 3, 4, 5, 6, List.empty, Map.empty)))
 
     val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats"))
     response.code.code should be(200)
@@ -30,7 +30,7 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
 
   test("That getting multiple resourceTypes for id works") {
     when(folderReadService.getFavouriteStatsForResource(any, any))
-      .thenReturn(Success(List(SingleResourceStats("1", 21))))
+      .thenReturn(Success(List(SingleResourceStatsDTO("1", 21))))
     val response = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats/favorites/article,multidisciplinary/123")
     )

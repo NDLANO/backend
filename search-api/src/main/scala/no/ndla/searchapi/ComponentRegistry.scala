@@ -50,10 +50,12 @@ class ComponentRegistry(properties: SearchApiProperties)
     with FeideApiClient
     with RedisClient
     with InternController
+    with GrepIndexService
     with SearchApiClient
     with GrepApiClient
     with Props
-    with SwaggerDocControllerConfig {
+    with SwaggerDocControllerConfig
+    with GrepSearchService {
   override val props: SearchApiProperties = properties
   import props._
 
@@ -80,6 +82,8 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val learningPathIndexService = new LearningPathIndexService
   lazy val draftIndexService        = new DraftIndexService
   lazy val multiDraftSearchService  = new MultiDraftSearchService
+  lazy val grepIndexService         = new GrepIndexService
+  lazy val grepSearchService        = new GrepSearchService
 
   lazy val searchController                        = new SearchController
   lazy val healthController: TapirHealthController = new TapirHealthController

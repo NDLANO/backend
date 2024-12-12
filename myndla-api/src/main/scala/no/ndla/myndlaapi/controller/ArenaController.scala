@@ -8,24 +8,24 @@
 package no.ndla.myndlaapi.controller
 
 import io.circe.generic.auto.*
-import no.ndla.common.model.api.myndla.{MyNDLAUser, UpdatedMyNDLAUser}
-import no.ndla.myndlaapi.model.api.{ArenaUser, PaginatedArenaUsers}
+import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
+import no.ndla.myndlaapi.model.api.{ArenaUserDTO, PaginatedArenaUsersDTO}
 import no.ndla.myndlaapi.MyNDLAAuthHelpers
 import no.ndla.myndlaapi.model.arena.api.{
-  Category,
-  CategorySort,
-  CategoryWithTopics,
-  Flag,
-  NewCategory,
-  NewFlag,
-  NewPost,
-  NewTopic,
-  PaginatedNewPostNotifications,
-  PaginatedPosts,
-  PaginatedTopics,
-  Post,
-  Topic,
-  TopicWithPosts
+  CategoryDTO,
+  CategorySortDTO,
+  CategoryWithTopicsDTO,
+  FlagDTO,
+  NewCategoryDTO,
+  NewFlagDTO,
+  NewPostDTO,
+  NewTopicDTO,
+  PaginatedNewPostNotificationsDTO,
+  PaginatedPostsDTO,
+  PaginatedTopicsDTO,
+  PostDTO,
+  TopicDTO,
+  TopicWithPostsDTO
 }
 import no.ndla.myndlaapi.service.{ArenaReadService, UserService}
 import no.ndla.network.clients.FeideApiClient
@@ -60,8 +60,8 @@ trait ArenaController {
       .summary("Get all categories")
       .description("Get all categories")
       .in(query[Boolean]("followed").description("Filter on followed categories").default(false))
-      .in(query[CategorySort]("sort").description("Sort categories").default(CategorySort.ByRank))
-      .out(jsonBody[List[Category]])
+      .in(query[CategorySortDTO]("sort").description("Sort categories").default(CategorySortDTO.ByRank))
+      .out(jsonBody[List[CategoryDTO]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -74,7 +74,7 @@ trait ArenaController {
       .in("categories" / pathCategoryId)
       .summary("Get single category")
       .description("Get single category")
-      .out(jsonBody[CategoryWithTopics])
+      .out(jsonBody[CategoryWithTopicsDTO])
       .in(queryPage)
       .in(queryPageSize)
       .errorOut(errorOutputsFor(401, 403, 404))
@@ -89,7 +89,7 @@ trait ArenaController {
       .in("categories" / pathCategoryId / "topics")
       .summary("Get topics for a category")
       .description("Get topics for a category")
-      .out(jsonBody[PaginatedTopics])
+      .out(jsonBody[PaginatedTopicsDTO])
       .in(queryPage)
       .in(queryPageSize)
       .errorOut(errorOutputsFor(401, 403, 404))
@@ -106,7 +106,7 @@ trait ArenaController {
       .summary("Sort categories")
       .description("Sort categories")
       .in(jsonBody[List[Long]].description("List of category ids in the order they should be sorted"))
-      .out(jsonBody[List[Category]])
+      .out(jsonBody[List[CategoryDTO]])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
@@ -119,7 +119,7 @@ trait ArenaController {
       .in("topics" / pathTopicId)
       .summary("Get single topic")
       .description("Get single topic")
-      .out(jsonBody[TopicWithPosts])
+      .out(jsonBody[TopicWithPostsDTO])
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .in(queryPage)
       .in(queryPageSize)
@@ -137,7 +137,7 @@ trait ArenaController {
       .in(queryPage)
       .in(queryPageSize)
       .in(query[Option[Long]]("user-id").description("A users id to filter on"))
-      .out(jsonBody[PaginatedTopics])
+      .out(jsonBody[PaginatedTopicsDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -150,7 +150,7 @@ trait ArenaController {
       .in("categories" / pathCategoryId / "follow")
       .summary("Follow category")
       .description("Follow category")
-      .out(jsonBody[CategoryWithTopics])
+      .out(jsonBody[CategoryWithTopicsDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => categoryId =>
@@ -161,7 +161,7 @@ trait ArenaController {
       .in("categories" / pathCategoryId / "unfollow")
       .summary("Unfollow category")
       .description("Unfollow category")
-      .out(jsonBody[CategoryWithTopics])
+      .out(jsonBody[CategoryWithTopicsDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => categoryId =>
@@ -172,7 +172,7 @@ trait ArenaController {
       .in("topics" / pathTopicId / "follow")
       .summary("Follow topic")
       .description("Follow topic")
-      .out(jsonBody[TopicWithPosts])
+      .out(jsonBody[TopicWithPostsDTO])
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
@@ -183,7 +183,7 @@ trait ArenaController {
       .in("topics" / pathTopicId / "unfollow")
       .summary("Unfollow topic")
       .description("Unfollow topic")
-      .out(jsonBody[TopicWithPosts])
+      .out(jsonBody[TopicWithPostsDTO])
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => topicId =>
@@ -194,7 +194,7 @@ trait ArenaController {
       .in("posts" / pathPostId / "upvote")
       .summary("Upvote post")
       .description("Upvote post")
-      .out(jsonBody[Post])
+      .out(jsonBody[PostDTO])
       .errorOut(errorOutputsFor(401, 403, 404, 409))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => postId =>
@@ -205,7 +205,7 @@ trait ArenaController {
       .in("posts" / pathPostId / "upvote")
       .summary("Remove upvote from post")
       .description("Remove a previously cast upvote from a post")
-      .out(jsonBody[Post])
+      .out(jsonBody[PostDTO])
       .errorOut(errorOutputsFor(401, 403, 404, 409))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user => postId =>
@@ -216,8 +216,8 @@ trait ArenaController {
       .in("categories" / pathCategoryId / "topics")
       .summary("Create new topic")
       .description("Create new topic")
-      .in(jsonBody[NewTopic])
-      .out(statusCode(StatusCode.Created).and(jsonBody[Topic]))
+      .in(jsonBody[NewTopicDTO])
+      .out(statusCode(StatusCode.Created).and(jsonBody[TopicDTO]))
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -230,8 +230,8 @@ trait ArenaController {
       .in("topics" / pathTopicId)
       .summary("Edit a topic")
       .description("Edit a topic")
-      .in(jsonBody[NewTopic])
-      .out(jsonBody[Topic])
+      .in(jsonBody[NewTopicDTO])
+      .out(jsonBody[TopicDTO])
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -244,8 +244,8 @@ trait ArenaController {
       .in("topics" / pathTopicId / "posts")
       .summary("Add post to topic")
       .description("Add post to topic")
-      .in(jsonBody[NewPost])
-      .out(statusCode(StatusCode.Created).and(jsonBody[Post]))
+      .in(jsonBody[NewPostDTO])
+      .out(statusCode(StatusCode.Created).and(jsonBody[PostDTO]))
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -258,8 +258,8 @@ trait ArenaController {
       .in("categories")
       .summary("Create new arena category")
       .description("Create new arena category")
-      .in(jsonBody[NewCategory])
-      .out(statusCode(StatusCode.Created).and(jsonBody[Category]))
+      .in(jsonBody[NewCategoryDTO])
+      .out(statusCode(StatusCode.Created).and(jsonBody[CategoryDTO]))
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { _ => newCategory =>
@@ -270,8 +270,8 @@ trait ArenaController {
       .in("categories" / pathCategoryId)
       .summary("Update arena category")
       .description("Update arena category")
-      .in(jsonBody[NewCategory])
-      .out(jsonBody[Category])
+      .in(jsonBody[NewCategoryDTO])
+      .out(jsonBody[CategoryDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
@@ -284,8 +284,8 @@ trait ArenaController {
       .in("posts" / pathPostId)
       .summary("Update arena post")
       .description("Update arena post")
-      .in(jsonBody[NewPost])
-      .out(jsonBody[Post])
+      .in(jsonBody[NewPostDTO])
+      .out(jsonBody[PostDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -332,7 +332,7 @@ trait ArenaController {
       .summary("Flag arena post")
       .description("Flag arena post")
       .out(emptyOutput)
-      .in(jsonBody[NewFlag])
+      .in(jsonBody[NewFlagDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -345,7 +345,7 @@ trait ArenaController {
       .in("flags" / pathFlagId)
       .summary("Toggle arena flag resolution status")
       .description("Toggle arena flag resolution status")
-      .out(jsonBody[Flag])
+      .out(jsonBody[FlagDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { _ => flagId =>
@@ -358,7 +358,7 @@ trait ArenaController {
       .description("List flagged posts")
       .in(queryPage)
       .in(queryPageSize)
-      .out(jsonBody[PaginatedPosts])
+      .out(jsonBody[PaginatedPostsDTO])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { user =>
@@ -373,7 +373,7 @@ trait ArenaController {
       .description("Get your notifications")
       .in(queryPage)
       .in(queryPageSize)
-      .out(jsonBody[PaginatedNewPostNotifications])
+      .out(jsonBody[PaginatedNewPostNotificationsDTO])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { user =>
@@ -430,7 +430,7 @@ trait ArenaController {
       .in("posts" / pathPostId / "topic")
       .summary("Get a topic on the page where the post is")
       .description("Get a topic on the page where the post is")
-      .out(jsonBody[TopicWithPosts])
+      .out(jsonBody[TopicWithPostsDTO])
       .errorOut(errorOutputsFor(401, 403, 404, 410))
       .in(queryPageSize)
       .requireMyNDLAUser(requireArena = true)
@@ -445,7 +445,7 @@ trait ArenaController {
       .description("Get user data by username")
       .in("user")
       .in(path[String]("username").description("Username of user"))
-      .out(jsonBody[ArenaUser])
+      .out(jsonBody[ArenaUserDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArena = true)
       .serverLogicPure { _ => username =>
@@ -460,7 +460,7 @@ trait ArenaController {
       .in(queryPageSize)
       .in(query[Boolean]("filter-teachers").description("Whether to filter teachers or not").default(false))
       .in(query[Option[String]]("query").description("Search query to match against username or display name"))
-      .out(jsonBody[PaginatedArenaUsers])
+      .out(jsonBody[PaginatedArenaUsersDTO])
       .errorOut(errorOutputsFor(401, 403))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { _ =>
@@ -480,8 +480,8 @@ trait ArenaController {
       .summary("Update some one elses user data")
       .description("Update some one elses user data")
       .in("users" / path[Long]("user-id").description("UserID of user to update"))
-      .in(jsonBody[UpdatedMyNDLAUser])
-      .out(jsonBody[MyNDLAUser])
+      .in(jsonBody[UpdatedMyNDLAUserDTO])
+      .out(jsonBody[MyNDLAUserDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requireMyNDLAUser(requireArenaAdmin = true)
       .serverLogicPure { adminUser =>

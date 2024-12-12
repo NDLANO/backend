@@ -77,7 +77,7 @@ trait WriteService {
       })
     }
 
-    def newConcept(newConcept: api.NewConcept, user: TokenUser): Try[api.Concept] = {
+    def newConcept(newConcept: api.NewConceptDTO, user: TokenUser): Try[api.ConceptDTO] = {
       for {
         concept          <- converterService.toDomainConcept(newConcept, user)
         _                <- contentValidator.validateConcept(concept)
@@ -132,7 +132,7 @@ trait WriteService {
 
     private def updateNotes(
         old: DomainConcept,
-        updated: api.UpdatedConcept,
+        updated: api.UpdatedConceptDTO,
         changed: DomainConcept,
         user: TokenUser
     ): DomainConcept = {
@@ -174,7 +174,7 @@ trait WriteService {
       searchApiClient.indexConcept(toIndex, user)(ec): Unit
     }
 
-    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, user: TokenUser): Try[api.Concept] = {
+    def updateConcept(id: Long, updatedConcept: api.UpdatedConceptDTO, user: TokenUser): Try[api.ConceptDTO] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           for {
@@ -206,7 +206,7 @@ trait WriteService {
       }
     }
 
-    def deleteLanguage(id: Long, language: String, user: TokenUser): Try[api.Concept] = {
+    def deleteLanguage(id: Long, language: String, user: TokenUser): Try[api.ConceptDTO] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           existingConcept.title.size match {
@@ -252,7 +252,7 @@ trait WriteService {
 
     }
 
-    def updateConceptStatus(status: ConceptStatus, id: Long, user: TokenUser): Try[api.Concept] = {
+    def updateConceptStatus(status: ConceptStatus, id: Long, user: TokenUser): Try[api.ConceptDTO] = {
       draftConceptRepository.withId(id) match {
         case None => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>

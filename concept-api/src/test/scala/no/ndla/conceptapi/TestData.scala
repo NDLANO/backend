@@ -51,26 +51,26 @@ object TestData {
   val visualElementStringWithUrl: String =
     s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" data-url="http://api-gateway.ndla-local/image-api/v2/images/1" />"""
 
-  val sampleNbApiConcept: api.Concept = api.Concept(
+  val sampleNbApiConcept: api.ConceptDTO = api.ConceptDTO(
     1.toLong,
     1,
-    api.ConceptTitle("Tittel", "nb"),
+    api.ConceptTitleDTO("Tittel", "nb"),
     Some(api.ConceptContent("Innhold", "Innhold", "nb")),
     None,
     None,
-    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
-    Some(api.ConceptTags(Seq("stor", "kaktus"), "nb")),
+    Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
+    Some(api.ConceptTagsDTO(Seq("stor", "kaktus"), "nb")),
     Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     Some(Seq("")),
     Set("nn", "nb"),
     Seq(42),
-    api.Status(
+    api.StatusDTO(
       current = "IN_PROGRESS",
       other = Seq.empty
     ),
-    Some(api.VisualElement(visualElementStringWithUrl, "nb")),
+    Some(api.VisualElementDTO(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
     glossData = None,
@@ -163,33 +163,33 @@ object TestData {
     editorNotes = Seq.empty
   )
 
-  val sampleNnApiConcept: api.Concept = api.Concept(
+  val sampleNnApiConcept: api.ConceptDTO = api.ConceptDTO(
     1.toLong,
     1,
-    api.ConceptTitle("Tittelur", "nn"),
+    api.ConceptTitleDTO("Tittelur", "nn"),
     Some(api.ConceptContent("Innhald", "Innhald", "nn")),
     None,
     None,
-    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
-    Some(api.ConceptTags(Seq("liten", "fisk"), "nn")),
+    Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
+    Some(api.ConceptTagsDTO(Seq("liten", "fisk"), "nn")),
     Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     updatedBy = Some(Seq("")),
     Set("nn", "nb"),
     Seq(42),
-    api.Status(
+    api.StatusDTO(
       current = "IN_PROGRESS",
       other = Seq.empty
     ),
-    Some(api.VisualElement(visualElementStringWithUrl, "nb")),
+    Some(api.VisualElementDTO(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
     glossData = None,
     editorNotes = Some(Seq.empty)
   )
 
-  val emptyApiUpdatedConcept: api.UpdatedConcept = api.UpdatedConcept(
+  val emptyApiUpdatedConcept: api.UpdatedConceptDTO = api.UpdatedConceptDTO(
     language = "",
     title = None,
     content = None,
@@ -205,8 +205,8 @@ object TestData {
     glossData = None
   )
 
-  val sampleNewConcept: api.NewConcept =
-    api.NewConcept(
+  val sampleNewConcept: api.NewConceptDTO =
+    api.NewConceptDTO(
       "nb",
       "Tittel",
       Some("Innhold"),
@@ -221,7 +221,7 @@ object TestData {
       None
     )
 
-  val emptyApiNewConcept: api.NewConcept = api.NewConcept(
+  val emptyApiNewConcept: api.NewConceptDTO = api.NewConceptDTO(
     language = "",
     title = "",
     content = None,
@@ -236,8 +236,8 @@ object TestData {
     glossData = None
   )
 
-  val updatedConcept: api.UpdatedConcept =
-    api.UpdatedConcept(
+  val updatedConcept: api.UpdatedConceptDTO =
+    api.UpdatedConceptDTO(
       "nb",
       None,
       Some("Innhold"),
@@ -252,5 +252,5 @@ object TestData {
       conceptType = None,
       glossData = None
     )
-  val sampleApiTagsSearchResult: api.TagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+  val sampleApiTagsSearchResult: api.TagsSearchResultDTO = api.TagsSearchResultDTO(10, 1, 1, "nb", Seq("a", "b"))
 }

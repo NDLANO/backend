@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ErrorHandling, OperationNotAllowedException, SubjectTags}
+import no.ndla.conceptapi.model.api.{ErrorHandling, OperationNotAllowedException, SubjectTagsDTO}
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.{SearchSettings, SearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
@@ -41,18 +41,18 @@ trait PublishedConceptSearchService {
     with SearchSettingsHelper =>
   val publishedConceptSearchService: PublishedConceptSearchService
 
-  class PublishedConceptSearchService extends StrictLogging with SearchService[api.ConceptSummary] {
+  class PublishedConceptSearchService extends StrictLogging with SearchService[api.ConceptSummaryDTO] {
     import props._
     override val searchIndex: String = PublishedConceptSearchIndex
 
-    override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
+    override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
       searchConverterService.hitAsConceptSummary(hitString, language)
 
     def getTagsWithSubjects(
         subjectIds: List[String],
         language: String,
         fallback: Boolean
-    ): Try[List[api.SubjectTags]] = {
+    ): Try[List[api.SubjectTagsDTO]] = {
       if (subjectIds.size <= 0) {
         Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
       } else {
@@ -65,7 +65,7 @@ trait PublishedConceptSearchService {
 
     private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(implicit
         executor: ExecutionContext
-    ): Future[Try[List[SubjectTags]]] =
+    ): Future[Try[List[SubjectTagsDTO]]] =
       Future {
         val settings = SearchSettings.empty.copy(
           subjects = Set(subjectId),
@@ -90,8 +90,8 @@ trait PublishedConceptSearchService {
     @tailrec
     private def searchUntilNoMoreResults(
         searchSettings: SearchSettings,
-        prevResults: List[SearchResult[api.ConceptSummary]] = List.empty
-    ): Try[List[SearchResult[api.ConceptSummary]]] = {
+        prevResults: List[SearchResult[api.ConceptSummaryDTO]] = List.empty
+    ): Try[List[SearchResult[api.ConceptSummaryDTO]]] = {
       val page = prevResults.lastOption.flatMap(_.page).getOrElse(0) + 1
 
       val result = prevResults.lastOption.flatMap(_.scrollId) match {
@@ -106,9 +106,9 @@ trait PublishedConceptSearchService {
       }
     }
 
-    def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
+    def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = executeSearch(boolQuery(), settings)
 
-    def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
+    def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = {
       val language =
         if (settings.fallback) "*" else settings.searchLanguage
 
@@ -133,7 +133,7 @@ trait PublishedConceptSearchService {
       executeSearch(fullQuery, settings)
     }
 
-    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
+    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = {
       val idFilter      = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
       val typeFilter    = settings.conceptType.map(ct => termsQuery("conceptType", ct))
       val subjectFilter = orFilter(settings.subjects, "subjectIds")

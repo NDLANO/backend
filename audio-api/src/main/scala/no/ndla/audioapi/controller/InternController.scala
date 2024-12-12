@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHandling}
+import no.ndla.audioapi.model.api.{AudioMetaDomainDumpDTO, ErrorHandling}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
@@ -43,7 +43,7 @@ trait InternController {
         .in("external")
         .in(path[String]("external_id"))
         .in(query[Option[String]]("language"))
-        .out(jsonBody[Option[api.AudioMetaInformation]])
+        .out(jsonBody[Option[api.AudioMetaInformationDTO]])
         .serverLogicPure { case (externalId, language) =>
           readService.withExternalId(externalId, language).asRight
         },
@@ -104,7 +104,7 @@ trait InternController {
         .in("dump" / "audio")
         .in(query[Int]("page").default(1))
         .in(query[Int]("page-size").default(250))
-        .out(jsonBody[AudioMetaDomainDump])
+        .out(jsonBody[AudioMetaDomainDumpDTO])
         .errorOut(errorOutputsFor(400, 500))
         .serverLogicPure { case (pageNo, pageSize) =>
           readService.getMetaAudioDomainDump(pageNo, pageSize).asRight

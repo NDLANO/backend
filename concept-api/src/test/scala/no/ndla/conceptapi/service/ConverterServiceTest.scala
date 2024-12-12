@@ -12,7 +12,7 @@ import no.ndla.common.model.domain.concept.*
 import no.ndla.common.model.domain.{Responsible, concept}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
+import no.ndla.conceptapi.model.api.{NewConceptDTO, NotFoundException, UpdatedConceptDTO}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
@@ -56,7 +56,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept(
+      UpdatedConceptDTO(
         "nb",
         Some("heisann"),
         None,
@@ -87,7 +87,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept(
+      UpdatedConceptDTO(
         "nn",
         None,
         Some("Nytt innhald"),
@@ -118,7 +118,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept(
+      UpdatedConceptDTO(
         "en",
         Some("Title"),
         Some("My content"),
@@ -154,18 +154,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updated = NDLADate.now()
     when(clock.now()).thenReturn(updated)
 
-    val updateWith = UpdatedConcept(
+    val updateWith = UpdatedConceptDTO(
       "nn",
       None,
       Some("Nytt innhald"),
       Missing,
       Option(
-        commonApi.DraftCopyright(
+        commonApi.DraftCopyrightDTO(
           None,
           None,
-          Seq(commonApi.Author("Photographer", "Photographer")),
-          Seq(commonApi.Author("Photographer", "Photographer")),
-          Seq(commonApi.Author("Photographer", "Photographer")),
+          Seq(commonApi.AuthorDTO("Photographer", "Photographer")),
+          Seq(commonApi.AuthorDTO("Photographer", "Photographer")),
+          Seq(commonApi.AuthorDTO("Photographer", "Photographer")),
           None,
           None,
           false
@@ -331,7 +331,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(
       language = "nb",
-      metaImage = UpdateWith(api.NewConceptMetaImage("1", "Hola"))
+      metaImage = UpdateWith(api.NewConceptMetaImageDTO("1", "Hola"))
     )
 
     converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
@@ -374,7 +374,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(
       language = "nb",
-      metaImage = UpdateWith(api.NewConceptMetaImage("1", "Hola"))
+      metaImage = UpdateWith(api.NewConceptMetaImageDTO("1", "Hola"))
     )
 
     converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
@@ -519,13 +519,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toDomainConcept (new concept) creates glossData correctly") {
     val newGlossExamples1 =
       List(
-        api.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
-        api.GlossExample(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
+        api.GlossExampleDTO(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
+        api.GlossExampleDTO(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
       )
     val newGlossExamples2 =
-      List(api.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+      List(api.GlossExampleDTO(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
     val newGlossData =
-      api.GlossData(
+      api.GlossDataDTO(
         gloss = "juan",
         wordClass = "noun",
         originalLanguage = "nb",
@@ -559,13 +559,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toDomainConcept (new concept) fails if either conceptType or wordClass is outside of supported values") {
     val newGlossExamples1 =
       List(
-        api.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
-        api.GlossExample(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
+        api.GlossExampleDTO(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
+        api.GlossExampleDTO(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
       )
     val newGlossExamples2 =
-      List(api.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+      List(api.GlossExampleDTO(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
     val newGlossData =
-      api.GlossData(
+      api.GlossDataDTO(
         gloss = "huehue",
         wordClass = "ikke",
         originalLanguage = "nb",
@@ -586,13 +586,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toDomainConcept (update concept) updates glossData correctly") {
     val updatedGlossExamples1 =
       List(
-        api.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
-        api.GlossExample(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
+        api.GlossExampleDTO(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
+        api.GlossExampleDTO(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
       )
     val updatedGlossExamples2 =
-      List(api.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+      List(api.GlossExampleDTO(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
     val updatedGlossData =
-      api.GlossData(
+      api.GlossDataDTO(
         gloss = "huehue",
         wordClass = "noun",
         originalLanguage = "nb",
@@ -632,13 +632,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toDomainConcept (update concept) fails if gloss type is not a valid value") {
     val updatedGlossExamples1 =
       List(
-        api.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
-        api.GlossExample(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
+        api.GlossExampleDTO(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
+        api.GlossExampleDTO(example = "jog har inta", "nn", transcriptions = Map("a" -> "b"))
       )
     val updatedGlossExamples2 =
-      List(api.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+      List(api.GlossExampleDTO(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
     val updatedGlossData =
-      api.GlossData(
+      api.GlossDataDTO(
         gloss = "yesp",
         wordClass = "ikke eksisterende",
         originalLanguage = "nb",
@@ -680,12 +680,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedGlossExamples1 =
       List(
-        api.GlossExample(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
-        api.GlossExample(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
+        api.GlossExampleDTO(example = "nei men saa", language = "nb", transcriptions = Map("a" -> "b")),
+        api.GlossExampleDTO(example = "jog har inta", "nn", transcriptions = Map("b" -> "c"))
       )
     val expectedGlossExamples2 =
-      List(api.GlossExample(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
-    val expectedGlossData = api.GlossData(
+      List(api.GlossExampleDTO(example = "nei men da saa", language = "nb", transcriptions = Map("a" -> "b")))
+    val expectedGlossData = api.GlossDataDTO(
       gloss = "gestalt",
       wordClass = "noun",
       originalLanguage = "nb",
@@ -698,10 +698,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toDomainGlossData converts correctly when apiGlossData is Some") {
-    val apiGlossExample = api.GlossExample(example = "some example", language = "nb", transcriptions = Map("a" -> "b"))
+    val apiGlossExample =
+      api.GlossExampleDTO(example = "some example", language = "nb", transcriptions = Map("a" -> "b"))
     val apiGlossData =
       Some(
-        api.GlossData(
+        api.GlossDataDTO(
           gloss = "yoink",
           wordClass = "verb",
           originalLanguage = "nb",
@@ -729,10 +730,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toDomainGlossData fails if apiGlossData has malformed data") {
-    val apiGlossExample = api.GlossExample(example = "some example", language = "nb", transcriptions = Map("a" -> "b"))
+    val apiGlossExample =
+      api.GlossExampleDTO(example = "some example", language = "nb", transcriptions = Map("a" -> "b"))
     val apiGlossData =
       Some(
-        api.GlossData(
+        api.GlossDataDTO(
           gloss = "neie",
           wordClass = "nonexistent",
           originalLanguage = "nb",
@@ -746,7 +748,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("unknown embed attributes should be stripped from new concepts") {
-    val newConcept = NewConcept(
+    val newConcept = NewConceptDTO(
       language = "nb",
       title = "tittel",
       content = Some("Nokko innhald"),
@@ -776,7 +778,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("unknown embed attributes should be stripped from updated concepts (if null document)") {
-    val updatedConcept = UpdatedConcept(
+    val updatedConcept = UpdatedConceptDTO(
       language = "nb",
       title = Some("tittel"),
       content = Some("Nokko innhald"),
@@ -806,7 +808,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("unknown embed attributes should be stripped from updated concepts") {
-    val updatedConcept = UpdatedConcept(
+    val updatedConcept = UpdatedConceptDTO(
       language = "nb",
       title = Some("tittel"),
       content = Some("Nokko innhald"),

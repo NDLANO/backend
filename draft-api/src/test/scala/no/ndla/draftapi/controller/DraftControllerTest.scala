@@ -13,7 +13,7 @@ import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
-import no.ndla.draftapi.model.api.ArticleSearchResult
+import no.ndla.draftapi.model.api.ArticleSearchResultDTO
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -74,34 +74,34 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     val creativeCommonlicenses =
       getLicenses
         .filter(_.license.toString.startsWith("by"))
-        .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
+        .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
         .toSet
 
     val resp = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses?filter=by")
     )
     resp.code.code should be(200)
-    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](resp.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.LicenseDTO]](resp.body)
     convertedBody should equal(creativeCommonlicenses)
   }
 
   test("That GET /licenses/ with filter not specified returns all licenses") {
-    val allLicenses = getLicenses.map(l => commonApi.License(l.license.toString, Option(l.description), l.url)).toSet
+    val allLicenses = getLicenses.map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url)).toSet
     val resp = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses")
     )
     resp.code.code should be(200)
-    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](resp.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.LicenseDTO]](resp.body)
     convertedBody should equal(allLicenses)
   }
 
   test("GET / should use size of id-list as page-size if defined") {
-    val searchMock = mock[domain.SearchResult[api.ArticleSummary]]
+    val searchMock = mock[domain.SearchResult[api.ArticleSummaryDTO]]
     when(searchMock.scrollId).thenReturn(None)
     when(articleSearchService.matchingQuery(any[SearchSettings]))
       .thenReturn(Success(searchMock))
     when(searchConverterService.asApiSearchResult(any)).thenReturn(
-      ArticleSearchResult(
+      ArticleSearchResultDTO(
         totalCount = 0,
         page = Some(1),
         pageSize = 100,
@@ -141,7 +141,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(
       writeService
         .newArticle(
-          any[api.NewArticle],
+          any[api.NewArticleDTO],
           any[List[String]],
           any[Seq[String]],
           any[TokenUser],
@@ -214,7 +214,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     resp.code.code should be(200)
 
     when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.Status(EXTERNAL_REVIEW.toString, Seq.empty)))
+      Success(TestData.apiArticleUserTest.copy(status = api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty)))
     )
 
     val resp2 = simpleHttpClient.send(
@@ -237,7 +237,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     }
 
     when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.Status(EXTERNAL_REVIEW.toString, Seq.empty)))
+      Success(TestData.apiArticleUserTest.copy(status = api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty)))
     )
 
     {
@@ -264,7 +264,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(
       writeService.updateArticle(
         any[Long],
-        any[api.UpdatedArticle],
+        any[api.UpdatedArticleDTO],
         any[List[String]],
         any[Seq[String]],
         any[TokenUser],
@@ -287,7 +287,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(
       writeService.updateArticle(
         any[Long],
-        any[api.UpdatedArticle],
+        any[api.UpdatedArticleDTO],
         any[List[String]],
         any[Seq[String]],
         any[TokenUser],
@@ -307,7 +307,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   }
 
   test("PUT /:id/validate/ should return 204 if user has required permissions") {
-    when(contentValidator.validateArticleApiArticle(any[Long], any[Boolean], any)).thenReturn(Success(api.ContentId(1)))
+    when(contentValidator.validateArticleApiArticle(any[Long], any[Boolean], any))
+      .thenReturn(Success(api.ContentIdDTO(1)))
     val resp = simpleHttpClient.send(
       quickRequest
         .put(uri"http://localhost:$serverPort/draft-api/v1/drafts/1/validate")
@@ -319,12 +320,12 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   test("That scrollId is in header, and not in body") {
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult[api.ArticleSummary](
+    val searchResponse = domain.SearchResult[api.ArticleSummaryDTO](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[api.ArticleSummary],
+      Seq.empty[api.ArticleSummaryDTO],
       Some(scrollId)
     )
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
@@ -345,12 +346,12 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
-    val searchResponse = domain.SearchResult[api.ArticleSummary](
+    val searchResponse = domain.SearchResult[api.ArticleSummaryDTO](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[api.ArticleSummary],
+      Seq.empty[api.ArticleSummaryDTO],
       Some(scrollId)
     )
 
@@ -372,12 +373,12 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     reset(articleSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult[api.ArticleSummary](
+    val searchResponse = domain.SearchResult[api.ArticleSummaryDTO](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[api.ArticleSummary],
+      Seq.empty[api.ArticleSummaryDTO],
       Some(scrollId)
     )
 
@@ -451,7 +452,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       writeService
         .updateArticle(
           eqTo(1.toLong),
-          any[api.UpdatedArticle],
+          any[api.UpdatedArticleDTO],
           any[List[String]],
           any[Seq[String]],
           any[TokenUser],
@@ -471,7 +472,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     val existingArtId = """{"revision": 1, "language":"nb","metaImage": {"id": "1",
                           |		"alt": "alt-text"}}""".stripMargin
     val existingExpected = TestData.blankUpdatedArticle
-      .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImage("1", "alt-text")))
+      .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "alt-text")))
 
     {
       val resp = simpleHttpClient.send(
@@ -544,7 +545,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       sort = Sort.ByTitleAsc
     )
 
-    val result = domain.SearchResult[api.ArticleSummary](
+    val result = domain.SearchResult[api.ArticleSummaryDTO](
       totalCount = 0,
       page = None,
       pageSize = 10,

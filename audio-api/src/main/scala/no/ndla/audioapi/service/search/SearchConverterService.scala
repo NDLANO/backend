@@ -12,7 +12,7 @@ import cats.implicits._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.Title
+import no.ndla.audioapi.model.api.TitleDTO
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.search._
 import no.ndla.audioapi.model.{api, domain}
@@ -45,7 +45,7 @@ trait SearchConverterService {
         })
     }
 
-    def asAudioSummary(searchable: SearchableAudioInformation, language: String): Try[api.AudioSummary] = {
+    def asAudioSummary(searchable: SearchableAudioInformation, language: String): Try[api.AudioSummaryDTO] = {
       val titles = searchable.titles.languageValues.map(lv => common.Title(lv.value, lv.language))
 
       val domainPodcastMeta = searchable.podcastMetaIntroduction.languageValues.flatMap(lv => {
@@ -61,8 +61,8 @@ trait SearchConverterService {
       })
 
       val title = findByLanguageOrBestEffort(titles, language) match {
-        case None    => Title("", language)
-        case Some(x) => Title(x.title, x.language)
+        case None    => TitleDTO("", language)
+        case Some(x) => TitleDTO(x.title, x.language)
       }
 
       val podcastMeta = findByLanguageOrBestEffort(domainPodcastMeta, language)
@@ -79,7 +79,7 @@ trait SearchConverterService {
       searchable.series
         .traverse(s => asSeriesSummary(s, language))
         .map(series =>
-          api.AudioSummary(
+          api.AudioSummaryDTO(
             id = searchable.id.toLong,
             title = title,
             audioType = searchable.audioType,
@@ -94,15 +94,15 @@ trait SearchConverterService {
         )
     }
 
-    def asSeriesSummary(searchable: SearchableSeries, language: String): Try[api.SeriesSummary] = {
+    def asSeriesSummary(searchable: SearchableSeries, language: String): Try[api.SeriesSummaryDTO] = {
       for {
         title <- converterService
           .findAndConvertDomainToApiField(searchable.titles.languageValues, Some(language))
-          .map(lv => api.Title(lv.value, lv.language))
+          .map(lv => api.TitleDTO(lv.value, lv.language))
 
         description <- converterService
           .findAndConvertDomainToApiField(searchable.descriptions.languageValues, Some(language))
-          .map(lv => api.Description(lv.value, lv.language))
+          .map(lv => api.DescriptionDTO(lv.value, lv.language))
 
         episodes <- searchable.episodes.traverse(eps =>
           eps.traverse(ep => searchConverterService.asAudioSummary(ep, language))
@@ -112,7 +112,7 @@ trait SearchConverterService {
           searchable.titles.languageValues,
           searchable.descriptions.languageValues
         )
-      } yield api.SeriesSummary(
+      } yield api.SeriesSummaryDTO(
         id = searchable.id.toLong,
         title = title,
         description = description,
@@ -193,9 +193,9 @@ trait SearchConverterService {
     }
 
     def asApiAudioSummarySearchResult(
-        searchResult: domain.SearchResult[api.AudioSummary]
-    ): api.AudioSummarySearchResult =
-      api.AudioSummarySearchResult(
+        searchResult: domain.SearchResult[api.AudioSummaryDTO]
+    ): api.AudioSummarySearchResultDTO =
+      api.AudioSummarySearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
@@ -204,9 +204,9 @@ trait SearchConverterService {
       )
 
     def asApiSeriesSummarySearchResult(
-        searchResult: domain.SearchResult[api.SeriesSummary]
-    ): api.SeriesSummarySearchResult =
-      api.SeriesSummarySearchResult(
+        searchResult: domain.SearchResult[api.SeriesSummaryDTO]
+    ): api.SeriesSummarySearchResultDTO =
+      api.SeriesSummarySearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
@@ -224,8 +224,8 @@ trait SearchConverterService {
         )
       )
 
-    def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResult =
-      api.TagsSearchResult(
+    def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO =
+      api.TagsSearchResultDTO(
         searchResult.totalCount,
         searchResult.page.getOrElse(1),
         searchResult.pageSize,

@@ -8,47 +8,42 @@
 
 package no.ndla.articleapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHandling}
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ErrorHandling}
+import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language
 import no.ndla.mapping.License
 import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleSearchService {
-  this: Elastic4sClient
-    with SearchConverterService
-    with SearchService
-    with ArticleIndexService
-    with ConverterService
-    with Props
-    with ErrorHandling =>
+  this: Elastic4sClient & SearchConverterService & SearchService & ArticleIndexService & ConverterService & Props &
+    ErrorHandling =>
   val articleSearchService: ArticleSearchService
 
-  import props._
+  import props.*
 
-  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryV2] {
+  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryV2DTO] {
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = ArticleSearchIndex
 
-    override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2 = {
+    override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2DTO = {
       converterService.hitAsArticleSummaryV2(hit, language)
     }
 
-    def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
+    def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2DTO]] = {
       val fullQuery = settings.query.emptySomeToNone match {
         case Some(query) =>
           val language      = if (settings.fallback) "*" else settings.language
@@ -75,7 +70,7 @@ trait ArticleSearchService {
       executeSearch(fullQuery, settings)
     }
 
-    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
+    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[ArticleSummaryV2DTO]] = {
 
       val articleTypesFilter =
         if (settings.articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", settings.articleTypes)))
@@ -143,7 +138,7 @@ trait ArticleSearchService {
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             Success(
-              SearchResult[ArticleSummaryV2](
+              SearchResult[ArticleSummaryV2DTO](
                 response.result.totalHits,
                 Some(settings.page),
                 numResults,
@@ -158,7 +153,8 @@ trait ArticleSearchService {
     }
 
     override def scheduleIndexDocuments(): Unit = {
-      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+      implicit val ec: ExecutionContextExecutorService =
+        ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
         articleIndexService.indexDocuments(None)
       }

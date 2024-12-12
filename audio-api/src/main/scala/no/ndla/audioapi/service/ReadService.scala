@@ -22,7 +22,7 @@ trait ReadService {
 
   class ReadService {
 
-    def seriesWithId(seriesId: Long, language: Option[String]): Try[api.Series] = {
+    def seriesWithId(seriesId: Long, language: Option[String]): Try[api.SeriesDTO] = {
       seriesRepository.withId(seriesId) match {
         case Failure(ex) => Failure(ex)
         case Success(None) =>
@@ -35,7 +35,7 @@ trait ReadService {
       }
     }
 
-    def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResult] = {
+    def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResultDTO] = {
       val result = tagSearchService.matchingQuery(
         query = input,
         searchLanguage = language,
@@ -46,15 +46,15 @@ trait ReadService {
       result.map(searchConverterService.tagSearchResultAsApiResult)
     }
 
-    def withId(id: Long, language: Option[String]): Option[api.AudioMetaInformation] =
+    def withId(id: Long, language: Option[String]): Option[api.AudioMetaInformationDTO] =
       audioRepository.withId(id).flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
-    def withExternalId(externalId: String, language: Option[String]): Option[api.AudioMetaInformation] =
+    def withExternalId(externalId: String, language: Option[String]): Option[api.AudioMetaInformationDTO] =
       audioRepository
         .withExternalId(externalId)
         .flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
-    def getAudiosByIds(audioIds: List[Long], language: Option[String]): Try[List[api.AudioMetaInformation]] = {
+    def getAudiosByIds(audioIds: List[Long], language: Option[String]): Try[List[api.AudioMetaInformationDTO]] = {
       for {
         ids <-
           if (audioIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
@@ -64,11 +64,11 @@ trait ReadService {
       } yield api
     }
 
-    def getMetaAudioDomainDump(pageNo: Int, pageSize: Int): api.AudioMetaDomainDump = {
+    def getMetaAudioDomainDump(pageNo: Int, pageSize: Int): api.AudioMetaDomainDumpDTO = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
       val results                    = audioRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
-      api.AudioMetaDomainDump(audioRepository.audioCount, pageNo, pageSize, results)
+      api.AudioMetaDomainDumpDTO(audioRepository.audioCount, pageNo, pageSize, results)
     }
   }
 }
