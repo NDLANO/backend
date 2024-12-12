@@ -255,8 +255,13 @@ trait SearchConverterService {
 
     }
 
-    def convertGrepTitleToLanguageValue(grepElement: GrepElement): Seq[LanguageValue[String]] =
-      grepElement.tittel.flatMap(gt => {
+    def asSearchableGrep(grepElement: GrepElement): Try[SearchableGrepElement] = {
+      val laererplan = grepElement match {
+        case lp: BelongsToLaerePlan => Some(lp.`tilhoerer-laereplan`.kode)
+        case _                      => None
+      }
+      val defaultTitle = grepElement.getTitle.find(_.spraak == "default")
+      val titles = grepElement.getTitle.flatMap(gt => {
         ISO639.get6391CodeFor6392Code(gt.spraak) match {
           case Some(convertedLanguage) =>
             Some(LanguageValue(language = convertedLanguage, value = gt.verdi.trim))
@@ -972,7 +977,9 @@ trait SearchConverterService {
                 grepCode,
                 grepBundle.grepContextByCode
                   .get(grepCode)
-                  .flatMap(element => element.tittel.find(title => title.spraak == "default").map(title => title.verdi))
+                  .flatMap(element =>
+                    element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
+                  )
               )
             )
             .toList

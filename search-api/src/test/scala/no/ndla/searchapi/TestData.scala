@@ -57,7 +57,8 @@ import no.ndla.searchapi.model.grep.{
   GrepKompetansemaal,
   GrepLaererplan,
   GrepTitle,
-  GrepTverrfagligTema
+  GrepTverrfagligTema,
+  TitleObj
 }
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -1587,18 +1588,26 @@ object TestData {
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
-      GrepKjerneelement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing")), BelongsToObj("LP1")),
-      GrepKjerneelement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")), BelongsToObj("LP1"))
+      GrepKjerneelement(
+        "KE12",
+        TitleObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
+        BelongsToObj("LP1")
+      ),
+      GrepKjerneelement(
+        "KE34",
+        TitleObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
+        BelongsToObj("LP1")
+      )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         "KM123",
-        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")),
+        TitleObj(List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))),
         BelongsToObj("LP1")
       )
     ),
     tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
-    laereplaner = List(GrepLaererplan("LP1", Seq(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))))
+    laereplaner = List(GrepLaererplan("LP1", TitleObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)")))))
   )
 
   val searchSettings: SearchSettings = SearchSettings(
