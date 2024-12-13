@@ -716,7 +716,6 @@ class MultiSearchServiceTest
     search.results.head.traits should be(List(SearchTrait.H5p))
   }
 
-
   test("That searches for embed attributes matches") {
     val Success(search) =
       multiSearchService.matchingQuery(

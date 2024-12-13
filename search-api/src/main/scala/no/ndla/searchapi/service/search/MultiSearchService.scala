@@ -147,7 +147,7 @@ trait MultiSearchService {
         else None
 
       val traitsFilter =
-        if(settings.traits.nonEmpty)
+        if (settings.traits.nonEmpty)
           Some(termsQuery("traits", settings.traits.map(_.entryName)))
         else None
 
