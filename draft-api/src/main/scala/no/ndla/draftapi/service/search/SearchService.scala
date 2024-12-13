@@ -35,7 +35,7 @@ trait SearchService {
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages | "*" =>
+              case Language.AllLanguages =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -73,12 +73,12 @@ trait SearchService {
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
+            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
             case _ => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
+            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
             case _ => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)

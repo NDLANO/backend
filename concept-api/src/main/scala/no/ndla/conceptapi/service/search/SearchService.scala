@@ -94,7 +94,7 @@ trait SearchService {
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case AllLanguages | "*" =>
+              case AllLanguages =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
