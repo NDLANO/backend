@@ -290,7 +290,7 @@ trait SearchService {
       val safePageSize = max(pageSize.min(MaxPageSize), 0)
       val safePage     = page.max(1)
       val startAt      = (safePage - 1) * safePageSize
-      val resultWindow = (startAt + 1) * safePageSize
+      val resultWindow = startAt + safePageSize
       if (resultWindow > maxResultWindow) {
         logger.info(s"Max supported results are $maxResultWindow, user requested $resultWindow")
         Failure(ResultWindowTooLargeException())
