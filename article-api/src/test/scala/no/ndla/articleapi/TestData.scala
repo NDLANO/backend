@@ -152,7 +152,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = Some(NDLADate.now().withNano(0)),
-      slug = None
+      slug = None,
+      disclaimer = Seq.empty
     )
 
     val sampleDomainArticle: Article = Article(
@@ -177,7 +178,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = Seq.empty
     )
 
     val sampleDomainArticle2: Article = Article(
@@ -202,7 +204,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = Seq.empty
     )
 
     val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -239,7 +242,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = Seq.empty
     )
 
     val apiArticleWithHtmlFaultV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -308,7 +312,8 @@ trait TestData {
         availability = Availability.everyone,
         relatedContent = Seq.empty,
         revisionDate = None,
-        slug = None
+        slug = None,
+        disclaimer = Seq.empty
       )
     }
 

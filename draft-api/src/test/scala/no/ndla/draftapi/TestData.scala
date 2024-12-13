@@ -111,7 +111,8 @@ object TestData {
     priority = Priority.Unspecified.entryName,
     started = false,
     prioritized = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = None
   )
 
   val blankUpdatedArticle: UpdatedArticleDTO = api.UpdatedArticleDTO(
@@ -142,7 +143,8 @@ object TestData {
     comments = None,
     prioritized = None,
     priority = None,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = None
   )
 
   val sampleApiUpdateArticle: UpdatedArticleDTO = blankUpdatedArticle.copy(
@@ -230,6 +232,7 @@ object TestData {
     false,
     Priority.Unspecified.entryName,
     false,
+    None,
     None
   )
 
@@ -283,6 +286,7 @@ object TestData {
     false,
     Priority.Unspecified.entryName,
     false,
+    None,
     None
   )
 
@@ -317,7 +321,8 @@ object TestData {
     Seq.empty,
     Priority.Unspecified,
     false,
-    None
+    None,
+    Seq.empty
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -351,7 +356,8 @@ object TestData {
     Seq.empty,
     Priority.Unspecified,
     false,
-    None
+    None,
+    Seq.empty
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -387,7 +393,8 @@ object TestData {
     Seq.empty,
     Priority.Unspecified,
     false,
-    None
+    None,
+    Seq.empty
   )
 
   val newArticle: NewArticleDTO = api.NewArticleDTO(
@@ -419,6 +426,7 @@ object TestData {
     None,
     None,
     availability = None,
+    None,
     None,
     None,
     None,
@@ -476,7 +484,8 @@ object TestData {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = Seq.empty
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleDTO = api.ArticleDTO(
@@ -532,7 +541,8 @@ object TestData {
     prioritized = false,
     priority = Priority.Unspecified.entryName,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = None
   )
 
   val (nodeId, nodeId2)         = ("1234", "4321")

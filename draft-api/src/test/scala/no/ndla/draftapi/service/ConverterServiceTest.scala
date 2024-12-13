@@ -58,6 +58,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
+  test("toApiDisclaimer returns both disclaimer and plainDisclaimer") {
+    val disclaimer = Disclaimer(
+      "Denne ressursen har innhold som kan være utfordrende dersom du bruker: <ul><li>skjermleser</li><li>tastatur</li></ul>",
+      "nb"
+    )
+    service.toApiArticleDisclaimer(disclaimer) should equal(
+      api.DisclaimerDTO(
+        "Denne ressursen har innhold som kan være utfordrende dersom du bruker: skjermleser tastatur",
+        "Denne ressursen har innhold som kan være utfordrende dersom du bruker: <ul><li>skjermleser</li><li>tastatur</li></ul>",
+        "nb"
+      )
+    )
+  }
+
   test("toApiArticleIntroduction returns both introduction and plainIntroduction") {
     val introduction = Introduction("<p>Introduction with <em>emphasis</em></p>", "en")
     service.toApiArticleIntroduction(introduction) should equal(
@@ -332,7 +346,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Seq(Disclaimer("Disclaimer test", "nb"))
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(
@@ -379,7 +394,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Seq(Disclaimer("Disclaimer test", "nb"))
     )
 
     val expectedArticle = Draft(
@@ -413,7 +429,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Seq(Disclaimer("NyDisclaimer test", "nb"))
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -435,7 +452,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       editorLabels = None,
       grepCodes = None,
       conceptIds = None,
-      createNewVersion = None
+      createNewVersion = None,
+      disclaimer = Some("NyDisclaimer test")
     )
 
     val user = TokenUser("theuserthatchangeditid", Set.empty, None)
@@ -477,7 +495,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Seq.empty
     )
 
     val expectedArticle = Draft(
@@ -519,7 +538,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Seq.empty
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -1120,7 +1140,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Seq(Disclaimer("articleDisclaimer", "nb"))
     )
     val article = common.model.domain.article.Article(
       id = Some(articleId),
@@ -1145,7 +1166,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = Some("kjempe-slug")
+      slug = Some("kjempe-slug"),
+      disclaimer = Seq(Disclaimer("articleDisclaimer", "nb"))
     )
 
     val result = service.toArticleApiArticle(draft)
