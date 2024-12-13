@@ -60,7 +60,7 @@ trait TranscriptionController {
 
     def postTranscription: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Transcribe video")
-      .description("Transcribes a video to a specific language, and uploads the transcription to S3.")
+      .description("Transcribes a video and uploads the transcription to S3.")
       .in(videoId)
       .in(language)
       .in(maxSpeaker)
@@ -78,7 +78,7 @@ trait TranscriptionController {
       }
 
     def getTranscription: ServerEndpoint[Any, Eff] = endpoint.get
-      .summary("Get transcription")
+      .summary("Get the transcription status of a video")
       .description("Get the transcription of a video.")
       .in(videoId)
       .in(language)
