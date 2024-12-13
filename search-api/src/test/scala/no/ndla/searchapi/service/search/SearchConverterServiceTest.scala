@@ -538,7 +538,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         article,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
       )
-    searchableArticle.traits should equal(List(SearchTrait.H5p, SearchTrait.File))
+    searchableArticle.traits should equal(List(SearchTrait.H5p))
 
     val article2 =
       TestData.emptyDomainArticle.copy(

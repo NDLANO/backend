@@ -146,6 +146,11 @@ trait MultiSearchService {
           Some(termsQuery("grepContexts.code", settings.grepCodes))
         else None
 
+      val traitsFilter =
+        if(settings.traits.nonEmpty)
+          Some(termsQuery("traits", settings.traits.map(_.entryName)))
+        else None
+
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
@@ -181,6 +186,7 @@ trait MultiSearchService {
         taxonomyRelevanceFilter,
         taxonomyContextActiveFilter,
         grepCodesFilter,
+        traitsFilter,
         embedResourceAndIdFilter,
         availabilityFilter
       ).flatten

@@ -87,8 +87,7 @@ trait SearchConverterService {
                   traits += SearchTrait.Video
                 }
               case "audio"   => traits += SearchTrait.Audio
-              case "podcast" => traits += SearchTrait.Audio
-              case "file"    => traits += SearchTrait.File
+              case "podcast" => traits += SearchTrait.Podcast
               case _         => // Do nothing
             }
           })

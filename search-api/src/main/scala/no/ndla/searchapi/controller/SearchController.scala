@@ -32,7 +32,7 @@ import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
 import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResultDTO, MultiSearchResultDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
-import no.ndla.searchapi.model.search.SearchType
+import no.ndla.searchapi.model.search.{SearchTrait, SearchType}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
@@ -125,12 +125,6 @@ trait SearchController {
         |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
         |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin
       )
-    private val contextFilters = listQuery[String]("context-filters")
-      .description(
-        """A comma separated list of resource-types the learning resources should be filtered by.
-        |Used in conjunction with the parameter resource-types to filter additional resource-types.
-      """.stripMargin
-      )
     private val includeMissingResourceTypeGroup = query[Boolean]("missing-group")
       .description(
         "Whether to include group without resource-types for group-search. Defaults to false."
@@ -138,6 +132,8 @@ trait SearchController {
       .default(false)
     private val grepCodes = listQuery[String]("grep-codes")
       .description("A comma separated list of codes from GREP API the resources should be filtered by.")
+    private val traits = listQuery[String]("traits")
+      .description("A comma separated list of traits the resources should be filtered by.")
     private val scrollId = query[Option[String]]("search-context")
       .description(
         s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
@@ -199,10 +195,10 @@ trait SearchController {
       .in(contextTypes)
       .in(languageFilter)
       .in(relevanceFilter)
-      .in(contextFilters)
       .in(includeMissingResourceTypeGroup)
       .in(aggregatePaths)
       .in(grepCodes)
+      .in(traits)
       .in(embedResource)
       .in(embedId)
       .in(filterInactive)
@@ -223,10 +219,10 @@ trait SearchController {
               contextTypes,
               languageFilter,
               relevanceFilter,
-              anotherResourceTypes,
               includeMissingResourceTypeGroup,
               aggregatePaths,
               grepCodes,
+              traits,
               embedResource,
               embedId,
               filterInactive,
@@ -249,11 +245,12 @@ trait SearchController {
                 sort = sort,
                 withIdIn = learningResourceIds.values,
                 subjects = subjects.values,
-                resourceTypes = groupTypes.values ++ anotherResourceTypes.values,
+                resourceTypes = groupTypes.values,
                 learningResourceTypes = contextTypes.values.flatMap(LearningResourceType.valueOf),
                 supportedLanguages = languageFilter.values,
                 relevanceIds = relevanceFilter.values,
                 grepCodes = grepCodes.values,
+                traits = traits.values.flatMap(SearchTrait.valueOf),
                 shouldScroll = false,
                 filterByNoResourceType = false,
                 aggregatePaths = aggregatePaths.values,
@@ -380,9 +377,9 @@ trait SearchController {
       .in(subjects)
       .in(languageFilter)
       .in(relevanceFilter)
-      .in(contextFilters)
       .in(scrollId)
       .in(grepCodes)
+      .in(traits)
       .in(aggregatePaths)
       .in(embedResource)
       .in(embedId)
@@ -404,9 +401,9 @@ trait SearchController {
               subjects,
               languageFilter,
               relevanceFilter,
-              contextFilters,
               scrollId,
               grepCodes,
+              traits,
               aggregatePaths,
               embedResource,
               embedId,
@@ -427,11 +424,12 @@ trait SearchController {
                 sort = sort.getOrElse(Sort.ByRelevanceDesc),
                 withIdIn = learningResourceIds.values,
                 subjects = subjects.values,
-                resourceTypes = resourceTypes.values ++ contextFilters.values,
+                resourceTypes = resourceTypes.values,
                 learningResourceTypes = contextTypes.values.flatMap(LearningResourceType.valueOf),
                 supportedLanguages = languageFilter.values,
                 relevanceIds = relevanceFilter.values,
                 grepCodes = grepCodes.values,
+                traits = traits.values.flatMap(SearchTrait.valueOf),
                 shouldScroll = shouldScroll,
                 filterByNoResourceType = false,
                 aggregatePaths = aggregatePaths.values,
@@ -552,6 +550,7 @@ trait SearchController {
                 draftStatus = stringListParam("draft-status").some,
                 users = stringListParam("users").some,
                 grepCodes = stringListParam("grep-codes").some,
+                traits = stringListParam("traits").flatMap(SearchTrait.withNameOption).some,
                 aggregatePaths = stringListParam("aggregate-paths").some,
                 embedResource = stringListParam("embed-resource").some,
                 embedId = stringParamOrNone("embed-id"),
@@ -652,6 +651,7 @@ trait SearchController {
             supportedLanguages = params.languageFilter.getOrElse(List.empty),
             relevanceIds = params.relevance.getOrElse(List.empty),
             grepCodes = params.grepCodes.getOrElse(List.empty),
+            traits = params.traits.getOrElse(List.empty),
             shouldScroll = shouldScroll,
             filterByNoResourceType = false,
             aggregatePaths = params.aggregatePaths.getOrElse(List.empty),
@@ -690,6 +690,7 @@ trait SearchController {
             statusFilter = params.draftStatus.getOrElse(List.empty).flatMap(DraftStatus.valueOf),
             userFilter = params.users.getOrElse(List.empty),
             grepCodes = params.grepCodes.getOrElse(List.empty),
+            traits = params.traits.getOrElse(List.empty),
             shouldScroll = shouldScroll,
             searchDecompounded = false,
             aggregatePaths = params.aggregatePaths.getOrElse(List.empty),

@@ -274,6 +274,10 @@ trait MultiDraftSearchService {
         if (settings.grepCodes.nonEmpty) Some(termsQuery("grepContexts.code", settings.grepCodes))
         else None
 
+      val traitsFilter =
+        if (settings.traits.nonEmpty) Some(termsQuery("traits", settings.traits.map(_.entryName)))
+        else None
+
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
@@ -321,6 +325,7 @@ trait MultiDraftSearchService {
         statusFilter,
         usersFilter,
         grepCodesFilter,
+        traitsFilter,
         embedResourceAndIdFilter,
         revisionDateFilter,
         publishedDateFilter,

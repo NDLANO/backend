@@ -13,6 +13,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.search.SearchTrait
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
@@ -58,6 +59,8 @@ case class SearchParamsDTO(
     languageFilter: Option[List[String]],
     @description("A list of codes from GREP API the resources should be filtered by.")
     grepCodes: Option[List[String]],
+    @description("A comma separated list of traits the resources should be filtered by.")
+    traits: Option[List[SearchTrait]],
     @description("List of index-paths that should be term-aggregated and returned in result.")
     aggregatePaths: Option[List[String]],
     @description(

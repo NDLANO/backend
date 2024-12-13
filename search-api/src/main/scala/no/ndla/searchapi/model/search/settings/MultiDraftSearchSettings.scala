@@ -12,7 +12,7 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
-import no.ndla.searchapi.model.search.SearchType
+import no.ndla.searchapi.model.search.{SearchTrait, SearchType}
 
 case class MultiDraftSearchSettings(
     query: Option[NonEmptyString],
@@ -33,6 +33,7 @@ case class MultiDraftSearchSettings(
     statusFilter: List[DraftStatus],
     userFilter: List[String],
     grepCodes: List[String],
+    traits: List[SearchTrait],
     shouldScroll: Boolean,
     searchDecompounded: Boolean,
     aggregatePaths: List[String],
@@ -72,6 +73,7 @@ object MultiDraftSearchSettings {
     statusFilter = List.empty,
     userFilter = List.empty,
     grepCodes = List.empty,
+    traits = List.empty,
     shouldScroll = false,
     searchDecompounded = false,
     aggregatePaths = List.empty,
