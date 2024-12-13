@@ -45,7 +45,7 @@ trait TranscriptionService {
           }
       }
 
-      val audioUri = s"s3://${props.TranscribeStorageName}/audio/$language/$videoId.mp3"
+      val audioUri = s"s3://${props.TranscribeStorageName}/audio-extraction/$language/$videoId.mp3"
       logger.info(s"Transcribing audio from: $audioUri")
       val jobName      = s"transcription-$videoId-$language"
       val mediaFormat  = "mp3"
@@ -103,8 +103,7 @@ trait TranscriptionService {
         encoder.encode(new MultimediaObject(videoFile), audioFile, encodingAttributes)
       } match {
         case Success(_) =>
-          logger.info("dasjhkdaidashjdas")
-          val s3Key = s"audio/$language/$videoId.mp3"
+          val s3Key = s"audio-extraction/$language/$videoId.mp3"
           logger.info(s"Uploading audio file to S3: $s3Key")
           s3TranscribeClient.putObject(s3Key, audioFile, "audio/mpeg") match {
             case Success(_) =>
@@ -117,12 +116,11 @@ trait TranscriptionService {
               Failure(new RuntimeException(s"Failed to upload audio file to S3.", ex))
           }
         case Failure(exception) => Failure(exception)
-
       }
     }
 
     def getAudioExtractionStatus(videoId: String, language: String): Try[Unit] = {
-      s3TranscribeClient.getObject(s"audio/$language/${videoId}.mp3") match {
+      s3TranscribeClient.getObject(s"audio-extraction/$language/${videoId}.mp3") match {
         case Success(_)         => Success(())
         case Failure(exception) => Failure(exception)
       }
