@@ -2,6 +2,7 @@ package no.ndla.audioapi.service
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
+import no.ndla.audioapi.model.api.JobAlreadyFoundException
 import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
 import no.ndla.common.brightcove.NdlaBrightcoveClient
 import sttp.client3.{HttpURLConnectionBackend, UriContext, asFile, basicRequest}
@@ -19,6 +20,17 @@ trait TranscriptionService {
   class TranscriptionService extends StrictLogging {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
+      getTranscription(videoId, language) match {
+        case Success(status) if status == "COMPLETED" =>
+          logger.info(s"Transcription already completed for videoId: $videoId")
+          return Failure(new JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
+        case Success(status) if status == "IN_PROGRESS" =>
+          logger.info(s"Transcription already in progress for videoId: $videoId")
+          return Failure(new JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
+        case _ =>
+          logger.info(s"No existing transcription job for videoId: $videoId")
+      }
+
       getAudioExtractionStatus(videoId, language) match {
         case Success(_) =>
           logger.info(s"Audio already extracted for videoId: $videoId")

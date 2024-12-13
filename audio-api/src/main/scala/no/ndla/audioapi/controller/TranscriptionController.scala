@@ -1,6 +1,7 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
+import no.ndla.audioapi.model.api.JobAlreadyFoundException
 import no.ndla.audioapi.service.{ReadService, TranscriptionService}
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -68,7 +69,9 @@ trait TranscriptionController {
       .serverLogicPure { _ =>
         { case (videoId, language, maxSpeakerOpt) =>
           transcriptionService.transcribeVideo(videoId, language, maxSpeakerOpt) match {
-            case Success(_)  => Right(())
+            case Success(_) => Right(())
+            case Failure(ex: JobAlreadyFoundException) =>
+              returnLeftError(ex)
             case Failure(ex) => returnLeftError(ex)
           }
         }

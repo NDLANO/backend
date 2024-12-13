@@ -55,6 +55,7 @@ trait ErrorHandling extends TapirErrorHandling {
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       invalidSearchContext
+    case jafe: JobAlreadyFoundException => ErrorBody(JOB_ALREADY_FOUND, jafe.getMessage, clock.now(), 400)
   }
 
 }
@@ -64,3 +65,4 @@ case class CouldNotFindLanguageException(message: String) extends RuntimeExcepti
 class AudioStorageException(message: String)              extends RuntimeException(message)
 class LanguageMappingException(message: String)           extends RuntimeException(message)
 class ImportException(message: String)                    extends RuntimeException(message)
+case class JobAlreadyFoundException(message: String)      extends RuntimeException(message)
