@@ -92,6 +92,7 @@ export interface IDraftSearchParamsDTO {
   draftStatus?: string[]
   users?: string[]
   grepCodes?: string[]
+  traits?: SearchTrait[]
   aggregatePaths?: string[]
   embedResource?: string[]
   embedId?: string
@@ -228,7 +229,7 @@ export interface IMultiSearchSummaryDTO {
   supportedLanguages: string[]
   learningResourceType: LearningResourceType
   status?: IStatusDTO
-  traits: string[]
+  traits: SearchTrait[]
   score: number
   highlights: IHighlightedFieldDTO[]
   paths: string[]
@@ -277,6 +278,7 @@ export interface ISearchParamsDTO {
   relevance?: string[]
   languageFilter?: string[]
   grepCodes?: string[]
+  traits?: SearchTrait[]
   aggregatePaths?: string[]
   embedResource?: string[]
   embedId?: string
@@ -341,6 +343,8 @@ export interface ITitleWithHtmlDTO {
 }
 
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
+
+export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "PODCAST")
 
 export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep")
 
