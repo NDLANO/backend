@@ -47,7 +47,7 @@ class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
 
     val result = transcriptionService.getTranscription(videoId, language)
 
-    result should be(Success(fakeJobStatus.toString))
+    result should be(Success(Left(fakeJobStatus.toString)))
   }
 
   test("transcribeVideo returns Success when transcription is started") {
@@ -56,6 +56,7 @@ class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
     val maxSpeakers        = 2
     val fakeS3Object       = mock[NdlaS3Object]
     val fakeTranscribeMock = mock[StartTranscriptionJobResponse]
+    when(transcribeClient.getTranscriptionJob(any)).thenReturn(Success(mock[GetTranscriptionJobResponse]))
     when(s3TranscribeClient.getObject(any)).thenReturn(Success(fakeS3Object))
     when(transcriptionService.getAudioExtractionStatus(videoId, language)).thenReturn(Success(()))
     when(transcribeClient.startTranscriptionJob(any, any, any, any, any, any, any, any))
