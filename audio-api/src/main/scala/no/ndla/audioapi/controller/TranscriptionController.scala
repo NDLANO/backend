@@ -6,9 +6,11 @@ import no.ndla.audioapi.service.{ReadService, TranscriptionService}
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import software.amazon.awssdk.services.transcribe.model.TranscriptionJobStatus
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, endpoint, path}
 import sttp.tapir.*
+import sttp.tapir.json.circe.jsonBody
 
 import scala.util.{Failure, Success}
 trait TranscriptionController {
@@ -82,12 +84,15 @@ trait TranscriptionController {
       .description("Get the transcription of a video.")
       .in(videoId)
       .in(language)
-      .errorOut(errorOutputsFor(400, 404, 500))
+      .errorOut(errorOutputsFor(400, 404, 405, 500))
+      .out(stringBody)
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
         { case (videoId, language) =>
           transcriptionService.getTranscription(videoId, language) match {
-            case Success(_)                          => Right(())
+            case Success(Right(transcriptionContent)) => Right(transcriptionContent)
+            case Success(Left(jobStatus)) =>
+              Right(jobStatus.toString)
             case Failure(ex: NoSuchElementException) => returnLeftError(ex)
             case Failure(ex)                         => returnLeftError(ex)
           }

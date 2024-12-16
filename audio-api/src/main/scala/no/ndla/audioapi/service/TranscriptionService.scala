@@ -21,12 +21,14 @@ trait TranscriptionService {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
       getTranscription(videoId, language) match {
-        case Success(status) if status == "COMPLETED" =>
+        case Success(Right(string)) =>
           logger.info(s"Transcription already completed for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
-        case Success(status) if status == "IN_PROGRESS" =>
+        case Success(Left("IN_PROGRESS")) =>
           logger.info(s"Transcription already in progress for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
+        case Success(Left(_)) =>
+          logger.info(s"Error occurred while checking transcription status for videoId")
         case _ =>
           logger.info(s"No existing transcription job for videoId: $videoId")
       }
@@ -47,7 +49,7 @@ trait TranscriptionService {
 
       val audioUri = s"s3://${props.TranscribeStorageName}/audio-extraction/$language/$videoId.mp3"
       logger.info(s"Transcribing audio from: $audioUri")
-      val jobName      = s"transcription-$videoId-$language"
+      val jobName      = s"transcribe-$videoId-$language"
       val mediaFormat  = "mp3"
       val outputKey    = s"transcription/$language/$videoId"
       val languageCode = language
@@ -69,12 +71,28 @@ trait TranscriptionService {
       }
     }
 
-    def getTranscription(videoId: String, language: String): Try[String] = {
-      val jobName = s"transcription-$videoId-$language"
+    def getTranscription(
+        videoId: String,
+        language: String,
+        subtitles: Boolean = true
+    ): Try[Either[String, String]] = {
+      val jobName = s"transcribe-$videoId-$language"
 
-      transcribeClient.getTranscriptionJob(jobName).map { transcriptionJobResponse =>
-        val transcriptionJobStatus = transcriptionJobResponse.transcriptionJob().transcriptionJobStatus()
-        transcriptionJobStatus.toString
+      transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
+        val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
+        val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
+
+        if (transcriptionJobStatus == "COMPLETED") {
+          val transcribeUri = s"transcription/$language/${videoId}" + (if (subtitles) ".vtt" else "")
+
+          s3TranscribeClient.getObject(transcribeUri).map { s3Object =>
+            val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
+            s3Object.stream.close()
+            Right(content)
+          }
+        } else {
+          Success(Left(transcriptionJobStatus))
+        }
       }
     }
 
