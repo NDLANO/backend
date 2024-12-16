@@ -6,11 +6,9 @@ import no.ndla.audioapi.service.{ReadService, TranscriptionService}
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import software.amazon.awssdk.services.transcribe.model.TranscriptionJobStatus
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, endpoint, path}
 import sttp.tapir.*
-import sttp.tapir.json.circe.jsonBody
 
 import scala.util.{Failure, Success}
 trait TranscriptionController {
