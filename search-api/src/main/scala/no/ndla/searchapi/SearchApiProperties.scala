@@ -54,7 +54,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
     case _                       => Failure(new IllegalArgumentException(s"Unknown index name: $indexName"))
   }
 
-  def DefaultPageSize                            = 10
+  final val DefaultPageSize                      = 10
   def MaxPageSize                                = 10000
   def IndexBulkSize: Int                         = propOrElse("INDEX_BULK_SIZE", "100").toInt
   def ElasticSearchIndexMaxResultWindow          = 10000

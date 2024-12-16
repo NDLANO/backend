@@ -150,7 +150,7 @@ trait SearchService {
 
           resultArray.traverse(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages | "*" =>
+              case Language.AllLanguages =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }

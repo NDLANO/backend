@@ -14,6 +14,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.ErrorHandling
@@ -46,6 +47,7 @@ trait TestEnvironment
     with MyNDLAApiClient
     with SearchService
     with SearchController
+    with GetSearchQueryParams
     with GrepSearchService
     with LearningPathIndexService
     with InternController
