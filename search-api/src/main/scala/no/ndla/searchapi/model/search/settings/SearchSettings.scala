@@ -11,6 +11,7 @@ import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
+import no.ndla.searchapi.model.search.SearchTrait
 
 case class SearchSettings(
     query: Option[NonEmptyString],
@@ -27,6 +28,7 @@ case class SearchSettings(
     supportedLanguages: List[String],
     relevanceIds: List[String],
     grepCodes: List[String],
+    traits: List[SearchTrait],
     shouldScroll: Boolean,
     filterByNoResourceType: Boolean,
     aggregatePaths: List[String],
@@ -53,6 +55,7 @@ object SearchSettings {
     supportedLanguages = List.empty,
     relevanceIds = List.empty,
     grepCodes = List.empty,
+    traits = List.empty,
     shouldScroll = false,
     filterByNoResourceType = false,
     aggregatePaths = List.empty,

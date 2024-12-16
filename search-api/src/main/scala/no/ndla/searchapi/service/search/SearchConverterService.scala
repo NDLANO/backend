@@ -67,16 +67,16 @@ trait SearchConverterService {
       document.body()
     }
 
-    private def getArticleTraits(contents: Seq[ArticleContent]): Seq[String] = {
+    private def getArticleTraits(contents: Seq[ArticleContent]): Seq[SearchTrait] = {
       contents.flatMap(content => {
-        val traits = ListBuffer[String]()
+        val traits = ListBuffer[SearchTrait]()
         parseHtml(content.content)
           .select(EmbedTagName)
           .forEach(embed => {
             val dataResource = embed.attr("data-resource")
             dataResource match {
-              case "h5p"                => traits += "H5P"
-              case "brightcove" | "nrk" => traits += "VIDEO"
+              case "h5p"                => traits += SearchTrait.H5p
+              case "brightcove" | "nrk" => traits += SearchTrait.Video
               case "external" | "iframe" =>
                 val dataUrl = embed.attr("data-url")
                 if (
@@ -84,9 +84,11 @@ trait SearchConverterService {
                     .contains("filmiundervisning") || dataUrl.contains("imdb") || dataUrl
                     .contains("nrk") || dataUrl.contains("khanacademy")
                 ) {
-                  traits += "VIDEO"
+                  traits += SearchTrait.Video
                 }
-              case _ => // Do nothing
+              case "audio"   => traits += SearchTrait.Audio
+              case "podcast" => traits += SearchTrait.Podcast
+              case _         => // Do nothing
             }
           })
         traits

@@ -14,7 +14,7 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
-import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
+import no.ndla.searchapi.model.search.{SearchTrait, SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
@@ -538,7 +538,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         article,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
       )
-    searchableArticle.traits should equal(List("H5P"))
+    searchableArticle.traits should equal(List(SearchTrait.H5p))
 
     val article2 =
       TestData.emptyDomainArticle.copy(
@@ -561,7 +561,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         article2,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
       )
-    searchableArticle2.traits should equal(List("H5P", "VIDEO"))
+    searchableArticle2.traits should equal(List(SearchTrait.H5p, SearchTrait.Video))
   }
 
   test("That extracting attributes extracts data-title but not all attributes") {
