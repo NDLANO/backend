@@ -21,7 +21,7 @@ trait TranscriptionService {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
       getTranscription(videoId, language) match {
-        case Success(Right(string)) =>
+        case Success(Right(_)) =>
           logger.info(s"Transcription already completed for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
         case Success(Left("IN_PROGRESS")) =>
