@@ -1,14 +1,16 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.JobAlreadyFoundException
+import no.ndla.audioapi.model.api.{JobAlreadyFoundException, TranscriptionResultDTO}
 import no.ndla.audioapi.service.{ReadService, TranscriptionService}
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, endpoint, path}
 import sttp.tapir.*
+import sttp.tapir.generic.auto.schemaForCaseClass
 
 import scala.util.{Failure, Success}
 trait TranscriptionController {
@@ -83,14 +85,15 @@ trait TranscriptionController {
       .in(videoId)
       .in(language)
       .errorOut(errorOutputsFor(400, 404, 405, 500))
-      .out(stringBody)
+      .out(jsonBody[TranscriptionResultDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
         { case (videoId, language) =>
           transcriptionService.getTranscription(videoId, language) match {
-            case Success(Right(transcriptionContent)) => Right(transcriptionContent)
+            case Success(Right(transcriptionContent)) =>
+              Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
             case Success(Left(jobStatus)) =>
-              Right(jobStatus.toString)
+              Right(TranscriptionResultDTO(jobStatus.toString, None))
             case Failure(ex: NoSuchElementException) => returnLeftError(ex)
             case Failure(ex)                         => returnLeftError(ex)
           }

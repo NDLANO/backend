@@ -73,8 +73,7 @@ trait TranscriptionService {
 
     def getTranscription(
         videoId: String,
-        language: String,
-        subtitles: Boolean = true
+        language: String
     ): Try[Either[String, String]] = {
       val jobName = s"transcribe-$videoId-$language"
 
@@ -83,7 +82,7 @@ trait TranscriptionService {
         val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
 
         if (transcriptionJobStatus == "COMPLETED") {
-          val transcribeUri = s"transcription/$language/${videoId}" + (if (subtitles) ".vtt" else "")
+          val transcribeUri = s"transcription/$language/${videoId}.vtt"
 
           s3TranscribeClient.getObject(transcribeUri).map { s3Object =>
             val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
