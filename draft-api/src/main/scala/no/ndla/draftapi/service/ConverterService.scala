@@ -55,7 +55,7 @@ trait ConverterService {
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
-      val domainDisclaimer = Seq(common.Disclaimer(newArticle.disclaimer.getOrElse(""), newArticle.language))
+      val domainDisclaimer = newArticle.disclaimer.map { d => Seq(common.Disclaimer(d, newArticle.language)) }
 
       val status = externalIds match {
         case Nil => common.Status(PLANNED, Set.empty)
@@ -391,7 +391,8 @@ trait ConverterService {
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
         val responsible    = article.responsible.map(toApiResponsible)
-        val disclaimer     = findByLanguageOrBestEffort((article.disclaimer), language).map(toApiArticleDisclaimer)
+        val disclaimer =
+          article.disclaimer.flatMap { d => findByLanguageOrBestEffort(d, language).map(toApiArticleDisclaimer) }
 
         Success(
           api.ArticleDTO(
@@ -460,7 +461,7 @@ trait ConverterService {
     def toApiArticleTitle(title: common.Title): api.ArticleTitleDTO =
       api.ArticleTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
 
-    def toApiArticleDisclaimer(disclaimer: common.Disclaimer): api.DisclaimerDTO =
+    private def toApiArticleDisclaimer(disclaimer: common.Disclaimer): api.DisclaimerDTO =
       api.DisclaimerDTO(
         disclaimer.disclaimer,
         disclaimer.language
@@ -795,14 +796,18 @@ trait ConverterService {
           .traverse(lang => articleWithNewContent.title.toSeq.map(t => toDomainTitle(api.ArticleTitleDTO(t, t, lang))))
           .flatten
       )
-      val updatedDisclaimer = mergeLanguageFields(
-        toMergeInto.disclaimer,
-        maybeLang
-          .traverse(lang =>
-            articleWithNewContent.disclaimer.toSeq.map(d => toDomainDisclaimer(api.DisclaimerDTO(d, lang)))
-          )
-          .flatten
-      )
+
+      val updatedDisclaimer = toMergeInto.disclaimer.map { disclaimer =>
+        mergeLanguageFields(
+          disclaimer,
+          maybeLang
+            .traverse(lang =>
+              articleWithNewContent.disclaimer.toSeq.map(d => toDomainDisclaimer(api.DisclaimerDTO(d, lang)))
+            )
+            .flatten
+        )
+      }
+
       val updatedContents = mergeLanguageFields(
         toMergeInto.content,
         maybeLang
@@ -957,7 +962,7 @@ trait ConverterService {
           priority = priority,
           started = false,
           qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
-          disclaimer = article.disclaimer.map(d => common.Disclaimer(d, lang)).toSeq
+          disclaimer = article.disclaimer.map { d => Seq(common.Disclaimer(d, lang)) }
         )
     }
 

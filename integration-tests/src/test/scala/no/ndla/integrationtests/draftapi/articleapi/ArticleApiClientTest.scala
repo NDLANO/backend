@@ -126,7 +126,7 @@ class ArticleApiClientTest
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = Seq.empty
+    disclaimer = None
   )
 
   val exampleToken =

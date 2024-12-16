@@ -322,7 +322,7 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    Seq.empty
+    None
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -357,7 +357,7 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    Seq.empty
+    None
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -394,7 +394,7 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    Seq.empty
+    None
   )
 
   val newArticle: NewArticleDTO = api.NewArticleDTO(
@@ -485,7 +485,7 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = Seq.empty
+    disclaimer = None
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleDTO = api.ArticleDTO(
