@@ -58,20 +58,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
-  test("toApiDisclaimer returns both disclaimer and plainDisclaimer") {
-    val disclaimer = Disclaimer(
-      "Denne ressursen har innhold som kan være utfordrende dersom du bruker: <ul><li>skjermleser</li><li>tastatur</li></ul>",
-      "nb"
-    )
-    service.toApiArticleDisclaimer(disclaimer) should equal(
-      api.DisclaimerDTO(
-        "Denne ressursen har innhold som kan være utfordrende dersom du bruker: skjermleser tastatur",
-        "Denne ressursen har innhold som kan være utfordrende dersom du bruker: <ul><li>skjermleser</li><li>tastatur</li></ul>",
-        "nb"
-      )
-    )
-  }
-
   test("toApiArticleIntroduction returns both introduction and plainIntroduction") {
     val introduction = Introduction("<p>Introduction with <em>emphasis</em></p>", "en")
     service.toApiArticleIntroduction(introduction) should equal(

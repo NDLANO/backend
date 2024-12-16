@@ -462,7 +462,6 @@ trait ConverterService {
 
     def toApiArticleDisclaimer(disclaimer: common.Disclaimer): api.DisclaimerDTO =
       api.DisclaimerDTO(
-        Jsoup.parseBodyFragment(disclaimer.disclaimer).body().text(),
         disclaimer.disclaimer,
         disclaimer.language
       )
@@ -800,7 +799,7 @@ trait ConverterService {
         toMergeInto.disclaimer,
         maybeLang
           .traverse(lang =>
-            articleWithNewContent.disclaimer.toSeq.map(d => toDomainDisclaimer(api.DisclaimerDTO(d, d, lang)))
+            articleWithNewContent.disclaimer.toSeq.map(d => toDomainDisclaimer(api.DisclaimerDTO(d, lang)))
           )
           .flatten
       )

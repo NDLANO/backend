@@ -12,8 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import sttp.tapir.Schema.annotations.description
 
 case class DisclaimerDTO(
-    @description("The freetext content of the disclaimer") disclaimer: String,
-    @description("The freetext html content of the disclaimer") htmlDisclaimer: String,
+    @description("The freetext html content of the disclaimer") disclaimer: String,
     @description("ISO 639-1 code that represents the language used in the disclaimer") language: String
 )
 
