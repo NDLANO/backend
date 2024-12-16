@@ -50,6 +50,7 @@ trait ContentValidator {
     def validateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val validationErrors = validateArticleContent(article.content) ++
         article.introduction.flatMap(i => validateIntroduction(i)) ++
+        validateArticleDisclaimer(article.disclaimer.getOrElse(Seq.empty)) ++
         validateMetaDescription(article.metaDescription, isImported) ++
         validateTitle(article.title) ++
         validateCopyright(article.copyright) ++
@@ -87,6 +88,14 @@ trait ContentValidator {
           rootElementContainsOnlySectionBlocks(field, content.content) ++
           validateLanguage("content.language", content.language)
       }) ++ validateNonEmpty("content", contents)
+    }
+
+    private def validateArticleDisclaimer(disclaimers: Seq[Disclaimer]): Seq[ValidationMessage] = {
+      disclaimers.flatMap(disclaimer => {
+        val field = s"disclaimer.${disclaimer.language}"
+        TextValidator.validate(field, disclaimer.disclaimer, allLegalTags).toList ++
+          validateLanguage("content.language", disclaimer.language)
+      })
     }
 
     private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {

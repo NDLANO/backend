@@ -84,6 +84,7 @@ trait ContentValidator {
         if (shouldValidateEntireArticle)
           article.content.flatMap(c => validateArticleContent(c)) ++
             article.introduction.flatMap(i => validateIntroduction(i)) ++
+            validateArticleDisclaimer(article.disclaimer.getOrElse(Seq.empty)) ++
             article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
             validateTitles(article.title) ++
             article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
@@ -162,6 +163,13 @@ trait ContentValidator {
       TextValidator.validate("content", content.content, allLegalTags).toList ++
         rootElementContainsOnlySectionBlocks("content.content", content.content) ++
         validateLanguage("content.language", content.language)
+    }
+
+    private def validateArticleDisclaimer(disclaimers: Seq[Disclaimer]): Seq[ValidationMessage] = {
+      disclaimers.flatMap(disclaimer => {
+        TextValidator.validate("disclaimer", disclaimer.disclaimer, allLegalTags).toList ++
+          validateLanguage("disclaimer.language", disclaimer.language)
+      })
     }
 
     private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {

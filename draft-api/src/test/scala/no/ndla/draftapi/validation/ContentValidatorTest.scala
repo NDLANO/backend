@@ -21,6 +21,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val converterService: ConverterService = new ConverterService
   val validDocument                               = """<section><h1>heisann</h1><h2>heia</h2></section>"""
   val invalidDocument                             = """<section><invalid></invalid></section>"""
+  val validDisclaimer =
+    """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
   val articleToValidate: Draft =
     TestData.sampleArticleWithByNcSa.copy(responsible = Some(Responsible("hei", TestData.today)))
@@ -58,7 +60,36 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
+  test("validateArticle should throw an error if disclaimer contains illegal HTML tags") {
+    val article = articleToValidate.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      disclaimer = Some(Seq(Disclaimer("<p><hallo>hei</hallo></p>", "nb")))
+    )
+    val result = contentValidator.validateArticle(article)
+    result.failed.get.asInstanceOf[ValidationException].errors.length should be(1)
+    result.failed.get.asInstanceOf[ValidationException].errors.head.message should be(
+      "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
+    )
+  }
+
+  test("validateArticle should not throw an error if disclaimer contains legal HTML tags") {
+    val article = articleToValidate.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      disclaimer = Some(Seq(Disclaimer(validDisclaimer, "nb")))
+    )
+    contentValidator.validateArticle(article).isSuccess should be(true)
+
+  }
+
   test("validateArticle should throw an error if metaDescription contains HTML tags") {
+    val article = articleToValidate.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      metaDescription = Seq(Description(validDisclaimer, "nb"))
+    )
+    contentValidator.validateArticle(article).isFailure should be(true)
+  }
+
+  test("validateArticle should throw an error if metaDescription contains plain text") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
       metaDescription = Seq(Description(validDocument, "nb"))
