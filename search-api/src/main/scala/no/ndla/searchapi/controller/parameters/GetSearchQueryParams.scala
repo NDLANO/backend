@@ -107,9 +107,10 @@ trait GetSearchQueryParams {
       .derived[GetSearchQueryParams]
       .validate {
         Validator.custom {
-          case q if q.page < 1                         => Invalid("page must be greater than 0")
-          case q if q.pageSize < 1 || q.pageSize > 100 => Invalid("page-size must be between 1 and 100")
-          case _                                       => Valid
+          case q if q.page < 1 => Invalid("page must be greater than 0")
+          case q if q.pageSize < 1 || q.pageSize > props.MaxPageSize =>
+            Invalid(s"page-size must be between 1 and ${props.MaxPageSize}")
+          case _ => Valid
         }
       }
   }
