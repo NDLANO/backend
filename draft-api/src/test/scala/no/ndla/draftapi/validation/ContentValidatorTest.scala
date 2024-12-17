@@ -65,10 +65,12 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       content = Seq(ArticleContent(validDocument, "nb")),
       disclaimer = Some(Seq(Disclaimer("<p><hallo>hei</hallo></p>", "nb")))
     )
-    val result = contentValidator.validateArticle(article)
-    result.failed.get.asInstanceOf[ValidationException].errors.length should be(1)
-    result.failed.get.asInstanceOf[ValidationException].errors.head.message should be(
-      "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
+    val Failure(error: ValidationException) = contentValidator.validateArticle(article)
+    error should be(
+      ValidationException(
+        "disclaimer",
+        "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
+      )
     )
   }
 
