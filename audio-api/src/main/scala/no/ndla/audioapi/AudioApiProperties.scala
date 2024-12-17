@@ -34,7 +34,7 @@ class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   val MaxAudioFileSizeBytes: Int = 1024 * 1024 * 100 // 100 MiB
 
-  val StorageName: String           = propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
+  val StorageName: String = "test.audio.2.ndla" // propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
   val StorageRegion: Option[String] = propOrNone("AUDIO_FILE_S3_BUCKET_REGION")
 
   val TranscribeStorageName: String = propOrElse("TRANSCRIBE_FILE_S3_BUCKET_NAME", s"$Environment.transcribe.ndla")

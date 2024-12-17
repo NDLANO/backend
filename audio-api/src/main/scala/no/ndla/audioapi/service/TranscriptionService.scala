@@ -20,7 +20,7 @@ trait TranscriptionService {
   class TranscriptionService extends StrictLogging {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
-      getTranscription(videoId, language) match {
+      getVideoTranscription(videoId, language) match {
         case Success(Right(_)) =>
           logger.info(s"Transcription already completed for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
@@ -71,7 +71,7 @@ trait TranscriptionService {
       }
     }
 
-    def getTranscription(
+    def getVideoTranscription(
         videoId: String,
         language: String
     ): Try[Either[String, String]] = {
@@ -95,6 +95,63 @@ trait TranscriptionService {
       }
     }
 
+    def transcribeAudio(audioName: String, language: String, maxSpeakers: Int, format: String): Try[Unit] = {
+      getVideoTranscription(audioName, language) match {
+        case Success(Right(_)) =>
+          logger.info(s"Transcription already completed for audio: $audioName")
+          return Failure(new JobAlreadyFoundException(s"Transcription already completed for audio: $audioName"))
+        case Success(Left("IN_PROGRESS")) =>
+          logger.info(s"Transcription already in progress for videoId: $audioName")
+          return Failure(new JobAlreadyFoundException(s"Transcription already in progress for audio: $audioName"))
+        case Success(Left(_)) =>
+          logger.info(s"Error occurred while checking transcription status for audio")
+        case _ =>
+          logger.info(s"No existing transcription job for audio name: $audioName")
+      }
+      val audioUri = s"s3://${props.StorageName}/$audioName.mp3"
+      logger.info(s"Transcribing audio from: $audioUri")
+      val jobName      = s"transcribe-$audioName-$language"
+      val mediaFormat  = format
+      val outputKey    = s"audio-transcription/$language/$audioName"
+      val languageCode = language
+
+      transcribeClient.startTranscriptionJob(
+        jobName,
+        audioUri,
+        mediaFormat,
+        languageCode,
+        props.TranscribeStorageName,
+        outputKey,
+        maxSpeakers
+      ) match {
+        case Success(_) =>
+          logger.info(s"Transcription job started for audio: $audioName")
+          Success(())
+        case Failure(exception) =>
+          Failure(new RuntimeException(s"Failed to start transcription for audio file: $audioName", exception))
+      }
+    }
+
+    def getAudioTranscription(audioName: String, language: String): Try[Either[String, String]] = {
+      val jobName = s"transcribe-$audioName-$language"
+
+      transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
+        val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
+        val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
+
+        if (transcriptionJobStatus == "COMPLETED") {
+          val transcribeUri = s"audio-transcription/$language/${audioName}"
+
+          s3TranscribeClient.getObject(transcribeUri).map { s3Object =>
+            val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
+            s3Object.stream.close()
+            Right(content)
+          }
+        } else {
+          Success(Left(transcriptionJobStatus))
+        }
+      }
+    }
     def extractAudioFromVideo(videoId: String, language: String): Try[Unit] = {
       val accountId = props.BrightcoveAccountId
       val videoUrl = getVideo(accountId, videoId) match {
