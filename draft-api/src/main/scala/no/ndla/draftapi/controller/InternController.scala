@@ -52,7 +52,7 @@ trait InternController {
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
-    import props.{DraftSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
+    import props.{DraftSearchIndex, DraftTagSearchIndex}
 
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
@@ -103,8 +103,7 @@ trait InternController {
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
         val articleIndex = createIndexFuture(articleIndexService, numShards)
         val tagIndex     = createIndexFuture(tagIndexService, numShards)
-        val grepIndex    = createIndexFuture(grepCodesIndexService, numShards)
-        val indexResults = Future.sequence(List(articleIndex, tagIndex, grepIndex))
+        val indexResults = Future.sequence(List(articleIndex, tagIndex))
 
         Await.result(indexResults, Duration.Inf).sequence match {
           case Failure(ex) =>
@@ -126,14 +125,12 @@ trait InternController {
       val indexes = for {
         articleIndex <- Future { articleIndexService.findAllIndexes(DraftSearchIndex) }
         tagIndex     <- Future { tagIndexService.findAllIndexes(DraftTagSearchIndex) }
-        grepIndex    <- Future { grepCodesIndexService.findAllIndexes(DraftGrepCodesSearchIndex) }
-      } yield (articleIndex, tagIndex, grepIndex)
+      } yield (articleIndex, tagIndex)
 
       val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
-        case (Failure(articleFail), _, _) => return articleFail.getMessage.asLeft
-        case (_, Failure(tagFail), _)     => return tagFail.getMessage.asLeft
-        case (_, _, Failure(grepFail))    => return grepFail.getMessage.asLeft
-        case (Success(articleIndexes), Success(tagIndexes), Success(grepIndexes)) =>
+        case (Failure(articleFail), _) => return articleFail.getMessage.asLeft
+        case (_, Failure(tagFail))     => return tagFail.getMessage.asLeft
+        case (Success(articleIndexes), Success(tagIndexes)) =>
           val articleDeleteResults = articleIndexes.map(index => {
             logger.info(s"Deleting article index $index")
             articleIndexService.deleteIndexWithName(Option(index))
@@ -142,11 +139,7 @@ trait InternController {
             logger.info(s"Deleting tag index $index")
             tagIndexService.deleteIndexWithName(Option(index))
           })
-          val grepDeleteResults = grepIndexes.map(index => {
-            logger.info(s"Deleting grep index $index")
-            grepCodesIndexService.deleteIndexWithName(Option(index))
-          })
-          articleDeleteResults ++ tagDeleteResults ++ grepDeleteResults
+          articleDeleteResults ++ tagDeleteResults
       }
 
       val (errors, successes) = deleteResults.partition(_.isFailure)

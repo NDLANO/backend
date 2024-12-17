@@ -223,6 +223,7 @@ trait DraftController {
       .in("grep-codes")
       .summary("Retrieves a list of all previously used grepCodes in articles")
       .description("Retrieves a list of all previously used grepCodes in articles")
+      .deprecated()
       .in(queryParam)
       .in(pageSize)
       .in(pageNo)
