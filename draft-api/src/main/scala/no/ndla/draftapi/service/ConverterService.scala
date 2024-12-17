@@ -797,15 +797,14 @@ trait ConverterService {
           .flatten
       )
 
-      val updatedDisclaimer = toMergeInto.disclaimer.map { disclaimer =>
-        mergeLanguageFields(
-          disclaimer,
-          maybeLang
-            .traverse(lang =>
-              articleWithNewContent.disclaimer.toSeq.map(d => toDomainDisclaimer(api.DisclaimerDTO(d, lang)))
-            )
-            .flatten
-        )
+      val updatedDisclaimer = articleWithNewContent.disclaimer match {
+        case None => toMergeInto.disclaimer
+        case Some(newDisclaimer) =>
+          val updated = mergeLanguageFields(
+            toMergeInto.disclaimer.getOrElse(Seq.empty),
+            maybeLang.map(lang => toDomainDisclaimer(api.DisclaimerDTO(newDisclaimer, lang))).toSeq
+          )
+          Option.when(updated.nonEmpty)(updated)
       }
 
       val updatedContents = mergeLanguageFields(
