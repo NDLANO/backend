@@ -55,6 +55,7 @@ trait ConverterService {
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
+      val domainDisclaimer = newArticle.disclaimer.map { d => Seq(common.Disclaimer(d, newArticle.language)) }
 
       val status = externalIds match {
         case Nil => common.Status(PLANNED, Set.empty)
@@ -124,7 +125,8 @@ trait ConverterService {
           comments = newCommentToDomain(newArticle.comments.getOrElse(List.empty)),
           priority = priority,
           started = false,
-          qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
+          disclaimer = domainDisclaimer
         )
       )
     }
@@ -257,6 +259,9 @@ trait ConverterService {
     private def toDomainTitle(articleTitle: api.ArticleTitleDTO): common.Title =
       common.Title(articleTitle.title, articleTitle.language)
 
+    private def toDomainDisclaimer(articleDisclaimer: api.DisclaimerDTO): common.Disclaimer =
+      common.Disclaimer(articleDisclaimer.disclaimer, articleDisclaimer.language)
+
     private def toDomainContent(articleContent: api.ArticleContentDTO): common.ArticleContent = {
       common.ArticleContent(removeUnknownEmbedTagAttribute(articleContent.content), articleContent.language)
     }
@@ -386,6 +391,8 @@ trait ConverterService {
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
         val responsible    = article.responsible.map(toApiResponsible)
+        val disclaimer =
+          article.disclaimer.flatMap { d => findByLanguageOrBestEffort(d, language).map(toApiArticleDisclaimer) }
 
         Success(
           api.ArticleDTO(
@@ -421,7 +428,8 @@ trait ConverterService {
             prioritized = article.priority == Priority.Prioritized,
             priority = article.priority.entryName,
             started = article.started,
-            qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation)
+            qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
+            disclaimer = disclaimer
           )
         )
       } else {
@@ -452,6 +460,12 @@ trait ConverterService {
 
     def toApiArticleTitle(title: common.Title): api.ArticleTitleDTO =
       api.ArticleTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+
+    private def toApiArticleDisclaimer(disclaimer: common.Disclaimer): api.DisclaimerDTO =
+      api.DisclaimerDTO(
+        disclaimer.disclaimer,
+        disclaimer.language
+      )
 
     private def toApiArticleContent(content: common.ArticleContent): api.ArticleContentDTO =
       api.ArticleContentDTO(content.content, content.language)
@@ -620,7 +634,8 @@ trait ConverterService {
               availability = draft.availability,
               relatedContent = draft.relatedContent,
               revisionDate = getNextRevision(draft.revisionMeta).map(_.revisionDate),
-              slug = draft.slug
+              slug = draft.slug,
+              disclaimer = draft.disclaimer
             )
           )
       }
@@ -781,6 +796,17 @@ trait ConverterService {
           .traverse(lang => articleWithNewContent.title.toSeq.map(t => toDomainTitle(api.ArticleTitleDTO(t, t, lang))))
           .flatten
       )
+
+      val updatedDisclaimer = articleWithNewContent.disclaimer match {
+        case None => toMergeInto.disclaimer
+        case Some(newDisclaimer) =>
+          val updated = mergeLanguageFields(
+            toMergeInto.disclaimer.getOrElse(Seq.empty),
+            maybeLang.map(lang => toDomainDisclaimer(api.DisclaimerDTO(newDisclaimer, lang))).toSeq
+          )
+          Option.when(updated.nonEmpty)(updated)
+      }
+
       val updatedContents = mergeLanguageFields(
         toMergeInto.content,
         maybeLang
@@ -845,7 +871,8 @@ trait ConverterService {
         comments = updatedComments,
         priority = priority,
         started = toMergeInto.started,
-        qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
+        qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
+        disclaimer = updatedDisclaimer
       )
 
       Success(converted)
@@ -933,7 +960,8 @@ trait ConverterService {
           comments = comments,
           priority = priority,
           started = false,
-          qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
+          disclaimer = article.disclaimer.map { d => Seq(common.Disclaimer(d, lang)) }
         )
     }
 

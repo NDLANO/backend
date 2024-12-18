@@ -355,7 +355,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = None
     )
     val article = common.article.Article(
       id = Some(articleId),
@@ -379,7 +380,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       availability = common.Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = None
     )
     val status = common.Status(END_CONTROL, Set.empty)
 
@@ -476,7 +478,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = None
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
@@ -532,7 +535,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = None
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
@@ -592,7 +596,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = None
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
@@ -653,7 +658,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = None
     )
     val status                            = common.Status(PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS

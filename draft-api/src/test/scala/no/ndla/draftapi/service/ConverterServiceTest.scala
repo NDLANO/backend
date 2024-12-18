@@ -332,7 +332,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Some(Seq(Disclaimer("Disclaimer test", "nb")))
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(
@@ -379,7 +380,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Some(Seq(Disclaimer("Disclaimer test", "nb")))
     )
 
     val expectedArticle = Draft(
@@ -413,7 +415,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Some(Seq(Disclaimer("NyDisclaimer test", "nb")))
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -435,7 +438,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       editorLabels = None,
       grepCodes = None,
       conceptIds = None,
-      createNewVersion = None
+      createNewVersion = None,
+      disclaimer = Some("NyDisclaimer test")
     )
 
     val user = TokenUser("theuserthatchangeditid", Set.empty, None)
@@ -477,7 +481,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = None
     )
 
     val expectedArticle = Draft(
@@ -519,7 +524,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = None
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -1120,7 +1126,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       comments = Seq.empty,
       priority = Priority.Unspecified,
       started = false,
-      qualityEvaluation = None
+      qualityEvaluation = None,
+      disclaimer = Some(Seq(Disclaimer("articleDisclaimer", "nb")))
     )
     val article = common.model.domain.article.Article(
       id = Some(articleId),
@@ -1145,7 +1152,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = Some("kjempe-slug")
+      slug = Some("kjempe-slug"),
+      disclaimer = Some(Seq(Disclaimer("articleDisclaimer", "nb")))
     )
 
     val result = service.toArticleApiArticle(draft)

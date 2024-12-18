@@ -51,6 +51,7 @@ case class ArticleDTO(
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: String,
     @description("If the article has been edited after last status or responsible change") started: Boolean,
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluationDTO],
+    @description("The disclaimer of the article") disclaimer: Option[DisclaimerDTO]
 )
 
 object ArticleDTO {
