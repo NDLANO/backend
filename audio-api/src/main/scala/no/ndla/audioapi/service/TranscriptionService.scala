@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA audio-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.audioapi.service
 
 import com.typesafe.scalalogging.StrictLogging
@@ -137,7 +145,7 @@ trait TranscriptionService {
       }
     }
 
-    def getAudioTranscription(audioName: String, audioId: Long, language: String): Try[Either[String, String]] = {
+    def getAudioTranscription(audioId: Long, language: String): Try[Either[String, String]] = {
       val jobName = s"transcribe-audio-$audioId-$language"
 
       transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>

@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA common
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.common.brightcove
 
 import io.circe.Json

@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA audio-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.audioapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}

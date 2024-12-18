@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA audio-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
@@ -129,15 +137,14 @@ trait TranscriptionController {
       .summary("Get the transcription status of a video")
       .description("Get the transcription of a video.")
       .in("audio")
-      .in(audioName)
       .in(audioId)
       .in(language)
       .errorOut(errorOutputsFor(400, 404, 405, 500))
       .out(jsonBody[TranscriptionResultDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
-        { case (audioName, audioId, language) =>
-          transcriptionService.getAudioTranscription(audioName, audioId, language) match {
+        { case (audioId, language) =>
+          transcriptionService.getAudioTranscription(audioId, language) match {
             case Success(Right(transcriptionContent)) =>
               Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
             case Success(Left(jobStatus)) =>
