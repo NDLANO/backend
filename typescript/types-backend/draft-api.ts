@@ -54,6 +54,7 @@ export interface IArticleDTO {
   priority: string
   started: boolean
   qualityEvaluation?: IQualityEvaluationDTO
+  disclaimer?: IDisclaimerDTO
 }
 
 export interface IArticleIntroductionDTO {
@@ -129,6 +130,11 @@ export interface ICommentDTO {
   solved: boolean
 }
 
+export interface IDisclaimerDTO {
+  disclaimer: string
+  language: string
+}
+
 export interface IDraftCopyrightDTO {
   license?: ILicenseDTO
   origin?: string
@@ -191,6 +197,7 @@ export interface INewArticleDTO {
   prioritized?: boolean
   priority?: string
   qualityEvaluation?: IQualityEvaluationDTO
+  disclaimer?: string
 }
 
 export interface INewArticleMetaImageDTO {
@@ -281,6 +288,7 @@ export interface IUpdatedArticleDTO {
   prioritized?: boolean
   priority?: string
   qualityEvaluation?: IQualityEvaluationDTO
+  disclaimer?: string
 }
 
 export interface IUpdatedCommentDTO {
