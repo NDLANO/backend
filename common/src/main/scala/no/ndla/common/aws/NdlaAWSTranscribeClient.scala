@@ -32,9 +32,10 @@ trait NdlaAWSTranscribeClient {
         outputBucket: String,
         outputKey: String,
         maxSpeakers: Int,
+        includeSubtitles: Boolean = true,
         outputSubtitleFormat: String = "VTT"
     ): Try[StartTranscriptionJobResponse] = Try {
-      val request = StartTranscriptionJobRequest
+      val requestBuilder = StartTranscriptionJobRequest
         .builder()
         .transcriptionJobName(jobName)
         .media(Media.builder().mediaFileUri(mediaUri).build())
@@ -49,15 +50,17 @@ trait NdlaAWSTranscribeClient {
             .maxSpeakerLabels(maxSpeakers)
             .build()
         )
-        .subtitles(
+
+      if (includeSubtitles) {
+        requestBuilder.subtitles(
           Subtitles
             .builder()
             .formats(SubtitleFormat.valueOf(outputSubtitleFormat))
             .build()
         )
-        .build()
+      }
 
-      client.startTranscriptionJob(request)
+      client.startTranscriptionJob(requestBuilder.build())
     }
 
     def getTranscriptionJob(jobName: String): Try[GetTranscriptionJobResponse] = {

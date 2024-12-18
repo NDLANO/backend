@@ -92,11 +92,7 @@ trait TranscriptionService {
         if (transcriptionJobStatus == "COMPLETED") {
           val transcribeUri = s"transcription/$language/${videoId}.vtt"
 
-          s3TranscribeClient.getObject(transcribeUri).map { s3Object =>
-            val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
-            s3Object.stream.close()
-            Right(content)
-          }
+          getObjectFromS3(transcribeUri)
         } else {
           Success(Left(transcriptionJobStatus))
         }
@@ -110,7 +106,7 @@ trait TranscriptionService {
         maxSpeakers: Int,
         format: String
     ): Try[Unit] = {
-      getAudioTranscription(audioName, audioId, language) match {
+      getAudioTranscription(audioId, language) match {
         case Success(Right(_)) =>
           logger.info(s"Transcription already completed for audio: $audioName")
           return Failure(new JobAlreadyFoundException(s"Transcription already completed for audio: $audioName"))
@@ -135,7 +131,8 @@ trait TranscriptionService {
         languageCode,
         props.TranscribeStorageName,
         outputKey,
-        maxSpeakers
+        maxSpeakers,
+        includeSubtitles = false
       ) match {
         case Success(_) =>
           logger.info(s"Transcription job started for audio: $audioName")
@@ -155,16 +152,21 @@ trait TranscriptionService {
         if (transcriptionJobStatus == "COMPLETED") {
           val transcribeUri = s"audio-transcription/$language/${audioId}"
 
-          s3TranscribeClient.getObject(transcribeUri).map { s3Object =>
-            val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
-            s3Object.stream.close()
-            Right(content)
-          }
+          getObjectFromS3(transcribeUri)
         } else {
           Success(Left(transcriptionJobStatus))
         }
       }
     }
+
+    private def getObjectFromS3(Uri: String): Try[Either[String, String]] = {
+      s3TranscribeClient.getObject(Uri).map { s3Object =>
+        val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
+        s3Object.stream.close()
+        Right(content)
+      }
+    }
+
     def extractAudioFromVideo(videoId: String, language: String): Try[Unit] = {
       val accountId = props.BrightcoveAccountId
       val videoUrl = getVideo(accountId, videoId) match {
