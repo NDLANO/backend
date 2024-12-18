@@ -23,6 +23,7 @@ trait TranscriptionController {
 
     private val videoId   = path[String]("videoId").description("The video id to transcribe")
     private val audioName = path[String]("audioName").description("The audio name to transcribe")
+    private val audioId   = path[Long]("audioId").description("The audio id to transcribe")
     private val language  = path[String]("language").description("The language to transcribe the video to")
     private val maxSpeaker =
       query[Int]("maxSpeaker").description("The maximum number of speakers in the video").default(2)
@@ -105,16 +106,17 @@ trait TranscriptionController {
     def postAudioTranscription: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Transcribe audio")
       .description("Transcribes a video and uploads the transcription to S3.")
+      .in("audio")
       .in(audioName)
+      .in(audioId)
       .in(language)
       .in(maxSpeaker)
       .in(format)
-      .in("audio")
       .errorOut(errorOutputsFor(400, 500))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
-        { case (videoId, language, maxSpeakerOpt, format) =>
-          transcriptionService.transcribeAudio(videoId, language, maxSpeakerOpt, format) match {
+        { case (audioName, audioId, language, maxSpeakerOpt, format) =>
+          transcriptionService.transcribeAudio(audioName, audioId, language, maxSpeakerOpt, format) match {
             case Success(_) => Right(())
             case Failure(ex: JobAlreadyFoundException) =>
               returnLeftError(ex)
@@ -126,15 +128,16 @@ trait TranscriptionController {
     def getAudioTranscription: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get the transcription status of a video")
       .description("Get the transcription of a video.")
-      .in(audioName)
-      .in(language)
       .in("audio")
+      .in(audioName)
+      .in(audioId)
+      .in(language)
       .errorOut(errorOutputsFor(400, 404, 405, 500))
       .out(jsonBody[TranscriptionResultDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
-        { case (videoId, language) =>
-          transcriptionService.getAudioTranscription(videoId, language) match {
+        { case (audioName, audioId, language) =>
+          transcriptionService.getAudioTranscription(audioName, audioId, language) match {
             case Success(Right(transcriptionContent)) =>
               Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
             case Success(Left(jobStatus)) =>

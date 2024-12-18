@@ -49,7 +49,7 @@ trait TranscriptionService {
 
       val audioUri = s"s3://${props.TranscribeStorageName}/audio-extraction/$language/$videoId.mp3"
       logger.info(s"Transcribing audio from: $audioUri")
-      val jobName      = s"transcribe-$videoId-$language"
+      val jobName      = s"transcribe-video-$videoId-$language"
       val mediaFormat  = "mp3"
       val outputKey    = s"transcription/$language/$videoId"
       val languageCode = language
@@ -75,7 +75,7 @@ trait TranscriptionService {
         videoId: String,
         language: String
     ): Try[Either[String, String]] = {
-      val jobName = s"transcribe-$videoId-$language"
+      val jobName = s"transcribe-video-$videoId-$language"
 
       transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
         val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
@@ -95,8 +95,14 @@ trait TranscriptionService {
       }
     }
 
-    def transcribeAudio(audioName: String, language: String, maxSpeakers: Int, format: String): Try[Unit] = {
-      getVideoTranscription(audioName, language) match {
+    def transcribeAudio(
+        audioName: String,
+        audioId: Long,
+        language: String,
+        maxSpeakers: Int,
+        format: String
+    ): Try[Unit] = {
+      getAudioTranscription(audioName, audioId, language) match {
         case Success(Right(_)) =>
           logger.info(s"Transcription already completed for audio: $audioName")
           return Failure(new JobAlreadyFoundException(s"Transcription already completed for audio: $audioName"))
@@ -108,13 +114,12 @@ trait TranscriptionService {
         case _ =>
           logger.info(s"No existing transcription job for audio name: $audioName")
       }
-      val audioUri = s"s3://${props.StorageName}/$audioName.mp3"
+      val audioUri = s"s3://${props.StorageName}/$audioName"
       logger.info(s"Transcribing audio from: $audioUri")
-      val jobName      = s"transcribe-$audioName-$language"
+      val jobName      = s"transcribe-audio-$audioId-$language"
       val mediaFormat  = format
-      val outputKey    = s"audio-transcription/$language/$audioName"
+      val outputKey    = s"audio-transcription/$language/$audioId"
       val languageCode = language
-
       transcribeClient.startTranscriptionJob(
         jobName,
         audioUri,
@@ -132,15 +137,15 @@ trait TranscriptionService {
       }
     }
 
-    def getAudioTranscription(audioName: String, language: String): Try[Either[String, String]] = {
-      val jobName = s"transcribe-$audioName-$language"
+    def getAudioTranscription(audioName: String, audioId: Long, language: String): Try[Either[String, String]] = {
+      val jobName = s"transcribe-audio-$audioId-$language"
 
       transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
         val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
         val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
 
         if (transcriptionJobStatus == "COMPLETED") {
-          val transcribeUri = s"audio-transcription/$language/${audioName}"
+          val transcribeUri = s"audio-transcription/$language/${audioId}"
 
           s3TranscribeClient.getObject(transcribeUri).map { s3Object =>
             val content = scala.io.Source.fromInputStream(s3Object.stream).mkString

@@ -42,7 +42,8 @@ object audioapi extends Module {
       "AudioMetaInformationDTO",
       "UpdatedAudioMetaInformationDTO",
       "SeriesSummarySearchResultDTO",
-      "SeriesSearchParamsDTO"
+      "SeriesSearchParamsDTO",
+      "TranscriptionResultDTO"
     )
   )
 
