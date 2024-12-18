@@ -67,7 +67,7 @@ class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
     when(transcribeClient.getTranscriptionJob(any)).thenReturn(Success(mock[GetTranscriptionJobResponse]))
     when(s3TranscribeClient.getObject(any)).thenReturn(Success(fakeS3Object))
     when(transcriptionService.getAudioExtractionStatus(videoId, language)).thenReturn(Success(()))
-    when(transcribeClient.startTranscriptionJob(any, any, any, any, any, any, any, any))
+    when(transcribeClient.startTranscriptionJob(any, any, any, any, any, any, any, any, any))
       .thenReturn(Success(fakeTranscribeMock))
     val result = transcriptionService.transcribeVideo(videoId, language, maxSpeakers)
 
