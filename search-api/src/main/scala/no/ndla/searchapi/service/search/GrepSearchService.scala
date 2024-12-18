@@ -20,7 +20,6 @@ import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.language.Language
 import no.ndla.language.Language.{AllLanguages, findByLanguageOrBestEffort}
 import no.ndla.language.model.Iso639
-import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.model.LanguageValue
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.Props
@@ -50,9 +49,7 @@ trait GrepSearchService {
       case Some(ByCodeDesc)             => sortField("code", Desc, missingLast = false)
     }
 
-    protected def buildCodeQueries(query: NonEmptyString): Option[Query] = {
-      val codes        = extractCodesFromQuery(query.underlying)
-      val codePrefixes = extractCodePrefixesFromQuery(query.underlying)
+    protected def buildCodeQueries(codePrefixes: Set[String], codes: Set[String]): Option[Query] = {
 
       val prefixQueries = (codePrefixes ++ codes).toList.flatMap { prefix =>
         List(
@@ -87,18 +84,10 @@ trait GrepSearchService {
     protected def buildQuery(input: GrepSearchInputDTO, searchLanguage: String): Query = {
       val query = input.query match {
         case Some(q) =>
-          val langQueryFunc = (fieldName: String, boost: Double) =>
-            buildSimpleStringQueryForField(
-              q,
-              fieldName,
-              boost,
-              searchLanguage,
-              fallback = true,
-              searchDecompounded = true
-            )
-
-          val codeQueries = buildCodeQueries(q)
-          val titleQuery  = langQueryFunc("title", 6)
+          val codes        = extractCodesFromQuery(q.underlying)
+          val codePrefixes = extractCodePrefixesFromQuery(q.underlying)
+          val codeQueries  = buildCodeQueries(codePrefixes, codes)
+          val titleQuery   = languageQuery(q, "title", 6, searchLanguage)
 
           boolQuery()
             .withShould(titleQuery)
