@@ -17,6 +17,7 @@ object commonlib extends Module {
       scalaTsi
     ),
     awsS3,
+    awsTranscribe,
     melody,
     tapirHttp4sCirce
   )
