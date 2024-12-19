@@ -89,8 +89,8 @@ trait SearchConverterService {
               case "audio" =>
                 val dataType = embed.attr("data-type")
                 dataType match {
-                  case "podcast"  => traits += SearchTrait.Podcast
-                  case "standard" => traits += SearchTrait.Audio
+                  case "podcast" => traits += SearchTrait.Podcast
+                  case _         => traits += SearchTrait.Audio
                 }
               case _ => // Do nothing
             }
