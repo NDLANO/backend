@@ -63,6 +63,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       supportedLanguages = List("nb", "en", "nn"),
       authors = List("Yap"),
       contexts = searchableTaxonomyContexts,
+      contextids = searchableTaxonomyContexts.map(_.contextId),
       license = "by-sa",
       favorited = 0,
       learningResourceType = LearningResourceType.LearningPath

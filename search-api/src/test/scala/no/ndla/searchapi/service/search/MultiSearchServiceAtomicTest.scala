@@ -113,9 +113,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Sub1",
         None,
         Some("/subject:1"),
+        Some("/f/sub1/asdf2345"),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
+        List("asdf2345"),
         List(
           TaxonomyContext(
             publicId = "urn:subject:1",
@@ -129,10 +131,10 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             resourceTypes = List.empty,
             parentIds = List.empty,
             isPrimary = true,
-            contextId = "",
+            contextId = "asdf2345",
             isVisible = true,
             isActive = true,
-            url = "/subject:1"
+            url = "/f/sub1/asdf2345"
           )
         )
       )
@@ -142,9 +144,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top1",
         Some("urn:article:2"),
         Some("/subject:1/topic:1"),
+        Some("/e/top1/asdf2346"),
         hiddenMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2346"),
         List.empty
       )
       topic_1.contexts = generateContexts(
@@ -164,9 +168,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top2",
         Some("urn:article:3"),
         Some("/subject:1/topic:1/topic:2"),
+        Some("/e/top2/asdf2347"),
         visibleMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2347"),
         List.empty
       )
       topic_2.contexts = generateContexts(
@@ -186,9 +192,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top3",
         Some("urn:article:4"),
         Some("/subject:1/topic:3"),
+        Some("/e/top3/asdf2348"),
         visibleMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2348"),
         List.empty
       )
       topic_3.contexts = generateContexts(
@@ -208,9 +216,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Res1",
         Some("urn:article:1"),
         Some("/subject:1/topic:1/topic:2/resource:1"),
+        Some("/r/res1/asdf2349"),
         visibleMeta,
         List.empty,
         NodeType.RESOURCE,
+        List("asdf2349"),
         List.empty
       )
       resource_1.contexts = generateContexts(
@@ -230,9 +240,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Res2",
         Some("urn:article:1"),
         Some("/subject:1/topic:3/resource:2"),
+        Some("/r/res2/asdf2350"),
         visibleMeta,
         List.empty,
         NodeType.RESOURCE,
+        List("asdf2350"),
         List.empty
       )
       resource_2.contexts = generateContexts(
@@ -297,9 +309,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Sub1",
         None,
         Some("/subject:1"),
+        Some("/f/sub1/asdf2351"),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
+        List("asdf2351"),
         List(
           TaxonomyContext(
             publicId = "urn:subject:1",
@@ -313,10 +327,10 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             resourceTypes = List.empty,
             parentIds = List.empty,
             isPrimary = true,
-            contextId = "",
+            contextId = "asdf2351",
             isVisible = true,
             isActive = true,
-            url = "/subject:1"
+            url = "/f/sub1/asdf2351"
           )
         )
       )
@@ -326,9 +340,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top1",
         Some("urn:article:1"),
         Some("/subject:1/topic:1"),
+        Some("/t/top1/asdf2352"),
         hiddenMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2352"),
         List.empty
       )
       topic_1.contexts = generateContexts(
@@ -348,9 +364,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top1",
         Some("urn:article:1"),
         Some("/subject:1/topic:1/topic:2"),
+        Some("/e/top2/asdf2353"),
         visibleMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2353"),
         List.empty
       )
       topic_2.contexts = generateContexts(
@@ -370,9 +388,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top1",
         Some("urn:article:1"),
         Some("/subject:1/topic:3"),
+        Some("e/top3/asdf2354"),
         visibleMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2354"),
         List.empty
       )
       topic_3.contexts = generateContexts(
@@ -437,9 +457,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Sub1",
         None,
         Some("/subject:1"),
+        Some("/f/sub1/asdf2355"),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
+        List("asdf2355"),
         List(
           TaxonomyContext(
             publicId = "urn:subject:1",
@@ -453,10 +475,10 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             resourceTypes = List.empty,
             parentIds = List.empty,
             isPrimary = true,
-            contextId = "",
+            contextId = "asdf2355",
             isVisible = true,
             isActive = true,
-            url = "/subject:1"
+            url = "/f/sub1/asdf2355"
           )
         )
       )
@@ -465,9 +487,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Sub2",
         None,
         Some("/subject:2"),
+        Some("/f/sub2/asdf2356"),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
+        List("asdf2356"),
         List(
           TaxonomyContext(
             publicId = "urn:subject:2",
@@ -481,10 +505,10 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             resourceTypes = List.empty,
             parentIds = List.empty,
             isPrimary = true,
-            contextId = "",
+            contextId = "asdf2356",
             isVisible = true,
             isActive = true,
-            url = "/subject:2"
+            url = "/f/sub2/asdf2356"
           )
         )
       )
@@ -493,9 +517,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top1",
         Some(s"urn:article:${article1.id.get}"),
         Some(s"${subject_1.path.get}/topic:1"),
+        Some("/e/top1/asdf2357"),
         hiddenMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2357"),
         List.empty
       )
       topic_1.contexts = generateContexts(
@@ -514,9 +540,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top2",
         Some(s"urn:article:${article2.id.get}"),
         Some(s"${subject_1.path.get}/topic:2"),
+        Some("/e/top2/asdf2358"),
         hiddenMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2358"),
         List.empty
       )
       topic_2.contexts = generateContexts(
@@ -535,9 +563,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top3",
         Some(s"urn:article:${article3.id.get}"),
         Some(s"${subject_1.path.get}/topic:3"),
+        Some("/e/top3/asdf2359"),
         hiddenMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2359"),
         List.empty
       )
       topic_3.contexts = generateContexts(
@@ -556,9 +586,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top4",
         Some(s"urn:article:${article4.id.get}"),
         Some(s"${subject_2.path.get}/topic:4"),
+        Some("/e/top4/asdf2360"),
         hiddenMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2360"),
         List.empty
       )
       topic_4.contexts = generateContexts(
@@ -577,9 +609,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         "Top5",
         Some(s"urn:article:${article5.id.get}"),
         Some(s"${subject_2.path.get}/topic:5"),
+        Some("/e/top5/asdf2361"),
         hiddenMeta,
         List.empty,
         NodeType.TOPIC,
+        List("asdf2361"),
         List.empty
       )
       topic_5.contexts = generateContexts(

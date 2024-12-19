@@ -33,6 +33,7 @@ case class SearchableLearningPath(
     supportedLanguages: List[String],
     authors: List[String],
     contexts: List[SearchableTaxonomyContext],
+    contextids: List[String],
     favorited: Long,
     learningResourceType: LearningResourceType
 )

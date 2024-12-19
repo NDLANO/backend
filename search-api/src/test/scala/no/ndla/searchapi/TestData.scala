@@ -1084,9 +1084,11 @@ object TestData {
     "Matte",
     None,
     Some("/subject:1"),
+    Some("/f/matte/asdf1234"),
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List("asdf1234"),
     List(
       TaxonomyContext(
         publicId = "urn:subject:1",
@@ -1100,10 +1102,10 @@ object TestData {
         resourceTypes = List.empty,
         parentIds = List.empty,
         isPrimary = true,
-        contextId = "",
+        contextId = "asdf1234",
         isVisible = true,
         isActive = true,
-        url = "/subject:1"
+        url = "/f/matte/asdf1234"
       )
     )
   )
@@ -1112,9 +1114,11 @@ object TestData {
     "Historie",
     None,
     Some("/subject:2"),
+    Some("/f/historie/asdf1235"),
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List("asdf1235"),
     List(
       TaxonomyContext(
         publicId = "urn:subject:2",
@@ -1128,10 +1132,10 @@ object TestData {
         resourceTypes = List.empty,
         parentIds = List.empty,
         isPrimary = true,
-        contextId = "",
+        contextId = "asdf1235",
         isVisible = true,
         isActive = true,
-        url = "/subject:2"
+        url = "/f/historie/asdf1235"
       )
     )
   )
@@ -1140,9 +1144,11 @@ object TestData {
     "Religion",
     None,
     Some("/subject:3"),
+    Some("/f/religion/asdf1236"),
     invisibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List("asdf1236"),
     List(
       TaxonomyContext(
         publicId = "urn:subject:3",
@@ -1156,10 +1162,10 @@ object TestData {
         resourceTypes = List.empty,
         parentIds = List.empty,
         isPrimary = true,
-        contextId = "",
+        contextId = "asdf1236",
         isVisible = false,
         isActive = true,
-        url = "/subject:3"
+        url = "/f/religion/asdf1236"
       )
     )
   )
@@ -1168,9 +1174,11 @@ object TestData {
     article8.title.head.title,
     Some(s"urn:article:${article8.id.get}"),
     Some("/subject:1/topic:1"),
+    Some("/e/baldur-har-mareritt/asdf1237"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1237"),
     List.empty
   )
   topic_1.contexts =
@@ -1180,9 +1188,11 @@ object TestData {
     article9.title.head.title,
     Some(s"urn:article:${article9.id.get}"),
     Some("/subject:1/topic:1/topic:2"),
+    Some("/e/en-baldur-har-mareritt-om-ragnarok/asdf1238"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1238"),
     List.empty
   )
   topic_2.contexts =
@@ -1192,9 +1202,11 @@ object TestData {
     article10.title.head.title,
     Some(s"urn:article:${article10.id.get}"),
     Some("/subject:1/topic:3"),
+    Some("/e/this-article-is-in-english/asdf1239"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1239"),
     List.empty
   )
   topic_3.contexts =
@@ -1204,9 +1216,11 @@ object TestData {
     article11.title.head.title,
     Some(s"urn:article:${article11.id.get}"),
     Some("/subject:2/topic:4"),
+    Some("/e/katter/asdf1240"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1240"),
     List.empty
   )
   topic_4.contexts =
@@ -1216,9 +1230,11 @@ object TestData {
     draft15.title.head.title,
     Some(s"urn:article:${draft15.id.get}"),
     Some("/subject:3/topic:5"),
+    Some("/e/engler-og-demoner/asdf1241"),
     invisibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1241"),
     List.empty
   )
   topic_5.contexts =
@@ -1228,9 +1244,11 @@ object TestData {
     article1.title.head.title,
     Some(s"urn:article:${article1.id.get}"),
     Some("/subject:3/topic:5/resource:1"),
+    Some("/r/batmen-er-pa-vift-med-en-bil/asdf1242"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1242"),
     List.empty
   )
   resource_1.contexts = generateContexts(
@@ -1271,9 +1289,11 @@ object TestData {
     article2.title.head.title,
     Some(s"urn:article:${article2.id.get}"),
     Some("/subject:1/topic:1/resource:2"),
+    Some("/r/pingvinen-er-ute-og-gar/asdf1243"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1243"),
     List.empty
   )
   resource_2.contexts = generateContexts(
@@ -1292,9 +1312,11 @@ object TestData {
     article3.title.head.title,
     Some(s"urn:article:${article3.id.get}"),
     Some("/subject:1/topic:3/resource:3"),
+    Some("/r/donald-duck-kjorer-bil/asdf1244"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1244"),
     List.empty
   )
   resource_3.contexts = generateContexts(
@@ -1313,9 +1335,11 @@ object TestData {
     article4.title.head.title,
     Some(s"urn:article:${article4.id.get}"),
     Some("/subject:1/topic:1/topic:2/resource:4"),
+    Some("/r/superman-er-ute-og-flyr/asdf1245"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1245"),
     List.empty
   )
   resource_4.contexts = generateContexts(
@@ -1334,9 +1358,11 @@ object TestData {
     article5.title.head.title,
     Some(s"urn:article:${article5.id.get}"),
     Some("/subject:2/topic:4/resource:5"),
+    Some("/r/hulken-lofter-biler/asdf1246"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1246"),
     List.empty
   )
   resource_5.contexts = generateContexts(
@@ -1366,9 +1392,11 @@ object TestData {
     article6.title.head.title,
     Some(s"urn:article:${article6.id.get}"),
     Some("/subject:2/topic:4/resource:6"),
+    Some("/r/loke-og-tor-forsoeker-aa-fange-midgaardsormen/asdf1247"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1247"),
     List.empty
   )
   resource_6.contexts = generateContexts(
@@ -1387,9 +1415,11 @@ object TestData {
     article7.title.head.title,
     Some(s"urn:article:${article7.id.get}"),
     Some("/subject:2/topic:4/resource:7"),
+    Some("/r/yggdrasil-livets-tre/asdf1248"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1248"),
     List.empty
   )
   resource_7.contexts = generateContexts(
@@ -1408,9 +1438,11 @@ object TestData {
     learningPath1.title.head.title,
     Some(s"urn:learningpath:${learningPath1.id.get}"),
     Some("/subject:1/topic:1/resource:8"),
+    Some("/r/pingvinen-er-en-kjeltring/asdf1249"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1249"),
     List.empty
   )
   resource_8.contexts = generateContexts(
@@ -1429,9 +1461,11 @@ object TestData {
     learningPath2.title.head.title,
     Some(s"urn:learningpath:${learningPath2.id.get}"),
     Some("/subject:1/topic:1/resource:9"),
+    Some("/r/batman-er-en-toeff-og-morsom-helt/asdf1250"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1250"),
     List.empty
   )
   resource_9.contexts = generateContexts(
@@ -1450,9 +1484,11 @@ object TestData {
     learningPath3.title.head.title,
     Some(s"urn:learningpath:${learningPath3.id.get}"),
     Some("/subject:1/topic:3/resource:10"),
+    Some("/r/donald-er-en-toeff-rar-og-morsom-and/asdf1251"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1251"),
     List.empty
   )
   resource_10.contexts = generateContexts(
@@ -1471,9 +1507,11 @@ object TestData {
     learningPath4.title.head.title,
     Some(s"urn:learningpath:${learningPath4.id.get}"),
     Some("/subject:1/topic:1/topic:2/resource:11"),
+    Some("/r/unrelated/asdf1252"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1252"),
     List.empty
   )
   resource_11.contexts = generateContexts(
@@ -1492,9 +1530,11 @@ object TestData {
     learningPath5.title.head.title,
     Some(s"urn:learningpath:${learningPath5.id.get}"),
     Some("/subject:2/topic:4/resource:12"),
+    Some("/r/englando/asdf1253"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1253"),
     List.empty
   )
   resource_12.contexts = generateContexts(
@@ -1513,9 +1553,11 @@ object TestData {
     article12.title.head.title,
     Some(s"urn:article:${article12.id.get}"),
     Some("/subject:2/topic:4/resource:13"),
+    Some("/r/ekstrastoff/asdf1254"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1254", "asdf1255"), // asdf1255 is a deleted context
     List.empty
   )
   resource_13.contexts = generateContexts(
@@ -1753,6 +1795,7 @@ object TestData {
     supportedLanguages = List("en", "nb", "nn"),
     notes = List("Note1", "note2"),
     contexts = searchableTaxonomyContexts,
+    contextids = searchableTaxonomyContexts.map(_.contextId),
     users = List("ndalId54321", "ndalId12345"),
     previousVersionsNotes = List("OldNote"),
     grepContexts = List(),

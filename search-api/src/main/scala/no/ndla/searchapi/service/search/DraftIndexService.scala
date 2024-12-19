@@ -71,6 +71,7 @@ trait DraftIndexService {
           )
         ),
         getTaxonomyContextMapping,
+        keywordField("contextids"),
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),
           keywordField("id"),

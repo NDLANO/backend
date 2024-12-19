@@ -29,9 +29,11 @@ case class Node(
     name: String,
     contentUri: Option[String],
     path: Option[String],
+    url: Option[String],
     metadata: Option[Metadata],
     translations: List[TaxonomyTranslation],
     nodeType: NodeType,
+    contextids: List[String],
     var contexts: List[TaxonomyContext]
 )
 
@@ -43,11 +45,13 @@ object Node {
       name         <- c.downField("name").as[Option[String]].map(_.getOrElse(""))
       contentUri   <- c.downField("contentUri").as[Option[String]]
       path         <- c.downField("path").as[Option[String]]
+      url          <- c.downField("url").as[Option[String]]
       metadata     <- c.downField("metadata").as[Option[Metadata]]
       translations <- c.downField("translations").as[List[TaxonomyTranslation]]
       nodeType     <- c.downField("nodeType").as[NodeType]
+      contextids   <- c.downField("contextids").as[List[String]]
       contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
-    } yield Node(id, name, contentUri, path, metadata, translations, nodeType, contexts)
+    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, contexts)
 
   })
 }

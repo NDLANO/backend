@@ -77,6 +77,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
       contexts = searchableTaxonomyContexts,
+      contextids = searchableTaxonomyContexts.map(_.contextId),
       grepContexts =
         List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
       traits = List.empty,
@@ -154,6 +155,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
       contexts = List(singleSearchableTaxonomyContext),
+      contextids = List(singleSearchableTaxonomyContext.contextId),
       grepContexts =
         List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
       traits = List.empty,
