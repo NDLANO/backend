@@ -26,7 +26,7 @@ object OembedResponse {
 }
 
 trait OembedProxyClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
   val oembedProxyClient: OembedProxyClient
 
   class OembedProxyClient extends StrictLogging {
@@ -48,7 +48,7 @@ trait OembedProxyClient {
     }
 
     private def getOembed(url: String): Try[OembedResponse] = {
-      get[OembedResponse](s"$OembedProxyBaseUrl/oembed", ("url" -> url))
+      get[OembedResponse](s"$OembedProxyBaseUrl/oembed", "url" -> url)
     }
 
     private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {

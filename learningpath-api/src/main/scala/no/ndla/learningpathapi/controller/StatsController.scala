@@ -17,7 +17,7 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait StatsController {
-  this: ReadService with Props with ErrorHandling with TapirController =>
+  this: ReadService & Props & ErrorHandling & TapirController =>
   val statsController: StatsController
 
   class StatsController extends TapirController {

@@ -28,7 +28,7 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
   val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
@@ -251,7 +251,7 @@ trait TaxonomyApiClient {
 
     private def get[A: Decoder](url: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       val request = quickRequest
-        .get(uri"$url".withParams(params: _*))
+        .get(uri"$url".withParams(params*))
         .readTimeout(taxonomyTimeout)
         .header(TAXONOMY_VERSION_HEADER, defaultVersion)
       ndlaClient.fetchWithForwardedAuth[A](request, user)
@@ -264,7 +264,7 @@ trait TaxonomyApiClient {
         params: (String, String)*
     ): Try[A] = {
       val request = quickRequest
-        .put(uri"$url".withParams(params: _*))
+        .put(uri"$url".withParams(params*))
         .readTimeout(taxonomyTimeout)
         .body(CirceUtil.toJsonString(data))
         .header("content-type", "application/json", replaceExisting = true)
@@ -279,7 +279,7 @@ trait TaxonomyApiClient {
     ): Try[B] = {
       logger.info(s"Doing call to $url")
       val request = quickRequest
-        .put(uri"$url".withParams(params: _*))
+        .put(uri"$url".withParams(params*))
         .body(CirceUtil.toJsonString(data))
         .readTimeout(taxonomyTimeout)
         .header("content-type", "application/json", replaceExisting = true)
@@ -311,7 +311,7 @@ trait TaxonomyApiClient {
     private[integration] def delete(url: String, user: Option[TokenUser], params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
         quickRequest
-          .delete(uri"$url".withParams(params: _*))
+          .delete(uri"$url".withParams(params*))
           .readTimeout(taxonomyTimeout),
         user
       ) match {

@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.learningpathapi.Props
 import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
-import sttp.tapir._
+import sttp.tapir.*
 
 trait SwaggerDocControllerConfig {
   this: Props & SwaggerControllerConfig =>

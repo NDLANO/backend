@@ -37,13 +37,13 @@ import scala.util.{Failure, Success, Try}
 
 trait LearningpathControllerV2 {
 
-  this: ReadService &
-    UpdateService with SearchService with LanguageValidator with ConverterService with TaxonomyApiClient with SearchConverterServiceComponent with Props with ErrorHandling with TapirController =>
+  this: ReadService & UpdateService & SearchService & LanguageValidator & ConverterService & TaxonomyApiClient &
+    SearchConverterServiceComponent & Props & ErrorHandling & TapirController =>
   val learningpathControllerV2: LearningpathControllerV2
 
   class LearningpathControllerV2 extends TapirController {
 
-    import ErrorHelpers._
+    import ErrorHelpers.*
     import props.{
       DefaultLanguage,
       ElasticSearchIndexMaxResultWindow,

@@ -18,9 +18,10 @@ class DurationValidator {
     durationOpt match {
       case None => Some(ValidationMessage("duration", DURATION_REQUIRED))
       case Some(duration) =>
-        duration < 1 match {
-          case true  => Some(ValidationMessage("duration", DURATION_INVALID))
-          case false => None
+        if (duration < 1) {
+          Some(ValidationMessage("duration", DURATION_INVALID))
+        } else {
+          None
         }
     }
   }
