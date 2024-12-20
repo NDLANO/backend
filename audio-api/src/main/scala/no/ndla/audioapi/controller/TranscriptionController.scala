@@ -14,7 +14,7 @@ import no.ndla.audioapi.service.{ReadService, TranscriptionService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, endpoint, path}
 import sttp.tapir.*
@@ -32,7 +32,7 @@ trait TranscriptionController {
     private val videoId   = path[String]("videoId").description("The video id to transcribe")
     private val audioName = path[String]("audioName").description("The audio name to transcribe")
     private val audioId   = path[Long]("audioId").description("The audio id to transcribe")
-    private val language  = path[String]("language").description("The language to transcribe the video to")
+    private val language  = path[String]("language").description("The language to run the transcription in")
     private val maxSpeaker =
       query[Int]("maxSpeaker").description("The maximum number of speakers in the video").default(2)
     private val format = query[String]("format").description("The format of the audio file").default("mp3")
@@ -44,7 +44,7 @@ trait TranscriptionController {
       .in(language)
       .in("extract-audio")
       .errorOut(errorOutputsFor(400, 500))
-      .requirePermission(DRAFT_API_WRITE)
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ =>
         { case (videoId, language) =>
           transcriptionService.extractAudioFromVideo(videoId, language) match {
@@ -61,7 +61,7 @@ trait TranscriptionController {
       .in(language)
       .in("extract-audio")
       .errorOut(errorOutputsFor(400, 500))
-      .requirePermission(DRAFT_API_WRITE)
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ =>
         { case (videoId, language) =>
           transcriptionService.getAudioExtractionStatus(videoId, language) match {
@@ -74,11 +74,12 @@ trait TranscriptionController {
     def postTranscription: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Transcribe video")
       .description("Transcribes a video and uploads the transcription to S3.")
+      .in("video")
       .in(videoId)
       .in(language)
       .in(maxSpeaker)
       .errorOut(errorOutputsFor(400, 500))
-      .requirePermission(DRAFT_API_WRITE)
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ =>
         { case (videoId, language, maxSpeakerOpt) =>
           transcriptionService.transcribeVideo(videoId, language, maxSpeakerOpt) match {
@@ -93,11 +94,12 @@ trait TranscriptionController {
     def getTranscription: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get the transcription status of a video")
       .description("Get the transcription of a video.")
+      .in("video")
       .in(videoId)
       .in(language)
       .errorOut(errorOutputsFor(400, 404, 405, 500))
       .out(jsonBody[TranscriptionResultDTO])
-      .requirePermission(DRAFT_API_WRITE)
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ =>
         { case (videoId, language) =>
           transcriptionService.getVideoTranscription(videoId, language) match {
@@ -113,7 +115,7 @@ trait TranscriptionController {
 
     def postAudioTranscription: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Transcribe audio")
-      .description("Transcribes a video and uploads the transcription to S3.")
+      .description("Transcribes an audiofile and uploads the transcription to S3.")
       .in("audio")
       .in(audioName)
       .in(audioId)
@@ -121,7 +123,7 @@ trait TranscriptionController {
       .in(maxSpeaker)
       .in(format)
       .errorOut(errorOutputsFor(400, 500))
-      .requirePermission(DRAFT_API_WRITE)
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ =>
         { case (audioName, audioId, language, maxSpeakerOpt, format) =>
           transcriptionService.transcribeAudio(audioName, audioId, language, maxSpeakerOpt, format) match {
@@ -134,14 +136,14 @@ trait TranscriptionController {
       }
 
     def getAudioTranscription: ServerEndpoint[Any, Eff] = endpoint.get
-      .summary("Get the transcription status of a video")
-      .description("Get the transcription of a video.")
+      .summary("Get the transcription status of an audiofile")
+      .description("Get the transcription of an audiofile .")
       .in("audio")
       .in(audioId)
       .in(language)
       .errorOut(errorOutputsFor(400, 404, 405, 500))
       .out(jsonBody[TranscriptionResultDTO])
-      .requirePermission(DRAFT_API_WRITE)
+      .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ =>
         { case (audioId, language) =>
           transcriptionService.getAudioTranscription(audioId, language) match {

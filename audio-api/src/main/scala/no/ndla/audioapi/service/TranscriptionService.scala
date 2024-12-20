@@ -13,6 +13,7 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.JobAlreadyFoundException
 import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
 import no.ndla.common.brightcove.NdlaBrightcoveClient
+import no.ndla.common.model.domain.UploadedFile
 import sttp.client3.{HttpURLConnectionBackend, UriContext, asFile, basicRequest}
 import ws.schild.jave.{Encoder, MultimediaObject}
 import ws.schild.jave.encode.{AudioAttributes, EncodingAttributes}
@@ -194,7 +195,14 @@ trait TranscriptionService {
         case Success(_) =>
           val s3Key = s"audio-extraction/$language/$videoId.mp3"
           logger.info(s"Uploading audio file to S3: $s3Key")
-          s3TranscribeClient.putObject(s3Key, audioFile, "audio/mpeg") match {
+          val uploadedFile = UploadedFile( // convert to uploadedFile object
+            partName = "",
+            fileName = Some(s"audio_$videoId.mp3"),
+            fileSize = audioFile.length(),
+            contentType = Some("audio/mpeg"),
+            file = audioFile
+          )
+          s3TranscribeClient.putObject(s3Key, uploadedFile) match {
             case Success(_) =>
               logger.info(s"Audio file uploaded to S3: $s3Key")
               for {
