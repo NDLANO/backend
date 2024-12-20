@@ -73,6 +73,9 @@ trait SearchService {
       }
     }
 
+    def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): SimpleStringQuery =
+      buildSimpleStringQueryForField(query, field, boost, language, fallback = true, searchDecompounded = true)
+
     def buildSimpleStringQueryForField(
         query: NonEmptyString,
         field: String,

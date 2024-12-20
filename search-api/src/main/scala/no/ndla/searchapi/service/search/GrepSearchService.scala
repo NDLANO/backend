@@ -32,7 +32,7 @@ import no.ndla.searchapi.model.search.{SearchType, SearchableGrepElement}
 import scala.util.{Success, Try}
 
 trait GrepSearchService {
-  this: Props & SearchService & GrepIndexService & BaseIndexService & Elastic4sClient =>
+  this: Props & SearchService & GrepIndexService & BaseIndexService & Elastic4sClient & SearchConverterService =>
   val grepSearchService: GrepSearchService
 
   class GrepSearchService extends SearchService {
@@ -49,34 +49,52 @@ trait GrepSearchService {
       case Some(ByCodeDesc)             => sortField("code", Desc, missingLast = false)
     }
 
+    protected def buildCodeQueries(codePrefixes: Set[String], codes: Set[String]): Option[Query] = {
+
+      val prefixQueries = (codePrefixes ++ codes).toList.flatMap { prefix =>
+        List(
+          prefixQuery("code", prefix).boost(50),
+          prefixQuery("laereplanCode", prefix).boost(50)
+        )
+      }
+
+      val codeQueries = codes.flatMap { query =>
+        List(
+          matchQuery("code", query).boost(50),
+          termQuery("code", query).boost(50),
+          matchQuery("laereplanCode", query).boost(50),
+          termQuery("laereplanCode", query).boost(50)
+        )
+      }
+
+      val queries = prefixQueries ++ codeQueries
+      Option.when(queries.nonEmpty) { boolQuery().should(queries) }
+    }
+
+    def extractCodesFromQuery(query: String): Set[String] = {
+      val regex = """\b([A-Za-z]{2,3}\d{1,4}(?:-\d{1,4})?)\b""".r
+      regex.findAllIn(query).toSet
+    }
+
+    def extractCodePrefixesFromQuery(query: String): Set[String] = {
+      val regex = """\b([A-Za-z]{2,3}(\d{1,4})?(?:-\d{1,4})?)\b""".r
+      regex.findAllIn(query).toSet
+    }
+
     protected def buildQuery(input: GrepSearchInputDTO, searchLanguage: String): Query = {
-      val query = input.query
-        .map { q =>
-          val langQueryFunc = (fieldName: String, boost: Double) =>
-            buildSimpleStringQueryForField(
-              q,
-              fieldName,
-              boost,
-              searchLanguage,
-              fallback = true,
-              searchDecompounded = true
-            )
-
-          val codeQueries = boolQuery().should(
-            prefixQuery("code", q.underlying).boost(50),
-            matchQuery("code", q.underlying).boost(10),
-            termQuery("code", q.underlying).boost(100)
-          )
-          val titleQuery = langQueryFunc("title", 6)
-
-          val onlyCodeQuery = boolQuery()
-            .must(codeQueries)
-            .not(titleQuery)
+      val query = input.query match {
+        case Some(q) =>
+          val codes        = extractCodesFromQuery(q.underlying)
+          val codePrefixes = extractCodePrefixesFromQuery(q.underlying)
+          val codeQueries  = buildCodeQueries(codePrefixes, codes)
+          val titleQuery   = languageQuery(q, "title", 6, searchLanguage)
 
           boolQuery()
-            .must(boolQuery().should(titleQuery, onlyCodeQuery))
-        }
-        .getOrElse(boolQuery())
+            .withShould(titleQuery)
+            .withShould(codeQueries)
+            .minimumShouldMatch(1)
+        case None => boolQuery()
+      }
       query.filter(getFilters(input))
     }
 
@@ -109,9 +127,8 @@ trait GrepSearchService {
       val searchPage     = input.page.getOrElse(1)
       val searchPageSize = input.pageSize.getOrElse(10)
       val pagination     = getStartAtAndNumResults(page = searchPage, pageSize = searchPageSize).?
-
-      val sort          = grepSortDefinition(input.sort, searchLanguage)
-      val filteredQuery = buildQuery(input, searchLanguage)
+      val sort           = grepSortDefinition(input.sort, searchLanguage)
+      val filteredQuery  = buildQuery(input, searchLanguage)
 
       val searchToExecute = search(searchIndex)
         .query(filteredQuery)
@@ -133,7 +150,7 @@ trait GrepSearchService {
       }
     }
 
-    def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
+    private def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
       val jsonString = hit.sourceAsString
       val searchable = CirceUtil.tryParseAs[SearchableGrepElement](jsonString).?
       val titleLv = findByLanguageOrBestEffort(searchable.title.languageValues, language)
@@ -143,12 +160,13 @@ trait GrepSearchService {
       Success(
         GrepResultDTO(
           code = searchable.code,
-          title = title
+          title = title,
+          laereplanCode = searchable.laereplanCode
         )
       )
     }
 
-    def getGrepHits(response: RequestSuccess[SearchResponse], language: String): Try[List[GrepResultDTO]] = {
+    private def getGrepHits(response: RequestSuccess[SearchResponse], language: String): Try[List[GrepResultDTO]] = {
       response.result.hits.hits.toList.traverse { hit => hitToResult(hit, language) }
     }
   }

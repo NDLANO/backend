@@ -13,7 +13,13 @@ import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
+import no.ndla.searchapi.model.grep.{
+  BelongsToObj,
+  GrepKjerneelement,
+  GrepKompetansemaal,
+  GrepTitle,
+  GrepTverrfagligTema
+}
 import no.ndla.searchapi.model.search.{SearchTrait, SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -490,11 +496,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepBundle = TestData.emptyGrepBundle.copy(
       kjerneelementer = List(
-        GrepElement("KE12", Seq(GrepTitle("default", "tittel12"))),
-        GrepElement("KE34", Seq(GrepTitle("default", "tittel34")))
+        GrepKjerneelement("KE12", Seq(GrepTitle("default", "tittel12")), BelongsToObj("LP123")),
+        GrepKjerneelement("KE34", Seq(GrepTitle("default", "tittel34")), BelongsToObj("LP123"))
       ),
-      kompetansemaal = List(GrepElement("KM123", Seq(GrepTitle("default", "tittel123")))),
-      tverrfagligeTemaer = List(GrepElement("TT2", Seq(GrepTitle("default", "tittel2"))))
+      kompetansemaal = List(GrepKompetansemaal("KM123", Seq(GrepTitle("default", "tittel123")), BelongsToObj("LP123"))),
+      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
     )
     val grepContexts = List(
       SearchableGrepContext("KE12", Some("tittel12")),
@@ -510,11 +516,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq.empty)
     val grepBundle = TestData.emptyGrepBundle.copy(
       kjerneelementer = List(
-        GrepElement("KE12", Seq(GrepTitle("default", "tittel12"))),
-        GrepElement("KE34", Seq(GrepTitle("default", "tittel34")))
+        GrepKjerneelement("KE12", Seq(GrepTitle("default", "tittel12")), BelongsToObj("LP123")),
+        GrepKjerneelement("KE34", Seq(GrepTitle("default", "tittel34")), BelongsToObj("LP123"))
       ),
-      kompetansemaal = List(GrepElement("KM123", Seq(GrepTitle("default", "tittel123")))),
-      tverrfagligeTemaer = List(GrepElement("TT2", Seq(GrepTitle("default", "tittel2"))))
+      kompetansemaal = List(GrepKompetansemaal("KM123", Seq(GrepTitle("default", "tittel123")), BelongsToObj("LP123"))),
+      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
     )
     val grepContexts = List.empty
 

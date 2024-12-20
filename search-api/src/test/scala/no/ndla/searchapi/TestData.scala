@@ -50,7 +50,15 @@ import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
+import no.ndla.searchapi.model.grep.{
+  BelongsToObj,
+  GrepBundle,
+  GrepKjerneelement,
+  GrepKompetansemaal,
+  GrepLaererplan,
+  GrepTitle,
+  GrepTverrfagligTema
+}
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy.*
@@ -1573,21 +1581,24 @@ object TestData {
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
     kompetansemaalsett = List.empty,
-    tverrfagligeTemaer = List.empty
+    tverrfagligeTemaer = List.empty,
+    laereplaner = List.empty
   )
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
-      GrepElement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing"))),
-      GrepElement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")))
+      GrepKjerneelement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing")), BelongsToObj("LP1")),
+      GrepKjerneelement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")), BelongsToObj("LP1"))
     ),
     kompetansemaal = List(
-      GrepElement(
+      GrepKompetansemaal(
         "KM123",
-        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
+        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")),
+        BelongsToObj("LP1")
       )
     ),
-    tverrfagligeTemaer = List(GrepElement("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap"))))
+    tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
+    laereplaner = List(GrepLaererplan("LP1", Seq(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))))
   )
 
   val searchSettings: SearchSettings = SearchSettings(

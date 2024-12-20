@@ -16,7 +16,8 @@ import sttp.tapir.Schema.annotations.description
 @description("Information about a single grep search result entry")
 case class GrepResultDTO(
     @description("The grep code") code: String,
-    @description("The greps title") title: TitleDTO
+    @description("The greps title") title: TitleDTO,
+    @description("The grep laereplan") laereplanCode: Option[String]
 )
 
 object GrepResultDTO {
