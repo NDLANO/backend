@@ -45,7 +45,7 @@ case class LearningPath(
     ) ++ stepLanguages).distinct
   }
 
-  def isPrivate: Boolean   = status == LearningPathStatus.PRIVATE
+  def isPrivate: Boolean   = Seq(LearningPathStatus.PRIVATE, LearningPathStatus.READY_FOR_SHARING).contains(status)
   def isPublished: Boolean = status == LearningPathStatus.PUBLISHED
   def isDeleted: Boolean   = status == LearningPathStatus.DELETED
 
