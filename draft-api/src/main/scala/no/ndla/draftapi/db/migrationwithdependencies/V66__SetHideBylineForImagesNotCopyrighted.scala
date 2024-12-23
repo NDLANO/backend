@@ -12,13 +12,18 @@ import no.ndla.draftapi.db.HtmlMigration
 import no.ndla.draftapi.integration.ImageApiClient
 import no.ndla.network.NdlaClient
 import org.jsoup.nodes.Element
+import scalikejdbc.{SQLSyntax, scalikejdbcSQLInterpolationImplicitDef}
 
 trait V66__SetHideBylineForImagesNotCopyrighted {
   this: ImageApiClient & NdlaClient & Props =>
 
   class V66__SetHideBylineForImagesNotCopyrighted extends HtmlMigration {
-    override val tableName: String  = "articledata"
-    override val columnName: String = "document"
+    override val tableName: String            = "articledata a"
+    override val columnName: String           = "document"
+    private lazy val columnNameSQL: SQLSyntax = SQLSyntax.createUnsafely(columnName)
+
+    override lazy val whereClause: SQLSyntax =
+      sqls"$columnNameSQL is not null and $columnNameSQL -> 'status' ->> 'current' != 'ARCHIVED' and $columnNameSQL -> 'status' ->> 'current' != 'UNPUBLISHED' and revision = (select max(revision) from articledata a2 where a2.article_id = a.article_id)"
 
     /** Method to override that manipulates the content string */
     override def convertHtml(doc: Element, language: String): Element = {
