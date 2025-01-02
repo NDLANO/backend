@@ -60,7 +60,7 @@ trait MultiSearchService {
               simpleStringQuery(q.underlying).field("authors", 1),
               simpleStringQuery(q.underlying).field("grepContexts.title", 1),
               nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
-              boolQuery().should(termQuery("contextids", q.underlying)),
+              termQuery("contextids", q.underlying),
               idsQuery(q.underlying)
             ) ++
               buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
