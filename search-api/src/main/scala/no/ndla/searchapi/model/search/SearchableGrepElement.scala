@@ -15,7 +15,8 @@ import no.ndla.search.model.SearchableLanguageValues
 case class SearchableGrepElement(
     code: String,
     title: SearchableLanguageValues,
-    defaultTitle: Option[String]
+    defaultTitle: Option[String],
+    laereplanCode: Option[String]
 )
 
 object SearchableGrepElement {
