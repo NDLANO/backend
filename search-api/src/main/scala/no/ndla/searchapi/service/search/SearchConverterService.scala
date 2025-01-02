@@ -272,21 +272,14 @@ trait SearchConverterService {
         }
       })
 
-    def asSearchableGrep(grepElement: GrepElement): Try[SearchableGrepElement] = {
-      val laererplan = grepElement match {
-        case lp: BelongsToLaerePlan => Some(lp.tilhoerer_laereplan.kode)
-        case _                      => None
-      }
-      val defaultTitle = grepElement.tittel.find(_.spraak == "default")
-      val titles       = convertGrepTitleToLanguageValue(grepElement)
-      val title        = SearchableLanguageValues.fromFields(titles)
-
+      val title = SearchableLanguageValues.fromFields(titles)
       Success(
         SearchableGrepElement(
           code = grepElement.kode,
           title = title,
           defaultTitle = defaultTitle.map(_.verdi),
-          laereplanCode = laererplan
+          laereplanCode = laererplan,
+          domainObject = grepElement
         )
       )
     }

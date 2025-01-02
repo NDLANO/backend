@@ -7,12 +7,32 @@
 
 package no.ndla.searchapi.model.grep
 
+import cats.implicits.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax.EncoderOps
 
 sealed trait GrepElement {
   val kode: String
   def getTitle: Seq[GrepTitle]
+}
+object GrepElement {
+  implicit val decoder: Decoder[GrepElement] =
+    List[Decoder[GrepElement]](
+      Decoder[GrepKjerneelement].widen,
+      Decoder[GrepKompetansemaal].widen,
+      Decoder[GrepKompetansemaalSett].widen,
+      Decoder[GrepLaererplan].widen,
+      Decoder[GrepTverrfagligTema].widen
+    ).reduceLeft(_ or _)
+
+  implicit val encoder: Encoder[GrepElement] = Encoder.instance {
+    case x: GrepKjerneelement      => x.asJson
+    case x: GrepKompetansemaal     => x.asJson
+    case x: GrepKompetansemaalSett => x.asJson
+    case x: GrepLaererplan         => x.asJson
+    case x: GrepTverrfagligTema    => x.asJson
+  }
 }
 
 sealed trait BelongsToLaerePlan {
