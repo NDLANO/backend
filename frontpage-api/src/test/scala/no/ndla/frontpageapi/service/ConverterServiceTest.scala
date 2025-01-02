@@ -62,7 +62,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates subject links correctly") {
-    val updateWith = UpdatedSubjectFrontPageData(
+    val updateWith = UpdatedSubjectFrontPageDataDTO(
       None,
       None,
       None,
@@ -86,12 +86,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates meta description correctly") {
-    val updateWith = UpdatedSubjectFrontPageData(
+    val updateWith = UpdatedSubjectFrontPageDataDTO(
       None,
       None,
       None,
       None,
-      Some(List(NewOrUpdatedMetaDescription("oppdatert meta", "nb"))),
+      Some(List(NewOrUpdatedMetaDescriptionDTO("oppdatert meta", "nb"))),
       None,
       None,
       None,
@@ -104,17 +104,17 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates aboutSubject correctly") {
-    val updateWith = UpdatedSubjectFrontPageData(
+    val updateWith = UpdatedSubjectFrontPageDataDTO(
       None,
       None,
       None,
       Some(
         List(
-          NewOrUpdatedAboutSubject(
+          NewOrUpdatedAboutSubjectDTO(
             "oppdatert tittel",
             "oppdatert beskrivelse",
             "nb",
-            NewOrUpdatedVisualElement("image", "1", None)
+            NewOrUpdatedVisualElementDTO("image", "1", None)
           )
         )
       ),
@@ -138,23 +138,23 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage adds new language correctly") {
-    val updateWith = UpdatedSubjectFrontPageData(
+    val updateWith = UpdatedSubjectFrontPageDataDTO(
       None,
       None,
       None,
       Some(
         List(
-          NewOrUpdatedAboutSubject(
+          NewOrUpdatedAboutSubjectDTO(
             "About Social studies",
             "This is social studies",
             "en",
-            NewOrUpdatedVisualElement("image", "123", None)
+            NewOrUpdatedVisualElementDTO("image", "123", None)
           )
         )
       ),
       Some(
         List(
-          NewOrUpdatedMetaDescription("meta description", "en")
+          NewOrUpdatedMetaDescriptionDTO("meta description", "en")
         )
       ),
       None,

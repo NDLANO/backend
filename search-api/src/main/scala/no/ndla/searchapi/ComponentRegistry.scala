@@ -15,6 +15,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
 import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.ErrorHandling
@@ -47,13 +48,16 @@ class ComponentRegistry(properties: SearchApiProperties)
     with MyNDLAApiClient
     with SearchService
     with SearchController
+    with GetSearchQueryParams
     with FeideApiClient
     with RedisClient
     with InternController
+    with GrepIndexService
     with SearchApiClient
     with GrepApiClient
     with Props
-    with SwaggerDocControllerConfig {
+    with SwaggerDocControllerConfig
+    with GrepSearchService {
   override val props: SearchApiProperties = properties
   import props._
 
@@ -80,6 +84,8 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val learningPathIndexService = new LearningPathIndexService
   lazy val draftIndexService        = new DraftIndexService
   lazy val multiDraftSearchService  = new MultiDraftSearchService
+  lazy val grepIndexService         = new GrepIndexService
+  lazy val grepSearchService        = new GrepSearchService
 
   lazy val searchController                        = new SearchController
   lazy val healthController: TapirHealthController = new TapirHealthController

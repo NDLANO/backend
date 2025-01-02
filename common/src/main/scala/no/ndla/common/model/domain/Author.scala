@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.api
 
 case class Author(`type`: String, name: String) {
-  def toApi: api.Author = api.Author(
+  def toApi: api.AuthorDTO = api.AuthorDTO(
     `type` = this.`type`,
     name = this.name
   )

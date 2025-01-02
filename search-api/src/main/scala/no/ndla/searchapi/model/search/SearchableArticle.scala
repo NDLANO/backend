@@ -34,7 +34,7 @@ case class SearchableArticle(
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     grepContexts: List[SearchableGrepContext],
-    traits: List[String],
+    traits: List[SearchTrait],
     embedAttributes: SearchableLanguageList,
     embedResourcesAndIds: List[EmbedValues],
     availability: String,

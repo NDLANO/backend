@@ -10,25 +10,25 @@ package no.ndla.audioapi.model.api
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about audio summary search-results")
-case class AudioSummarySearchResult(
+case class AudioSummarySearchResultDTO(
     @description("The total number of articles matching this query") totalCount: Long,
     @description("For which page results are shown from") page: Option[Int],
     @description("The number of results per page") pageSize: Int,
     @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[AudioSummary]
+    @description("The search results") results: Seq[AudioSummaryDTO]
 )
 
 @description("Information about series summary search-results")
-case class SeriesSummarySearchResult(
+case class SeriesSummarySearchResultDTO(
     @description("The total number of articles matching this query") totalCount: Long,
     @description("For which page results are shown from") page: Option[Int],
     @description("The number of results per page") pageSize: Int,
     @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[SeriesSummary]
+    @description("The search results") results: Seq[SeriesSummaryDTO]
 )
 
 @description("Information about tags-search-results")
-case class TagsSearchResult(
+case class TagsSearchResultDTO(
     @description("The total number of tags matching this query") totalCount: Long,
     @description("For which page results are shown from") page: Int,
     @description("The number of results per page") pageSize: Int,

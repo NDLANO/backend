@@ -31,6 +31,7 @@ case class LearningStep(
   def supportedLanguages: Seq[String] = {
     getSupportedLanguages(
       title,
+      introduction,
       description,
       embedUrl
     )

@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{ContentId, NotFoundException, UpdatedArticle}
+import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.model.Iso639
@@ -84,6 +84,7 @@ trait ContentValidator {
         if (shouldValidateEntireArticle)
           article.content.flatMap(c => validateArticleContent(c)) ++
             article.introduction.flatMap(i => validateIntroduction(i)) ++
+            validateArticleDisclaimer(article.disclaimer.getOrElse(Seq.empty)) ++
             article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
             validateTitles(article.title) ++
             article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
@@ -130,23 +131,23 @@ trait ContentValidator {
       }
     }
 
-    def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentId] = {
+    def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentIdDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(draft) =>
           converterService
             .toArticleApiArticle(draft)
             .flatMap(article => articleApiClient.validateArticle(article, importValidate, Some(user)))
-            .map(_ => ContentId(id))
+            .map(_ => ContentIdDTO(id))
       }
     }
 
     def validateArticleApiArticle(
         id: Long,
-        updatedArticle: UpdatedArticle,
+        updatedArticle: UpdatedArticleDTO,
         importValidate: Boolean,
         user: TokenUser
-    ): Try[ContentId] = {
+    ): Try[ContentIdDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(existing) =>
@@ -154,7 +155,7 @@ trait ContentValidator {
             .toDomainArticle(existing, updatedArticle, isImported = false, user, None, None)
             .flatMap(converterService.toArticleApiArticle)
             .flatMap(articleApiClient.validateArticle(_, importValidate, Some(user)))
-            .map(_ => ContentId(id))
+            .map(_ => ContentIdDTO(id))
       }
     }
 
@@ -162,6 +163,13 @@ trait ContentValidator {
       TextValidator.validate("content", content.content, allLegalTags).toList ++
         rootElementContainsOnlySectionBlocks("content.content", content.content) ++
         validateLanguage("content.language", content.language)
+    }
+
+    private def validateArticleDisclaimer(disclaimers: Seq[Disclaimer]): Seq[ValidationMessage] = {
+      disclaimers.flatMap(disclaimer => {
+        TextValidator.validate("disclaimer", disclaimer.disclaimer, allLegalTags).toList ++
+          validateLanguage("disclaimer.language", disclaimer.language)
+      })
     }
 
     private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {

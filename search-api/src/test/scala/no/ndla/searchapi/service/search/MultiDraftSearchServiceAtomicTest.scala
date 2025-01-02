@@ -20,7 +20,7 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.api.ApiTaxonomyContext
+import no.ndla.searchapi.model.api.ApiTaxonomyContextDTO
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.*
@@ -735,8 +735,8 @@ class MultiDraftSearchServiceAtomicTest
 
     val result = multiDraftSearchService.matchingQuery(multiDraftSearchSettings).get
 
-    def ctxsFor(id: Long): List[ApiTaxonomyContext] = result.results.find(_.id == id).get.contexts
-    def ctxFor(id: Long): ApiTaxonomyContext = {
+    def ctxsFor(id: Long): List[ApiTaxonomyContextDTO] = result.results.find(_.id == id).get.contexts
+    def ctxFor(id: Long): ApiTaxonomyContextDTO = {
       val ctxs = ctxsFor(id)
       ctxs.length should be(1)
       ctxs.head

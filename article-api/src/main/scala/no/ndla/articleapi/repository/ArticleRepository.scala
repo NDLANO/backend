@@ -20,7 +20,7 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait ArticleRepository {
-  this: DataSource with DBArticle =>
+  this: DataSource & DBArticle =>
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging {
@@ -64,7 +64,7 @@ trait ArticleRepository {
              update ${Article.table}
              set document=null
              where article_id=$articleId
-             and revision=(select max(revision) from ${Article.table} where article_id=${articleId})
+             and revision=(select max(revision) from ${Article.table} where article_id=$articleId)
            """.update()
       if (numRows == 1) {
         Success(articleId)
@@ -93,7 +93,7 @@ trait ArticleRepository {
         sql"""
              delete from ${Article.table}
              where article_id = $articleId
-             and revision=(select max(revision) from ${Article.table} where article_id=${articleId})
+             and revision=(select max(revision) from ${Article.table} where article_id=$articleId)
            """.update()
       if (numRows == 1) {
         Success(articleId)
@@ -135,7 +135,7 @@ trait ArticleRepository {
       articleWhere(
         sqls"""
               ar.article_id=${articleId.toInt}
-              and ar.revision=${revision}
+              and ar.revision=$revision
               """
       )
     }
@@ -178,7 +178,7 @@ trait ArticleRepository {
       sql"""
             select revision
             from ${Article.table}
-            where article_id=${articleId}
+            where article_id=$articleId
             and document is not NULL;
          """
         .map(rs => rs.int("revision"))
@@ -266,11 +266,11 @@ trait ArticleRepository {
       val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Article.table}) _
-              where tagObj->>'language' like ${langOrAll}
+              where tagObj->>'language' like $langOrAll
               order by tags) sorted_tags
               where sorted_tags.tags ilike ${sanitizedInput + '%'}
-              offset ${offset}
-              limit ${pageSize}
+              offset $offset
+              limit $pageSize
                       """
         .map(rs => rs.string("tags"))
         .list()
@@ -280,7 +280,7 @@ trait ArticleRepository {
               select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Article.table}) _
-              where tagObj->>'language' like  ${langOrAll}) all_tags
+              where tagObj->>'language' like  $langOrAll) all_tags
               where all_tags.tags ilike ${sanitizedInput + '%'};
            """
           .map(rs => rs.int("count"))

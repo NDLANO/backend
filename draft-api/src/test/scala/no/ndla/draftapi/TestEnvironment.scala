@@ -115,6 +115,7 @@ trait TestEnvironment
   val searchApiClient: SearchApiClient     = mock[SearchApiClient]
   val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
   val h5pApiClient: H5PApiClient           = mock[H5PApiClient]
+  val imageApiClient: ImageApiClient       = mock[ImageApiClient]
 
   def services: List[TapirController] = List.empty
 }

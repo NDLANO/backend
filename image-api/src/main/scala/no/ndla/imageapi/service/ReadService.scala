@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.UrlPath
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2, ImageMetaInformationV3}
+import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV2DTO, ImageMetaInformationV3DTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
@@ -39,13 +39,19 @@ trait ReadService {
         imageId: Long,
         language: Option[String],
         user: Option[TokenUser]
-    ): Try[Option[ImageMetaInformationV3]] = {
+    ): Try[Option[ImageMetaInformationV3DTO]] = {
       imageRepository
         .withId(imageId)
         .traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
     }
 
-    def getAllTags(input: String, pageSize: Int, page: Int, language: String, sort: Sort): Try[api.TagsSearchResult] = {
+    def getAllTags(
+        input: String,
+        pageSize: Int,
+        page: Int,
+        language: String,
+        sort: Sort
+    ): Try[api.TagsSearchResultDTO] = {
       val result = tagSearchService.matchingQuery(
         query = input,
         searchLanguage = language,
@@ -57,7 +63,11 @@ trait ReadService {
       result.map(searchConverterService.tagSearchResultAsApiResult)
     }
 
-    def withId(imageId: Long, language: Option[String], user: Option[TokenUser]): Try[Option[ImageMetaInformationV2]] =
+    def withId(
+        imageId: Long,
+        language: Option[String],
+        user: Option[TokenUser]
+    ): Try[Option[ImageMetaInformationV2DTO]] =
       imageRepository
         .withId(imageId)
         .traverse(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language, user))
@@ -66,7 +76,7 @@ trait ReadService {
         ids: List[Long],
         language: Option[String],
         user: Option[TokenUser]
-    ): Try[List[ImageMetaInformationV3]] = {
+    ): Try[List[ImageMetaInformationV3DTO]] = {
       if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else
         imageRepository
@@ -132,11 +142,11 @@ trait ReadService {
       else Failure(new InvalidUrlException("Could not extract id or path from url."))
     }
 
-    def getMetaImageDomainDump(pageNo: Int, pageSize: Int): ImageMetaDomainDump = {
+    def getMetaImageDomainDump(pageNo: Int, pageSize: Int): ImageMetaDomainDumpDTO = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
       val results                    = imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
-      ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
+      ImageMetaDomainDumpDTO(imageRepository.imageCount, pageNo, pageSize, results)
     }
 
     def getImageFileName(imageId: Long, language: Option[String]): Try[Option[String]] = {

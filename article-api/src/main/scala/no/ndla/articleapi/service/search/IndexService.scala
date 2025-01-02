@@ -15,17 +15,17 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.domain.ReindexResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.model.domain.article.Article
 import no.ndla.search.SearchLanguage.languageAnalyzers
+import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService with Props with ArticleRepository =>
+  this: Elastic4sClient & BaseIndexService & Props & ArticleRepository =>
 
   trait IndexService extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -42,25 +42,12 @@ trait IndexService {
     }
 
     def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
-      val start = System.currentTimeMillis()
-      createIndexWithGeneratedName(numShards).flatMap(indexName => {
-        val operations = for {
-          numIndexed  <- sendToElastic(indexName)
-          aliasTarget <- getAliasTarget
-          _           <- updateAliasTarget(aliasTarget, indexName)
-        } yield numIndexed
-
-        operations match {
-          case Failure(f) =>
-            deleteIndexWithName(Some(indexName)): Unit
-            Failure(f)
-          case Success(totalIndexed) =>
-            Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
-        }
-      })
+      indexDocumentsInBulk(numShards) {
+        sendToElastic
+      }
     }
 
-    def sendToElastic(indexName: String): Try[Int] = {
+    def sendToElastic(indexName: String): Try[BulkIndexResult] = {
       getRanges
         .flatMap(ranges => {
           ranges.traverse { case (start, end) =>
@@ -68,7 +55,7 @@ trait IndexService {
             indexDocuments(toIndex, indexName)
           }
         })
-        .map(_.sum)
+        .map(countBulkIndexed)
     }
 
     def getRanges: Try[List[(Long, Long)]] = {
@@ -82,9 +69,9 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(contents: Seq[Article], indexName: String): Try[Int] = {
+    def indexDocuments(contents: Seq[Article], indexName: String): Try[BulkIndexResult] = {
       if (contents.isEmpty) {
-        Success(0)
+        Success(BulkIndexResult.empty)
       } else {
         val response = e4sClient.execute {
           bulk(contents.map(content => {
@@ -95,22 +82,9 @@ trait IndexService {
         response match {
           case Success(r) =>
             logger.info(s"Indexed ${contents.size} documents. No of failed items: ${r.result.failures.size}")
-            Success(contents.size)
+            Success(BulkIndexResult(r.result.successes.size, contents.size))
           case Failure(ex) => Failure(ex)
         }
-      }
-    }
-
-    def findAllIndexes(indexName: String): Try[Seq[String]] = {
-      val response = e4sClient.execute {
-        getAliases()
-      }
-
-      response match {
-        case Success(results) =>
-          Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
-        case Failure(ex) =>
-          Failure(ex)
       }
     }
 
@@ -124,20 +98,19 @@ trait IndexService {
       *   Sequence of FieldDefinitions for a field.
       */
     protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
-      keepRaw match {
-        case true =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-              .fielddata(false)
-              .analyzer(langAnalyzer.analyzer)
-              .fields(keywordField("raw"))
-          )
-        case false =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-              .fielddata(false)
-              .analyzer(langAnalyzer.analyzer)
-          )
+      if (keepRaw) {
+        languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
+      } else {
+        languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+        )
       }
     }
 
@@ -167,13 +140,13 @@ trait IndexService {
           pathMatch = Some(name)
         )
       })
-      val catchAlltemplate = DynamicTemplateRequest(
+      val catchAllTemplate = DynamicTemplateRequest(
         name = fieldName,
         mapping = textField(fieldName).analyzer(SearchLanguage.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )
-      languageTemplates ++ Seq(catchAlltemplate)
+      languageTemplates ++ Seq(catchAllTemplate)
     }
   }
 

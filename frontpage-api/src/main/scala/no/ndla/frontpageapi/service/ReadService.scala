@@ -10,9 +10,9 @@ package no.ndla.frontpageapi.service
 import cats.implicits.*
 import no.ndla.common.errors as common
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.FrontPage
+import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.model.api
-import no.ndla.frontpageapi.model.api.SubjectPageId
+import no.ndla.frontpageapi.model.api.SubjectPageIdDTO
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, SubjectPageNotFoundException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 
@@ -29,20 +29,25 @@ trait ReadService {
       else Success(subjectIds)
     }
 
-    def getIdFromExternalId(nid: String): Try[Option[SubjectPageId]] =
+    def getIdFromExternalId(nid: String): Try[Option[SubjectPageIdDTO]] =
       subjectPageRepository.getIdFromExternalId(nid) match {
-        case Success(Some(id)) => Success(Some(SubjectPageId(id)))
+        case Success(Some(id)) => Success(Some(SubjectPageIdDTO(id)))
         case Success(None)     => Success(None)
         case Failure(ex)       => Failure(ex)
       }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageData] = {
+    def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageDataDTO] = {
       val maybeSubject = subjectPageRepository.withId(id).?
       val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
       converted.toTry(SubjectPageNotFoundException(id))
     }
 
-    def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[api.SubjectPageData]] = {
+    def subjectPages(
+        page: Int,
+        pageSize: Int,
+        language: String,
+        fallback: Boolean
+    ): Try[List[api.SubjectPageDataDTO]] = {
       val offset    = pageSize * (page - 1)
       val data      = subjectPageRepository.all(offset, pageSize).?
       val converted = data.map(ConverterService.toApiSubjectPage(_, language, fallback))
@@ -64,7 +69,7 @@ trait ReadService {
         fallback: Boolean,
         pageSize: Int,
         page: Int
-    ): Try[List[api.SubjectPageData]] = {
+    ): Try[List[api.SubjectPageDataDTO]] = {
       val offset = (page - 1) * pageSize
       for {
         ids          <- validateSubjectPageIdsOrError(subjectIds)
@@ -73,14 +78,14 @@ trait ReadService {
       } yield api
     }
 
-    def getFrontPage: Try[FrontPage] = {
+    def getFrontPage: Try[FrontPageDTO] = {
       frontPageRepository.getFrontPage.flatMap {
         case None        => Failure(common.NotFoundException("Front page was not found"))
         case Some(value) => Success(ConverterService.toApiFrontPage(value))
       }
     }
 
-    def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageData] = {
+    def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageDataDTO] = {
       filmFrontPageRepository.get.map(page => ConverterService.toApiFilmFrontPage(page, language))
     }
   }

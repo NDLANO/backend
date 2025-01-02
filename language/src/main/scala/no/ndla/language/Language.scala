@@ -6,7 +6,7 @@ object Language {
   val DefaultLanguage              = "nb"
   val UnknownLanguage: LanguageTag = LanguageTag("und")
   val NoLanguage                   = ""
-  val AllLanguages                 = "*"
+  final val AllLanguages           = "*"
   val Nynorsk                      = "nynorsk"
 
   val languagePriority: Seq[String] = Seq(

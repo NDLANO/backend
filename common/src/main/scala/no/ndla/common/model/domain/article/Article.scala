@@ -36,7 +36,8 @@ case class Article(
     availability: Availability,
     relatedContent: Seq[RelatedContent],
     revisionDate: Option[NDLADate],
-    slug: Option[String]
+    slug: Option[String],
+    disclaimer: Option[Seq[Disclaimer]]
 ) extends Content
 
 object Article {

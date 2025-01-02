@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ImportException, NotFoundException, PartialPublishArticleDTO}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
@@ -19,7 +19,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
 import no.ndla.common.{CirceUtil, Clock, model}
 import no.ndla.common.model.{RelatedContentLink, api as commonApi}
-import no.ndla.common.model.api.{Delete, License, Missing, UpdateWith}
+import no.ndla.common.model.api.{Delete, LicenseDTO, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -41,10 +41,10 @@ import org.jsoup.Jsoup
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ArticleRepository with Props =>
+  this: Clock & ArticleRepository & Props =>
   val converterService: ConverterService
 
-  import props._
+  import props.*
 
   class ConverterService extends StrictLogging {
 
@@ -70,7 +70,7 @@ trait ConverterService {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
@@ -90,7 +90,7 @@ trait ConverterService {
       * @return
       *   Article summary extracted from hitString in specified language.
       */
-    def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
+    def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2DTO = {
       val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
       val titles = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
@@ -107,7 +107,7 @@ trait ConverterService {
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(toApiArticleTitle)
-        .getOrElse(api.ArticleTitle("", "", UnknownLanguage.toString))
+        .getOrElse(api.ArticleTitleDTO("", "", UnknownLanguage.toString))
       val visualElement   = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
       val introduction    = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
@@ -115,7 +115,7 @@ trait ConverterService {
       val lastUpdated     = searchableArticle.lastUpdated
       val availability    = searchableArticle.availability
 
-      ArticleSummaryV2(
+      ArticleSummaryV2DTO(
         searchableArticle.id,
         title,
         visualElement,
@@ -157,7 +157,7 @@ trait ConverterService {
       newMetaDescriptions ++ metaDescToKeep
     }
 
-    def updateArticleFields(existingArticle: Article, partialArticle: PartialPublishArticle): Article = {
+    def updateArticleFields(existingArticle: Article, partialArticle: PartialPublishArticleDTO): Article = {
       val newAvailability = partialArticle.availability.getOrElse(existingArticle.availability)
       val newGrepCodes    = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
       val newLicense      = partialArticle.license.getOrElse(existingArticle.copyright.license)
@@ -204,7 +204,7 @@ trait ConverterService {
       }
     }
 
-    def toDomainCopyright(copyright: model.api.Copyright): Copyright = {
+    def toDomainCopyright(copyright: model.api.CopyrightDTO): Copyright = {
       Copyright(
         copyright.license.license,
         copyright.origin,
@@ -238,30 +238,30 @@ trait ConverterService {
         article: Article,
         language: String,
         fallback: Boolean
-    ): Try[api.ArticleV2] = {
+    ): Try[api.ArticleV2DTO] = {
       val supportedLanguages = getSupportedArticleLanguages(article)
       val isLanguageNeutral  = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
       if (supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
         val meta = findByLanguageOrBestEffort(article.metaDescription, language)
           .map(toApiArticleMetaDescription)
-          .getOrElse(api.ArticleMetaDescription("", UnknownLanguage.toString))
+          .getOrElse(api.ArticleMetaDescriptionDTO("", UnknownLanguage.toString))
         val tags = findByLanguageOrBestEffort(article.tags, language)
           .map(toApiArticleTag)
-          .getOrElse(api.ArticleTag(Seq(), UnknownLanguage.toString))
+          .getOrElse(api.ArticleTagDTO(Seq(), UnknownLanguage.toString))
         val title = findByLanguageOrBestEffort(article.title, language)
           .map(toApiArticleTitle)
-          .getOrElse(api.ArticleTitle("", "", UnknownLanguage.toString))
+          .getOrElse(api.ArticleTitleDTO("", "", UnknownLanguage.toString))
         val introduction  = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
         val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language)
           .map(toApiArticleContentV2)
-          .getOrElse(api.ArticleContentV2("", UnknownLanguage.toString))
+          .getOrElse(api.ArticleContentV2DTO("", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val copyright = toApiCopyright(article.copyright)
 
         Success(
-          api.ArticleV2(
+          api.ArticleV2DTO(
             article.id.get,
             article.id.flatMap(getMainNidUrlToOldNdla),
             article.revision.get,
@@ -298,12 +298,12 @@ trait ConverterService {
       }
     }
 
-    def toApiArticleTitle(title: Title): api.ArticleTitle = {
-      api.ArticleTitle(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+    def toApiArticleTitle(title: Title): api.ArticleTitleDTO = {
+      api.ArticleTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
     }
 
-    private def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2 = {
-      api.ArticleContentV2(
+    private def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2DTO = {
+      api.ArticleContentV2DTO(
         content.content,
         content.language
       )
@@ -311,14 +311,14 @@ trait ConverterService {
 
     private def toApiRelatedContent(relatedContent: RelatedContent): common.model.api.RelatedContent = {
       relatedContent match {
-        case Left(x)  => Left(common.model.api.RelatedContentLink(url = x.url, title = x.title))
+        case Left(x)  => Left(common.model.api.RelatedContentLinkDTO(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
 
     }
 
-    private def toApiCopyright(copyright: Copyright): commonApi.Copyright = {
-      commonApi.Copyright(
+    private def toApiCopyright(copyright: Copyright): commonApi.CopyrightDTO = {
+      commonApi.CopyrightDTO(
         toApiLicense(copyright.license),
         copyright.origin,
         copyright.creators.map(_.toApi),
@@ -330,39 +330,39 @@ trait ConverterService {
       )
     }
 
-    def toApiLicense(shortLicense: String): License = {
+    def toApiLicense(shortLicense: String): LicenseDTO = {
       getLicense(shortLicense) match {
-        case Some(l) => model.api.License(l.license.toString, Option(l.description), l.url)
-        case None    => model.api.License("unknown", None, None)
+        case Some(l) => model.api.LicenseDTO(l.license.toString, Option(l.description), l.url)
+        case None    => model.api.LicenseDTO("unknown", None, None)
       }
     }
 
-    private def toApiArticleTag(tag: Tag): api.ArticleTag = {
-      api.ArticleTag(tag.tags, tag.language)
+    private def toApiArticleTag(tag: Tag): api.ArticleTagDTO = {
+      api.ArticleTagDTO(tag.tags, tag.language)
     }
 
-    private def toApiRequiredLibrary(required: RequiredLibrary): api.RequiredLibrary = {
-      api.RequiredLibrary(required.mediaType, required.name, required.url)
+    private def toApiRequiredLibrary(required: RequiredLibrary): api.RequiredLibraryDTO = {
+      api.RequiredLibraryDTO(required.mediaType, required.name, required.url)
     }
 
-    private def toApiVisualElement(visual: VisualElement): api.VisualElement = {
-      api.VisualElement(visual.resource, visual.language)
+    private def toApiVisualElement(visual: VisualElement): api.VisualElementDTO = {
+      api.VisualElementDTO(visual.resource, visual.language)
     }
 
-    def toApiArticleIntroduction(intro: Introduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(
+    def toApiArticleIntroduction(intro: Introduction): api.ArticleIntroductionDTO = {
+      api.ArticleIntroductionDTO(
         Jsoup.parseBodyFragment(intro.introduction).body().text(),
         intro.introduction,
         intro.language
       )
     }
 
-    private def toApiArticleMetaDescription(metaDescription: Description): api.ArticleMetaDescription = {
-      api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
+    private def toApiArticleMetaDescription(metaDescription: Description): api.ArticleMetaDescriptionDTO = {
+      api.ArticleMetaDescriptionDTO(metaDescription.content, metaDescription.language)
     }
 
-    private def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
-      api.ArticleMetaImage(
+    private def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImageDTO = {
+      api.ArticleMetaImageDTO(
         s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
         metaImage.language
@@ -371,7 +371,7 @@ trait ConverterService {
 
     private def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-    def toApiArticleIds(ids: ArticleIds): api.ArticleIds = api.ArticleIds(ids.articleId, ids.externalId)
+    def toApiArticleIds(ids: ArticleIds): api.ArticleIdsDTO = api.ArticleIdsDTO(ids.articleId, ids.externalId)
 
     def toApiArticleTags(
         tags: Seq[String],
@@ -379,8 +379,8 @@ trait ConverterService {
         pageSize: Int,
         offset: Int,
         language: String
-    ): api.TagsSearchResult = {
-      api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
+    ): api.TagsSearchResultDTO = {
+      api.TagsSearchResultDTO(tagsCount, offset, pageSize, language, tags)
     }
 
   }

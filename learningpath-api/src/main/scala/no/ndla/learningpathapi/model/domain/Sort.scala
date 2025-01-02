@@ -48,7 +48,7 @@ object Sort extends Enum[Sort] with CirceEnum[Sort] {
   private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
   implicit val enumTsType: TSNamedType[Sort] = TSType.alias[Sort](
     "Sort",
-    TSEnum.string("LearningpathSortEnum", tsEnumValues: _*)
+    TSEnum.string("LearningpathSortEnum", tsEnumValues*)
   )
 
 }

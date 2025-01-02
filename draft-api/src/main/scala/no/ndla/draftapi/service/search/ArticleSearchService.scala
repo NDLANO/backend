@@ -31,17 +31,17 @@ trait ArticleSearchService {
     with ErrorHandling =>
   val articleSearchService: ArticleSearchService
 
-  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummary] {
+  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryDTO] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 
     private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
 
     override val searchIndex: String = props.DraftSearchIndex
 
-    override def hitToApiModel(hit: String, language: String): api.ArticleSummary =
+    override def hitToApiModel(hit: String, language: String): api.ArticleSummaryDTO =
       searchConverterService.hitAsArticleSummary(hit, language)
 
-    def matchingQuery(settings: SearchSettings): Try[SearchResult[api.ArticleSummary]] = {
+    def matchingQuery(settings: SearchSettings): Try[SearchResult[api.ArticleSummaryDTO]] = {
 
       val fullQuery = settings.query match {
         case Some(query) =>
@@ -72,7 +72,7 @@ trait ArticleSearchService {
       executeSearch(settings, fullQuery)
     }
 
-    def executeSearch(settings: SearchSettings, queryBuilder: BoolQuery): Try[SearchResult[api.ArticleSummary]] = {
+    def executeSearch(settings: SearchSettings, queryBuilder: BoolQuery): Try[SearchResult[api.ArticleSummaryDTO]] = {
 
       val articleTypesFilter =
         if (settings.articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", settings.articleTypes)))

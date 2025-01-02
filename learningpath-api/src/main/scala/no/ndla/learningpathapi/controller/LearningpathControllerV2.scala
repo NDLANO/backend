@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.common.model.api.{Author, License}
+import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{StepStatus, LearningPathStatus as _}
 import no.ndla.language.Language
@@ -37,13 +37,13 @@ import scala.util.{Failure, Success, Try}
 
 trait LearningpathControllerV2 {
 
-  this: ReadService &
-    UpdateService with SearchService with LanguageValidator with ConverterService with TaxonomyApiClient with SearchConverterServiceComponent with Props with ErrorHandling with TapirController =>
+  this: ReadService & UpdateService & SearchService & LanguageValidator & ConverterService & TaxonomyApiClient &
+    SearchConverterServiceComponent & Props & ErrorHandling & TapirController =>
   val learningpathControllerV2: LearningpathControllerV2
 
   class LearningpathControllerV2 extends TapirController {
 
-    import ErrorHelpers._
+    import ErrorHelpers.*
     import props.{
       DefaultLanguage,
       ElasticSearchIndexMaxResultWindow,
@@ -116,8 +116,8 @@ trait LearningpathControllerV2 {
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(
-        orFunction: => Try[(SearchResultV2, DynamicHeaders)]
-    ): Try[(SearchResultV2, DynamicHeaders)] =
+        orFunction: => Try[(SearchResultV2DTO, DynamicHeaders)]
+    ): Try[(SearchResultV2DTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           searchService.scroll(scroll, language) match {
@@ -226,7 +226,7 @@ trait LearningpathControllerV2 {
       .in(fallback)
       .in(scrollId)
       .in(verificationStatus)
-      .out(jsonBody[SearchResultV2])
+      .out(jsonBody[SearchResultV2DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400))
       .serverLogicPure {
@@ -252,9 +252,9 @@ trait LearningpathControllerV2 {
       .summary("Find public learningpaths")
       .description("Show public learningpaths")
       .in("search")
-      .in(jsonBody[SearchParams])
+      .in(jsonBody[SearchParamsDTO])
       .errorOut(errorOutputsFor(400))
-      .out(jsonBody[SearchResultV2])
+      .out(jsonBody[SearchResultV2DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .serverLogicPure { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(AllLanguages)) {
@@ -284,7 +284,7 @@ trait LearningpathControllerV2 {
       .in(pageSize)
       .in(pageNo)
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[Seq[LearningPathV2]])
+      .out(jsonBody[Seq[LearningPathV2DTO]])
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (idList, fallback, language, pageSizeQ, pageNoQ) =>
@@ -313,7 +313,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId)
       .in(language)
       .in(fallback)
-      .out(jsonBody[LearningPathV2])
+      .out(jsonBody[LearningPathV2DTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { combinedUser =>
@@ -326,7 +326,7 @@ trait LearningpathControllerV2 {
       .summary("Show status information for the learningpath")
       .description("Shows publishingstatus for the learningpath")
       .in(pathLearningpathId / "status")
-      .out(jsonBody[LearningPathStatus])
+      .out(jsonBody[LearningPathStatusDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { maybeUser => id => readService.statusFor(id, maybeUser).handleErrorsOrOk }
@@ -337,7 +337,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId / "learningsteps")
       .in(fallback)
       .in(language)
-      .out(jsonBody[LearningStepContainerSummary])
+      .out(jsonBody[LearningStepContainerSummaryDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { maybeUser =>
@@ -360,7 +360,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
       .in(language)
       .in(fallback)
-      .out(jsonBody[LearningStepV2])
+      .out(jsonBody[LearningStepV2DTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { maybeUser =>
@@ -377,7 +377,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId / "learningsteps" / "trash")
       .in(language)
       .in(fallback)
-      .out(jsonBody[LearningStepContainerSummary])
+      .out(jsonBody[LearningStepContainerSummaryDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
@@ -391,7 +391,7 @@ trait LearningpathControllerV2 {
       .description("Shows status for the learningstep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "status")
       .in(fallback)
-      .out(jsonBody[LearningStepStatus])
+      .out(jsonBody[LearningStepStatusDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
@@ -412,7 +412,7 @@ trait LearningpathControllerV2 {
       .summary("Fetch all learningspaths you have created")
       .description("Shows your learningpaths.")
       .in("mine")
-      .out(jsonBody[List[LearningPathV2]])
+      .out(jsonBody[List[LearningPathV2DTO]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user => _ => readService.withOwnerV2(user, DefaultLanguage, true).asRight }
@@ -422,7 +422,7 @@ trait LearningpathControllerV2 {
       .description("Shows all valid licenses")
       .in("licenses")
       .in(licenseFilter)
-      .out(jsonBody[Seq[License]])
+      .out(jsonBody[Seq[LicenseDTO]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .serverLogicPure { license =>
         val licenses: Seq[LicenseDefinition] =
@@ -432,14 +432,14 @@ trait LearningpathControllerV2 {
               mapping.License.getLicenses
                 .filter(_.license.toString.contains(filter))
           }
-        licenses.map(x => License(x.license.toString, Option(x.description), x.url)).asRight
+        licenses.map(x => LicenseDTO(x.license.toString, Option(x.description), x.url)).asRight
       }
 
     def addLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Store new learningpath")
       .description("Adds the given learningpath")
-      .in(jsonBody[NewLearningPathV2])
-      .out(statusCode(StatusCode.Created).and(jsonBody[LearningPathV2]))
+      .in(jsonBody[NewLearningPathV2DTO])
+      .out(statusCode(StatusCode.Created).and(jsonBody[LearningPathV2DTO]))
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
@@ -457,8 +457,8 @@ trait LearningpathControllerV2 {
       .summary("Copy given learningpath and store it as a new learningpath")
       .description("Copies the given learningpath, with the option to override some fields")
       .in(pathLearningpathId / "copy")
-      .in(jsonBody[NewCopyLearningPathV2])
-      .out(statusCode(StatusCode.Created).and(jsonBody[LearningPathV2]))
+      .in(jsonBody[NewCopyLearningPathV2DTO])
+      .out(statusCode(StatusCode.Created).and(jsonBody[LearningPathV2DTO]))
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
@@ -483,8 +483,8 @@ trait LearningpathControllerV2 {
       .summary("Update given learningpath")
       .description("Updates the given learningPath")
       .in(pathLearningpathId)
-      .in(jsonBody[UpdatedLearningPathV2])
-      .out(jsonBody[LearningPathV2])
+      .in(jsonBody[UpdatedLearningPathV2DTO])
+      .out(jsonBody[LearningPathV2DTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
@@ -503,8 +503,8 @@ trait LearningpathControllerV2 {
       .summary("Add new learningstep to learningpath")
       .description("Adds the given LearningStep")
       .in(pathLearningpathId / "learningsteps")
-      .in(jsonBody[NewLearningStepV2])
-      .out(statusCode(StatusCode.Created).and(jsonBody[LearningStepV2]))
+      .in(jsonBody[NewLearningStepV2DTO])
+      .out(statusCode(StatusCode.Created).and(jsonBody[LearningStepV2DTO]))
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .withRequiredMyNDLAUserOrTokenUser
@@ -525,8 +525,8 @@ trait LearningpathControllerV2 {
       .summary("Update given learningstep")
       .description("Update the given learningStep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
-      .in(jsonBody[UpdatedLearningStepV2])
-      .out(jsonBody[LearningStepV2])
+      .in(jsonBody[UpdatedLearningStepV2DTO])
+      .out(jsonBody[LearningStepV2DTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
@@ -547,8 +547,8 @@ trait LearningpathControllerV2 {
         "Updates the sequence number for the given learningstep. The sequence number of other learningsteps will be affected by this."
       )
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "seqNo")
-      .in(jsonBody[LearningStepSeqNo])
-      .out(jsonBody[LearningStepSeqNo])
+      .in(jsonBody[LearningStepSeqNoDTO])
+      .out(jsonBody[LearningStepSeqNoDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
@@ -561,8 +561,8 @@ trait LearningpathControllerV2 {
       .summary("Update status of given learningstep")
       .description("Updates the status of the given learningstep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "status")
-      .in(jsonBody[LearningStepStatus])
-      .out(jsonBody[LearningStepV2])
+      .in(jsonBody[LearningStepStatusDTO])
+      .out(jsonBody[LearningStepV2DTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
@@ -584,8 +584,8 @@ trait LearningpathControllerV2 {
       .summary("Update status of given learningpath")
       .description("Updates the status of the given learningPath")
       .in(pathLearningpathId / "status")
-      .in(jsonBody[UpdateLearningPathStatus])
-      .out(jsonBody[LearningPathV2])
+      .in(jsonBody[UpdateLearningPathStatusDTO])
+      .out(jsonBody[LearningPathV2DTO])
       .errorOut(errorOutputsFor(400, 403, 404, 500))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
@@ -613,7 +613,7 @@ trait LearningpathControllerV2 {
       .summary("Fetch all learningpaths with specified status")
       .description("Fetch all learningpaths with specified status")
       .in("status" / learningPathStatus)
-      .out(jsonBody[List[LearningPathV2]])
+      .out(jsonBody[List[LearningPathV2DTO]])
       .errorOut(errorOutputsFor(400, 401, 403, 500))
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user => status => readService.learningPathWithStatus(status, user).handleErrorsOrOk }
@@ -663,7 +663,7 @@ trait LearningpathControllerV2 {
       .in("tags")
       .in(language)
       .in(fallback)
-      .out(jsonBody[LearningPathTagsSummary])
+      .out(jsonBody[LearningPathTagsSummaryDTO])
       .errorOut(errorOutputsFor(500))
       .serverLogicPure { case (language, fallback) =>
         val allTags = readService.tags
@@ -677,7 +677,7 @@ trait LearningpathControllerV2 {
       .summary("Fetch all previously used contributors in learningpaths")
       .description("Retrieves a list of all previously used contributors in learningpaths")
       .in("contributors")
-      .out(jsonBody[List[Author]])
+      .out(jsonBody[List[AuthorDTO]])
       .errorOut(errorOutputsFor())
       .serverLogicPure { _ =>
         readService.contributors.asRight
@@ -690,7 +690,7 @@ trait LearningpathControllerV2 {
       .in(language)
       .in(fallback)
       .in(createResourceIfMissing)
-      .out(jsonBody[LearningPathV2])
+      .out(jsonBody[LearningPathV2DTO])
       .errorOut(errorOutputsFor(403, 404, 500))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { userInfo =>
@@ -711,7 +711,7 @@ trait LearningpathControllerV2 {
       .summary("Fetch learningpaths containing specified article")
       .description("Fetch learningpaths containing specified article")
       .in("contains-article" / pathArticleId)
-      .out(jsonBody[Seq[LearningPathSummaryV2]])
+      .out(jsonBody[Seq[LearningPathSummaryV2DTO]])
       .errorOut(errorOutputsFor(400, 500))
       .serverLogicPure { articleId =>
         val nodes = taxonomyApiClient.queryNodes(articleId).getOrElse(List.empty).flatMap(_.paths)

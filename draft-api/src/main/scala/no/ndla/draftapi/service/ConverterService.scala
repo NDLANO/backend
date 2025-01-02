@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.api.{Delete, DraftCopyright, Missing, UpdateWith, draft}
+import no.ndla.common.model.api.{Delete, DraftCopyrightDTO, Missing, UpdateWith, draft}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
@@ -20,7 +20,7 @@ import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi, dom
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewComment, NotFoundException, UpdatedArticle, UpdatedComment}
+import no.ndla.draftapi.model.api.{NewCommentDTO, NotFoundException, UpdatedArticleDTO, UpdatedCommentDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -45,7 +45,7 @@ trait ConverterService {
 
     def toDomainArticle(
         newArticleId: Long,
-        newArticle: api.NewArticle,
+        newArticle: api.NewArticleDTO,
         externalIds: List[String],
         user: TokenUser,
         oldNdlaCreatedDate: Option[NDLADate],
@@ -55,6 +55,7 @@ trait ConverterService {
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
+      val domainDisclaimer = newArticle.disclaimer.map { d => Seq(common.Disclaimer(d, newArticle.language)) }
 
       val status = externalIds match {
         case Nil => common.Status(PLANNED, Set.empty)
@@ -124,13 +125,14 @@ trait ConverterService {
           comments = newCommentToDomain(newArticle.comments.getOrElse(List.empty)),
           priority = priority,
           started = false,
-          qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
+          disclaimer = domainDisclaimer
         )
       )
     }
 
     private[service] def updatedCommentToDomain(
-        updatedComments: List[UpdatedComment],
+        updatedComments: List[UpdatedCommentDTO],
         existingComments: Seq[Comment]
     ): Seq[Comment] = {
       updatedComments.map(updatedComment => {
@@ -157,7 +159,7 @@ trait ConverterService {
       })
     }
 
-    private[service] def newCommentToDomain(newComment: List[NewComment]): Seq[Comment] = {
+    private[service] def newCommentToDomain(newComment: List[NewCommentDTO]): Seq[Comment] = {
       newComment.map(comment =>
         Comment(
           id = UUID.randomUUID(),
@@ -171,7 +173,7 @@ trait ConverterService {
     }
 
     private[service] def qualityEvaluationToDomain(
-        newQualityEvaluation: Option[api.QualityEvaluation]
+        newQualityEvaluation: Option[api.QualityEvaluationDTO]
     ): Option[common.draft.QualityEvaluation] =
       newQualityEvaluation.map(qe => common.draft.QualityEvaluation(grade = qe.grade, note = qe.note))
 
@@ -186,7 +188,7 @@ trait ConverterService {
     }
 
     private[service] def updatedCommentToDomainNullDocument(
-        updatedComments: List[UpdatedComment]
+        updatedComments: List[UpdatedCommentDTO]
     ): Try[Seq[Comment]] = {
       updatedComments.traverse(comment =>
         comment.id match {
@@ -216,7 +218,7 @@ trait ConverterService {
       )
     }
 
-    private def toDomainRevisionMeta(revisionMeta: api.RevisionMeta): common.draft.RevisionMeta = {
+    private def toDomainRevisionMeta(revisionMeta: api.RevisionMetaDTO): common.draft.RevisionMeta = {
       common.draft.RevisionMeta(
         id = revisionMeta.id.map(UUID.fromString).getOrElse(uuidUtil.randomUUID()),
         revisionDate = revisionMeta.revisionDate,
@@ -225,8 +227,8 @@ trait ConverterService {
       )
     }
 
-    private def toApiRevisionMeta(revisionMeta: common.draft.RevisionMeta): api.RevisionMeta = {
-      api.RevisionMeta(
+    private def toApiRevisionMeta(revisionMeta: common.draft.RevisionMeta): api.RevisionMetaDTO = {
+      api.RevisionMetaDTO(
         id = Some(revisionMeta.id.toString),
         revisionDate = revisionMeta.revisionDate,
         note = revisionMeta.note,
@@ -254,10 +256,13 @@ trait ConverterService {
 
     }
 
-    private def toDomainTitle(articleTitle: api.ArticleTitle): common.Title =
+    private def toDomainTitle(articleTitle: api.ArticleTitleDTO): common.Title =
       common.Title(articleTitle.title, articleTitle.language)
 
-    private def toDomainContent(articleContent: api.ArticleContent): common.ArticleContent = {
+    private def toDomainDisclaimer(articleDisclaimer: api.DisclaimerDTO): common.Disclaimer =
+      common.Disclaimer(articleDisclaimer.disclaimer, articleDisclaimer.language)
+
+    private def toDomainContent(articleContent: api.ArticleContentDTO): common.ArticleContent = {
       common.ArticleContent(removeUnknownEmbedTagAttribute(articleContent.content), articleContent.language)
     }
 
@@ -276,10 +281,10 @@ trait ConverterService {
     private def toDomainMetaDescription(meta: String, language: String): common.Description =
       common.Description(meta, language)
 
-    private def toDomainMetaImage(metaImage: api.NewArticleMetaImage, language: String): common.ArticleMetaImage =
+    private def toDomainMetaImage(metaImage: api.NewArticleMetaImageDTO, language: String): common.ArticleMetaImage =
       common.ArticleMetaImage(metaImage.id, metaImage.alt, language)
 
-    private def toDomainCopyright(copyright: DraftCopyright): common.draft.DraftCopyright = {
+    private def toDomainCopyright(copyright: DraftCopyrightDTO): common.draft.DraftCopyright = {
       common.draft.DraftCopyright(
         license = copyright.license.map(_.license),
         origin = copyright.origin,
@@ -336,7 +341,7 @@ trait ConverterService {
       })
     }
 
-    private def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): common.RequiredLibrary = {
+    private def toDomainRequiredLibraries(requiredLibs: api.RequiredLibraryDTO): common.RequiredLibrary = {
       common.RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
     }
 
@@ -365,13 +370,13 @@ trait ConverterService {
         isImported: Boolean
     ): Try[Draft] = StateTransitionRules.doTransition(draft, status, user, isImported)
 
-    private def toApiResponsible(responsible: Responsible): api.DraftResponsible =
-      api.DraftResponsible(
+    private def toApiResponsible(responsible: Responsible): api.DraftResponsibleDTO =
+      api.DraftResponsibleDTO(
         responsibleId = responsible.responsibleId,
         lastUpdated = responsible.lastUpdated
       )
 
-    def toApiArticle(article: Draft, language: String, fallback: Boolean = false): Try[api.Article] = {
+    def toApiArticle(article: Draft, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = {
       val isLanguageNeutral =
         article.supportedLanguages.contains(UnknownLanguage.toString) && article.supportedLanguages.length == 1
 
@@ -386,9 +391,11 @@ trait ConverterService {
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
         val responsible    = article.responsible.map(toApiResponsible)
+        val disclaimer =
+          article.disclaimer.flatMap { d => findByLanguageOrBestEffort(d, language).map(toApiArticleDisclaimer) }
 
         Success(
-          api.Article(
+          api.ArticleDTO(
             id = article.id.get,
             oldNdlaUrl = article.id.flatMap(id => getLinkToOldNdla(id)(ReadOnlyAutoSession)),
             revision = article.revision.get,
@@ -421,7 +428,8 @@ trait ConverterService {
             prioritized = article.priority == Priority.Prioritized,
             priority = article.priority.entryName,
             started = article.started,
-            qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation)
+            qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
+            disclaimer = disclaimer
           )
         )
       } else {
@@ -434,8 +442,8 @@ trait ConverterService {
       }
     }
 
-    def toApiUserData(userData: domain.UserData): api.UserData = {
-      api.UserData(
+    def toApiUserData(userData: domain.UserData): api.UserDataDTO = {
+      api.UserDataDTO(
         userId = userData.userId,
         savedSearches = userData.savedSearches,
         latestEditedArticles = userData.latestEditedArticles,
@@ -444,28 +452,34 @@ trait ConverterService {
       )
     }
 
-    private def toApiEditorNote(note: common.EditorNote): api.EditorNote =
-      api.EditorNote(note.note, note.user, toApiStatus(note.status), note.timestamp)
+    private def toApiEditorNote(note: common.EditorNote): api.EditorNoteDTO =
+      api.EditorNoteDTO(note.note, note.user, toApiStatus(note.status), note.timestamp)
 
-    private def toApiStatus(status: common.Status): api.Status =
-      api.Status(status.current.toString, status.other.map(_.toString).toSeq)
+    private def toApiStatus(status: common.Status): api.StatusDTO =
+      api.StatusDTO(status.current.toString, status.other.map(_.toString).toSeq)
 
-    def toApiArticleTitle(title: common.Title): api.ArticleTitle =
-      api.ArticleTitle(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+    def toApiArticleTitle(title: common.Title): api.ArticleTitleDTO =
+      api.ArticleTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
 
-    private def toApiArticleContent(content: common.ArticleContent): api.ArticleContent =
-      api.ArticleContent(content.content, content.language)
+    private def toApiArticleDisclaimer(disclaimer: common.Disclaimer): api.DisclaimerDTO =
+      api.DisclaimerDTO(
+        disclaimer.disclaimer,
+        disclaimer.language
+      )
 
-    private def toApiArticleMetaImage(metaImage: common.ArticleMetaImage): api.ArticleMetaImage = {
-      api.ArticleMetaImage(
+    private def toApiArticleContent(content: common.ArticleContent): api.ArticleContentDTO =
+      api.ArticleContentDTO(content.content, content.language)
+
+    private def toApiArticleMetaImage(metaImage: common.ArticleMetaImage): api.ArticleMetaImageDTO = {
+      api.ArticleMetaImageDTO(
         s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
         metaImage.language
       )
     }
 
-    private def toApiCopyright(copyright: common.draft.DraftCopyright): DraftCopyright = {
-      model.api.DraftCopyright(
+    private def toApiCopyright(copyright: common.draft.DraftCopyright): DraftCopyrightDTO = {
+      model.api.DraftCopyrightDTO(
         copyright.license.map(toApiLicense),
         copyright.origin,
         copyright.creators.map(_.toApi),
@@ -477,20 +491,20 @@ trait ConverterService {
       )
     }
 
-    def toApiLicense(shortLicense: String): commonApi.License = {
+    def toApiLicense(shortLicense: String): commonApi.LicenseDTO = {
       getLicense(shortLicense)
-        .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
-        .getOrElse(commonApi.License("unknown", None, None))
+        .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
+        .getOrElse(commonApi.LicenseDTO("unknown", None, None))
     }
 
     private def toApiRelatedContent(relatedContent: common.RelatedContent): commonApi.RelatedContent = {
       relatedContent match {
-        case Left(x)  => Left(commonApi.RelatedContentLink(url = x.url, title = x.title))
+        case Left(x)  => Left(commonApi.RelatedContentLinkDTO(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
     }
 
-    private def toApiComment(comment: Comment): draft.Comment = draft.Comment(
+    private def toApiComment(comment: Comment): draft.CommentDTO = draft.CommentDTO(
       id = comment.id.toString,
       content = comment.content,
       created = comment.created,
@@ -501,29 +515,29 @@ trait ConverterService {
 
     private def toApiQualityEvaluation(
         qualityEvaluation: Option[common.draft.QualityEvaluation]
-    ): Option[api.QualityEvaluation] = {
-      qualityEvaluation.map(qe => api.QualityEvaluation(grade = qe.grade, note = qe.note))
+    ): Option[api.QualityEvaluationDTO] = {
+      qualityEvaluation.map(qe => api.QualityEvaluationDTO(grade = qe.grade, note = qe.note))
     }
 
-    def toApiArticleTag(tag: common.Tag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)
+    def toApiArticleTag(tag: common.Tag): api.ArticleTagDTO = api.ArticleTagDTO(tag.tags, tag.language)
 
-    private def toApiRequiredLibrary(required: common.RequiredLibrary): api.RequiredLibrary = {
-      api.RequiredLibrary(required.mediaType, required.name, required.url)
+    private def toApiRequiredLibrary(required: common.RequiredLibrary): api.RequiredLibraryDTO = {
+      api.RequiredLibraryDTO(required.mediaType, required.name, required.url)
     }
 
-    def toApiVisualElement(visual: common.VisualElement): api.VisualElement =
-      api.VisualElement(visual.resource, visual.language)
+    def toApiVisualElement(visual: common.VisualElement): api.VisualElementDTO =
+      api.VisualElementDTO(visual.resource, visual.language)
 
-    def toApiArticleIntroduction(intro: common.Introduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(
+    def toApiArticleIntroduction(intro: common.Introduction): api.ArticleIntroductionDTO = {
+      api.ArticleIntroductionDTO(
         Jsoup.parseBodyFragment(intro.introduction).body().text(),
         intro.introduction,
         intro.language
       )
     }
 
-    private def toApiArticleMetaDescription(metaDescription: common.Description): api.ArticleMetaDescription = {
-      api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
+    private def toApiArticleMetaDescription(metaDescription: common.Description): api.ArticleMetaDescriptionDTO = {
+      api.ArticleMetaDescriptionDTO(metaDescription.content, metaDescription.language)
     }
 
     private def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
@@ -620,13 +634,14 @@ trait ConverterService {
               availability = draft.availability,
               relatedContent = draft.relatedContent,
               revisionDate = getNextRevision(draft.revisionMeta).map(_.revisionDate),
-              slug = draft.slug
+              slug = draft.slug,
+              disclaimer = draft.disclaimer
             )
           )
       }
     }
 
-    private def languageFieldIsDefined(article: api.UpdatedArticle): Boolean = {
+    private def languageFieldIsDefined(article: api.UpdatedArticleDTO): Boolean = {
       val metaImageExists = article.metaImage match {
         case UpdateWith(_) => true
         case _             => false
@@ -686,7 +701,7 @@ trait ConverterService {
     private def getNewEditorialNotes(
         isNewLanguage: Boolean,
         user: TokenUser,
-        article: api.UpdatedArticle,
+        article: api.UpdatedArticleDTO,
         toMergeInto: Draft
     ): Try[Seq[common.EditorNote]] = {
       val newLanguageEditorNote =
@@ -709,7 +724,7 @@ trait ConverterService {
       addedNotes.map(n => toMergeInto.notes ++ n)
     }
 
-    private def getNewResponsible(toMergeInto: Draft, article: UpdatedArticle) =
+    private def getNewResponsible(toMergeInto: Draft, article: UpdatedArticleDTO) =
       (article.responsibleId, toMergeInto.responsible) match {
         case (Delete, _)                       => None
         case (UpdateWith(responsibleId), None) => Some(Responsible(responsibleId, clock.now()))
@@ -718,7 +733,7 @@ trait ConverterService {
         case (_, existing) => existing
       }
 
-    private def getNewPriority(toMergeInto: Draft, article: UpdatedArticle) =
+    private def getNewPriority(toMergeInto: Draft, article: UpdatedArticleDTO) =
       article.priority
         .map(v => common.Priority.valueOfOrError(v).getOrElse(toMergeInto.priority))
         .getOrElse(
@@ -729,7 +744,7 @@ trait ConverterService {
           }
         )
 
-    private def getNewMetaImage(toMergeInto: Draft, maybeLang: Option[String], updatedArticle: UpdatedArticle) =
+    private def getNewMetaImage(toMergeInto: Draft, maybeLang: Option[String], updatedArticle: UpdatedArticleDTO) =
       maybeLang
         .map(lang =>
           updatedArticle.metaImage match {
@@ -744,7 +759,7 @@ trait ConverterService {
 
     def toDomainArticle(
         toMergeInto: Draft,
-        article: api.UpdatedArticle,
+        article: api.UpdatedArticleDTO,
         isImported: Boolean,
         user: TokenUser,
         oldNdlaCreatedDate: Option[NDLADate],
@@ -778,13 +793,26 @@ trait ConverterService {
       val updatedTitles = mergeLanguageFields(
         toMergeInto.title,
         maybeLang
-          .traverse(lang => articleWithNewContent.title.toSeq.map(t => toDomainTitle(api.ArticleTitle(t, t, lang))))
+          .traverse(lang => articleWithNewContent.title.toSeq.map(t => toDomainTitle(api.ArticleTitleDTO(t, t, lang))))
           .flatten
       )
+
+      val updatedDisclaimer = articleWithNewContent.disclaimer match {
+        case None => toMergeInto.disclaimer
+        case Some(newDisclaimer) =>
+          val updated = mergeLanguageFields(
+            toMergeInto.disclaimer.getOrElse(Seq.empty),
+            maybeLang.map(lang => toDomainDisclaimer(api.DisclaimerDTO(newDisclaimer, lang))).toSeq
+          )
+          Option.when(updated.nonEmpty)(updated)
+      }
+
       val updatedContents = mergeLanguageFields(
         toMergeInto.content,
         maybeLang
-          .traverse(lang => articleWithNewContent.content.toSeq.map(c => toDomainContent(api.ArticleContent(c, lang))))
+          .traverse(lang =>
+            articleWithNewContent.content.toSeq.map(c => toDomainContent(api.ArticleContentDTO(c, lang)))
+          )
           .flatten
       )
       val updatedTags = mergeLanguageFields(
@@ -843,7 +871,8 @@ trait ConverterService {
         comments = updatedComments,
         priority = priority,
         started = toMergeInto.started,
-        qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
+        qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
+        disclaimer = updatedDisclaimer
       )
 
       Success(converted)
@@ -851,7 +880,7 @@ trait ConverterService {
 
     def toDomainArticle(
         id: Long,
-        article: api.UpdatedArticle,
+        article: api.UpdatedArticleDTO,
         isImported: Boolean,
         user: TokenUser,
         oldNdlaCreatedDate: Option[NDLADate],
@@ -931,7 +960,8 @@ trait ConverterService {
           comments = comments,
           priority = priority,
           started = false,
-          qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation)
+          qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
+          disclaimer = article.disclaimer.map { d => Seq(common.Disclaimer(d, lang)) }
         )
     }
 
@@ -953,8 +983,8 @@ trait ConverterService {
         case None => Success(buildTransitionsMap(user, None))
       }
 
-    def toApiArticleGrepCodes(result: domain.LanguagelessSearchResult[String]): api.GrepCodesSearchResult = {
-      api.GrepCodesSearchResult(result.totalCount, result.page.getOrElse(1), result.pageSize, result.results)
+    def toApiArticleGrepCodes(result: domain.LanguagelessSearchResult[String]): api.GrepCodesSearchResultDTO = {
+      api.GrepCodesSearchResultDTO(result.totalCount, result.page.getOrElse(1), result.pageSize, result.results)
     }
 
     def addNote(article: Draft, noteText: String, user: TokenUser): Draft = {

@@ -13,28 +13,28 @@ import sttp.tapir.Schema.annotations.description
 
 // format: off
 @description("Information about the gloss example")
-case class GlossExample(
+case class GlossExampleDTO(
     @description("Example use of the gloss") example: String,
     @description("Language of the example") language: String,
     @description("Alternative writing of the example") transcriptions: Map[String, String],
 )
 
-object GlossExample {
-  implicit val encoder: Encoder[GlossExample] = deriveEncoder
-  implicit val decoder: Decoder[GlossExample] = deriveDecoder
+object GlossExampleDTO {
+  implicit val encoder: Encoder[GlossExampleDTO] = deriveEncoder
+  implicit val decoder: Decoder[GlossExampleDTO] = deriveDecoder
 }
 
 @description("Information about the gloss data")
-case class GlossData(
+case class GlossDataDTO(
     @description("The gloss itself") gloss: String,
     @description("Word class / part of speech, ex. noun, adjective, verb, adverb, ...") wordClass: String,
     @description("Original language of the gloss") originalLanguage: String,
     @description("Alternative writing of the gloss") transcriptions: Map[String, String],
-    @description("List of examples of how the gloss can be used") examples: List[List[GlossExample]],
+    @description("List of examples of how the gloss can be used") examples: List[List[GlossExampleDTO]],
 )
 // format: on
 
-object GlossData {
-  implicit val encoder: Encoder[GlossData] = deriveEncoder
-  implicit val decoder: Decoder[GlossData] = deriveDecoder
+object GlossDataDTO {
+  implicit val encoder: Encoder[GlossDataDTO] = deriveEncoder
+  implicit val decoder: Decoder[GlossDataDTO] = deriveDecoder
 }

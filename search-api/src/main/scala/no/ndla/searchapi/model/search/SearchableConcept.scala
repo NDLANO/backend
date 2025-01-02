@@ -13,7 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.concept.{Concept, ConceptMetaImage}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.api.Status
+import no.ndla.searchapi.model.api.StatusDTO
 import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchableConcept(
@@ -26,7 +26,7 @@ case class SearchableConcept(
     tags: SearchableLanguageList,
     subjectIds: List[String],
     lastUpdated: NDLADate,
-    draftStatus: Status,
+    draftStatus: StatusDTO,
     users: List[String],
     updatedBy: Seq[String],
     license: Option[String],

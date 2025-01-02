@@ -8,12 +8,12 @@
 
 package no.ndla.articleapi.service.search
 
-import no.ndla.articleapi._
+import no.ndla.articleapi.*
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.*
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -25,7 +25,7 @@ class ArticleSearchServiceTest
     with UnitSuite
     with TestEnvironment {
   import TestData.testSettings
-  import props._
+  import props.*
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -465,7 +465,7 @@ class ArticleSearchServiceTest
     val hits = search.results
 
     search.totalCount should equal(11)
-    hits(0).id should equal(1)
+    hits.head.id should equal(1)
     hits(1).id should equal(2)
     hits(2).id should equal(3)
     hits(3).id should equal(5)
@@ -567,7 +567,7 @@ class ArticleSearchServiceTest
     search.totalCount should be(1)
     search.results.head.metaImage should be(
       Some(
-        api.ArticleMetaImage("http://api-gateway.ndla-local/image-api/raw/id/5555", "Alt text is here friend", "nb")
+        api.ArticleMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/5555", "Alt text is here friend", "nb")
       )
     )
   }

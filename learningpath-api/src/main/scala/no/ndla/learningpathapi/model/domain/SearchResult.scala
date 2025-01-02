@@ -6,13 +6,13 @@
  */
 
 package no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.api.LearningPathSummaryV2
+import no.ndla.learningpathapi.model.api.LearningPathSummaryV2DTO
 
 case class SearchResult(
     totalCount: Long,
     page: Option[Int],
     pageSize: Int,
     language: String,
-    results: Seq[LearningPathSummaryV2],
+    results: Seq[LearningPathSummaryV2DTO],
     scrollId: Option[String]
 )

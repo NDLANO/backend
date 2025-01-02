@@ -12,7 +12,7 @@ import io.lemonlabs.uri.Url
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.{Description, LearningPath, LearningpathCopyright}
-import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2
+import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
 import no.ndla.mapping.License.getLicense
 
 trait LearningPathValidator {
@@ -37,7 +37,7 @@ trait LearningPathValidator {
       }
     }
 
-    def validate(updateLearningPath: UpdatedLearningPathV2): Unit = {
+    def validate(updateLearningPath: UpdatedLearningPathV2DTO): Unit = {
       languageValidator.validate("language", updateLearningPath.language, allowUnknownLanguage = true) match {
         case None =>
         case Some(validationMessage) =>

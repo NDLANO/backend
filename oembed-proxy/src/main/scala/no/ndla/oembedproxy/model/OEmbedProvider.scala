@@ -17,7 +17,7 @@ case class OEmbedProvider(
     providerUrl: String,
     endpoints: List[OEmbedEndpoint],
     urlParser: String => String = identity,
-    postProcessor: (String, OEmbed) => OEmbed = (_: String, o: OEmbed) => o
+    postProcessor: (String, OEmbedDTO) => OEmbedDTO = (_: String, o: OEmbedDTO) => o
 ) {
 
   def supports(url: String): Boolean = {

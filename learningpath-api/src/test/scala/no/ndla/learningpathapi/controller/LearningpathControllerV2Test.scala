@@ -12,7 +12,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.Node
-import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
+import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2DTO, SearchResultV2DTO}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
@@ -36,21 +36,21 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
   }
 
-  val copyright: api.Copyright = api.Copyright(commonApi.License("by-sa", None, None), List())
+  val copyright: api.CopyrightDTO = api.CopyrightDTO(commonApi.LicenseDTO("by-sa", None, None), List())
 
-  val DefaultLearningPathSummary: LearningPathSummaryV2 = api.LearningPathSummaryV2(
+  val DefaultLearningPathSummary: LearningPathSummaryV2DTO = api.LearningPathSummaryV2DTO(
     1,
     None,
-    api.Title("Tittel", "nb"),
-    api.Description("", "nb"),
-    api.Introduction("", "nb"),
+    api.TitleDTO("Tittel", "nb"),
+    api.DescriptionDTO("", "nb"),
+    api.IntroductionDTO("", "nb"),
     "",
     None,
     None,
     "",
     NDLADate.now(),
     NDLADate.now(),
-    api.LearningPathTags(Seq(), "nb"),
+    api.LearningPathTagsDTO(Seq(), "nb"),
     copyright,
     List("nb"),
     None,
@@ -67,7 +67,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     val verificationStatus = "EXTERNAL"
 
     val result    = SearchResult(1, Some(1), 1, language, Seq(DefaultLearningPathSummary), None)
-    val apiResult = SearchResultV2(1, Some(1), 1, language, Seq(DefaultLearningPathSummary))
+    val apiResult = SearchResultV2DTO(1, Some(1), 1, language, Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
     val expectedSettings = searchSettings.copy(
@@ -98,8 +98,8 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths?$queryParams")
     )
     res.code.code should be(200)
-    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2](res.body)
-    convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
+    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2DTO](res.body)
+    convertedBody.results.head.title should equal(api.TitleDTO("Tittel", "nb"))
   }
 
   test("That GET / will handle all empty query-params as missing query params") {
@@ -110,7 +110,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     val ids      = "1,2"
 
     val result    = SearchResult(-1, Some(1), 1, "nb", Seq(DefaultLearningPathSummary), None)
-    val apiResult = SearchResultV2(-1, Some(1), 1, "nb", Seq(DefaultLearningPathSummary))
+    val apiResult = SearchResultV2DTO(-1, Some(1), 1, "nb", Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
     when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
@@ -126,7 +126,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths?$queryParams")
     )
     res.code.code should be(200)
-    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2DTO](res.body)
     convertedBody.totalCount should be(-1)
 
   }
@@ -139,7 +139,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     val pageSize = 111
 
     val result    = SearchResult(1, Some(page), pageSize, language, Seq(DefaultLearningPathSummary), None)
-    val apiResult = SearchResultV2(1, Some(page), pageSize, language, Seq(DefaultLearningPathSummary))
+    val apiResult = SearchResultV2DTO(1, Some(page), pageSize, language, Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
     val expectedSettings = searchSettings.copy(
@@ -161,27 +161,27 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
         .body(inputBody)
     )
     res.code.code should be(200)
-    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2](res.body)
-    convertedBody.results.head.title should equal(api.Title("Tittel", "nb"))
+    val convertedBody = CirceUtil.unsafeParseAs[api.SearchResultV2DTO](res.body)
+    convertedBody.results.head.title should equal(api.TitleDTO("Tittel", "nb"))
   }
 
   test("That GET /licenses with filter sat to by only returns creative common licenses") {
     val creativeCommonlicenses = getLicenses
       .filter(_.license.toString.startsWith("by"))
-      .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
+      .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
       .toSet
     val res = simpleHttpClient.send(
       quickRequest
         .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/licenses/?filter=by")
     )
     res.code.code should be(200)
-    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.LicenseDTO]](res.body)
     convertedBody should equal(creativeCommonlicenses)
   }
 
   test("That GET /licenses with filter not specified returns all licenses") {
     val allLicenses = getLicenses
-      .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
+      .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
       .toSet
 
     val res = simpleHttpClient.send(
@@ -189,7 +189,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
         .get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/licenses/")
     )
     res.code.code should be(200)
-    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.License]](res.body)
+    val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.LicenseDTO]](res.body)
     convertedBody should equal(allLicenses)
   }
 

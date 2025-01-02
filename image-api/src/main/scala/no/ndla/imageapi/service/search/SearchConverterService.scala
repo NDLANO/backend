@@ -11,7 +11,7 @@ import io.lemonlabs.uri.Uri.parse
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary, ImageTitle}
+import no.ndla.imageapi.model.api.{ImageAltTextDTO, ImageCaptionDTO, ImageMetaSummaryDTO, ImageTitleDTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, SearchResult}
 import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.imageapi.model.search.{SearchableImage, SearchableImageFile, SearchableTag}
@@ -104,20 +104,20 @@ trait SearchConverterService {
         searchableImage: SearchableImage,
         language: String,
         user: Option[TokenUser]
-    ): Try[ImageMetaSummary] = {
+    ): Try[ImageMetaSummaryDTO] = {
       val apiToRawRegex = "/v\\d+/images/".r
       val title = Language
         .findByLanguageOrBestEffort(searchableImage.titles.languageValues, Some(language))
-        .map(res => ImageTitle(res.value, res.language))
-        .getOrElse(ImageTitle("", props.DefaultLanguage))
+        .map(res => ImageTitleDTO(res.value, res.language))
+        .getOrElse(ImageTitleDTO("", props.DefaultLanguage))
       val altText = Language
         .findByLanguageOrBestEffort(searchableImage.alttexts.languageValues, Some(language))
-        .map(res => ImageAltText(res.value, res.language))
-        .getOrElse(ImageAltText("", props.DefaultLanguage))
+        .map(res => ImageAltTextDTO(res.value, res.language))
+        .getOrElse(ImageAltTextDTO("", props.DefaultLanguage))
       val caption = Language
         .findByLanguageOrBestEffort(searchableImage.captions.languageValues, Some(language))
-        .map(res => ImageCaption(res.value, res.language))
-        .getOrElse(ImageCaption("", props.DefaultLanguage))
+        .map(res => ImageCaptionDTO(res.value, res.language))
+        .getOrElse(ImageCaptionDTO("", props.DefaultLanguage))
 
       val supportedLanguages = Language.getSupportedLanguages(
         searchableImage.titles.languageValues,
@@ -129,7 +129,7 @@ trait SearchConverterService {
       val editorNotes = Option.when(user.hasPermission(IMAGE_API_WRITE))(searchableImage.editorNotes)
 
       getSearchableImageFileFromSearchableImage(searchableImage, language.some).map(imageFile => {
-        ImageMetaSummary(
+        ImageMetaSummaryDTO(
           id = searchableImage.id.toString,
           title = title,
           contributors = searchableImage.contributors,
@@ -145,7 +145,7 @@ trait SearchConverterService {
           fileSize = imageFile.fileSize,
           contentType = imageFile.contentType,
           imageDimensions = imageFile.dimensions.map { case domain.ImageDimensions(width, height) =>
-            api.ImageDimensions(width, height)
+            api.ImageDimensionsDTO(width, height)
           }
         )
       })
@@ -178,8 +178,8 @@ trait SearchConverterService {
       }
     }
 
-    def asApiSearchResult(searchResult: domain.SearchResult[ImageMetaSummary]): api.SearchResult =
-      api.SearchResult(
+    def asApiSearchResult(searchResult: domain.SearchResult[ImageMetaSummaryDTO]): api.SearchResultDTO =
+      api.SearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
@@ -187,8 +187,8 @@ trait SearchConverterService {
         searchResult.results
       )
 
-    def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResult =
-      api.TagsSearchResult(
+    def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO =
+      api.TagsSearchResultDTO(
         searchResult.totalCount,
         searchResult.page.getOrElse(1),
         searchResult.pageSize,
@@ -200,11 +200,11 @@ trait SearchConverterService {
         searchResult: domain.SearchResult[(SearchableImage, MatchedLanguage)],
         language: String,
         user: Option[TokenUser]
-    ): Try[api.SearchResultV3] = {
+    ): Try[api.SearchResultV3DTO] = {
       searchResult.results
         .traverse(r => converterService.asApiImageMetaInformationV3(r._1.domainObject, language.some, user))
         .map(results =>
-          api.SearchResultV3(
+          api.SearchResultV3DTO(
             searchResult.totalCount,
             searchResult.page,
             searchResult.pageSize,

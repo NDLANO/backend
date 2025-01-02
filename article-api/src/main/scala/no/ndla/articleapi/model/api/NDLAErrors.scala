@@ -25,9 +25,9 @@ import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
 trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props with Clock with DataSource =>
+  this: Props & Clock & DataSource =>
 
-  import ErrorHelpers._
+  import ErrorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case a: AccessDeniedException if a.unauthorized =>

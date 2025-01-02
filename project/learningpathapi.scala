@@ -32,20 +32,20 @@ object learningpathapi extends Module {
       "no.ndla.common.model.api.config._"
     ),
     exports = Seq(
-      "Author",
-      "LearningPathStatus",
-      "LearningPathSummaryV2",
-      "LearningPathTagsSummary",
-      "LearningPathV2",
-      "LearningStepContainerSummary",
-      "LearningStepSeqNo",
-      "LearningStepStatus",
-      "LearningStepSummaryV2",
-      "LearningStepV2",
-      "License",
-      "SearchResultV2",
-      "ConfigMetaRestricted",
-      "config.ConfigMeta"
+      "AuthorDTO",
+      "LearningPathStatusDTO",
+      "LearningPathSummaryV2DTO",
+      "LearningPathTagsSummaryDTO",
+      "LearningPathV2DTO",
+      "LearningStepContainerSummaryDTO",
+      "LearningStepSeqNoDTO",
+      "LearningStepStatusDTO",
+      "LearningStepSummaryV2DTO",
+      "LearningStepV2DTO",
+      "LicenseDTO",
+      "SearchResultV2DTO",
+      "ConfigMetaRestrictedDTO",
+      "config.ConfigMetaDTO"
     )
   )
 

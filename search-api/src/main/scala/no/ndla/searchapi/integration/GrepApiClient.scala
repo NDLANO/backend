@@ -30,14 +30,20 @@ trait GrepApiClient {
     import props.GrepApiUrl
     private val GrepApiEndpoint = s"$GrepApiUrl/kl06/v201906"
 
-    private def getAllKjerneelementer: Try[List[GrepElement]] =
-      get[List[GrepElement]](s"$GrepApiEndpoint/kjerneelementer-lk20/").map(_.distinct)
+    private def getAllKjerneelementer: Try[List[GrepKjerneelement]] =
+      get[List[GrepKjerneelement]](s"$GrepApiEndpoint/kjerneelementer-lk20/").map(_.distinct)
 
-    private def getAllKompetansemaal: Try[List[GrepElement]] =
-      get[List[GrepElement]](s"$GrepApiEndpoint/kompetansemaal-lk20/").map(_.distinct)
+    private def getAllKompetansemaal: Try[List[GrepKompetansemaal]] =
+      get[List[GrepKompetansemaal]](s"$GrepApiEndpoint/kompetansemaal-lk20/").map(_.distinct)
 
-    private def getAllTverrfagligeTemaer: Try[List[GrepElement]] =
-      get[List[GrepElement]](s"$GrepApiEndpoint/tverrfaglige-temaer-lk20/").map(_.distinct)
+    private def getAllKompetansemaalSett: Try[List[GrepKompetansemaalSett]] =
+      get[List[GrepKompetansemaalSett]](s"$GrepApiEndpoint/kompetansemaalsett-lk20/").map(_.distinct)
+
+    private def getAllTverrfagligeTemaer: Try[List[GrepTverrfagligTema]] =
+      get[List[GrepTverrfagligTema]](s"$GrepApiEndpoint/tverrfaglige-temaer-lk20/").map(_.distinct)
+
+    private def getAllLaereplaner: Try[List[GrepLaererplan]] =
+      get[List[GrepLaererplan]](s"$GrepApiEndpoint/laereplaner-lk20/").map(_.distinct)
 
     // NOTE: We add a helper so we don't have to provide `()` where this is used :^)
     val getGrepBundle: () => Try[GrepBundle] = () => _getGrepBundle(())
@@ -60,13 +66,23 @@ trait GrepApiClient {
 
       val kjerneelementer    = tryToFuture(() => getAllKjerneelementer)
       val kompetansemaal     = tryToFuture(() => getAllKompetansemaal)
+      val kompetansemaalsett = tryToFuture(() => getAllKompetansemaalSett)
       val tverrfagligeTemaer = tryToFuture(() => getAllTverrfagligeTemaer)
+      val laererplaner       = tryToFuture(() => getAllLaereplaner)
 
       val x = for {
-        f1 <- kjerneelementer
-        f2 <- kompetansemaal
-        f3 <- tverrfagligeTemaer
-      } yield GrepBundle(f1, f2, f3)
+        kjerne         <- kjerneelementer
+        kompetanse     <- kompetansemaal
+        kompetansesett <- kompetansemaalsett
+        tverrfag       <- tverrfagligeTemaer
+        laere          <- laererplaner
+      } yield GrepBundle(
+        kjerneelementer = kjerne,
+        kompetansemaal = kompetanse,
+        kompetansemaalsett = kompetansesett,
+        tverrfagligeTemaer = tverrfag,
+        laereplaner = laere
+      )
 
       Try(Await.result(x, Duration(300, "seconds"))) match {
         case Success(bundle) =>

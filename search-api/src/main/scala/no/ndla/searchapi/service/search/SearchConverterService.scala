@@ -13,8 +13,8 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.{Author, License}
-import no.ndla.common.model.api.draft.Comment
+import no.ndla.common.model.api.draft.CommentDTO
+import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
@@ -67,16 +67,16 @@ trait SearchConverterService {
       document.body()
     }
 
-    private def getArticleTraits(contents: Seq[ArticleContent]): Seq[String] = {
+    private def getArticleTraits(contents: Seq[ArticleContent]): Seq[SearchTrait] = {
       contents.flatMap(content => {
-        val traits = ListBuffer[String]()
+        val traits = ListBuffer[SearchTrait]()
         parseHtml(content.content)
           .select(EmbedTagName)
           .forEach(embed => {
             val dataResource = embed.attr("data-resource")
             dataResource match {
-              case "h5p"                => traits += "H5P"
-              case "brightcove" | "nrk" => traits += "VIDEO"
+              case "h5p"                => traits += SearchTrait.H5p
+              case "brightcove" | "nrk" => traits += SearchTrait.Video
               case "external" | "iframe" =>
                 val dataUrl = embed.attr("data-url")
                 if (
@@ -84,7 +84,13 @@ trait SearchConverterService {
                     .contains("filmiundervisning") || dataUrl.contains("imdb") || dataUrl
                     .contains("nrk") || dataUrl.contains("khanacademy")
                 ) {
-                  traits += "VIDEO"
+                  traits += SearchTrait.Video
+                }
+              case "audio" =>
+                val dataType = embed.attr("data-type")
+                dataType match {
+                  case "podcast" => traits += SearchTrait.Podcast
+                  case _         => traits += SearchTrait.Audio
                 }
               case _ => // Do nothing
             }
@@ -251,6 +257,37 @@ trait SearchConverterService {
 
     }
 
+    def convertGrepTitleToLanguageValue(grepElement: GrepElement): Seq[LanguageValue[String]] =
+      grepElement.tittel.flatMap(gt => {
+        ISO639.get6391CodeFor6392Code(gt.spraak) match {
+          case Some(convertedLanguage) =>
+            Some(LanguageValue(language = convertedLanguage, value = gt.verdi.trim))
+          case None if gt.spraak == "default" => None
+          case None =>
+            logger.warn(s"Could not convert language code '${gt.spraak}' for grep code '${grepElement.kode}'")
+            None
+        }
+      })
+
+    def asSearchableGrep(grepElement: GrepElement): Try[SearchableGrepElement] = {
+      val laererplan = grepElement match {
+        case lp: BelongsToLaerePlan => Some(lp.tilhoerer_laereplan.kode)
+        case _                      => None
+      }
+      val defaultTitle = grepElement.tittel.find(_.spraak == "default")
+      val titles       = convertGrepTitleToLanguageValue(grepElement)
+      val title        = SearchableLanguageValues.fromFields(titles)
+
+      Success(
+        SearchableGrepElement(
+          code = grepElement.kode,
+          title = title,
+          defaultTitle = defaultTitle.map(_.verdi),
+          laereplanCode = laererplan
+        )
+      )
+    }
+
     def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] = {
       val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
@@ -268,9 +305,9 @@ trait SearchConverterService {
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
-      val license = api.learningpath.Copyright(
+      val license = api.learningpath.CopyrightDTO(
         asLearningPathApiLicense(lp.copyright.license),
-        lp.copyright.contributors.map(c => Author(c.`type`, c.name))
+        lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name))
       )
 
       Success(
@@ -332,7 +369,7 @@ trait SearchConverterService {
 
       val users: Seq[String] = c.updatedBy ++ c.editorNotes.map(_.user)
 
-      val status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq)
+      val status = StatusDTO(c.status.current.toString, c.status.other.map(_.toString).toSeq)
 
       Success(
         SearchableConcept(
@@ -529,10 +566,10 @@ trait SearchConverterService {
       }
     }
 
-    private def asLearningPathApiLicense(license: String): License = {
+    private def asLearningPathApiLicense(license: String): LicenseDTO = {
       getLicense(license) match {
-        case Some(l) => License(l.license.toString, Option(l.description), l.url)
-        case None    => License(license, Some("Invalid license"), None)
+        case Some(l) => LicenseDTO(l.license.toString, Option(l.description), l.url)
+        case None    => LicenseDTO(license, Some("Invalid license"), None)
       }
     }
 
@@ -570,9 +607,9 @@ trait SearchConverterService {
       }
     }
 
-    private def getHighlights(highlights: Map[String, Seq[String]]): List[HighlightedField] = {
+    private def getHighlights(highlights: Map[String, Seq[String]]): List[HighlightedFieldDTO] = {
       highlights.map { case (field, matches) =>
-        HighlightedField(
+        HighlightedFieldDTO(
           field = field,
           matches = matches
         )
@@ -587,39 +624,39 @@ trait SearchConverterService {
         contexts: List[SearchableTaxonomyContext],
         language: String,
         filterInactive: Boolean
-    ): List[ApiTaxonomyContext] = {
+    ): List[ApiTaxonomyContextDTO] = {
       val filtered = if (filterInactive) contexts.filter(c => c.isActive) else contexts
       filtered.sortBy(!_.isPrimary).map(c => searchableContextToApiContext(c, language))
     }
 
-    def articleHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
+    def articleHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummaryDTO = {
       val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hit.sourceAsString)
 
       val contexts = filterContexts(searchableArticle.contexts, language, filterInactive)
       val titles = searchableArticle.domainObject.title.map(title =>
-        api.Title(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+        api.TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
       )
       val introductions = searchableArticle.domainObject.introduction.map(intro =>
         api.article
-          .ArticleIntroduction(
+          .ArticleIntroductionDTO(
             Jsoup.parseBodyFragment(intro.introduction).body().text(),
             intro.introduction,
             intro.language
           )
       )
       val metaDescriptions =
-        searchableArticle.metaDescription.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
+        searchableArticle.metaDescription.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
       val visualElements =
-        searchableArticle.visualElement.languageValues.map(lv => api.article.VisualElement(lv.value, lv.language))
+        searchableArticle.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableArticle.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        api.MetaImage(metaImageUrl, image.altText, image.language)
+        api.MetaImageDTO(metaImageUrl, image.altText, image.language)
       })
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
-        api.MetaDescription("", UnknownLanguage.toString)
+        api.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
       val metaImage = findByLanguageOrBestEffort(metaImages, language)
 
@@ -627,7 +664,7 @@ trait SearchConverterService {
 
       val url = s"${props.ExternalApiUrls("article-api")}/${searchableArticle.id}"
 
-      MultiSearchSummary(
+      MultiSearchSummaryDTO(
         id = searchableArticle.id,
         title = title,
         metaDescription = metaDescription,
@@ -658,51 +695,51 @@ trait SearchConverterService {
       )
     }
 
-    def draftHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
+    def draftHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummaryDTO = {
       val searchableDraft = CirceUtil.unsafeParseAs[SearchableDraft](hit.sourceAsString)
 
       val contexts = filterContexts(searchableDraft.contexts, language, filterInactive)
       val titles = searchableDraft.domainObject.title.map(title =>
-        api.Title(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+        api.TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
       )
       val introductions = searchableDraft.domainObject.introduction.map(intro =>
         api.article
-          .ArticleIntroduction(
+          .ArticleIntroductionDTO(
             Jsoup.parseBodyFragment(intro.introduction).body().text(),
             intro.introduction,
             intro.language
           )
       )
       val metaDescriptions =
-        searchableDraft.metaDescription.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
+        searchableDraft.metaDescription.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
       val visualElements =
-        searchableDraft.visualElement.languageValues.map(lv => api.article.VisualElement(lv.value, lv.language))
+        searchableDraft.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableDraft.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        api.MetaImage(metaImageUrl, image.altText, image.language)
+        api.MetaImageDTO(metaImageUrl, image.altText, image.language)
       })
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
-        api.MetaDescription("", UnknownLanguage.toString)
+        api.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
       val metaImage          = findByLanguageOrBestEffort(metaImages, language)
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaDescriptions)
       val url                = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
       val revisions =
-        searchableDraft.revisionMeta.map(m => api.RevisionMeta(m.revisionDate, m.note, m.status.entryName))
-      val responsible = searchableDraft.responsible.map(r => api.DraftResponsible(r.responsibleId, r.lastUpdated))
+        searchableDraft.revisionMeta.map(m => api.RevisionMetaDTO(m.revisionDate, m.note, m.status.entryName))
+      val responsible = searchableDraft.responsible.map(r => api.DraftResponsibleDTO(r.responsibleId, r.lastUpdated))
       val comments =
         searchableDraft.domainObject.comments.map(c =>
-          Comment(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
+          CommentDTO(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
         )
 
       val resourceTypeName = searchableDraft.resourceTypeName.getLanguageOrDefault(language)
       val parentTopicName  = searchableDraft.parentTopicName.getLanguageOrDefault(language)
       val primaryRootName  = searchableDraft.primaryRoot.getLanguageOrDefault(language)
 
-      MultiSearchSummary(
+      MultiSearchSummaryDTO(
         id = searchableDraft.id,
         title = title,
         metaDescription = metaDescription,
@@ -711,7 +748,7 @@ trait SearchConverterService {
         contexts = contexts,
         supportedLanguages = supportedLanguages,
         learningResourceType = searchableDraft.learningResourceType,
-        status = Some(api.Status(searchableDraft.draftStatus.current, searchableDraft.draftStatus.other)),
+        status = Some(api.StatusDTO(searchableDraft.draftStatus.current, searchableDraft.draftStatus.other)),
         traits = searchableDraft.traits,
         score = hit.score,
         highlights = getHighlights(hit.highlight),
@@ -733,34 +770,41 @@ trait SearchConverterService {
       )
     }
 
-    def learningpathHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
+    def learningpathHitAsMultiSummary(
+        hit: SearchHit,
+        language: String,
+        filterInactive: Boolean
+    ): MultiSearchSummaryDTO = {
       val searchableLearningPath = CirceUtil.unsafeParseAs[SearchableLearningPath](hit.sourceAsString)
 
       val contexts = filterContexts(searchableLearningPath.contexts, language, filterInactive)
-      val titles   = searchableLearningPath.title.languageValues.map(lv => api.Title(lv.value, lv.value, lv.language))
+      val titles =
+        searchableLearningPath.title.languageValues.map(lv => api.TitleWithHtmlDTO(lv.value, lv.value, lv.language))
       val metaDescriptions =
-        searchableLearningPath.description.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
+        searchableLearningPath.description.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
       val tags =
-        searchableLearningPath.tags.languageValues.map(lv => api.learningpath.LearningPathTags(lv.value, lv.language))
+        searchableLearningPath.tags.languageValues.map(lv =>
+          api.learningpath.LearningPathTagsDTO(lv.value, lv.language)
+        )
 
       val supportedLanguages = getSupportedLanguages(titles, metaDescriptions, tags)
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
-        api.MetaDescription("", UnknownLanguage.toString)
+        api.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
       val url = s"${props.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
       val metaImage =
         searchableLearningPath.coverPhotoId.map(id =>
-          api.MetaImage(
+          api.MetaImageDTO(
             url = s"${props.ExternalApiUrls("raw-image")}/$id",
             alt = "",
             language = language
           )
         )
 
-      MultiSearchSummary(
+      MultiSearchSummaryDTO(
         id = searchableLearningPath.id,
         title = title,
         metaDescription = metaDescription,
@@ -769,7 +813,7 @@ trait SearchConverterService {
         contexts = contexts,
         supportedLanguages = supportedLanguages,
         learningResourceType = LearningResourceType.LearningPath,
-        status = Some(api.Status(searchableLearningPath.status, Seq.empty)),
+        status = Some(api.StatusDTO(searchableLearningPath.status, Seq.empty)),
         traits = List.empty,
         score = hit.score,
         highlights = getHighlights(hit.highlight),
@@ -791,30 +835,32 @@ trait SearchConverterService {
       )
     }
 
-    def conceptHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummary = {
+    def conceptHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummaryDTO = {
       val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hit.sourceAsString)
 
-      val titles = searchableConcept.title.languageValues.map(lv => api.Title(lv.value, lv.value, lv.language))
+      val titles =
+        searchableConcept.title.languageValues.map(lv => api.TitleWithHtmlDTO(lv.value, lv.value, lv.language))
 
-      val content = searchableConcept.content.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
+      val content = searchableConcept.content.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
       val tags    = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, content, tags)
 
-      val title = findByLanguageOrBestEffort(titles, language).getOrElse(api.Title("", "", UnknownLanguage.toString))
-      val url   = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
+      val title =
+        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
+      val url = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
       val metaImages = searchableConcept.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        api.MetaImage(metaImageUrl, image.altText, image.language)
+        api.MetaImageDTO(metaImageUrl, image.altText, image.language)
       })
       val metaImage = findByLanguageOrBestEffort(metaImages, language)
 
-      val responsible = searchableConcept.responsible.map(r => api.DraftResponsible(r.responsibleId, r.lastUpdated))
+      val responsible = searchableConcept.responsible.map(r => api.DraftResponsibleDTO(r.responsibleId, r.lastUpdated))
       val metaDescription = findByLanguageOrBestEffort(content, language).getOrElse(
-        api.MetaDescription("", UnknownLanguage.toString)
+        api.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
 
-      MultiSearchSummary(
+      MultiSearchSummaryDTO(
         id = searchableConcept.id,
         title = title,
         metaDescription = metaDescription,
@@ -848,7 +894,7 @@ trait SearchConverterService {
     private def searchableContextToApiContext(
         context: SearchableTaxonomyContext,
         language: String
-    ): ApiTaxonomyContext = {
+    ): ApiTaxonomyContextDTO = {
       val subjectName = findByLanguageOrBestEffort(context.root.languageValues, language).map(_.value).getOrElse("")
       val breadcrumbs = findByLanguageOrBestEffort(context.breadcrumbs.languageValues, language)
         .map(_.value)
@@ -858,12 +904,12 @@ trait SearchConverterService {
       val resourceTypes = context.resourceTypes.map(rt => {
         val name = findByLanguageOrBestEffort(rt.name.languageValues, language)
           .getOrElse(LanguageValue(UnknownLanguage.toString, ""))
-        TaxonomyResourceType(id = rt.id, name = name.value, language = name.language)
+        TaxonomyResourceTypeDTO(id = rt.id, name = name.value, language = name.language)
       })
 
       val relevance = findByLanguageOrBestEffort(context.relevance.languageValues, language).map(_.value).getOrElse("")
 
-      ApiTaxonomyContext(
+      ApiTaxonomyContextDTO(
         publicId = context.publicId,
         root = subjectName,
         rootId = context.rootId,
@@ -955,8 +1001,8 @@ trait SearchConverterService {
       }
     }
 
-    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResult =
-      api.MultiSearchResult(
+    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO =
+      api.MultiSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
@@ -966,8 +1012,8 @@ trait SearchConverterService {
         searchResult.aggregations.map(toApiMultiTermsAggregation)
       )
 
-    def toApiGroupMultiSearchResult(group: String, searchResult: domain.SearchResult): GroupSearchResult =
-      api.GroupSearchResult(
+    def toApiGroupMultiSearchResult(group: String, searchResult: domain.SearchResult): GroupSearchResultDTO =
+      api.GroupSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,

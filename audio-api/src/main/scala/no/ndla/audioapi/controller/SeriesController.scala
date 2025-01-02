@@ -89,7 +89,7 @@ trait SeriesController {
       .summary("Find series")
       .description("Shows all the series. Also searchable.")
       .in("search")
-      .in(jsonBody[SeriesSearchParams])
+      .in(jsonBody[SeriesSearchParamsDTO])
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { searchParams =>
@@ -112,7 +112,7 @@ trait SeriesController {
       .in(pathSeriesId)
       .in(language)
       .errorOut(errorOutputsFor(400, 404))
-      .out(jsonBody[Series])
+      .out(jsonBody[SeriesDTO])
       .serverLogicPure { case (id, language) =>
         readService.seriesWithId(id, language)
       }
@@ -137,7 +137,7 @@ trait SeriesController {
       .in(pathSeriesId)
       .in("language")
       .in(pathLanguage)
-      .out(noContentOrBodyOutput[Series])
+      .out(noContentOrBodyOutput[SeriesDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => input =>
@@ -152,9 +152,9 @@ trait SeriesController {
     def postNewSeries: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Create a new series with meta information")
       .description("Create a new series with meta information")
-      .in(jsonBody[NewSeries])
+      .in(jsonBody[NewSeriesDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(statusCode(StatusCode.Created).and(jsonBody[Series]))
+      .out(statusCode(StatusCode.Created).and(jsonBody[SeriesDTO]))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => newSeries =>
         writeService
@@ -166,8 +166,8 @@ trait SeriesController {
       .summary("Upload audio for a different language or update metadata for an existing audio-file")
       .description("Update the metadata for an existing language, or upload metadata for a new language.")
       .in(pathSeriesId)
-      .in(jsonBody[NewSeries])
-      .out(jsonBody[Series])
+      .in(jsonBody[NewSeriesDTO])
+      .out(jsonBody[SeriesDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => input =>
@@ -177,7 +177,7 @@ trait SeriesController {
 
     private case class SummaryWithHeader(
         @jsonbody
-        body: SeriesSummarySearchResult,
+        body: SeriesSummarySearchResultDTO,
         @header("search-context")
         searchContext: Option[String]
     )

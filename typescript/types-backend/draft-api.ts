@@ -15,65 +15,66 @@ export enum DraftSortEnum {
 
 export type Grade = (1 | 2 | 3 | 4 | 5)
 
-export interface IArticle {
+export interface IArticleContentDTO {
+  content: string
+  language: string
+}
+
+export interface IArticleDTO {
   id: number
   oldNdlaUrl?: string
   revision: number
-  status: IStatus
-  title?: IArticleTitle
-  content?: IArticleContent
-  copyright?: IDraftCopyright
-  tags?: IArticleTag
-  requiredLibraries: IRequiredLibrary[]
-  visualElement?: IVisualElement
-  introduction?: IArticleIntroduction
-  metaDescription?: IArticleMetaDescription
-  metaImage?: IArticleMetaImage
+  status: IStatusDTO
+  title?: IArticleTitleDTO
+  content?: IArticleContentDTO
+  copyright?: IDraftCopyrightDTO
+  tags?: IArticleTagDTO
+  requiredLibraries: IRequiredLibraryDTO[]
+  visualElement?: IVisualElementDTO
+  introduction?: IArticleIntroductionDTO
+  metaDescription?: IArticleMetaDescriptionDTO
+  metaImage?: IArticleMetaImageDTO
   created: string
   updated: string
   updatedBy: string
   published: string
   articleType: string
   supportedLanguages: string[]
-  notes: IEditorNote[]
+  notes: IEditorNoteDTO[]
   editorLabels: string[]
   grepCodes: string[]
   conceptIds: number[]
   availability: string
-  relatedContent: (IRelatedContentLink | number)[]
-  revisions: IRevisionMeta[]
-  responsible?: IDraftResponsible
+  relatedContent: (IRelatedContentLinkDTO | number)[]
+  revisions: IRevisionMetaDTO[]
+  responsible?: IDraftResponsibleDTO
   slug?: string
-  comments: IComment[]
+  comments: ICommentDTO[]
   prioritized: boolean
   priority: string
   started: boolean
-  qualityEvaluation?: IQualityEvaluation
+  qualityEvaluation?: IQualityEvaluationDTO
+  disclaimer?: IDisclaimerDTO
 }
 
-export interface IArticleContent {
-  content: string
-  language: string
-}
-
-export interface IArticleIntroduction {
+export interface IArticleIntroductionDTO {
   introduction: string
   htmlIntroduction: string
   language: string
 }
 
-export interface IArticleMetaDescription {
+export interface IArticleMetaDescriptionDTO {
   metaDescription: string
   language: string
 }
 
-export interface IArticleMetaImage {
+export interface IArticleMetaImageDTO {
   url: string
   alt: string
   language: string
 }
 
-export interface IArticleSearchParams {
+export interface IArticleSearchParamsDTO {
   query?: string
   language?: string
   license?: string
@@ -87,40 +88,40 @@ export interface IArticleSearchParams {
   grepCodes?: string[]
 }
 
-export interface IArticleSummary {
+export interface IArticleSummaryDTO {
   id: number
-  title: IArticleTitle
-  visualElement?: IVisualElement
-  introduction?: IArticleIntroduction
+  title: IArticleTitleDTO
+  visualElement?: IVisualElementDTO
+  introduction?: IArticleIntroductionDTO
   url: string
   license: string
   articleType: string
   supportedLanguages: string[]
-  tags?: IArticleTag
+  tags?: IArticleTagDTO
   notes: string[]
   users: string[]
   grepCodes: string[]
-  status: IStatus
+  status: IStatusDTO
   updated: string
 }
 
-export interface IArticleTag {
+export interface IArticleTagDTO {
   tags: string[]
   language: string
 }
 
-export interface IArticleTitle {
+export interface IArticleTitleDTO {
   title: string
   htmlTitle: string
   language: string
 }
 
-export interface IAuthor {
+export interface IAuthorDTO {
   type: string
   name: string
 }
 
-export interface IComment {
+export interface ICommentDTO {
   id: string
   content: string
   created: string
@@ -129,43 +130,48 @@ export interface IComment {
   solved: boolean
 }
 
-export interface IDraftCopyright {
-  license?: ILicense
+export interface IDisclaimerDTO {
+  disclaimer: string
+  language: string
+}
+
+export interface IDraftCopyrightDTO {
+  license?: ILicenseDTO
   origin?: string
-  creators: IAuthor[]
-  processors: IAuthor[]
-  rightsholders: IAuthor[]
+  creators: IAuthorDTO[]
+  processors: IAuthorDTO[]
+  rightsholders: IAuthorDTO[]
   validFrom?: string
   validTo?: string
   processed: boolean
 }
 
-export interface IDraftResponsible {
+export interface IDraftResponsibleDTO {
   responsibleId: string
   lastUpdated: string
 }
 
-export interface IEditorNote {
+export interface IEditorNoteDTO {
   note: string
   user: string
-  status: IStatus
+  status: IStatusDTO
   timestamp: string
 }
 
-export interface IGrepCodesSearchResult {
+export interface IGrepCodesSearchResultDTO {
   totalCount: number
   page: number
   pageSize: number
   results: string[]
 }
 
-export interface ILicense {
+export interface ILicenseDTO {
   license: string
   description?: string
   url?: string
 }
 
-export interface INewArticle {
+export interface INewArticleDTO {
   language: string
   title: string
   published?: string
@@ -173,78 +179,79 @@ export interface INewArticle {
   tags?: string[]
   introduction?: string
   metaDescription?: string
-  metaImage?: INewArticleMetaImage
+  metaImage?: INewArticleMetaImageDTO
   visualElement?: string
-  copyright?: IDraftCopyright
-  requiredLibraries?: IRequiredLibrary[]
+  copyright?: IDraftCopyrightDTO
+  requiredLibraries?: IRequiredLibraryDTO[]
   articleType: string
   notes?: string[]
   editorLabels?: string[]
   grepCodes?: string[]
   conceptIds?: number[]
   availability?: string
-  relatedContent?: (IRelatedContentLink | number)[]
-  revisionMeta?: IRevisionMeta[]
+  relatedContent?: (IRelatedContentLinkDTO | number)[]
+  revisionMeta?: IRevisionMetaDTO[]
   responsibleId?: string
   slug?: string
-  comments?: INewComment[]
+  comments?: INewCommentDTO[]
   prioritized?: boolean
   priority?: string
-  qualityEvaluation?: IQualityEvaluation
+  qualityEvaluation?: IQualityEvaluationDTO
+  disclaimer?: string
 }
 
-export interface INewArticleMetaImage {
+export interface INewArticleMetaImageDTO {
   id: string
   alt: string
 }
 
-export interface INewComment {
+export interface INewCommentDTO {
   content: string
   isOpen?: boolean
 }
 
-export interface IQualityEvaluation {
+export interface IQualityEvaluationDTO {
   grade: Grade
   note?: string
 }
 
-export interface IRelatedContentLink {
+export interface IRelatedContentLinkDTO {
   title: string
   url: string
 }
 
-export interface IRequiredLibrary {
+export interface IRequiredLibraryDTO {
   mediaType: string
   name: string
   url: string
 }
 
-export interface IRevisionMeta {
+export interface IRevisionMetaDTO {
   id?: string
   revisionDate: string
   note: string
   status: string
 }
 
-export interface ISavedSearch {
+export interface ISavedSearchDTO {
   searchUrl: string
   searchPhrase: string
 }
 
-export interface ISearchResult {
+export interface ISearchResultDTO {
   totalCount: number
   page: number
   pageSize: number
   language: string
-  results: IArticleSummary[]
+  results: IArticleSummaryDTO[]
 }
 
-export interface IStatus {
+export interface IStatusDTO {
   current: string
   other: string[]
 }
 
-export interface ITagsSearchResult {
+export interface ITagsSearchResultDTO {
   totalCount: number
   page: number
   pageSize: number
@@ -252,7 +259,7 @@ export interface ITagsSearchResult {
   results: string[]
 }
 
-export interface IUpdatedArticle {
+export interface IUpdatedArticleDTO {
   revision: number
   language?: string
   title?: string
@@ -262,10 +269,10 @@ export interface IUpdatedArticle {
   tags?: string[]
   introduction?: string
   metaDescription?: string
-  metaImage: UpdateOrDeleteNewArticleMetaImage
+  metaImage: UpdateOrDeleteNewArticleMetaImageDTO
   visualElement?: string
-  copyright?: IDraftCopyright
-  requiredLibraries?: IRequiredLibrary[]
+  copyright?: IDraftCopyrightDTO
+  requiredLibraries?: IRequiredLibraryDTO[]
   articleType?: string
   notes?: string[]
   editorLabels?: string[]
@@ -273,52 +280,53 @@ export interface IUpdatedArticle {
   conceptIds?: number[]
   createNewVersion?: boolean
   availability?: string
-  relatedContent?: (IRelatedContentLink | number)[]
-  revisionMeta?: IRevisionMeta[]
+  relatedContent?: (IRelatedContentLinkDTO | number)[]
+  revisionMeta?: IRevisionMetaDTO[]
   responsibleId: UpdateOrDeleteString
   slug?: string
-  comments?: IUpdatedComment[]
+  comments?: IUpdatedCommentDTO[]
   prioritized?: boolean
   priority?: string
-  qualityEvaluation?: IQualityEvaluation
+  qualityEvaluation?: IQualityEvaluationDTO
+  disclaimer?: string
 }
 
-export interface IUpdatedComment {
+export interface IUpdatedCommentDTO {
   id?: string
   content: string
   isOpen?: boolean
   solved?: boolean
 }
 
-export interface IUpdatedUserData {
-  savedSearches?: ISavedSearch[]
+export interface IUpdatedUserDataDTO {
+  savedSearches?: ISavedSearchDTO[]
   latestEditedArticles?: string[]
   latestEditedConcepts?: string[]
   favoriteSubjects?: string[]
 }
 
-export interface IUploadedFile {
+export interface IUploadedFileDTO {
   filename: string
   mime: string
   extension: string
   path: string
 }
 
-export interface IUserData {
+export interface IUserDataDTO {
   userId: string
-  savedSearches?: ISavedSearch[]
+  savedSearches?: ISavedSearchDTO[]
   latestEditedArticles?: string[]
   latestEditedConcepts?: string[]
   favoriteSubjects?: string[]
 }
 
-export interface IVisualElement {
+export interface IVisualElementDTO {
   visualElement: string
   language: string
 }
 
 export type Sort = DraftSortEnum
 
-export type UpdateOrDeleteNewArticleMetaImage = (null | undefined | INewArticleMetaImage)
+export type UpdateOrDeleteNewArticleMetaImageDTO = (null | undefined | INewArticleMetaImageDTO)
 
 export type UpdateOrDeleteString = (null | undefined | string)

@@ -53,6 +53,5 @@ trait ErrorHandling extends TapirErrorHandling {
 }
 
 class ApiSearchException(val apiName: String, message: String) extends RuntimeException(message)
-case class ElasticIndexingException(message: String)           extends RuntimeException(message)
 case class TaxonomyException(message: String)                  extends RuntimeException(message)
 case class GrepException(message: String)                      extends RuntimeException(message)

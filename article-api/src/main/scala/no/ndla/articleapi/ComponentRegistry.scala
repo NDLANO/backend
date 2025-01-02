@@ -17,6 +17,7 @@ import no.ndla.articleapi.db.migrationwithdependencies.{
   V20__UpdateH5PDomainForFF,
   V22__UpdateH5PDomainForFFVisualElement,
   V33__ConvertLanguageUnknown,
+  V55__SetHideBylineForImagesNotCopyrighted,
   V8__CopyrightFormatUpdated,
   V9__TranslateUntranslatedAuthors
 }
@@ -65,7 +66,9 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with DBArticle
     with DBMigrator
     with SwaggerDocControllerConfig
-    with FrontpageApiClient {
+    with FrontpageApiClient
+    with ImageApiClient
+    with V55__SetHideBylineForImagesNotCopyrighted {
   override val props: ArticleApiProperties = properties
   override val migrator: DBMigrator = DBMigrator(
     new R__SetArticleLanguageFromTaxonomy(props),
@@ -74,7 +77,8 @@ class ComponentRegistry(properties: ArticleApiProperties)
     new V9__TranslateUntranslatedAuthors,
     new V20__UpdateH5PDomainForFF,
     new V22__UpdateH5PDomainForFFVisualElement,
-    new V33__ConvertLanguageUnknown(props)
+    new V33__ConvertLanguageUnknown(props),
+    new V55__SetHideBylineForImagesNotCopyrighted
   )
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
@@ -102,6 +106,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
   lazy val myndlaApiClient     = new MyNDLAApiClient
   lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val frontpageApiClient  = new FrontpageApiClient
+  lazy val imageApiClient      = new ImageApiClient
 
   lazy val clock = new SystemClock
 

@@ -8,7 +8,7 @@
 package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.MyNDLABundle
+import no.ndla.common.model.api.MyNDLABundleDTO
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -50,7 +50,15 @@ import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
+import no.ndla.searchapi.model.grep.{
+  BelongsToObj,
+  GrepBundle,
+  GrepKjerneelement,
+  GrepKompetansemaal,
+  GrepLaererplan,
+  GrepTitle,
+  GrepTverrfagligTema
+}
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy.*
@@ -201,7 +209,8 @@ object TestData {
     Availability.everyone,
     Seq.empty,
     None,
-    slug = None
+    slug = None,
+    None
   )
 
   val sampleDomainArticle: Article = Article(
@@ -226,7 +235,8 @@ object TestData {
     Availability.everyone,
     Seq.empty,
     None,
-    slug = None
+    slug = None,
+    None
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -251,7 +261,8 @@ object TestData {
     Availability.everyone,
     Seq.empty,
     None,
-    slug = None
+    slug = None,
+    None
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -533,7 +544,8 @@ object TestData {
     availability = Availability.everyone,
     relatedContent = Seq.empty,
     None,
-    slug = None
+    slug = None,
+    None
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -567,7 +579,8 @@ object TestData {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    None
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -629,7 +642,8 @@ object TestData {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = None
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -1603,26 +1617,30 @@ object TestData {
 
   val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
 
-  val myndlaTestBundle: MyNDLABundle = MyNDLABundle(Map.empty)
+  val myndlaTestBundle: MyNDLABundleDTO = MyNDLABundleDTO(Map.empty)
 
   val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
-    tverrfagligeTemaer = List.empty
+    kompetansemaalsett = List.empty,
+    tverrfagligeTemaer = List.empty,
+    laereplaner = List.empty
   )
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
-      GrepElement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing"))),
-      GrepElement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")))
+      GrepKjerneelement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing")), BelongsToObj("LP1")),
+      GrepKjerneelement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")), BelongsToObj("LP1"))
     ),
     kompetansemaal = List(
-      GrepElement(
+      GrepKompetansemaal(
         "KM123",
-        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
+        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")),
+        BelongsToObj("LP1")
       )
     ),
-    tverrfagligeTemaer = List(GrepElement("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap"))))
+    tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
+    laereplaner = List(GrepLaererplan("LP1", Seq(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))))
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -1640,6 +1658,7 @@ object TestData {
     supportedLanguages = List.empty,
     relevanceIds = List.empty,
     grepCodes = List.empty,
+    traits = List.empty,
     shouldScroll = false,
     filterByNoResourceType = false,
     aggregatePaths = List.empty,
@@ -1669,6 +1688,7 @@ object TestData {
     statusFilter = List.empty,
     userFilter = List.empty,
     grepCodes = List.empty,
+    traits = List.empty,
     shouldScroll = false,
     searchDecompounded = false,
     aggregatePaths = List.empty,

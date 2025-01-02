@@ -15,7 +15,6 @@ class ImportException(message: String) extends RuntimeException(message)
 case class InvalidUrlException(message: String) extends RuntimeException(message)
 
 class ResultWindowTooLargeException(message: String) extends RuntimeException(message)
-case class ElasticIndexingException(message: String) extends RuntimeException(message)
 
 class ImageStorageException(message: String)         extends RuntimeException(message)
 case class ImageConversionException(message: String) extends RuntimeException(message)

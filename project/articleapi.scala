@@ -32,15 +32,14 @@ object articleapi extends Module {
       "no.ndla.common.model.domain.Availability"
     ),
     exports = Seq(
-      "ArticleV2",
-      "ArticleSearchParams",
-      "ArticleSummaryV2",
+      "ArticleV2DTO",
+      "ArticleSearchParamsDTO",
+      "ArticleSummaryV2DTO",
       "Availability",
-      "SearchResultV2",
-      "TagsSearchResult",
-      "ArticleDump",
-      "ValidationError",
-      "ArticleIds"
+      "SearchResultV2DTO",
+      "TagsSearchResultDTO",
+      "ArticleDumpDTO",
+      "ArticleIdsDTO"
     )
   )
 

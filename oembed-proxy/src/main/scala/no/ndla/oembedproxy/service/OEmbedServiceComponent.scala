@@ -11,7 +11,7 @@ package no.ndla.oembedproxy.service
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
-import no.ndla.oembedproxy.model.{InvalidUrlException, OEmbed, OEmbedProvider, ProviderNotSupportedException}
+import no.ndla.oembedproxy.model.{InvalidUrlException, OEmbedDTO, OEmbedProvider, ProviderNotSupportedException}
 import org.log4s.MDC
 import sttp.client3.quick.*
 import sttp.model.HttpVersion
@@ -41,9 +41,9 @@ trait OEmbedServiceComponent {
         maxWidth: Option[String],
         maxHeight: Option[String],
         retryCount: Int
-    ): Try[OEmbed] = {
+    ): Try[OEmbedDTO] = {
       val uri = uri"${provider.requestUrl(url, maxWidth, maxHeight)}"
-      ndlaClient.fetch[OEmbed](
+      ndlaClient.fetch[OEmbedDTO](
         quickRequest
           .get(uri)
           .followRedirects(true)
@@ -68,7 +68,7 @@ trait OEmbedServiceComponent {
       }
     }
 
-    def get(url: String, maxWidth: Option[String], maxHeight: Option[String]): Try[OEmbed] = {
+    def get(url: String, maxWidth: Option[String], maxHeight: Option[String]): Try[OEmbedDTO] = {
       io.lemonlabs.uri.Uri.parseTry(url) match {
         case Failure(_) => Failure(InvalidUrlException(s"$url does not seem to be a valid url."))
         case Success(_) =>

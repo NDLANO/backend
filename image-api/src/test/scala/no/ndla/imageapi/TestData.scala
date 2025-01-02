@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.{api => commonApi}
 import no.ndla.imageapi.model.api
-import no.ndla.imageapi.model.api.ImageMetaInformationV2
+import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
 import no.ndla.imageapi.model.domain._
 import no.ndla.mapping
 
@@ -66,30 +66,30 @@ trait TestData {
       editorNotes = Seq.empty
     )
 
-    val apiElg: ImageMetaInformationV2 = api.ImageMetaInformationV2(
+    val apiElg: ImageMetaInformationV2DTO = api.ImageMetaInformationV2DTO(
       "1",
       "Elg.jpg",
-      api.ImageTitle("Elg i busk", "nb"),
-      api.ImageAltText("Elg i busk", "nb"),
+      api.ImageTitleDTO("Elg i busk", "nb"),
+      api.ImageAltTextDTO("Elg i busk", "nb"),
       "Elg.jpg",
       2865539,
       "image/jpeg",
-      commonApi.Copyright(
-        commonApi.License(
+      commonApi.CopyrightDTO(
+        commonApi.LicenseDTO(
           "by-nc-sa",
           Some("Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic"),
           Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
         ),
         Some("http://www.scanpix.no"),
-        List(commonApi.Author("Fotograf", "Test Testesen")),
+        List(commonApi.AuthorDTO("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
         false
       ),
-      api.ImageTag(List("rovdyr", "elg"), "nb"),
-      api.ImageCaption("Elg i busk", "nb"),
+      api.ImageTagDTO(List("rovdyr", "elg"), "nb"),
+      api.ImageCaptionDTO("Elg i busk", "nb"),
       List("nb"),
       updated(),
       "ndla123",
@@ -98,30 +98,30 @@ trait TestData {
       None
     )
 
-    val apiBjorn: ImageMetaInformationV2 = ImageMetaInformationV2(
+    val apiBjorn: ImageMetaInformationV2DTO = ImageMetaInformationV2DTO(
       id = "2",
       metaUrl = "",
-      title = api.ImageTitle("Bjørn i busk", "nb"),
-      alttext = api.ImageAltText("Elg i busk", "nb"),
+      title = api.ImageTitleDTO("Bjørn i busk", "nb"),
+      alttext = api.ImageAltTextDTO("Elg i busk", "nb"),
       imageUrl = "",
       size = 141134,
       contentType = "image/jpeg",
-      copyright = commonApi.Copyright(
-        commonApi.License(
+      copyright = commonApi.CopyrightDTO(
+        commonApi.LicenseDTO(
           "by-nc-sa",
           Some("Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic"),
           Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
         ),
         Some("http://www.scanpix.no"),
-        List(commonApi.Author("Fotograf", "Test Testesen")),
+        List(commonApi.AuthorDTO("Fotograf", "Test Testesen")),
         List(),
         List(),
         None,
         None,
         false
       ),
-      tags = api.ImageTag(List("rovdyr", "bjørn"), "nb"),
-      caption = api.ImageCaption("Bjørn i busk", "nb"),
+      tags = api.ImageTagDTO(List("rovdyr", "bjørn"), "nb"),
+      caption = api.ImageCaptionDTO("Bjørn i busk", "nb"),
       supportedLanguages = Seq("nb"),
       created = updated(),
       createdBy = "ndla124",
