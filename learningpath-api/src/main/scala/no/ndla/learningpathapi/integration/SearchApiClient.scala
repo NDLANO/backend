@@ -20,7 +20,7 @@ import sttp.client3.Response
 
 import scala.annotation.unused
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
@@ -33,7 +33,7 @@ trait SearchApiClient {
     @unused
     private val SearchApiBaseUrl = s"http://$SearchApiHost"
 
-    def deleteLearningPathDocument(id: Long, user: Option[TokenUser]): Try[_] = {
+    def deleteLearningPathDocument(id: Long, user: Option[TokenUser]): Try[?] = {
       val req = quickRequest
         .delete(uri"http://$SearchApiHost/intern/learningpath/$id")
         .readTimeout(IndexTimeout)
@@ -41,9 +41,9 @@ trait SearchApiClient {
       doRawRequest(req, user)
     }
 
-    def indexLearningPathDocument(document: LearningPath, user: Option[TokenUser]): Future[Try[_]] = {
-      val idString    = document.id.map(_.toString).getOrElse("<missing id>")
-      implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
+    def indexLearningPathDocument(document: LearningPath, user: Option[TokenUser]): Future[Try[?]] = {
+      val idString                              = document.id.map(_.toString).getOrElse("<missing id>")
+      implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
       val future = Future {
         val body = CirceUtil.toJsonString(document)
 
