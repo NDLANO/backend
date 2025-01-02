@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type GrepResultDTO = (IGrepKompetansemaalDTO | IGrepKjerneelementDTO | IGrepLaererplanDTO | IGrepTverrfagligTemaDTO | IGrepKompetansemaalSettDTO)
+
 export type GrepSort = ("-relevance" | "relevance" | "-title" | "title" | "-code" | "code")
 
 export interface IApiTaxonomyContextDTO {
@@ -67,6 +69,11 @@ export interface ICommentDTO {
   solved: boolean
 }
 
+export interface IDescriptionDTO {
+  description: string
+  language: string
+}
+
 export interface IDraftResponsibleDTO {
   responsibleId: string
   lastUpdated: string
@@ -110,10 +117,50 @@ export interface IDraftSearchParamsDTO {
   resultTypes?: SearchType[]
 }
 
-export interface IGrepResultDTO {
+export interface IGrepKjerneelementDTO {
   code: string
   title: ITitleDTO
-  laereplanCode?: string
+  description: IDescriptionDTO
+  laereplan: IGrepLaererplanDTO
+  type: "GrepKjerneelementDTO"
+}
+
+export interface IGrepKompetansemaalDTO {
+  code: string
+  title: ITitleDTO
+  laereplan: IGrepLaererplanDTO
+  kompetansemaalSett: IGrepReferencedKompetansemaalSettDTO
+  tverrfagligeTemaer: IGrepTverrfagligTemaDTO[]
+  kjerneelementer: IGrepReferencedKjerneelementDTO[]
+  type: "GrepKompetansemaalDTO"
+}
+
+export interface IGrepKompetansemaalSettDTO {
+  code: string
+  title: ITitleDTO
+  kompetansemaal: IGrepReferencedKompetansemaalDTO[]
+  type: "GrepKompetansemaalSettDTO"
+}
+
+export interface IGrepLaererplanDTO {
+  code: string
+  title: ITitleDTO
+  type: "GrepLaererplanDTO"
+}
+
+export interface IGrepReferencedKjerneelementDTO {
+  code: string
+  title: string
+}
+
+export interface IGrepReferencedKompetansemaalDTO {
+  code: string
+  title: string
+}
+
+export interface IGrepReferencedKompetansemaalSettDTO {
+  code: string
+  title: string
 }
 
 export interface IGrepSearchInputDTO {
@@ -131,7 +178,12 @@ export interface IGrepSearchResultsDTO {
   page: number
   pageSize: number
   language: string
-  results: IGrepResultDTO[]
+  results: GrepResultDTO[]
+}
+
+export interface IGrepTverrfagligTemaDTO {
+  code: string
+  title: ITitleDTO
 }
 
 export interface IGroupSearchResultDTO {

@@ -17,19 +17,16 @@ import com.sksamuel.elastic4s.requests.searches.sort.SortOrder.{Asc, Desc}
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.language.Language
-import no.ndla.language.Language.{AllLanguages, findByLanguageOrBestEffort}
+import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.search.model.LanguageValue
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
-import no.ndla.searchapi.model.api.TitleDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.*
 import no.ndla.searchapi.model.api.grep.{GrepResultDTO, GrepSearchResultsDTO, GrepSortDTO}
 import no.ndla.searchapi.model.search.{SearchType, SearchableGrepElement}
 
-import scala.util.{Success, Try}
+import scala.util.Try
 
 trait GrepSearchService {
   this: Props & SearchService & GrepIndexService & BaseIndexService & Elastic4sClient & SearchConverterService =>
@@ -153,17 +150,7 @@ trait GrepSearchService {
     private def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
       val jsonString = hit.sourceAsString
       val searchable = CirceUtil.tryParseAs[SearchableGrepElement](jsonString).?
-      val titleLv = findByLanguageOrBestEffort(searchable.title.languageValues, language)
-        .getOrElse(LanguageValue(Language.DefaultLanguage, ""))
-      val title = TitleDTO(title = titleLv.value, language = titleLv.language)
-
-      Success(
-        GrepResultDTO(
-          code = searchable.code,
-          title = title,
-          laereplanCode = searchable.laereplanCode
-        )
-      )
+      GrepResultDTO.fromSearchable(searchable, language)
     }
 
     private def getGrepHits(response: RequestSuccess[SearchResponse], language: String): Try[List[GrepResultDTO]] = {

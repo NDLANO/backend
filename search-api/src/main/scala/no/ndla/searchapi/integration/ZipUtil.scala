@@ -25,7 +25,12 @@ object ZipUtil {
         .continually(zis.read(buffer))
         .takeWhile(_ != -1)
         .foreach(fout.write(buffer, 0, _))
+
+      fout.close()
     }
+
+    zis.close()
+    fis.close()
 
     if (deleteArchive) zipFile.delete()
 

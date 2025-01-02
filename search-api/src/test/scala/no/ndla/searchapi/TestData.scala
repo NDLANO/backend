@@ -58,7 +58,7 @@ import no.ndla.searchapi.model.grep.{
   GrepLaererplan,
   GrepTitle,
   GrepTverrfagligTema,
-  TitleObj
+  GrepTextObj
 }
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -1587,27 +1587,27 @@ object TestData {
   )
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
-    kjerneelementer = List(
-      GrepKjerneelement(
-        "KE12",
-        TitleObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
-        BelongsToObj("LP1")
-      ),
-      GrepKjerneelement(
-        "KE34",
-        TitleObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
-        BelongsToObj("LP1")
-      )
-    ),
-    kompetansemaal = List(
-      GrepKompetansemaal(
-        "KM123",
-        TitleObj(List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))),
-        BelongsToObj("LP1")
-      )
-    ),
-    tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
-    laereplaner = List(GrepLaererplan("LP1", TitleObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)")))))
+//    kjerneelementer = List(
+//      GrepKjerneelement(
+//        "KE12",
+//        GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
+//        BelongsToObj("LP1")
+//      ),
+//      GrepKjerneelement(
+//        "KE34",
+//        GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
+//        BelongsToObj("LP1")
+//      )
+//    ),
+//    kompetansemaal = List(
+//      GrepKompetansemaal(
+//        "KM123",
+//        GrepTextObj(List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))),
+//        BelongsToObj("LP1")
+//      )
+//    ),
+//    tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
+//    laereplaner = List(GrepLaererplan("LP1", GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)")))))
   )
 
   val searchSettings: SearchSettings = SearchSettings(
