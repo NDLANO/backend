@@ -113,6 +113,7 @@ export interface IDraftSearchParamsDTO {
 export interface IGrepResultDTO {
   code: string
   title: ITitleDTO
+  laereplanCode?: string
 }
 
 export interface IGrepSearchInputDTO {
