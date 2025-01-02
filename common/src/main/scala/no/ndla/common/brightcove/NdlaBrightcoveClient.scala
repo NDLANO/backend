@@ -12,14 +12,16 @@ import io.circe.Json
 import io.circe.generic.codec.DerivedAsObjectCodec.deriveCodec
 import io.circe.parser.*
 import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
+import no.ndla.common.configuration.HasBaseProps
 
 case class TokenResponse(access_token: String, token_type: String, expires_in: Int)
 
 trait NdlaBrightcoveClient {
+  this: HasBaseProps =>
   val brightcoveClient: NdlaBrightcoveClient
 
   class NdlaBrightcoveClient {
-    private val authUrl = "https://oauth.brightcove.com/v4/access_token"
+    private val authUrl = props.brightCoveAuthUri
     private val backend = HttpClientSyncBackend() // Or AsyncHttpClientFutureBackend()
 
     def getToken(clientID: String, clientSecret: String): Either[String, String] = {
@@ -41,7 +43,7 @@ trait NdlaBrightcoveClient {
 
     def getVideoSource(accountId: String, videoId: String, bearerToken: String): Either[String, Vector[Json]] = {
 
-      val videoSourceUrl = uri"https://cms.api.brightcove.com/v1/accounts/$accountId/videos/$videoId/sources"
+      val videoSourceUrl = props.brightCoveVideoUri(accountId, videoId)
       val request = basicRequest
         .header("Authorization", s"Bearer $bearerToken")
         .get(videoSourceUrl)

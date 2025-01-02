@@ -1,5 +1,8 @@
 package no.ndla.common.configuration
 
+import sttp.client3.UriContext
+import sttp.model.Uri
+
 import scala.util.Properties.{propOrElse, propOrNone}
 
 trait BaseProps {
@@ -53,4 +56,9 @@ trait BaseProps {
   def SEARCH_INDEX_REPLICAS: Int = intPropOrDefault("SEARCH_INDEX_REPLICAS", 1)
 
   def TAPIR_THREADS: Int = intPropOrDefault("TAPIR_THREADS", 100)
+
+  def brightCoveAuthUri: String = s"https://oauth.brightcove.com/v4/access_token"
+  def brightCoveVideoUri(accountId: String, videoId: String): Uri =
+    uri"https://cms.api.brightcove.com/v1/accounts/$accountId/videos/$videoId/sources"
+
 }
