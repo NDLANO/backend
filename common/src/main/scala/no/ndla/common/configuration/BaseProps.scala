@@ -57,8 +57,8 @@ trait BaseProps {
 
   def TAPIR_THREADS: Int = intPropOrDefault("TAPIR_THREADS", 100)
 
-  def brightCoveAuthUri: String = s"https://oauth.brightcove.com/v4/access_token"
-  def brightCoveVideoUri(accountId: String, videoId: String): Uri =
+  def BrightCoveAuthUri: String = s"https://oauth.brightcove.com/v4/access_token"
+  def BrightCoveVideoUri(accountId: String, videoId: String): Uri =
     uri"https://cms.api.brightcove.com/v1/accounts/$accountId/videos/$videoId/sources"
 
 }

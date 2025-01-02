@@ -21,14 +21,13 @@ trait NdlaBrightcoveClient {
   val brightcoveClient: NdlaBrightcoveClient
 
   class NdlaBrightcoveClient {
-    private val authUrl = props.brightCoveAuthUri
-    private val backend = HttpClientSyncBackend() // Or AsyncHttpClientFutureBackend()
+    private val backend = HttpClientSyncBackend()
 
     def getToken(clientID: String, clientSecret: String): Either[String, String] = {
       val request =
         basicRequest.auth
           .basic(clientID, clientSecret)
-          .post(uri"$authUrl?grant_type=client_credentials")
+          .post(uri"${props.BrightCoveAuthUri}?grant_type=client_credentials")
       val authResponse = request.send(backend)
 
       authResponse.body match {
@@ -43,7 +42,7 @@ trait NdlaBrightcoveClient {
 
     def getVideoSource(accountId: String, videoId: String, bearerToken: String): Either[String, Vector[Json]] = {
 
-      val videoSourceUrl = props.brightCoveVideoUri(accountId, videoId)
+      val videoSourceUrl = props.BrightCoveVideoUri(accountId, videoId)
       val request = basicRequest
         .header("Authorization", s"Bearer $bearerToken")
         .get(videoSourceUrl)
