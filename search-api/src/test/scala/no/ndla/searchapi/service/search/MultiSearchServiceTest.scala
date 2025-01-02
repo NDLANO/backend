@@ -847,6 +847,14 @@ class MultiSearchServiceTest
     hits.head.id should be(11)
   }
 
+  test("That search on query as deleted context id matches") {
+    val Success(results) =
+      multiSearchService.matchingQuery(searchSettings.copy(query = Some(NonEmptyString.fromString("asdf1255").get)))
+    val hits = results.results
+    results.totalCount should be(1)
+    hits.head.id should be(12)
+  }
+
   test("That search on embed id with language filter does only return correct language") {
     val Success(results) =
       multiSearchService.matchingQuery(searchSettings.copy(language = "en", embedId = Some("222")))

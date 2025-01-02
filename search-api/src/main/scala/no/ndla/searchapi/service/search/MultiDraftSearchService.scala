@@ -168,6 +168,7 @@ trait MultiDraftSearchService {
             simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
             nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", queryString.underlying)))
               .ignoreUnmapped(true),
+            termQuery("contextids", queryString.underlying),
             idsQuery(queryString.underlying),
             nestedQuery("revisionMeta", simpleStringQuery(queryString.underlying).field("revisionMeta.note"))
               .ignoreUnmapped(true)
