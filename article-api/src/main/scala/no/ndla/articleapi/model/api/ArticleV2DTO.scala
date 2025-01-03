@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{CopyrightDTO, RelatedContent, RelatedContentLinkDTO}
+import no.ndla.common.model.api.{CopyrightDTO, DisclaimerDTO, RelatedContent, RelatedContentLinkDTO}
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about the article")
@@ -64,7 +64,9 @@ case class ArticleV2DTO(
     @description("The date for the next planned revision which indicates when the article might be outdated")
     revisionDate: Option[NDLADate],
     @description("The path to the frontpage article")
-    slug: Option[String]
+    slug: Option[String],
+    @description("The disclaimer of the article")
+    disclaimer: Option[DisclaimerDTO]
 )
 
 object ArticleV2DTO {
