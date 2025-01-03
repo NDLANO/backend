@@ -153,17 +153,7 @@ trait GrepSearchService {
     private def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
       val jsonString = hit.sourceAsString
       val searchable = CirceUtil.tryParseAs[SearchableGrepElement](jsonString).?
-      val titleLv = findByLanguageOrBestEffort(searchable.title.languageValues, language)
-        .getOrElse(LanguageValue(Language.DefaultLanguage, ""))
-      val title = TitleDTO(title = titleLv.value, language = titleLv.language)
-
-      Success(
-        GrepResultDTO(
-          code = searchable.code,
-          title = title,
-          laereplanCode = searchable.laereplanCode
-        )
-      )
+      GrepResultDTO.fromSearchable(searchable, language)
     }
 
     private def getGrepHits(response: RequestSuccess[SearchResponse], language: String): Try[List[GrepResultDTO]] = {
