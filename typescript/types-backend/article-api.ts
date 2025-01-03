@@ -114,6 +114,7 @@ export interface IArticleV2DTO {
   relatedContent: (IRelatedContentLinkDTO | number)[]
   revisionDate?: string
   slug?: string
+  disclaimer?: IDisclaimerDTO
 }
 
 export interface IAuthorDTO {
@@ -130,6 +131,11 @@ export interface ICopyrightDTO {
   validFrom?: string
   validTo?: string
   processed: boolean
+}
+
+export interface IDisclaimerDTO {
+  disclaimer: string
+  language: string
 }
 
 export interface ILicenseDTO {
