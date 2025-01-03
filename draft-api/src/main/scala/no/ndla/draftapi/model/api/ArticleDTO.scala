@@ -9,10 +9,10 @@ package no.ndla.draftapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.CommentDTO
-import no.ndla.common.model.api.{DraftCopyrightDTO, RelatedContent, RelatedContentLinkDTO}
+import no.ndla.common.model.api.{DisclaimerDTO, DraftCopyrightDTO, RelatedContent, RelatedContentLinkDTO}
 import sttp.tapir.Schema.annotations.description
 
 // format: off

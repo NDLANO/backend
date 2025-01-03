@@ -1,14 +1,15 @@
 /*
- * Part of NDLA draft-api
- * Copyright (C) 2024 NDLA
+ * Part of NDLA common
+ * Copyright (C) 2025 NDLA
  *
  * See LICENSE
+ *
  */
 
-package no.ndla.draftapi.model.api
+package no.ndla.common.model.api
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 case class DisclaimerDTO(

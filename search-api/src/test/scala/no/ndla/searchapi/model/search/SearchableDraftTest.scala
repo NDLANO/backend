@@ -98,7 +98,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       supportedLanguages = List("en", "nb", "nn"),
       notes = List("Note1", "note2"),
       contexts = searchableTaxonomyContexts,
-        contextids = searchableTaxonomyContexts.map(_.contextId),
+      contextids = searchableTaxonomyContexts.map(_.contextId),
       users = List("ndalId54321", "ndalId12345"),
       previousVersionsNotes = List("OldNote"),
       grepContexts =

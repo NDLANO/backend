@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.api.{Delete, DraftCopyrightDTO, Missing, UpdateWith, draft}
+import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, UpdateWith, draft}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
@@ -259,7 +259,7 @@ trait ConverterService {
     private def toDomainTitle(articleTitle: api.ArticleTitleDTO): common.Title =
       common.Title(articleTitle.title, articleTitle.language)
 
-    private def toDomainDisclaimer(articleDisclaimer: api.DisclaimerDTO): common.Disclaimer =
+    private def toDomainDisclaimer(articleDisclaimer: DisclaimerDTO): common.Disclaimer =
       common.Disclaimer(articleDisclaimer.disclaimer, articleDisclaimer.language)
 
     private def toDomainContent(articleContent: api.ArticleContentDTO): common.ArticleContent = {
@@ -461,11 +461,8 @@ trait ConverterService {
     def toApiArticleTitle(title: common.Title): api.ArticleTitleDTO =
       api.ArticleTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
 
-    private def toApiArticleDisclaimer(disclaimer: common.Disclaimer): api.DisclaimerDTO =
-      api.DisclaimerDTO(
-        disclaimer.disclaimer,
-        disclaimer.language
-      )
+    private def toApiArticleDisclaimer(disclaimer: common.Disclaimer): DisclaimerDTO =
+      DisclaimerDTO(disclaimer.disclaimer, disclaimer.language)
 
     private def toApiArticleContent(content: common.ArticleContent): api.ArticleContentDTO =
       api.ArticleContentDTO(content.content, content.language)
@@ -802,7 +799,7 @@ trait ConverterService {
         case Some(newDisclaimer) =>
           val updated = mergeLanguageFields(
             toMergeInto.disclaimer.getOrElse(Seq.empty),
-            maybeLang.map(lang => toDomainDisclaimer(api.DisclaimerDTO(newDisclaimer, lang))).toSeq
+            maybeLang.map(lang => toDomainDisclaimer(DisclaimerDTO(newDisclaimer, lang))).toSeq
           )
           Option.when(updated.nonEmpty)(updated)
       }

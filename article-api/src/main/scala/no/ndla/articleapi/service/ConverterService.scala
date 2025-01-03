@@ -19,7 +19,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
 import no.ndla.common.{CirceUtil, Clock, model}
 import no.ndla.common.model.{RelatedContentLink, api as commonApi}
-import no.ndla.common.model.api.{Delete, LicenseDTO, Missing, UpdateWith}
+import no.ndla.common.model.api.{Delete, DisclaimerDTO, LicenseDTO, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -259,6 +259,9 @@ trait ConverterService {
           .getOrElse(api.ArticleContentV2DTO("", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val copyright = toApiCopyright(article.copyright)
+        val disclaimer = article.disclaimer
+          .flatMap(d => findByLanguageOrBestEffort(d, language))
+          .map(d => DisclaimerDTO(d.disclaimer, d.language))
 
         Success(
           api.ArticleV2DTO(
@@ -285,7 +288,8 @@ trait ConverterService {
             availability = article.availability.toString,
             article.relatedContent.map(toApiRelatedContent),
             article.revisionDate,
-            article.slug
+            article.slug,
+            disclaimer
           )
         )
       } else {

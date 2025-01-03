@@ -82,7 +82,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = None
     )
 
     val apiArticleV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -122,7 +123,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = None
     )
 
     val sampleArticleWithPublicDomain: Article = Article(
@@ -278,7 +280,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = None
     )
 
     val (nodeId, nodeId2)  = ("1234", "4321")
