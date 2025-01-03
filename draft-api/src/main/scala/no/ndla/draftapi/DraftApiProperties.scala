@@ -91,7 +91,7 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   )
 
   def supportedUploadExtensions: Set[String] = Set(
-    ".3fm",
+    ".3mf",
     ".csv",
     ".doc",
     ".docx",
