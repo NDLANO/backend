@@ -23,7 +23,8 @@ object audioapi extends Module {
     elastic4s,
     database,
     tapirHttp4sCirce,
-    vulnerabilityOverrides
+    vulnerabilityOverrides,
+    jave
   )
 
   lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
@@ -41,7 +42,8 @@ object audioapi extends Module {
       "AudioMetaInformationDTO",
       "UpdatedAudioMetaInformationDTO",
       "SeriesSummarySearchResultDTO",
-      "SeriesSearchParamsDTO"
+      "SeriesSearchParamsDTO",
+      "TranscriptionResultDTO"
     )
   )
 

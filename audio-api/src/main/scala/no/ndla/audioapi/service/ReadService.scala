@@ -8,12 +8,11 @@
 
 package no.ndla.audioapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{SearchConverterService, TagSearchService}
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{NotFoundException, ValidationException}
 
 import scala.util.{Failure, Success, Try}
 
