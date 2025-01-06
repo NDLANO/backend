@@ -227,24 +227,15 @@ trait TranscriptionService {
       val clientId     = props.BrightcoveClientId
       val clientSecret = props.BrightcoveClientSecret
 
-      Try {
-        val token = brightcoveClient.getToken(clientId, clientSecret) match {
-          case Right(token) => token
-          case Left(error)  => throw new RuntimeException(s"Failed to retrieve bearer token: $error")
-        }
-
-        val videoSources = brightcoveClient.getVideoSource(accountId, videoId, token) match {
-          case Right(sources) => sources
-          case Left(error)    => throw new RuntimeException(s"Failed to get video sources: $error")
-        }
-
-        val mp4Sources = videoSources
+      for {
+        token   <- brightcoveClient.getToken(clientId, clientSecret)
+        sources <- brightcoveClient.getVideoSource(accountId, videoId, token)
+        mp4Sources = sources
           .filter(source => source.hcursor.get[String]("container").toOption.contains("MP4"))
           .map(source => source.hcursor.get[String]("src").toOption.getOrElse(""))
-
-        if (mp4Sources.isEmpty) mp4Sources
-        else throw new RuntimeException(s"No MP4 sources found for videoId: $videoId")
-      }
+        result <-
+          if (mp4Sources.nonEmpty) Success(mp4Sources) else Failure(new RuntimeException("No MP4 sources found"))
+      } yield result
     }
 
     private def downloadVideo(videoId: String, videoUrl: String): Try[File] = {
