@@ -83,9 +83,7 @@ trait TranscriptionController {
       .serverLogicPure { _ =>
         { case (videoId, language, maxSpeakerOpt) =>
           transcriptionService.transcribeVideo(videoId, language, maxSpeakerOpt) match {
-            case Success(_) => Right(())
-            case Failure(ex: JobAlreadyFoundException) =>
-              returnLeftError(ex)
+            case Success(_)  => Right(())
             case Failure(ex) => returnLeftError(ex)
           }
         }
@@ -107,8 +105,7 @@ trait TranscriptionController {
               Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
             case Success(Left(jobStatus)) =>
               Right(TranscriptionResultDTO(jobStatus.toString, None))
-            case Failure(ex: NoSuchElementException) => returnLeftError(ex)
-            case Failure(ex)                         => returnLeftError(ex)
+            case Failure(ex) => returnLeftError(ex)
           }
         }
       }
@@ -127,9 +124,7 @@ trait TranscriptionController {
       .serverLogicPure { _ =>
         { case (audioName, audioId, language, maxSpeakerOpt, format) =>
           transcriptionService.transcribeAudio(audioName, audioId, language, maxSpeakerOpt, format) match {
-            case Success(_) => Right(())
-            case Failure(ex: JobAlreadyFoundException) =>
-              returnLeftError(ex)
+            case Success(_)  => Right(())
             case Failure(ex) => returnLeftError(ex)
           }
         }
@@ -151,8 +146,7 @@ trait TranscriptionController {
               Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
             case Success(Left(jobStatus)) =>
               Right(TranscriptionResultDTO(jobStatus.toString, None))
-            case Failure(ex: NoSuchElementException) => returnLeftError(ex)
-            case Failure(ex)                         => returnLeftError(ex)
+            case Failure(ex) => returnLeftError(ex)
           }
         }
       }
