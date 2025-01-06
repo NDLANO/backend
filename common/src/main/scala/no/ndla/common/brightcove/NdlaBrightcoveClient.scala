@@ -14,6 +14,8 @@ import io.circe.parser.*
 import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
 import no.ndla.common.configuration.HasBaseProps
 
+import scala.util.{Failure, Success, Try}
+
 case class TokenResponse(access_token: String, token_type: String, expires_in: Int)
 
 trait NdlaBrightcoveClient {
@@ -23,24 +25,25 @@ trait NdlaBrightcoveClient {
   class NdlaBrightcoveClient {
     private val backend = HttpClientSyncBackend()
 
-    def getToken(clientID: String, clientSecret: String): Either[String, String] = {
+    def getToken(clientID: String, clientSecret: String): Try[String] = {
       val request =
         basicRequest.auth
           .basic(clientID, clientSecret)
           .post(uri"${props.BrightCoveAuthUri}?grant_type=client_credentials")
       val authResponse = request.send(backend)
-
-      authResponse.body match {
-        case Right(jsonString) =>
-          decode[TokenResponse](jsonString) match {
-            case Right(tokenResponse) => Right(tokenResponse.access_token)
-            case Left(error)          => Left(s"Failed to decode token response: ${error.getMessage}")
-          }
-        case Left(error) => Left(s"Failed to get token: ${error}")
+      Try {
+        authResponse.body match {
+          case Right(jsonString) =>
+            decode[TokenResponse](jsonString) match {
+              case Right(tokenResponse) => tokenResponse.access_token
+              case Left(error)          => throw new Exception(s"Failed to decode token response: ${error.getMessage}")
+            }
+          case Left(error) => throw new Exception(s"Failed to get token: ${error}")
+        }
       }
     }
 
-    def getVideoSource(accountId: String, videoId: String, bearerToken: String): Either[String, Vector[Json]] = {
+    def getVideoSource(accountId: String, videoId: String, bearerToken: String): Try[Vector[Json]] = {
 
       val videoSourceUrl = props.BrightCoveVideoUri(accountId, videoId)
       val request = basicRequest
@@ -50,18 +53,19 @@ trait NdlaBrightcoveClient {
       implicit val backend = HttpClientSyncBackend()
 
       val response = request.send(backend)
-
-      response.body match {
-        case Right(jsonString) =>
-          parse(jsonString) match {
-            case Right(json) =>
-              json.asArray match {
-                case Some(videoSources) => Right(videoSources)
-                case None               => Left("Expected a JSON array but got something else.")
-              }
-            case Left(error) => Left(s"Failed to decode video source response: ${error.getMessage}")
-          }
-        case Left(error) => Left(s"Failed to get video source: ${error}")
+      Try {
+        response.body match {
+          case Right(jsonString) =>
+            parse(jsonString) match {
+              case Right(json) =>
+                json.asArray match {
+                  case Some(videoSources) => videoSources
+                  case None               => throw new Exception("Failed to parse video source")
+                }
+              case Left(error) => throw new Exception(s"Failed to parse video source: ${error.getMessage}")
+            }
+          case Left(error) => throw new Exception(s"Failed to get video source: ${error}")
+        }
       }
     }
   }

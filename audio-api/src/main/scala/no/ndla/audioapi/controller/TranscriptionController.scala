@@ -9,7 +9,7 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.{JobAlreadyFoundException, TranscriptionResultDTO}
+import no.ndla.audioapi.model.api.TranscriptionResultDTO
 import no.ndla.audioapi.service.{ReadService, TranscriptionService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
