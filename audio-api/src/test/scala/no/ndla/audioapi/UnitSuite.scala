@@ -26,5 +26,5 @@ trait UnitSuite extends UnitTestSuite with PrivateMethodTester {
   setPropEnv("SEARCH_INDEX_NAME", "audio-integration-test-index")
   setPropEnv("BRIGHTCOVE_API_CLIENT_ID", "client-id")
   setPropEnv("BRIGHTCOVE_API_CLIENT_SECRET", "client")
-  setPropEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "312532")
+  setPropEnv("BRIGHTCOVE_ACCOUNT_ID", "312532")
 }

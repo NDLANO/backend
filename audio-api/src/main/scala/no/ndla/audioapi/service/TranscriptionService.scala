@@ -36,8 +36,6 @@ trait TranscriptionService {
         case Success(Left("IN_PROGRESS")) =>
           logger.info(s"Transcription already in progress for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
-        case Success(Left(_)) =>
-          logger.info(s"Error occurred while checking transcription status for videoId")
         case _ =>
           logger.info(s"No existing transcription job for videoId: $videoId")
       }
@@ -93,7 +91,7 @@ trait TranscriptionService {
         if (transcriptionJobStatus == "COMPLETED") {
           val transcribeUri = s"transcription/$language/${videoId}.vtt"
 
-          getObjectFromS3(transcribeUri)
+          getObjectFromS3(transcribeUri).map(Right(_))
         } else {
           Success(Left(transcriptionJobStatus))
         }
@@ -114,8 +112,6 @@ trait TranscriptionService {
         case Success(Left("IN_PROGRESS")) =>
           logger.info(s"Transcription already in progress for videoId: $audioName")
           return Failure(new JobAlreadyFoundException(s"Transcription already in progress for audio: $audioName"))
-        case Success(Left(_)) =>
-          logger.info(s"Error occurred while checking transcription status for audio")
         case _ =>
           logger.info(s"No existing transcription job for audio name: $audioName")
       }
@@ -153,28 +149,32 @@ trait TranscriptionService {
         if (transcriptionJobStatus == "COMPLETED") {
           val transcribeUri = s"audio-transcription/$language/${audioId}"
 
-          getObjectFromS3(transcribeUri)
+          getObjectFromS3(transcribeUri).map(Right(_))
         } else {
           Success(Left(transcriptionJobStatus))
         }
       }
     }
 
-    private def getObjectFromS3(Uri: String): Try[Either[String, String]] = {
+    private def getObjectFromS3(Uri: String): Try[String] = {
       s3TranscribeClient.getObject(Uri).map { s3Object =>
         val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
         s3Object.stream.close()
-        Right(content)
+        content
       }
     }
 
     def extractAudioFromVideo(videoId: String, language: String): Try[Unit] = {
       val accountId = props.BrightcoveAccountId
       val videoUrl = getVideo(accountId, videoId) match {
-        case Right(sources) => sources.head
-        case Left(error)    => throw new RuntimeException(s"Failed to get video sources: $error")
+        case Success(sources) if sources.nonEmpty => sources.head
+        case Success(_)  => return Failure(new RuntimeException(s"No video sources found for videoId: $videoId"))
+        case Failure(ex) => return Failure(new RuntimeException(s"Failed to get video sources: $ex"))
       }
-      val videoFile = downloadVideo(videoId, videoUrl)
+      val videoFile = downloadVideo(videoId, videoUrl) match {
+        case Success(file) => file
+        case Failure(ex)   => throw new RuntimeException(s"Failed to download video: $ex")
+      }
 
       val audioFile = new File(s"/tmp/audio_${videoId}.mp3")
 
@@ -223,37 +223,45 @@ trait TranscriptionService {
       }
     }
 
-    private def getVideo(accountId: String, videoId: String): Either[String, Vector[String]] = {
+    private def getVideo(accountId: String, videoId: String): Try[Vector[String]] = {
       val clientId     = props.BrightcoveClientId
       val clientSecret = props.BrightcoveClientSecret
-      val token        = brightcoveClient.getToken(clientId, clientSecret)
-      token match {
-        case Right(bearerToken) =>
-          val cake = brightcoveClient.getVideoSource(accountId, videoId, bearerToken)
-          cake match {
-            case Right(videoSources) =>
-              val mp4Sources = videoSources
-                .filter(source => source.hcursor.get[String]("container").toOption.contains("MP4"))
-                .map(source => source.hcursor.get[String]("src").toOption.getOrElse(""))
-              if (mp4Sources.nonEmpty) Right(mp4Sources)
-              else Left("No MP4 sources found for video.")
-            case Left(error) => Left(s"Failed to get video sources: $error")
-          }
-        case Left(error) =>
-          Left(s"Failed to retrieve bearer token: $error")
+
+      Try {
+        val token = brightcoveClient.getToken(clientId, clientSecret) match {
+          case Right(token) => token
+          case Left(error)  => throw new RuntimeException(s"Failed to retrieve bearer token: $error")
+        }
+
+        val videoSources = brightcoveClient.getVideoSource(accountId, videoId, token) match {
+          case Right(sources) => sources
+          case Left(error)    => throw new RuntimeException(s"Failed to get video sources: $error")
+        }
+
+        val mp4Sources = videoSources
+          .filter(source => source.hcursor.get[String]("container").toOption.contains("MP4"))
+          .map(source => source.hcursor.get[String]("src").toOption.getOrElse(""))
+
+        if (mp4Sources.isEmpty) mp4Sources
+        else throw new RuntimeException(s"No MP4 sources found for videoId: $videoId")
       }
     }
 
-    private def downloadVideo(videoId: String, videoUrl: String): File = {
+    private def downloadVideo(videoId: String, videoUrl: String): Try[File] = {
       val videoFile  = new File(s"/tmp/video_$videoId.mp4")
       val connection = HttpURLConnectionBackend()
 
       val response = basicRequest.get(uri"$videoUrl").response(asFile(videoFile)).send(connection)
-
-      response.body match {
-        case Right(file) => file
-        case Left(error) => throw new RuntimeException(s"Failed to download video: $error")
+      Try {
+        response.body match {
+          case Right(file) => file
+          case Left(error) => throw new RuntimeException(s"Failed to download video: $error")
+        }
+      } match {
+        case Success(file)      => Success(file)
+        case Failure(exception) => Failure(exception)
       }
+
     }
   }
 }
