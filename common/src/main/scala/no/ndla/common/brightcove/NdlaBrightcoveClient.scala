@@ -14,7 +14,7 @@ import io.circe.parser.*
 import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
 import no.ndla.common.configuration.HasBaseProps
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 case class TokenResponse(access_token: String, token_type: String, expires_in: Int)
 
