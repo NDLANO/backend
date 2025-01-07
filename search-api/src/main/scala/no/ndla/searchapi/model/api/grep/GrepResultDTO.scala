@@ -9,8 +9,14 @@
 package no.ndla.searchapi.model.api.grep
 
 import cats.implicits.*
+import com.scalatsi.TSType.fromCaseClass
+import com.scalatsi.TypescriptType.{TSLiteralString, TSString, TSUnion}
+import com.scalatsi.{TSIType, TSNamedType, TSType}
+import com.scalatsi.dsl.*
 import io.circe.generic.auto.*
 import sttp.tapir.generic.auto.*
+
+import scala.reflect.runtime.universe.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, Json}
 import no.ndla.language.Language
@@ -29,6 +35,7 @@ import no.ndla.searchapi.model.search.SearchableGrepElement
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
+import scala.reflect.ClassTag
 import scala.util.{Success, Try}
 
 @description("Information about a single grep search result entry")
@@ -48,8 +55,11 @@ object GrepResultDTO {
     }
     // NOTE: Adding the discriminator field that scala-tsi generates in the typescript type.
     //       Useful for guarding the type of the object in the frontend.
-    json.mapObject(_.add("type", Json.fromString(result.getClass.getSimpleName)))
+    json.mapObject(_.add("typename", Json.fromString(result.getClass.getSimpleName)))
   }
+
+  implicit val s1: Schema["GrepLaererplanDTO"]      = Schema.string
+  implicit val s2: Schema["GrepTverrfagligTemaDTO"] = Schema.string
 
   implicit val decoder: Decoder[GrepResultDTO] = List[Decoder[GrepResultDTO]](
     Decoder[GrepKjerneelementDTO].widen,
@@ -169,9 +179,11 @@ case class GrepKompetansemaalSettDTO(
 ) extends GrepResultDTO
 case class GrepLaererplanDTO(
     code: String,
-    title: TitleDTO
+    title: TitleDTO,
+    typename: "GrepLaererplanDTO" = "GrepLaererplanDTO"
 ) extends GrepResultDTO
 case class GrepTverrfagligTemaDTO(
     code: String,
-    title: TitleDTO
+    title: TitleDTO,
+    typename: "GrepTverrfagligTemaDTO" = "GrepTverrfagligTemaDTO"
 ) extends GrepResultDTO

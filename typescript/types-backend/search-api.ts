@@ -1,6 +1,6 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type GrepResultDTO = (IGrepKompetansemaalDTO | IGrepKjerneelementDTO | IGrepLaererplanDTO | IGrepTverrfagligTemaDTO | IGrepKompetansemaalSettDTO)
+export type GrepResultDTO = (IGrepKjerneelementDTO | IGrepKompetansemaalSettDTO | IGrepTverrfagligTemaDTO | IGrepKompetansemaalDTO | IGrepLaererplanDTO)
 
 export type GrepSort = ("-relevance" | "relevance" | "-title" | "title" | "-code" | "code")
 
@@ -122,7 +122,7 @@ export interface IGrepKjerneelementDTO {
   title: ITitleDTO
   description: IDescriptionDTO
   laereplan: IGrepLaererplanDTO
-  type: "GrepKjerneelementDTO"
+  typename: "GrepKjerneelementDTO"
 }
 
 export interface IGrepKompetansemaalDTO {
@@ -132,20 +132,20 @@ export interface IGrepKompetansemaalDTO {
   kompetansemaalSett: IGrepReferencedKompetansemaalSettDTO
   tverrfagligeTemaer: IGrepTverrfagligTemaDTO[]
   kjerneelementer: IGrepReferencedKjerneelementDTO[]
-  type: "GrepKompetansemaalDTO"
+  typename: "GrepKompetansemaalDTO"
 }
 
 export interface IGrepKompetansemaalSettDTO {
   code: string
   title: ITitleDTO
   kompetansemaal: IGrepReferencedKompetansemaalDTO[]
-  type: "GrepKompetansemaalSettDTO"
+  typename: "GrepKompetansemaalSettDTO"
 }
 
 export interface IGrepLaererplanDTO {
   code: string
   title: ITitleDTO
-  type: "GrepLaererplanDTO"
+  typename: "GrepLaererplanDTO"
 }
 
 export interface IGrepReferencedKjerneelementDTO {
@@ -184,6 +184,7 @@ export interface IGrepSearchResultsDTO {
 export interface IGrepTverrfagligTemaDTO {
   code: string
   title: ITitleDTO
+  typename: "GrepTverrfagligTemaDTO"
 }
 
 export interface IGroupSearchResultDTO {
