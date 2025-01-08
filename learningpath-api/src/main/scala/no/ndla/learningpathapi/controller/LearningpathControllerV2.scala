@@ -485,7 +485,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId)
       .in(jsonBody[UpdatedLearningPathV2DTO])
       .out(jsonBody[LearningPathV2DTO])
-      .errorOut(errorOutputsFor(400, 401, 403, 404))
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 409))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, newLearningPath) =>
@@ -527,7 +527,7 @@ trait LearningpathControllerV2 {
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
       .in(jsonBody[UpdatedLearningStepV2DTO])
       .out(jsonBody[LearningStepV2DTO])
-      .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 409, 502))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, stepId, updatedLearningStep) =>
