@@ -31,10 +31,7 @@ trait V66__SetHideBylineForImagesNotCopyrighted {
       doc
         .select("ndlaembed[data-resource='image']")
         .forEach(embed => {
-          val noHideByline = !embed.hasAttr("data-hide-byline")
-          if (noHideByline) {
-            ids += embed.attr("data-resource_id")
-          }
+          ids += embed.attr("data-resource_id")
         })
       if (ids.result().isEmpty) {
         return doc
@@ -43,10 +40,16 @@ trait V66__SetHideBylineForImagesNotCopyrighted {
       doc
         .select("ndlaembed[data-resource='image']")
         .forEach(embed => {
-          val imageId = embed.attr("data-resource_id")
-          val image   = images.find(i => i.id == imageId)
-          embed
-            .attr("data-hide-byline", s"${image.exists(i => !i.copyright.license.license.equals("COPYRIGHTED"))}"): Unit
+          val noHideByline = !embed.hasAttr("data-hide-byline")
+          if (noHideByline) {
+            val imageId = embed.attr("data-resource_id")
+            val image   = images.find(i => i.id == imageId)
+            embed
+              .attr(
+                "data-hide-byline",
+                s"${image.exists(i => !i.copyright.license.license.equals("COPYRIGHTED"))}"
+              ): Unit
+          }
         })
       doc
     }
