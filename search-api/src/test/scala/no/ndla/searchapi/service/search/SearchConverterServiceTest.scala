@@ -496,13 +496,31 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableDraft converts grepContexts correctly based on grepBundle if draft has grepCodes") {
     val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepBundle = TestData.emptyGrepBundle.copy(
-//      kjerneelementer = List(
-//        GrepKjerneelement("KE12", GrepTextObj(List(GrepTitle("default", "tittel12"))), BelongsToObj("LP123")),
-//        GrepKjerneelement("KE34", GrepTextObj(List(GrepTitle("default", "tittel34"))), BelongsToObj("LP123"))
-//      ),
-//      kompetansemaal =
-//        List(GrepKompetansemaal("KM123", GrepTextObj(List(GrepTitle("default", "tittel123"))), BelongsToObj("LP123"))),
-//      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
+      kjerneelementer = List(
+        GrepKjerneelement(
+          "KE12",
+          GrepTextObj(List(GrepTitle("default", "tittel12"))),
+          GrepTextObj(List(GrepTitle("default", ""))),
+          BelongsToObj("LP123", "Dette er LP123")
+        ),
+        GrepKjerneelement(
+          "KE34",
+          GrepTextObj(List(GrepTitle("default", "tittel34"))),
+          GrepTextObj(List(GrepTitle("default", ""))),
+          BelongsToObj("LP123", "Dette er LP123")
+        )
+      ),
+      kompetansemaal = List(
+        GrepKompetansemaal(
+          "KM123",
+          GrepTextObj(List(GrepTitle("default", "tittel123"))),
+          BelongsToObj("LP123", "Dette er LP123"),
+          BelongsToObj("KMS123", "Dette er KMS123"),
+          List(),
+          List()
+        )
+      ),
+      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
     )
     val grepContexts = List(
       SearchableGrepContext("KE12", Some("tittel12")),
@@ -517,13 +535,31 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableDraft converts grepContexts correctly based on grepBundle if draft has no grepCodes") {
     val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq.empty)
     val grepBundle = TestData.emptyGrepBundle.copy(
-//      kjerneelementer = List(
-//        GrepKjerneelement("KE12", GrepTextObj(List(GrepTitle("default", "tittel12"))), BelongsToObj("LP123")),
-//        GrepKjerneelement("KE34", GrepTextObj(List(GrepTitle("default", "tittel34"))), BelongsToObj("LP123"))
-//      ),
-//      kompetansemaal =
-//        List(GrepKompetansemaal("KM123", GrepTextObj(List(GrepTitle("default", "tittel123"))), BelongsToObj("LP123"))),
-//      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", List(GrepTitle("default", "tittel2"))))
+      kjerneelementer = List(
+        GrepKjerneelement(
+          "KE12",
+          GrepTextObj(List(GrepTitle("default", "tittel12"))),
+          GrepTextObj(List(GrepTitle("default", ""))),
+          BelongsToObj("LP123", "Dette er LP123")
+        ),
+        GrepKjerneelement(
+          "KE34",
+          GrepTextObj(List(GrepTitle("default", "tittel34"))),
+          GrepTextObj(List(GrepTitle("default", ""))),
+          BelongsToObj("LP123", "Dette er LP123")
+        )
+      ),
+      kompetansemaal = List(
+        GrepKompetansemaal(
+          "KM123",
+          GrepTextObj(List(GrepTitle("default", "tittel123"))),
+          BelongsToObj("LP123", "Dette er LP123"),
+          BelongsToObj("KMS123", "Dette er KMS123"),
+          List(),
+          List()
+        )
+      ),
+      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
     )
     val grepContexts = List.empty
 

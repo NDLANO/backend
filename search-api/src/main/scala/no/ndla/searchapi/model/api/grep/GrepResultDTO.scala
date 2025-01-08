@@ -9,14 +9,9 @@
 package no.ndla.searchapi.model.api.grep
 
 import cats.implicits.*
-import com.scalatsi.TSType.fromCaseClass
-import com.scalatsi.TypescriptType.{TSLiteralString, TSString, TSUnion}
-import com.scalatsi.{TSIType, TSNamedType, TSType}
-import com.scalatsi.dsl.*
 import io.circe.generic.auto.*
 import sttp.tapir.generic.auto.*
 
-import scala.reflect.runtime.universe.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, Json}
 import no.ndla.language.Language
@@ -35,7 +30,6 @@ import no.ndla.searchapi.model.search.SearchableGrepElement
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
-import scala.reflect.ClassTag
 import scala.util.{Success, Try}
 
 @description("Information about a single grep search result entry")

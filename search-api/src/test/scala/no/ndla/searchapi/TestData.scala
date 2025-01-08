@@ -1587,27 +1587,34 @@ object TestData {
   )
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
-//    kjerneelementer = List(
-//      GrepKjerneelement(
-//        "KE12",
-//        GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
-//        BelongsToObj("LP1")
-//      ),
-//      GrepKjerneelement(
-//        "KE34",
-//        GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
-//        BelongsToObj("LP1")
-//      )
-//    ),
-//    kompetansemaal = List(
-//      GrepKompetansemaal(
-//        "KM123",
-//        GrepTextObj(List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))),
-//        BelongsToObj("LP1")
-//      )
-//    ),
-//    tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
-//    laereplaner = List(GrepLaererplan("LP1", GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)")))))
+    kjerneelementer = List(
+      GrepKjerneelement(
+        kode = "KE12",
+        tittel = GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP1")
+      ),
+      GrepKjerneelement(
+        kode = "KE34",
+        tittel = GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP2")
+      )
+    ),
+    kompetansemaal = List(
+      GrepKompetansemaal(
+        kode = "KM123",
+        tittel = GrepTextObj(
+          List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
+        ),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP1"),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj("KMS1", "Dette er KMS1"),
+        `tilknyttede-tverrfaglige-temaer` = List(),
+        `tilknyttede-kjerneelementer` = List()
+      )
+    ),
+    tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
+    laereplaner = List(GrepLaererplan("LP1", GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)")))))
   )
 
   val searchSettings: SearchSettings = SearchSettings(

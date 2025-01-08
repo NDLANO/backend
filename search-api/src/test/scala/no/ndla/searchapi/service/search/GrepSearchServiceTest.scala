@@ -48,49 +48,54 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
 
   val grepTestBundle: GrepBundle = GrepBundle(
     kjerneelementer = List(
-//      GrepKjerneelement(
-//        "KE12",
-//        GrepTextObj(
-//          List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
-//        ),
-//        BelongsToObj("LP1")
-//      ),
-//      GrepKjerneelement(
-//        "KE34",
-//        GrepTextObj(
-//          List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
-//        ),
-//        BelongsToObj("LP2")
-//      )
+      GrepKjerneelement(
+        "KE12",
+        GrepTextObj(
+          List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
+        ),
+        GrepTextObj(List(GrepTitle("default", ""))),
+        BelongsToObj("LP1", "Dette er LP1")
+      ),
+      GrepKjerneelement(
+        "KE34",
+        GrepTextObj(
+          List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
+        ),
+        GrepTextObj(List(GrepTitle("default", ""))),
+        BelongsToObj("LP2", "Dette er LP2")
+      )
     ),
     kompetansemaal = List(
-//      GrepKompetansemaal(
-//        "KM123",
-//        GrepTextObj(
-//          List(
-//            GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
-//            GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
-//          )
-//        ),
-//        BelongsToObj("LP2")
-//      )
+      GrepKompetansemaal(
+        kode = "KM123",
+        tittel = GrepTextObj(
+          List(
+            GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
+            GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
+          )
+        ),
+        `tilhoerer-laereplan` = BelongsToObj("LP2", "Dette er LP2"),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj("KE200", "Kompetansemaalsett"),
+        `tilknyttede-tverrfaglige-temaer` = List(),
+        `tilknyttede-kjerneelementer` = List()
+      )
     ),
     kompetansemaalsett = List.empty,
     tverrfagligeTemaer = List(
-//      GrepTverrfagligTema(
-//        "TT2",
-//        Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap"))
-//      )
+      GrepTverrfagligTema(
+        "TT2",
+        Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap"))
+      )
     ),
     laereplaner = List(
-//      GrepLaererplan(
-//        "LP1",
-//        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk")))
-//      ),
-//      GrepLaererplan(
-//        "LP2",
-//        GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk")))
-//      )
+      GrepLaererplan(
+        "LP1",
+        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk")))
+      ),
+      GrepLaererplan(
+        "LP2",
+        GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk")))
+      )
     )
   )
 
