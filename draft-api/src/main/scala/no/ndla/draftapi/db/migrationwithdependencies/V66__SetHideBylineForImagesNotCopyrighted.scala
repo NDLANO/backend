@@ -31,10 +31,7 @@ trait V66__SetHideBylineForImagesNotCopyrighted {
       doc
         .select("ndlaembed[data-resource='image']")
         .forEach(embed => {
-          val noHideByline = !embed.hasAttr("data-hide-byline")
-          if (noHideByline) {
-            ids += embed.attr("data-resource_id")
-          }
+          ids += embed.attr("data-resource_id")
         })
       if (ids.result().isEmpty) {
         return doc
