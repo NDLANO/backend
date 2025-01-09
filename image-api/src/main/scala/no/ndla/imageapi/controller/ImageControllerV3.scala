@@ -195,14 +195,14 @@ trait ImageControllerV3 {
             val fallback = searchParams.fallback.getOrElse(false)
 
             scrollSearchOr(searchParams.scrollId, language, user) {
-              val minimumSize        = searchParams.minimumSize
-              val query              = searchParams.query
-              val license            = searchParams.license
-              val pageSize           = searchParams.pageSize
-              val page               = searchParams.page
-              val podcastFriendly    = searchParams.podcastFriendly
-              val sort               = searchParams.sort
-              val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+              val minimumSize     = searchParams.minimumSize
+              val query           = searchParams.query
+              val license         = searchParams.license
+              val pageSize        = searchParams.pageSize
+              val page            = searchParams.page
+              val podcastFriendly = searchParams.podcastFriendly
+              val sort            = searchParams.sort
+              val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
               val modelReleasedStatus =
                 searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
 

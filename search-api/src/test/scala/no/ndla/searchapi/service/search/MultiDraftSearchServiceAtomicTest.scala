@@ -13,7 +13,6 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
-import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
@@ -1368,7 +1367,6 @@ class MultiDraftSearchServiceAtomicTest
   }
 
   test("That license filtering works as expected") {
-    val responsible = Responsible("some-user", TestData.today)
     val draft1 = TestData.draft1.copy(
       id = Some(1),
       articleType = ArticleType.Standard,
