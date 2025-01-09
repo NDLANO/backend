@@ -13,9 +13,11 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
+import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
@@ -1363,5 +1365,104 @@ class MultiDraftSearchServiceAtomicTest
       )
       .get
     search.results.map(_.id) should be(Seq(3))
+  }
+
+  test("That license filtering works as expected") {
+    val responsible = Responsible("some-user", TestData.today)
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      articleType = ArticleType.Standard,
+      copyright = Some(
+        DraftCopyright(
+          license = Some(License.Copyrighted.toString),
+          origin = None,
+          creators = Seq(Author("Forfatter", "test testesen")),
+          processors = Seq.empty,
+          rightsholders = Seq.empty,
+          validFrom = None,
+          validTo = None,
+          processed = false
+        )
+      )
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      articleType = ArticleType.Standard,
+      copyright = Some(
+        DraftCopyright(
+          license = Some(License.CC_BY_NC.toString),
+          origin = None,
+          creators = Seq(Author("Forfatter", "test testesen")),
+          processors = Seq.empty,
+          rightsholders = Seq.empty,
+          validFrom = None,
+          validTo = None,
+          processed = false
+        )
+      )
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      articleType = ArticleType.Standard,
+      copyright = Some(
+        DraftCopyright(
+          license = Some(License.CC_BY_SA.toString),
+          origin = None,
+          creators = Seq(Author("Forfatter", "test testesen")),
+          processors = Seq.empty,
+          rightsholders = Seq.empty,
+          validFrom = None,
+          validTo = None,
+          processed = false
+        )
+      )
+    )
+
+    draftIndexService.indexDocument(draft1, indexingBundle).get
+    draftIndexService.indexDocument(draft2, indexingBundle).get
+    draftIndexService.indexDocument(draft3, indexingBundle).get
+
+    blockUntil(() => draftIndexService.countDocuments == 3)
+
+    val search1 = multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          resultTypes = None,
+          license = Some(License.CC_BY_NC.toString)
+        )
+      )
+      .get
+    search1.results.map(_.id) should be(Seq(2))
+
+    val search2 = multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          resultTypes = None,
+          license = Some(License.Copyrighted.toString)
+        )
+      )
+      .get
+    search2.results.map(_.id) should be(Seq(1))
+
+    val search3 = multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          resultTypes = None,
+          license = Some(License.CC_BY_SA.toString)
+        )
+      )
+      .get
+    search3.results.map(_.id) should be(Seq(3))
+
+    val search4 = multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          resultTypes = None,
+          license = Some("all"),
+          sort = Sort.ByIdAsc
+        )
+      )
+      .get
+    search4.results.map(_.id) should be(Seq(1, 2, 3))
   }
 }
