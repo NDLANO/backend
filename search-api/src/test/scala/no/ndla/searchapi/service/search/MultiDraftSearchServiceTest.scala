@@ -11,6 +11,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
+import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
@@ -67,7 +68,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     else {
       draftsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(!_.copyright.flatMap(_.license).contains("copyrighted"))
+    x.filter(!_.copyright.flatMap(_.license).contains(License.Copyrighted.toString))
       .filterNot(_.status.current == DraftStatus.ARCHIVED)
   }
 
@@ -76,7 +77,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     else {
       learningPathsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(_.copyright.license != "copyrighted")
+    x.filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def idsForLang(language: String) =
@@ -252,7 +253,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(
           query = Some(NonEmptyString.fromString("supermann").get),
-          license = Some("copyrighted"),
+          license = Some(License.Copyrighted.toString),
           sort = Sort.ByTitleAsc
         )
       )
@@ -352,7 +353,12 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
   test("Search for all languages should return all languages if copyrighted") {
     val Success(search) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings
-        .copy(language = AllLanguages, license = Some("copyrighted"), pageSize = 100, sort = Sort.ByTitleAsc)
+        .copy(
+          language = AllLanguages,
+          license = Some(License.Copyrighted.toString),
+          pageSize = 100,
+          sort = Sort.ByTitleAsc
+        )
     )
     val hits = search.results
 

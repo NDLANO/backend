@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.{Availability, Content}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
+import no.ndla.mapping.License
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
@@ -138,7 +139,7 @@ trait MultiSearchService {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
-        case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))
+        case None      => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
         case Some(lic) => Some(termQuery("license", lic))
       }
 

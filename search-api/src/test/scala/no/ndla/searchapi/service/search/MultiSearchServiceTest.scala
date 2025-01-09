@@ -12,6 +12,7 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
+import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
@@ -92,7 +93,7 @@ class MultiSearchServiceTest
         a.title.map(_.language).contains(language) && a.availability == Availability.everyone
       )
     }
-    x.filter(_.copyright.license != "copyrighted")
+    x.filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def expectedAllPublicLearningPaths(language: String) = {
@@ -100,7 +101,7 @@ class MultiSearchServiceTest
     else {
       TestData.learningPathsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(_.copyright.license != "copyrighted")
+    x.filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def idsForLang(language: String) =
@@ -247,7 +248,7 @@ class MultiSearchServiceTest
       multiSearchService.matchingQuery(
         searchSettings.copy(
           Some(NonEmptyString.fromString("supermann").get),
-          license = Some("copyrighted"),
+          license = Some(License.Copyrighted.toString),
           sort = Sort.ByTitleAsc
         )
       )
@@ -336,7 +337,12 @@ class MultiSearchServiceTest
   test("Search for all languages should return all languages if copyrighted") {
     val Success(search) = multiSearchService.matchingQuery(
       searchSettings
-        .copy(language = AllLanguages, license = Some("copyrighted"), pageSize = 100, sort = Sort.ByTitleAsc)
+        .copy(
+          language = AllLanguages,
+          license = Some(License.Copyrighted.toString),
+          pageSize = 100,
+          sort = Sort.ByTitleAsc
+        )
     )
     val hits = search.results
 

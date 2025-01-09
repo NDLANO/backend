@@ -22,6 +22,7 @@ import no.ndla.imageapi.model.domain.{
 }
 import no.ndla.tapirtesting.TapirControllerTest
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.mapping.License
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
@@ -35,7 +36,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   val copyrighted: Copyright =
     Copyright(
-      "copyrighted",
+      License.Copyrighted.toString,
       Some("New York"),
       Seq(Author("Forfatter", "Clark Kent")),
       Seq(),

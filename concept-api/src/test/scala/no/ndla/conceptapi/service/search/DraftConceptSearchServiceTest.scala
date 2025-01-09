@@ -31,6 +31,7 @@ import no.ndla.common.model.domain.concept.{
   WordClass
 }
 import no.ndla.conceptapi.integration.model.TaxonomyData
+import no.ndla.mapping.License
 import org.mockito.Mockito.when
 
 import java.util.UUID
@@ -73,7 +74,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),

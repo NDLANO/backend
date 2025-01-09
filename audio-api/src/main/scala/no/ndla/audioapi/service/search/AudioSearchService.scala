@@ -19,6 +19,7 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.language.Language.AllLanguages
+import no.ndla.mapping.License
 import no.ndla.search.Elastic4sClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -82,7 +83,7 @@ trait AudioSearchService {
     ): Try[domain.SearchResult[api.AudioSummaryDTO]] = {
 
       val licenseFilter = settings.license match {
-        case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))
+        case None      => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
         case Some(lic) => Some(termQuery("license", lic))
       }
 

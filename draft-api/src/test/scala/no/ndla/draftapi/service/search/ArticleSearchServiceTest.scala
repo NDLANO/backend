@@ -8,12 +8,13 @@
 package no.ndla.draftapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain._
-import no.ndla.common.model.domain.draft._
+import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.draft.*
 import no.ndla.draftapi.TestData.searchSettings
-import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.*
+import no.ndla.draftapi.model.domain.*
 import no.ndla.language.Language
+import no.ndla.mapping.License
 import no.ndla.scalatestsuite.IntegrationSuite
 
 import scala.util.Success
@@ -53,7 +54,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),
@@ -494,7 +495,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("supermann"),
-        license = Some("copyrighted"),
+        license = Some(License.Copyrighted.toString),
         sort = Sort.ByTitleAsc
       )
     )
@@ -592,7 +593,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(search) = articleSearchService.matchingQuery(
       searchSettings.copy(
         searchLanguage = Language.AllLanguages,
-        license = Some("copyrighted"),
+        license = Some(License.Copyrighted.toString),
         sort = Sort.ByTitleAsc,
         pageSize = 100
       )

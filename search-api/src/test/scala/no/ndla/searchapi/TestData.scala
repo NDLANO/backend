@@ -47,6 +47,7 @@ import no.ndla.common.model.domain.learningpath.{
 }
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.*
@@ -73,7 +74,16 @@ object TestData {
   private val byNcSaCopyright =
     Copyright("by-nc-sa", Some("Gotham City"), List(Author("Writer", "DC Comics")), List(), List(), None, None, false)
   private val copyrighted =
-    Copyright("copyrighted", Some("New York"), List(Author("Writer", "Clark Kent")), List(), List(), None, None, false)
+    Copyright(
+      License.Copyrighted.toString,
+      Some("New York"),
+      List(Author("Writer", "Clark Kent")),
+      List(),
+      List(),
+      None,
+      None,
+      false
+    )
   val today: NDLADate = NDLADate.now().withNano(0)
 
   val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "tittell", "nb")
@@ -601,7 +611,7 @@ object TestData {
   )
 
   val draftCopyrighted: DraftCopyright = draft.DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),

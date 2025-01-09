@@ -30,6 +30,7 @@ import no.ndla.common.model.domain.concept.{
   WordClass
 }
 import no.ndla.conceptapi.integration.model.TaxonomyData
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import org.mockito.Mockito.when
 
@@ -69,7 +70,7 @@ class PublishedConceptSearchServiceTest
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),
