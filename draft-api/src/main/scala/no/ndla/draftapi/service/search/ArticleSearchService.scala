@@ -80,8 +80,9 @@ trait ArticleSearchService {
         else None
 
       val licenseFilter = settings.license match {
-        case None      => Some(noCopyright)
-        case Some(lic) => Some(termQuery("license", lic))
+        case Some("all") => None
+        case Some(lic)   => Some(termQuery("license", lic))
+        case None        => Some(noCopyright)
       }
 
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
