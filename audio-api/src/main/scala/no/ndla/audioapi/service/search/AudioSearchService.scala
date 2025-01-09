@@ -83,8 +83,9 @@ trait AudioSearchService {
     ): Try[domain.SearchResult[api.AudioSummaryDTO]] = {
 
       val licenseFilter = settings.license match {
-        case None      => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
-        case Some(lic) => Some(termQuery("license", lic))
+        case None        => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
+        case Some("all") => None
+        case Some(lic)   => Some(termQuery("license", lic))
       }
 
       val seriesEpisodeFilter = settings.seriesFilter match {
