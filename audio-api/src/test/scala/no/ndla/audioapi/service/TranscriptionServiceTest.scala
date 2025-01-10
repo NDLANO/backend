@@ -54,7 +54,7 @@ class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
 
     val result = transcriptionService.getVideoTranscription(videoId, language)
 
-    result should be(Success(TranscriptionNonComplete(fakeJobStatus.toString)))
+    result should be(Success(TranscriptionNonComplete(fakeJobStatus)))
   }
 
   test("transcribeVideo returns Success when transcription is started") {
