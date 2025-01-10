@@ -14,6 +14,7 @@ import no.ndla.audioapi.model.api.JobAlreadyFoundException
 import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
 import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.common.model.domain.UploadedFile
+import software.amazon.awssdk.services.transcribe.model.TranscriptionJobStatus
 import sttp.client3.{HttpURLConnectionBackend, UriContext, asFile, basicRequest}
 import ws.schild.jave.{Encoder, MultimediaObject}
 import ws.schild.jave.encode.{AudioAttributes, EncodingAttributes}
@@ -27,8 +28,8 @@ trait TranscriptionService {
   val s3TranscribeClient: NdlaS3Client
 
   sealed trait TranscriptionResult
-  case class TranscriptionComplete(transcription: String) extends TranscriptionResult
-  case class TranscriptionNonComplete(status: String)     extends TranscriptionResult
+  case class TranscriptionComplete(transcription: String)             extends TranscriptionResult
+  case class TranscriptionNonComplete(status: TranscriptionJobStatus) extends TranscriptionResult
   class TranscriptionService extends StrictLogging {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
@@ -36,7 +37,7 @@ trait TranscriptionService {
         case Success(TranscriptionComplete(_)) =>
           logger.info(s"Transcription already completed for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
-        case Success(TranscriptionNonComplete("IN_PROGRESS")) =>
+        case Success(TranscriptionNonComplete(TranscriptionJobStatus.IN_PROGRESS)) =>
           logger.info(s"Transcription already in progress for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
         case _ =>
@@ -89,7 +90,7 @@ trait TranscriptionService {
 
       transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
         val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
-        val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
+        val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus()
 
         if (transcriptionJobStatus == "COMPLETED") {
           val transcribeUri = s"transcription/$language/${videoId}.vtt"
