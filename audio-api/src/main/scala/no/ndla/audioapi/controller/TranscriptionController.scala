@@ -101,9 +101,9 @@ trait TranscriptionController {
       .serverLogicPure { _ =>
         { case (videoId, language) =>
           transcriptionService.getVideoTranscription(videoId, language) match {
-            case Success(Right(transcriptionContent)) =>
-              Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
-            case Success(Left(jobStatus)) =>
+            case Success(TranscriptionComplete(transcriptionContent)) =>
+              Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent.toString)))
+            case Success(TranscriptionNonComplete(jobStatus)) =>
               Right(TranscriptionResultDTO(jobStatus.toString, None))
             case Failure(ex) => returnLeftError(ex)
           }

@@ -26,14 +26,17 @@ trait TranscriptionService {
   val transcriptionService: TranscriptionService
   val s3TranscribeClient: NdlaS3Client
 
+  sealed trait TranscriptionResult
+  case class TranscriptionComplete(transcription: String) extends TranscriptionResult
+  case class TranscriptionNonComplete(status: String)     extends TranscriptionResult
   class TranscriptionService extends StrictLogging {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
       getVideoTranscription(videoId, language) match {
-        case Success(Right(_)) =>
+        case Success(TranscriptionComplete(_)) =>
           logger.info(s"Transcription already completed for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
-        case Success(Left("IN_PROGRESS")) =>
+        case Success(TranscriptionNonComplete("IN_PROGRESS")) =>
           logger.info(s"Transcription already in progress for videoId: $videoId")
           return Failure(new JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
         case _ =>
@@ -81,7 +84,7 @@ trait TranscriptionService {
     def getVideoTranscription(
         videoId: String,
         language: String
-    ): Try[Either[String, String]] = {
+    ): Try[TranscriptionResult] = {
       val jobName = s"transcribe-video-$videoId-$language"
 
       transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
@@ -91,9 +94,9 @@ trait TranscriptionService {
         if (transcriptionJobStatus == "COMPLETED") {
           val transcribeUri = s"transcription/$language/${videoId}.vtt"
 
-          getObjectFromS3(transcribeUri).map(Right(_))
+          getObjectFromS3(transcribeUri).map(TranscriptionComplete(_))
         } else {
-          Success(Left(transcriptionJobStatus))
+          Success(TranscriptionNonComplete(transcriptionJobStatus))
         }
       }
     }

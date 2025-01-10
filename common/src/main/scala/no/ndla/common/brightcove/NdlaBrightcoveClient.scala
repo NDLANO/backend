@@ -57,7 +57,6 @@ trait NdlaBrightcoveClient {
 
       implicit val backend = HttpClientSyncBackend()
 
-      val response = request.send(backend)
       Try(request.send(backend).body) match {
         case Success(Right(jsonString)) =>
           parse(jsonString) match {

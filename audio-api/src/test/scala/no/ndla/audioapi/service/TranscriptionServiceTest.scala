@@ -18,7 +18,6 @@ import software.amazon.awssdk.services.transcribe.model.{
   TranscriptionJob,
   TranscriptionJobStatus
 }
-
 import scala.util.Success
 
 class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
@@ -55,7 +54,7 @@ class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
 
     val result = transcriptionService.getVideoTranscription(videoId, language)
 
-    result should be(Success(Left(fakeJobStatus.toString)))
+    result should be(Success(TranscriptionNonComplete(fakeJobStatus.toString)))
   }
 
   test("transcribeVideo returns Success when transcription is started") {
