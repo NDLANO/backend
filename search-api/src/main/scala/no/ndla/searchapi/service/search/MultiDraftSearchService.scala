@@ -269,10 +269,11 @@ trait MultiDraftSearchService {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
-        case Some("all") => None
-        case Some(lic)   => Some(termQuery("license", lic))
-        case None        => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
+        case Some("all") | None   => None
+        case Some("-copyrighted") => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
+        case Some(lic)            => Some(termQuery("license", lic))
       }
+
       val grepCodesFilter =
         if (settings.grepCodes.nonEmpty) Some(termsQuery("grepContexts.code", settings.grepCodes))
         else None
