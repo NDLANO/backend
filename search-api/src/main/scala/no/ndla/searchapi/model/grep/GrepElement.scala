@@ -115,7 +115,8 @@ object GrepKompetansemaalSett {
 
 case class GrepLaererplan(
     kode: String,
-    tittel: GrepTextObj
+    tittel: GrepTextObj,
+    `erstattes-av`: List[ReferenceObj]
 ) extends GrepElement {
   override def getTitle: Seq[GrepTitle] = tittel.tekst
 }

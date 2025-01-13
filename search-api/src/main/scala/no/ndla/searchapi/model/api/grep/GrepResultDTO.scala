@@ -82,9 +82,9 @@ object GrepResultDTO {
             code = core.kode,
             title = title,
             description = description,
-            laereplan = GrepLaererplanDTO(
+            laereplan = GrepReferencedLaereplanDTO(
               code = core.`tilhoerer-laereplan`.kode,
-              title = TitleDTO(core.`tilhoerer-laereplan`.tittel, Language.DefaultLanguage)
+              title = core.`tilhoerer-laereplan`.tittel
             )
           )
         )
@@ -93,9 +93,9 @@ object GrepResultDTO {
           GrepKompetansemaalDTO(
             code = goal.kode,
             title = title,
-            laereplan = GrepLaererplanDTO(
+            laereplan = GrepReferencedLaereplanDTO(
               code = goal.`tilhoerer-laereplan`.kode,
-              title = TitleDTO(goal.`tilhoerer-laereplan`.tittel, Language.DefaultLanguage)
+              title = goal.`tilhoerer-laereplan`.tittel
             ),
             kompetansemaalSett = GrepReferencedKompetansemaalSettDTO(
               code = goal.`tilhoerer-kompetansemaalsett`.kode,
@@ -132,7 +132,13 @@ object GrepResultDTO {
         Success(
           GrepLaererplanDTO(
             code = curriculum.kode,
-            title = title
+            title = title,
+            replacedBy = curriculum.`erstattes-av`.map(replacement =>
+              GrepReferencedLaereplanDTO(
+                code = replacement.kode,
+                title = replacement.tittel
+              )
+            )
           )
         )
       case crossTopic: GrepTverrfagligTema =>
@@ -148,16 +154,17 @@ object GrepResultDTO {
 
 case class GrepReferencedKjerneelementDTO(code: String, title: String)
 case class GrepReferencedKompetansemaalDTO(code: String, title: String)
+case class GrepReferencedLaereplanDTO(code: String, title: String)
 case class GrepKjerneelementDTO(
     code: String,
     title: TitleDTO,
     description: DescriptionDTO,
-    laereplan: GrepLaererplanDTO
+    laereplan: GrepReferencedLaereplanDTO
 ) extends GrepResultDTO
 case class GrepKompetansemaalDTO(
     code: String,
     title: TitleDTO,
-    laereplan: GrepLaererplanDTO,
+    laereplan: GrepReferencedLaereplanDTO,
     kompetansemaalSett: GrepReferencedKompetansemaalSettDTO,
     tverrfagligeTemaer: List[GrepTverrfagligTemaDTO],
     kjerneelementer: List[GrepReferencedKjerneelementDTO]
@@ -174,6 +181,7 @@ case class GrepKompetansemaalSettDTO(
 case class GrepLaererplanDTO(
     code: String,
     title: TitleDTO,
+    replacedBy: List[GrepReferencedLaereplanDTO],
     typename: "GrepLaererplanDTO" = "GrepLaererplanDTO"
 ) extends GrepResultDTO
 case class GrepTverrfagligTemaDTO(

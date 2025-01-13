@@ -1614,7 +1614,13 @@ object TestData {
       )
     ),
     tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
-    laereplaner = List(GrepLaererplan("LP1", GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)")))))
+    laereplaner = List(
+      GrepLaererplan(
+        "LP1",
+        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))),
+        `erstattes-av` = List.empty
+      )
+    )
   )
 
   val searchSettings: SearchSettings = SearchSettings(

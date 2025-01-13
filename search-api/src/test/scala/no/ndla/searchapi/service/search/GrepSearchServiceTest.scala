@@ -90,11 +90,13 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     laereplaner = List(
       GrepLaererplan(
         "LP1",
-        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk")))
+        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
+        List.empty
       ),
       GrepLaererplan(
         "LP2",
-        GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk")))
+        GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
+        List.empty
       )
     )
   )
