@@ -77,7 +77,8 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
         `tilhoerer-laereplan` = BelongsToObj("LP2", "Dette er LP2"),
         `tilhoerer-kompetansemaalsett` = BelongsToObj("KE200", "Kompetansemaalsett"),
         `tilknyttede-tverrfaglige-temaer` = List(),
-        `tilknyttede-kjerneelementer` = List()
+        `tilknyttede-kjerneelementer` = List(),
+        `gjenbruk-av` = None
       )
     ),
     kompetansemaalsett = List.empty,

@@ -89,7 +89,8 @@ case class GrepKompetansemaal(
     `tilhoerer-laereplan`: BelongsToObj,
     `tilhoerer-kompetansemaalsett`: BelongsToObj,
     `tilknyttede-tverrfaglige-temaer`: List[ReferenceWrapperObj],
-    `tilknyttede-kjerneelementer`: List[ReferenceWrapperObj]
+    `tilknyttede-kjerneelementer`: List[ReferenceWrapperObj],
+    `gjenbruk-av`: Option[ReferenceObj]
 ) extends GrepElement
     with BelongsToLaerePlan {
   override def getTitle: Seq[GrepTitle] = tittel.tekst

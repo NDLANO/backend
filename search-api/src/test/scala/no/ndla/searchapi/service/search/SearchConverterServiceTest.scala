@@ -517,7 +517,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           BelongsToObj("LP123", "Dette er LP123"),
           BelongsToObj("KMS123", "Dette er KMS123"),
           List(),
-          List()
+          List(),
+          None
         )
       ),
       tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
@@ -556,7 +557,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           BelongsToObj("LP123", "Dette er LP123"),
           BelongsToObj("KMS123", "Dette er KMS123"),
           List(),
-          List()
+          List(),
+          None
         )
       ),
       tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))

@@ -112,6 +112,12 @@ object GrepResultDTO {
                 code = core.referanse.kode,
                 title = core.referanse.tittel
               )
+            },
+            reuseOf = goal.`gjenbruk-av`.map { goal =>
+              GrepReferencedKompetansemaalDTO(
+                code = goal.kode,
+                title = goal.tittel
+              )
             }
           )
         )
@@ -167,7 +173,8 @@ case class GrepKompetansemaalDTO(
     laereplan: GrepReferencedLaereplanDTO,
     kompetansemaalSett: GrepReferencedKompetansemaalSettDTO,
     tverrfagligeTemaer: List[GrepTverrfagligTemaDTO],
-    kjerneelementer: List[GrepReferencedKjerneelementDTO]
+    kjerneelementer: List[GrepReferencedKjerneelementDTO],
+    reuseOf: Option[GrepReferencedKompetansemaalDTO]
 ) extends GrepResultDTO
 case class GrepReferencedKompetansemaalSettDTO(
     code: String,

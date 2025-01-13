@@ -1610,7 +1610,8 @@ object TestData {
         `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP1"),
         `tilhoerer-kompetansemaalsett` = BelongsToObj("KMS1", "Dette er KMS1"),
         `tilknyttede-tverrfaglige-temaer` = List(),
-        `tilknyttede-kjerneelementer` = List()
+        `tilknyttede-kjerneelementer` = List(),
+        `gjenbruk-av` = None
       )
     ),
     tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
