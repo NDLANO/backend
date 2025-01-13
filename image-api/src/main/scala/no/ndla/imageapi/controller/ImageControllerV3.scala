@@ -131,6 +131,7 @@ trait ImageControllerV3 {
       .in(language)
       .in(fallback)
       .in(license)
+      .in(includeCopyrighted)
       .in(sort)
       .in(pageNo)
       .in(pageSize)
@@ -149,6 +150,7 @@ trait ImageControllerV3 {
                 language,
                 fallback,
                 license,
+                includeCopyrighted,
                 sortStr,
                 pageNo,
                 pageSize,
@@ -160,13 +162,14 @@ trait ImageControllerV3 {
               val sort                = Sort.valueOf(sortStr)
               val shouldScroll        = scrollId.exists(InitialScrollContextKeywords.contains)
               val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
+              val licenseOpt          = license.orElse(Option.when(includeCopyrighted)("all"))
 
               searchV3(
                 minimumSize,
                 query,
                 language,
                 fallback,
-                license,
+                licenseOpt,
                 sort,
                 pageSize,
                 pageNo,
@@ -195,9 +198,11 @@ trait ImageControllerV3 {
             val fallback = searchParams.fallback.getOrElse(false)
 
             scrollSearchOr(searchParams.scrollId, language, user) {
-              val minimumSize     = searchParams.minimumSize
-              val query           = searchParams.query
-              val license         = searchParams.license
+              val minimumSize = searchParams.minimumSize
+              val query       = searchParams.query
+              val license = searchParams.license.orElse {
+                Option.when(searchParams.includeCopyrighted.contains(true))("all")
+              }
               val pageSize        = searchParams.pageSize
               val page            = searchParams.page
               val podcastFriendly = searchParams.podcastFriendly

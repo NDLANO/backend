@@ -49,6 +49,11 @@ trait BaseImageController {
     val license: EndpointInput.Query[Option[String]] =
       query[Option[String]]("license")
         .description("Return only images with provided license.")
+    val includeCopyrighted: EndpointInput.Query[Boolean] =
+      query[Boolean]("includeCopyrighted")
+        .description("Return copyrighted images. May be omitted.")
+        .deprecated()
+        .default(false)
     val sort: EndpointInput.Query[Option[String]] = query[Option[String]]("sort")
       .description(
         s"""The sorting used on results.

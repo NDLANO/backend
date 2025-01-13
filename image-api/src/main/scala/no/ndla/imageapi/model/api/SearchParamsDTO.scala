@@ -10,7 +10,7 @@ package no.ndla.imageapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.imageapi.model.domain.Sort
-import sttp.tapir.Schema.annotations.description
+import sttp.tapir.Schema.annotations.{description, deprecated}
 
 // format: off
 @description("The search parameters")
@@ -20,6 +20,7 @@ case class SearchParamsDTO(
     @description("The ISO 639-1 language code describing language used in query-params") language: Option[String],
     @description("Fallback to existing language if language is specified.") fallback: Option[Boolean],
     @description("Return only images with full size larger than submitted value in bytes.") minimumSize: Option[Int],
+    @deprecated @description("Return copyrighted images. May be omitted.") includeCopyrighted: Option[Boolean],
     @description("""The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""") sort: Option[Sort],
     @description("The page number of the search hits to display.") page: Option[Int],
     @description("The number of search hits to display for each page.") pageSize: Option[Int],
