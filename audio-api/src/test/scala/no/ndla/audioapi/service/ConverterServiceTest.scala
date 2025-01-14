@@ -8,12 +8,13 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY_SA
 
 import scala.util.Success
@@ -25,7 +26,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val copyrighted: Copyright =
-    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.Copyrighted.toString,
+      Some("New York"),
+      Seq(Author("Forfatter", "Clark Kent")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val audioMeta: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),

@@ -17,6 +17,7 @@ import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.*
 import no.ndla.draftapi.model.{api, domain}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
@@ -54,7 +55,7 @@ object TestData {
     false
   )
   private val copyrighted = common.draft.DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
     List(common.Author("Forfatter", "Clark Kent")),
     List(),

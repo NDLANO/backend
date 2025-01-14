@@ -15,6 +15,7 @@ import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.mapping.License
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -53,7 +54,16 @@ class AudioSearchServiceTest
   )
 
   val copyrighted: Copyright =
-    Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.Copyrighted.toString,
+      Some("New York"),
+      List(Author("Forfatter", "Clark Kent")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val updated1: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val updated2: NDLADate = NDLADate.of(2017, 5, 1, 12, 15, 32)
@@ -339,7 +349,7 @@ class AudioSearchServiceTest
       searchSettings.copy(
         query = Some("batmen"),
         language = Some("nb"),
-        license = Some("copyrighted")
+        license = Some(License.Copyrighted.toString)
       )
     )
     results.totalCount should be(1)

@@ -382,7 +382,6 @@ trait TestData {
       page = None,
       pageSize = None,
       podcastFriendly = None,
-      includeCopyrighted = false,
       shouldScroll = false,
       modelReleased = Seq.empty
     )
