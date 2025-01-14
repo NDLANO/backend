@@ -1,6 +1,6 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type GrepResultDTO = (IGrepLaererplanDTO | IGrepKompetansemaalSettDTO | IGrepKompetansemaalDTO | IGrepTverrfagligTemaDTO | IGrepKjerneelementDTO)
+export type GrepResultDTO = (IGrepKjerneelementDTO | IGrepKompetansemaalSettDTO | IGrepTverrfagligTemaDTO | IGrepLaererplanDTO | IGrepKompetansemaalDTO)
 
 export type GrepSort = ("-relevance" | "relevance" | "-title" | "title" | "-code" | "code")
 
