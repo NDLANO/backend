@@ -9,9 +9,10 @@
 package no.ndla.searchapi.model.api.grep
 
 import cats.implicits.*
+import com.scalatsi.TypescriptType.TSUnion
+import com.scalatsi.{TSNamedType, TSType, TypescriptType}
 import io.circe.generic.auto.*
 import sttp.tapir.generic.auto.*
-
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, Json}
 import no.ndla.language.Language
@@ -52,8 +53,22 @@ object GrepResultDTO {
     json.mapObject(_.add("typename", Json.fromString(result.getClass.getSimpleName)))
   }
 
-  implicit val s1: Schema["GrepLaererplanDTO"]      = Schema.string
-  implicit val s2: Schema["GrepTverrfagligTemaDTO"] = Schema.string
+  val typescriptUnionTypes: Seq[TypescriptType.TSInterface] = Seq(
+    TSType.fromCaseClass[GrepKjerneelementDTO].get,
+    TSType.fromCaseClass[GrepKompetansemaalDTO].get,
+    TSType.fromCaseClass[GrepKompetansemaalSettDTO].get,
+    TSType.fromCaseClass[GrepLaererplanDTO].get,
+    TSType.fromCaseClass[GrepTverrfagligTemaDTO].get
+  )
+
+  implicit val t2: TSNamedType[GrepResultDTO] =
+    TSType.alias[GrepResultDTO]("GrepResultDTO", TSUnion(typescriptUnionTypes))
+
+  implicit val s1: Schema["GrepLaererplanDTO"]         = Schema.string
+  implicit val s2: Schema["GrepTverrfagligTemaDTO"]    = Schema.string
+  implicit val s3: Schema["GrepKompetansemaalSettDTO"] = Schema.string
+  implicit val s4: Schema["GrepKompetansemaalDTO"]     = Schema.string
+  implicit val s5: Schema["GrepKjerneelementDTO"]      = Schema.string
 
   implicit val decoder: Decoder[GrepResultDTO] = List[Decoder[GrepResultDTO]](
     Decoder[GrepKjerneelementDTO].widen,
@@ -73,8 +88,7 @@ object GrepResultDTO {
       case core: GrepKjerneelement =>
         val descriptionLvs = GrepTitle.convertTitles(core.beskrivelse.tekst.toSeq)
         val descriptionLv: LanguageValue[String] =
-          findByLanguageOrBestEffort(descriptionLvs, language)
-            .getOrElse(LanguageValue(Language.DefaultLanguage, ""))
+          findByLanguageOrBestEffort(descriptionLvs, language).getOrElse(LanguageValue(Language.DefaultLanguage, ""))
         val description = DescriptionDTO(description = descriptionLv.value, language = descriptionLv.language)
 
         Success(
@@ -165,7 +179,8 @@ case class GrepKjerneelementDTO(
     code: String,
     title: TitleDTO,
     description: DescriptionDTO,
-    laereplan: GrepReferencedLaereplanDTO
+    laereplan: GrepReferencedLaereplanDTO,
+    typename: "GrepKjerneelementDTO" = "GrepKjerneelementDTO"
 ) extends GrepResultDTO
 case class GrepKompetansemaalDTO(
     code: String,
@@ -174,7 +189,8 @@ case class GrepKompetansemaalDTO(
     kompetansemaalSett: GrepReferencedKompetansemaalSettDTO,
     tverrfagligeTemaer: List[GrepTverrfagligTemaDTO],
     kjerneelementer: List[GrepReferencedKjerneelementDTO],
-    reuseOf: Option[GrepReferencedKompetansemaalDTO]
+    reuseOf: Option[GrepReferencedKompetansemaalDTO],
+    typename: "GrepKompetansemaalDTO" = "GrepKompetansemaalDTO"
 ) extends GrepResultDTO
 case class GrepReferencedKompetansemaalSettDTO(
     code: String,
@@ -183,7 +199,8 @@ case class GrepReferencedKompetansemaalSettDTO(
 case class GrepKompetansemaalSettDTO(
     code: String,
     title: TitleDTO,
-    kompetansemaal: List[GrepReferencedKompetansemaalDTO]
+    kompetansemaal: List[GrepReferencedKompetansemaalDTO],
+    typename: "GrepKompetansemaalSettDTO" = "GrepKompetansemaalSettDTO"
 ) extends GrepResultDTO
 case class GrepLaererplanDTO(
     code: String,
