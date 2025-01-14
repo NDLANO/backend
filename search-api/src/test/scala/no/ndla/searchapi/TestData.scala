@@ -1718,8 +1718,6 @@ object TestData {
     resultTypes = None
   )
 
-  val noCopyrightedSettings = multiDraftSearchSettings.copy(license = Some("-copyrighted"))
-
   val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(
     SearchableTaxonomyResourceType(
       "urn:resourcetype:subjectMaterial",

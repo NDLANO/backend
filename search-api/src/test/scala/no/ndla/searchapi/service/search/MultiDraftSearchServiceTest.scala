@@ -207,10 +207,10 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
   test("That search matches updatedBy") {
     val Success(results) =
       multiDraftSearchService.matchingQuery(
-        noCopyrightedSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId54321"))
+        multiDraftSearchSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId54321"))
       )
     val hits = results.results
-    results.totalCount should be(12)
+    results.totalCount should be(13)
     hits.head.id should be(1)
     hits.head.contexts.head.contextType should be("standard")
     hits(1).id should be(2)
