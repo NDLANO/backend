@@ -71,7 +71,6 @@ trait WriteService {
           searchApiClient.indexDraft(article, user)(ec): Unit
           articleIndexService.indexAsync(articleId, article)(ec): Unit
           tagIndexService.indexAsync(articleId, article)(ec): Unit
-          grepCodesIndexService.indexAsync(articleId, article)(ec): Unit
           Success(())
       }
 

@@ -43,7 +43,8 @@ object searchapi extends Module {
       "SubjectAggregationsDTO",
       "SubjectAggsInputDTO",
       "GrepSearchInputDTO",
-      "grep.GrepSearchResultsDTO"
+      "grep.GrepSearchResultsDTO",
+      "grep.GrepResultDTO"
     )
   )
 

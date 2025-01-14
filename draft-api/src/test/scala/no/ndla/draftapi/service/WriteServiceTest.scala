@@ -130,7 +130,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(draftRepository, times(0)).updateArticle(any[Draft], any[Boolean])(any)
     verify(articleIndexService, times(1)).indexAsync(any, any)(any)
     verify(tagIndexService, times(1)).indexAsync(any, any)(any)
-    verify(grepCodesIndexService, times(1)).indexAsync(any, any)(any)
   }
 
   test("That updateArticle updates only content properly") {

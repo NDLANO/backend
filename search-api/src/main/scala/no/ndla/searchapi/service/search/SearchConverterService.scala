@@ -257,33 +257,21 @@ trait SearchConverterService {
 
     }
 
-    def convertGrepTitleToLanguageValue(grepElement: GrepElement): Seq[LanguageValue[String]] =
-      grepElement.tittel.flatMap(gt => {
-        ISO639.get6391CodeFor6392Code(gt.spraak) match {
-          case Some(convertedLanguage) =>
-            Some(LanguageValue(language = convertedLanguage, value = gt.verdi.trim))
-          case None if gt.spraak == "default" => None
-          case None =>
-            logger.warn(s"Could not convert language code '${gt.spraak}' for grep code '${grepElement.kode}'")
-            None
-        }
-      })
-
     def asSearchableGrep(grepElement: GrepElement): Try[SearchableGrepElement] = {
       val laererplan = grepElement match {
-        case lp: BelongsToLaerePlan => Some(lp.tilhoerer_laereplan.kode)
+        case lp: BelongsToLaerePlan => Some(lp.`tilhoerer-laereplan`.kode)
         case _                      => None
       }
-      val defaultTitle = grepElement.tittel.find(_.spraak == "default")
-      val titles       = convertGrepTitleToLanguageValue(grepElement)
+      val defaultTitle = grepElement.getTitle.find(_.spraak == "default")
+      val titles       = GrepTitle.convertTitles(grepElement.getTitle)
       val title        = SearchableLanguageValues.fromFields(titles)
-
       Success(
         SearchableGrepElement(
           code = grepElement.kode,
           title = title,
           defaultTitle = defaultTitle.map(_.verdi),
-          laereplanCode = laererplan
+          laereplanCode = laererplan,
+          domainObject = grepElement
         )
       )
     }
@@ -994,7 +982,9 @@ trait SearchConverterService {
                 grepCode,
                 grepBundle.grepContextByCode
                   .get(grepCode)
-                  .flatMap(element => element.tittel.find(title => title.spraak == "default").map(title => title.verdi))
+                  .flatMap(element =>
+                    element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
+                  )
               )
             )
             .toList

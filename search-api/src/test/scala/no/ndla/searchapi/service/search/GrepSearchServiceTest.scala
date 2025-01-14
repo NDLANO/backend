@@ -20,7 +20,8 @@ import no.ndla.searchapi.model.grep.{
   GrepKompetansemaal,
   GrepLaererplan,
   GrepTitle,
-  GrepTverrfagligTema
+  GrepTverrfagligTema,
+  GrepTextObj
 }
 
 class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -49,23 +50,35 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     kjerneelementer = List(
       GrepKjerneelement(
         "KE12",
-        Seq(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning")),
-        BelongsToObj("LP1")
+        GrepTextObj(
+          List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
+        ),
+        GrepTextObj(List(GrepTitle("default", ""))),
+        BelongsToObj("LP1", "Dette er LP1")
       ),
       GrepKjerneelement(
         "KE34",
-        Seq(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering")),
-        BelongsToObj("LP2")
+        GrepTextObj(
+          List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
+        ),
+        GrepTextObj(List(GrepTitle("default", ""))),
+        BelongsToObj("LP2", "Dette er LP2")
       )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
-        "KM123",
-        Seq(
-          GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
-          GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
+        kode = "KM123",
+        tittel = GrepTextObj(
+          List(
+            GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
+            GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
+          )
         ),
-        BelongsToObj("LP2")
+        `tilhoerer-laereplan` = BelongsToObj("LP2", "Dette er LP2"),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj("KE200", "Kompetansemaalsett"),
+        `tilknyttede-tverrfaglige-temaer` = List(),
+        `tilknyttede-kjerneelementer` = List(),
+        `gjenbruk-av` = None
       )
     ),
     kompetansemaalsett = List.empty,
@@ -78,11 +91,13 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     laereplaner = List(
       GrepLaererplan(
         "LP1",
-        Seq(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))
+        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
+        List.empty
       ),
       GrepLaererplan(
         "LP2",
-        Seq(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))
+        GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
+        List.empty
       )
     )
   )
