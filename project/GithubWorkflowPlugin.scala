@@ -225,6 +225,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
       |        with:
       |          distribution: temurin
       |          java-version: '$workflowJavaVersion'
+      |      - uses: sbt/setup-sbt@v1
       |      - name: Login to ECR repo
       |        run: RES=$$(aws sts assume-role --role-arn $$CI_RELEASE_ROLE --role-session-name
       |          github-actions-ecr-login) AWS_ACCESS_KEY_ID=$$(echo $$RES | jq -r .Credentials.AccessKeyId)
