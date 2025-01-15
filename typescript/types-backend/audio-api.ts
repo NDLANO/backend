@@ -196,6 +196,11 @@ export interface ITitleDTO {
   language: string
 }
 
+export interface ITranscriptionResultDTO {
+  status: string
+  transcription?: string
+}
+
 export interface IUpdatedAudioMetaInformationDTO {
   revision: number
   title: string

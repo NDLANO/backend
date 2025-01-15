@@ -9,14 +9,14 @@ package no.ndla.audioapi.service
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException}
+import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.domain as common
 import no.ndla.language.Language.findByLanguageOrBestEffort
@@ -278,7 +278,7 @@ trait WriteService {
         user: TokenUser
     ): Try[api.AudioMetaInformationDTO] = {
       audioRepository.withId(id) match {
-        case None => Failure(new NotFoundException)
+        case None => Failure(NotFoundException("Audio not found"))
         case Some(existingMetadata) =>
           val metadataAndFile = fileOpt match {
             case None => mergeAudioMeta(existingMetadata, metadataToUpdate, None, user)

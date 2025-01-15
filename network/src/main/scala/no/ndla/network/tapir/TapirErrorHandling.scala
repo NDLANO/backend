@@ -78,6 +78,7 @@ trait TapirErrorHandling extends StrictLogging {
     val VALIDATION             = "VALIDATION_ERROR"
     val METHOD_NOT_ALLOWED     = "METHOD_NOT_ALLOWED"
     val CONFLICT               = "CONFLICT"
+    val JOB_ALREADY_FOUND      = "JOB_ALREADY_FOUND"
 
     val PARAMETER_MISSING      = "PARAMETER MISSING"
     val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
