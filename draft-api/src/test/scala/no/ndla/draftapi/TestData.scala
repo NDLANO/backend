@@ -13,6 +13,7 @@ import no.ndla.common.model.api.{DraftCopyrightDTO, Missing}
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.*
@@ -322,7 +323,7 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -357,7 +358,7 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -394,7 +395,7 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val newArticle: NewArticleDTO = api.NewArticleDTO(
@@ -485,7 +486,7 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = None
+    disclaimer = OptLanguageFields.empty
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleDTO = api.ArticleDTO(

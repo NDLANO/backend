@@ -16,6 +16,7 @@ import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missi
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.Props
@@ -55,7 +56,7 @@ trait ConverterService {
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
-      val domainDisclaimer = newArticle.disclaimer.map { d => Seq(common.Disclaimer(d, newArticle.language)) }
+      val domainDisclaimer = OptLanguageFields.fromMaybeString(newArticle.disclaimer, newArticle.language)
 
       val status = externalIds match {
         case Nil => common.Status(PLANNED, Set.empty)
@@ -259,9 +260,6 @@ trait ConverterService {
     private def toDomainTitle(articleTitle: api.ArticleTitleDTO): common.Title =
       common.Title(articleTitle.title, articleTitle.language)
 
-    private def toDomainDisclaimer(articleDisclaimer: DisclaimerDTO): common.Disclaimer =
-      common.Disclaimer(articleDisclaimer.disclaimer, articleDisclaimer.language)
-
     private def toDomainContent(articleContent: api.ArticleContentDTO): common.ArticleContent = {
       common.ArticleContent(removeUnknownEmbedTagAttribute(articleContent.content), articleContent.language)
     }
@@ -391,8 +389,7 @@ trait ConverterService {
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
         val responsible    = article.responsible.map(toApiResponsible)
-        val disclaimer =
-          article.disclaimer.flatMap { d => findByLanguageOrBestEffort(d, language).map(toApiArticleDisclaimer) }
+        val disclaimer = article.disclaimer.findByLanguageOrBestEffort(language).map(DisclaimerDTO.fromLanguageValue)
 
         Success(
           api.ArticleDTO(
@@ -460,9 +457,6 @@ trait ConverterService {
 
     def toApiArticleTitle(title: common.Title): api.ArticleTitleDTO =
       api.ArticleTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
-
-    private def toApiArticleDisclaimer(disclaimer: common.Disclaimer): DisclaimerDTO =
-      DisclaimerDTO(disclaimer.disclaimer, disclaimer.language)
 
     private def toApiArticleContent(content: common.ArticleContent): api.ArticleContentDTO =
       api.ArticleContentDTO(content.content, content.language)
@@ -650,7 +644,8 @@ trait ConverterService {
         article.tags,
         article.introduction,
         article.metaDescription,
-        article.visualElement
+        article.visualElement,
+        article.disclaimer
       )
 
       langFields.foldRight(false)((curr, res) => res || curr.isDefined || metaImageExists)
@@ -794,15 +789,7 @@ trait ConverterService {
           .flatten
       )
 
-      val updatedDisclaimer = articleWithNewContent.disclaimer match {
-        case None => toMergeInto.disclaimer
-        case Some(newDisclaimer) =>
-          val updated = mergeLanguageFields(
-            toMergeInto.disclaimer.getOrElse(Seq.empty),
-            maybeLang.map(lang => toDomainDisclaimer(DisclaimerDTO(newDisclaimer, lang))).toSeq
-          )
-          Option.when(updated.nonEmpty)(updated)
-      }
+      val updatedDisclaimer = toMergeInto.disclaimer.withOptValue(articleWithNewContent.disclaimer, maybeLang)
 
       val updatedContents = mergeLanguageFields(
         toMergeInto.content,
@@ -958,7 +945,7 @@ trait ConverterService {
           priority = priority,
           started = false,
           qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
-          disclaimer = article.disclaimer.map { d => Seq(common.Disclaimer(d, lang)) }
+          disclaimer = OptLanguageFields.fromMaybeString(article.disclaimer, lang)
         )
     }
 

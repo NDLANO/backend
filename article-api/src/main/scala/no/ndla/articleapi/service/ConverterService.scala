@@ -260,8 +260,8 @@ trait ConverterService {
         val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val copyright = toApiCopyright(article.copyright)
         val disclaimer = article.disclaimer
-          .flatMap(d => findByLanguageOrBestEffort(d, language))
-          .map(d => DisclaimerDTO(d.disclaimer, d.language))
+          .findByLanguageOrBestEffort(language)
+          .map(DisclaimerDTO.fromLanguageValue)
 
         Success(
           api.ArticleV2DTO(

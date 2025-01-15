@@ -15,6 +15,7 @@ import no.ndla.common.model
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.mapping.License
 
 trait TestData {
@@ -155,7 +156,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = Some(NDLADate.now().withNano(0)),
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleDomainArticle: Article = Article(
@@ -181,7 +182,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleDomainArticle2: Article = Article(
@@ -207,7 +208,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -245,7 +246,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val apiArticleWithHtmlFaultV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -316,7 +317,7 @@ trait TestData {
         relatedContent = Seq.empty,
         revisionDate = None,
         slug = None,
-        disclaimer = None
+        disclaimer = OptLanguageFields.empty
       )
     }
 

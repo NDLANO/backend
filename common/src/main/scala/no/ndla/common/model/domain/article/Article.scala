@@ -11,8 +11,9 @@ package no.ndla.common.model.domain.article
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.{NDLADate, RelatedContentLink}
-import no.ndla.common.model.domain._
-import no.ndla.common.implicits._
+import no.ndla.common.model.domain.*
+import no.ndla.common.implicits.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 
 case class Article(
     id: Option[Long],
@@ -37,7 +38,7 @@ case class Article(
     relatedContent: Seq[RelatedContent],
     revisionDate: Option[NDLADate],
     slug: Option[String],
-    disclaimer: Option[Seq[Disclaimer]]
+    disclaimer: OptLanguageFields[String]
 ) extends Content
 
 object Article {

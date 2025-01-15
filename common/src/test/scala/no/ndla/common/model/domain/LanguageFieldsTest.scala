@@ -44,6 +44,20 @@ class LanguageFieldsTest extends UnitTestSuite {
     languageFields.findByLanguageOrBestEffort("nn") should be(Some(BaseWithLanguageAndValue("nn", "nynorsk")))
   }
 
+  test("That language fields are found by language or best effort according to language priority when opt") {
+    val fields = Seq(
+      BaseWithLanguageAndValue("nb", "bokmål"),
+      BaseWithLanguageAndValue("en", "english")
+    )
+
+    val languageFields = OptLanguageFields.fromFields(fields).withUnwanted("nn")
+
+    languageFields.findByLanguageOrBestEffort("nb") should be(Some(BaseWithLanguageAndValue("nb", "bokmål")))
+    languageFields.findByLanguageOrBestEffort("en") should be(Some(BaseWithLanguageAndValue("en", "english")))
+    languageFields.findByLanguageOrBestEffort("sma") should be(Some(BaseWithLanguageAndValue("nb", "bokmål")))
+    languageFields.findByLanguageOrBestEffort("nn") should be(None)
+  }
+
   test("That the LanguageFields type is able to differentiate between a missing and not needed field") {
 
     val fields = Seq(
@@ -53,26 +67,20 @@ class LanguageFieldsTest extends UnitTestSuite {
 
     val languageFields = LanguageFields.fromFields(fields)
     val jsonString     = CirceUtil.toJsonString(languageFields)
+    val result         = CirceUtil.unsafeParseAs[LanguageFields[OptionalLanguageValue[String]]](jsonString)
 
-    val result = CirceUtil.unsafeParseAs[LanguageFields[OptionalLanguageValue[String]]](jsonString)
     result should be(languageFields)
-
     result.get("nb") should be(Some(BaseWithLanguageAndValue("nb", Exists("bokmål"))))
     result.get("nn") should be(Some(BaseWithLanguageAndValue("nn", NotWanted())))
   }
 
   test("That the OptLanguageFields type is able to differentiate between a missing and not needed field") {
-
-    val fields = Seq(
-      BaseWithLanguageAndValue[String]("nb", "bokmål")
-    )
-
+    val fields         = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
     val languageFields = OptLanguageFields.fromFields(fields).withUnwanted("en")
     val jsonString     = CirceUtil.toJsonString(languageFields)
+    val result         = CirceUtil.unsafeParseAs[OptLanguageFields[String]](jsonString)
 
-    val result = CirceUtil.unsafeParseAs[OptLanguageFields[String]](jsonString)
     result should be(languageFields)
-
     result.get("nb") should be(Some(Exists("bokmål")))
     result.get("nn") should be(None)
     result.get("en") should be(Some(NotWanted()))

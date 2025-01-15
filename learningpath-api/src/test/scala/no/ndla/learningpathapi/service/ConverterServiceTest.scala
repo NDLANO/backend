@@ -427,7 +427,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("asEmbedUrl throws error if an not allowed value for embedType is used") {
-    assertResult("Validation Error") {
+    assertResult("Validation Error:\n\tembedType: 'test' is not a valid embed type.") {
       intercept[ValidationException] {
         service.asEmbedUrlV2(api.EmbedUrlV2DTO("http://test.no/2/oembed/", "test"), "nb")
       }.getMessage
