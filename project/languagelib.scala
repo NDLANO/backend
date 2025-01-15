@@ -9,7 +9,8 @@ object languagelib extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       "org.scalatest" %% "scalatest" % ScalaTestV % "test"
-    )
+    ),
+    tapirHttp4sCirce
   )
 
   override lazy val settings: Seq[Def.Setting[?]] = Seq(
