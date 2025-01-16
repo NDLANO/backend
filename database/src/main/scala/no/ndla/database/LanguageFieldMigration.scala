@@ -15,9 +15,9 @@ abstract class LanguageFieldMigration extends DocumentMigration {
   protected def oldSubfieldName: String = fieldName
 
   private def convertOldLanguageField(fields: Vector[Json]): Json = {
-    fields.foldLeft(Json.obj()) { (acc, disclaimer) =>
-      val language = disclaimer.hcursor.downField("language").as[String].toTry.get
-      val text     = disclaimer.hcursor.downField(oldSubfieldName).as[String].toTry.get
+    fields.foldLeft(Json.obj()) { (acc, field) =>
+      val language = field.hcursor.downField("language").as[String].toTry.get
+      val text     = field.hcursor.downField(oldSubfieldName).as[String].toTry.get
       acc.mapObject(_.add(language, Json.fromString(text)))
     }
   }
@@ -27,14 +27,14 @@ abstract class LanguageFieldMigration extends DocumentMigration {
   }
 
   override def convertColumn(document: String): String = {
-    val oldArticle = parser.parse(document).toTry.get
-    oldArticle.hcursor.downField(fieldName).focus match {
-      case None                => addEmptyLanguageField(oldArticle)
-      case Some(f) if f.isNull => addEmptyLanguageField(oldArticle)
-      case Some(disclaimers) =>
-        val disclaimerVector = disclaimers.asArray.get
-        val converted        = convertOldLanguageField(disclaimerVector)
-        val newArticle       = oldArticle.withObject(_.remove(fieldName).add(fieldName, converted).toJson)
+    val oldDocument = parser.parse(document).toTry.get
+    oldDocument.hcursor.downField(fieldName).focus match {
+      case None                => addEmptyLanguageField(oldDocument)
+      case Some(f) if f.isNull => addEmptyLanguageField(oldDocument)
+      case Some(values) =>
+        val valueVector = values.asArray.get
+        val converted   = convertOldLanguageField(valueVector)
+        val newArticle  = oldDocument.withObject(_.remove(fieldName).add(fieldName, converted).toJson)
         newArticle.noSpaces
     }
   }
