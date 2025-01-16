@@ -11,6 +11,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException, UpdatedArticleDTO}
@@ -84,7 +85,7 @@ trait ContentValidator {
         if (shouldValidateEntireArticle)
           article.content.flatMap(c => validateArticleContent(c)) ++
             article.introduction.flatMap(i => validateIntroduction(i)) ++
-            validateArticleDisclaimer(article.disclaimer.getOrElse(Seq.empty)) ++
+            validateArticleDisclaimer(article.disclaimer) ++
             article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
             validateTitles(article.title) ++
             article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
@@ -165,11 +166,12 @@ trait ContentValidator {
         validateLanguage("content.language", content.language)
     }
 
-    private def validateArticleDisclaimer(disclaimers: Seq[Disclaimer]): Seq[ValidationMessage] = {
-      disclaimers.flatMap(disclaimer => {
-        TextValidator.validate("disclaimer", disclaimer.disclaimer, allLegalTags).toList ++
+    private def validateArticleDisclaimer(disclaimers: OptLanguageFields[String]): Seq[ValidationMessage] = {
+      disclaimers.mapExisting { disclaimer =>
+        val field = s"disclaimer.${disclaimer.language}"
+        TextValidator.validate(field, disclaimer.value, allLegalTags).toList ++
           validateLanguage("disclaimer.language", disclaimer.language)
-      })
+      }.flatten
     }
 
     private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {

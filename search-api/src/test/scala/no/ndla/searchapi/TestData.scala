@@ -38,6 +38,7 @@ import no.ndla.common.model.domain.concept.{
   WordClass
 }
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -56,9 +57,9 @@ import no.ndla.searchapi.model.grep.{
   GrepKjerneelement,
   GrepKompetansemaal,
   GrepLaererplan,
+  GrepTextObj,
   GrepTitle,
-  GrepTverrfagligTema,
-  GrepTextObj
+  GrepTverrfagligTema
 }
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -211,7 +212,7 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDomainArticle: Article = Article(
@@ -237,7 +238,7 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -263,7 +264,7 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -544,9 +545,9 @@ object TestData {
     conceptIds = Seq.empty,
     availability = Availability.everyone,
     relatedContent = Seq.empty,
-    None,
+    revisionDate = None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -581,7 +582,7 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -644,7 +645,7 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))

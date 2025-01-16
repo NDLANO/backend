@@ -9,9 +9,10 @@ package no.ndla.common.model.domain.draft
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink}
-import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.language.Language.getSupportedLanguages
 
 case class Draft(
@@ -46,11 +47,20 @@ case class Draft(
     priority: Priority,
     started: Boolean,
     qualityEvaluation: Option[QualityEvaluation],
-    disclaimer: Option[Seq[Disclaimer]]
+    disclaimer: OptLanguageFields[String]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
-    getSupportedLanguages(title, visualElement, introduction, metaDescription, tags, content, metaImage)
+    getSupportedLanguages(
+      title,
+      visualElement,
+      introduction,
+      metaDescription,
+      tags,
+      content,
+      metaImage,
+      disclaimer.getWithLanguageFields
+    )
 }
 
 object Draft {

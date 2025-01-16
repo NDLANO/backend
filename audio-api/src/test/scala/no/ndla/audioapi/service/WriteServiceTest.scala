@@ -404,7 +404,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(mock[UploadedFile]), testUser)
     result.isFailure should be(true)
-    result.failed.get.getMessage should equal(new ValidationException(errors = Seq()).getMessage)
+    result.failed.get.getMessage should equal(new ValidationException(errors = Seq(validationMessage)).getMessage)
   }
 
   test("that updateAudio returns Failure when audio upload fails") {
