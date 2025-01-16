@@ -67,6 +67,11 @@ case class OptLanguageFields[T: Encoder: Decoder](
     val updated: Map[String, Either[NotWantedKeyT, Option[T]]] = internal.updated(language, Right(Some(value)))
     OptLanguageFields(updated)
   }
+
+  def dropLanguage(language: String): OptLanguageFields[T] = {
+    val newInternal = internal.removed(language)
+    OptLanguageFields(newInternal)
+  }
 }
 
 object OptLanguageFields {

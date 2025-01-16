@@ -51,7 +51,16 @@ case class Draft(
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
-    getSupportedLanguages(title, visualElement, introduction, metaDescription, tags, content, metaImage)
+    getSupportedLanguages(
+      title,
+      visualElement,
+      introduction,
+      metaDescription,
+      tags,
+      content,
+      metaImage,
+      disclaimer.getWithLanguageFields
+    )
 }
 
 object Draft {

@@ -558,6 +558,7 @@ trait ConverterService {
       val tags                = article.tags.filter(_.language != language)
       val metaImage           = article.metaImage.filter(_.language != language)
       val visualElement       = article.visualElement.filter(_.language != language)
+      val disclaimers         = article.disclaimer.dropLanguage(language)
       newNotes(Seq(s"Slettet språkvariant '$language'."), userInfo, article.status) match {
         case Failure(ex) => Failure(ex)
         case Success(newEditorNotes) =>
@@ -570,7 +571,8 @@ trait ConverterService {
               tags = tags,
               metaImage = metaImage,
               visualElement = visualElement,
-              notes = article.notes ++ newEditorNotes
+              notes = article.notes ++ newEditorNotes,
+              disclaimer = disclaimers
             )
           )
       }
