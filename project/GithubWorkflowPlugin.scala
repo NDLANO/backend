@@ -128,6 +128,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
        |      - uses: hashicorp/setup-terraform@v3
        |        with:
        |          terraform_version: $${{ vars.TERRAFORM_VERSION }}
+       |      - uses: sbt/setup-sbt@v1
        |      - name: Setup ~/bin directory
        |        run: |
        |          mkdir -p /home/runner/bin
