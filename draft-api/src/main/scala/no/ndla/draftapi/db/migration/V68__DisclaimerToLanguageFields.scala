@@ -6,12 +6,12 @@
  *
  */
 
-package no.ndla.articleapi.db.migration
+package no.ndla.draftapi.db.migration
 
 import no.ndla.database.LanguageFieldMigration
 
-class V56__DisclaimerToLanguageFields extends LanguageFieldMigration {
+class V68__DisclaimerToLanguageFields extends LanguageFieldMigration {
   override val columnName: String = "document"
-  override val tableName: String  = "contentdata"
+  override val tableName: String  = "articledata"
   override val fieldName: String  = "disclaimer"
 }
