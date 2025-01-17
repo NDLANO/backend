@@ -1,16 +1,16 @@
 /*
- * Part of NDLA article-api
+ * Part of NDLA draft-api
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.articleapi.db.migration
+package no.ndla.draftapi.db.migration
 
-import no.ndla.articleapi.db.HtmlMigration
+import no.ndla.draftapi.db.HtmlMigration
 import org.jsoup.nodes.Element
 
-class V56__RemoveArticleIdFromUUDisclaimer extends HtmlMigration {
+class V68__RemoveArticleIdFromUUDisclaimer extends HtmlMigration {
   override val convertVisualElement: Boolean = true
   override def convertHtml(doc: Element, language: String): Element = {
     doc
