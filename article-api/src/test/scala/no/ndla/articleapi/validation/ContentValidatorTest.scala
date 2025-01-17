@@ -21,6 +21,7 @@ import no.ndla.common.model.domain.{
   Title
 }
 import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.mapping.License.{CC_BY_SA, NA}
 
 import scala.util.Failure
@@ -30,6 +31,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
   val validIntroduction         = """<p>heisann <span lang="en">heia</span></p><p>hopp</p>"""
   val invalidDocument           = """<section><invalid></invalid></section>"""
+  val validDisclaimer =
+    """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
   test("validateArticle does not throw an exception on a valid document") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")))
@@ -73,6 +76,37 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
       introduction = Seq(Introduction("introduction", "nb"))
+    )
+    contentValidator.validateArticle(article, false).isSuccess should be(true)
+  }
+
+  test("validateArticle should throw an error if disclaimer contains illegal HTML tags") {
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb")
+    )
+
+    val Failure(error: ValidationException) = contentValidator.validateArticle(article, false)
+    error should be(
+      ValidationException(
+        "disclaimer.nb",
+        "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
+      )
+    )
+  }
+
+  test("validateArticle should not throw an error if disclaimer contains legal HTML tags") {
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      disclaimer = OptLanguageFields.withValue(validDisclaimer, "nb")
+    )
+    contentValidator.validateArticle(article, false).isSuccess should be(true)
+  }
+
+  test("validateArticle should not throw an error if disclaimer contains plain text") {
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      disclaimer = OptLanguageFields.withValue("disclaimer", "nb")
     )
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }

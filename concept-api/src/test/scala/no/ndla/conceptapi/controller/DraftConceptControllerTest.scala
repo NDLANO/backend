@@ -82,7 +82,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   test("POST / should return 201 on created") {
     when(
       writeService
-        .newConcept(any[NewConcept], any[TokenUser])
+        .newConcept(any[NewConceptDTO], any[TokenUser])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
     simpleHttpClient
@@ -99,7 +99,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   test("POST / should return 403 if no write role") {
     when(
       writeService
-        .newConcept(any[NewConcept], any)
+        .newConcept(any[NewConceptDTO], any)
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
     simpleHttpClient
@@ -116,7 +116,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   test("PATCH / should return 200 on updated") {
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any)
+        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -136,7 +136,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   test("PATCH / should return 403 if no write role") {
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any)
+        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -155,7 +155,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[TokenUser])
+        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any[TokenUser])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -167,7 +167,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
 
     val existingArtId = """{"language":"nb","metaImage":{"id":"123","alt":"alt123"}}"""
     val existingExpected = TestData.emptyApiUpdatedConcept
-      .copy(language = "nb", metaImage = UpdateWith(NewConceptMetaImage(id = "123", alt = "alt123")))
+      .copy(language = "nb", metaImage = UpdateWith(NewConceptMetaImageDTO(id = "123", alt = "alt123")))
 
     {
       simpleHttpClient
@@ -225,7 +225,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[TokenUser])
+        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any[TokenUser])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -238,7 +238,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     val existingArtId = """{"language":"nb","metaImage": {"id": "1",
                           |		"alt": "alt-text"}}""".stripMargin
     val existingExpected = TestData.emptyApiUpdatedConcept
-      .copy(language = "nb", metaImage = UpdateWith(api.NewConceptMetaImage("1", "alt-text")))
+      .copy(language = "nb", metaImage = UpdateWith(api.NewConceptMetaImageDTO("1", "alt-text")))
 
     {
       simpleHttpClient
@@ -284,7 +284,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     reset(draftConceptSearchService)
 
     val multiResult =
-      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
+      SearchResult[ConceptSummaryDTO](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
     when(draftConceptSearchService.all(any[search.DraftSearchSettings])).thenReturn(Success(multiResult))
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 

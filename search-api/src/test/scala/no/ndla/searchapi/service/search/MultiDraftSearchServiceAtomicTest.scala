@@ -20,7 +20,7 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.api.ApiTaxonomyContext
+import no.ndla.searchapi.model.api.ApiTaxonomyContextDTO
 import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.*
@@ -535,9 +535,11 @@ class MultiDraftSearchServiceAtomicTest
       "Matte",
       None,
       Some("/subject:1"),
+      Some("/f/matte/asdf1256"),
       visibleMetadata,
       List.empty,
       NodeType.SUBJECT,
+      List("asdf1256"),
       List(
         TaxonomyContext(
           publicId = "urn:subject:1",
@@ -554,7 +556,7 @@ class MultiDraftSearchServiceAtomicTest
           contextId = "",
           isVisible = true,
           isActive = true,
-          url = "/subject:1"
+          url = "/f/matte/asdf1256"
         )
       )
     )
@@ -563,9 +565,11 @@ class MultiDraftSearchServiceAtomicTest
       "T1",
       Some(s"urn:article:${draft1.id.get}"),
       Some("/subject:1/topic:1"),
+      Some("/e/t1/asdf1257"),
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List("asdf1257"),
       List.empty
     )
     topic_1.contexts = generateContexts(
@@ -584,9 +588,11 @@ class MultiDraftSearchServiceAtomicTest
       "T2",
       Some(s"urn:article:${draft2.id.get}"),
       Some("/subject:1/topic:2"),
+      Some("/e/t2/asdf1258"),
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List("asdf1258"),
       List.empty
     )
     topic_2.contexts = generateContexts(
@@ -605,9 +611,11 @@ class MultiDraftSearchServiceAtomicTest
       "T3",
       Some(s"urn:article:${draft3.id.get}"),
       Some("/subject:1/topic:1/topic:3"),
+      Some("/e/t3/asdf1259"),
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List("asdf1259"),
       List.empty
     )
     topic_3.contexts = generateContexts(
@@ -626,9 +634,11 @@ class MultiDraftSearchServiceAtomicTest
       "T4",
       Some(s"urn:article:${draft4.id.get}"),
       Some("/subject:1/topic:1/topic:4"),
+      Some("/e/t4/asdf1260"),
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List("asdf1260"),
       List.empty
     )
     topic_4.contexts = generateContexts(
@@ -647,9 +657,11 @@ class MultiDraftSearchServiceAtomicTest
       "R5",
       Some(s"urn:article:${draft5.id.get}"),
       Some("/subject:1/topic:1/resource:5"),
+      Some("/r/r5/asdf1261"),
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List("asdf1261"),
       List.empty
     )
     resource_5.contexts = generateContexts(
@@ -679,9 +691,11 @@ class MultiDraftSearchServiceAtomicTest
       "R6",
       Some(s"urn:article:${draft5.id.get}"),
       Some("/subject:1/topic:1/topic:3/resource:6"),
+      Some("/r/r6/asdf1262"),
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List("asdf1262"),
       List.empty
     )
     resource_6.contexts = generateContexts(
@@ -721,8 +735,8 @@ class MultiDraftSearchServiceAtomicTest
 
     val result = multiDraftSearchService.matchingQuery(multiDraftSearchSettings).get
 
-    def ctxsFor(id: Long): List[ApiTaxonomyContext] = result.results.find(_.id == id).get.contexts
-    def ctxFor(id: Long): ApiTaxonomyContext = {
+    def ctxsFor(id: Long): List[ApiTaxonomyContextDTO] = result.results.find(_.id == id).get.contexts
+    def ctxFor(id: Long): ApiTaxonomyContextDTO = {
       val ctxs = ctxsFor(id)
       ctxs.length should be(1)
       ctxs.head

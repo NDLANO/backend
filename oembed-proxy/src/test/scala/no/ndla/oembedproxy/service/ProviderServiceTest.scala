@@ -43,7 +43,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl = "invalidUrl123"
-    when(ndlaClient.fetch[OEmbed](any[NdlaRequest])(any))
+    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(any))
       .thenReturn(Failure(new HttpRequestException("An error occured")))
     intercept[DoNotUpdateMemoizeException] {
       providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))

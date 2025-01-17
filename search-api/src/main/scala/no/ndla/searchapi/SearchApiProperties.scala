@@ -35,12 +35,14 @@ class SearchApiProperties extends BaseProps with StrictLogging {
   val draftIndexName        = propOrElse("DRAFT_SEARCH_INDEX_NAME", "drafts")
   val learningpathIndexName = propOrElse("LEARNINGPATH_SEARCH_INDEX_NAME", "learningpaths")
   val conceptIndexName      = propOrElse("DRAFT_CONCEPT_SEARCH_INDEX_NAME", "draftconcepts")
+  val grepIndexName         = propOrElse("GREP_SEARCH_INDEX_NAME", "greps")
 
   def SearchIndex(searchType: SearchType) = searchType match {
     case SearchType.Articles      => articleIndexName
     case SearchType.Drafts        => draftIndexName
     case SearchType.LearningPaths => learningpathIndexName
     case SearchType.Concepts      => conceptIndexName
+    case SearchType.Grep          => grepIndexName
   }
 
   def indexToSearchType(indexName: String): Try[SearchType] = indexName match {
@@ -48,10 +50,11 @@ class SearchApiProperties extends BaseProps with StrictLogging {
     case `draftIndexName`        => Success(SearchType.Drafts)
     case `learningpathIndexName` => Success(SearchType.LearningPaths)
     case `conceptIndexName`      => Success(SearchType.Concepts)
+    case `grepIndexName`         => Success(SearchType.Grep)
     case _                       => Failure(new IllegalArgumentException(s"Unknown index name: $indexName"))
   }
 
-  def DefaultPageSize                            = 10
+  final val DefaultPageSize                      = 10
   def MaxPageSize                                = 10000
   def IndexBulkSize: Int                         = propOrElse("INDEX_BULK_SIZE", "100").toInt
   def ElasticSearchIndexMaxResultWindow          = 10000

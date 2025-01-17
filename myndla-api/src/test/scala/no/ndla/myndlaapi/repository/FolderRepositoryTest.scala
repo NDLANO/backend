@@ -114,13 +114,34 @@ class FolderRepositoryTest
     val resource1 =
       repository.insertResource("feide", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
     val resource2 =
-      repository.insertResource("feide", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
+      repository.insertResource("feide", "/path2", ResourceType.Topic, created, TestData.baseResourceDocument)
     val resource3 =
-      repository.insertResource("feide", "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
+      repository.insertResource(
+        "feide",
+        "/path3",
+        ResourceType.Multidisciplinary,
+        created,
+        TestData.baseResourceDocument
+      )
+    val resource4 =
+      repository.insertResource("feide", "/path4", ResourceType.Image, created, TestData.baseResourceDocument)
+    val resource5 =
+      repository.insertResource("feide", "/path5", ResourceType.Audio, created, TestData.baseResourceDocument)
+    val resource6 =
+      repository.insertResource("feide", "/path6", ResourceType.Concept, created, TestData.baseResourceDocument)
+    val resource7 =
+      repository.insertResource("feide", "/path7", ResourceType.Learningpath, created, TestData.baseResourceDocument)
+    val resource8 =
+      repository.insertResource("feide", "/path8", ResourceType.Video, created, TestData.baseResourceDocument)
 
     repository.resourceWithId(resource1.get.id) should be(resource1)
     repository.resourceWithId(resource2.get.id) should be(resource2)
     repository.resourceWithId(resource3.get.id) should be(resource3)
+    repository.resourceWithId(resource4.get.id) should be(resource4)
+    repository.resourceWithId(resource5.get.id) should be(resource5)
+    repository.resourceWithId(resource6.get.id) should be(resource6)
+    repository.resourceWithId(resource7.get.id) should be(resource7)
+    repository.resourceWithId(resource8.get.id) should be(resource8)
   }
 
   test("that connecting folders and resources works as expected") {

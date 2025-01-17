@@ -10,7 +10,7 @@ package no.ndla.common.model.domain.config
 
 import com.scalatsi.{TSNamedType, TSType}
 import com.scalatsi.TypescriptType.TSEnum
-import enumeratum._
+import enumeratum.*
 
 sealed abstract class ConfigKey(override val entryName: String) extends EnumEntry
 
@@ -30,6 +30,6 @@ object ConfigKey extends Enum[ConfigKey] with CirceEnum[ConfigKey] {
   private val tsEnumValues: Seq[(String, String)] = values.map(e => e.entryName -> e.entryName)
   implicit val enumTsType: TSNamedType[ConfigKey] = TSType.alias(
     "ConfigKey",
-    TSEnum.string("ConfigKeyEnum", tsEnumValues: _*)
+    TSEnum.string("ConfigKeyEnum", tsEnumValues*)
   )
 }

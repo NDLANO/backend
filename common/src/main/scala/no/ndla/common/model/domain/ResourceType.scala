@@ -26,11 +26,12 @@ object ResourceType extends Enum[ResourceType] with CirceEnum[ResourceType] {
   implicit val enumTsType: TSNamedType[ResourceType] =
     TSType.alias[ResourceType]("ResourceType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 
+  case object Article           extends ResourceType("article")
+  case object Audio             extends ResourceType("audio")
   case object Concept           extends ResourceType("concept")
   case object Image             extends ResourceType("image")
-  case object Audio             extends ResourceType("audio")
-  case object Multidisciplinary extends ResourceType("multidisciplinary")
-  case object Article           extends ResourceType("article")
   case object Learningpath      extends ResourceType("learningpath")
+  case object Multidisciplinary extends ResourceType("multidisciplinary")
+  case object Topic             extends ResourceType("topic")
   case object Video             extends ResourceType("video")
 }

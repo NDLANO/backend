@@ -12,11 +12,12 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHandling, NotFoundException}
+import no.ndla.audioapi.model.api.{AudioMetaDomainDumpDTO, ErrorHandling}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ReadService}
+import no.ndla.common.errors.NotFoundException
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -42,7 +43,7 @@ trait InternController {
         .in("external")
         .in(path[String]("external_id"))
         .in(query[Option[String]]("language"))
-        .out(jsonBody[Option[api.AudioMetaInformation]])
+        .out(jsonBody[Option[api.AudioMetaInformationDTO]])
         .serverLogicPure { case (externalId, language) =>
           readService.withExternalId(externalId, language).asRight
         },
@@ -103,7 +104,7 @@ trait InternController {
         .in("dump" / "audio")
         .in(query[Int]("page").default(1))
         .in(query[Int]("page-size").default(250))
-        .out(jsonBody[AudioMetaDomainDump])
+        .out(jsonBody[AudioMetaDomainDumpDTO])
         .errorOut(errorOutputsFor(400, 500))
         .serverLogicPure { case (pageNo, pageSize) =>
           readService.getMetaAudioDomainDump(pageNo, pageSize).asRight
@@ -116,7 +117,7 @@ trait InternController {
         .serverLogicPure { id =>
           audioRepository.withId(id) match {
             case Some(image) => image.asRight
-            case None        => returnLeftError(new NotFoundException(s"Could not find audio with id: '$id'"))
+            case None        => returnLeftError(NotFoundException(s"Could not find audio with id: '$id'"))
           }
         },
       endpoint.post

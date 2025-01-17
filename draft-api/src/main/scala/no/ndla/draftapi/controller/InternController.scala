@@ -10,8 +10,8 @@ package no.ndla.draftapi.controller
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{ArticleDomainDump, ArticleDump, ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain.{ArticleIds, ImportId, ReindexResult}
+import no.ndla.draftapi.model.api.{ArticleDomainDumpDTO, ArticleDumpDTO, ContentIdDTO, NotFoundException}
+import no.ndla.draftapi.model.domain.{ArticleIds, ImportId}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
@@ -28,6 +28,7 @@ import scalikejdbc.ReadOnlyAutoSession
 import sttp.model.StatusCode
 import sttp.tapir.server.ServerEndpoint
 import io.circe.generic.auto.*
+import no.ndla.search.model.domain.ReindexResult
 import sttp.tapir.generic.auto.*
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -51,7 +52,7 @@ trait InternController {
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
-    import props.{DraftSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
+    import props.{DraftSearchIndex, DraftTagSearchIndex}
 
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
@@ -102,8 +103,7 @@ trait InternController {
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
         val articleIndex = createIndexFuture(articleIndexService, numShards)
         val tagIndex     = createIndexFuture(tagIndexService, numShards)
-        val grepIndex    = createIndexFuture(grepCodesIndexService, numShards)
-        val indexResults = Future.sequence(List(articleIndex, tagIndex, grepIndex))
+        val indexResults = Future.sequence(List(articleIndex, tagIndex))
 
         Await.result(indexResults, Duration.Inf).sequence match {
           case Failure(ex) =>
@@ -125,14 +125,12 @@ trait InternController {
       val indexes = for {
         articleIndex <- Future { articleIndexService.findAllIndexes(DraftSearchIndex) }
         tagIndex     <- Future { tagIndexService.findAllIndexes(DraftTagSearchIndex) }
-        grepIndex    <- Future { grepCodesIndexService.findAllIndexes(DraftGrepCodesSearchIndex) }
-      } yield (articleIndex, tagIndex, grepIndex)
+      } yield (articleIndex, tagIndex)
 
       val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
-        case (Failure(articleFail), _, _) => return articleFail.getMessage.asLeft
-        case (_, Failure(tagFail), _)     => return tagFail.getMessage.asLeft
-        case (_, _, Failure(grepFail))    => return grepFail.getMessage.asLeft
-        case (Success(articleIndexes), Success(tagIndexes), Success(grepIndexes)) =>
+        case (Failure(articleFail), _) => return articleFail.getMessage.asLeft
+        case (_, Failure(tagFail))     => return tagFail.getMessage.asLeft
+        case (Success(articleIndexes), Success(tagIndexes)) =>
           val articleDeleteResults = articleIndexes.map(index => {
             logger.info(s"Deleting article index $index")
             articleIndexService.deleteIndexWithName(Option(index))
@@ -141,11 +139,7 @@ trait InternController {
             logger.info(s"Deleting tag index $index")
             tagIndexService.deleteIndexWithName(Option(index))
           })
-          val grepDeleteResults = grepIndexes.map(index => {
-            logger.info(s"Deleting grep index $index")
-            grepCodesIndexService.deleteIndexWithName(Option(index))
-          })
-          articleDeleteResults ++ tagDeleteResults ++ grepDeleteResults
+          articleDeleteResults ++ tagDeleteResults
       }
 
       val (errors, successes) = deleteResults.partition(_.isFailure)
@@ -208,7 +202,7 @@ trait InternController {
       .in(query[Int]("page-size").default(250))
       .in(query[String]("language").default(Language.AllLanguages))
       .in(query[Boolean]("fallback").default(false))
-      .out(jsonBody[ArticleDump])
+      .out(jsonBody[ArticleDumpDTO])
       .serverLogicPure { case (pageNo, pageSize, lang, fallback) =>
         readService.getArticlesByPage(pageNo, pageSize, lang, fallback).asRight
       }
@@ -219,7 +213,7 @@ trait InternController {
         user: TokenUser,
         maxRetries: Int = 10,
         retries: Int = 0
-    ): Try[ContentId] = {
+    ): Try[ContentIdDTO] = {
       articleApiClient.deleteArticle(id, user) match {
         case Failure(_) if retries <= maxRetries => deleteArticleWithRetries(id, user, maxRetries, retries + 1)
         case Failure(ex)                         => Failure(ex)
@@ -229,7 +223,7 @@ trait InternController {
 
     def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
       .in("article" / path[Long]("id"))
-      .out(jsonBody[ContentId])
+      .out(jsonBody[ContentIdDTO])
       .errorOut(errorOutputsFor(404))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user => id =>
@@ -242,7 +236,7 @@ trait InternController {
       .in("dump" / "article")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(250))
-      .out(jsonBody[ArticleDomainDump])
+      .out(jsonBody[ArticleDomainDumpDTO])
       .serverLogicPure { case (pageNo, pageSize) =>
         readService.getArticleDomainDump(pageNo, pageSize).asRight
       }

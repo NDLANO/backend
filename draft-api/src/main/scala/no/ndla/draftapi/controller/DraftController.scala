@@ -11,7 +11,7 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.common.model.api.License
+import no.ndla.common.model.api.LicenseDTO
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.model.api.*
@@ -133,8 +133,8 @@ trait DraftController {
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(
-        orFunction: => Try[(ArticleSearchResult, DynamicHeaders)]
-    ): Try[(ArticleSearchResult, DynamicHeaders)] = {
+        orFunction: => Try[(ArticleSearchResultDTO, DynamicHeaders)]
+    ): Try[(ArticleSearchResultDTO, DynamicHeaders)] = {
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           articleSearchService.scroll(scroll, language) match {
@@ -157,7 +157,7 @@ trait DraftController {
       .in(pageNo)
       .in(language)
       .errorOut(errorOutputsFor(401, 403))
-      .out(jsonBody[TagsSearchResult])
+      .out(jsonBody[TagsSearchResultDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
         { case (maybeQuery, pageSize, pageNo, language) =>
@@ -178,7 +178,7 @@ trait DraftController {
         fallback: Boolean,
         grepCodes: Seq[String],
         shouldScroll: Boolean
-    ): Try[(ArticleSearchResult, DynamicHeaders)] = {
+    ): Try[(ArticleSearchResultDTO, DynamicHeaders)] = {
       val searchSettings = query match {
         case Some(q) =>
           SearchSettings(
@@ -223,12 +223,13 @@ trait DraftController {
       .in("grep-codes")
       .summary("Retrieves a list of all previously used grepCodes in articles")
       .description("Retrieves a list of all previously used grepCodes in articles")
+      .deprecated()
       .in(queryParam)
       .in(pageSize)
       .in(pageNo)
       .errorOut(errorOutputsFor(401, 403))
       .requirePermission(DRAFT_API_WRITE)
-      .out(jsonBody[GrepCodesSearchResult])
+      .out(jsonBody[GrepCodesSearchResultDTO])
       .serverLogicPure { _ =>
         { case (maybeQuery, pageSize, pageNo) =>
           val query = maybeQuery.getOrElse("")
@@ -251,7 +252,7 @@ trait DraftController {
       .in(grepCodes)
       .in(fallback)
       .errorOut(errorOutputsFor(401, 403))
-      .out(jsonBody[ArticleSearchResult])
+      .out(jsonBody[ArticleSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
@@ -297,9 +298,9 @@ trait DraftController {
       .summary("Show all articles")
       .description("Shows all articles. You can search it too.")
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[ArticleSearchResult])
+      .out(jsonBody[ArticleSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
-      .in(jsonBody[ArticleSearchParams])
+      .in(jsonBody[ArticleSearchParamsDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => searchParams =>
         val language = searchParams.language.getOrElse(Language.AllLanguages)
@@ -338,7 +339,7 @@ trait DraftController {
       .in(language)
       .in(fallback)
       .errorOut(errorOutputsFor(401, 403, 404))
-      .out(jsonBody[Article])
+      .out(jsonBody[ArticleDTO])
       .withOptionalUser
       .serverLogicPure { user =>
         { case (articleId, language, fallback) =>
@@ -356,7 +357,7 @@ trait DraftController {
       .in("ids")
       .summary("Fetch articles that matches ids parameter.")
       .description("Returns articles that matches ids parameter.")
-      .out(jsonBody[Seq[Article]])
+      .out(jsonBody[Seq[ArticleDTO]])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .in(articleIds)
@@ -386,7 +387,7 @@ trait DraftController {
       )
       .in(language)
       .in(fallback)
-      .out(jsonBody[Seq[Article]])
+      .out(jsonBody[Seq[ArticleDTO]])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
@@ -402,7 +403,7 @@ trait DraftController {
       .summary("Get internal id of article for a specified ndla_node_id")
       .description("Get internal id of article for a specified ndla_node_id")
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[ContentId])
+      .out(jsonBody[ContentIdDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure {
         _ =>
@@ -419,7 +420,7 @@ trait DraftController {
       .summary("Show all valid licenses")
       .description("Shows all valid licenses")
       .errorOut(errorOutputsFor(401, 403))
-      .out(jsonBody[Seq[License]])
+      .out(jsonBody[Seq[LicenseDTO]])
       .in(filterNot)
       .in(filter)
       .serverLogicPure { case (filterNot, filter) =>
@@ -434,21 +435,21 @@ trait DraftController {
           }
 
         licenses
-          .map(x => License(x.license.toString, Option(x.description), x.url))
+          .map(x => LicenseDTO(x.license.toString, Option(x.description), x.url))
           .asRight
       }
 
     def newArticle: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Create a new article")
       .description("Creates a new article")
-      .in(jsonBody[NewArticle])
+      .in(jsonBody[NewArticleDTO])
       .in(externalIds)
       .in(oldCreatedDate)
       .in(oldUpdatedDate)
       .in(externalSubjects)
       .in(importId)
       .errorOut(errorOutputsFor(401, 403))
-      .out(statusCode(StatusCode.Created).and(jsonBody[Article]))
+      .out(statusCode(StatusCode.Created).and(jsonBody[ArticleDTO]))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user => params =>
         val (
@@ -479,14 +480,14 @@ trait DraftController {
       .in(pathArticleId)
       .summary("Update an existing article")
       .description("Update an existing article")
-      .in(jsonBody[UpdatedArticle])
+      .in(jsonBody[UpdatedArticleDTO])
       .in(externalIds)
       .in(oldCreatedDate)
       .in(oldUpdatedDate)
       .in(externalSubjects)
       .in(importId)
       .errorOut(errorOutputsFor(401, 403, 404, 409, 502))
-      .out(jsonBody[Article])
+      .out(jsonBody[ArticleDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user => params =>
         val (
@@ -521,7 +522,7 @@ trait DraftController {
       .description("Update status of an article")
       .in(query[Boolean]("import_publish").default(false))
       .errorOut(errorOutputsFor(401, 403, 404))
-      .out(jsonBody[Article])
+      .out(jsonBody[ArticleDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
         { case (id, status, isImported) =>
@@ -539,9 +540,9 @@ trait DraftController {
       .summary("Validate an article")
       .description("Validate an article")
       .in(query[Boolean]("import_validate").default(false))
-      .in(jsonBody[Option[UpdatedArticle]])
+      .in(jsonBody[Option[UpdatedArticleDTO]])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(jsonBody[ContentId])
+      .out(jsonBody[ContentIdDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure {
         user =>
@@ -560,7 +561,7 @@ trait DraftController {
       .in(pathArticleId / "language" / pathLanguage)
       .summary("Delete language from article")
       .description("Delete language from article")
-      .out(jsonBody[Article])
+      .out(jsonBody[ArticleDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
@@ -591,7 +592,7 @@ trait DraftController {
       .in(language)
       .in(fallback)
       .in(copiedTitleFlag)
-      .out(jsonBody[Article])
+      .out(jsonBody[ArticleDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
@@ -608,9 +609,9 @@ trait DraftController {
       .description("Partial publish selected fields")
       .in(language)
       .in(fallback)
-      .out(jsonBody[Article])
+      .out(jsonBody[ArticleDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .in(jsonBody[Seq[PartialArticleFields]])
+      .in(jsonBody[Seq[PartialArticleFieldsDTO]])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
         { case (articleId, language, fallback, articleFieldsToUpdate) =>
@@ -631,8 +632,8 @@ trait DraftController {
       .summary("Partial publish selected fields for multiple articles")
       .description("Partial publish selected fields for multiple articles")
       .in(language)
-      .in(jsonBody[PartialBulkArticles])
-      .out(jsonBody[MultiPartialPublishResult])
+      .in(jsonBody[PartialBulkArticlesDTO])
+      .out(jsonBody[MultiPartialPublishResultDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
@@ -661,7 +662,7 @@ trait DraftController {
       .in("slug" / articleSlug)
       .summary("Show article with a specified slug")
       .description("Shows the article for the specified slug.")
-      .out(jsonBody[Article])
+      .out(jsonBody[ArticleDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
       .in(language)
       .in(fallback)

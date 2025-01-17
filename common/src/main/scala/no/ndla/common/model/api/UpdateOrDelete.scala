@@ -2,7 +2,7 @@ package no.ndla.common.model.api
 
 import io.circe.{Decoder, Encoder, FailedCursor, Json}
 import com.scalatsi.TypescriptType.{TSNull, TSString, TSUndefined, TSUnion}
-import com.scalatsi._
+import com.scalatsi.*
 
 import java.util.UUID
 

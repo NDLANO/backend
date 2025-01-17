@@ -135,7 +135,7 @@ trait AudioController {
       .summary("Find audio files")
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
       .in("search")
-      .in(jsonBody[SearchParams])
+      .in(jsonBody[SearchParamsDTO])
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { searchParams =>
@@ -162,7 +162,7 @@ trait AudioController {
       .in(pathAudioId)
       .in(language)
       .errorOut(errorOutputsFor(400, 404))
-      .out(jsonBody[AudioMetaInformation])
+      .out(jsonBody[AudioMetaInformationDTO])
       .serverLogicPure { case (id, language) =>
         readService.withId(id, language) match {
           case Some(audio) => audio.asRight
@@ -175,7 +175,7 @@ trait AudioController {
       .in(audioIds)
       .in(language)
       .errorOut(errorOutputsFor(400, 404))
-      .out(jsonBody[List[AudioMetaInformation]])
+      .out(jsonBody[List[AudioMetaInformationDTO]])
       .summary("Fetch audio that matches ids parameter.")
       .description("Fetch audios that matches ids parameter.")
       .serverLogicPure { case (audioIds, language) =>
@@ -199,7 +199,7 @@ trait AudioController {
       .in(pathAudioId)
       .in("language")
       .in(pathLanguage)
-      .out(noContentOrBodyOutput[AudioMetaInformation])
+      .out(noContentOrBodyOutput[AudioMetaInformationDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => input =>
@@ -215,7 +215,7 @@ trait AudioController {
       .summary("Upload a new audio file with meta information")
       .description("Upload a new audio file with meta data")
       .in(multipartBody[MetaDataAndFileForm])
-      .out(jsonBody[AudioMetaInformation])
+      .out(jsonBody[AudioMetaInformationDTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 413))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { user => formData =>
@@ -234,7 +234,7 @@ trait AudioController {
       .in(pathAudioId)
       .in(multipartBody[MetaDataAndOptFileForm])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 413))
-      .out(jsonBody[AudioMetaInformation])
+      .out(jsonBody[AudioMetaInformationDTO])
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { user => input =>
         {
@@ -258,7 +258,7 @@ trait AudioController {
       .in(pageSize)
       .in(pageNo)
       .in(language)
-      .out(jsonBody[TagsSearchResult])
+      .out(jsonBody[TagsSearchResultDTO])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (query, ps, pn, lang) =>
         val pageSize = ps.getOrElse(DefaultPageSize) match {
@@ -295,7 +295,7 @@ trait AudioController {
 
     private case class SummaryWithHeader(
         @jsonbody
-        body: AudioSummarySearchResult,
+        body: AudioSummarySearchResultDTO,
         @header("search-context")
         searchContext: Option[String]
     )

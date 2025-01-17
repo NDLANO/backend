@@ -6,7 +6,7 @@ object Language {
   val DefaultLanguage              = "nb"
   val UnknownLanguage: LanguageTag = LanguageTag("und")
   val NoLanguage                   = ""
-  val AllLanguages                 = "*"
+  final val AllLanguages           = "*"
   val Nynorsk                      = "nynorsk"
 
   val languagePriority: Seq[String] = Seq(
@@ -51,7 +51,7 @@ object Language {
     "und"
   )
 
-  def mergeLanguageFields[A <: LanguageField[_]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
+  def mergeLanguageFields[A <: LanguageField[?]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
     val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
     (toKeep ++ updated).filterNot(_.isEmpty)
   }

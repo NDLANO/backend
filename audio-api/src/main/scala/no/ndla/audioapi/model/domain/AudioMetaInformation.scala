@@ -91,5 +91,3 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
     rs.longOpt(au.c("id")).map(_ => fromResultSet(au)(rs))
   }
 }
-
-case class ReindexResult(totalIndexed: Int, millisUsed: Long)

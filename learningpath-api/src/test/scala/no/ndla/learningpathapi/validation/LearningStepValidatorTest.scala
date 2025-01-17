@@ -9,7 +9,15 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.domain.learningpath.{Description, EmbedType, EmbedUrl, LearningStep, StepStatus, StepType}
+import no.ndla.common.model.domain.learningpath.{
+  Description,
+  EmbedType,
+  EmbedUrl,
+  Introduction,
+  LearningStep,
+  StepStatus,
+  StepType
+}
 import no.ndla.common.model.domain.Title
 import no.ndla.learningpathapi.*
 import org.mockito.Mockito.when
@@ -27,6 +35,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     learningPathId = None,
     seqNo = 0,
     title = List(Title("Gyldig tittel", "nb")),
+    introduction = List(Introduction("<p>Gyldig introduksjon</p>", "nb")),
     description = List(Description("<strong>Gyldig description</strong>", "nb")),
     embedUrl = List(EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed)),
     `type` = StepType.TEXT,

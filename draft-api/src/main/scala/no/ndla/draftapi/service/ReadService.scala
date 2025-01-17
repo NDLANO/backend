@@ -41,24 +41,24 @@ trait ReadService {
 
   class ReadService {
 
-    def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentId] =
-      draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(id => api.ContentId(id))
+    def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentIdDTO] =
+      draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(id => api.ContentIdDTO(id))
 
-    def withId(id: Long, language: String, fallback: Boolean = false): Try[api.Article] = {
+    def withId(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
         case None          => Failure(NotFoundException(s"The article with id $id was not found"))
         case Some(article) => converterService.toApiArticle(article, language, fallback)
       }
     }
 
-    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.Article] = {
+    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = {
       draftRepository.withSlug(slug)(ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
         case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
         case Some(article) => converterService.toApiArticle(article, language, fallback)
       }
     }
 
-    def getArticles(id: Long, language: String, fallback: Boolean): Seq[api.Article] = {
+    def getArticles(id: Long, language: String, fallback: Boolean): Seq[api.ArticleDTO] = {
       draftRepository
         .articlesWithId(id)
         .map(addUrlsOnEmbedResources)
@@ -76,32 +76,32 @@ trait ReadService {
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
-    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
+    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       draftRepository.withSession { implicit session =>
         val results = draftRepository
           .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
           .flatMap(article => converterService.toApiArticle(article, lang, fallback).toOption)
-        api.ArticleDump(draftRepository.articleCount, pageNo, pageSize, lang, results)
+        api.ArticleDumpDTO(draftRepository.articleCount, pageNo, pageSize, lang, results)
       }
     }
 
-    def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDump = {
+    def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
       draftRepository.withSession(implicit session => {
         val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
         val results = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
-        api.ArticleDomainDump(draftRepository.articleCount, pageNo, pageSize, results)
+        api.ArticleDomainDumpDTO(draftRepository.articleCount, pageNo, pageSize, results)
       })
     }
 
-    def getAllGrepCodes(input: String, pageSize: Int, page: Int): Try[api.GrepCodesSearchResult] = {
+    def getAllGrepCodes(input: String, pageSize: Int, page: Int): Try[api.GrepCodesSearchResultDTO] = {
       val result = grepCodesSearchService.matchingQuery(input, page, pageSize)
       result.map(converterService.toApiArticleGrepCodes)
 
     }
 
-    def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResult] = {
+    def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResultDTO] = {
       val result = tagSearchService.matchingQuery(
         query = input,
         searchLanguage = language,
@@ -152,7 +152,7 @@ trait ReadService {
       draftRepository.importIdOfArticle(externalId)
     }
 
-    def getUserData(userId: String): Try[api.UserData] = {
+    def getUserData(userId: String): Try[api.UserDataDTO] = {
       userDataRepository.withUserId(userId) match {
         case None =>
           writeService.newUserData(userId) match {
@@ -169,7 +169,7 @@ trait ReadService {
         fallback: Boolean,
         page: Long,
         pageSize: Long
-    ): Try[Seq[api.Article]] = {
+    ): Try[Seq[api.ArticleDTO]] = {
       val offset = (page - 1) * pageSize
       for {
         ids <-

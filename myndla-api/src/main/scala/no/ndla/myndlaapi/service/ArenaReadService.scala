@@ -15,7 +15,7 @@ import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
-import no.ndla.myndlaapi.model.arena.api.{Category, CategorySort, NewCategory, NewPost, NewTopic}
+import no.ndla.myndlaapi.model.arena.api.{CategoryDTO, CategorySortDTO, NewCategoryDTO, NewPostDTO, NewTopicDTO}
 import no.ndla.myndlaapi.model.arena.domain.{MissingPostException, TopicGoneException}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.repository.{ArenaRepository, FolderRepository, UserRepository}
@@ -36,7 +36,7 @@ trait ArenaReadService {
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
-    def sortCategories(parentId: Option[Long], sortedIds: List[Long], user: MyNDLAUser): Try[List[api.Category]] =
+    def sortCategories(parentId: Option[Long], sortedIds: List[Long], user: MyNDLAUser): Try[List[api.CategoryDTO]] =
       arenaRepository.rollbackOnFailure { session =>
         for {
           existingCategoryIds <- arenaRepository.getAllCategoryIds(parentId)(session)
@@ -48,7 +48,7 @@ trait ArenaReadService {
           categories <- getCategories(
             user,
             filterFollowed = false,
-            sort = CategorySort.ByRank,
+            sort = CategorySortDTO.ByRank,
             parentCategoryId = None
           )(session)
         } yield categories
@@ -58,7 +58,7 @@ trait ArenaReadService {
         postId: Long,
         requester: MyNDLAUser,
         pageSize: Long
-    )(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
+    )(session: DBSession = AutoSession): Try[api.TopicWithPostsDTO] = {
       for {
         maybePost <- arenaRepository.getPost(postId)(session)
         (post, _) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
@@ -76,7 +76,7 @@ trait ArenaReadService {
         page: Long,
         pageSize: Long,
         requester: MyNDLAUser
-    )(session: DBSession = ReadOnlyAutoSession): Try[api.PaginatedPosts] = {
+    )(session: DBSession = ReadOnlyAutoSession): Try[api.PaginatedPostsDTO] = {
       val offset = (page - 1) * pageSize
       for {
         posts     <- arenaRepository.getFlaggedPosts(offset, pageSize, requester)(session)
@@ -85,7 +85,7 @@ trait ArenaReadService {
           val replies = getRepliesForPost(compiledPost.post.id, requester)(session).?
           converterService.toApiPost(compiledPost, requester, replies)
         })
-      } yield api.PaginatedPosts(
+      } yield api.PaginatedPostsDTO(
         items = apiPosts,
         totalCount = postCount,
         pageSize = pageSize,
@@ -109,7 +109,7 @@ trait ArenaReadService {
 
     def getNotifications(user: MyNDLAUser, page: Long, pageSize: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
-    ): Try[api.PaginatedNewPostNotifications] = {
+    ): Try[api.PaginatedNewPostNotificationsDTO] = {
       val offset = (page - 1) * pageSize
       for {
         compiledNotifications <- arenaRepository.getNotifications(user, offset, pageSize)(session)
@@ -118,7 +118,7 @@ trait ArenaReadService {
           {
             val replies = getRepliesForPost(notification.post.post.id, user)(session).?
 
-            api.NewPostNotification(
+            api.NewPostNotificationDTO(
               id = notification.notification.id,
               isRead = notification.notification.is_read,
               topicTitle = notification.topic.title,
@@ -128,7 +128,7 @@ trait ArenaReadService {
             )
           }
         }
-      } yield api.PaginatedNewPostNotifications(
+      } yield api.PaginatedNewPostNotificationsDTO(
         items = apiNotifications,
         totalCount = notificationsCount,
         pageSize = pageSize,
@@ -136,7 +136,7 @@ trait ArenaReadService {
       )
     }
 
-    def resolveFlag(flagId: Long)(session: DBSession = AutoSession): Try[api.Flag] = for {
+    def resolveFlag(flagId: Long)(session: DBSession = AutoSession): Try[api.FlagDTO] = for {
       maybeFlag <- arenaRepository.getFlag(flagId)(session)
       flag      <- maybeFlag.toTry(NotFoundException(s"Could not find flag with id $flagId"))
       updated   <- toggleFlagResolution(flag.flag)(session)
@@ -151,7 +151,7 @@ trait ArenaReadService {
       }
     }
 
-    def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlag)(session: DBSession = AutoSession): Try[Unit] =
+    def flagPost(postId: Long, user: MyNDLAUser, newFlag: api.NewFlagDTO)(session: DBSession = AutoSession): Try[Unit] =
       for {
         maybePost <- arenaRepository.getPost(postId)(session)
         _         <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
@@ -181,14 +181,14 @@ trait ArenaReadService {
 
     def getTopicsForCategory(categoryId: Long, page: Long, pageSize: Long, requester: MyNDLAUser)(
         session: DBSession = ReadOnlyAutoSession
-    ): Try[api.PaginatedTopics] = {
+    ): Try[api.PaginatedTopicsDTO] = {
       val offset = (page - 1) * pageSize
       for {
         maybeCategory <- arenaRepository.getCategory(categoryId, includeHidden = false)(session)
         _             <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize, requester)(session)
         topicsCount   <- arenaRepository.getTopicCountForCategory(categoryId)(session)
-      } yield api.PaginatedTopics(
+      } yield api.PaginatedTopicsDTO(
         items = topics.map { topic => converterService.toApiTopic(topic) },
         totalCount = topicsCount,
         pageSize = pageSize,
@@ -198,7 +198,7 @@ trait ArenaReadService {
 
     def getRecentTopics(page: Long, pageSize: Long, ownerId: Option[Long], requester: MyNDLAUser)(
         session: DBSession = ReadOnlyAutoSession
-    ): Try[api.PaginatedTopics] = {
+    ): Try[api.PaginatedTopicsDTO] = {
       val offset = (page - 1) * pageSize
 
       val topicsT = ownerId
@@ -208,7 +208,7 @@ trait ArenaReadService {
       for {
         (topics, topicsCount) <- topicsT
         apiTopics = topics.map { topic => converterService.toApiTopic(topic) }
-      } yield api.PaginatedTopics(
+      } yield api.PaginatedTopicsDTO(
         items = apiTopics,
         totalCount = topicsCount,
         pageSize = pageSize,
@@ -216,9 +216,9 @@ trait ArenaReadService {
       )
     }
 
-    def updateTopic(topicId: Long, newTopic: NewTopic, user: MyNDLAUser)(
+    def updateTopic(topicId: Long, newTopic: NewTopicDTO, user: MyNDLAUser)(
         session: DBSession = AutoSession
-    ): Try[api.Topic] = {
+    ): Try[api.TopicDTO] = {
       val updatedTime = clock.now()
       for {
         topic <- getCompiledTopic(topicId, user)(session)
@@ -239,9 +239,9 @@ trait ArenaReadService {
       } yield converterService.toApiTopic(compiledTopic)
     }
 
-    def updatePost(postId: Long, newPost: NewPost, user: MyNDLAUser)(
+    def updatePost(postId: Long, newPost: NewPostDTO, user: MyNDLAUser)(
         session: DBSession = AutoSession
-    ): Try[api.Post] = {
+    ): Try[api.PostDTO] = {
       val updatedTime = clock.now()
       for {
         maybePost     <- arenaRepository.getPost(postId)(session)
@@ -258,7 +258,7 @@ trait ArenaReadService {
 
     def getRepliesForPost(parentPostId: Long, requester: MyNDLAUser)(
         session: DBSession = AutoSession
-    ): Try[List[api.Post]] = Try {
+    ): Try[List[api.PostDTO]] = Try {
       val replies = arenaRepository.getReplies(parentPostId, requester)(session).?
       replies.map(r => {
         val replyReplies = getRepliesForPost(r.post.id, requester)(session).?
@@ -275,7 +275,7 @@ trait ArenaReadService {
       Failure(AccessDeniedException.forbidden)
     }
 
-    def newCategory(newCategory: NewCategory)(session: DBSession = AutoSession): Try[Category] = {
+    def newCategory(newCategory: NewCategoryDTO)(session: DBSession = AutoSession): Try[CategoryDTO] = {
       val toInsert = domain.InsertCategory(
         newCategory.title,
         newCategory.description,
@@ -288,14 +288,14 @@ trait ArenaReadService {
       }
     }
 
-    def getNewRank(existing: api.CategoryWithTopics, newParentId: Option[Long])(session: DBSession): Try[Int] = {
+    def getNewRank(existing: api.CategoryWithTopicsDTO, newParentId: Option[Long])(session: DBSession): Try[Int] = {
       val parentHasChanged = existing.parentCategoryId.exists(newParentId.contains)
       if (parentHasChanged) {
         arenaRepository.getNextParentRank(newParentId)(session)
       } else Success(existing.rank)
     }
 
-    private def validateParentCategory(category: api.CategoryType, maybeNewParentId: Option[Long], user: MyNDLAUser)(
+    private def validateParentCategory(category: api.CategoryTypeDTO, maybeNewParentId: Option[Long], user: MyNDLAUser)(
         session: DBSession
     ): Try[Unit] = {
       maybeNewParentId match {
@@ -325,9 +325,9 @@ trait ArenaReadService {
       }
     }
 
-    def updateCategory(categoryId: Long, newCategory: NewCategory, user: MyNDLAUser)(
+    def updateCategory(categoryId: Long, newCategory: NewCategoryDTO, user: MyNDLAUser)(
         session: DBSession = AutoSession
-    ): Try[Category] = {
+    ): Try[CategoryDTO] = {
       val toInsert = domain.InsertCategory(
         newCategory.title,
         newCategory.description,
@@ -340,7 +340,7 @@ trait ArenaReadService {
         newRank       <- getNewRank(existing, toInsert.parentCategoryId)(session)
         updated       <- arenaRepository.updateCategory(categoryId, toInsert, newRank)(session)
         following     <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
-        subcategories <- getCategories(user, filterFollowed = false, CategorySort.ByRank, categoryId.some)(session)
+        subcategories <- getCategories(user, filterFollowed = false, CategorySortDTO.ByRank, categoryId.some)(session)
         breadcrumbs   <- arenaRepository.getBreadcrumbs(existing.id)(session)
       } yield converterService.toApiCategory(
         updated,
@@ -352,7 +352,7 @@ trait ArenaReadService {
       )
     }
 
-    def postTopic(categoryId: Long, newTopic: NewTopic, user: MyNDLAUser): Try[api.Topic] = {
+    def postTopic(categoryId: Long, newTopic: NewTopicDTO, user: MyNDLAUser): Try[api.TopicDTO] = {
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
@@ -381,7 +381,7 @@ trait ArenaReadService {
       Success(())
     }
 
-    def postPost(topicId: Long, newPost: NewPost, user: MyNDLAUser): Try[api.Post] =
+    def postPost(topicId: Long, newPost: NewPostDTO, user: MyNDLAUser): Try[api.PostDTO] =
       arenaRepository.withSession { session =>
         val created = clock.now()
         for {
@@ -424,19 +424,19 @@ trait ArenaReadService {
 
     def getCategory(categoryId: Long, page: Long, pageSize: Long, requester: MyNDLAUser)(
         session: DBSession = ReadOnlyAutoSession
-    ): Try[api.CategoryWithTopics] = {
+    ): Try[api.CategoryWithTopicsDTO] = {
       val offset = (page - 1) * pageSize
       for {
         maybeCategory <- arenaRepository.getCategory(categoryId, includeHidden = requester.isAdmin)(session)
         category      <- maybeCategory.toTry(NotFoundException(s"Could not find category with id $categoryId"))
         topics        <- arenaRepository.getTopicsForCategory(categoryId, offset, pageSize, requester)(session)
-        subcats     <- getCategories(requester, filterFollowed = false, CategorySort.ByRank, category.id.some)(session)
+        subcats <- getCategories(requester, filterFollowed = false, CategorySortDTO.ByRank, category.id.some)(session)
         topicsCount <- arenaRepository.getTopicCountForCategory(categoryId)(session)
         breadcrumb  <- arenaRepository.getBreadcrumbs(categoryId)(session)
         postsCount  <- arenaRepository.getPostCountForCategory(categoryId)(session)
         following   <- arenaRepository.getCategoryFollowing(categoryId, requester.id)(session)
         tt = topics.map(topic => converterService.toApiTopic(topic))
-      } yield api.CategoryWithTopics(
+      } yield api.CategoryWithTopicsDTO(
         id = categoryId,
         title = category.title,
         description = category.description,
@@ -467,7 +467,7 @@ trait ArenaReadService {
 
     def getTopic(topicId: Long, user: MyNDLAUser, page: Long, pageSize: Long)(
         session: DBSession = AutoSession
-    ): Try[api.TopicWithPosts] = {
+    ): Try[api.TopicWithPostsDTO] = {
       val offset = (page - 1) * pageSize
       for {
         topic    <- getCompiledTopic(topicId, user)(session)
@@ -484,7 +484,7 @@ trait ArenaReadService {
 
     def getRepliesForPosts(posts: List[CompiledPost], requester: MyNDLAUser)(
         session: DBSession = AutoSession
-    ): Try[List[api.Post]] = Try {
+    ): Try[List[api.PostDTO]] = Try {
       posts.map(post => {
         val replies = getRepliesForPost(post.post.id, requester)(session).?
         converterService.toApiPost(post, requester, replies)
@@ -499,7 +499,7 @@ trait ArenaReadService {
       read.map(_ => ())
     }
 
-    def followTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
+    def followTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.TopicWithPostsDTO] = {
       for {
         apiTopic  <- getTopic(topicId, user, 1, 10)(session)
         following <- arenaRepository.getTopicFollowing(topicId, user.id)(session)
@@ -507,7 +507,7 @@ trait ArenaReadService {
       } yield apiTopic
     }
 
-    def unfollowTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.TopicWithPosts] = {
+    def unfollowTopic(topicId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.TopicWithPostsDTO] = {
       for {
         apiTopic  <- getTopic(topicId, user, 0, 0)(session)
         following <- arenaRepository.getTopicFollowing(topicId, user.id)(session)
@@ -515,7 +515,7 @@ trait ArenaReadService {
       } yield apiTopic
     }
 
-    def upvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Post] = {
+    def upvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.PostDTO] = {
       for {
         maybePost     <- arenaRepository.getPost(postId)(session)
         (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
@@ -533,7 +533,7 @@ trait ArenaReadService {
       } yield converterService.toApiPost(compiledPost, user, replies)
     }
 
-    def unUpvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.Post] = {
+    def unUpvotePost(postId: Long, user: MyNDLAUser)(session: DBSession = AutoSession): Try[api.PostDTO] = {
       for {
         maybePost     <- arenaRepository.getPost(postId)(session)
         (post, owner) <- maybePost.toTry(NotFoundException(s"Could not find post with id $postId"))
@@ -548,7 +548,7 @@ trait ArenaReadService {
 
     def followCategory(categoryId: Long, user: MyNDLAUser)(
         session: DBSession = AutoSession
-    ): Try[api.CategoryWithTopics] = {
+    ): Try[api.CategoryWithTopicsDTO] = {
       for {
         apiCategory <- getCategory(categoryId, 1, 10, user)(session)
         following   <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
@@ -558,7 +558,7 @@ trait ArenaReadService {
 
     def unfollowCategory(categoryId: Long, user: MyNDLAUser)(
         session: DBSession = AutoSession
-    ): Try[api.CategoryWithTopics] = {
+    ): Try[api.CategoryWithTopicsDTO] = {
       for {
         apiTopic  <- getCategory(categoryId, 1, 10, user)(session)
         following <- arenaRepository.getCategoryFollowing(categoryId, user.id)(session)
@@ -569,9 +569,9 @@ trait ArenaReadService {
     def getCategories(
         requester: MyNDLAUser,
         filterFollowed: Boolean,
-        sort: CategorySort,
+        sort: CategorySortDTO,
         parentCategoryId: Option[Long]
-    )(session: DBSession = ReadOnlyAutoSession): Try[List[api.Category]] =
+    )(session: DBSession = ReadOnlyAutoSession): Try[List[api.CategoryDTO]] =
       arenaRepository
         .getCategories(requester, filterFollowed, sort, parentCategoryId)(session)
         .flatMap(categories => {

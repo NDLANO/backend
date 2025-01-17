@@ -13,7 +13,7 @@ import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi}
-import no.ndla.common.model.api.{License, UpdateWith}
+import no.ndla.common.model.api.{LicenseDTO, UpdateWith}
 import no.ndla.common.model.domain.{Author, Availability, Description, Introduction, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 import org.mockito.Mockito.when
@@ -31,12 +31,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleAlt                        = "Fotografi"
 
   test("toApiLicense defaults to unknown if the license was not found") {
-    service.toApiLicense("invalid") should equal(License("unknown", None, None))
+    service.toApiLicense("invalid") should equal(LicenseDTO("unknown", None, None))
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
     service.toApiLicense("CC-BY-4.0") should equal(
-      model.api.License(
+      model.api.LicenseDTO(
         "CC-BY-4.0",
         Some("Creative Commons Attribution 4.0 International"),
         Some("https://creativecommons.org/licenses/by/4.0/")
@@ -47,14 +47,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("toApiArticleTitle returns both title and htmlTitle") {
     val title = Title("Title with <span data-language=\"uk\">ukrainian</span> word", "en")
     service.toApiArticleTitle(title) should equal(
-      api.ArticleTitle("Title with ukrainian word", "Title with <span data-language=\"uk\">ukrainian</span> word", "en")
+      api.ArticleTitleDTO(
+        "Title with ukrainian word",
+        "Title with <span data-language=\"uk\">ukrainian</span> word",
+        "en"
+      )
     )
   }
 
   test("toApiArticleIntroduction returns both introduction and htmlIntroduction") {
     val introduction = Introduction("Introduction with <em>emphasis</em>", "en")
     service.toApiArticleIntroduction(introduction) should equal(
-      api.ArticleIntroduction("Introduction with emphasis", "Introduction with <em>emphasis</em>", "en")
+      api.ArticleIntroductionDTO("Introduction with emphasis", "Introduction with <em>emphasis</em>", "en")
     )
   }
 
@@ -195,19 +199,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val revisionDate = NDLADate.now()
 
     val partialArticle =
-      api.PartialPublishArticle(
+      api.PartialPublishArticleDTO(
         availability = Some(Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
-        metaDescription = Some(Seq(api.ArticleMetaDescription("nyDesc", "nb"))),
+        metaDescription = Some(Seq(api.ArticleMetaDescriptionDTO("nyDesc", "nb"))),
         relatedContent = Some(
           Seq(
-            Left(commonApi.RelatedContentLink("New Title", "New Url")),
-            Left(commonApi.RelatedContentLink("Newer Title", "Newer Url")),
+            Left(commonApi.RelatedContentLinkDTO("New Title", "New Url")),
+            Left(commonApi.RelatedContentLinkDTO("Newer Title", "Newer Url")),
             Right(42L)
           )
         ),
-        tags = Some(Seq(api.ArticleTag(Seq("nye", "Tags"), "nb"))),
+        tags = Some(Seq(api.ArticleTagDTO(Seq("nye", "Tags"), "nb"))),
         revisionDate = UpdateWith(revisionDate),
         published = Some(revisionDate)
       )
@@ -243,23 +247,23 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val revisionDate = NDLADate.now()
     val partialArticle =
-      api.PartialPublishArticle(
+      api.PartialPublishArticleDTO(
         availability = Some(Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
         metaDescription = Some(
           Seq(
-            api.ArticleMetaDescription("nyDesc", "nb"),
-            api.ArticleMetaDescription("newDesc", "en"),
-            api.ArticleMetaDescription("neuDesc", "de")
+            api.ArticleMetaDescriptionDTO("nyDesc", "nb"),
+            api.ArticleMetaDescriptionDTO("newDesc", "en"),
+            api.ArticleMetaDescriptionDTO("neuDesc", "de")
           )
         ),
         relatedContent = Some(Seq(Right(42L), Right(420L), Right(4200L))),
         tags = Some(
           Seq(
-            api.ArticleTag(Seq("nye", "Tags"), "nb"),
-            api.ArticleTag(Seq("new", "Tagss"), "en"),
-            api.ArticleTag(Seq("Guten", "Tag"), "de")
+            api.ArticleTagDTO(Seq("nye", "Tags"), "nb"),
+            api.ArticleTagDTO(Seq("new", "Tagss"), "en"),
+            api.ArticleTagDTO(Seq("Guten", "Tag"), "de")
           )
         ),
         revisionDate = UpdateWith(revisionDate),

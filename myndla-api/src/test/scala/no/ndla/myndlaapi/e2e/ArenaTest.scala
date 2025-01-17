@@ -14,9 +14,9 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.arena.api
-import no.ndla.myndlaapi.{model, *}
-import no.ndla.myndlaapi.model.api.ArenaUser
-import no.ndla.myndlaapi.model.arena.api.{NewCategory, PaginatedNewPostNotifications, PaginatedPosts}
+import no.ndla.myndlaapi.*
+import no.ndla.myndlaapi.model.api.ArenaUserDTO
+import no.ndla.myndlaapi.model.arena.api.{NewCategoryDTO, PaginatedNewPostNotificationsDTO, PaginatedPostsDTO}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -151,7 +151,7 @@ class ArenaTest
       parentCategoryId: Option[Long] = None
   ): Response[String] = {
     val newCategory =
-      api.NewCategory(title = title, description = description, visible = true, parentCategoryId = parentCategoryId)
+      api.NewCategoryDTO(title = title, description = description, visible = true, parentCategoryId = parentCategoryId)
     val inBody = newCategory.asJson.noSpaces
     val res = simpleHttpClient.send(
       quickRequest
@@ -173,9 +173,9 @@ class ArenaTest
       token: String = "asd"
   ): Response[String] = {
     val newTopic =
-      api.NewTopic(
+      api.NewTopicDTO(
         title = title,
-        initialPost = api.NewPost(content = content, None),
+        initialPost = api.NewPostDTO(content = content, None),
         isLocked = Some(false),
         isPinned = Some(false)
       )
@@ -199,7 +199,7 @@ class ArenaTest
       token: String = "asd",
       toPostId: Option[Long] = None
   ): Response[String] = {
-    val newPost = api.NewPost(content = content, toPostId = toPostId)
+    val newPost = api.NewPostDTO(content = content, toPostId = toPostId)
     val inBody  = newPost.asJson.noSpaces
     val res = simpleHttpClient.send(
       quickRequest
@@ -226,10 +226,10 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.Category]]).toTry.get
+    val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.CategoryDTO]]).toTry.get
     categories.size should be(1)
     categories.head should be(
-      api.Category(
+      api.CategoryDTO(
         1,
         "title",
         "description",
@@ -241,7 +241,7 @@ class ArenaTest
         parentCategoryId = None,
         categoryCount = 0,
         subcategories = List.empty,
-        breadcrumbs = List(api.CategoryBreadcrumb(1, "title"))
+        breadcrumbs = List(api.CategoryBreadcrumbDTO(1, "title"))
       )
     )
   }
@@ -252,14 +252,14 @@ class ArenaTest
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val createCategoryRes = createCategory("title", "description")
-    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.CategoryDTO]).toTry
     val categoryId        = categoryIdT.get.id
 
     val top1 = createTopic("title1", "description1", categoryId)
     createTopic("title2", "description2", categoryId)
     createTopic("title3", "description3", categoryId)
 
-    val top1T  = io.circe.parser.parse(top1.body).flatMap(_.as[api.Topic]).toTry
+    val top1T  = io.circe.parser.parse(top1.body).flatMap(_.as[api.TopicDTO]).toTry
     val top1Id = top1T.get.id
 
     createPost("post1", top1Id)
@@ -267,7 +267,7 @@ class ArenaTest
     createPost("post3", top1Id)
     createPost("post4", top1Id)
 
-    val expectedCategoryResult = api.CategoryWithTopics(
+    val expectedCategoryResult = api.CategoryWithTopicsDTO(
       id = 1,
       title = "title",
       description = "description",
@@ -276,7 +276,7 @@ class ArenaTest
       topicPage = 1,
       topicPageSize = 10,
       topics = List(
-        api.Topic(
+        api.TopicDTO(
           id = 1,
           title = "title1",
           postCount = 5,
@@ -288,7 +288,7 @@ class ArenaTest
           isPinned = false,
           voteCount = 0
         ),
-        api.Topic(
+        api.TopicDTO(
           id = 2,
           title = "title2",
           postCount = 1,
@@ -300,7 +300,7 @@ class ArenaTest
           isPinned = false,
           voteCount = 0
         ),
-        api.Topic(
+        api.TopicDTO(
           id = 3,
           title = "title3",
           postCount = 1,
@@ -319,7 +319,7 @@ class ArenaTest
       categoryCount = 0,
       subcategories = List.empty,
       parentCategoryId = None,
-      breadcrumbs = List(api.CategoryBreadcrumb(1, "title"))
+      breadcrumbs = List(api.CategoryBreadcrumbDTO(1, "title"))
     )
 
     val categoryResp = simpleHttpClient.send(
@@ -331,25 +331,25 @@ class ArenaTest
 
     categoryResp.code.code should be(200)
 
-    val resultTry = io.circe.parser.parse(categoryResp.body).flatMap(_.as[api.CategoryWithTopics]).toTry
+    val resultTry = io.circe.parser.parse(categoryResp.body).flatMap(_.as[api.CategoryWithTopicsDTO]).toTry
     resultTry should be(Success(expectedCategoryResult))
 
-    val expectedTopic1Result = api.TopicWithPosts(
+    val expectedTopic1Result = api.TopicWithPostsDTO(
       id = 1,
       title = "title1",
       postCount = 5,
-      posts = api.PaginatedPosts(
+      posts = api.PaginatedPostsDTO(
         totalCount = 5,
         page = 1,
         pageSize = 10,
         items = List(
-          api.Post(
+          api.PostDTO(
             id = 1,
             content = "description1",
             created = someDate,
             updated = someDate,
             owner = Some(
-              ArenaUser(
+              ArenaUserDTO(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -363,13 +363,13 @@ class ArenaTest
             upvotes = 0,
             upvoted = false
           ),
-          api.Post(
+          api.PostDTO(
             id = 4,
             content = "post1",
             created = someDate,
             updated = someDate,
             owner = Some(
-              model.api.ArenaUser(
+              model.api.ArenaUserDTO(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -383,13 +383,13 @@ class ArenaTest
             upvotes = 0,
             upvoted = false
           ),
-          api.Post(
+          api.PostDTO(
             id = 5,
             content = "post2",
             created = someDate,
             updated = someDate,
             owner = Some(
-              model.api.ArenaUser(
+              model.api.ArenaUserDTO(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -403,13 +403,13 @@ class ArenaTest
             upvotes = 0,
             upvoted = false
           ),
-          api.Post(
+          api.PostDTO(
             id = 6,
             content = "post3",
             created = someDate,
             updated = someDate,
             owner = Some(
-              model.api.ArenaUser(
+              model.api.ArenaUserDTO(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -423,13 +423,13 @@ class ArenaTest
             upvotes = 0,
             upvoted = false
           ),
-          api.Post(
+          api.PostDTO(
             id = 7,
             content = "post4",
             created = someDate,
             updated = someDate,
             owner = Some(
-              model.api.ArenaUser(
+              model.api.ArenaUserDTO(
                 id = 1,
                 displayName = "",
                 username = "email@ndla.no",
@@ -460,7 +460,7 @@ class ArenaTest
         .header("FeideAuthorization", s"Bearer asd")
         .readTimeout(10.seconds)
     )
-    val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPosts]).toTry
+    val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPostsDTO]).toTry
     topic1ResultTry should be(Success(expectedTopic1Result))
     topic1Resp.code.code should be(200)
   }
@@ -471,12 +471,12 @@ class ArenaTest
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val createCategoryRes = createCategory("title", "description")
-    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.CategoryDTO]).toTry
     val categoryId        = categoryIdT.get.id
 
     val top1 = createTopic("title1", "description1", categoryId)
 
-    val top1T  = io.circe.parser.parse(top1.body).flatMap(_.as[api.Topic]).toTry
+    val top1T  = io.circe.parser.parse(top1.body).flatMap(_.as[api.TopicDTO]).toTry
     val top1Id = top1T.get.id
 
     createPost("post1", top1Id)
@@ -501,14 +501,14 @@ class ArenaTest
     createPost("post20", top1Id)
     createPost("post21", top1Id)
 
-    def post(num: Long): api.Post = {
-      api.Post(
+    def post(num: Long): api.PostDTO = {
+      api.PostDTO(
         id = num + 1,
         content = s"post$num",
         created = someDate,
         updated = someDate,
         owner = Some(
-          model.api.ArenaUser(
+          model.api.ArenaUserDTO(
             id = 1,
             displayName = "",
             username = "email@ndla.no",
@@ -525,11 +525,11 @@ class ArenaTest
     }
 
     {
-      val expectedTopic1Result = api.TopicWithPosts(
+      val expectedTopic1Result = api.TopicWithPostsDTO(
         id = 1,
         title = "title1",
         postCount = 22,
-        posts = api.PaginatedPosts(
+        posts = api.PaginatedPostsDTO(
           totalCount = 22,
           page = 2,
           pageSize = 10,
@@ -561,17 +561,17 @@ class ArenaTest
           .header("FeideAuthorization", s"Bearer asd")
           .readTimeout(10.seconds)
       )
-      val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPosts]).toTry
+      val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPostsDTO]).toTry
       topic1ResultTry should be(Success(expectedTopic1Result))
       topic1Resp.code.code should be(200)
     }
 
     {
-      val expectedTopic1Result = api.TopicWithPosts(
+      val expectedTopic1Result = api.TopicWithPostsDTO(
         id = 1,
         title = "title1",
         postCount = 22,
-        posts = api.PaginatedPosts(
+        posts = api.PaginatedPostsDTO(
           totalCount = 22,
           page = 5,
           pageSize = 3,
@@ -596,7 +596,7 @@ class ArenaTest
           .header("FeideAuthorization", s"Bearer asd")
           .readTimeout(10.seconds)
       )
-      val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPosts]).toTry
+      val topic1ResultTry = io.circe.parser.parse(topic1Resp.body).flatMap(_.as[api.TopicWithPostsDTO]).toTry
       topic1ResultTry should be(Success(expectedTopic1Result))
       topic1Resp.code.code should be(200)
     }
@@ -613,12 +613,12 @@ class ArenaTest
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val createCategoryRes = createCategory("title", "description")
-    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.CategoryDTO]).toTry
     val categoryId        = categoryIdT.get.id
 
     // User 1 creates topic which should result in following own topic
     val createTopicRes = createTopic("title1", "description1", categoryId, token = user1Token)
-    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.Topic]).toTry
+    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.TopicDTO]).toTry
     val topicId        = topicIdT.get.id
 
     // User 2 posts to user1s followed topic
@@ -632,7 +632,7 @@ class ArenaTest
           .readTimeout(10.seconds)
       )
       val notificationT =
-        io.circe.parser.parse(notificationsResp.body).flatMap(_.as[PaginatedNewPostNotifications]).toTry
+        io.circe.parser.parse(notificationsResp.body).flatMap(_.as[PaginatedNewPostNotificationsDTO]).toTry
       notificationT.get.items.size should be(1)
       val notif = notificationT.get.items.head
       notif.topicId should be(topicId)
@@ -657,7 +657,7 @@ class ArenaTest
           .readTimeout(10.seconds)
       )
       val notificationT =
-        io.circe.parser.parse(notificationsResp.body).flatMap(_.as[PaginatedNewPostNotifications]).toTry
+        io.circe.parser.parse(notificationsResp.body).flatMap(_.as[PaginatedNewPostNotificationsDTO]).toTry
       notificationT.get.items.size should be(1)
       val notif = notificationT.get.items.head
       notif.topicId should be(topicId)
@@ -676,20 +676,20 @@ class ArenaTest
     when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
     val createCategoryRes = createCategory("title", "description")
-    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.CategoryDTO]).toTry
     val categoryId        = categoryIdT.get.id
 
     val createTopicRes = createTopic("title1", "description1", categoryId, token = user1Token)
-    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.Topic]).toTry
+    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.TopicDTO]).toTry
     val topicId        = topicIdT.get.id
 
     val post1    = createPost("noe innhold i topicen", topicId, token = user2Token)
-    val post1Try = io.circe.parser.parse(post1.body).flatMap(_.as[api.Post]).toTry
+    val post1Try = io.circe.parser.parse(post1.body).flatMap(_.as[api.PostDTO]).toTry
     val post2    = createPost("noe annet innhold", topicId, token = user1Token, toPostId = Some(post1Try.get.id))
-    val post2Try = io.circe.parser.parse(post2.body).flatMap(_.as[api.Post]).toTry
+    val post2Try = io.circe.parser.parse(post2.body).flatMap(_.as[api.PostDTO]).toTry
 
     val post3 = createPost("Svar til noe annet innhold", topicId, token = user2Token, toPostId = Some(post2Try.get.id))
-    val post3Try = io.circe.parser.parse(post3.body).flatMap(_.as[api.Post]).toTry
+    val post3Try = io.circe.parser.parse(post3.body).flatMap(_.as[api.PostDTO]).toTry
 
     val topic1 = simpleHttpClient.send(
       quickRequest
@@ -697,13 +697,13 @@ class ArenaTest
         .header("FeideAuthorization", s"Bearer $user1Token")
         .readTimeout(10.seconds)
     )
-    val topicTry = io.circe.parser.parse(topic1.body).flatMap(_.as[api.TopicWithPosts]).toTry.get
+    val topicTry = io.circe.parser.parse(topic1.body).flatMap(_.as[api.TopicWithPostsDTO]).toTry.get
 
     topicTry.postCount should be(4)
     topicTry.posts.items.length should be(2)
     topicTry.posts.items.head.replies.length should be(0)
     topicTry.posts.items.last.replies.length should be(1)
-    topicTry.posts.items.last.replies.asInstanceOf[List[api.Post]].last.replies.last should be(post3Try.get)
+    topicTry.posts.items.last.replies.asInstanceOf[List[api.PostDTO]].last.replies.last should be(post3Try.get)
 
   }
 
@@ -714,15 +714,15 @@ class ArenaTest
     when(myndlaApi.componentRegistry.userService.getInitialIsArenaGroups(any)).thenReturn(List(ArenaGroup.ADMIN))
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
     val createCategoryRes = createCategory("title", "description")
-    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.CategoryDTO]).toTry
     val categoryId        = categoryIdT.get.id
 
     val createTopicRes = createTopic("title1", "description1", categoryId, token = user1Token)
-    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.Topic]).toTry
+    val topicIdT       = io.circe.parser.parse(createTopicRes.body).flatMap(_.as[api.TopicDTO]).toTry
     val topicId        = topicIdT.get.id
 
     val post1    = createPost("noe innhold i topicen", topicId, token = user1Token)
-    val post1Try = io.circe.parser.parse(post1.body).flatMap(_.as[api.Post]).toTry
+    val post1Try = io.circe.parser.parse(post1.body).flatMap(_.as[api.PostDTO]).toTry
     createPost("noe annet innhold", topicId, token = user1Token, toPostId = Some(post1Try.get.id))
 
     val topic1 = simpleHttpClient.send(
@@ -732,7 +732,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val topicTry = io.circe.parser.parse(topic1.body).flatMap(_.as[api.TopicWithPosts]).toTry.get
+    val topicTry = io.circe.parser.parse(topic1.body).flatMap(_.as[api.TopicWithPostsDTO]).toTry.get
 
     topicTry.postCount should be(3)
 
@@ -752,7 +752,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val topic2Try = io.circe.parser.parse(topic2.body).flatMap(_.as[api.TopicWithPosts]).toTry.get
+    val topic2Try = io.circe.parser.parse(topic2.body).flatMap(_.as[api.TopicWithPostsDTO]).toTry.get
 
     topic2Try.postCount should be(1)
 
@@ -766,19 +766,19 @@ class ArenaTest
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val createCategoryRes = createCategory("title", "description")
-    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.CategoryDTO]).toTry
     val categoryId        = categoryIdT.get.id
 
     val topic   = createTopic("Topic title", "Topic description", categoryId, token = userToken)
-    val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
+    val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.TopicDTO]).toTry
     val topicId = topicT.get.id
 
     val ownPost   = createPost("Innhold i posten", topicId, token = userToken)
-    val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.Post]).toTry
+    val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.PostDTO]).toTry
     val ownPostId = ownPostT.get.id
 
     val otherPost   = createPost("Innhold i posten", topicId, toPostId = Some(ownPostId))
-    val otherPostT  = CirceUtil.tryParseAs[api.Post](otherPost.body).get
+    val otherPostT  = CirceUtil.tryParseAs[api.PostDTO](otherPost.body).get
     val otherPostId = otherPostT.id
 
     val upvoteOwnPost = simpleHttpClient.send(
@@ -788,7 +788,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val upvoteOwnPostT = CirceUtil.tryParseAs[api.Post](upvoteOwnPost.body).get
+    val upvoteOwnPostT = CirceUtil.tryParseAs[api.PostDTO](upvoteOwnPost.body).get
 
     upvoteOwnPost.code.code should be(200)
     upvoteOwnPostT.upvotes should be(0)
@@ -801,7 +801,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val firstUpvoteT = CirceUtil.tryParseAs[api.Post](firstUpvote.body).get
+    val firstUpvoteT = CirceUtil.tryParseAs[api.PostDTO](firstUpvote.body).get
 
     firstUpvote.code.code should be(200)
     firstUpvoteT.upvotes should be(1)
@@ -823,7 +823,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val unUpvoteT = CirceUtil.tryParseAs[api.Post](unUpvote.body).get
+    val unUpvoteT = CirceUtil.tryParseAs[api.PostDTO](unUpvote.body).get
 
     unUpvote.code.code should be(200)
     unUpvoteT.upvotes should be(0)
@@ -846,15 +846,15 @@ class ArenaTest
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val createCategoryRes = createCategory("title", "description")
-    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.Category]).toTry
+    val categoryIdT       = io.circe.parser.parse(createCategoryRes.body).flatMap(_.as[api.CategoryDTO]).toTry
     val categoryId        = categoryIdT.get.id
 
     val topic   = createTopic("Topic title", "Topic description", categoryId, token = userOneToken)
-    val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.Topic]).toTry
+    val topicT  = io.circe.parser.parse(topic.body).flatMap(_.as[api.TopicDTO]).toTry
     val topicId = topicT.get.id
 
     val ownPost   = createPost("Innhold i posten", topicId, token = userOneToken)
-    val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.Post]).toTry
+    val ownPostT  = io.circe.parser.parse(ownPost.body).flatMap(_.as[api.PostDTO]).toTry
     val ownPostId = ownPostT.get.id
 
     val flagPost = simpleHttpClient.send(
@@ -874,7 +874,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val flaggedPosts = CirceUtil.unsafeParseAs[PaginatedPosts](flaggedPostsResponse.body)
+    val flaggedPosts = CirceUtil.unsafeParseAs[PaginatedPostsDTO](flaggedPostsResponse.body)
     flaggedPosts.totalCount should be(1)
     val p = flaggedPosts.items.head
     p.id should be(ownPostId)
@@ -895,7 +895,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val flaggedPosts2 = CirceUtil.unsafeParseAs[PaginatedPosts](flaggedPostsResponse2.body)
+    val flaggedPosts2 = CirceUtil.unsafeParseAs[PaginatedPostsDTO](flaggedPostsResponse2.body)
     flaggedPosts2.totalCount should be(1)
     flaggedPosts2.items.head.flags.get.head.resolved.isDefined should be(true)
   }
@@ -906,15 +906,15 @@ class ArenaTest
     when(myndlaApi.componentRegistry.clock.now()).thenReturn(someDate)
 
     val category1   = createCategory("title1", "description1", parentCategoryId = None)
-    val category1T  = io.circe.parser.parse(category1.body).flatMap(_.as[api.Category]).toTry
+    val category1T  = io.circe.parser.parse(category1.body).flatMap(_.as[api.CategoryDTO]).toTry
     val category1Id = category1T.get.id
 
     val category2   = createCategory("title2", "description2", parentCategoryId = Some(category1Id))
-    val category2T  = io.circe.parser.parse(category2.body).flatMap(_.as[api.Category]).toTry
+    val category2T  = io.circe.parser.parse(category2.body).flatMap(_.as[api.CategoryDTO]).toTry
     val category2Id = category2T.get.id
 
     val category3   = createCategory("title3", "description3", parentCategoryId = Some(category2Id))
-    val category3T  = io.circe.parser.parse(category3.body).flatMap(_.as[api.Category]).toTry
+    val category3T  = io.circe.parser.parse(category3.body).flatMap(_.as[api.CategoryDTO]).toTry
     val category3Id = category3T.get.id
 
     val intoItself = simpleHttpClient.send(
@@ -922,7 +922,7 @@ class ArenaTest
         .put(uri"$myndlaApiArenaUrl/categories/$category1Id")
         .body(
           CirceUtil.toJsonString(
-            NewCategory(
+            NewCategoryDTO(
               title = "title1",
               description = "description1",
               visible = true,
@@ -938,7 +938,7 @@ class ArenaTest
         .put(uri"$myndlaApiArenaUrl/categories/$category1Id")
         .body(
           CirceUtil.toJsonString(
-            NewCategory(
+            NewCategoryDTO(
               title = "title1",
               description = "description1",
               visible = true,
@@ -954,7 +954,7 @@ class ArenaTest
         .put(uri"$myndlaApiArenaUrl/categories/$category1Id")
         .body(
           CirceUtil.toJsonString(
-            NewCategory(
+            NewCategoryDTO(
               title = "title1",
               description = "description1",
               visible = true,
@@ -970,7 +970,7 @@ class ArenaTest
         .put(uri"$myndlaApiArenaUrl/categories/$category3Id")
         .body(
           CirceUtil.toJsonString(
-            NewCategory(
+            NewCategoryDTO(
               title = "title3",
               description = "description3",
               visible = true,
@@ -988,7 +988,7 @@ class ArenaTest
         .readTimeout(10.seconds)
     )
 
-    val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.Category]]).toTry.get
+    val categories = io.circe.parser.parse(fetchCategoriesResponse.body).flatMap(_.as[List[api.CategoryDTO]]).toTry.get
     categories.size should be(1)
     categories.head.id should be(category1Id)
     categories.head.subcategories.map(_.id) should be(List(category2Id, category3Id))

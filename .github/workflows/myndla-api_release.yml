@@ -56,14 +56,18 @@ jobs:
           path: ndla/deploy
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: ${{ vars.PYTHON_VERSION }}
       - uses: abatilo/actions-poetry@v2
         with:
-          poetry-version: "1.6.1"
+          poetry-version: ${{ vars.POETRY_VERSION }}
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: '20'
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TERRAFORM_VERSION }}
+      - uses: sbt/setup-sbt@v1
       - name: Setup ~/bin directory
         run: |
           mkdir -p /home/runner/bin

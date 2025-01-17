@@ -51,7 +51,8 @@ trait InternController {
       .out(stringBody)
       .errorOut(stringInternalServerError)
       .serverLogicPure(numShards => {
-        implicit val ec  = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+        implicit val ec: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
         val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
 
         Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
@@ -71,7 +72,8 @@ trait InternController {
       .out(stringBody)
       .errorOut(stringInternalServerError)
       .serverLogicPure { _ =>
-        implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+        implicit val ec: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
         def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
         val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
@@ -118,7 +120,7 @@ trait InternController {
       .in(query[Int]("page-size").default(250))
       .in(query[String]("language").default(Language.AllLanguages))
       .in(query[Boolean]("fallback").default(false))
-      .out(jsonBody[ArticleDump])
+      .out(jsonBody[ArticleDumpDTO])
       .serverLogicPure { case (pageNo, pageSize, language, fallback) =>
         readService.getArticlesByPage(pageNo, pageSize, language, fallback).asRight
       }
@@ -127,7 +129,7 @@ trait InternController {
       .in("dump" / "article")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(250))
-      .out(jsonBody[ArticleDomainDump])
+      .out(jsonBody[ArticleDomainDumpDTO])
       .serverLogicPure { case (pageNo, pageSize) =>
         readService.getArticleDomainDump(pageNo, pageSize).asRight
       }
@@ -180,7 +182,7 @@ trait InternController {
       .in("article" / path[Long]("id"))
       .in(query[Option[Int]]("revision"))
       .errorOut(errorOutputsFor(401, 403, 404))
-      .out(jsonBody[ArticleIdV2])
+      .out(jsonBody[ArticleIdV2DTO])
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (id, revision) = params
@@ -191,7 +193,7 @@ trait InternController {
       .in("article" / path[Long]("id") / "unpublish")
       .in(query[Option[Int]]("revision"))
       .errorOut(errorOutputsFor(401, 403, 404))
-      .out(jsonBody[ArticleIdV2])
+      .out(jsonBody[ArticleIdV2DTO])
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (id, revision) = params
@@ -200,11 +202,11 @@ trait InternController {
 
     def partialPublishArticle: ServerEndpoint[Any, Eff] = endpoint.patch
       .in("partial-publish" / path[Long]("article_id"))
-      .in(jsonBody[PartialPublishArticle])
+      .in(jsonBody[PartialPublishArticleDTO])
       .in(query[String]("language").default(Language.AllLanguages))
       .in(query[Boolean]("fallback").default(false))
       .errorOut(errorOutputsFor(401, 403, 404))
-      .out(jsonBody[ArticleV2])
+      .out(jsonBody[ArticleV2DTO])
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (articleId, partialUpdateBody, language, fallback) = params

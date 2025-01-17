@@ -13,7 +13,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain as common
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.ArticleSearchResult
+import no.ndla.draftapi.model.api.ArticleSearchResultDTO
 import no.ndla.draftapi.model.domain.SearchResult
 import no.ndla.draftapi.model.search.*
 import no.ndla.draftapi.service.ConverterService
@@ -66,7 +66,7 @@ trait SearchConverterService {
       )
     }
 
-    def hitAsArticleSummary(hitString: String, language: String): api.ArticleSummary = {
+    def hitAsArticleSummary(hitString: String, language: String): api.ArticleSummaryDTO = {
       val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
       val titles = searchableArticle.title.languageValues.map(lv => common.Title(lv.value, lv.language))
@@ -82,15 +82,15 @@ trait SearchConverterService {
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiArticleTitle)
-        .getOrElse(api.ArticleTitle("", "", UnknownLanguage.toString))
+        .getOrElse(api.ArticleTitleDTO("", "", UnknownLanguage.toString))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
       val introduction =
         findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
       val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiArticleTag)
       val status =
-        api.Status(searchableArticle.status.current.toString, searchableArticle.status.other.map(_.toString).toSeq)
+        api.StatusDTO(searchableArticle.status.current.toString, searchableArticle.status.other.map(_.toString).toSeq)
 
-      api.ArticleSummary(
+      api.ArticleSummaryDTO(
         id = searchableArticle.id,
         title = title,
         visualElement = visualElement,
@@ -142,16 +142,16 @@ trait SearchConverterService {
       }
     }
 
-    def asApiSearchResult(searchResult: SearchResult[api.ArticleSummary]): ArticleSearchResult =
-      api.ArticleSearchResult(
+    def asApiSearchResult(searchResult: SearchResult[api.ArticleSummaryDTO]): ArticleSearchResultDTO =
+      api.ArticleSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
         searchResult.results
       )
 
-    def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResult =
-      api.TagsSearchResult(
+    def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO =
+      api.TagsSearchResultDTO(
         searchResult.totalCount,
         searchResult.page.getOrElse(1),
         searchResult.pageSize,

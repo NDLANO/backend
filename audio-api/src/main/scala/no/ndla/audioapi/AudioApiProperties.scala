@@ -9,6 +9,7 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
@@ -35,6 +36,13 @@ class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   val StorageName: String           = propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
   val StorageRegion: Option[String] = propOrNone("AUDIO_FILE_S3_BUCKET_REGION")
+
+  val TranscribeStorageName: String           = propOrElse("TRANSCRIBE_FILE_S3_BUCKET", s"$Environment.transcribe.ndla")
+  val TranscribeStorageRegion: Option[String] = propOrNone("TRANSCRIBE_FILE_S3_BUCKET_REGION")
+
+  val BrightcoveClientId: String     = prop("BRIGHTCOVE_API_CLIENT_ID")
+  val BrightcoveClientSecret: String = prop("BRIGHTCOVE_API_CLIENT_SECRET")
+  val BrightcoveAccountId: String    = prop("BRIGHTCOVE_ACCOUNT_ID")
 
   val SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean

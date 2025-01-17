@@ -9,14 +9,14 @@ package no.ndla.audioapi.service
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException}
+import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.domain as common
 import no.ndla.language.Language.findByLanguageOrBestEffort
@@ -40,7 +40,7 @@ trait WriteService {
 
   class WriteService extends StrictLogging {
 
-    def updateSeries(id: Long, toUpdateSeries: api.NewSeries): Try[api.Series] = {
+    def updateSeries(id: Long, toUpdateSeries: api.NewSeriesDTO): Try[api.SeriesDTO] = {
       seriesRepository.withId(id) match {
         case Failure(ex)   => Failure(ex)
         case Success(None) => Failure(new NotFoundException(s"Could not find series to update with id: '$id'"))
@@ -68,7 +68,7 @@ trait WriteService {
       }
     }
 
-    def newSeries(newSeries: api.NewSeries): Try[api.Series] = {
+    def newSeries(newSeries: api.NewSeriesDTO): Try[api.SeriesDTO] = {
       val domainSeries = converterService.toDomainSeries(newSeries)
       val episodes     = newSeries.episodes.map(id => id -> audioRepository.withId(id))
 
@@ -136,7 +136,7 @@ trait WriteService {
         } yield reindexed
       })
 
-    def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[api.AudioMetaInformation]] =
+    def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[api.AudioMetaInformationDTO]] =
       audioRepository.withId(audioId) match {
         case Some(existing) if existing.supportedLanguages.contains(language) =>
           val newAudio = converterService.withoutLanguage(existing, language)
@@ -163,7 +163,7 @@ trait WriteService {
           Failure(new NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
       }
 
-    def deleteSeriesLanguageVersion(seriesId: Long, language: String): Try[Option[api.Series]] = {
+    def deleteSeriesLanguageVersion(seriesId: Long, language: String): Try[Option[api.SeriesDTO]] = {
       seriesRepository.withId(seriesId) match {
         case Success(Some(existing)) if existing.supportedLanguages.contains(language) =>
           val newSeries = converterService.withoutLanguage(existing, language)
@@ -194,10 +194,10 @@ trait WriteService {
     }
 
     def storeNewAudio(
-        newAudioMeta: api.NewAudioMetaInformation,
+        newAudioMeta: api.NewAudioMetaInformationDTO,
         file: UploadedFile,
         tokenUser: TokenUser
-    ): Try[api.AudioMetaInformation] = {
+    ): Try[api.AudioMetaInformationDTO] = {
       validationService.validateAudioFile(file) match {
         case msgs if msgs.nonEmpty => Failure(new ValidationException(errors = msgs))
         case _ =>
@@ -273,12 +273,12 @@ trait WriteService {
 
     def updateAudio(
         id: Long,
-        metadataToUpdate: api.UpdatedAudioMetaInformation,
+        metadataToUpdate: api.UpdatedAudioMetaInformationDTO,
         fileOpt: Option[UploadedFile],
         user: TokenUser
-    ): Try[api.AudioMetaInformation] = {
+    ): Try[api.AudioMetaInformationDTO] = {
       audioRepository.withId(id) match {
-        case None => Failure(new NotFoundException)
+        case None => Failure(NotFoundException("Audio not found"))
         case Some(existingMetadata) =>
           val metadataAndFile = fileOpt match {
             case None => mergeAudioMeta(existingMetadata, metadataToUpdate, None, user)
@@ -338,7 +338,7 @@ trait WriteService {
         oldAudio: domain.AudioMetaInformation,
         language: Option[String],
         seriesId: Option[Long]
-    ): Try[api.AudioMetaInformation] = {
+    ): Try[api.AudioMetaInformationDTO] = {
       for {
         maybeSeries <- getSeriesFromOpt(seriesId)
         validated   <- validationService.validate(toSave, Some(oldAudio), maybeSeries, language)
@@ -358,7 +358,7 @@ trait WriteService {
 
     private[service] def mergeAudioMeta(
         existing: domain.AudioMetaInformation,
-        toUpdate: api.UpdatedAudioMetaInformation,
+        toUpdate: api.UpdatedAudioMetaInformationDTO,
         savedAudio: Option[Audio],
         user: TokenUser
     ): Try[(domain.AudioMetaInformation, Option[Audio])] = {

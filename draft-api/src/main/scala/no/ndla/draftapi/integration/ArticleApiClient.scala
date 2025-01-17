@@ -19,7 +19,7 @@ import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain as common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
+import no.ndla.draftapi.model.api.{ArticleApiValidationErrorDTO, ContentIdDTO}
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
@@ -76,11 +76,11 @@ trait ArticleApiClient {
 
     def unpublishArticle(article: Draft, user: TokenUser): Try[Draft] = {
       val id = article.id.get
-      post[ContentId](s"$InternalEndpoint/article/$id/unpublish/", Some(user)).map(_ => article)
+      post[ContentIdDTO](s"$InternalEndpoint/article/$id/unpublish/", Some(user)).map(_ => article)
     }
 
-    def deleteArticle(id: Long, user: TokenUser): Try[ContentId] = {
-      delete[ContentId](s"$InternalEndpoint/article/$id/", Some(user))
+    def deleteArticle(id: Long, user: TokenUser): Try[ContentIdDTO] = {
+      delete[ContentIdDTO](s"$InternalEndpoint/article/$id/", Some(user))
     }
 
     def validateArticle(
@@ -95,7 +95,7 @@ trait ArticleApiClient {
         ("import_validate", importValidate.toString)
       ) match {
         case Failure(ex: HttpRequestException) =>
-          val validationError = ex.httpResponse.map(r => CirceUtil.unsafeParseAs[ArticleApiValidationError](r.body))
+          val validationError = ex.httpResponse.map(r => CirceUtil.unsafeParseAs[ArticleApiValidationErrorDTO](r.body))
           Failure(
             new ValidationException(
               "Failed to validate article in article-api",
@@ -153,9 +153,9 @@ trait ArticleApiClient {
       availability: Option[Availability],
       grepCodes: Option[Seq[String]],
       license: Option[String],
-      metaDescription: Option[Seq[api.ArticleMetaDescription]],
+      metaDescription: Option[Seq[api.ArticleMetaDescriptionDTO]],
       relatedContent: Option[Seq[common.RelatedContent]],
-      tags: Option[Seq[api.ArticleTag]],
+      tags: Option[Seq[api.ArticleTagDTO]],
       revisionDate: UpdateOrDelete[NDLADate],
       published: Option[NDLADate]
   ) {
@@ -166,23 +166,23 @@ trait ArticleApiClient {
         tags
           .find(t => t.language == language)
           .toSeq
-          .map(t => api.ArticleTag(t.tags, t.language))
+          .map(t => api.ArticleTagDTO(t.tags, t.language))
           .some
       )
     def withTags(tags: Seq[common.Tag]): PartialPublishArticle =
-      copy(tags = tags.map(t => api.ArticleTag(t.tags, t.language)).some)
+      copy(tags = tags.map(t => api.ArticleTagDTO(t.tags, t.language)).some)
     def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticle =
       copy(relatedContent = relatedContent.some)
     def withMetaDescription(meta: Seq[common.Description], language: String): PartialPublishArticle =
       copy(metaDescription =
         meta
           .find(m => m.language == language)
-          .map(m => api.ArticleMetaDescription(m.content, m.language))
+          .map(m => api.ArticleMetaDescriptionDTO(m.content, m.language))
           .toSeq
           .some
       )
     def withMetaDescription(meta: Seq[common.Description]): PartialPublishArticle =
-      copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
+      copy(metaDescription = meta.map(m => api.ArticleMetaDescriptionDTO(m.content, m.language)).some)
     def withAvailability(availability: Availability): PartialPublishArticle =
       copy(availability = availability.some)
     def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticle = {

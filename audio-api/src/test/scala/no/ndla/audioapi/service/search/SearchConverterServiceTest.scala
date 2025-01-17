@@ -36,14 +36,14 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Title("Nekonata titolo", "unknown")
   )
 
-  val apiTitles: List[api.Title] = List(
-    api.Title("Bokmål tittel", "nb"),
-    api.Title("Nynorsk tittel", "nn"),
-    api.Title("English title", "en"),
-    api.Title("Titre francais", "fr"),
-    api.Title("Deutsch titel", "de"),
-    api.Title("Titulo espanol", "es"),
-    api.Title("Nekonata titolo", "unknown")
+  val apiTitles: List[api.TitleDTO] = List(
+    api.TitleDTO("Bokmål tittel", "nb"),
+    api.TitleDTO("Nynorsk tittel", "nn"),
+    api.TitleDTO("English title", "en"),
+    api.TitleDTO("Titre francais", "fr"),
+    api.TitleDTO("Deutsch titel", "de"),
+    api.TitleDTO("Titulo espanol", "es"),
+    api.TitleDTO("Nekonata titolo", "unknown")
   )
 
   val audioFiles: Seq[Audio] = Seq(

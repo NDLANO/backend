@@ -8,7 +8,7 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.draftapi.*
-import no.ndla.draftapi.model.api.ContentId
+import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -32,7 +32,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       failedApiCall,
       failedApiCall,
       failedApiCall,
-      Success(ContentId(10))
+      Success(ContentIdDTO(10))
     )
 
     simpleHttpClient.send(
@@ -71,19 +71,15 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("That DELETE /index removes all indexes") {
     reset(
       articleIndexService,
-      tagIndexService,
-      grepCodesIndexService
+      tagIndexService
     )
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
-    when(grepCodesIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index9", "index10")))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index7"))
     doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index8"))
-    doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index9"))
-    doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index10"))
 
     {
       val res = simpleHttpClient.send(
@@ -91,7 +87,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
           .delete(uri"http://localhost:$serverPort/intern/index")
       )
       res.code.code should be(200)
-      res.body should equal("Deleted 6 indexes")
+      res.body should equal("Deleted 4 indexes")
     }
 
     verify(articleIndexService).findAllIndexes(props.DraftSearchIndex)
@@ -104,10 +100,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     verify(tagIndexService).deleteIndexWithName(Some("index8"))
     verifyNoMoreInteractions(tagIndexService)
 
-    verify(grepCodesIndexService).findAllIndexes(props.DraftGrepCodesSearchIndex)
-    verify(grepCodesIndexService).deleteIndexWithName(Some("index9"))
-    verify(grepCodesIndexService).deleteIndexWithName(Some("index10"))
-    verifyNoMoreInteractions(grepCodesIndexService)
   }
 
   test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
@@ -140,13 +132,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   ) {
     reset(
       articleIndexService,
-      tagIndexService,
-      grepCodesIndexService
+      tagIndexService
     )
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
-    when(grepCodesIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index9", "index10")))
 
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
@@ -154,8 +144,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       .deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index7"))
     doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index8"))
-    doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index9"))
-    doReturn(Success(""), Nil: _*).when(grepCodesIndexService).deleteIndexWithName(Some("index10"))
 
     {
       val res = simpleHttpClient.send(
@@ -164,7 +152,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       )
       res.code.code should be(500)
       res.body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 5 indexes were deleted successfully."
+        "Failed to delete 1 index: No index with name 'index2' exists. 3 indexes were deleted successfully."
       )
     }
 
@@ -172,7 +160,5 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
     verify(tagIndexService).deleteIndexWithName(Some("index7"))
     verify(tagIndexService).deleteIndexWithName(Some("index8"))
-    verify(grepCodesIndexService).deleteIndexWithName(Some("index9"))
-    verify(grepCodesIndexService).deleteIndexWithName(Some("index10"))
   }
 }

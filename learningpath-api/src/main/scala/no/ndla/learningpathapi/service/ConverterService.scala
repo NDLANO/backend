@@ -15,6 +15,7 @@ import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{
   Description,
+  Introduction,
   EmbedType,
   EmbedUrl,
   LearningPath,
@@ -29,7 +30,7 @@ import no.ndla.common.{Clock, errors}
 import no.ndla.language.Language.*
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
-import no.ndla.learningpathapi.model.api.{LearningPathStatus as _, *}
+import no.ndla.learningpathapi.model.api.{LearningPathStatusDTO as _, *}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
 import no.ndla.learningpathapi.model.{api, domain}
@@ -51,51 +52,51 @@ trait ConverterService {
   class ConverterService {
     import props.*
 
-    def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): EmbedUrl = {
+    def asEmbedUrlV2(embedUrl: api.EmbedUrlV2DTO, language: String): EmbedUrl = {
       learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
     }
 
-    def asDescription(description: api.Description): learningpath.Description = {
+    def asDescription(description: api.DescriptionDTO): learningpath.Description = {
       Description(description.description, description.language)
     }
 
-    def asTitle(title: api.Title): common.Title = {
+    def asTitle(title: api.TitleDTO): common.Title = {
       common.Title(title.title, title.language)
     }
 
-    def asLearningPathTags(tags: api.LearningPathTags): common.Tag = {
+    def asLearningPathTags(tags: api.LearningPathTagsDTO): common.Tag = {
       common.Tag(tags.tags, tags.language)
     }
 
-    private def asApiLearningPathTags(tags: common.Tag): api.LearningPathTags = {
-      api.LearningPathTags(tags.tags, tags.language)
+    private def asApiLearningPathTags(tags: common.Tag): api.LearningPathTagsDTO = {
+      api.LearningPathTagsDTO(tags.tags, tags.language)
     }
 
-    def asApiCopyright(copyright: learningpath.LearningpathCopyright): api.Copyright = {
-      api.Copyright(asApiLicense(copyright.license), copyright.contributors.map(_.toApi))
+    def asApiCopyright(copyright: learningpath.LearningpathCopyright): api.CopyrightDTO = {
+      api.CopyrightDTO(asApiLicense(copyright.license), copyright.contributors.map(_.toApi))
     }
 
-    def asApiLicense(license: String): commonApi.License =
+    def asApiLicense(license: String): commonApi.LicenseDTO =
       getLicense(license) match {
-        case Some(l) => commonApi.License(l.license.toString, Option(l.description), l.url)
-        case None    => commonApi.License(license, Some("Invalid license"), None)
+        case Some(l) => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url)
+        case None    => commonApi.LicenseDTO(license, Some("Invalid license"), None)
       }
 
-    def asAuthor(user: domain.NdlaUserName): commonApi.Author = {
+    def asAuthor(user: domain.NdlaUserName): commonApi.AuthorDTO = {
       val names = Array(user.first_name, user.middle_name, user.last_name)
         .filter(_.isDefined)
         .map(_.get)
-      commonApi.Author("Forfatter", names.mkString(" "))
+      commonApi.AuthorDTO("Forfatter", names.mkString(" "))
     }
 
-    def asCoverPhoto(imageId: String): Option[CoverPhoto] = {
+    def asCoverPhoto(imageId: String): Option[CoverPhotoDTO] = {
       val metaUrl  = createUrlToImageApi(imageId)
       val imageUrl = createUrlToImageApiRaw(imageId)
 
-      Some(api.CoverPhoto(imageUrl, metaUrl))
+      Some(api.CoverPhotoDTO(imageUrl, metaUrl))
     }
 
-    private def asCopyright(copyright: api.Copyright): learningpath.LearningpathCopyright = {
+    private def asCopyright(copyright: api.CopyrightDTO): learningpath.LearningpathCopyright = {
       learningpath.LearningpathCopyright(copyright.license.license, copyright.contributors.map(_.toDomain))
     }
 
@@ -104,7 +105,7 @@ trait ConverterService {
         language: String,
         fallback: Boolean,
         userInfo: CombinedUser
-    ): Try[api.LearningPathV2] = {
+    ): Try[api.LearningPathV2DTO] = {
       val supportedLanguages = lp.supportedLanguages
       if (languageIsSupported(supportedLanguages, language) || fallback) {
 
@@ -112,15 +113,15 @@ trait ConverterService {
 
         val title = findByLanguageOrBestEffort(lp.title, language)
           .map(asApiTitle)
-          .getOrElse(api.Title("", DefaultLanguage))
+          .getOrElse(api.TitleDTO("", DefaultLanguage))
         val description =
           findByLanguageOrBestEffort(lp.description, language)
             .map(asApiDescription)
-            .getOrElse(api.Description("", DefaultLanguage))
+            .getOrElse(api.DescriptionDTO("", DefaultLanguage))
 
         val tags = findByLanguageOrBestEffort(lp.tags, language)
           .map(asApiLearningPathTags)
-          .getOrElse(api.LearningPathTags(Seq(), DefaultLanguage))
+          .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage))
         val learningSteps = lp.learningsteps
           .map(lsteps => {
             lsteps
@@ -133,7 +134,7 @@ trait ConverterService {
         val message = lp.message.filter(_ => lp.canEdit(userInfo)).map(asApiMessage)
         val owner   = Some(lp.owner).filter(_ => userInfo.isAdmin)
         Success(
-          api.LearningPathV2(
+          api.LearningPathV2DTO(
             lp.id.get,
             lp.revision.get,
             lp.isBasedOn,
@@ -153,7 +154,8 @@ trait ConverterService {
             lp.canEdit(userInfo),
             supportedLanguages,
             owner,
-            message
+            message,
+            lp.madeAvailable
           )
         )
       } else
@@ -162,8 +164,8 @@ trait ConverterService {
         )
     }
 
-    private def asApiMessage(message: learningpath.Message): api.Message =
-      api.Message(message.message, message.date)
+    private def asApiMessage(message: learningpath.Message): api.MessageDTO =
+      api.MessageDTO(message.message, message.date)
 
     private def extractImageId(url: String): Option[String] = {
       learningPathValidator.validateCoverPhoto(url) match {
@@ -193,7 +195,7 @@ trait ConverterService {
 
     def mergeLearningPaths(
         existing: LearningPath,
-        updated: UpdatedLearningPathV2,
+        updated: UpdatedLearningPathV2DTO,
         userInfo: CombinedUser
     ): LearningPath = {
       val status = mergeStatus(existing, userInfo)
@@ -240,7 +242,11 @@ trait ConverterService {
       )
     }
 
-    def asDomainLearningStep(newLearningStep: NewLearningStepV2, learningPath: LearningPath): Try[LearningStep] = {
+    def asDomainLearningStep(newLearningStep: NewLearningStepV2DTO, learningPath: LearningPath): Try[LearningStep] = {
+      val introduction = newLearningStep.introduction
+        .map(Introduction(_, newLearningStep.language))
+        .toSeq
+
       val description = newLearningStep.description
         .map(Description(_, newLearningStep.language))
         .toSeq
@@ -264,6 +270,7 @@ trait ConverterService {
           learningPath.id,
           newSeqNo,
           Seq(common.Title(newLearningStep.title, newLearningStep.language)),
+          introduction,
           description,
           embedUrl,
           StepType.valueOfOrError(newLearningStep.`type`),
@@ -296,11 +303,17 @@ trait ConverterService {
       learningPath.copy(learningsteps = Some(steps), status = status, lastUpdated = clock.now())
     }
 
-    def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2): Try[LearningStep] = {
+    def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
       val titles = updated.title match {
         case None => existing.title
         case Some(value) =>
           mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
+      }
+
+      val introductions = updated.introduction match {
+        case None => existing.introduction
+        case Some(value) =>
+          mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
       }
 
       val descriptions = updated.description match {
@@ -321,6 +334,7 @@ trait ConverterService {
         existing.copy(
           revision = Some(updated.revision),
           title = titles,
+          introduction = introductions,
           description = descriptions,
           embedUrl = embedUrls,
           showTitle = updated.showTitle.getOrElse(existing.showTitle),
@@ -339,7 +353,7 @@ trait ConverterService {
 
     def newFromExistingLearningPath(
         existing: LearningPath,
-        newLearningPath: NewCopyLearningPathV2,
+        newLearningPath: NewCopyLearningPathV2DTO,
         user: CombinedUser
     ): Try[LearningPath] = {
       val oldTitle = Seq(common.Title(newLearningPath.title, newLearningPath.language))
@@ -391,7 +405,7 @@ trait ConverterService {
       }
     }
 
-    def newLearningPath(newLearningPath: NewLearningPathV2, user: CombinedUser): Try[LearningPath] = {
+    def newLearningPath(newLearningPath: NewLearningPathV2DTO, user: CombinedUser): Try[LearningPath] = {
       val domainTags =
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
@@ -421,18 +435,18 @@ trait ConverterService {
       }
     }
 
-    private def newDefaultCopyright(user: CombinedUser): Copyright = {
+    private def newDefaultCopyright(user: CombinedUser): CopyrightDTO = {
       val contributors =
-        user.myndlaUser.map(_.displayName).map(name => Seq(commonApi.Author("Forfatter", name))).getOrElse(Seq.empty)
-      Copyright(asApiLicense(License.CC_BY.toString), contributors)
+        user.myndlaUser.map(_.displayName).map(name => Seq(commonApi.AuthorDTO("Forfatter", name))).getOrElse(Seq.empty)
+      CopyrightDTO(asApiLicense(License.CC_BY.toString), contributors)
     }
 
-    def getApiIntroduction(learningSteps: Seq[LearningStep]): Seq[api.Introduction] = {
+    def getApiIntroduction(learningSteps: Seq[LearningStep]): Seq[api.IntroductionDTO] = {
       learningSteps
         .find(_.`type` == learningpath.StepType.INTRODUCTION)
         .toList
         .flatMap(x => x.description)
-        .map(x => api.Introduction(x.description, x.language))
+        .map(x => api.IntroductionDTO(x.description, x.language))
     }
 
     def languageIsNotSupported(supportedLanguages: Seq[String], language: String): Boolean = {
@@ -442,26 +456,26 @@ trait ConverterService {
     def asApiLearningpathSummaryV2(
         learningpath: LearningPath,
         user: CombinedUser
-    ): Try[api.LearningPathSummaryV2] = {
+    ): Try[api.LearningPathSummaryV2DTO] = {
       val supportedLanguages = learningpath.supportedLanguages
 
       val title = findByLanguageOrBestEffort(learningpath.title, AllLanguages)
         .map(asApiTitle)
-        .getOrElse(api.Title("", DefaultLanguage))
+        .getOrElse(api.TitleDTO("", DefaultLanguage))
       val description = findByLanguageOrBestEffort(learningpath.description, AllLanguages)
         .map(asApiDescription)
-        .getOrElse(api.Description("", DefaultLanguage))
+        .getOrElse(api.DescriptionDTO("", DefaultLanguage))
       val tags = findByLanguageOrBestEffort(learningpath.tags, AllLanguages)
         .map(asApiLearningPathTags)
-        .getOrElse(api.LearningPathTags(Seq(), DefaultLanguage))
+        .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage))
       val introduction =
         findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps.getOrElse(Seq.empty)), AllLanguages)
-          .getOrElse(api.Introduction("", DefaultLanguage))
+          .getOrElse(api.IntroductionDTO("", DefaultLanguage))
 
       val message = learningpath.message.filter(_ => learningpath.canEdit(user)).map(_.message)
 
       Success(
-        api.LearningPathSummaryV2(
+        api.LearningPathSummaryV2DTO(
           learningpath.id.get,
           revision = learningpath.revision,
           title,
@@ -494,13 +508,16 @@ trait ConverterService {
         language: String,
         fallback: Boolean,
         user: CombinedUser
-    ): Try[api.LearningStepV2] = {
+    ): Try[api.LearningStepV2DTO] = {
       val supportedLanguages = ls.supportedLanguages
 
       if (languageIsSupported(supportedLanguages, language) || fallback) {
         val title = findByLanguageOrBestEffort(ls.title, language)
           .map(asApiTitle)
-          .getOrElse(api.Title("", DefaultLanguage))
+          .getOrElse(api.TitleDTO("", DefaultLanguage))
+        val introduction =
+          findByLanguageOrBestEffort(ls.introduction, language)
+            .map(asApiIntroduction)
         val description =
           findByLanguageOrBestEffort(ls.description, language)
             .map(asApiDescription)
@@ -509,11 +526,12 @@ trait ConverterService {
           .map(createEmbedUrl)
 
         Success(
-          api.LearningStepV2(
+          api.LearningStepV2DTO(
             ls.id.get,
             ls.revision.get,
             ls.seqNo,
             title,
+            introduction,
             description,
             embedUrl,
             ls.showTitle,
@@ -538,9 +556,9 @@ trait ConverterService {
         ls: LearningStep,
         lp: LearningPath,
         language: String
-    ): Option[api.LearningStepSummaryV2] = {
+    ): Option[api.LearningStepSummaryV2DTO] = {
       findByLanguageOrBestEffort(ls.title, language).map(title =>
-        api.LearningStepSummaryV2(
+        api.LearningStepSummaryV2DTO(
           ls.id.get,
           ls.seqNo,
           asApiTitle(title),
@@ -555,7 +573,7 @@ trait ConverterService {
         learningPath: LearningPath,
         language: String,
         fallback: Boolean
-    ): Try[api.LearningStepContainerSummary] = {
+    ): Try[api.LearningStepContainerSummaryDTO] = {
       val learningSteps = learningPathRepository
         .learningStepsFor(learningPath.id.get)
         .filter(_.status == status)
@@ -569,7 +587,7 @@ trait ConverterService {
           else language
 
         Success(
-          api.LearningStepContainerSummary(
+          api.LearningStepContainerSummaryDTO(
             searchLanguage,
             learningSteps
               .flatMap(ls =>
@@ -587,10 +605,10 @@ trait ConverterService {
     }
 
     def asApiLearningPathTagsSummary(
-        allTags: List[api.LearningPathTags],
+        allTags: List[api.LearningPathTagsDTO],
         language: String,
         fallback: Boolean
-    ): Option[api.LearningPathTagsSummary] = {
+    ): Option[api.LearningPathTagsSummaryDTO] = {
       val supportedLanguages = allTags.map(_.language).distinct
 
       if (languageIsSupported(supportedLanguages, language) || fallback) {
@@ -600,7 +618,7 @@ trait ConverterService {
           .flatMap(_.tags)
 
         Some(
-          api.LearningPathTagsSummary(
+          api.LearningPathTagsSummaryDTO(
             searchLanguage,
             supportedLanguages,
             tags
@@ -610,19 +628,23 @@ trait ConverterService {
         None
     }
 
-    private def asApiTitle(title: common.Title): api.Title = {
-      api.Title(title.title, title.language)
+    private def asApiTitle(title: common.Title): api.TitleDTO = {
+      api.TitleDTO(title.title, title.language)
     }
 
-    private def asApiDescription(description: Description): api.Description = {
-      api.Description(description.description, description.language)
+    private def asApiIntroduction(introduction: Introduction): api.IntroductionDTO = {
+      api.IntroductionDTO(introduction.introduction, introduction.language)
     }
 
-    private def asApiEmbedUrlV2(embedUrl: EmbedUrl): api.EmbedUrlV2 = {
-      api.EmbedUrlV2(embedUrl.url, embedUrl.embedType.toString)
+    private def asApiDescription(description: Description): api.DescriptionDTO = {
+      api.DescriptionDTO(description.description, description.language)
     }
 
-    def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2, language: String): Try[EmbedUrl] = {
+    private def asApiEmbedUrlV2(embedUrl: EmbedUrl): api.EmbedUrlV2DTO = {
+      api.EmbedUrlV2DTO(embedUrl.url, embedUrl.embedType.toString)
+    }
+
+    def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2DTO, language: String): Try[EmbedUrl] = {
       val hostOpt = embedUrl.url.hostOption
       hostOpt match {
         case Some(host) if NdlaFrontendHostNames.contains(host.toString) =>
@@ -661,7 +683,7 @@ trait ConverterService {
       s"${ApplicationUrl.get}${lp.id.get}"
     }
 
-    def createUrlToLearningPath(lp: api.LearningPathV2): String = {
+    def createUrlToLearningPath(lp: api.LearningPathV2DTO): String = {
       s"${ApplicationUrl.get}${lp.id}"
     }
 
@@ -672,7 +694,7 @@ trait ConverterService {
       s"${ExternalApiUrls.ImageApiRawUrl}/id/$imageId"
     }
 
-    private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2): EmbedUrlV2 = {
+    private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2DTO): EmbedUrlV2DTO = {
       embedUrlOrPath.url.hostOption match {
         case Some(_) => embedUrlOrPath
         case None =>

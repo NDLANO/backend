@@ -32,5 +32,5 @@ abstract class DocumentMigration extends TableMigration[DocumentRow] {
       .update()
   }
 
-  protected def convertColumn(value: String): String
+  def convertColumn(value: String): String
 }

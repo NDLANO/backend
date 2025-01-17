@@ -6,7 +6,7 @@
  */
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.model.api.{ConceptSummary, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptSummaryDTO, NotFoundException}
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
@@ -80,7 +80,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
     reset(publishedConceptSearchService)
 
     val multiResult =
-      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
+      SearchResult[ConceptSummaryDTO](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
     when(publishedConceptSearchService.all(any[SearchSettings])).thenReturn(Success(multiResult))
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 

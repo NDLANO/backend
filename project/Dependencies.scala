@@ -65,6 +65,10 @@ object Dependencies {
       "software.amazon.awssdk" % "s3" % AwsSdkV
     )
 
+    lazy val awsTranscribe: Seq[ModuleID] = Seq(
+      "software.amazon.awssdk" % "transcribe" % AwsSdkV
+    )
+
     lazy val awsCloudwatch: Seq[ModuleID] = Seq(
       "software.amazon.awssdk" % "cloudwatch" % AwsSdkV
     )
@@ -133,6 +137,10 @@ object Dependencies {
       "commons-codec"             % "commons-codec" % "1.17.0",
       "org.apache.httpcomponents" % "httpclient"    % "4.5.14",
       "org.yaml"                  % "snakeyaml"     % "2.0"
+    )
+    lazy val jave: Seq[ModuleID] = Seq(
+      "ws.schild" % "jave-core"     % "3.5.0",
+      "ws.schild" % "jave-all-deps" % "3.5.0"
     )
   }
 }

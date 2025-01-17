@@ -9,12 +9,13 @@
 package no.ndla.articleapi
 
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.mapping.License
 
 trait TestData {
@@ -49,28 +50,28 @@ trait TestData {
 
     val (articleId, externalId) = (1L, "751234")
 
-    val sampleArticleV2: api.ArticleV2 = api.ArticleV2(
+    val sampleArticleV2: api.ArticleV2DTO = api.ArticleV2DTO(
       id = 1,
       oldNdlaUrl = None,
       revision = 1,
-      title = api.ArticleTitle("title", "title", "nb"),
-      content = api.ArticleContentV2("this is content", "nb"),
-      copyright = model.api.Copyright(
-        model.api.License("licence", None, None),
+      title = api.ArticleTitleDTO("title", "title", "nb"),
+      content = api.ArticleContentV2DTO("this is content", "nb"),
+      copyright = model.api.CopyrightDTO(
+        model.api.LicenseDTO("licence", None, None),
         Some("origin"),
-        Seq(model.api.Author("developer", "Per")),
+        Seq(model.api.AuthorDTO("developer", "Per")),
         List(),
         List(),
         None,
         None,
         false
       ),
-      tags = api.ArticleTag(Seq("tag"), "nb"),
-      requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
+      tags = api.ArticleTagDTO(Seq("tag"), "nb"),
+      requiredLibraries = Seq(api.RequiredLibraryDTO("JS", "JavaScript", "url")),
       visualElement = None,
       metaImage = None,
       introduction = None,
-      metaDescription = api.ArticleMetaDescription("metaDesc", "nb"),
+      metaDescription = api.ArticleMetaDescriptionDTO("metaDesc", "nb"),
       created = NDLADate.of(2017, 1, 1, 12, 15, 32),
       updated = NDLADate.of(2017, 4, 1, 12, 15, 32),
       updatedBy = "me",
@@ -82,17 +83,18 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = None
     )
 
-    val apiArticleV2: api.ArticleV2 = api.ArticleV2(
+    val apiArticleV2: api.ArticleV2DTO = api.ArticleV2DTO(
       articleId,
       Some(s"//red.ndla.no/node/$externalId"),
       2,
-      api.ArticleTitle("title", "title", "nb"),
-      api.ArticleContentV2("content", "nb"),
-      model.api.Copyright(
-        model.api.License(
+      api.ArticleTitleDTO("title", "title", "nb"),
+      api.ArticleContentV2DTO("content", "nb"),
+      model.api.CopyrightDTO(
+        model.api.LicenseDTO(
           "CC-BY-4.0",
           Some("Creative Commons Attribution 4.0 International"),
           Some("https://creativecommons.org/licenses/by/4.0/")
@@ -105,12 +107,12 @@ trait TestData {
         None,
         false
       ),
-      api.ArticleTag(Seq("tag"), "nb"),
+      api.ArticleTagDTO(Seq("tag"), "nb"),
       Seq(),
       None,
-      Some(api.ArticleMetaImage(s"http://api-gateway.ndla-local/image-api/raw/id/11", "alt", "nb")),
+      Some(api.ArticleMetaImageDTO(s"http://api-gateway.ndla-local/image-api/raw/id/11", "alt", "nb")),
       None,
-      api.ArticleMetaDescription("meta description", "nb"),
+      api.ArticleMetaDescriptionDTO("meta description", "nb"),
       today,
       today,
       "ndalId54321",
@@ -122,7 +124,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = None
     )
 
     val sampleArticleWithPublicDomain: Article = Article(
@@ -152,7 +155,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = Some(NDLADate.now().withNano(0)),
-      slug = None
+      slug = None,
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleDomainArticle: Article = Article(
@@ -177,7 +181,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleDomainArticle2: Article = Article(
@@ -202,7 +207,8 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -239,15 +245,16 @@ trait TestData {
       availability = Availability.everyone,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = OptLanguageFields.empty
     )
 
-    val apiArticleWithHtmlFaultV2: api.ArticleV2 = api.ArticleV2(
+    val apiArticleWithHtmlFaultV2: api.ArticleV2DTO = api.ArticleV2DTO(
       1,
       None,
       1,
-      api.ArticleTitle("test", "test", "en"),
-      api.ArticleContentV2(
+      api.ArticleTitleDTO("test", "test", "en"),
+      api.ArticleContentV2DTO(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
         |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
@@ -255,13 +262,14 @@ trait TestData {
       """.stripMargin,
         "en"
       ),
-      model.api.Copyright(model.api.License("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None, false),
-      api.ArticleTag(Seq.empty, "en"),
+      model.api
+        .CopyrightDTO(model.api.LicenseDTO("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+      api.ArticleTagDTO(Seq.empty, "en"),
       Seq.empty,
       None,
       None,
       None,
-      api.ArticleMetaDescription("so meta", "en"),
+      api.ArticleMetaDescriptionDTO("so meta", "en"),
       NDLADate.now().minusDays(4),
       NDLADate.now().minusDays(2),
       "ndalId54321",
@@ -273,7 +281,8 @@ trait TestData {
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
       revisionDate = None,
-      slug = None
+      slug = None,
+      disclaimer = None
     )
 
     val (nodeId, nodeId2)  = ("1234", "4321")
@@ -307,11 +316,12 @@ trait TestData {
         availability = Availability.everyone,
         relatedContent = Seq.empty,
         revisionDate = None,
-        slug = None
+        slug = None,
+        disclaimer = OptLanguageFields.empty
       )
     }
 
-    val sampleApiTagsSearchResult: api.TagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+    val sampleApiTagsSearchResult: api.TagsSearchResultDTO = api.TagsSearchResultDTO(10, 1, 1, "nb", Seq("a", "b"))
 
     val testSettings: SearchSettings = SearchSettings(
       query = None,

@@ -10,8 +10,9 @@ package no.ndla.integrationtests.draftapi.articleapi
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, domain as common}
-import no.ndla.draftapi.model.api.ContentId
+import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.network.tapir.auth.TokenUser
@@ -73,7 +74,7 @@ class ArticleApiClientTest
     super.afterAll()
   }
 
-  val idResponse: ContentId     = ContentId(1)
+  val idResponse: ContentIdDTO  = ContentIdDTO(1)
   override val converterService = new ConverterService
 
   val testCopyright: common.draft.DraftCopyright = common.draft.DraftCopyright(
@@ -125,7 +126,8 @@ class ArticleApiClientTest
     comments = Seq.empty,
     priority = Priority.Unspecified,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = OptLanguageFields.empty
   )
 
   val exampleToken =
@@ -175,7 +177,7 @@ class ArticleApiClientTest
 
   test("that deleting an article should return 200") {
     dataFixer.setupArticles()
-    val contentId = ContentId(1)
+    val contentId = ContentIdDTO(1)
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
     articleApiClient.deleteArticle(1, authUser).get should be(contentId)

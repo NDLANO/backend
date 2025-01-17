@@ -61,11 +61,11 @@ class LearningPathIndexServiceTest
             learningPathId = Some(1L),
             seqNo = 1,
             title = Seq(Title("hei", "nb")),
+            introduction = Seq(),
             description = Seq(LPDescription("hei", "nb")),
             embedUrl = Seq(EmbedUrl("hei", "nb", EmbedType.OEmbed)),
             `type` = StepType.TEXT,
             license = Some("hei"),
-            showTitle = false,
             status = StepStatus.ACTIVE
           )
         )

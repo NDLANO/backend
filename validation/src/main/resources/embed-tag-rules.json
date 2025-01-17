@@ -62,13 +62,6 @@
           "validation": {
             "required": true
           }
-        },
-        {
-          "name": "data-article-id",
-          "validation": {
-            "required": false,
-            "dataType": "NUMBER"
-          }
         }
       ],
       "children": {

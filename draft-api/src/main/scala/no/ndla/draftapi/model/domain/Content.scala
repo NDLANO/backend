@@ -13,7 +13,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright}
-import no.ndla.draftapi.model.api.SavedSearch
+import no.ndla.draftapi.model.api.SavedSearchDTO
 import scalikejdbc.*
 
 case class Agreement(
@@ -29,7 +29,7 @@ case class Agreement(
 case class UserData(
     id: Option[Long],
     userId: String,
-    savedSearches: Option[Seq[SavedSearch]],
+    savedSearches: Option[Seq[SavedSearchDTO]],
     latestEditedArticles: Option[Seq[String]],
     latestEditedConcepts: Option[Seq[String]],
     favoriteSubjects: Option[Seq[String]]

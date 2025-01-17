@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.{Clock, model}
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
-import no.ndla.common.model.api.config.ConfigMetaRestricted
+import no.ndla.common.model.api.config.ConfigMetaRestrictedDTO
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta, ConfigMetaValue, StringListValue}
 import no.ndla.myndlaapi.repository.ConfigRepository
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
@@ -55,15 +55,15 @@ trait ConfigService {
         )
     }
 
-    def getConfig(configKey: ConfigKey): Try[ConfigMetaRestricted] = {
+    def getConfig(configKey: ConfigKey): Try[ConfigMetaRestrictedDTO] = {
       configRepository.getConfigWithKey(configKey).flatMap {
         case None      => Failure(NotFoundException(s"Configuration with key $configKey does not exist"))
         case Some(key) => Success(asApiConfigRestricted(key))
       }
     }
 
-    private def asApiConfigRestricted(configValue: ConfigMeta): ConfigMetaRestricted = {
-      model.api.config.ConfigMetaRestricted(
+    private def asApiConfigRestricted(configValue: ConfigMeta): ConfigMetaRestrictedDTO = {
+      model.api.config.ConfigMetaRestrictedDTO(
         key = configValue.key.entryName,
         value = configValue.valueToEither
       )
@@ -71,9 +71,9 @@ trait ConfigService {
 
     def updateConfig(
         configKey: ConfigKey,
-        value: model.api.config.ConfigMetaValue,
+        value: model.api.config.ConfigMetaValueDTO,
         userInfo: TokenUser
-    ): Try[model.api.config.ConfigMeta] = if (!userInfo.hasPermission(LEARNINGPATH_API_ADMIN)) {
+    ): Try[model.api.config.ConfigMetaDTO] = if (!userInfo.hasPermission(LEARNINGPATH_API_ADMIN)) {
       Failure(AccessDeniedException("Only administrators can edit configuration."))
     } else {
       val config = ConfigMeta(configKey, ConfigMetaValue.from(value), clock.now(), userInfo.id)
@@ -83,8 +83,8 @@ trait ConfigService {
       } yield asApiConfig(stored)
     }
 
-    private def asApiConfig(configValue: ConfigMeta): model.api.config.ConfigMeta = {
-      model.api.config.ConfigMeta(
+    private def asApiConfig(configValue: ConfigMeta): model.api.config.ConfigMetaDTO = {
+      model.api.config.ConfigMetaDTO(
         configValue.key.entryName,
         configValue.valueToEither,
         configValue.updatedAt,

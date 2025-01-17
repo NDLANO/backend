@@ -8,7 +8,7 @@
 package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.MyNDLABundle
+import no.ndla.common.model.api.MyNDLABundleDTO
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -38,6 +38,7 @@ import no.ndla.common.model.domain.concept.{
   WordClass
 }
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -50,7 +51,16 @@ import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
+import no.ndla.searchapi.model.grep.{
+  BelongsToObj,
+  GrepBundle,
+  GrepKjerneelement,
+  GrepKompetansemaal,
+  GrepLaererplan,
+  GrepTextObj,
+  GrepTitle,
+  GrepTverrfagligTema
+}
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy.*
@@ -201,7 +211,8 @@ object TestData {
     Availability.everyone,
     Seq.empty,
     None,
-    slug = None
+    slug = None,
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDomainArticle: Article = Article(
@@ -226,7 +237,8 @@ object TestData {
     Availability.everyone,
     Seq.empty,
     None,
-    slug = None
+    slug = None,
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -251,7 +263,8 @@ object TestData {
     Availability.everyone,
     Seq.empty,
     None,
-    slug = None
+    slug = None,
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -532,8 +545,9 @@ object TestData {
     conceptIds = Seq.empty,
     availability = Availability.everyone,
     relatedContent = Seq.empty,
-    None,
-    slug = None
+    revisionDate = None,
+    slug = None,
+    disclaimer = OptLanguageFields.empty
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -567,7 +581,8 @@ object TestData {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = OptLanguageFields.empty
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -629,7 +644,8 @@ object TestData {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     started = false,
-    qualityEvaluation = None
+    qualityEvaluation = None,
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -1078,9 +1094,11 @@ object TestData {
     "Matte",
     None,
     Some("/subject:1"),
+    Some("/f/matte/asdf1234"),
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List("asdf1234"),
     List(
       TaxonomyContext(
         publicId = "urn:subject:1",
@@ -1094,10 +1112,10 @@ object TestData {
         resourceTypes = List.empty,
         parentIds = List.empty,
         isPrimary = true,
-        contextId = "",
+        contextId = "asdf1234",
         isVisible = true,
         isActive = true,
-        url = "/subject:1"
+        url = "/f/matte/asdf1234"
       )
     )
   )
@@ -1106,9 +1124,11 @@ object TestData {
     "Historie",
     None,
     Some("/subject:2"),
+    Some("/f/historie/asdf1235"),
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List("asdf1235"),
     List(
       TaxonomyContext(
         publicId = "urn:subject:2",
@@ -1122,10 +1142,10 @@ object TestData {
         resourceTypes = List.empty,
         parentIds = List.empty,
         isPrimary = true,
-        contextId = "",
+        contextId = "asdf1235",
         isVisible = true,
         isActive = true,
-        url = "/subject:2"
+        url = "/f/historie/asdf1235"
       )
     )
   )
@@ -1134,9 +1154,11 @@ object TestData {
     "Religion",
     None,
     Some("/subject:3"),
+    Some("/f/religion/asdf1236"),
     invisibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List("asdf1236"),
     List(
       TaxonomyContext(
         publicId = "urn:subject:3",
@@ -1150,10 +1172,10 @@ object TestData {
         resourceTypes = List.empty,
         parentIds = List.empty,
         isPrimary = true,
-        contextId = "",
+        contextId = "asdf1236",
         isVisible = false,
         isActive = true,
-        url = "/subject:3"
+        url = "/f/religion/asdf1236"
       )
     )
   )
@@ -1162,9 +1184,11 @@ object TestData {
     article8.title.head.title,
     Some(s"urn:article:${article8.id.get}"),
     Some("/subject:1/topic:1"),
+    Some("/e/baldur-har-mareritt/asdf1237"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1237"),
     List.empty
   )
   topic_1.contexts =
@@ -1174,9 +1198,11 @@ object TestData {
     article9.title.head.title,
     Some(s"urn:article:${article9.id.get}"),
     Some("/subject:1/topic:1/topic:2"),
+    Some("/e/en-baldur-har-mareritt-om-ragnarok/asdf1238"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1238"),
     List.empty
   )
   topic_2.contexts =
@@ -1186,9 +1212,11 @@ object TestData {
     article10.title.head.title,
     Some(s"urn:article:${article10.id.get}"),
     Some("/subject:1/topic:3"),
+    Some("/e/this-article-is-in-english/asdf1239"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1239"),
     List.empty
   )
   topic_3.contexts =
@@ -1198,9 +1226,11 @@ object TestData {
     article11.title.head.title,
     Some(s"urn:article:${article11.id.get}"),
     Some("/subject:2/topic:4"),
+    Some("/e/katter/asdf1240"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1240"),
     List.empty
   )
   topic_4.contexts =
@@ -1210,9 +1240,11 @@ object TestData {
     draft15.title.head.title,
     Some(s"urn:article:${draft15.id.get}"),
     Some("/subject:3/topic:5"),
+    Some("/e/engler-og-demoner/asdf1241"),
     invisibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List("asdf1241"),
     List.empty
   )
   topic_5.contexts =
@@ -1222,9 +1254,11 @@ object TestData {
     article1.title.head.title,
     Some(s"urn:article:${article1.id.get}"),
     Some("/subject:3/topic:5/resource:1"),
+    Some("/r/batmen-er-pa-vift-med-en-bil/asdf1242"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1242"),
     List.empty
   )
   resource_1.contexts = generateContexts(
@@ -1265,9 +1299,11 @@ object TestData {
     article2.title.head.title,
     Some(s"urn:article:${article2.id.get}"),
     Some("/subject:1/topic:1/resource:2"),
+    Some("/r/pingvinen-er-ute-og-gar/asdf1243"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1243"),
     List.empty
   )
   resource_2.contexts = generateContexts(
@@ -1286,9 +1322,11 @@ object TestData {
     article3.title.head.title,
     Some(s"urn:article:${article3.id.get}"),
     Some("/subject:1/topic:3/resource:3"),
+    Some("/r/donald-duck-kjorer-bil/asdf1244"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1244"),
     List.empty
   )
   resource_3.contexts = generateContexts(
@@ -1307,9 +1345,11 @@ object TestData {
     article4.title.head.title,
     Some(s"urn:article:${article4.id.get}"),
     Some("/subject:1/topic:1/topic:2/resource:4"),
+    Some("/r/superman-er-ute-og-flyr/asdf1245"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1245"),
     List.empty
   )
   resource_4.contexts = generateContexts(
@@ -1328,9 +1368,11 @@ object TestData {
     article5.title.head.title,
     Some(s"urn:article:${article5.id.get}"),
     Some("/subject:2/topic:4/resource:5"),
+    Some("/r/hulken-lofter-biler/asdf1246"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1246"),
     List.empty
   )
   resource_5.contexts = generateContexts(
@@ -1360,9 +1402,11 @@ object TestData {
     article6.title.head.title,
     Some(s"urn:article:${article6.id.get}"),
     Some("/subject:2/topic:4/resource:6"),
+    Some("/r/loke-og-tor-forsoeker-aa-fange-midgaardsormen/asdf1247"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1247"),
     List.empty
   )
   resource_6.contexts = generateContexts(
@@ -1381,9 +1425,11 @@ object TestData {
     article7.title.head.title,
     Some(s"urn:article:${article7.id.get}"),
     Some("/subject:2/topic:4/resource:7"),
+    Some("/r/yggdrasil-livets-tre/asdf1248"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1248"),
     List.empty
   )
   resource_7.contexts = generateContexts(
@@ -1402,9 +1448,11 @@ object TestData {
     learningPath1.title.head.title,
     Some(s"urn:learningpath:${learningPath1.id.get}"),
     Some("/subject:1/topic:1/resource:8"),
+    Some("/r/pingvinen-er-en-kjeltring/asdf1249"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1249"),
     List.empty
   )
   resource_8.contexts = generateContexts(
@@ -1423,9 +1471,11 @@ object TestData {
     learningPath2.title.head.title,
     Some(s"urn:learningpath:${learningPath2.id.get}"),
     Some("/subject:1/topic:1/resource:9"),
+    Some("/r/batman-er-en-toeff-og-morsom-helt/asdf1250"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1250"),
     List.empty
   )
   resource_9.contexts = generateContexts(
@@ -1444,9 +1494,11 @@ object TestData {
     learningPath3.title.head.title,
     Some(s"urn:learningpath:${learningPath3.id.get}"),
     Some("/subject:1/topic:3/resource:10"),
+    Some("/r/donald-er-en-toeff-rar-og-morsom-and/asdf1251"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1251"),
     List.empty
   )
   resource_10.contexts = generateContexts(
@@ -1465,9 +1517,11 @@ object TestData {
     learningPath4.title.head.title,
     Some(s"urn:learningpath:${learningPath4.id.get}"),
     Some("/subject:1/topic:1/topic:2/resource:11"),
+    Some("/r/unrelated/asdf1252"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1252"),
     List.empty
   )
   resource_11.contexts = generateContexts(
@@ -1486,9 +1540,11 @@ object TestData {
     learningPath5.title.head.title,
     Some(s"urn:learningpath:${learningPath5.id.get}"),
     Some("/subject:2/topic:4/resource:12"),
+    Some("/r/englando/asdf1253"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1253"),
     List.empty
   )
   resource_12.contexts = generateContexts(
@@ -1507,9 +1563,11 @@ object TestData {
     article12.title.head.title,
     Some(s"urn:article:${article12.id.get}"),
     Some("/subject:2/topic:4/resource:13"),
+    Some("/r/ekstrastoff/asdf1254"),
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List("asdf1254", "asdf1255"), // asdf1255 is a deleted context
     List.empty
   )
   resource_13.contexts = generateContexts(
@@ -1561,26 +1619,52 @@ object TestData {
 
   val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
 
-  val myndlaTestBundle: MyNDLABundle = MyNDLABundle(Map.empty)
+  val myndlaTestBundle: MyNDLABundleDTO = MyNDLABundleDTO(Map.empty)
 
   val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
-    tverrfagligeTemaer = List.empty
+    kompetansemaalsett = List.empty,
+    tverrfagligeTemaer = List.empty,
+    laereplaner = List.empty
   )
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
-      GrepElement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing"))),
-      GrepElement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")))
-    ),
-    kompetansemaal = List(
-      GrepElement(
-        "KM123",
-        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
+      GrepKjerneelement(
+        kode = "KE12",
+        tittel = GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP1")
+      ),
+      GrepKjerneelement(
+        kode = "KE34",
+        tittel = GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP2")
       )
     ),
-    tverrfagligeTemaer = List(GrepElement("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap"))))
+    kompetansemaal = List(
+      GrepKompetansemaal(
+        kode = "KM123",
+        tittel = GrepTextObj(
+          List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
+        ),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP1"),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj("KMS1", "Dette er KMS1"),
+        `tilknyttede-tverrfaglige-temaer` = List(),
+        `tilknyttede-kjerneelementer` = List(),
+        `gjenbruk-av` = None
+      )
+    ),
+    tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
+    laereplaner = List(
+      GrepLaererplan(
+        "LP1",
+        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))),
+        `erstattes-av` = List.empty
+      )
+    )
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -1598,6 +1682,7 @@ object TestData {
     supportedLanguages = List.empty,
     relevanceIds = List.empty,
     grepCodes = List.empty,
+    traits = List.empty,
     shouldScroll = false,
     filterByNoResourceType = false,
     aggregatePaths = List.empty,
@@ -1627,6 +1712,7 @@ object TestData {
     statusFilter = List.empty,
     userFilter = List.empty,
     grepCodes = List.empty,
+    traits = List.empty,
     shouldScroll = false,
     searchDecompounded = false,
     aggregatePaths = List.empty,
@@ -1744,6 +1830,7 @@ object TestData {
     supportedLanguages = List("en", "nb", "nn"),
     notes = List("Note1", "note2"),
     contexts = searchableTaxonomyContexts,
+    contextids = searchableTaxonomyContexts.map(_.contextId),
     users = List("ndalId54321", "ndalId12345"),
     previousVersionsNotes = List("OldNote"),
     grepContexts = List(),

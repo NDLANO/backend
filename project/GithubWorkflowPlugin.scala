@@ -117,14 +117,18 @@ object GithubWorkflowPlugin extends AutoPlugin {
        |          path: ndla/deploy
        |      - uses: actions/setup-python@v4
        |        with:
-       |          python-version: '3.11'
+       |          python-version: $${{ vars.PYTHON_VERSION }}
        |      - uses: abatilo/actions-poetry@v2
        |        with:
-       |          poetry-version: "1.6.1"
+       |          poetry-version: $${{ vars.POETRY_VERSION }}
        |      - uses: actions/setup-java@v3
        |        with:
        |          distribution: temurin
        |          java-version: '$workflowJavaVersion'
+       |      - uses: hashicorp/setup-terraform@v3
+       |        with:
+       |          terraform_version: $${{ vars.TERRAFORM_VERSION }}
+       |      - uses: sbt/setup-sbt@v1
        |      - name: Setup ~/bin directory
        |        run: |
        |          mkdir -p /home/runner/bin
@@ -225,6 +229,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
       |        with:
       |          distribution: temurin
       |          java-version: '$workflowJavaVersion'
+      |      - uses: sbt/setup-sbt@v1
       |      - name: Login to ECR repo
       |        run: RES=$$(aws sts assume-role --role-arn $$CI_RELEASE_ROLE --role-session-name
       |          github-actions-ecr-login) AWS_ACCESS_KEY_ID=$$(echo $$RES | jq -r .Credentials.AccessKeyId)

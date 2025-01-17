@@ -7,20 +7,20 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.domain.ReindexResult
 import no.ndla.draftapi.repository.Repository
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
+import cats.implicits.*
+import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -54,30 +54,11 @@ trait IndexService {
       } yield imported
     }
 
-    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = {
-      synchronized {
-        val start = System.currentTimeMillis()
-        createIndexWithGeneratedName(numShards).flatMap(indexName => {
-          val operations = for {
-            numIndexed  <- sendToElastic(indexName)
-            aliasTarget <- getAliasTarget
-            _           <- updateAliasTarget(aliasTarget, indexName)
-          } yield numIndexed
-
-          operations match {
-            case Failure(f) => {
-              deleteIndexWithName(Some(indexName)): Unit
-              Failure(f)
-            }
-            case Success(totalIndexed) => {
-              Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
-            }
-          }
-        })
-      }
+    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
+      indexDocumentsInBulk(numShards)(sendToElastic)
     }
 
-    def sendToElastic(indexName: String): Try[Int] = {
+    def sendToElastic(indexName: String): Try[BulkIndexResult] = {
       getRanges
         .flatMap(ranges => {
           ranges.traverse { case (start, end) =>
@@ -85,7 +66,7 @@ trait IndexService {
             indexDocuments(toIndex, indexName)
           }
         })
-        .map(_.sum)
+        .map(countBulkIndexed)
     }
 
     def getRanges: Try[List[(Long, Long)]] = {
@@ -99,50 +80,20 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
+    def indexDocuments(contents: Seq[D], indexName: String): Try[BulkIndexResult] = {
       if (contents.isEmpty) {
-        Success(0)
+        Success(BulkIndexResult.empty)
       } else {
         val requests = contents.flatMap(content => {
           createIndexRequests(content, indexName)
         })
 
         executeRequests(requests) match {
-          case Success((numSuccessful, numFailures)) =>
-            logger.info(s"Indexed $numSuccessful documents ($searchIndex). No of failed items: $numFailures")
-            Success(contents.size)
+          case Success(result) =>
+            logger.info(s"Indexed ${result.successful} documents ($searchIndex). No of failed items: ${result.failed}")
+            Success(result)
           case Failure(ex) => Failure(ex)
         }
-      }
-    }
-
-    def findAllIndexes(indexName: String): Try[Seq[String]] = {
-      val response = e4sClient.execute {
-        getAliases()
-      }
-
-      response match {
-        case Success(results) =>
-          Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
-        case Failure(ex) =>
-          Failure(ex)
-      }
-    }
-
-    /** Executes elasticsearch requests in bulk. Returns success (without executing anything) if supplied with an empty
-      * list.
-      *
-      * @param requests
-      *   a list of elasticsearch [[IndexRequest]]'s
-      * @return
-      *   A Try suggesting if the request was successful or not with a tuple containing number of successful requests
-      *   and number of failed requests (in that order)
-      */
-    private def executeRequests(requests: Seq[IndexRequest]): Try[(Int, Int)] = {
-      requests match {
-        case Nil         => Success((0, 0))
-        case head :: Nil => e4sClient.execute(head).map(r => if (r.isSuccess) (1, 0) else (0, 1))
-        case reqs        => e4sClient.execute(bulk(reqs)).map(r => (r.result.successes.size, r.result.failures.size))
       }
     }
 

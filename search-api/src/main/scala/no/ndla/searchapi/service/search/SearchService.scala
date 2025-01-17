@@ -21,24 +21,30 @@ import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.getAggregationsFromResult
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaSearchException, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
+import no.ndla.searchapi.model.api.{
+  ErrorHandling,
+  MultiSearchSuggestionDTO,
+  MultiSearchSummaryDTO,
+  SearchSuggestionDTO,
+  SuggestOptionDTO
+}
 import no.ndla.searchapi.model.domain.Sort.*
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.search.SearchType
+import no.ndla.searchapi.model.search.{SearchPagination, SearchType}
 
 import java.lang.Math.max
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient & IndexService & SearchConverterService & StrictLogging & Props =>
+  this: Elastic4sClient & IndexService & SearchConverterService & StrictLogging & Props & BaseIndexService &
+    ErrorHandling =>
 
   trait SearchService {
     import props.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
     val searchIndex: List[String]
-    val indexServices: List[IndexService[?]]
+    val indexServices: List[BaseIndexService]
 
     /** Returns hit as summary
       *
@@ -49,7 +55,7 @@ trait SearchService {
       * @return
       *   api-model summary of hit
       */
-    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean) = {
+    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSearchSummaryDTO] = {
       val indexName = hit.index.split("_").headOption.traverse(x => props.indexToSearchType(x))
       indexName.flatMap {
         case Some(SearchType.Articles) =>
@@ -60,10 +66,15 @@ trait SearchService {
           Success(searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive))
         case Some(SearchType.Concepts) =>
           Success(searchConverterService.conceptHitAsMultiSummary(hit, language))
+        case Some(SearchType.Grep) =>
+          Failure(NdlaSearchException("Got hit from grep index (SearchType.Grep) in `hitToApiModel`. This is a bug."))
         case None =>
           Failure(NdlaSearchException("Index type was bad when determining search result type."))
       }
     }
+
+    def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): SimpleStringQuery =
+      buildSimpleStringQueryForField(query, field, boost, language, fallback = true, searchDecompounded = true)
 
     def buildSimpleStringQueryForField(
         query: NonEmptyString,
@@ -135,14 +146,14 @@ trait SearchService {
         response: SearchResponse,
         language: String,
         filterInactive: Boolean
-    ): Try[Seq[MultiSearchSummary]] = {
+    ): Try[Seq[MultiSearchSummaryDTO]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
 
           resultArray.traverse(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages | "*" =>
+              case Language.AllLanguages =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -173,15 +184,15 @@ trait SearchService {
         .text(query)
     }
 
-    protected def getSuggestions(response: SearchResponse): Seq[MultiSearchSuggestion] = {
+    protected def getSuggestions(response: SearchResponse): Seq[MultiSearchSuggestionDTO] = {
       response.suggestions.map { case (key, value) =>
-        MultiSearchSuggestion(name = key, suggestions = getSuggestion(value))
+        MultiSearchSuggestionDTO(name = key, suggestions = getSuggestion(value))
       }.toSeq
     }
 
-    private def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestion] = {
+    private def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestionDTO] = {
       results.map(result =>
-        SearchSuggestion(
+        SearchSuggestionDTO(
           text = result.text,
           offset = result.offset,
           length = result.length,
@@ -190,10 +201,10 @@ trait SearchService {
       )
     }
 
-    private def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOption = {
+    private def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOptionDTO = {
       val text  = optionsMap.getOrElse("text", "")
       val score = optionsMap.getOrElse("score", 1)
-      SuggestOption(
+      SuggestOptionDTO(
         text.asInstanceOf[String],
         score.asInstanceOf[Double]
       )
@@ -222,18 +233,18 @@ trait SearchService {
         })
     }
 
-    private def sortField(field: String, order: SortOrder, missingLast: Boolean = true): FieldSort = {
+    protected def sortField(field: String, order: SortOrder, missingLast: Boolean = true): FieldSort = {
       val sortDefinition = fieldSort(field).sortOrder(order)
       if (missingLast) sortDefinition.missing("_last") else sortDefinition
     }
 
-    def getSortDefinition(sort: Sort, language: String): FieldSort = {
+    protected def defaultSort(default: String, withLanguage: String, order: SortOrder, language: String): FieldSort = {
       val sortLanguage = language match {
         case Language.NoLanguage => DefaultLanguage
         case _                   => language
       }
 
-      def defaultSort(default: String, withLanguage: String, order: SortOrder): FieldSort = sortLanguage match {
+      sortLanguage match {
         case Language.AllLanguages =>
           fieldSort(default)
             .sortOrder(order)
@@ -244,88 +255,49 @@ trait SearchService {
             .missing("_last")
             .unmappedType("long")
       }
-
-      sort match {
-        case ByTitleAsc                   => defaultSort("defaultTitle", "title", Asc)
-        case ByTitleDesc                  => defaultSort("defaultTitle", "title", Desc)
-        case ByPrimaryRootAsc             => defaultSort("defaultRoot", "primaryRoot", Asc)
-        case ByPrimaryRootDesc            => defaultSort("defaultRoot", "primaryRoot", Desc)
-        case ByParentTopicNameAsc         => defaultSort("defaultParentTopicName", "parentTopicName", Asc)
-        case ByParentTopicNameDesc        => defaultSort("defaultParentTopicName", "parentTopicName", Desc)
-        case ByResourceTypeAsc            => defaultSort("defaultResourceTypeName", "resourceTypeName", Asc)
-        case ByResourceTypeDesc           => defaultSort("defaultResourceTypeName", "resourceTypeName", Desc)
-        case ByDurationAsc                => sortField("duration", Asc)
-        case ByDurationDesc               => sortField("duration", Desc)
-        case ByStatusAsc                  => sortField("draftStatus.current", Asc)
-        case ByStatusDesc                 => sortField("draftStatus.current", Desc)
-        case ByRelevanceAsc               => sortField("_score", Asc, missingLast = false)
-        case ByRelevanceDesc              => sortField("_score", Desc, missingLast = false)
-        case ByLastUpdatedAsc             => sortField("lastUpdated", Asc)
-        case ByLastUpdatedDesc            => sortField("lastUpdated", Desc)
-        case ByIdAsc                      => sortField("id", Asc)
-        case ByIdDesc                     => sortField("id", Desc)
-        case ByRevisionDateAsc            => sortField("nextRevision.revisionDate", Asc)
-        case ByRevisionDateDesc           => sortField("nextRevision.revisionDate", Desc)
-        case ByResponsibleLastUpdatedAsc  => sortField("responsible.lastUpdated", Asc)
-        case ByResponsibleLastUpdatedDesc => sortField("responsible.lastUpdated", Desc)
-        case ByPrioritizedAsc             => sortField("prioritized", Asc)
-        case ByPrioritizedDesc            => sortField("prioritized", Desc)
-        case ByPublishedAsc               => sortField("published", Asc)
-        case ByPublishedDesc              => sortField("published", Desc)
-        case ByFavoritedAsc               => sortField("favorited", Asc)
-        case ByFavoritedDesc              => sortField("favorited", Desc)
-      }
     }
 
-    def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
-      val numResults = max(pageSize.min(MaxPageSize), 0)
-      val startAt    = (page - 1).max(0) * numResults
-
-      (startAt, numResults)
+    def getSortDefinition(sort: Sort, language: String): FieldSort = sort match {
+      case ByTitleAsc                   => defaultSort("defaultTitle", "title", Asc, language)
+      case ByTitleDesc                  => defaultSort("defaultTitle", "title", Desc, language)
+      case ByPrimaryRootAsc             => defaultSort("defaultRoot", "primaryRoot", Asc, language)
+      case ByPrimaryRootDesc            => defaultSort("defaultRoot", "primaryRoot", Desc, language)
+      case ByParentTopicNameAsc         => defaultSort("defaultParentTopicName", "parentTopicName", Asc, language)
+      case ByParentTopicNameDesc        => defaultSort("defaultParentTopicName", "parentTopicName", Desc, language)
+      case ByResourceTypeAsc            => defaultSort("defaultResourceTypeName", "resourceTypeName", Asc, language)
+      case ByResourceTypeDesc           => defaultSort("defaultResourceTypeName", "resourceTypeName", Desc, language)
+      case ByDurationAsc                => sortField("duration", Asc)
+      case ByDurationDesc               => sortField("duration", Desc)
+      case ByStatusAsc                  => sortField("draftStatus.current", Asc)
+      case ByStatusDesc                 => sortField("draftStatus.current", Desc)
+      case ByRelevanceAsc               => sortField("_score", Asc, missingLast = false)
+      case ByRelevanceDesc              => sortField("_score", Desc, missingLast = false)
+      case ByLastUpdatedAsc             => sortField("lastUpdated", Asc)
+      case ByLastUpdatedDesc            => sortField("lastUpdated", Desc)
+      case ByIdAsc                      => sortField("id", Asc)
+      case ByIdDesc                     => sortField("id", Desc)
+      case ByRevisionDateAsc            => sortField("nextRevision.revisionDate", Asc)
+      case ByRevisionDateDesc           => sortField("nextRevision.revisionDate", Desc)
+      case ByResponsibleLastUpdatedAsc  => sortField("responsible.lastUpdated", Asc)
+      case ByResponsibleLastUpdatedDesc => sortField("responsible.lastUpdated", Desc)
+      case ByPrioritizedAsc             => sortField("prioritized", Asc)
+      case ByPrioritizedDesc            => sortField("prioritized", Desc)
+      case ByPublishedAsc               => sortField("published", Asc)
+      case ByPublishedDesc              => sortField("published", Desc)
+      case ByFavoritedAsc               => sortField("favorited", Asc)
+      case ByFavoritedDesc              => sortField("favorited", Desc)
     }
 
-    protected def scheduleIndexDocuments(): Unit
-
-    /** Takes care of logging reindexResults, used in subclasses overriding [[scheduleIndexDocuments]]
-      *
-      * @param indexName
-      *   Name of index to use for logging
-      * @param reindexFuture
-      *   Reindexing future to handle
-      * @param executor
-      *   Execution context for the future
-      */
-    protected def handleScheduledIndexResults(indexName: String, reindexFuture: Future[Try[ReindexResult]])(implicit
-        executor: ExecutionContext
-    ): Unit = {
-      reindexFuture.onComplete {
-        case Success(Success(reindexResult: ReindexResult)) =>
-          logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} $indexName in ${reindexResult.millisUsed} ms."
-          )
-        case Success(Failure(ex)) => logger.warn(ex.getMessage, ex)
-        case Failure(ex)          => logger.warn(s"Unable to create index '$indexName': " + ex.getMessage, ex)
-      }
+    private val maxResultWindow = props.ElasticSearchIndexMaxResultWindow
+    def getStartAtAndNumResults(page: Int, pageSize: Int): Try[SearchPagination] = {
+      val safePageSize = max(pageSize.min(MaxPageSize), 0)
+      val safePage     = page.max(1)
+      val startAt      = (safePage - 1) * safePageSize
+      val resultWindow = startAt + safePageSize
+      if (resultWindow > maxResultWindow) {
+        logger.info(s"Max supported results are $maxResultWindow, user requested $resultWindow")
+        Failure(ResultWindowTooLargeException())
+      } else Success(SearchPagination(safePage, safePageSize, startAt))
     }
-
-    protected def errorHandler[U](failure: Throwable): Failure[U] = {
-      failure match {
-        case e: NdlaSearchException[?] =>
-          e.rf.map(_.status).getOrElse(0) match {
-            case notFound: Int if notFound == 404 =>
-              val msg = s"Index ${e.rf.flatMap(_.error.index).getOrElse("")} not found. Scheduling a reindex."
-              logger.error(msg)
-              scheduleIndexDocuments()
-              Failure(IndexNotFoundException(msg))
-            case _ =>
-              logger.error(e.getMessage)
-              Failure(
-                NdlaSearchException(s"Unable to execute search in ${e.rf.flatMap(_.error.index).getOrElse("")}", e)
-              )
-          }
-        case t: Throwable => Failure(t)
-      }
-    }
-
   }
 }

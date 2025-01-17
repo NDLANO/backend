@@ -14,6 +14,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
@@ -50,6 +51,7 @@ trait ContentValidator {
     def validateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val validationErrors = validateArticleContent(article.content) ++
         article.introduction.flatMap(i => validateIntroduction(i)) ++
+        validateArticleDisclaimer(article.disclaimer) ++
         validateMetaDescription(article.metaDescription, isImported) ++
         validateTitle(article.title) ++
         validateCopyright(article.copyright) ++
@@ -87,6 +89,14 @@ trait ContentValidator {
           rootElementContainsOnlySectionBlocks(field, content.content) ++
           validateLanguage("content.language", content.language)
       }) ++ validateNonEmpty("content", contents)
+    }
+
+    private def validateArticleDisclaimer(disclaimers: OptLanguageFields[String]): Seq[ValidationMessage] = {
+      disclaimers.mapExisting { disclaimer =>
+        val field = s"disclaimer.${disclaimer.language}"
+        TextValidator.validate(field, disclaimer.value, allLegalTags).toList ++
+          validateLanguage("disclaimer.language", disclaimer.language)
+      }.flatten
     }
 
     private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
@@ -140,7 +150,7 @@ trait ContentValidator {
 
     private def validateTitle(titles: Seq[LanguageField[String]]): Seq[ValidationMessage] = {
       titles.flatMap(title => {
-        val field = s"title.$language"
+        val field = s"title.language"
         TextValidator.validate(field, title.value, inlineHtmlTags).toList ++
           validateLanguage("title.language", title.language) ++
           validateLength("title", title.value, 256)

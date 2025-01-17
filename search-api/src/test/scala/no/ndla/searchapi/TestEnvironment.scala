@@ -14,6 +14,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.ErrorHandling
@@ -46,8 +47,11 @@ trait TestEnvironment
     with MyNDLAApiClient
     with SearchService
     with SearchController
+    with GetSearchQueryParams
+    with GrepSearchService
     with LearningPathIndexService
     with InternController
+    with GrepIndexService
     with SearchApiClient
     with ErrorHandling
     with Clock
@@ -78,11 +82,13 @@ trait TestEnvironment
   val converterService: ConverterService             = mock[ConverterService]
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
   val multiSearchService: MultiSearchService         = mock[MultiSearchService]
+  val grepSearchService: GrepSearchService           = mock[GrepSearchService]
 
   val articleIndexService: ArticleIndexService           = mock[ArticleIndexService]
   val learningPathIndexService: LearningPathIndexService = mock[LearningPathIndexService]
   val draftIndexService: DraftIndexService               = mock[DraftIndexService]
   val draftConceptIndexService: DraftConceptIndexService = mock[DraftConceptIndexService]
+  val grepIndexService: GrepIndexService                 = mock[GrepIndexService]
 
   val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 

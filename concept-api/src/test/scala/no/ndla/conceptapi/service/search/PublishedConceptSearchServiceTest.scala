@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service.search
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.conceptapi.model.api.SubjectTags
+import no.ndla.conceptapi.model.api.SubjectTagsDTO
 import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.*
@@ -567,12 +567,12 @@ class PublishedConceptSearchServiceTest
 
     tagSearch1 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("burugle"),
           language = "nb"
         ),
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"
@@ -582,7 +582,7 @@ class PublishedConceptSearchServiceTest
 
     tagSearch2 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("cageowl"),
           language = "en"
@@ -599,12 +599,12 @@ class PublishedConceptSearchServiceTest
 
     tagSearch1 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("burugle"),
           language = "nb"
         ),
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"
@@ -614,12 +614,12 @@ class PublishedConceptSearchServiceTest
 
     tagSearch2 should be(
       List(
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:2",
           tags = List("cageowl"),
           language = "en"
         ),
-        SubjectTags(
+        SubjectTagsDTO(
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"

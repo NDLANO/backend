@@ -8,12 +8,19 @@
 package no.ndla.searchapi.model.grep
 
 case class GrepBundle(
-    kjerneelementer: List[GrepElement],
-    kompetansemaal: List[GrepElement],
-    tverrfagligeTemaer: List[GrepElement]
+    kjerneelementer: List[GrepKjerneelement],
+    kompetansemaal: List[GrepKompetansemaal],
+    kompetansemaalsett: List[GrepElement],
+    tverrfagligeTemaer: List[GrepElement],
+    laereplaner: List[GrepLaererplan]
 ) {
 
-  val grepContext: List[GrepElement] = kjerneelementer ++ kompetansemaal ++ tverrfagligeTemaer
+  val grepContext: List[GrepElement] =
+    kjerneelementer ++
+      kompetansemaal ++
+      kompetansemaalsett ++
+      tverrfagligeTemaer ++
+      laereplaner
 
   val grepContextByCode: Map[String, GrepElement] =
     Map.from(grepContext.map(elem => elem.kode -> elem))

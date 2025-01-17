@@ -1,162 +1,164 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export interface IAuthor {
+export interface IAuthorDTO {
   type: string
   name: string
 }
 
-export interface IConfigMeta {
+export interface IConfigMetaDTO {
   key: string
   value: (boolean | string[])
   updatedAt: string
   updatedBy: string
 }
 
-export interface IConfigMetaRestricted {
+export interface IConfigMetaRestrictedDTO {
   key: string
   value: (boolean | string[])
 }
 
-export interface ICopyright {
-  license: ILicense
-  contributors: IAuthor[]
+export interface ICopyrightDTO {
+  license: ILicenseDTO
+  contributors: IAuthorDTO[]
 }
 
-export interface ICoverPhoto {
+export interface ICoverPhotoDTO {
   url: string
   metaUrl: string
 }
 
-export interface IDescription {
+export interface IDescriptionDTO {
   description: string
   language: string
 }
 
-export interface IEmbedUrlV2 {
+export interface IEmbedUrlV2DTO {
   url: string
   embedType: string
 }
 
-export interface IIntroduction {
+export interface IIntroductionDTO {
   introduction: string
   language: string
 }
 
-export interface ILearningPathStatus {
+export interface ILearningPathStatusDTO {
   status: string
 }
 
-export interface ILearningPathSummaryV2 {
+export interface ILearningPathSummaryV2DTO {
   id: number
   revision?: number
-  title: ITitle
-  description: IDescription
-  introduction: IIntroduction
+  title: ITitleDTO
+  description: IDescriptionDTO
+  introduction: IIntroductionDTO
   metaUrl: string
   coverPhotoUrl?: string
   duration?: number
   status: string
   created: string
   lastUpdated: string
-  tags: ILearningPathTags
-  copyright: ICopyright
+  tags: ILearningPathTagsDTO
+  copyright: ICopyrightDTO
   supportedLanguages: string[]
   isBasedOn?: number
   message?: string
 }
 
-export interface ILearningPathTags {
+export interface ILearningPathTagsDTO {
   tags: string[]
   language: string
 }
 
-export interface ILearningPathTagsSummary {
+export interface ILearningPathTagsSummaryDTO {
   language: string
   supportedLanguages: string[]
   tags: string[]
 }
 
-export interface ILearningPathV2 {
+export interface ILearningPathV2DTO {
   id: number
   revision: number
   isBasedOn?: number
-  title: ITitle
-  description: IDescription
+  title: ITitleDTO
+  description: IDescriptionDTO
   metaUrl: string
-  learningsteps: ILearningStepV2[]
+  learningsteps: ILearningStepV2DTO[]
   learningstepUrl: string
-  coverPhoto?: ICoverPhoto
+  coverPhoto?: ICoverPhotoDTO
   duration?: number
   status: string
   verificationStatus: string
   created: string
   lastUpdated: string
-  tags: ILearningPathTags
-  copyright: ICopyright
+  tags: ILearningPathTagsDTO
+  copyright: ICopyrightDTO
   canEdit: boolean
   supportedLanguages: string[]
   ownerId?: string
-  message?: IMessage
+  message?: IMessageDTO
+  madeAvailable?: string
 }
 
-export interface ILearningStepContainerSummary {
+export interface ILearningStepContainerSummaryDTO {
   language: string
-  learningsteps: ILearningStepSummaryV2[]
+  learningsteps: ILearningStepSummaryV2DTO[]
   supportedLanguages: string[]
 }
 
-export interface ILearningStepSeqNo {
+export interface ILearningStepSeqNoDTO {
   seqNo: number
 }
 
-export interface ILearningStepStatus {
+export interface ILearningStepStatusDTO {
   status: string
 }
 
-export interface ILearningStepSummaryV2 {
+export interface ILearningStepSummaryV2DTO {
   id: number
   seqNo: number
-  title: ITitle
+  title: ITitleDTO
   type: string
   metaUrl: string
 }
 
-export interface ILearningStepV2 {
+export interface ILearningStepV2DTO {
   id: number
   revision: number
   seqNo: number
-  title: ITitle
-  description?: IDescription
-  embedUrl?: IEmbedUrlV2
+  title: ITitleDTO
+  introduction?: IIntroductionDTO
+  description?: IDescriptionDTO
+  embedUrl?: IEmbedUrlV2DTO
   showTitle: boolean
   type: string
-  license?: ILicense
+  license?: ILicenseDTO
   metaUrl: string
   canEdit: boolean
   status: string
   supportedLanguages: string[]
 }
 
-export interface ILicense {
+export interface ILicenseDTO {
   license: string
   description?: string
   url?: string
 }
 
-export interface IMessage {
+export interface IMessageDTO {
   message: string
   date: string
 }
 
-export interface ISearchResultV2 {
+export interface ISearchResultV2DTO {
   totalCount: number
   page?: number
   pageSize: number
   language: string
-  results: ILearningPathSummaryV2[]
+  results: ILearningPathSummaryV2DTO[]
 }
 
-export interface ITitle {
+export interface ITitleDTO {
   title: string
   language: string
 }

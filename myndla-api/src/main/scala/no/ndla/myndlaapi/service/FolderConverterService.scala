@@ -11,14 +11,14 @@ package no.ndla.myndlaapi.service
 import cats.implicits.*
 import no.ndla.common.{Clock, model}
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.api.myndla.{UpdatedMyNDLAUser}
+import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla
 import no.ndla.common.model.domain.myndla.{
   FolderStatus,
   MyNDLAGroup as DomainMyNDLAGroup,
   MyNDLAUser as DomainMyNDLAUser
 }
-import no.ndla.myndlaapi.model.api.{Folder, Owner}
+import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
@@ -35,17 +35,17 @@ trait FolderConverterService {
   class FolderConverterService {
     def toApiFolder(
         domainFolder: domain.Folder,
-        breadcrumbs: List[api.Breadcrumb],
+        breadcrumbs: List[api.BreadcrumbDTO],
         feideUser: Option[DomainMyNDLAUser],
         isOwner: Boolean
-    ): Try[Folder] = {
+    ): Try[FolderDTO] = {
       def loop(
           folder: domain.Folder,
-          crumbs: List[api.Breadcrumb],
+          crumbs: List[api.BreadcrumbDTO],
           feideUser: Option[DomainMyNDLAUser]
-      ): Try[Folder] = folder.subfolders
+      ): Try[FolderDTO] = folder.subfolders
         .traverse(folder => {
-          val newCrumb = api.Breadcrumb(
+          val newCrumb = api.BreadcrumbDTO(
             id = folder.id.toString,
             name = folder.name
           )
@@ -56,7 +56,7 @@ trait FolderConverterService {
           folder.resources
             .traverse(r => toApiResource(r, isOwner))
             .map(resources => {
-              api.Folder(
+              api.FolderDTO(
                 id = folder.id.toString,
                 name = folder.name,
                 status = folder.status.toString,
@@ -69,7 +69,7 @@ trait FolderConverterService {
                 updated = folder.updated,
                 shared = folder.shared,
                 description = folder.description,
-                owner = feideUser.flatMap(user => if (user.shareName) Some(Owner(user.displayName)) else None)
+                owner = feideUser.flatMap(user => if (user.shareName) Some(OwnerDTO(user.displayName)) else None)
               )
             })
         )
@@ -77,7 +77,7 @@ trait FolderConverterService {
       loop(domainFolder, breadcrumbs, feideUser)
     }
 
-    def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
+    def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolderDTO): domain.Folder = {
       val name        = updated.name.getOrElse(existing.name)
       val status      = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
       val description = updated.description.orElse(existing.description)
@@ -106,7 +106,7 @@ trait FolderConverterService {
       )
     }
 
-    def mergeResource(existing: domain.Resource, updated: api.UpdatedResource): domain.Resource = {
+    def mergeResource(existing: domain.Resource, updated: api.UpdatedResourceDTO): domain.Resource = {
       val tags       = updated.tags.getOrElse(existing.tags)
       val resourceId = updated.resourceId.getOrElse(existing.resourceId)
 
@@ -122,7 +122,7 @@ trait FolderConverterService {
       )
     }
 
-    def mergeResource(existing: domain.Resource, newResource: api.NewResource): domain.Resource = {
+    def mergeResource(existing: domain.Resource, newResource: api.NewResourceDTO): domain.Resource = {
       val tags = newResource.tags.getOrElse(existing.tags)
 
       domain.Resource(
@@ -137,7 +137,7 @@ trait FolderConverterService {
       )
     }
 
-    def toApiResource(domainResource: domain.Resource, isOwner: Boolean): Try[api.Resource] = {
+    def toApiResource(domainResource: domain.Resource, isOwner: Boolean): Try[api.ResourceDTO] = {
       val resourceType = domainResource.resourceType
       val path         = domainResource.path
       val created      = domainResource.created
@@ -145,7 +145,7 @@ trait FolderConverterService {
       val resourceId   = domainResource.resourceId
 
       Success(
-        api.Resource(
+        api.ResourceDTO(
           id = domainResource.id.toString,
           resourceType = resourceType,
           path = path,
@@ -158,7 +158,7 @@ trait FolderConverterService {
     }
 
     def toNewFolderData(
-        newFolder: api.NewFolder,
+        newFolder: api.NewFolderDTO,
         parentId: Option[UUID],
         newRank: Int
     ): Try[domain.NewFolderData] = {
@@ -178,9 +178,9 @@ trait FolderConverterService {
     def toApiUserData(
         domainUserData: DomainMyNDLAUser,
         arenaEnabledOrgs: List[String]
-    ): model.api.myndla.MyNDLAUser = {
+    ): model.api.myndla.MyNDLAUserDTO = {
       val arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs)
-      model.api.myndla.MyNDLAUser(
+      model.api.myndla.MyNDLAUserDTO(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         username = domainUserData.username,
@@ -218,8 +218,8 @@ trait FolderConverterService {
       loop(domainObjects, List())
     }
 
-    private def toApiGroup(group: DomainMyNDLAGroup): model.api.myndla.MyNDLAGroup = {
-      model.api.myndla.MyNDLAGroup(
+    private def toApiGroup(group: DomainMyNDLAGroup): model.api.myndla.MyNDLAGroupDTO = {
+      model.api.myndla.MyNDLAGroupDTO(
         id = group.id,
         displayName = group.displayName,
         isPrimarySchool = group.isPrimarySchool,
@@ -229,7 +229,7 @@ trait FolderConverterService {
 
     def mergeUserData(
         domainUserData: DomainMyNDLAUser,
-        updatedUser: UpdatedMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUserDTO,
         updaterToken: Option[TokenUser],
         updaterUser: Option[DomainMyNDLAUser],
         arenaEnabledUsers: List[String]
@@ -264,7 +264,7 @@ trait FolderConverterService {
       )
     }
 
-    def toDomainResource(newResource: api.NewResource): domain.ResourceDocument = {
+    def toDomainResource(newResource: api.NewResourceDTO): domain.ResourceDocument = {
       val tags = newResource.tags.getOrElse(List.empty)
       domain.ResourceDocument(
         tags = tags,

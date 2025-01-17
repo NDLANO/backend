@@ -23,7 +23,7 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.PartialArticleFields
+import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexService, TagIndexService}
@@ -71,7 +71,6 @@ trait WriteService {
           searchApiClient.indexDraft(article, user)(ec): Unit
           articleIndexService.indexAsync(articleId, article)(ec): Unit
           tagIndexService.indexAsync(articleId, article)(ec): Unit
-          grepCodesIndexService.indexAsync(articleId, article)(ec): Unit
           Success(())
       }
 
@@ -83,7 +82,7 @@ trait WriteService {
         language: String,
         fallback: Boolean,
         usePostFix: Boolean
-    ): Try[api.Article] = {
+    ): Try[api.ArticleDTO] = {
       draftRepository.rollbackOnFailure { implicit session =>
         draftRepository.withId(articleId) match {
           case None => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
@@ -154,14 +153,14 @@ trait WriteService {
     }
 
     def newArticle(
-        newArticle: api.NewArticle,
+        newArticle: api.NewArticleDTO,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: TokenUser,
         oldNdlaCreatedDate: Option[NDLADate],
         oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
-    ): Try[api.Article] = {
+    ): Try[api.ArticleDTO] = {
       val newNotes      = Some("Opprettet artikkel" +: newArticle.notes.getOrElse(Seq.empty))
       val visualElement = newArticle.visualElement.filter(_.nonEmpty)
       val withNotes = newArticle.copy(
@@ -199,7 +198,7 @@ trait WriteService {
         id: Long,
         user: TokenUser,
         isImported: Boolean
-    ): Try[api.Article] = {
+    ): Try[api.ArticleDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(api.NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
@@ -333,7 +332,7 @@ trait WriteService {
         draft: Draft,
         oldDraft: Option[Draft],
         statusWasUpdated: Boolean,
-        updatedApiArticle: api.UpdatedArticle,
+        updatedApiArticle: api.UpdatedArticleDTO,
         shouldNotAutoUpdateStatus: Boolean
     ): Draft = {
       val isAutomaticResponsibleChange = updatedApiArticle.responsibleId match {
@@ -375,7 +374,7 @@ trait WriteService {
     private def addPartialPublishNote(
         draft: Draft,
         user: TokenUser,
-        partialPublishFields: Set[PartialArticleFields]
+        partialPublishFields: Set[PartialArticleFieldsDTO]
     ): Draft =
       if (partialPublishFields.nonEmpty)
         converterService.addNote(draft, "Artikkelen har blitt delpublisert", user)
@@ -392,7 +391,7 @@ trait WriteService {
         oldArticle: Option[Draft],
         user: TokenUser,
         statusWasUpdated: Boolean,
-        updatedApiArticle: api.UpdatedArticle,
+        updatedApiArticle: api.UpdatedArticleDTO,
         shouldNotAutoUpdateStatus: Boolean
     ): Try[Draft] = {
       val fieldsToPartialPublish = shouldPartialPublish(oldArticle, toUpdate)
@@ -482,11 +481,11 @@ trait WriteService {
     }
 
     private def compareField(
-        field: api.PartialArticleFields,
+        field: api.PartialArticleFieldsDTO,
         old: Draft,
         changed: Draft
-    ): Option[api.PartialArticleFields] = {
-      import api.PartialArticleFields.*
+    ): Option[api.PartialArticleFieldsDTO] = {
+      import api.PartialArticleFieldsDTO.*
       val shouldInclude = field match {
         case `availability`    => old.availability != changed.availability
         case `grepCodes`       => old.grepCodes != changed.grepCodes
@@ -505,15 +504,15 @@ trait WriteService {
     private[service] def shouldPartialPublish(
         existingArticle: Option[Draft],
         changedArticle: Draft
-    ): Set[api.PartialArticleFields] = {
+    ): Set[api.PartialArticleFieldsDTO] = {
       val isPublished =
         changedArticle.status.current == PUBLISHED ||
           changedArticle.status.other.contains(PUBLISHED)
 
       if (isPublished) {
         val changedFields = existingArticle
-          .map(e => api.PartialArticleFields.values.flatMap(field => compareField(field, e, changedArticle)))
-          .getOrElse(api.PartialArticleFields.values)
+          .map(e => api.PartialArticleFieldsDTO.values.flatMap(field => compareField(field, e, changedArticle)))
+          .getOrElse(api.PartialArticleFieldsDTO.values)
 
         changedFields.toSet
       } else {
@@ -524,7 +523,7 @@ trait WriteService {
     private[service] def updateStatusIfNeeded(
         convertedArticle: Draft,
         existingArticle: Draft,
-        updatedApiArticle: api.UpdatedArticle,
+        updatedApiArticle: api.UpdatedArticleDTO,
         user: TokenUser,
         shouldNotAutoUpdateStatus: Boolean
     ): Try[Draft] = {
@@ -541,14 +540,14 @@ trait WriteService {
 
     def updateArticle(
         articleId: Long,
-        updatedApiArticle: api.UpdatedArticle,
+        updatedApiArticle: api.UpdatedArticleDTO,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: TokenUser,
         oldNdlaCreatedDate: Option[NDLADate],
         oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
-    ): Try[api.Article] = {
+    ): Try[api.ArticleDTO] = {
       draftRepository.withId(articleId)(ReadOnlyAutoSession) match {
         case Some(existing) =>
           updateExistingArticle(
@@ -568,14 +567,14 @@ trait WriteService {
 
     private def updateExistingArticle(
         existing: Draft,
-        updatedApiArticle: api.UpdatedArticle,
+        updatedApiArticle: api.UpdatedArticleDTO,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: TokenUser,
         oldNdlaCreatedDate: Option[NDLADate],
         oldNdlaUpdatedDate: Option[NDLADate],
         importId: Option[String]
-    ): Try[api.Article] = for {
+    ): Try[api.ArticleDTO] = for {
       convertedArticle <- converterService.toDomainArticle(
         existing,
         updatedApiArticle,
@@ -620,7 +619,7 @@ trait WriteService {
       )
     } yield apiArticle
 
-    def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.Article] = {
+    def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.ArticleDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case Some(article) =>
           article.title.size match {
@@ -640,16 +639,16 @@ trait WriteService {
 
     }
 
-    def deleteArticle(id: Long): Try[api.ContentId] = {
+    def deleteArticle(id: Long): Try[api.ContentIdDTO] = {
       draftRepository
         .deleteArticle(id)(AutoSession)
         .flatMap(articleIndexService.deleteDocument)
-        .map(id => api.ContentId(id))
+        .map(id => api.ContentIdDTO(id))
     }
 
-    def storeFile(file: UploadedFile): Try[api.UploadedFile] =
+    def storeFile(file: UploadedFile): Try[api.UploadedFileDTO] =
       uploadFile(file).map(f =>
-        api.UploadedFile(
+        api.UploadedFileDTO(
           filename = f.fileName,
           mime = f.contentType,
           extension = f.fileExtension,
@@ -715,7 +714,7 @@ trait WriteService {
       s"$randomString$extensionWithDot"
     }
 
-    def newUserData(userId: String): Try[api.UserData] = {
+    def newUserData(userId: String): Try[api.UserDataDTO] = {
       userDataRepository
         .insert(
           domain.UserData(
@@ -730,7 +729,7 @@ trait WriteService {
         .map(converterService.toApiUserData)
     }
 
-    def updateUserData(updatedUserData: api.UpdatedUserData, user: TokenUser): Try[api.UserData] = {
+    def updateUserData(updatedUserData: api.UpdatedUserDataDTO, user: TokenUser): Try[api.UserDataDTO] = {
       val userId = user.id
       userDataRepository.withUserId(userId) match {
         case None =>
@@ -757,13 +756,13 @@ trait WriteService {
 
     private[service] def partialArticleFieldsUpdate(
         article: Draft,
-        articleFieldsToUpdate: Seq[api.PartialArticleFields],
+        articleFieldsToUpdate: Seq[api.PartialArticleFieldsDTO],
         language: String
     ): PartialPublishArticle = {
       val isAllLanguage  = language == Language.AllLanguages
       val initialPartial = PartialPublishArticle.empty()
 
-      import api.PartialArticleFields.*
+      import api.PartialArticleFieldsDTO.*
       articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partial, field) => {
         field match {
           case `availability`                     => partial.withAvailability(article.availability)
@@ -782,18 +781,18 @@ trait WriteService {
 
     def partialPublishAndConvertToApiArticle(
         id: Long,
-        fieldsToPublish: Seq[api.PartialArticleFields],
+        fieldsToPublish: Seq[api.PartialArticleFieldsDTO],
         language: String,
         fallback: Boolean,
         user: TokenUser
-    ): Try[api.Article] =
+    ): Try[api.ArticleDTO] =
       partialPublish(id, fieldsToPublish, language, user)._2.flatMap(article =>
         converterService.toApiArticle(article, language, fallback)
       )
 
     def partialPublish(
         id: Long,
-        articleFieldsToUpdate: Seq[api.PartialArticleFields],
+        articleFieldsToUpdate: Seq[api.PartialArticleFieldsDTO],
         language: String,
         user: TokenUser
     ): (Long, Try[Draft]) =
@@ -806,7 +805,7 @@ trait WriteService {
 
     private def partialPublishIfNeeded(
         article: Draft,
-        articleFieldsToUpdate: Seq[api.PartialArticleFields],
+        articleFieldsToUpdate: Seq[api.PartialArticleFieldsDTO],
         language: String,
         user: TokenUser
     ): Future[Try[Draft]] = {
@@ -818,7 +817,7 @@ trait WriteService {
 
     private def partialPublish(
         article: Draft,
-        fieldsToPublish: Seq[api.PartialArticleFields],
+        fieldsToPublish: Seq[api.PartialArticleFieldsDTO],
         language: String,
         user: TokenUser
     ): Future[Try[Draft]] = {
@@ -852,9 +851,9 @@ trait WriteService {
 
     def partialPublishMultiple(
         language: String,
-        partialBulk: api.PartialBulkArticles,
+        partialBulk: api.PartialBulkArticlesDTO,
         user: TokenUser
-    ): Try[api.MultiPartialPublishResult] = {
+    ): Try[api.MultiPartialPublishResultDTO] = {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
       val requestInfo = RequestInfo.fromThreadContext()
@@ -878,11 +877,11 @@ trait WriteService {
           val successes = res.collect { case (id, Success(_)) => id }
           val failures = res.collect { case (id, Failure(ex)) =>
             logger.error(s"Partial publishing $id failed with ${ex.getMessage}", ex)
-            api.PartialPublishFailure(id, ex.getMessage)
+            api.PartialPublishFailureDTO(id, ex.getMessage)
           }
 
           Success(
-            api.MultiPartialPublishResult(
+            api.MultiPartialPublishResultDTO(
               successes = successes,
               failures = failures
             )

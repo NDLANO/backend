@@ -8,7 +8,7 @@
 package no.ndla.draftapi.controller
 
 import io.circe.generic.auto.*
-import no.ndla.draftapi.model.api.{ErrorHandling, UpdatedUserData, UserData}
+import no.ndla.draftapi.model.api.{ErrorHandling, UpdatedUserDataDTO, UserDataDTO}
 import no.ndla.draftapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirController
@@ -34,7 +34,7 @@ trait UserDataController {
     def getUserData: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Retrieves user's data")
       .description("Retrieves user's data")
-      .out(jsonBody[UserData])
+      .out(jsonBody[UserDataDTO])
       .errorOut(errorOutputsFor(401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { userInfo => _ =>
@@ -44,8 +44,8 @@ trait UserDataController {
     def updateUserData: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update data of logged in user")
       .description("Update data of logged in user")
-      .in(jsonBody[UpdatedUserData])
-      .out(jsonBody[UserData])
+      .in(jsonBody[UpdatedUserDataDTO])
+      .out(jsonBody[UserDataDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { userInfo => updatedUserData =>

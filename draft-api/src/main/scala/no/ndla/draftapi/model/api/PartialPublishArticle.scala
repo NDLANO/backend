@@ -10,24 +10,23 @@ package no.ndla.draftapi.model.api
 import enumeratum._
 import sttp.tapir.Schema.annotations.description
 
-sealed trait PartialArticleFields extends EnumEntry
+sealed trait PartialArticleFieldsDTO extends EnumEntry
 
-object PartialArticleFields extends Enum[PartialArticleFields] with CirceEnum[PartialArticleFields] {
-  override val values: IndexedSeq[PartialArticleFields] = findValues
+object PartialArticleFieldsDTO extends Enum[PartialArticleFieldsDTO] with CirceEnum[PartialArticleFieldsDTO] {
+  override val values: IndexedSeq[PartialArticleFieldsDTO] = findValues
 
-  case object availability    extends PartialArticleFields
-  case object grepCodes       extends PartialArticleFields
-  case object license         extends PartialArticleFields
-  case object metaDescription extends PartialArticleFields
-  case object relatedContent  extends PartialArticleFields
-  case object tags            extends PartialArticleFields
-  case object revisionDate    extends PartialArticleFields
-  case object published       extends PartialArticleFields
+  case object availability    extends PartialArticleFieldsDTO
+  case object grepCodes       extends PartialArticleFieldsDTO
+  case object license         extends PartialArticleFieldsDTO
+  case object metaDescription extends PartialArticleFieldsDTO
+  case object relatedContent  extends PartialArticleFieldsDTO
+  case object tags            extends PartialArticleFieldsDTO
+  case object revisionDate    extends PartialArticleFieldsDTO
+  case object published       extends PartialArticleFieldsDTO
 }
 
-// format: off
 @description("Partial data about articles to publish in bulk")
-case class PartialBulkArticles(
+case class PartialBulkArticlesDTO(
     @description("A list of article ids to partially publish") articleIds: Seq[Long],
-    @description("A list of fields that should be partially published") fields: Seq[PartialArticleFields],
+    @description("A list of fields that should be partially published") fields: Seq[PartialArticleFieldsDTO]
 )

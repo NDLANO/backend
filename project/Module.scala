@@ -3,7 +3,8 @@ import GithubWorkflowPlugin.autoImport.*
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
   typescriptGenerationImports,
-  typescriptOutputFile
+  typescriptOutputFile,
+  typescriptTaggedUnionDiscriminator
 }
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
 import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.*
@@ -168,7 +169,6 @@ trait Module {
       )
     )
   }
-
   val checkfmt = taskKey[Unit]("Check for code style errors")
   val fmt      = taskKey[Unit]("Automatically apply code style fixes")
 
@@ -192,9 +192,10 @@ trait Module {
 
   protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
     Seq(
-      typescriptGenerationImports := imports,
-      typescriptExports           := exports,
-      typescriptOutputFile        := file("./typescript/types-backend") / s"${this.moduleName}.ts"
+      typescriptGenerationImports        := imports,
+      typescriptExports                  := exports,
+      typescriptOutputFile               := file("./typescript/types-backend") / s"${this.moduleName}.ts",
+      typescriptTaggedUnionDiscriminator := Some("typename")
     )
   }
 }

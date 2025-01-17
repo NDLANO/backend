@@ -15,7 +15,7 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.integration.FrontpageApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHandling, NotFoundException}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ErrorHandling, NotFoundException}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
@@ -23,7 +23,7 @@ import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterS
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.Menu
+import no.ndla.common.model.api.MenuDTO
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language
@@ -43,8 +43,8 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService extends StrictLogging {
-    def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2] =
-      articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2.apply)
+    def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2DTO] =
+      articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2DTO.apply)
 
     def withIdV2(
         id: Long,
@@ -52,7 +52,7 @@ trait ReadService {
         fallback: Boolean,
         revision: Option[Int],
         feideAccessToken: Option[String]
-    ): Try[Cachable[api.ArticleV2]] = {
+    ): Try[Cachable[api.ArticleV2DTO]] = {
       val article = revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
         case None      => articleRepository.withId(id)
@@ -89,13 +89,13 @@ trait ReadService {
         slug: String,
         language: String,
         fallback: Boolean
-    ): Try[Cachable[api.ArticleV2]] = getDomainArticleBySlug(slug).flatMap {
+    ): Try[Cachable[api.ArticleV2DTO]] = getDomainArticleBySlug(slug).flatMap {
       case article if article.availability == Availability.everyone =>
-        val res: Try[Cachable[api.ArticleV2]] =
+        val res: Try[Cachable[api.ArticleV2DTO]] =
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
         res
       case article =>
-        val res: Try[Cachable[api.ArticleV2]] =
+        val res: Try[Cachable[api.ArticleV2DTO]] =
           Cachable.no(converterService.toApiArticleV2(article, language, fallback))
         res
     }
@@ -108,7 +108,7 @@ trait ReadService {
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
-    def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
+    def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResultDTO = {
       val (tags, tagsCount) = articleRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
       converterService.toApiArticleTags(tags, tagsCount, pageSize, offset, language)
     }
@@ -118,21 +118,21 @@ trait ReadService {
         pageSize: Int,
         lang: String,
         fallback: Boolean
-    ): api.ArticleDump = {
+    ): api.ArticleDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       val results = articleRepository
         .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
         .flatMap(article => converterService.toApiArticleV2(article, lang, fallback).toOption)
 
-      api.ArticleDump(articleRepository.articleCount, pageNo, pageSize, lang, results)
+      api.ArticleDumpDTO(articleRepository.articleCount, pageNo, pageSize, lang, results)
     }
 
-    def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDump = {
+    def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       val results =
         articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize).map(addUrlsOnEmbedResources)
 
-      api.ArticleDomainDump(articleRepository.articleCount, pageNo, pageSize, results)
+      api.ArticleDomainDumpDTO(articleRepository.articleCount, pageNo, pageSize, results)
     }
 
     private[service] def addUrlOnResource(content: String): String = {
@@ -178,7 +178,7 @@ trait ReadService {
       }
     }
 
-    def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIds] =
+    def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIdsDTO] =
       articleRepository.getArticleIdsFromExternalId(externalId).map(converterService.toApiArticleIds)
 
     def search(
@@ -194,7 +194,7 @@ trait ReadService {
         grepCodes: Seq[String],
         shouldScroll: Boolean,
         feideAccessToken: Option[String]
-    ): Try[Cachable[SearchResult[ArticleSummaryV2]]] = {
+    ): Try[Cachable[SearchResult[ArticleSummaryV2DTO]]] = {
       val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
         case Success(user) => user.availabilities
         case Failure(_: AccessDeniedException) =>
@@ -267,7 +267,7 @@ trait ReadService {
         page: Int,
         pageSize: Int,
         feideAccessToken: Option[String]
-    ): Try[Seq[api.ArticleV2]] = {
+    ): Try[Seq[api.ArticleV2DTO]] = {
       if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
         val offset = (page - 1) * pageSize
@@ -280,19 +280,19 @@ trait ReadService {
     }
 
     @tailrec
-    private def findArticleMenu(article: api.ArticleV2, menus: List[Menu]): Try[Menu] = {
+    private def findArticleMenu(article: api.ArticleV2DTO, menus: List[MenuDTO]): Try[MenuDTO] = {
       if (menus.isEmpty) Failure(NotFoundException(s"Could not find menu for article with id ${article.id}"))
       else
         menus.find(_.articleId == article.id) match {
           case Some(value) => Success(value)
           case None =>
-            val submenus = menus.flatMap(m => m.menu.map { case x: Menu => x })
+            val submenus = menus.flatMap(m => m.menu.map { case x: MenuDTO => x })
             findArticleMenu(article, submenus)
         }
     }
 
-    private def getArticlesForRSSFeed(menu: Menu): Try[Cachable[List[api.ArticleV2]]] = {
-      val articleIds = menu.menu.map { case x: Menu => x.articleId }
+    private def getArticlesForRSSFeed(menu: MenuDTO): Try[Cachable[List[api.ArticleV2DTO]]] = {
+      val articleIds = menu.menu.map { case x: MenuDTO => x.articleId }
       val articles =
         articleIds.traverse(id =>
           withIdV2(id, Language.DefaultLanguage, fallback = true, revision = None, feideAccessToken = None)
@@ -300,7 +300,7 @@ trait ReadService {
       articles.map(Cachable.merge)
     }
 
-    private def toArticleItem(article: api.ArticleV2): String = {
+    private def toArticleItem(article: api.ArticleV2DTO): String = {
       s"""<item>
          |  <title>${article.title.title}</title>
          |  <description>${article.metaDescription.metaDescription}</description>
@@ -315,7 +315,7 @@ trait ReadService {
       .getOrElse(s"${props.ndlaFrontendUrl}/article/$id")
 
     private val allBlankLinesRegex = """(?m)^\s*$[\r\n]*""".r
-    private def toRSSXML(parentArticle: api.ArticleV2, articles: List[api.ArticleV2]): String = {
+    private def toRSSXML(parentArticle: api.ArticleV2DTO, articles: List[api.ArticleV2DTO]): String = {
       val rss = s"""<?xml version="1.0" encoding="utf-8"?>
          |<rss version="2.0">
          |  <channel>

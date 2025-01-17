@@ -38,12 +38,12 @@ trait ConverterService {
   class ConverterService extends StrictLogging {
     import props.DefaultLanguage
 
-    def asApiAuthor(domainAuthor: commonDomain.Author): commonApi.Author = {
-      commonApi.Author(domainAuthor.`type`, domainAuthor.name)
+    def asApiAuthor(domainAuthor: commonDomain.Author): commonApi.AuthorDTO = {
+      commonApi.AuthorDTO(domainAuthor.`type`, domainAuthor.name)
     }
 
-    def asApiCopyright(domainCopyright: commonDomain.article.Copyright): commonApi.Copyright = {
-      commonApi.Copyright(
+    def asApiCopyright(domainCopyright: commonDomain.article.Copyright): commonApi.CopyrightDTO = {
+      commonApi.CopyrightDTO(
         asApiLicense(domainCopyright.license),
         domainCopyright.origin,
         domainCopyright.creators.map(asApiAuthor),
@@ -55,19 +55,19 @@ trait ConverterService {
       )
     }
 
-    def asApiImage(domainImage: ImageFileData, baseUrl: Option[String] = None): api.Image = {
-      api.Image(baseUrl.getOrElse("") + domainImage.fileName, domainImage.size, domainImage.contentType)
+    def asApiImage(domainImage: ImageFileData, baseUrl: Option[String] = None): api.ImageDTO = {
+      api.ImageDTO(baseUrl.getOrElse("") + domainImage.fileName, domainImage.size, domainImage.contentType)
     }
 
-    def asApiImageAltText(domainImageAltText: domain.ImageAltText): api.ImageAltText = {
-      api.ImageAltText(domainImageAltText.alttext, domainImageAltText.language)
+    def asApiImageAltText(domainImageAltText: domain.ImageAltText): api.ImageAltTextDTO = {
+      api.ImageAltTextDTO(domainImageAltText.alttext, domainImageAltText.language)
     }
 
     def asApiImageMetaInformationWithApplicationUrlV2(
         domainImageMetaInformation: ImageMetaInformation,
         language: Option[String],
         user: Option[TokenUser]
-    ): Try[api.ImageMetaInformationV2] = {
+    ): Try[api.ImageMetaInformationV2DTO] = {
       asImageMetaInformationV2(
         domainImageMetaInformation,
         language,
@@ -81,7 +81,7 @@ trait ConverterService {
         domainImageMetaInformation: ImageMetaInformation,
         language: Option[String],
         user: Option[TokenUser]
-    ): Try[api.ImageMetaInformationV2] = {
+    ): Try[api.ImageMetaInformationV2DTO] = {
       asImageMetaInformationV2(
         domainImageMetaInformation,
         language,
@@ -95,21 +95,21 @@ trait ConverterService {
         imageMeta: ImageMetaInformation,
         language: Option[String],
         user: Option[TokenUser]
-    ): Try[api.ImageMetaInformationV3] = {
+    ): Try[api.ImageMetaInformationV3DTO] = {
       val metaUrl = props.ImageApiV3UrlBase + imageMeta.id.get
       val rawPath = props.RawImageUrlBase
       val title = findByLanguageOrBestEffort(imageMeta.titles, language)
         .map(asApiImageTitle)
-        .getOrElse(api.ImageTitle("", DefaultLanguage))
+        .getOrElse(api.ImageTitleDTO("", DefaultLanguage))
       val alttext = findByLanguageOrBestEffort(imageMeta.alttexts, language)
         .map(asApiImageAltText)
-        .getOrElse(api.ImageAltText("", DefaultLanguage))
+        .getOrElse(api.ImageAltTextDTO("", DefaultLanguage))
       val tags = findByLanguageOrBestEffort(imageMeta.tags, language)
         .map(asApiImageTag)
-        .getOrElse(api.ImageTag(Seq(), DefaultLanguage))
+        .getOrElse(api.ImageTagDTO(Seq(), DefaultLanguage))
       val caption = findByLanguageOrBestEffort(imageMeta.captions, language)
         .map(asApiCaption)
-        .getOrElse(api.ImageCaption("", DefaultLanguage))
+        .getOrElse(api.ImageCaptionDTO("", DefaultLanguage))
 
       getImageFromMeta(imageMeta, language).flatMap(image => {
         val apiUrl       = asApiUrl(image.fileName, rawPath.some)
@@ -119,7 +119,7 @@ trait ConverterService {
 
         Success(
           api
-            .ImageMetaInformationV3(
+            .ImageMetaInformationV3DTO(
               id = imageMeta.id.get.toString,
               metaUrl = metaUrl,
               title = title,
@@ -138,12 +138,12 @@ trait ConverterService {
       })
     }
 
-    private def asApiImageFile(image: ImageFileData, url: String): api.ImageFile = {
+    private def asApiImageFile(image: ImageFileData, url: String): api.ImageFileDTO = {
       val dimensions = image.dimensions.map { case domain.ImageDimensions(width, height) =>
-        api.ImageDimensions(width, height)
+        api.ImageDimensionsDTO(width, height)
       }
 
-      api.ImageFile(
+      api.ImageFileDTO(
         fileName = image.fileName,
         size = image.size,
         contentType = image.contentType,
@@ -153,8 +153,8 @@ trait ConverterService {
       )
     }
 
-    private def asApiEditorNotes(notes: Seq[domain.EditorNote]): Seq[api.EditorNote] = {
-      notes.map(n => api.EditorNote(n.timeStamp, n.updatedBy, n.note))
+    private def asApiEditorNotes(notes: Seq[domain.EditorNote]): Seq[api.EditorNoteDTO] = {
+      notes.map(n => api.EditorNoteDTO(n.timeStamp, n.updatedBy, n.note))
     }
 
     private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[ImageFileData] = {
@@ -170,29 +170,29 @@ trait ConverterService {
         baseUrl: String,
         rawBaseUrl: Option[String],
         user: Option[TokenUser]
-    ): Try[api.ImageMetaInformationV2] = {
+    ): Try[api.ImageMetaInformationV2DTO] = {
       val title = findByLanguageOrBestEffort(imageMeta.titles, language)
         .map(asApiImageTitle)
-        .getOrElse(api.ImageTitle("", DefaultLanguage))
+        .getOrElse(api.ImageTitleDTO("", DefaultLanguage))
       val alttext = findByLanguageOrBestEffort(imageMeta.alttexts, language)
         .map(asApiImageAltText)
-        .getOrElse(api.ImageAltText("", DefaultLanguage))
+        .getOrElse(api.ImageAltTextDTO("", DefaultLanguage))
       val tags = findByLanguageOrBestEffort(imageMeta.tags, language)
         .map(asApiImageTag)
-        .getOrElse(api.ImageTag(Seq(), DefaultLanguage))
+        .getOrElse(api.ImageTagDTO(Seq(), DefaultLanguage))
       val caption = findByLanguageOrBestEffort(imageMeta.captions, language)
         .map(asApiCaption)
-        .getOrElse(api.ImageCaption("", DefaultLanguage))
+        .getOrElse(api.ImageCaptionDTO("", DefaultLanguage))
 
       getImageFromMeta(imageMeta, language).flatMap(image => {
         val apiUrl          = asApiUrl(image.fileName, rawBaseUrl)
         val editorNotes     = Option.when(user.hasPermission(IMAGE_API_WRITE))(asApiEditorNotes(imageMeta.editorNotes))
-        val imageDimensions = image.dimensions.map(d => api.ImageDimensions(d.width, d.height))
+        val imageDimensions = image.dimensions.map(d => api.ImageDimensionsDTO(d.width, d.height))
         val supportedLanguages = getSupportedLanguages(imageMeta)
 
         Success(
           api
-            .ImageMetaInformationV2(
+            .ImageMetaInformationV2DTO(
               id = imageMeta.id.get.toString,
               metaUrl = baseUrl + imageMeta.id.get,
               title = title,
@@ -214,21 +214,21 @@ trait ConverterService {
       })
     }
 
-    def asApiImageTag(domainImageTag: commonDomain.Tag): api.ImageTag = {
-      api.ImageTag(domainImageTag.tags, domainImageTag.language)
+    def asApiImageTag(domainImageTag: commonDomain.Tag): api.ImageTagDTO = {
+      api.ImageTagDTO(domainImageTag.tags, domainImageTag.language)
     }
 
-    def asApiCaption(domainImageCaption: domain.ImageCaption): api.ImageCaption =
-      api.ImageCaption(domainImageCaption.caption, domainImageCaption.language)
+    def asApiCaption(domainImageCaption: domain.ImageCaption): api.ImageCaptionDTO =
+      api.ImageCaptionDTO(domainImageCaption.caption, domainImageCaption.language)
 
-    def asApiImageTitle(domainImageTitle: domain.ImageTitle): api.ImageTitle = {
-      api.ImageTitle(domainImageTitle.title, domainImageTitle.language)
+    def asApiImageTitle(domainImageTitle: domain.ImageTitle): api.ImageTitleDTO = {
+      api.ImageTitleDTO(domainImageTitle.title, domainImageTitle.language)
     }
 
-    def asApiLicense(license: String): commonApi.License = {
+    def asApiLicense(license: String): commonApi.LicenseDTO = {
       getLicense(license)
-        .map(l => commonApi.License(l.license.toString, Some(l.description), l.url))
-        .getOrElse(commonApi.License("unknown", None, None))
+        .map(l => commonApi.LicenseDTO(l.license.toString, Some(l.description), l.url))
+        .getOrElse(commonApi.LicenseDTO("unknown", None, None))
     }
 
     def asApiUrl(url: String, baseUrl: Option[String] = None): String = {
@@ -254,7 +254,7 @@ trait ConverterService {
     }
 
     def asDomainImageMetaInformationV2(
-        imageMeta: api.NewImageMetaInformationV2,
+        imageMeta: api.NewImageMetaInformationV2DTO,
         user: TokenUser
     ): Try[ImageMetaInformation] = {
       val modelReleasedStatus = imageMeta.modelReleased match {
@@ -291,7 +291,7 @@ trait ConverterService {
       domain.ImageAltText(alt, language)
     }
 
-    def toDomainCopyright(copyright: commonApi.Copyright): commonDomain.article.Copyright = {
+    def toDomainCopyright(copyright: commonApi.CopyrightDTO): commonDomain.article.Copyright = {
       commonDomain.article.Copyright(
         copyright.license.license,
         copyright.origin,

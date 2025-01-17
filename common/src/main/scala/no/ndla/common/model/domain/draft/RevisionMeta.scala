@@ -7,7 +7,7 @@
 
 package no.ndla.common.model.domain.draft
 
-import enumeratum._
+import enumeratum.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate

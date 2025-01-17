@@ -34,19 +34,19 @@ trait AudioSearchService {
     with ErrorHandling =>
   val audioSearchService: AudioSearchService
 
-  class AudioSearchService extends StrictLogging with SearchService[api.AudioSummary] {
+  class AudioSearchService extends StrictLogging with SearchService[api.AudioSummaryDTO] {
     import props._
 
     override val searchIndex: String = SearchIndex
 
-    override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummary] = {
+    override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummaryDTO] = {
       for {
         searchable <- CirceUtil.tryParseAs[SearchableAudioInformation](hitString)
         result     <- searchConverterService.asAudioSummary(searchable, language)
       } yield result
     }
 
-    def matchingQuery(settings: SearchSettings): Try[domain.SearchResult[api.AudioSummary]] = {
+    def matchingQuery(settings: SearchSettings): Try[domain.SearchResult[api.AudioSummaryDTO]] = {
 
       val fullSearch = settings.query.emptySomeToNone match {
         case Some(query) =>
@@ -76,7 +76,10 @@ trait AudioSearchService {
       executeSearch(settings, fullSearch)
     }
 
-    def executeSearch(settings: SearchSettings, queryBuilder: BoolQuery): Try[domain.SearchResult[api.AudioSummary]] = {
+    def executeSearch(
+        settings: SearchSettings,
+        queryBuilder: BoolQuery
+    ): Try[domain.SearchResult[api.AudioSummaryDTO]] = {
 
       val licenseFilter = settings.license match {
         case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))

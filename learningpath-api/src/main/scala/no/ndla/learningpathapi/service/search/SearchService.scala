@@ -21,7 +21,7 @@ import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathSummaryV2}
+import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathSummaryV2DTO}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
@@ -55,7 +55,7 @@ trait SearchService extends StrictLogging {
           )
         })
 
-    private def getHitsV2(response: SearchResponse, language: String): Seq[LearningPathSummaryV2] = {
+    private def getHitsV2(response: SearchResponse, language: String): Seq[LearningPathSummaryV2DTO] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
@@ -75,7 +75,7 @@ trait SearchService extends StrictLogging {
       }
     }
 
-    private def hitAsLearningPathSummaryV2(hitString: String, language: String): LearningPathSummaryV2 = {
+    private def hitAsLearningPathSummaryV2(hitString: String, language: String): LearningPathSummaryV2DTO = {
       val searchable = CirceUtil.unsafeParseAs[SearchableLearningPath](hitString)
       searchConverterService.asApiLearningPathSummaryV2(searchable, language)
     }

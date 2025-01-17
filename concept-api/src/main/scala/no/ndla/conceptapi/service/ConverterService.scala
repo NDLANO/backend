@@ -29,7 +29,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.api.{ConceptTags, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptTagsDTO, NotFoundException}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -56,19 +56,19 @@ trait ConverterService {
         language: String,
         fallback: Boolean,
         user: Option[TokenUser]
-    ): Try[api.Concept] = {
+    ): Try[api.ConceptDTO] = {
       val isLanguageNeutral =
         concept.supportedLanguages.contains(UnknownLanguage.toString) && concept.supportedLanguages.size == 1
       if (concept.supportedLanguages.contains(language) || fallback || isLanguageNeutral || language == AllLanguages) {
         val title = findByLanguageOrBestEffort(concept.title, language)
           .map(toApiConceptTitle)
-          .getOrElse(api.ConceptTitle("", UnknownLanguage.toString))
+          .getOrElse(api.ConceptTitleDTO("", UnknownLanguage.toString))
         val content = findByLanguageOrBestEffort(concept.content, language)
           .map(toApiConceptContent)
           .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(concept.metaImage, language)
           .map(toApiMetaImage)
-          .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage.toString))
+          .getOrElse(api.ConceptMetaImageDTO("", "", UnknownLanguage.toString))
 
         val tags = findByLanguageOrBestEffort(concept.tags, language).map(toApiTags)
 
@@ -79,7 +79,7 @@ trait ConverterService {
         val editorNotes = Option.when(user.hasPermission(CONCEPT_API_WRITE))(concept.editorNotes.map(toApiEditorNote))
 
         Success(
-          api.Concept(
+          api.ConceptDTO(
             id = concept.id.get,
             revision = concept.revision.getOrElse(-1),
             title = title,
@@ -112,14 +112,14 @@ trait ConverterService {
       }
     }
 
-    def toApiGlossData(domainGlossData: Option[GlossData]): Option[api.GlossData] = {
+    def toApiGlossData(domainGlossData: Option[GlossData]): Option[api.GlossDataDTO] = {
       domainGlossData.map(glossData =>
-        api.GlossData(
+        api.GlossDataDTO(
           gloss = glossData.gloss,
           wordClass = glossData.wordClass.entryName,
           examples = glossData.examples.map(ge =>
             ge.map(g =>
-              api.GlossExample(
+              api.GlossExampleDTO(
                 example = g.example,
                 language = g.language,
                 transcriptions = g.transcriptions
@@ -132,14 +132,14 @@ trait ConverterService {
       )
     }
 
-    def toApiStatus(status: Status): api.Status = {
-      api.Status(
+    def toApiStatus(status: Status): api.StatusDTO = {
+      api.StatusDTO(
         current = status.current.toString,
         other = status.other.map(_.toString).toSeq
       )
     }
     private def toApiEditorNote(editorNote: ConceptEditorNote) = {
-      api.EditorNote(
+      api.EditorNoteDTO(
         note = editorNote.note,
         updatedBy = editorNote.user,
         status = toApiStatus(editorNote.status),
@@ -147,15 +147,15 @@ trait ConverterService {
       )
     }
 
-    def toApiTags(tags: Tag): ConceptTags = {
-      api.ConceptTags(
+    def toApiTags(tags: Tag): ConceptTagsDTO = {
+      api.ConceptTagsDTO(
         tags.tags,
         tags.language
       )
     }
 
-    private def toApiCopyright(copyright: commonDomain.draft.DraftCopyright): commonApi.DraftCopyright = {
-      commonApi.DraftCopyright(
+    private def toApiCopyright(copyright: commonDomain.draft.DraftCopyright): commonApi.DraftCopyrightDTO = {
+      commonApi.DraftCopyrightDTO(
         copyright.license.flatMap(toMaybeApiLicense),
         copyright.origin,
         copyright.creators.map(_.toApi),
@@ -167,37 +167,37 @@ trait ConverterService {
       )
     }
 
-    private def toMaybeApiLicense(shortLicense: String): Option[commonApi.License] = {
+    private def toMaybeApiLicense(shortLicense: String): Option[commonApi.LicenseDTO] = {
       getLicense(shortLicense)
-        .map(l => commonApi.License(l.license.toString, Option(l.description), l.url))
+        .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
     }
 
-    def toApiLicense(maybeShortLicense: Option[String]): commonApi.License =
-      maybeShortLicense.flatMap(toMaybeApiLicense).getOrElse(commonApi.License("unknown", None, None))
+    def toApiLicense(maybeShortLicense: Option[String]): commonApi.LicenseDTO =
+      maybeShortLicense.flatMap(toMaybeApiLicense).getOrElse(commonApi.LicenseDTO("unknown", None, None))
 
-    def toApiLicense(shortLicense: String): commonApi.License =
-      toMaybeApiLicense(shortLicense).getOrElse(commonApi.License("unknown", None, None))
+    def toApiLicense(shortLicense: String): commonApi.LicenseDTO =
+      toMaybeApiLicense(shortLicense).getOrElse(commonApi.LicenseDTO("unknown", None, None))
 
-    def toApiConceptTitle(title: Title): api.ConceptTitle =
-      api.ConceptTitle(title.title, title.language)
+    def toApiConceptTitle(title: Title): api.ConceptTitleDTO =
+      api.ConceptTitleDTO(title.title, title.language)
 
     def toApiConceptContent(content: ConceptContent): api.ConceptContent =
       api.ConceptContent(Jsoup.parseBodyFragment(content.content).body().text(), content.content, content.language)
 
-    def toApiMetaImage(metaImage: ConceptMetaImage): api.ConceptMetaImage =
-      api.ConceptMetaImage(
+    def toApiMetaImage(metaImage: ConceptMetaImage): api.ConceptMetaImageDTO =
+      api.ConceptMetaImageDTO(
         s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
         metaImage.language
       )
 
-    def toApiVisualElement(visualElement: VisualElement): api.VisualElement =
-      api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
+    def toApiVisualElement(visualElement: VisualElement): api.VisualElementDTO =
+      api.VisualElementDTO(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
-    private def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
-      api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
+    private def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsibleDTO =
+      api.ConceptResponsibleDTO(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
-    def toDomainGlossData(apiGlossData: Option[api.GlossData]): Try[Option[GlossData]] = {
+    def toDomainGlossData(apiGlossData: Option[api.GlossDataDTO]): Try[Option[GlossData]] = {
       apiGlossData
         .map(glossData =>
           WordClass.valueOfOrError(glossData.wordClass) match {
@@ -221,7 +221,7 @@ trait ConverterService {
         .sequence
     }
 
-    def toDomainConcept(concept: api.NewConcept, userInfo: TokenUser): Try[DomainConcept] = {
+    def toDomainConcept(concept: api.NewConceptDTO, userInfo: TokenUser): Try[DomainConcept] = {
       val conceptType = ConceptType.valueOfOrError(concept.conceptType).getOrElse(ConceptType.CONCEPT)
       val content = concept.content
         .map(content => Seq(model.domain.concept.ConceptContent(content, concept.language)))
@@ -284,7 +284,7 @@ trait ConverterService {
 
     def toDomainConcept(
         toMergeInto: DomainConcept,
-        updateConcept: api.UpdatedConcept,
+        updateConcept: api.UpdatedConceptDTO,
         userInfo: TokenUser
     ): Try[DomainConcept] = {
       val domainTitle = updateConcept.title
@@ -348,7 +348,7 @@ trait ConverterService {
     def updateStatus(status: ConceptStatus, concept: DomainConcept, user: TokenUser): Try[DomainConcept] =
       StateTransitionRules.doTransition(concept, status, user)
 
-    def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: TokenUser): DomainConcept = {
+    def toDomainConcept(id: Long, concept: api.UpdatedConceptDTO, userInfo: TokenUser): DomainConcept = {
       val lang = concept.language
 
       val newMetaImage = concept.metaImage match {
@@ -398,7 +398,7 @@ trait ConverterService {
       )
     }
 
-    private def toDomainCopyright(copyright: commonApi.DraftCopyright): commonDomain.draft.DraftCopyright =
+    private def toDomainCopyright(copyright: commonApi.DraftCopyrightDTO): commonDomain.draft.DraftCopyright =
       commonDomain.draft.DraftCopyright(
         copyright.license.map(_.license),
         copyright.origin,
@@ -416,8 +416,8 @@ trait ConverterService {
         pageSize: Int,
         offset: Int,
         language: String
-    ): api.TagsSearchResult = {
-      api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
+    ): api.TagsSearchResultDTO = {
+      api.TagsSearchResultDTO(tagsCount, offset, pageSize, language, tags)
     }
 
     def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] =

@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
-import no.ndla.imageapi.model.api.{ErrorHandling, ImageMetaSummary}
+import no.ndla.imageapi.model.api.{ErrorHandling, ImageMetaSummaryDTO}
 import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.common.implicits.*
@@ -78,7 +78,7 @@ trait ImageSearchService {
     private def convertToV2(
         result: Try[SearchResult[(SearchableImage, MatchedLanguage)]],
         user: Option[TokenUser]
-    ): Try[SearchResult[ImageMetaSummary]] =
+    ): Try[SearchResult[ImageMetaSummaryDTO]] =
       for {
         searchResult <- result
         summaries <- searchResult.results.traverse { case (image, language) =>
@@ -87,13 +87,13 @@ trait ImageSearchService {
         convertedResult = searchResult.copy(results = summaries)
       } yield convertedResult
 
-    def scrollV2(scrollId: String, language: String, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummary]] =
+    def scrollV2(scrollId: String, language: String, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummaryDTO]] =
       convertToV2(
         scroll(scrollId, language),
         user
       )
 
-    def matchingQuery(settings: SearchSettings, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummary]] =
+    def matchingQuery(settings: SearchSettings, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummaryDTO]] =
       convertToV2(
         matchingQueryV3(settings, user),
         user

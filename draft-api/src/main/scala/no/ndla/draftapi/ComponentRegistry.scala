@@ -23,7 +23,8 @@ import no.ndla.draftapi.db.migrationwithdependencies.{
   V20__UpdateH5PDomainForFF,
   V23__UpdateH5PDomainForFFVisualElement,
   V33__ConvertLanguageUnknown,
-  V57__MigrateSavedSearch
+  V57__MigrateSavedSearch,
+  V66__SetHideBylineForImagesNotCopyrighted
 }
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.ErrorHandling
@@ -73,12 +74,14 @@ class ComponentRegistry(properties: DraftApiProperties)
     with ArticleApiClient
     with SearchApiClient
     with H5PApiClient
+    with ImageApiClient
     with UserDataController
     with Props
     with DBMigrator
     with ErrorHandling
     with SwaggerDocControllerConfig
-    with V57__MigrateSavedSearch {
+    with V57__MigrateSavedSearch
+    with V66__SetHideBylineForImagesNotCopyrighted {
   override val props: DraftApiProperties = properties
   override val migrator: DBMigrator = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
@@ -88,7 +91,8 @@ class ComponentRegistry(properties: DraftApiProperties)
     new V20__UpdateH5PDomainForFF,
     new V23__UpdateH5PDomainForFFVisualElement,
     new V33__ConvertLanguageUnknown(props),
-    new V57__MigrateSavedSearch
+    new V57__MigrateSavedSearch,
+    new V66__SetHideBylineForImagesNotCopyrighted
   )
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
@@ -128,6 +132,7 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val taxonomyApiClient     = new TaxonomyApiClient
   lazy val learningpathApiClient = new LearningpathApiClient
   lazy val h5pApiClient          = new H5PApiClient
+  lazy val imageApiClient        = new ImageApiClient
 
   lazy val internController                        = new InternController
   lazy val draftController                         = new DraftController

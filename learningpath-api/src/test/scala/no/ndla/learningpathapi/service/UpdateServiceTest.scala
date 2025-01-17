@@ -25,11 +25,11 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.*
 import no.ndla.learningpathapi.model.api.{
-  NewCopyLearningPathV2,
-  NewLearningPathV2,
-  NewLearningStepV2,
-  UpdatedLearningPathV2,
-  UpdatedLearningStepV2
+  NewCopyLearningPathV2DTO,
+  NewLearningPathV2DTO,
+  NewLearningStepV2DTO,
+  UpdatedLearningPathV2DTO,
+  UpdatedLearningStepV2DTO
 }
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
@@ -37,7 +37,7 @@ import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
-import no.ndla.learningpathapi.model.api.Copyright
+import no.ndla.learningpathapi.model.api.CopyrightDTO
 import no.ndla.network.model.CombinedUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{never, times, verify, when}
@@ -60,6 +60,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     List(common.Title("Tittel", "nb")),
     List(),
     List(),
+    List(),
     StepType.TEXT,
     None,
     showTitle = true,
@@ -75,9 +76,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     List(common.Title("Tittel", "nb")),
     List(),
     List(),
+    List(),
     StepType.TEXT,
     None,
-    showTitle = false,
     status = StepStatus.ACTIVE
   )
 
@@ -88,6 +89,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     2,
     List(common.Title("Tittel", "nb")),
+    List(),
     List(),
     List(),
     StepType.TEXT,
@@ -105,9 +107,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     List(common.Title("Tittel", "nb")),
     List(),
     List(),
+    List(),
     StepType.TEXT,
     None,
-    showTitle = false,
     status = StepStatus.ACTIVE
   )
 
@@ -118,6 +120,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     4,
     List(common.Title("Tittel", "nb")),
+    List(),
     List(),
     List(),
     StepType.TEXT,
@@ -135,25 +138,34 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     List(common.Title("Tittel", "nb")),
     List(),
     List(),
+    List(),
     StepType.TEXT,
     None,
-    showTitle = false,
     status = StepStatus.ACTIVE
   )
 
-  val NEW_STEPV2: NewLearningStepV2 =
-    NewLearningStepV2("Tittel", Some("Beskrivelse"), "nb", Some(api.EmbedUrlV2("", "oembed")), true, "TEXT", None)
+  val NEW_STEPV2: NewLearningStepV2DTO =
+    NewLearningStepV2DTO(
+      "Tittel",
+      Some("Beskrivelse"),
+      None,
+      "nb",
+      Some(api.EmbedUrlV2DTO("", "oembed")),
+      true,
+      "TEXT",
+      None
+    )
 
-  val UPDATED_STEPV2: UpdatedLearningStepV2 =
-    UpdatedLearningStepV2(1, Option("Tittel"), "nb", Some("Beskrivelse"), None, Some(false), None, None)
+  val UPDATED_STEPV2: UpdatedLearningStepV2DTO =
+    UpdatedLearningStepV2DTO(1, Option("Tittel"), None, "nb", Some("Beskrivelse"), None, Some(false), None, None)
 
   val rubio: Author                    = Author("author", "Little Marco")
   val license                          = "publicdomain"
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(rubio))
-  val apiRubio: commonApi.Author       = commonApi.Author("author", "Little Marco")
-  val apiLicense: commonApi.License =
-    commonApi.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
-  val apiCopyright: Copyright = api.Copyright(apiLicense, List(apiRubio))
+  val apiRubio: commonApi.AuthorDTO    = commonApi.AuthorDTO("author", "Little Marco")
+  val apiLicense: commonApi.LicenseDTO =
+    commonApi.LicenseDTO("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+  val apiCopyright: CopyrightDTO = api.CopyrightDTO(apiLicense, List(apiRubio))
 
   val PUBLISHED_LEARNINGPATH: LearningPath = LearningPath(
     Some(PUBLISHED_ID),
@@ -249,16 +261,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright,
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
-  val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2 =
-    NewLearningPathV2("Tittel", Some("Beskrivelse"), None, Some(1), List(), "nb", Some(apiCopyright))
-  val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2 =
-    NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
+  val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO =
+    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), List(), "nb", Some(apiCopyright))
+  val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2DTO =
+    NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
-  val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2 =
-    UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+  val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
+    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
-  val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2 =
-    UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+  val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
+    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
   override def beforeEach(): Unit = {
     service = new UpdateService
@@ -404,6 +416,26 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     }
     verify(learningPathRepository, times(1)).update(any[LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[LearningPath])
+  }
+
+  test("That updateLearningPathStatusV2 updates madeAvailable when going to UNLISTED") {
+    when(learningPathRepository.withIdIncludingDeleted(eqTo(PUBLISHED_ID))(any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.update(any[LearningPath])(any[DBSession]))
+      .thenReturn(PUBLISHED_LEARNINGPATH.copy(status = learningpath.LearningPathStatus.PRIVATE))
+    when(learningPathRepository.learningPathsWithIsBasedOn(PUBLISHED_ID)).thenReturn(List())
+    val nowDate = NDLADate.fromUnixTime(1337)
+    when(clock.now()).thenReturn(nowDate)
+    val user = PRIVATE_OWNER.copy(permissions = Set(LEARNINGPATH_API_ADMIN)).toCombined
+
+    service.updateLearningPathStatusV2(PUBLISHED_ID, LearningPathStatus.UNLISTED, user, "nb").failIfFailure
+
+    val expectedLearningPath = PUBLISHED_LEARNINGPATH.copy(
+      status = LearningPathStatus.UNLISTED,
+      lastUpdated = nowDate,
+      madeAvailable = Some(nowDate)
+    )
+    verify(learningPathRepository, times(1)).update(eqTo(expectedLearningPath))(any)
   }
 
   test(
@@ -1126,7 +1158,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(learningpathWithUnknownLang)
 
     val newCopy =
-      NewCopyLearningPathV2("hehe", None, "nb", None, None, None, None)
+      NewCopyLearningPathV2DTO("hehe", None, "nb", None, None, None, None)
     service
       .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty, None).toCombined)
       .isSuccess should be(true)
@@ -1155,7 +1187,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val updatedLs = UpdatedLearningStepV2(1, Some("Dårlig tittel"), "nb", None, None, None, None, None)
+    val updatedLs = UpdatedLearningStepV2DTO(1, Some("Dårlig tittel"), None, "nb", None, None, None, None, None)
     service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, updatedLs, PUBLISHED_OWNER.toCombined)
     val updatedPath = PUBLISHED_LEARNINGPATH.copy(
       status = LearningPathStatus.UNLISTED,
@@ -1181,7 +1213,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None)
+    val lpToUpdate = UpdatedLearningPathV2DTO(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None)
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
@@ -1210,7 +1242,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val updatedLs = UpdatedLearningStepV2(1, Some("Dårlig tittel"), "nb", None, None, None, None, None)
+    val updatedLs = UpdatedLearningStepV2DTO(1, Some("Dårlig tittel"), None, "nb", None, None, None, None, None)
     service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, updatedLs, PRIVATE_OWNER.toCombined)
     val updatedPath = PRIVATE_LEARNINGPATH.copy(
       lastUpdated = newDate,
@@ -1237,7 +1269,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     when(clock.now()).thenReturn(newDate)
 
-    val updatedLs = UpdatedLearningStepV2(1, Some("Dårlig tittel"), "nb", None, None, None, None, None)
+    val updatedLs = UpdatedLearningStepV2DTO(1, Some("Dårlig tittel"), None, "nb", None, None, None, None, None)
     service.updateLearningStepV2(
       PUBLISHED_ID,
       STEP1.id.get,
@@ -1373,12 +1405,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
       owner = PRIVATE_OWNER.id,
       lastUpdated = now,
-      title = Seq(converterService.asTitle(api.Title(titlesToOverride, "nb"))),
+      title = Seq(converterService.asTitle(api.TitleDTO(titlesToOverride, "nb"))),
       description = descriptionsToOverride
-        .map(desc => converterService.asDescription(api.Description(desc, "nb")))
+        .map(desc => converterService.asDescription(api.DescriptionDTO(desc, "nb")))
         .toSeq,
       tags = tagsToOverride
-        .map(tagSeq => converterService.asLearningPathTags(api.LearningPathTags(tagSeq, "nb")))
+        .map(tagSeq => converterService.asLearningPathTags(api.LearningPathTagsDTO(tagSeq, "nb")))
         .toSeq,
       coverPhotoId = Some(coverPhotoId),
       duration = durationOverride
@@ -1432,7 +1464,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2(1, None, "nb", None, None, None, None, None, Some(true))
+    val lpToUpdate = UpdatedLearningPathV2DTO(1, None, "nb", None, None, None, None, None, Some(true))
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(

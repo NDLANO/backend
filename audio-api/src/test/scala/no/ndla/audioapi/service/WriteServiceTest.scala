@@ -12,9 +12,9 @@ import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.errors.{NotFoundException, ValidationException, ValidationMessage}
 import no.ndla.common.model
-import no.ndla.common.model.api.{Copyright, License}
+import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -34,10 +34,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val filePartMock: UploadedFile       = mock[UploadedFile]
   val s3ObjectMock: HeadObjectResponse = mock[HeadObjectResponse]
 
-  val newAudioMeta: NewAudioMetaInformation = NewAudioMetaInformation(
+  val newAudioMeta: NewAudioMetaInformationDTO = NewAudioMetaInformationDTO(
     "title",
     "en",
-    Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+    CopyrightDTO(LicenseDTO("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
     Seq("tag"),
     None,
     None,
@@ -45,11 +45,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     None
   )
 
-  val updatedAudioMeta: UpdatedAudioMetaInformation = UpdatedAudioMetaInformation(
+  val updatedAudioMeta: UpdatedAudioMetaInformationDTO = UpdatedAudioMetaInformationDTO(
     revision = 1,
     title = "title",
     language = "en",
-    copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+    copyright = CopyrightDTO(LicenseDTO("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
     tags = Seq("tag"),
     audioType = None,
     podcastMeta = None,
@@ -291,7 +291,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta overwrites fields from toUpdate for given language") {
-    val toUpdate = UpdatedAudioMetaInformation(
+    val toUpdate = UpdatedAudioMetaInformationDTO(
       1,
       "A new english title",
       "en",
@@ -308,7 +308,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta adds fields from toUpdate for new language") {
-    val toUpdate = UpdatedAudioMetaInformation(
+    val toUpdate = UpdatedAudioMetaInformationDTO(
       1,
       "En ny norsk tittel",
       "nb",
@@ -326,7 +326,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta does not merge filePaths if no new audio") {
-    val toUpdate = UpdatedAudioMetaInformation(
+    val toUpdate = UpdatedAudioMetaInformationDTO(
       1,
       "A new english title",
       "en",
@@ -346,7 +346,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that mergeAudioMeta overwrites filepath if new audio for same language") {
     val newAudio = Audio(newFileName2, "audio/mp3", 1024, "en")
 
-    val toUpdate = UpdatedAudioMetaInformation(
+    val toUpdate = UpdatedAudioMetaInformationDTO(
       1,
       "A new english title",
       "en",
@@ -368,7 +368,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that mergeAudioMeta adds filepath if new audio for new language") {
     val newAudio = Audio(newFileName2, "audio/mp3", 1024, "nb")
 
-    val toUpdate = UpdatedAudioMetaInformation(
+    val toUpdate = UpdatedAudioMetaInformationDTO(
       1,
       "En ny norsk tittel",
       "nb",
@@ -393,7 +393,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.updateAudio(1, updatedAudioMeta, None, testUser)
     result.isFailure should be(true)
-    result.failed.get.getMessage should equal(new NotFoundException().getMessage)
+    result.failed.get.getMessage should equal(NotFoundException("Audio not found").getMessage)
   }
 
   test("that updateAudio returns Failure when audio file validation fails") {
@@ -404,7 +404,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(mock[UploadedFile]), testUser)
     result.isFailure should be(true)
-    result.failed.get.getMessage should equal(new ValidationException(errors = Seq()).getMessage)
+    result.failed.get.getMessage should equal(new ValidationException(errors = Seq(validationMessage)).getMessage)
   }
 
   test("that updateAudio returns Failure when audio upload fails") {
@@ -664,7 +664,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(seriesRepository.insert(any[domain.Series])(any[DBSession]))
       .thenReturn(Failure(new RuntimeException("weird failure there buddy")))
 
-    val updateSeries = api.NewSeries(
+    val updateSeries = api.NewSeriesDTO(
       title = "nyTittel",
       description = "nyBeskrivelse",
       coverPhotoId = "555",
@@ -704,7 +704,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Failure(new Helpers.OptimisticLockException))
     setupSuccessfulSeriesValidation()
 
-    val updateSeries = api.NewSeries(
+    val updateSeries = api.NewSeriesDTO(
       title = "nyTittel",
       description = "nyBeskrivelse",
       coverPhotoId = "555",
@@ -754,7 +754,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       })
 
-    val updateSeries = api.NewSeries(
+    val updateSeries = api.NewSeriesDTO(
       title = "nyTittel",
       description = "nyBeskrivelse",
       coverPhotoId = "555",
@@ -803,7 +803,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument(0))
     )
 
-    val updateSeries = api.NewSeries(
+    val updateSeries = api.NewSeriesDTO(
       title = "nyTittel",
       description = "nyBeskrivelse",
       coverPhotoId = "555",
@@ -843,7 +843,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.Series](0))
     })
 
-    val updateSeries = api.NewSeries(
+    val updateSeries = api.NewSeriesDTO(
       title = "nyTittel",
       description = "nyBeskrivelse",
       coverPhotoId = "555",
@@ -861,7 +861,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta removes duplicate tags from toUpdate for given language") {
-    val toUpdate = UpdatedAudioMetaInformation(
+    val toUpdate = UpdatedAudioMetaInformationDTO(
       1,
       "A new english title",
       "en",

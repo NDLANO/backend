@@ -16,9 +16,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
   test("searchResultToApiModel should return the api model of the corresponding input domain model") {
-    converterService.searchResultToApiModel(TestData.sampleArticleSearch).isInstanceOf[api.ArticleResults]
-    converterService.searchResultToApiModel(TestData.sampleLearningpath).isInstanceOf[api.LearningpathResults]
-    converterService.searchResultToApiModel(TestData.sampleImageSearch).isInstanceOf[api.ImageResults]
-    converterService.searchResultToApiModel(TestData.sampleAudio).isInstanceOf[api.AudioResults]
+    converterService.searchResultToApiModel(TestData.sampleArticleSearch).isInstanceOf[api.ArticleResultsDTO]
+    converterService.searchResultToApiModel(TestData.sampleLearningpath).isInstanceOf[api.LearningpathResultsDTO]
+    converterService.searchResultToApiModel(TestData.sampleImageSearch).isInstanceOf[api.ImageResultsDTO]
+    converterService.searchResultToApiModel(TestData.sampleAudio).isInstanceOf[api.AudioResultsDTO]
   }
 }
