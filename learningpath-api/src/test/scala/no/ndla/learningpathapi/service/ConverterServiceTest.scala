@@ -9,26 +9,11 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{NotFoundException, ValidationException}
-import no.ndla.common.model.domain.learningpath.{
-  Description,
-  EmbedType,
-  EmbedUrl,
-  LearningPath,
-  LearningPathStatus,
-  LearningPathVerificationStatus,
-  LearningStep,
-  LearningpathCopyright,
-  StepType
-}
+import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
-import no.ndla.learningpathapi.model.api.{
-  CoverPhotoDTO,
-  NewCopyLearningPathV2DTO,
-  NewLearningPathV2DTO,
-  NewLearningStepV2DTO
-}
+import no.ndla.learningpathapi.model.api.{CoverPhotoDTO, NewCopyLearningPathV2DTO, NewLearningPathV2DTO, NewLearningStepV2DTO}
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
@@ -523,7 +508,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         "nb",
         Some(api.EmbedUrlV2DTO("", "oembed")),
-        true,
+        Some(true),
         "TEXT",
         None
       )

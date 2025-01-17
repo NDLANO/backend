@@ -275,7 +275,7 @@ trait ConverterService {
           embedUrl,
           StepType.valueOfOrError(newLearningStep.`type`),
           newLearningStep.license,
-          newLearningStep.showTitle
+          newLearningStep.showTitle.getOrElse(false)
         )
       )
     }
