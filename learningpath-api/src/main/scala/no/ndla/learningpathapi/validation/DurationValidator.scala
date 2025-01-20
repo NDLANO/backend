@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.validation
 import no.ndla.common.errors.ValidationMessage
 
 class DurationValidator {
-  private val DURATION_INVALID  = "Value duration must be greater than 0 if present."
+  private val DURATION_INVALID = "Value duration must be greater than 0 if present."
 
   def validateRequired(durationOpt: Option[Int]): Option[ValidationMessage] = {
     durationOpt match {

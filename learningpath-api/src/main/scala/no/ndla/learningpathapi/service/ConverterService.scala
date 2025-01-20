@@ -275,7 +275,7 @@ trait ConverterService {
           embedUrl,
           StepType.valueOfOrError(newLearningStep.`type`),
           newLearningStep.license,
-          newLearningStep.showTitle.getOrElse(false)
+          newLearningStep.showTitle
         )
       )
     }
@@ -409,7 +409,7 @@ trait ConverterService {
       val domainTags =
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
-          Seq(common.Tag(newLearningPath.tags, newLearningPath.language))
+          Seq(common.Tag(newLearningPath.tags.getOrElse(List()), newLearningPath.language))
       val description = newLearningPath.description.map(Description(_, newLearningPath.language)).toSeq
       val copyright   = newLearningPath.copyright.getOrElse(newDefaultCopyright(user))
 

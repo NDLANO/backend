@@ -34,8 +34,8 @@ trait SwaggerControllerConfig {
       license = License("GPL v3.0", "https://www.gnu.org/licenses/gpl-3.0.en.html".some).some
     )
 
-    import io.circe.syntax._
-    import sttp.apispec.openapi.circe._
+    import io.circe.syntax.*
+    import sttp.apispec.openapi.circe.*
 
     private val swaggerEndpoints = services.collect {
       case svc: TapirController if svc.enableSwagger => svc.builtEndpoints

@@ -13,7 +13,12 @@ import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
-import no.ndla.learningpathapi.model.api.{CoverPhotoDTO, NewCopyLearningPathV2DTO, NewLearningPathV2DTO, NewLearningStepV2DTO}
+import no.ndla.learningpathapi.model.api.{
+  CoverPhotoDTO,
+  NewCopyLearningPathV2DTO,
+  NewLearningPathV2DTO,
+  NewLearningStepV2DTO
+}
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
@@ -469,7 +474,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp     = NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), List(), "nb", Some(apiCopyright))
+    val newLp     = NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright))
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)
@@ -508,7 +513,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         "nb",
         Some(api.EmbedUrlV2DTO("", "oembed")),
-        Some(true),
+        true,
         "TEXT",
         None
       )

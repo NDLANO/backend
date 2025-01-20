@@ -134,7 +134,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       "nb",
       Some(api.EmbedUrlV2DTO("", "oembed")),
-      Some(true),
+      true,
       "TEXT",
       None
     )
@@ -245,7 +245,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO =
-    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), List(), "nb", Some(apiCopyright))
+    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright))
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2DTO =
     NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 

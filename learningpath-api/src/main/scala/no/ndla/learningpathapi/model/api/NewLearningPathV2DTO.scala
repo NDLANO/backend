@@ -18,7 +18,7 @@ case class NewLearningPathV2DTO(
     @description("The descriptions of the learningpath") description: Option[String],
     @description("Url to cover-photo in NDLA image-api.") coverPhotoMetaUrl: Option[String],
     @description("The duration of the learningpath in minutes. Must be greater than 0") duration: Option[Int],
-    @description("Searchable tags for the learningpath") tags: Seq[String],
+    @description("Searchable tags for the learningpath") tags: Option[Seq[String]],
     @description("The chosen language") language: String,
     @description("Describes the copyright information for the learningpath") copyright: Option[CopyrightDTO]
 )
