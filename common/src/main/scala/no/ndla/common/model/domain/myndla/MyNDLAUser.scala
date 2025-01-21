@@ -23,6 +23,7 @@ case class MyNDLAUser(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
+    arenaAccepted: Boolean,
     arenaGroups: List[ArenaGroup],
     shareName: Boolean
 ) {

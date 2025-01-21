@@ -100,7 +100,8 @@ object TestData {
     arenaEnabled = false,
     displayName = "",
     shareName = false,
-    arenaGroups = List.empty
+    arenaGroups = List.empty,
+    arenaAccepted = false
   )
 
 }

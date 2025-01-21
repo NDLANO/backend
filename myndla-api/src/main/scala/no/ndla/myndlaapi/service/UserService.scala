@@ -124,7 +124,8 @@ trait UserService {
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
           shareName = Some(shareName),
-          arenaGroups = None
+          arenaGroups = None,
+          arenaAccept = None
         )
         updated <- userService.updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
@@ -240,7 +241,8 @@ trait UserService {
           arenaEnabled = arenaEnabledUsers.map(_.toLowerCase).contains(feideExtendedUserData.email.toLowerCase),
           arenaGroups = getInitialIsArenaGroups(feideId),
           shareName = false,
-          displayName = feideExtendedUserData.displayName
+          displayName = feideExtendedUserData.displayName,
+          arenaAccepted = false
         )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
@@ -271,7 +273,8 @@ trait UserService {
           userData.arenaEnabled || arenaEnabledUsers.map(_.toLowerCase).contains(feideUser.email.toLowerCase),
         shareName = userData.shareName,
         displayName = feideUser.displayName,
-        arenaGroups = userData.arenaGroups
+        arenaGroups = userData.arenaGroups,
+        arenaAccepted = userData.arenaAccepted
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }

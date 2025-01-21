@@ -55,14 +55,16 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      arenaAccepted = true
     )
     val updatedUserData =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
         shareName = Some(true),
-        arenaGroups = None
+        arenaGroups = None,
+        arenaAccept = None
       )
     val userAfterMerge = MyNDLAUser(
       id = 42,
@@ -84,7 +86,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = true,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      arenaAccepted = true
     )
     val expected = MyNDLAUserDTO(
       id = 42,
@@ -124,7 +127,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
         shareName = None,
-        arenaGroups = None
+        arenaGroups = None,
+        arenaAccept = None
       )
 
     doReturn(Success(()))
@@ -181,7 +185,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      arenaAccepted = true
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -255,7 +260,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      arenaAccepted = true
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -325,7 +331,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = false,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      arenaAccepted = true
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",

@@ -22,6 +22,7 @@ case class MyNDLAUserDocument(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
+    arenaAccepted: Boolean,
     arenaGroups: List[ArenaGroup],
     shareName: Boolean
 ) {
@@ -38,6 +39,7 @@ case class MyNDLAUserDocument(
       displayName = displayName,
       email = email,
       arenaEnabled = arenaEnabled,
+      arenaAccepted = arenaAccepted,
       shareName = shareName,
       arenaGroups = arenaGroups
     )
