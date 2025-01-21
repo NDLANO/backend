@@ -135,7 +135,8 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
             Seq(
               reindexWithIndexService(componentRegistry.learningPathIndexService, shouldUsePublishedTax = true),
               reindexWithIndexService(componentRegistry.articleIndexService, shouldUsePublishedTax = true),
-              reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false)
+              reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false),
+              reindexWithIndexService(componentRegistry.draftConceptIndexService, shouldUsePublishedTax = true)
             )
           ),
           Duration.Inf
