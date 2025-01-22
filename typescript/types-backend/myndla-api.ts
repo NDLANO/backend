@@ -276,6 +276,7 @@ export interface IUpdatedMyNDLAUserDTO {
   arenaEnabled?: boolean
   shareName?: boolean
   arenaGroups?: ArenaGroup[]
+  arenaAccept?: boolean
 }
 
 export interface IUpdatedResourceDTO {
