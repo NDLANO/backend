@@ -43,7 +43,8 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment with TapirC
     email = "some@example.com",
     arenaEnabled = true,
     arenaGroups = List.empty,
-    shareName = false
+    shareName = false,
+    arenaAccepted = true
   )
 
   test("That feide token parsing works if token present") {

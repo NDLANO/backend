@@ -44,12 +44,17 @@ object MyNDLAUserDTO {
   implicit def decoder: Decoder[MyNDLAUserDTO] = deriveDecoder
 }
 
-// format: off
 case class UpdatedMyNDLAUserDTO(
-    @description("Favorite subjects of the user") favoriteSubjects: Option[Seq[String]],
-    @description("Whether arena should explicitly be enabled for the user") arenaEnabled: Option[Boolean],
-    @description("Whether users name should be shared with folder or not") shareName: Option[Boolean],
-    @description("Which arena groups the user should be in, only modifiable by admins") arenaGroups: Option[List[ArenaGroup]]
+    @description("Favorite subjects of the user")
+    favoriteSubjects: Option[Seq[String]],
+    @description("Whether arena should explicitly be enabled for the user")
+    arenaEnabled: Option[Boolean],
+    @description("Whether users name should be shared with folder or not")
+    shareName: Option[Boolean],
+    @description("Which arena groups the user should be in, only modifiable by admins")
+    arenaGroups: Option[List[ArenaGroup]],
+    @description("Whether the user has accepted the use of arena")
+    arenaAccept: Option[Boolean]
 )
 
 object UpdatedMyNDLAUserDTO {

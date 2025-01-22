@@ -125,7 +125,8 @@ class ArenaTest
     email = "some@example.com",
     arenaEnabled = true,
     arenaGroups = List.empty,
-    shareName = false
+    shareName = false,
+    arenaAccepted = true
   )
 
   val testAdmin: MyNDLAUser = MyNDLAUser(
@@ -141,7 +142,8 @@ class ArenaTest
     email = "some@example.com",
     arenaEnabled = true,
     arenaGroups = List(ArenaGroup.ADMIN),
-    shareName = false
+    shareName = false,
+    arenaAccepted = true
   )
 
   def createCategory(

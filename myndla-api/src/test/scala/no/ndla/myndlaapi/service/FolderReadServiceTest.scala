@@ -366,7 +366,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       displayName = "Feide",
       shareName = true,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      arenaAccepted = true
     )
 
     val folderUUID   = UUID.randomUUID()
@@ -530,7 +531,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             email = "user_name@example.com",
             arenaEnabled = true,
             arenaGroups = List.empty,
-            shareName = false
+            shareName = false,
+            arenaAccepted = true
           )
         )
       )
@@ -552,7 +554,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             email = "user_name@example.com",
             arenaEnabled = true,
             arenaGroups = List.empty,
-            shareName = false
+            shareName = false,
+            arenaAccepted = true
           )
         )
       )

@@ -60,7 +60,8 @@ class ArenaRepositoryTest
       email = "example@example.com",
       arenaEnabled = true,
       arenaGroups = List(),
-      shareName = true
+      shareName = true,
+      arenaAccepted = true
     )
     val feideId = "feideId1"
 
@@ -112,7 +113,8 @@ class ArenaRepositoryTest
       email = "example@example.com",
       arenaEnabled = true,
       arenaGroups = List(),
-      shareName = true
+      shareName = true,
+      arenaAccepted = true
     )
     val feideId = "feideId1"
 
@@ -176,7 +178,8 @@ class ArenaRepositoryTest
       email = "example@example.com",
       arenaEnabled = true,
       arenaGroups = List(),
-      shareName = true
+      shareName = true,
+      arenaAccepted = true
     )
     val feideId  = "feideId1"
     val feideId2 = "feideId2"
