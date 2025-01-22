@@ -9,17 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{NotFoundException, ValidationException}
-import no.ndla.common.model.domain.learningpath.{
-  Description,
-  EmbedType,
-  EmbedUrl,
-  LearningPath,
-  LearningPathStatus,
-  LearningPathVerificationStatus,
-  LearningStep,
-  LearningpathCopyright,
-  StepType
-}
+import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
@@ -484,7 +474,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp     = NewLearningPathV2DTO("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+    val newLp     = NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright))
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)

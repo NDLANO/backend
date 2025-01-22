@@ -40,14 +40,14 @@ trait InternController {
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getByExternalId,
       postIndex,
-      deleteIndex,
+      deleteIndex(),
       dumpLearningpaths,
       dumpSingleLearningPath,
       postLearningPathDump,
       containsArticle
     )
 
-    def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
       .in("id" / path[String]("external_id"))
       .out(stringBody)
       .errorOut(errorOutputsFor(404))
@@ -59,7 +59,7 @@ trait InternController {
 
       }
 
-    def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+    private def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
       .in("index")
       .in(query[Option[Int]]("numShards"))
       .out(stringBody)
@@ -77,7 +77,7 @@ trait InternController {
         }
       }
 
-    def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+    private def deleteIndex(): ServerEndpoint[Any, Eff] = endpoint.delete
       .in("index")
       .out(stringBody)
       .errorOut(stringInternalServerError)
@@ -105,7 +105,7 @@ trait InternController {
         }
       }
 
-    def dumpLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
+    private def dumpLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
       .in("dump" / "learningpath")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(250))
@@ -115,7 +115,7 @@ trait InternController {
         readService.getLearningPathDomainDump(pageNo, pageSize, onlyIncludePublished).asRight
       }
 
-    def dumpSingleLearningPath: ServerEndpoint[Any, Eff] = endpoint.get
+    private def dumpSingleLearningPath: ServerEndpoint[Any, Eff] = endpoint.get
       .in("dump" / "learningpath" / path[Long]("learningpath_id"))
       .out(jsonBody[commonDomain.LearningPath])
       .errorOut(errorOutputsFor(404))
@@ -126,7 +126,7 @@ trait InternController {
         }
       }
 
-    def postLearningPathDump: ServerEndpoint[Any, Eff] = endpoint.post
+    private def postLearningPathDump: ServerEndpoint[Any, Eff] = endpoint.post
       .in("dump" / "learningpath")
       .in(jsonBody[commonDomain.LearningPath])
       .out(jsonBody[commonDomain.LearningPath])
@@ -135,7 +135,7 @@ trait InternController {
         updateService.insertDump(dumpToInsert).asRight
       }
 
-    def containsArticle: ServerEndpoint[Any, Eff] = endpoint.get
+    private def containsArticle: ServerEndpoint[Any, Eff] = endpoint.get
       .in("containsArticle")
       .in(listQuery[String]("paths"))
       .out(jsonBody[Seq[LearningPathSummaryV2DTO]])

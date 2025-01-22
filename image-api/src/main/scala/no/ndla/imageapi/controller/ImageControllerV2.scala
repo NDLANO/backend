@@ -35,8 +35,8 @@ trait ImageControllerV2 {
   val imageControllerV2: ImageControllerV2
 
   class ImageControllerV2 extends TapirController with BaseImageController {
-    import ErrorHelpers._
-    import props._
+    import ErrorHelpers.*
+    import props.*
 
     override val serviceName: String         = "images V2"
     override val prefix: EndpointInput[Unit] = "image-api" / "v2" / "images"

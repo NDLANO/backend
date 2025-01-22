@@ -27,7 +27,7 @@ trait StatsController {
       getStats
     )
 
-    def getStats: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getStats: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get stats for my-ndla usage.")
       .description("Get stats for my-ndla usage.")
       .deprecated()

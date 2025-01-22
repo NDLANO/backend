@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import sttp.tapir.Schema.annotations.description
+import sttp.tapir.Schema.annotations.{default, description}
 
 @description("Information about a new learningstep")
 case class NewLearningStepV2DTO(
@@ -19,7 +19,9 @@ case class NewLearningStepV2DTO(
     @description("The descriptions of the learningstep") description: Option[String],
     @description("The chosen language") language: String,
     @description("The embed content for the learningstep") embedUrl: Option[EmbedUrlV2DTO],
-    @description("Determines if the title of the step should be displayed in viewmode") showTitle: Boolean,
+    @description("Determines if the title of the step should be displayed in viewmode.") @default(
+      false
+    ) showTitle: Boolean,
     @description("The type of the step") `type`: String,
     @description("Describes the copyright information for the learningstep") license: Option[String]
 )

@@ -8,39 +8,22 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Author, Title, learningpath}
-import no.ndla.common.model.domain.learningpath.{
-  Description,
-  LearningPath,
-  LearningPathStatus,
-  LearningPathVerificationStatus,
-  LearningStep,
-  LearningpathCopyright,
-  Message,
-  StepStatus,
-  StepType
-}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.*
-import no.ndla.learningpathapi.model.api.{
-  NewCopyLearningPathV2DTO,
-  NewLearningPathV2DTO,
-  NewLearningStepV2DTO,
-  UpdatedLearningPathV2DTO,
-  UpdatedLearningStepV2DTO
-}
+import no.ndla.learningpathapi.model.api.*
+import no.ndla.network.model.CombinedUser
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
-import no.ndla.learningpathapi.model.api.CopyrightDTO
-import no.ndla.network.model.CombinedUser
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{never, times, verify, when}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _
@@ -262,7 +245,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO =
-    NewLearningPathV2DTO("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright))
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2DTO =
     NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
