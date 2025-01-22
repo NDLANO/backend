@@ -327,7 +327,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
     res.errors.length should be(1)
     res.errors.head.field should be("revisionMeta")
-    res.errors.head.message should be("An article must contain at least one planned revisiondate")
+    res.errors.head.message should be("An article must contain at least one planned revision date")
   }
 
   test("validation should fail if slug field is present but articleType is not frontpage-article") {
@@ -449,6 +449,6 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     result.isFailure should be(true)
     val Failure(validationError: ValidationException) = result
     validationError.errors.length should be(1)
-    validationError.errors.head.message should be("An article must contain at least one planned revisiondate")
+    validationError.errors.head.message should be("An article must contain at least one planned revision date")
   }
 }

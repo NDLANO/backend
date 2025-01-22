@@ -11,6 +11,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*
+import no.ndla.common.model.domain.draft.DraftStatus.ARCHIVED
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -98,7 +99,7 @@ trait ContentValidator {
         else Seq.empty
 
       val editorialValidationErrors =
-        validateRevisionMeta(article.revisionMeta)
+        validateRevisionMeta(article.revisionMeta, article.status)
 
       val validationErrors = regularValidationErrors ++ editorialValidationErrors
 
@@ -202,7 +203,8 @@ trait ContentValidator {
         .toList ++ validateLanguage("language", content.language)
     }
 
-    private def validateRevisionMeta(revisionMeta: Seq[RevisionMeta]): Seq[ValidationMessage] = {
+    private def validateRevisionMeta(revisionMeta: Seq[RevisionMeta], newStatus: Status): Seq[ValidationMessage] = {
+      if (newStatus.current == ARCHIVED) return Seq.empty
       revisionMeta.find(rm =>
         rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
       ) match {
@@ -211,7 +213,7 @@ trait ContentValidator {
           Seq(
             ValidationMessage(
               "revisionMeta",
-              "An article must contain at least one planned revisiondate"
+              "An article must contain at least one planned revision date"
             )
           )
       }
