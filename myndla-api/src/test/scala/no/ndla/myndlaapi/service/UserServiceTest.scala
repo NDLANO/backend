@@ -64,7 +64,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         arenaEnabled = None,
         shareName = Some(true),
         arenaGroups = None,
-        arenaAccept = None
+        arenaAccepted = None
       )
     val userAfterMerge = MyNDLAUser(
       id = 42,
@@ -100,6 +100,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
+      arenaAccepted = true,
       shareName = true,
       arenaGroups = List.empty
     )
@@ -128,7 +129,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         arenaEnabled = None,
         shareName = None,
         arenaGroups = None,
-        arenaAccept = None
+        arenaAccepted = None
       )
 
     doReturn(Success(()))
@@ -199,6 +200,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
+      arenaAccepted = true,
       shareName = false,
       arenaGroups = List.empty
     )
@@ -274,6 +276,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
+      arenaAccepted = true,
       shareName = false,
       arenaGroups = List.empty
     )
@@ -352,6 +355,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
+      arenaAccepted = true,
       shareName = false,
       arenaGroups = List.empty
     )
