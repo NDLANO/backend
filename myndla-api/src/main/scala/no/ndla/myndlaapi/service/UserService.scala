@@ -125,7 +125,7 @@ trait UserService {
           arenaEnabled = None,
           shareName = Some(shareName),
           arenaGroups = None,
-          arenaAccept = None
+          arenaAccepted = None
         )
         updated <- userService.updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated

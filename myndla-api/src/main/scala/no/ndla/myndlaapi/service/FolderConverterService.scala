@@ -191,6 +191,7 @@ trait FolderConverterService {
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = arenaEnabled,
+        arenaAccepted = domainUserData.arenaAccepted,
         shareName = domainUserData.shareName,
         arenaGroups = domainUserData.arenaGroups
       )
@@ -243,7 +244,7 @@ trait FolderConverterService {
           domainUserData.arenaEnabled || arenaEnabledUsers.map(_.toLowerCase).contains(domainUserData.email.toLowerCase)
       }
 
-      val arenaAccepted = updatedUser.arenaAccept match {
+      val arenaAccepted = updatedUser.arenaAccepted match {
         case Some(true) if arenaEnabled => true
         case Some(false)                => false
         case _                          => domainUserData.arenaAccepted

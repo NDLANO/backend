@@ -9,7 +9,7 @@ package no.ndla.common.model
 
 import com.scalatsi.TSType
 import io.circe.{Decoder, Encoder, FailedCursor}
-import io.circe.syntax._
+import io.circe.syntax.*
 import scalikejdbc.ParameterBinderFactory
 import sttp.tapir.Schema
 

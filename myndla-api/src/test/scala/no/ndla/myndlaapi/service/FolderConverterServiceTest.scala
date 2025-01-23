@@ -445,6 +445,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         organization = "oslo",
         groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
+        arenaAccepted = true,
         shareName = false,
         arenaGroups = List.empty
       )
@@ -482,7 +483,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         arenaEnabled = None,
         shareName = None,
         arenaGroups = None,
-        arenaAccept = None
+        arenaAccepted = None
       )
     val updatedUserData2 =
       UpdatedMyNDLAUserDTO(
@@ -490,7 +491,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         arenaEnabled = None,
         shareName = None,
         arenaGroups = None,
-        arenaAccept = None
+        arenaAccepted = None
       )
     val updatedUserData3 =
       UpdatedMyNDLAUserDTO(
@@ -498,7 +499,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         arenaEnabled = None,
         shareName = None,
         arenaGroups = None,
-        arenaAccept = None
+        arenaAccepted = None
       )
 
     val expectedUserData1 = MyNDLAUser(
