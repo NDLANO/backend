@@ -7,6 +7,7 @@
 
 package no.ndla.myndlaapi.integration.nodebb
 
+import cats.implicits.catsSyntaxOptionId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import io.circe.parser.parse
@@ -90,23 +91,30 @@ trait NodeBBClient {
         .map(_.response)
     }.flatten
 
-    def getUserId(feideToken: FeideAccessToken): Try[Long] = {
+    def getUserId(feideToken: FeideAccessToken): Try[Option[Long]] = {
       val request = quickRequest
         .get(uri"$baseUrl/api/self")
         .header("FeideAuthorization", s"Bearer $feideToken")
       val resp = doReq(request).?
+
+      if (resp.code.code == 403) return Success(None)
+
       val body = resp.body
       parse(body)
         .flatMap(_.as[UserSelf])
         .toTry
-        .map(_.uid)
+        .map(_.uid.some)
     }
 
-    def deleteUser(userId: Long, feideToken: FeideAccessToken): Try[Unit] = {
-      for {
-        nodebbSession <- getCSRFToken(feideToken)
-        _             <- deleteUserWithCSRF(userId, feideToken, nodebbSession)
-      } yield ()
+    def deleteUser(userId: Option[Long], feideToken: FeideAccessToken): Try[Unit] = {
+      userId match {
+        case None => Success(())
+        case Some(id) =>
+          for {
+            nodebbSession <- getCSRFToken(feideToken)
+            _             <- deleteUserWithCSRF(id, feideToken, nodebbSession)
+          } yield ()
+      }
     }
 
     def deleteUserWithCSRF(userId: Long, feideToken: FeideAccessToken, nodebbSession: NodeBBSession): Try[Unit] = {
