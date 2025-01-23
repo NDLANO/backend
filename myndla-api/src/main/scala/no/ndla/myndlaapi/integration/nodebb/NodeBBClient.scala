@@ -100,7 +100,6 @@ trait NodeBBClient {
         .flatMap(_.as[UserSelf])
         .toTry
         .map(_.uid)
-
     }
 
     def deleteUser(userId: Long, feideToken: FeideAccessToken): Try[Unit] = {

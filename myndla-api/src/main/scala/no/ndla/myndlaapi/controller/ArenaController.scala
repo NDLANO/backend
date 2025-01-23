@@ -7,8 +7,10 @@
 
 package no.ndla.myndlaapi.controller
 
+import cats.implicits.toTraverseOps
 import io.circe.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
+import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.myndlaapi.model.api.{ArenaUserDTO, PaginatedArenaUsersDTO}
 import no.ndla.myndlaapi.MyNDLAAuthHelpers
 import no.ndla.myndlaapi.model.arena.api.{
@@ -32,6 +34,8 @@ import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
+import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.StatusCode
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
@@ -482,13 +486,18 @@ trait ArenaController {
       .in("users" / path[Long]("user-id").description("UserID of user to update"))
       .in(jsonBody[UpdatedMyNDLAUserDTO])
       .out(jsonBody[MyNDLAUserDTO])
+      .securityIn(TokenUser.oauth2Input(Seq.empty))
+      .securityIn(AuthUtility.feideOauth())
       .errorOut(errorOutputsFor(401, 403, 404))
-      .requireMyNDLAUser(requireArenaAdmin = true)
-      .serverLogicPure { adminUser =>
-        { case (userId, updatedMyNdlaUser) =>
-          userService
-            .adminUpdateMyNDLAUserData(userId, updatedMyNdlaUser, adminUser)()
-
+      .serverSecurityLogicPure { case (tokenUser, feideToken) =>
+        val arenaUser = feideToken.traverse(token => userService.getArenaEnabledUser(Some(token))).toOption.flatten
+        if (tokenUser.hasPermission(LEARNINGPATH_API_ADMIN) || arenaUser.exists(_.isAdmin)) {
+          Right((tokenUser, arenaUser))
+        } else Left(ErrorHelpers.forbidden)
+      }
+      .serverLogicPure {
+        case (tokenUser, myndlaUser) => { case (userId, updatedMyNdlaUser) =>
+          userService.adminUpdateMyNDLAUserData(userId, updatedMyNdlaUser, tokenUser, myndlaUser)()
         }
       }
 
