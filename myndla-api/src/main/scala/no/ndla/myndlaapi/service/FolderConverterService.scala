@@ -244,21 +244,31 @@ trait FolderConverterService {
         case _                          => domainUserData.arenaAccepted
       }
 
-      if (!arenaAccepted || domainUserData.arenaAccepted) return Success(arenaAccepted)
-
-      val token = feideToken
-        .toTry(
-          ValidationException(
-            "arenaAccepted",
-            "Tried to update arenaAccepted without a token connected to the feide user."
-          )
+      def getToken = feideToken.toTry(
+        ValidationException(
+          "arenaAccepted",
+          "Tried to update arenaAccepted without a token connected to the feide user."
         )
-        .?
-
-      logger.info(
-        s"User with ndla user id ${domainUserData.id} went from `arenaAccepted` false to true, calling nodebb."
       )
-      nodebb.getUserId(token).map(_ => arenaAccepted)
+
+      (domainUserData.arenaAccepted, arenaAccepted) match {
+        case (true, false) =>
+          logger.info("User went from `arenaAccepted` true to false, calling nodebb to delete user.")
+          for {
+            token  <- getToken
+            userId <- nodebb.getUserId(token)
+            _      <- nodebb.deleteUser(userId, token)
+          } yield arenaAccepted
+        case (false, true) =>
+          logger.info(
+            s"User with ndla user id ${domainUserData.id} went from `arenaAccepted` false to true, calling nodebb."
+          )
+          for {
+            token <- getToken
+            _     <- nodebb.getUserId(token)
+          } yield arenaAccepted
+        case _ => Success(arenaAccepted)
+      }
     }
 
     def mergeUserData(
