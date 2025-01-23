@@ -8,12 +8,14 @@
 package no.ndla.myndlaapi.integration.nodebb
 
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
 import io.circe.parser.parse
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.myndlaapi.Props
+import no.ndla.network.model.FeideAccessToken
 import sttp.client3.Response
-import sttp.client3.quick._
+import sttp.client3.quick.*
+import sttp.model.headers.CookieWithMeta
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -25,6 +27,23 @@ trait NodeBBClient {
   class NodeBBClient extends StrictLogging {
     private val baseUrl: String = props.nodeBBUrl
     private val attemptLimit    = 5
+
+    case class NodeBBSession(csrfToken: String, cookies: Seq[CookieWithMeta])
+
+    private def getCSRFToken(feideToken: FeideAccessToken): Try[NodeBBSession] = {
+      val request = quickRequest
+        .get(uri"$baseUrl/api/config")
+        .header("FeideAuthorization", s"Bearer $feideToken")
+      val resp = doReq(request).?
+      val csrfToken = parse(resp.body)
+        .flatMap(_.as[NodeBBApiConfig])
+        .toTry
+        .map(_.csrf_token)
+        .?
+
+      Success(NodeBBSession(csrfToken, resp.unsafeCookies))
+    }
+
     @tailrec
     private def doReq(request: sttp.client3.Request[String, Any], attempt: Int = 1): Try[Response[String]] = {
       Try {
@@ -70,5 +89,40 @@ trait NodeBBClient {
         .toTry
         .map(_.response)
     }.flatten
+
+    def getUserId(feideToken: FeideAccessToken): Try[Long] = {
+      val request = quickRequest
+        .get(uri"$baseUrl/api/self")
+        .header("FeideAuthorization", s"Bearer $feideToken")
+      val resp = doReq(request).?
+      val body = resp.body
+      parse(body)
+        .flatMap(_.as[UserSelf])
+        .toTry
+        .map(_.uid)
+
+    }
+
+    def deleteUser(userId: Long, feideToken: FeideAccessToken): Try[Unit] = {
+      for {
+        nodebbSession <- getCSRFToken(feideToken)
+        _             <- deleteUserWithCSRF(userId, feideToken, nodebbSession)
+      } yield ()
+    }
+
+    def deleteUserWithCSRF(userId: Long, feideToken: FeideAccessToken, nodebbSession: NodeBBSession): Try[Unit] = {
+      val request = quickRequest
+        .delete(uri"$baseUrl/api/v3/users/$userId/account")
+        .header("FeideAuthorization", s"Bearer $feideToken")
+        .header("X-CSRF-Token", nodebbSession.csrfToken)
+        .cookies(nodebbSession.cookies)
+      val resp = doReq(request).?
+      if (resp.isSuccess) Success(())
+      else {
+        val msg = s"Failed to delete nodebb user with id $userId, Got code: ${resp.code}, with body:\n\n${resp.body}"
+        logger.error(msg)
+        Failure(new Exception(msg))
+      }
+    }
   }
 }

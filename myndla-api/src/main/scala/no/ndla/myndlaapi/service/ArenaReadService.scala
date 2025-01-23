@@ -13,6 +13,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.myndla.MyNDLAUser
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
 import no.ndla.myndlaapi.model.arena.api.{CategoryDTO, CategorySortDTO, NewCategoryDTO, NewPostDTO, NewTopicDTO}
@@ -25,14 +26,8 @@ import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 import scala.util.{Failure, Success, Try}
 
 trait ArenaReadService {
-  this: FeideApiClient
-    with ArenaRepository
-    with ConverterService
-    with UserService
-    with Clock
-    with ConfigService
-    with FolderRepository
-    with UserRepository =>
+  this: FeideApiClient & ArenaRepository & ConverterService & UserService & Clock & ConfigService & FolderRepository &
+    UserRepository & NodeBBClient =>
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
@@ -596,14 +591,17 @@ trait ArenaReadService {
     def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] =
       arenaRepository.rollbackOnFailure(session => {
         for {
-          feideId <- feideApiClient.getFeideID(feideAccessToken)
-          user    <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
-          _       <- arenaRepository.disconnectPostsByUser(user.id)(session)
-          _       <- arenaRepository.disconnectTopicsByUser(user.id)(session)
-          _       <- arenaRepository.disconnectFlagsByUser(user.id)(session)
-          _       <- folderRepository.deleteAllUserFolders(feideId)(session)
-          _       <- folderRepository.deleteAllUserResources(feideId)(session)
-          _       <- userRepository.deleteUser(feideId)(session)
+          feideToken   <- feideApiClient.getFeideAccessTokenOrFail(feideAccessToken)
+          feideId      <- feideApiClient.getFeideID(feideAccessToken)
+          user         <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
+          nodebbUserId <- nodebb.getUserId(feideToken)
+          _            <- arenaRepository.disconnectPostsByUser(user.id)(session)
+          _            <- arenaRepository.disconnectTopicsByUser(user.id)(session)
+          _            <- arenaRepository.disconnectFlagsByUser(user.id)(session)
+          _            <- folderRepository.deleteAllUserFolders(feideId)(session)
+          _            <- folderRepository.deleteAllUserResources(feideId)(session)
+          _            <- userRepository.deleteUser(feideId)(session)
+          _            <- nodebb.deleteUser(nodebbUserId, feideToken)
         } yield ()
       })
   }
