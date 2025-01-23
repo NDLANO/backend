@@ -110,6 +110,7 @@ export interface IMyNDLAUserDTO {
   organization: string
   groups: IMyNDLAGroupDTO[]
   arenaEnabled: boolean
+  arenaAccepted: boolean
   shareName: boolean
   arenaGroups: ArenaGroup[]
 }
@@ -276,7 +277,7 @@ export interface IUpdatedMyNDLAUserDTO {
   arenaEnabled?: boolean
   shareName?: boolean
   arenaGroups?: ArenaGroup[]
-  arenaAccept?: boolean
+  arenaAccepted?: boolean
 }
 
 export interface IUpdatedResourceDTO {
