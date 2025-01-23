@@ -102,15 +102,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     validationError.head.message should equal("The url to the coverPhoto must point to an image in NDLA Image API.")
   }
 
-  test("That validate returns error message when no descriptions are defined") {
-    validMock()
-    val errorMessages =
-      validator.validateLearningPath(ValidLearningPath.copy(description = List()), allowUnknownLanguage = false)
-    errorMessages.size should be(1)
-    errorMessages.head.field should equal("description")
-    errorMessages.head.message should equal("At least one description is required.")
-  }
-
   test(
     "That validate does not return error message when no descriptions are defined and no descriptions are required"
   ) {

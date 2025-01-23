@@ -19,7 +19,7 @@ trait LearningPathValidator {
   this: LanguageValidator & TitleValidator & TextValidator =>
   val learningPathValidator: LearningPathValidator
 
-  class LearningPathValidator(descriptionRequired: Boolean = true) {
+  class LearningPathValidator(descriptionRequired: Boolean = false) {
 
     private val MISSING_DESCRIPTION = "At least one description is required."
 
