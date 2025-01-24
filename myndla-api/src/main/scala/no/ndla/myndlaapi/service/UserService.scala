@@ -119,11 +119,9 @@ trait UserService {
       for {
         existingUser <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
         newFavorites = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
-        shareName    = existingUser.shareName || userData.shareName
         updatedFeideUser = UpdatedMyNDLAUserDTO(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
-          shareName = Some(shareName),
           arenaGroups = None,
           arenaAccepted = None
         )
@@ -225,7 +223,6 @@ trait UserService {
           email = feideExtendedUserData.email,
           arenaEnabled = arenaEnabledUsers.map(_.toLowerCase).contains(feideExtendedUserData.email.toLowerCase),
           arenaGroups = getInitialIsArenaGroups(feideId),
-          shareName = false,
           displayName = feideExtendedUserData.displayName,
           arenaAccepted = false
         )
@@ -256,7 +253,6 @@ trait UserService {
         email = feideUser.email,
         arenaEnabled =
           userData.arenaEnabled || arenaEnabledUsers.map(_.toLowerCase).contains(feideUser.email.toLowerCase),
-        shareName = userData.shareName,
         displayName = feideUser.displayName,
         arenaGroups = userData.arenaGroups,
         arenaAccepted = userData.arenaAccepted

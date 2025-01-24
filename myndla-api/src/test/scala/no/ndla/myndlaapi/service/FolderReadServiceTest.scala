@@ -255,7 +255,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         breadcrumbs = List(api.BreadcrumbDTO(id = favoriteUUID.toString, name = "favorite"))
       )
 
-    val user               = emptyMyNDLAUser.copy(id = 1996, shareName = true, displayName = "hallois")
+    val user               = emptyMyNDLAUser.copy(id = 1996, displayName = "hallois")
     val folderId           = UUID.randomUUID()
     val sharedFolderDomain = emptyDomainFolder.copy(id = folderId, name = "SharedFolder", status = FolderStatus.SHARED)
     val savedFolderDomain =
@@ -365,7 +365,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = true,
       arenaGroups = List.empty,
       arenaAccepted = true
     )
@@ -493,7 +492,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       name = "",
       status = "shared",
       breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID.toString, name = "")),
-      resources = List(apiResource)
+      resources = List(apiResource),
+      owner = Some(OwnerDTO(name = "User Name"))
     )
 
     when(feideApiClient.getFeideID(Some(ownerId))).thenReturn(Success(ownerId))
@@ -531,7 +531,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             email = "user_name@example.com",
             arenaEnabled = true,
             arenaGroups = List.empty,
-            shareName = false,
             arenaAccepted = true
           )
         )
@@ -554,7 +553,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             email = "user_name@example.com",
             arenaEnabled = true,
             arenaGroups = List.empty,
-            shareName = false,
             arenaAccepted = true
           )
         )

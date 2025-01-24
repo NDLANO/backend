@@ -429,7 +429,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         email = "example@email.com",
         arenaEnabled = false,
         displayName = "Feide",
-        shareName = false,
         arenaGroups = List.empty,
         arenaAccepted = true
       )
@@ -446,7 +445,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
         arenaAccepted = true,
-        shareName = false,
         arenaGroups = List.empty
       )
 
@@ -473,7 +471,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false,
       arenaGroups = List.empty,
       arenaAccepted = true
     )
@@ -481,7 +478,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = None,
         arenaEnabled = None,
-        shareName = None,
         arenaGroups = None,
         arenaAccepted = None
       )
@@ -489,7 +485,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq.empty),
         arenaEnabled = None,
-        shareName = None,
         arenaGroups = None,
         arenaAccepted = None
       )
@@ -497,7 +492,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("x", "y", "z")),
         arenaEnabled = None,
-        shareName = None,
         arenaGroups = None,
         arenaAccepted = None
       )
@@ -521,7 +515,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false,
       arenaGroups = List.empty,
       arenaAccepted = true
     )
@@ -544,7 +537,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false,
       arenaGroups = List.empty,
       arenaAccepted = true
     )
@@ -567,7 +559,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       displayName = "Feide",
-      shareName = false,
       arenaGroups = List.empty,
       arenaAccepted = true
     )

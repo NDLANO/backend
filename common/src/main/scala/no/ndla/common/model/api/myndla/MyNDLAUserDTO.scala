@@ -36,7 +36,6 @@ case class MyNDLAUserDTO(
     @description("User groups") groups: Seq[MyNDLAGroupDTO],
     @description("Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
     @description("Whether the user has accepted the use of arena") arenaAccepted: Boolean,
-    @description("Whether users name is shared with folders or not") shareName: Boolean,
     @description("Arena user groups") arenaGroups: List[ArenaGroup]
 )
 
@@ -50,8 +49,6 @@ case class UpdatedMyNDLAUserDTO(
     favoriteSubjects: Option[Seq[String]],
     @description("Whether arena should explicitly be enabled for the user")
     arenaEnabled: Option[Boolean],
-    @description("Whether users name should be shared with folder or not")
-    shareName: Option[Boolean],
     @description("Which arena groups the user should be in, only modifiable by admins")
     arenaGroups: Option[List[ArenaGroup]],
     @description("Whether the user has accepted the use of arena")

@@ -24,8 +24,7 @@ case class MyNDLAUser(
     email: String,
     arenaEnabled: Boolean,
     arenaAccepted: Boolean,
-    arenaGroups: List[ArenaGroup],
-    shareName: Boolean
+    arenaGroups: List[ArenaGroup]
 ) {
   // Keeping FEIDE and our data in sync
   def wasUpdatedLast24h: Boolean = NDLADate.now().isBefore(lastUpdated.minusSeconds(10))
