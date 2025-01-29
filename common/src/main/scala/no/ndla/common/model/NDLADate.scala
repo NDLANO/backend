@@ -55,7 +55,7 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
   }
 }
 
-object NDLADate extends StrictLogging {
+object NDLADate {
 
   implicit val typescriptType: TSType[NDLADate] = TSType.sameAs[NDLADate, String]
 

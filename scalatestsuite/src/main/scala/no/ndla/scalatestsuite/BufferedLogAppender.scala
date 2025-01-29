@@ -1,5 +1,5 @@
 /*
- * Part of NDLA backend.scalatestsuite.main
+ * Part of NDLA scalatestsuite
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE

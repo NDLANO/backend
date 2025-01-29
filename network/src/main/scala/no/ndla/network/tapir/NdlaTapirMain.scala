@@ -10,8 +10,10 @@ package no.ndla.network.tapir
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.configuration.BaseProps
 import org.log4s.{Logger, getLogger}
+
 import scala.concurrent.Future
 import scala.io.Source
+import scala.util.{Failure, Try}
 
 trait NdlaTapirMain {
   val logger: Logger = getLogger
@@ -44,9 +46,14 @@ trait NdlaTapirMain {
     setPropsFromEnv()
 
     logCopyrightHeader()
-    startServer(props.ApplicationName, props.ApplicationPort) {
+    Try(startServer(props.ApplicationName, props.ApplicationPort) {
       beforeStart()
       performWarmup()
+    }) match {
+      case Failure(ex) =>
+        logger.error(ex)("Failed to start server, exiting...")
+        throw ex
+      case _ =>
     }
   }
 }
