@@ -125,7 +125,6 @@ class ArenaTest
     email = "some@example.com",
     arenaEnabled = true,
     arenaGroups = List.empty,
-    shareName = false,
     arenaAccepted = true
   )
 
@@ -142,7 +141,6 @@ class ArenaTest
     email = "some@example.com",
     arenaEnabled = true,
     arenaGroups = List(ArenaGroup.ADMIN),
-    shareName = false,
     arenaAccepted = true
   )
 

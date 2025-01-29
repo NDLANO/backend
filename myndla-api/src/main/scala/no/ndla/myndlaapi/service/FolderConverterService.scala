@@ -73,7 +73,7 @@ trait FolderConverterService {
                 updated = folder.updated,
                 shared = folder.shared,
                 description = folder.description,
-                owner = feideUser.flatMap(user => if (user.shareName) Some(OwnerDTO(user.displayName)) else None)
+                owner = feideUser.map(user => OwnerDTO(user.displayName))
               )
             })
         )
@@ -196,7 +196,6 @@ trait FolderConverterService {
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = arenaEnabled,
         arenaAccepted = domainUserData.arenaAccepted,
-        shareName = domainUserData.shareName,
         arenaGroups = domainUserData.arenaGroups
       )
     }
@@ -280,7 +279,6 @@ trait FolderConverterService {
         feideToken: Option[FeideAccessToken]
     ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
-      val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
         if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN) || updaterUser.exists(_.isAdmin))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
@@ -306,7 +304,6 @@ trait FolderConverterService {
           username = domainUserData.username,
           email = domainUserData.email,
           arenaEnabled = arenaEnabled,
-          shareName = shareName,
           displayName = domainUserData.displayName,
           arenaGroups = arenaGroups,
           arenaAccepted = arenaAccepted

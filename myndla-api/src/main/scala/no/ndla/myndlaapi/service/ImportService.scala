@@ -66,7 +66,6 @@ trait ImportService {
             email = "ndla@knowit.no",
             arenaEnabled = true,
             arenaGroups = List(ArenaGroup.ADMIN),
-            shareName = true,
             arenaAccepted = true
           )
           userRepository.insertUser("ndla_admin", toInsert)(session)

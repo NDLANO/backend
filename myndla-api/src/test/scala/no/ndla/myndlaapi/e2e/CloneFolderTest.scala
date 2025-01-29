@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.domain
-import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FolderDTO}
+import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
@@ -185,7 +185,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val parentChild2 = api.FolderDTO(
@@ -202,7 +202,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -228,7 +228,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -297,7 +297,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val parentChild2 = api.FolderDTO(
@@ -314,7 +314,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -340,7 +340,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -397,7 +397,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val parentChild2 = api.FolderDTO(
@@ -417,7 +417,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -446,7 +446,7 @@ class CloneFolderTest
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = None
+      owner = Some(OwnerDTO(""))
     )
 
     val response = simpleHttpClient.send(

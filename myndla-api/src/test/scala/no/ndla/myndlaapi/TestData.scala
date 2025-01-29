@@ -99,7 +99,6 @@ object TestData {
     email = "",
     arenaEnabled = false,
     displayName = "",
-    shareName = false,
     arenaGroups = List.empty,
     arenaAccepted = false
   )
