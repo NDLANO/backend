@@ -13,7 +13,7 @@ import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.Future
 import scala.io.Source
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 trait NdlaTapirMain {
   val logger: Logger = getLogger
@@ -44,18 +44,15 @@ trait NdlaTapirMain {
     }: Unit
   }
 
-  def run(): Unit = {
+  def run(): Try[Unit] = {
     setPropsFromEnv()
 
     logCopyrightHeader()
     Try(startServer(props.ApplicationName, props.ApplicationPort) {
       beforeStart()
       performWarmup()
-    }) match {
-      case Failure(ex) =>
-        logger.error(ex)("Failed to start server, exiting...")
-        throw ex
-      case _ =>
+    }).recover { ex =>
+      logger.error(ex)("Failed to start server, exiting...")
     }
   }
 }
