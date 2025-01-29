@@ -9,7 +9,7 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
@@ -139,12 +139,13 @@ trait UserService {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
         enabledUsers     <- configService.getMyNDLAEnabledUsers
-        combined = folderConverterService.mergeUserData(
+        combined <- folderConverterService.mergeUserData(
           existingUserData,
           updatedUser,
           None,
           Some(existingUserData),
-          enabledUsers
+          enabledUsers,
+          feideAccessToken
         )
         updated     <- userRepository.updateUser(feideId, combined)
         enabledOrgs <- configService.getMyNDLAEnabledOrgs
@@ -153,40 +154,24 @@ trait UserService {
     }
 
     def adminUpdateMyNDLAUserData(
-        updatedUser: UpdatedMyNDLAUserDTO,
-        feideId: Option[String],
-        updaterToken: Option[TokenUser],
-        updaterMyNdla: Option[MyNDLAUser]
-    ): Try[myndla.MyNDLAUserDTO] = {
-      feideId match {
-        case None => Failure(ValidationException("feideId", "You need to supply a feideId to update a user."))
-        case Some(id) =>
-          for {
-            existing     <- userService.getMyNDLAUserOrFail(id)
-            enabledUsers <- configService.getMyNDLAEnabledUsers
-            converted = folderConverterService.mergeUserData(
-              existing,
-              updatedUser,
-              updaterToken,
-              updaterMyNdla,
-              enabledUsers
-            )
-            updated     <- userRepository.updateUser(id, converted)
-            enabledOrgs <- configService.getMyNDLAEnabledOrgs
-            api = folderConverterService.toApiUserData(updated, enabledOrgs)
-          } yield api
-      }
-    }
-
-    def adminUpdateMyNDLAUserData(
         userId: Long,
         updatedUser: UpdatedMyNDLAUserDTO,
-        updaterMyNdla: MyNDLAUser
+        updaterToken: Option[TokenUser],
+        updaterMyNdla: Option[MyNDLAUser]
     )(session: DBSession = AutoSession): Try[myndla.MyNDLAUserDTO] = {
       for {
         existing     <- userService.getUserById(userId)(session)
         enabledUsers <- configService.getMyNDLAEnabledUsers
-        converted = folderConverterService.mergeUserData(existing, updatedUser, None, Some(updaterMyNdla), enabledUsers)
+        converted <- folderConverterService.mergeUserData(
+          existing,
+          updatedUser,
+          updaterToken,
+          updaterMyNdla,
+          enabledUsers,
+          // NOTE: This token is used to create a nodebb profile
+          //       since the one updating here is an admin, we cannot use it to create a profile.
+          feideToken = None
+        )
         updated     <- userRepository.updateUserById(userId, converted)(session)
         enabledOrgs <- configService.getMyNDLAEnabledOrgs
         api = folderConverterService.toApiUserData(updated, enabledOrgs)

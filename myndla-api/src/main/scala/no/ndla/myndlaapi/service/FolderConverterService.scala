@@ -9,8 +9,10 @@
 package no.ndla.myndlaapi.service
 
 import cats.implicits.*
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.{Clock, model}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla
 import no.ndla.common.model.domain.myndla.{
@@ -18,8 +20,10 @@ import no.ndla.common.model.domain.myndla.{
   MyNDLAGroup as DomainMyNDLAGroup,
   MyNDLAUser as DomainMyNDLAUser
 }
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
+import no.ndla.network.model.FeideAccessToken
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -28,11 +32,11 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait FolderConverterService {
-  this: Clock =>
+  this: Clock & NodeBBClient =>
 
   val folderConverterService: FolderConverterService
 
-  class FolderConverterService {
+  class FolderConverterService extends StrictLogging {
     def toApiFolder(
         domainFolder: domain.Folder,
         breadcrumbs: List[api.BreadcrumbDTO],
@@ -228,13 +232,53 @@ trait FolderConverterService {
       )
     }
 
+    private def getArenaAccepted(
+        arenaEnabled: Boolean,
+        domainUserData: DomainMyNDLAUser,
+        updatedUser: UpdatedMyNDLAUserDTO,
+        feideToken: Option[FeideAccessToken]
+    ): Try[Boolean] = {
+      val arenaAccepted = updatedUser.arenaAccepted match {
+        case Some(true) if arenaEnabled => true
+        case Some(false)                => false
+        case _                          => domainUserData.arenaAccepted
+      }
+
+      def getToken = feideToken.toTry(
+        ValidationException(
+          "arenaAccepted",
+          "Tried to update arenaAccepted without a token connected to the feide user."
+        )
+      )
+
+      (domainUserData.arenaAccepted, arenaAccepted) match {
+        case (true, false) =>
+          logger.info("User went from `arenaAccepted` true to false, calling nodebb to delete user.")
+          for {
+            token  <- getToken
+            userId <- nodebb.getUserId(token)
+            _      <- nodebb.deleteUser(userId, token)
+          } yield arenaAccepted
+        case (false, true) =>
+          logger.info(
+            s"User with ndla user id ${domainUserData.id} went from `arenaAccepted` false to true, calling nodebb."
+          )
+          for {
+            token <- getToken
+            _     <- nodebb.getUserId(token)
+          } yield arenaAccepted
+        case _ => Success(arenaAccepted)
+      }
+    }
+
     def mergeUserData(
         domainUserData: DomainMyNDLAUser,
         updatedUser: UpdatedMyNDLAUserDTO,
         updaterToken: Option[TokenUser],
         updaterUser: Option[DomainMyNDLAUser],
-        arenaEnabledUsers: List[String]
-    ): DomainMyNDLAUser = {
+        arenaEnabledUsers: List[String],
+        feideToken: Option[FeideAccessToken]
+    ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val shareName        = updatedUser.shareName.getOrElse(domainUserData.shareName)
       val arenaEnabled = {
@@ -244,31 +288,29 @@ trait FolderConverterService {
           domainUserData.arenaEnabled || arenaEnabledUsers.map(_.toLowerCase).contains(domainUserData.email.toLowerCase)
       }
 
-      val arenaAccepted = updatedUser.arenaAccepted match {
-        case Some(true) if arenaEnabled => true
-        case Some(false)                => false
-        case _                          => domainUserData.arenaAccepted
-      }
+      val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
 
       val arenaGroups =
         if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
         else domainUserData.arenaGroups
 
-      DomainMyNDLAUser(
-        id = domainUserData.id,
-        feideId = domainUserData.feideId,
-        favoriteSubjects = favoriteSubjects,
-        userRole = domainUserData.userRole,
-        lastUpdated = domainUserData.lastUpdated,
-        organization = domainUserData.organization,
-        groups = domainUserData.groups,
-        username = domainUserData.username,
-        email = domainUserData.email,
-        arenaEnabled = arenaEnabled,
-        shareName = shareName,
-        displayName = domainUserData.displayName,
-        arenaGroups = arenaGroups,
-        arenaAccepted = arenaAccepted
+      Success(
+        DomainMyNDLAUser(
+          id = domainUserData.id,
+          feideId = domainUserData.feideId,
+          favoriteSubjects = favoriteSubjects,
+          userRole = domainUserData.userRole,
+          lastUpdated = domainUserData.lastUpdated,
+          organization = domainUserData.organization,
+          groups = domainUserData.groups,
+          username = domainUserData.username,
+          email = domainUserData.email,
+          arenaEnabled = arenaEnabled,
+          shareName = shareName,
+          displayName = domainUserData.displayName,
+          arenaGroups = arenaGroups,
+          arenaAccepted = arenaAccepted
+        )
       )
     }
 
