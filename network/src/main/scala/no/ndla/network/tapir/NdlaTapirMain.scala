@@ -10,8 +10,10 @@ package no.ndla.network.tapir
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.configuration.BaseProps
 import org.log4s.{Logger, getLogger}
+
 import scala.concurrent.Future
 import scala.io.Source
+import scala.util.Try
 
 trait NdlaTapirMain {
   val logger: Logger = getLogger
@@ -22,7 +24,9 @@ trait NdlaTapirMain {
   def beforeStart(): Unit
 
   private def logCopyrightHeader(): Unit = {
-    logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
+    if (!props.DisableLicense) {
+      logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
+    }
   }
 
   private def performWarmup(): Unit = if (!props.disableWarmup) {
@@ -40,13 +44,15 @@ trait NdlaTapirMain {
     }: Unit
   }
 
-  def run(): Unit = {
+  def run(): Try[Unit] = {
     setPropsFromEnv()
 
     logCopyrightHeader()
-    startServer(props.ApplicationName, props.ApplicationPort) {
+    Try(startServer(props.ApplicationName, props.ApplicationPort) {
       beforeStart()
       performWarmup()
+    }).recover { ex =>
+      logger.error(ex)("Failed to start server, exiting...")
     }
   }
 }

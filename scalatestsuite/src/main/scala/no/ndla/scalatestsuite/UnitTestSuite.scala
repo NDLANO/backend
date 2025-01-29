@@ -7,15 +7,15 @@
 
 package no.ndla.scalatestsuite
 
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest._
+import org.scalatest.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
 import java.io.IOException
 import java.net.ServerSocket
 import scala.util.Properties.{propOrNone, setProp}
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 abstract class UnitTestSuite
     extends AnyFunSuite
@@ -25,7 +25,10 @@ abstract class UnitTestSuite
     with Inspectors
     with MockitoSugar
     with BeforeAndAfterEach
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with TestSuiteLoggingSetup {
+
+  setPropEnv("DISABLE_LICENSE", "true"): Unit
 
   def setPropEnv(key: String, value: String): String = setProp(key, value)
 
