@@ -24,7 +24,9 @@ trait NdlaTapirMain {
   def beforeStart(): Unit
 
   private def logCopyrightHeader(): Unit = {
-    logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
+    if (!props.DisableLicense) {
+      logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
+    }
   }
 
   private def performWarmup(): Unit = if (!props.disableWarmup) {

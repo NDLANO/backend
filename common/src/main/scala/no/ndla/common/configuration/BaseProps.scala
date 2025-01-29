@@ -61,4 +61,6 @@ trait BaseProps {
   def BrightCoveVideoUri(accountId: String, videoId: String): Uri =
     uri"https://cms.api.brightcove.com/v1/accounts/$accountId/videos/$videoId/sources"
 
+  def DisableLicense: Boolean = booleanPropOrElse("DISABLE_LICENSE", default = false)
+
 }

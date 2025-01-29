@@ -28,6 +28,8 @@ abstract class UnitTestSuite
     with BeforeAndAfterAll
     with TestSuiteLoggingSetup {
 
+  setPropEnv("DISABLE_LICENSE", "true"): Unit
+
   def setPropEnv(key: String, value: String): String = setProp(key, value)
 
   def setPropEnv(map: Map[String, String]): Unit = {
