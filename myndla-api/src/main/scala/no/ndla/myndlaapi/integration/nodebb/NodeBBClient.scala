@@ -93,7 +93,7 @@ trait NodeBBClient {
 
     def getUserId(feideToken: FeideAccessToken): Try[Option[Long]] = {
       val request = quickRequest
-        .get(uri"$baseUrl/api/self")
+        .get(uri"$baseUrl/api/config")
         .header("FeideAuthorization", s"Bearer $feideToken")
       val resp = doReq(request).?
 
