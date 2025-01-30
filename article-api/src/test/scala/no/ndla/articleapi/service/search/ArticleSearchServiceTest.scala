@@ -232,6 +232,7 @@ class ArticleSearchServiceTest
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
+    super.beforeAll()
     articleIndexService.createIndexAndAlias().get
 
     articleIndexService.indexDocument(article1).get

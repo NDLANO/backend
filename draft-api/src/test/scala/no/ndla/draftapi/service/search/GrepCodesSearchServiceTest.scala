@@ -42,14 +42,17 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
 
   val articlesToIndex: Seq[Draft] = Seq(article1, article2, article3, article4)
 
-  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    tagIndexService.createIndexWithName(props.DraftGrepCodesSearchIndex)
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    if (elasticSearchContainer.isSuccess) {
+      tagIndexService.createIndexWithName(props.DraftGrepCodesSearchIndex)
 
-    articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a))
+      articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a))
 
-    val allGrepCodesToIndex = articlesToIndex.flatMap(_.grepCodes)
+      val allGrepCodesToIndex = articlesToIndex.flatMap(_.grepCodes)
 
-    blockUntil(() => grepCodesSearchService.countDocuments == allGrepCodesToIndex.size)
+      blockUntil(() => grepCodesSearchService.countDocuments == allGrepCodesToIndex.size)
+    }
   }
 
   test("That searching for grepcodes returns sensible results") {

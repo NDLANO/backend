@@ -87,6 +87,7 @@ class ArenaTest
   val myndlaApiArenaUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { myndlaApi.run() }: Unit
     Thread.sleep(1000)

@@ -75,15 +75,18 @@ class TagSearchServiceTest
 
   val imagesToIndex: Seq[ImageMetaInformation] = Seq(image1, image2, image3, image4)
 
-  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    tagIndexService.createIndexAndAlias().get
-    imagesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    if (elasticSearchContainer.isSuccess) {
+      tagIndexService.createIndexAndAlias().get
+      imagesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
 
-    val allTagsToIndex         = imagesToIndex.flatMap(_.tags)
-    val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
-    val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
+      val allTagsToIndex         = imagesToIndex.flatMap(_.tags)
+      val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
+      val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
 
-    blockUntil(() => tagSearchService.countDocuments() == tagsDistinctByLanguage.size)
+      blockUntil(() => tagSearchService.countDocuments() == tagsDistinctByLanguage.size)
+    }
   }
 
   test("That searching for tags returns sensible results") {

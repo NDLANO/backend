@@ -48,6 +48,7 @@ class ArticleApiClientTest
   val articleApiBaseUrl: String        = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
