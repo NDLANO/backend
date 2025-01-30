@@ -104,7 +104,8 @@ trait ImageControllerV2 {
             podcastFriendly = podcastFriendly,
             includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
-            modelReleased = modelReleasedStatus
+            modelReleased = modelReleasedStatus,
+            userFilter = List.empty
           )
         case None =>
           SearchSettings(
@@ -119,7 +120,8 @@ trait ImageControllerV2 {
             podcastFriendly = podcastFriendly,
             includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
-            modelReleased = modelReleasedStatus
+            modelReleased = modelReleasedStatus,
+            userFilter = List.empty
           )
       }
 

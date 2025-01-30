@@ -384,7 +384,8 @@ trait TestData {
       podcastFriendly = None,
       includeCopyrighted = false,
       shouldScroll = false,
-      modelReleased = Seq.empty
+      modelReleased = Seq.empty,
+      userFilter = List.empty
     )
   }
 }
