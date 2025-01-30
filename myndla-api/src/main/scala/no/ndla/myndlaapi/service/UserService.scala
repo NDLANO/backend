@@ -57,49 +57,43 @@ trait UserService {
     }
 
     def getMyNdlaUserDataDomain(
-        feideAccessToken: Option[FeideAccessToken],
-        arenaEnabledUsers: List[String]
+        feideAccessToken: Option[FeideAccessToken]
     ): Try[MyNDLAUser] = {
       for {
         feideId <- feideApiClient.getFeideID(feideAccessToken)
         userData <- userRepository.rollbackOnFailure(session =>
-          getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, arenaEnabledUsers)(session)
+          getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         )
       } yield userData
     }
 
     def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
       for {
-        users    <- configService.getMyNDLAEnabledUsers
-        userData <- getMyNdlaUserDataDomain(feideAccessToken, users)
-        orgs     <- configService.getMyNDLAEnabledOrgs
-        arenaEnabled = folderConverterService.getArenaEnabled(userData, orgs)
-        user <- if (arenaEnabled) Success(userData) else Failure(AccessDeniedException("User is not arena enabled"))
+        userData <- getMyNdlaUserDataDomain(feideAccessToken)
+        user <-
+          if (userData.arenaEnabled) Success(userData) else Failure(AccessDeniedException("User is not arena enabled"))
       } yield user
     }
 
     def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[myndla.MyNDLAUserDTO] = {
       for {
-        users    <- configService.getMyNDLAEnabledUsers
-        userData <- getMyNdlaUserDataDomain(feideAccessToken, users)
-        orgs     <- configService.getMyNDLAEnabledOrgs
-        api = folderConverterService.toApiUserData(userData, orgs)
+        userData <- getMyNdlaUserDataDomain(feideAccessToken)
+        api = folderConverterService.toApiUserData(userData)
       } yield api
     }
 
     def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken],
-        arenaEnabledUsers: List[String]
+        feideAccessToken: Option[FeideAccessToken]
     )(implicit session: DBSession): Try[MyNDLAUser] = {
       userRepository.reserveFeideIdIfNotExists(feideId)(session).flatMap {
-        case false => createMyNDLAUser(feideId, feideAccessToken, arenaEnabledUsers)(session)
+        case false => createMyNDLAUser(feideId, feideAccessToken)(session)
         case true =>
           userRepository.userWithFeideId(feideId)(session).flatMap {
             case None => Failure(new IllegalStateException(s"User with feide_id $feideId was not found."))
             case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
             case Some(userData) =>
-              fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData, arenaEnabledUsers)(session)
+              fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
           }
       }
     }
@@ -117,7 +111,7 @@ trait UserService {
         implicit session: DBSession
     ): Try[myndla.MyNDLAUserDTO] =
       for {
-        existingUser <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
+        existingUser <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         newFavorites = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
         updatedFeideUser = UpdatedMyNDLAUserDTO(
           favoriteSubjects = Some(newFavorites),
@@ -136,19 +130,15 @@ trait UserService {
       for {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
-        enabledUsers     <- configService.getMyNDLAEnabledUsers
-        enabledOrgs      <- configService.getMyNDLAEnabledOrgs
         combined <- folderConverterService.mergeUserData(
           existingUserData,
           updatedUser,
           None,
           Some(existingUserData),
-          enabledUsers,
-          enabledOrgs,
           feideAccessToken
         )
         updated <- userRepository.updateUser(feideId, combined)
-        api = folderConverterService.toApiUserData(updated, enabledOrgs)
+        api = folderConverterService.toApiUserData(updated)
       } yield api
     }
 
@@ -159,22 +149,18 @@ trait UserService {
         updaterMyNdla: Option[MyNDLAUser]
     )(session: DBSession = AutoSession): Try[myndla.MyNDLAUserDTO] = {
       for {
-        existing     <- userService.getUserById(userId)(session)
-        enabledUsers <- configService.getMyNDLAEnabledUsers
-        enabledOrgs  <- configService.getMyNDLAEnabledOrgs
+        existing <- userService.getUserById(userId)(session)
         converted <- folderConverterService.mergeUserData(
           existing,
           updatedUser,
           updaterToken,
           updaterMyNdla,
-          enabledUsers,
-          enabledOrgs,
           // NOTE: This token is used to create a nodebb profile
           //       since the one updating here is an admin, we cannot use it to create a profile.
           feideToken = None
         )
         updated <- userRepository.updateUserById(userId, converted)(session)
-        api = folderConverterService.toApiUserData(updated, enabledOrgs)
+        api = folderConverterService.toApiUserData(updated)
       } yield api
     }
 
@@ -206,8 +192,7 @@ trait UserService {
 
     private def createMyNDLAUser(
         feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken],
-        arenaEnabledUsers: List[String]
+        feideAccessToken: Option[FeideAccessToken]
     )(implicit
         session: DBSession
     ): Try[MyNDLAUser] = {
@@ -215,15 +200,16 @@ trait UserService {
         feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
         organization          <- feideApiClient.getOrganization(feideAccessToken)
         feideGroups           <- feideApiClient.getFeideGroups(feideAccessToken)
+        userRole = if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT
         newUser = MyNDLAUserDocument(
           favoriteSubjects = Seq.empty,
-          userRole = if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
+          userRole = userRole,
           lastUpdated = clock.now().plusDays(1),
           organization = organization,
           groups = toDomainGroups(feideGroups),
           username = feideExtendedUserData.username,
           email = feideExtendedUserData.email,
-          arenaEnabled = arenaEnabledUsers.map(_.toLowerCase).contains(feideExtendedUserData.email.toLowerCase),
+          arenaEnabled = userRole == UserRole.EMPLOYEE,
           arenaGroups = getInitialIsArenaGroups(feideId),
           displayName = feideExtendedUserData.displayName,
           arenaAccepted = false
@@ -235,26 +221,25 @@ trait UserService {
     private def fetchDataAndUpdateMyNDLAUser(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken],
-        userData: MyNDLAUser,
-        arenaEnabledUsers: List[String]
+        userData: MyNDLAUser
     )(implicit
         session: DBSession
     ): Try[MyNDLAUser] = {
       val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization = feideApiClient.getOrganization(feideAccessToken).?
       val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
+      val userRole     = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT
       val updatedMyNDLAUser = MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,
         favoriteSubjects = userData.favoriteSubjects,
-        userRole = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT,
+        userRole = userRole,
         lastUpdated = clock.now().plusDays(1),
         organization = organization,
         groups = toDomainGroups(feideGroups),
         username = feideUser.username,
         email = feideUser.email,
-        arenaEnabled =
-          userData.arenaEnabled || arenaEnabledUsers.map(_.toLowerCase).contains(feideUser.email.toLowerCase),
+        arenaEnabled = userData.arenaEnabled || userRole == UserRole.EMPLOYEE,
         displayName = feideUser.displayName,
         arenaGroups = userData.arenaGroups,
         arenaAccepted = userData.arenaAccepted
