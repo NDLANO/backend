@@ -50,7 +50,7 @@ trait ImageControllerV2 {
       deleteImage,
       deleteLanguage,
       editImage
-    )
+    ).map(_.deprecated())
 
     /** Does a scroll with [[ImageSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
