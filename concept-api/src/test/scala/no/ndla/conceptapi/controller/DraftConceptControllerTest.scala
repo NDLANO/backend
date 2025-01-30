@@ -120,7 +120,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val body = TestData.updatedConcept.asJson.deepDropNullValues.noSpaces
 
     val res = simpleHttpClient

@@ -29,7 +29,7 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService with Props with TaxonomyApiClient with SearchConverterService =>
+  this: Elastic4sClient & BaseIndexService & Props & TaxonomyApiClient & SearchConverterService =>
   trait IndexService extends BaseIndexService with StrictLogging {
     val repository: Repository[Concept]
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow

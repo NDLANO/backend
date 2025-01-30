@@ -7,11 +7,11 @@
 
 package no.ndla.conceptapi.controller
 
-import cats.implicits._
-import no.ndla.common.implicits._
-import no.ndla.common.model.api.CommaSeparatedList._
+import cats.implicits.*
+import no.ndla.common.implicits.*
+import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.concept.ConceptStatus
-import no.ndla.conceptapi.model.api._
+import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
@@ -24,26 +24,19 @@ import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.headers.CacheDirective
 import sttp.model.{HeaderNames, StatusCode}
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptController {
-  this: WriteService
-    with ReadService
-    with DraftConceptSearchService
-    with SearchConverterService
-    with ConverterService
-    with Props
-    with ConceptControllerHelpers
-    with ErrorHandling
-    with TapirController =>
+  this: WriteService & ReadService & DraftConceptSearchService & SearchConverterService & ConverterService & Props &
+    ConceptControllerHelpers & ErrorHandling & TapirController =>
   val draftConceptController: DraftConceptController
 
   class DraftConceptController extends TapirController {
-    import props._
+    import props.*
 
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
@@ -137,7 +130,7 @@ trait DraftConceptController {
         case Failure(ex) => Failure(ex)
       }
     }
-    import ConceptControllerHelpers._
+    import ConceptControllerHelpers.*
 
     def getConceptById: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show concept with a specified id")

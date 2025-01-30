@@ -6,6 +6,7 @@
  */
 
 package no.ndla.conceptapi.model.api
+
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate

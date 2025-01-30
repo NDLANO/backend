@@ -9,10 +9,10 @@ package no.ndla.conceptapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.conceptapi.model.api.{ConceptDomainDump, ConceptImportResultsDTO, ErrorHandling, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptDomainDump, ErrorHandling, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
-import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
+import no.ndla.conceptapi.service.{ConverterService, ReadService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -28,8 +28,8 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 
 trait InternController {
-  this: IndexService & DraftConceptIndexService & PublishedConceptIndexService & ImportService & ConverterService &
-    ReadService & DraftConceptRepository & PublishedConceptRepository & ErrorHandling & TapirController =>
+  this: IndexService & DraftConceptIndexService & PublishedConceptIndexService & ConverterService & ReadService &
+    DraftConceptRepository & PublishedConceptRepository & ErrorHandling & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController {
@@ -43,8 +43,7 @@ trait InternController {
       dumpSingleDraftConcept,
       dumpPublishedConcept,
       dumpSinglePublishedConcept,
-      postDraftConcept,
-      importConcept
+      postDraftConcept
     )
 
     def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
@@ -174,31 +173,5 @@ trait InternController {
         draftConceptRepository.insert(concept).asRight
       }
 
-    def importConcept: ServerEndpoint[Any, Eff] = endpoint.post
-      .in("import" / "concept")
-      .out(jsonBody[ConceptImportResultsDTO])
-      .errorOut(statusCode(StatusCode.InternalServerError).and(jsonBody[ConceptImportResultsDTO]))
-      .errorOutEither(statusCode(StatusCode.InternalServerError).and(stringBody))
-      .in(query[Boolean]("forceUpdate").default(false))
-      .withOptionalUser
-      .serverLogicPure {
-        user =>
-          { forceUpdate =>
-            val start = System.currentTimeMillis
-            importService.importConcepts(forceUpdate, user.get) match {
-              case Success(result) =>
-                if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
-                  result.asLeft.asLeft
-                } else {
-                  result.asRight
-                }
-              case Failure(ex) =>
-                val errMsg =
-                  s"Import of concepts failed after ${System.currentTimeMillis - start} ms with error: ${ex.getMessage}\n"
-                logger.warn(errMsg, ex)
-                errMsg.asRight.asLeft
-            }
-          }
-      }
   }
 }

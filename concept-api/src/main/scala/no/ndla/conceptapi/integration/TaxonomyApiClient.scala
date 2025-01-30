@@ -18,7 +18,7 @@ import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
 trait TaxonomyApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
   val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient {

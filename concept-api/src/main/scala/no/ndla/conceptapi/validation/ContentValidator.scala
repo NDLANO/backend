@@ -23,7 +23,7 @@ import no.ndla.validation.*
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftConceptRepository with ConverterService with Props =>
+  this: DraftConceptRepository & ConverterService & Props =>
   val contentValidator: ContentValidator
 
   class ContentValidator {

@@ -7,8 +7,8 @@
 
 package no.ndla.conceptapi.service.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.concept.ConceptStatus
@@ -24,24 +24,18 @@ import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
 import scala.annotation.tailrec
-import scala.concurrent.duration._
-import scala.concurrent._
+import scala.concurrent.duration.*
+import scala.concurrent.*
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptSearchService {
-  this: Elastic4sClient
-    with SearchService
-    with DraftConceptIndexService
-    with ConverterService
-    with SearchConverterService
-    with Props
-    with ErrorHandling
-    with DraftSearchSettingsHelper =>
+  this: Elastic4sClient & SearchService & DraftConceptIndexService & ConverterService & SearchConverterService & Props &
+    ErrorHandling & DraftSearchSettingsHelper =>
   val draftConceptSearchService: DraftConceptSearchService
 
   class DraftConceptSearchService extends StrictLogging with SearchService[api.ConceptSummaryDTO] {
-    import props._
+    import props.*
     override val searchIndex: String = DraftConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
@@ -173,7 +167,7 @@ trait DraftConceptSearchService {
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {

@@ -28,19 +28,13 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success, Try}
 
 trait PublishedConceptController {
-  this: WriteService
-    with ReadService
-    with PublishedConceptSearchService
-    with SearchConverterService
-    with Props
-    with ConceptControllerHelpers
-    with ErrorHandling
-    with TapirController =>
+  this: WriteService & ReadService & PublishedConceptSearchService & SearchConverterService & Props &
+    ConceptControllerHelpers & ErrorHandling & TapirController =>
   val publishedConceptController: PublishedConceptController
 
   class PublishedConceptController extends TapirController {
-    import ConceptControllerHelpers._
-    import props._
+    import ConceptControllerHelpers.*
+    import props.*
 
     override val serviceName: String         = "concepts"
     override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName

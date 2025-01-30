@@ -13,7 +13,7 @@ import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
 
 trait DraftConceptIndexService {
-  this: IndexService with DraftConceptRepository with SearchConverterService with Props =>
+  this: IndexService & DraftConceptRepository & SearchConverterService & Props =>
   val draftConceptIndexService: DraftConceptIndexService
 
   class DraftConceptIndexService extends StrictLogging with IndexService {

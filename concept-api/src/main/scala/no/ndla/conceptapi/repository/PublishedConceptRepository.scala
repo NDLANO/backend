@@ -52,7 +52,7 @@ trait PublishedConceptRepository {
       }
     }
 
-    def delete(id: Long)(implicit session: DBSession = AutoSession): Try[_] = {
+    def delete(id: Long)(implicit session: DBSession = AutoSession): Try[?] = {
       Try(
         sql"""
             delete from ${PublishedConcept.table}
