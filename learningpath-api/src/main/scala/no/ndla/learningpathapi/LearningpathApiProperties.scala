@@ -20,14 +20,11 @@ trait Props extends HasBaseProps with HasDatabaseProps {
 }
 
 class LearningpathApiProperties extends BaseProps with DatabaseProps with StrictLogging {
-  def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
-
   def ApplicationName            = "learningpath-api"
   def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-  def MaxFolderDepth: Long    = propOrElse("MAX_FOLDER_DEPTH", "5").toLong
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
@@ -36,12 +33,6 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
   def DefaultPageSize     = 10
   def MaxPageSize         = 10000
   def IndexBulkSize       = 1000
-
-  def InternalImageApiUrl: String    = s"$ImageApiHost/image-api/v3/images"
-  def InternalImageApiRawUrl: String = s"$ImageApiHost/image-api/raw"
-
-  def RedisHost: String = propOrElse("REDIS_HOST", "redis")
-  def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
   object ExternalApiUrls {
     def ImageApiUrl    = s"$Domain/image-api/v3/images"
@@ -83,8 +74,6 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
     EnvironmentUrls("test") ++
     EnvironmentUrls("staging")
 
-  def UsernameHeader = "X-Consumer-Username"
-
   def ElasticSearchIndexMaxResultWindow          = 10000
   def ElasticSearchScrollKeepAlive               = "1m"
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
@@ -116,9 +105,6 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
 
   def SearchServer: String =
     propOrElse("SEARCH_SERVER", "http://search-learningpath-api.ndla-local")
-
-  def RunWithSignedSearchRequests: Boolean =
-    propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
 
   override def MetaMigrationLocation: String      = "no/ndla/learningpathapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")
