@@ -271,12 +271,10 @@ trait FolderReadService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[MyNDLAUserDTO] =
       for {
-        users <- configService.getMyNDLAEnabledUsers
         user <- userRepository.rollbackOnFailure(session =>
-          userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, users)(session)
+          userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         )
-        orgs <- configService.getMyNDLAEnabledOrgs
-      } yield folderConverterService.toApiUserData(user, orgs)
+      } yield folderConverterService.toApiUserData(user)
 
     def getStats: Option[api.StatsDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)

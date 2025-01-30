@@ -180,7 +180,7 @@ trait FolderConverterService {
     }
 
     def toApiUserData(
-        domainUserData: DomainMyNDLAUser,
+        domainUserData: DomainMyNDLAUser
     ): model.api.myndla.MyNDLAUserDTO = {
       model.api.myndla.MyNDLAUserDTO(
         id = domainUserData.id,

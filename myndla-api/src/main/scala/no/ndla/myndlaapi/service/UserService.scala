@@ -57,7 +57,7 @@ trait UserService {
     }
 
     def getMyNdlaUserDataDomain(
-        feideAccessToken: Option[FeideAccessToken],
+        feideAccessToken: Option[FeideAccessToken]
     ): Try[MyNDLAUser] = {
       for {
         feideId <- feideApiClient.getFeideID(feideAccessToken)
@@ -70,7 +70,8 @@ trait UserService {
     def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
       for {
         userData <- getMyNdlaUserDataDomain(feideAccessToken)
-        user <- if (userData.arenaEnabled) Success(userData) else Failure(AccessDeniedException("User is not arena enabled"))
+        user <-
+          if (userData.arenaEnabled) Success(userData) else Failure(AccessDeniedException("User is not arena enabled"))
       } yield user
     }
 
@@ -83,7 +84,7 @@ trait UserService {
 
     def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken],
+        feideAccessToken: Option[FeideAccessToken]
     )(implicit session: DBSession): Try[MyNDLAUser] = {
       userRepository.reserveFeideIdIfNotExists(feideId)(session).flatMap {
         case false => createMyNDLAUser(feideId, feideAccessToken)(session)
@@ -148,7 +149,7 @@ trait UserService {
         updaterMyNdla: Option[MyNDLAUser]
     )(session: DBSession = AutoSession): Try[myndla.MyNDLAUserDTO] = {
       for {
-        existing     <- userService.getUserById(userId)(session)
+        existing <- userService.getUserById(userId)(session)
         converted <- folderConverterService.mergeUserData(
           existing,
           updatedUser,
@@ -191,7 +192,7 @@ trait UserService {
 
     private def createMyNDLAUser(
         feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken],
+        feideAccessToken: Option[FeideAccessToken]
     )(implicit
         session: DBSession
     ): Try[MyNDLAUser] = {
@@ -220,14 +221,14 @@ trait UserService {
     private def fetchDataAndUpdateMyNDLAUser(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken],
-        userData: MyNDLAUser,
+        userData: MyNDLAUser
     )(implicit
         session: DBSession
     ): Try[MyNDLAUser] = {
       val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization = feideApiClient.getOrganization(feideAccessToken).?
       val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
-      val userRole    = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT
+      val userRole     = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT
       val updatedMyNDLAUser = MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,

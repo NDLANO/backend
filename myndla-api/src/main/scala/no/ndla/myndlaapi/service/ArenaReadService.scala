@@ -593,7 +593,7 @@ trait ArenaReadService {
         for {
           feideToken   <- feideApiClient.getFeideAccessTokenOrFail(feideAccessToken)
           feideId      <- feideApiClient.getFeideID(feideAccessToken)
-          user         <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
+          user         <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
           nodebbUserId <- nodebb.getUserId(feideToken)
           _            <- arenaRepository.disconnectPostsByUser(user.id)(session)
           _            <- arenaRepository.disconnectTopicsByUser(user.id)(session)
