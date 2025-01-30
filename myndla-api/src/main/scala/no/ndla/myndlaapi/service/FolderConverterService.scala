@@ -286,7 +286,9 @@ trait FolderConverterService {
         else
           domainUserData.arenaEnabled || arenaEnabledUsers
             .map(_.toLowerCase)
-            .contains(domainUserData.email.toLowerCase) || arenaEnabledOrgs.contains(domainUserData.organization)
+            .contains(domainUserData.email.toLowerCase) || arenaEnabledOrgs
+            .map(_.toLowerCase)
+            .contains(domainUserData.organization.toLowerCase)
       }
 
       val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
