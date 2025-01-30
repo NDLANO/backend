@@ -181,9 +181,7 @@ trait FolderConverterService {
 
     def toApiUserData(
         domainUserData: DomainMyNDLAUser,
-        arenaEnabledOrgs: List[String]
     ): model.api.myndla.MyNDLAUserDTO = {
-      val arenaEnabled = getArenaEnabled(domainUserData, arenaEnabledOrgs)
       model.api.myndla.MyNDLAUserDTO(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
@@ -194,7 +192,7 @@ trait FolderConverterService {
         role = domainUserData.userRole.toString,
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
-        arenaEnabled = arenaEnabled,
+        arenaEnabled = domainUserData.arenaEnabled,
         arenaAccepted = domainUserData.arenaAccepted,
         arenaGroups = domainUserData.arenaGroups
       )
@@ -275,8 +273,6 @@ trait FolderConverterService {
         updatedUser: UpdatedMyNDLAUserDTO,
         updaterToken: Option[TokenUser],
         updaterUser: Option[DomainMyNDLAUser],
-        arenaEnabledUsers: List[String],
-        arenaEnabledOrgs: List[String],
         feideToken: Option[FeideAccessToken]
     ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
@@ -284,11 +280,7 @@ trait FolderConverterService {
         if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN) || updaterUser.exists(_.isAdmin))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
         else
-          domainUserData.arenaEnabled || arenaEnabledUsers
-            .map(_.toLowerCase)
-            .contains(domainUserData.email.toLowerCase) || arenaEnabledOrgs
-            .map(_.toLowerCase)
-            .contains(domainUserData.organization.toLowerCase)
+          domainUserData.arenaEnabled
       }
 
       val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
