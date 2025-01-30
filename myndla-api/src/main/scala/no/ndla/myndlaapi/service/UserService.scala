@@ -139,16 +139,17 @@ trait UserService {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
         enabledUsers     <- configService.getMyNDLAEnabledUsers
+        enabledOrgs      <- configService.getMyNDLAEnabledOrgs
         combined <- folderConverterService.mergeUserData(
           existingUserData,
           updatedUser,
           None,
           Some(existingUserData),
           enabledUsers,
+          enabledOrgs,
           feideAccessToken
         )
-        updated     <- userRepository.updateUser(feideId, combined)
-        enabledOrgs <- configService.getMyNDLAEnabledOrgs
+        updated <- userRepository.updateUser(feideId, combined)
         api = folderConverterService.toApiUserData(updated, enabledOrgs)
       } yield api
     }
@@ -162,18 +163,19 @@ trait UserService {
       for {
         existing     <- userService.getUserById(userId)(session)
         enabledUsers <- configService.getMyNDLAEnabledUsers
+        enabledOrgs  <- configService.getMyNDLAEnabledOrgs
         converted <- folderConverterService.mergeUserData(
           existing,
           updatedUser,
           updaterToken,
           updaterMyNdla,
           enabledUsers,
+          enabledOrgs,
           // NOTE: This token is used to create a nodebb profile
           //       since the one updating here is an admin, we cannot use it to create a profile.
           feideToken = None
         )
-        updated     <- userRepository.updateUserById(userId, converted)(session)
-        enabledOrgs <- configService.getMyNDLAEnabledOrgs
+        updated <- userRepository.updateUserById(userId, converted)(session)
         api = folderConverterService.toApiUserData(updated, enabledOrgs)
       } yield api
     }

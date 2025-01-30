@@ -277,6 +277,7 @@ trait FolderConverterService {
         updaterToken: Option[TokenUser],
         updaterUser: Option[DomainMyNDLAUser],
         arenaEnabledUsers: List[String],
+        arenaEnabledOrgs: List[String],
         feideToken: Option[FeideAccessToken]
     ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
@@ -285,7 +286,9 @@ trait FolderConverterService {
         if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN) || updaterUser.exists(_.isAdmin))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
         else
-          domainUserData.arenaEnabled || arenaEnabledUsers.map(_.toLowerCase).contains(domainUserData.email.toLowerCase)
+          domainUserData.arenaEnabled || arenaEnabledUsers
+            .map(_.toLowerCase)
+            .contains(domainUserData.email.toLowerCase) || arenaEnabledOrgs.contains(domainUserData.organization)
       }
 
       val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
