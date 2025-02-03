@@ -74,8 +74,11 @@ trait SearchConverterService {
         .getOrElse(Seq.empty)
         .exists(i => i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400))
 
-      val users =
-        image.editorNotes.map(_.updatedBy) :+ image.updatedBy :+ image.createdBy
+      val users = (
+        image.editorNotes.map(_.updatedBy) :+
+          image.updatedBy :+
+          image.createdBy
+      ).distinct
 
       SearchableImage(
         id = image.id.get,
