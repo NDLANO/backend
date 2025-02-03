@@ -339,10 +339,13 @@ trait UpdateService {
           case Success(learningPath) =>
             val stepsToChange = learningPathRepository.learningStepsFor(learningPathId)
             val stepToUpdate = stepsToChange.find(_.id.contains(learningStepId)) match {
-              case Some(ls) => ls
+              case Some(ls) if ls.status == DELETED && newStatus == DELETED =>
+                val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
+                return Failure(NotFoundException(msg))
               case None =>
                 val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
                 return Failure(NotFoundException(msg))
+              case Some(ls) => ls
             }
 
             val (updatedPath, updatedStep) =

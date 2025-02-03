@@ -8,12 +8,9 @@
 
 package no.ndla.learningpathapi.e2e
 
-import io.circe.generic.auto.*
-import io.circe.syntax.EncoderOps
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{EmbedType, LearningPath, StepType}
-import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, UserRole}
 import no.ndla.learningpathapi.model.api.{
   EmbedUrlV2DTO,
   LearningPathV2DTO,
@@ -23,12 +20,11 @@ import no.ndla.learningpathapi.model.api.{
 }
 import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{reset, spy, when, withSettings}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{spy, when, withSettings}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.quality.Strictness
 import org.testcontainers.containers.PostgreSQLContainer
-import sttp.client3.Response
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
@@ -185,20 +181,20 @@ class LearningPathAndStepCreationTests
   }
 
   test("That sequence numbers of learningsteps are updated correctly") {
-    val x                = createLearningpath("Test1")
-    val s1               = createLearningStep(x.id, "Step1")
-    val s2               = createLearningStep(x.id, "Step2")
-    val s3               = createLearningStep(x.id, "Step3")
-    val s4               = createLearningStep(x.id, "Step4")
-    val s5               = createLearningStep(x.id, "Step5")
+    val x  = createLearningpath("Test1")
+    val s1 = createLearningStep(x.id, "Step1")
+    createLearningStep(x.id, "Step2")
+    createLearningStep(x.id, "Step3")
+    createLearningStep(x.id, "Step4")
+    createLearningStep(x.id, "Step5")
     val pathBeforeDelete = getLearningPath(x.id)
     pathBeforeDelete.learningsteps.map(_.seqNo) should be(Seq(0, 1, 2, 3, 4))
 
     deleteStep(x.id, s1.id)
-    deleteStep(x.id, s1.id, None)
-    deleteStep(x.id, s1.id, None)
-    deleteStep(x.id, s1.id, None)
-    deleteStep(x.id, s1.id, None)
+    deleteStep(x.id, s1.id, Some(404))
+    deleteStep(x.id, s1.id, Some(404))
+    deleteStep(x.id, s1.id, Some(404))
+    deleteStep(x.id, s1.id, Some(404))
 
     val path = getLearningPath(x.id)
     path.learningsteps.map(_.seqNo) should be(Seq(0, 1, 2, 3))

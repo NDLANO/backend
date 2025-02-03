@@ -40,7 +40,7 @@ import no.ndla.learningpathapi.validation.{
   UrlValidator
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
