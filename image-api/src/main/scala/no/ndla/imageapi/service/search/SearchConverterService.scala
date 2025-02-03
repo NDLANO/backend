@@ -71,9 +71,8 @@ trait SearchConverterService {
         alttexts = SearchableLanguageValues(
           image.alttexts.map(alttext => LanguageValue(alttext.language, alttext.alttext))
         ),
-        captions = SearchableLanguageValues(
-          image.captions.map(caption => LanguageValue(caption.language, caption.caption))
-        ),
+        captions =
+          SearchableLanguageValues(image.captions.map(caption => LanguageValue(caption.language, caption.caption))),
         tags = SearchableLanguageList(image.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         contributors = image.copyright.creators.map(c => c.name) ++ image.copyright.processors
           .map(p => p.name) ++ image.copyright.rightsholders.map(r => r.name),
@@ -86,7 +85,8 @@ trait SearchConverterService {
         podcastFriendly = image.images
           .getOrElse(Seq.empty)
           .exists(i => i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400)),
-        domainObject = image
+        domainObject = image,
+        users = image.editorNotes.map(_.updatedBy)
       )
     }
 

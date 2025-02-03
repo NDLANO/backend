@@ -89,6 +89,13 @@ trait BaseImageController {
             .mkString(",")}"
       )
 
+    val userFilter: EndpointInput.Query[Option[Delimited[",", String]]] = listQuery[String]("users")
+      .description(
+        """List of users to filter by.
+          |The value to search for is the user-id from Auth0.
+          |UpdatedBy on article and user in editorial-notes are searched.""".stripMargin
+      )
+
     val imageIds: EndpointInput.Query[Option[Delimited[",", Long]]] = listQuery[Long]("ids")
       .description(
         "Return only images that have one of the provided ids. To provide multiple ids, separate by comma (,)."
