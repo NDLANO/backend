@@ -21,7 +21,7 @@ import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import cats.implicits._
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -65,28 +65,37 @@ trait SearchConverterService {
         })
         .lastOption
 
+      val contributors =
+        image.copyright.creators.map(c => c.name) ++
+          image.copyright.processors.map(p => p.name) ++
+          image.copyright.rightsholders.map(r => r.name)
+
+      val podcastFriendly = image.images
+        .getOrElse(Seq.empty)
+        .exists(i => i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400))
+
+      val users = (
+        image.editorNotes.map(_.updatedBy) :+
+          image.updatedBy :+
+          image.createdBy
+      ).distinct
+
       SearchableImage(
         id = image.id.get,
-        titles = SearchableLanguageValues(image.titles.map(title => LanguageValue(title.language, title.title))),
-        alttexts = SearchableLanguageValues(
-          image.alttexts.map(alttext => LanguageValue(alttext.language, alttext.alttext))
-        ),
-        captions =
-          SearchableLanguageValues(image.captions.map(caption => LanguageValue(caption.language, caption.caption))),
-        tags = SearchableLanguageList(image.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        contributors = image.copyright.creators.map(c => c.name) ++ image.copyright.processors
-          .map(p => p.name) ++ image.copyright.rightsholders.map(r => r.name),
+        titles = SearchableLanguageValues.fromFields(image.titles),
+        alttexts = SearchableLanguageValues.fromFields(image.alttexts),
+        captions = SearchableLanguageValues.fromFields(image.captions),
+        tags = SearchableLanguageList.fromFields(image.tags),
+        contributors = contributors,
         license = image.copyright.license,
         lastUpdated = image.updated,
         defaultTitle = defaultTitle.map(t => t.title),
         modelReleased = Some(image.modelReleased.toString),
         editorNotes = image.editorNotes.map(_.note),
         imageFiles = asSearchableImageFiles(image.images.getOrElse(Seq.empty)),
-        podcastFriendly = image.images
-          .getOrElse(Seq.empty)
-          .exists(i => i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400)),
+        podcastFriendly = podcastFriendly,
         domainObject = image,
-        users = image.editorNotes.map(_.updatedBy)
+        users = users
       )
     }
 
