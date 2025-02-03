@@ -49,7 +49,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Tag(Seq("the", "words"), "und")
   )
 
-  override def beforeAll(): Unit = {}
+  override def beforeAll(): Unit = super.beforeAll()
 
   test("That asSearchableArticle converts titles with correct language") {
     val article           = TestData.sampleArticleWithByNcSa.copy(title = titles)

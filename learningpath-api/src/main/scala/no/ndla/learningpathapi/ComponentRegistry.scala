@@ -40,7 +40,7 @@ import no.ndla.learningpathapi.validation.{
   UrlValidator
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
 
@@ -60,7 +60,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with TaxonomyApiClient
     with NdlaClient
     with ConverterService
-    with FeideApiClient
     with OembedProxyClient
     with Elastic4sClient
     with DataSource
@@ -76,7 +75,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with TextValidator
     with UrlValidator
     with ErrorHandling
-    with RedisClient
     with SwaggerDocControllerConfig {
   override val props: LearningpathApiProperties = properties
   override val migrator: DBMigrator = DBMigrator(
@@ -100,7 +98,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val clock                  = new SystemClock
   lazy val taxonomyApiClient      = new TaxonomyApiClient
   lazy val ndlaClient             = new NdlaClient
-  lazy val feideApiClient         = new FeideApiClient
   lazy val languageValidator      = new LanguageValidator
   lazy val titleValidator         = new TitleValidator
   lazy val learningPathValidator  = new LearningPathValidator
@@ -108,7 +105,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchApiClient        = new SearchApiClient
   lazy val oembedProxyClient      = new OembedProxyClient
-  lazy val redisClient            = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val myndlaApiClient        = new MyNDLAApiClient
 
   lazy val learningpathControllerV2                = new LearningpathControllerV2

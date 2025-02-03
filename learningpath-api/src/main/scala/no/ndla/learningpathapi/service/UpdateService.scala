@@ -12,7 +12,8 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.domain.learningpath
-import no.ndla.common.model.domain.learningpath.{LearningPath, LearningPathStatus, Message, StepStatus}
+import no.ndla.common.model.domain.learningpath.StepStatus.DELETED
+import no.ndla.common.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningStep, Message, StepStatus}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.*
@@ -22,7 +23,6 @@ import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -31,8 +31,7 @@ import scala.util.{Failure, Success, Try}
 
 trait UpdateService {
   this: LearningPathRepositoryComponent & ReadService & ConverterService & SearchIndexService & Clock &
-    LearningStepValidator & LearningPathValidator & TaxonomyApiClient & FeideApiClient & SearchApiClient & Props &
-    RedisClient =>
+    LearningStepValidator & LearningPathValidator & TaxonomyApiClient & SearchApiClient & Props =>
   val updateService: UpdateService
 
   class UpdateService {
@@ -300,6 +299,34 @@ trait UpdateService {
       }
     }
 
+    def updateWithStepSeqNo(
+        learningStepId: Long,
+        newStatus: StepStatus,
+        learningPath: LearningPath,
+        stepToUpdate: LearningStep,
+        stepsToChange: Seq[LearningStep],
+        owner: CombinedUserRequired
+    ): (LearningPath, LearningStep) = inTransaction { implicit session =>
+      val (_, updatedStep, newLearningSteps) =
+        stepsToChange.sortBy(_.seqNo).foldLeft((0, stepToUpdate, Seq.empty[LearningStep])) {
+          case ((seqNo, foundStep, steps), curr) =>
+            val isChangedStep = curr.id.contains(learningStepId)
+            val (mainStep, stepToAdd) =
+              if (isChangedStep) (curr.copy(status = newStatus), curr.copy(status = newStatus))
+              else (foundStep, curr)
+            val updatedMainStep = mainStep.copy(seqNo = seqNo)
+            val updatedSteps    = steps :+ stepToAdd.copy(seqNo = seqNo)
+            val nextSeqNo       = if (stepToAdd.status == DELETED) seqNo else seqNo + 1
+
+            (nextSeqNo, updatedMainStep, updatedSteps)
+        }
+
+      val updated     = newLearningSteps.map(learningPathRepository.updateLearningStep)
+      val lp          = converterService.insertLearningSteps(learningPath, updated, owner)
+      val updatedPath = learningPathRepository.update(lp.copy(learningsteps = None))
+      (updatedPath, updatedStep)
+    }
+
     def updateLearningStepStatusV2(
         learningPathId: Long,
         learningStepId: Long,
@@ -310,56 +337,30 @@ trait UpdateService {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
           case Failure(ex) => Failure(ex)
           case Success(learningPath) =>
-            learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {
+            val stepsToChange = learningPathRepository.learningStepsFor(learningPathId)
+            val stepToUpdate = stepsToChange.find(_.id.contains(learningStepId)) match {
+              case Some(ls) if ls.status == DELETED && newStatus == DELETED =>
+                val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
+                return Failure(NotFoundException(msg))
               case None =>
-                Failure(
-                  NotFoundException(
-                    s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
-                  )
-                )
-              case Some(learningStep) =>
-                val stepToUpdate = learningStep.copy(status = newStatus)
-                val stepsToChangeSeqNoOn = learningPathRepository
-                  .learningStepsFor(learningPathId)
-                  .filter(step => step.seqNo >= stepToUpdate.seqNo && step.id != stepToUpdate.id)
-
-                val stepsWithChangedSeqNo = stepToUpdate.status match {
-                  case StepStatus.DELETED =>
-                    stepsToChangeSeqNoOn.map(step => step.copy(seqNo = step.seqNo - 1))
-                  case StepStatus.ACTIVE =>
-                    stepsToChangeSeqNoOn.map(step => step.copy(seqNo = step.seqNo + 1))
-                }
-
-                val (updatedPath, updatedStep) = inTransaction { implicit session =>
-                  val updatedStep = learningPathRepository.updateLearningStep(stepToUpdate)
-
-                  val newLearningSteps = learningPath.learningsteps
-                    .getOrElse(Seq.empty)
-                    .filterNot(step =>
-                      stepsWithChangedSeqNo
-                        .map(_.id)
-                        .contains(step.id)
-                    ) ++ stepsWithChangedSeqNo
-
-                  val lp          = converterService.insertLearningSteps(learningPath, newLearningSteps, owner)
-                  val updatedPath = learningPathRepository.update(lp)
-
-                  stepsWithChangedSeqNo.foreach(learningPathRepository.updateLearningStep)
-
-                  (updatedPath, updatedStep)
-                }
-
-                updateSearchAndTaxonomy(updatedPath, owner.tokenUser).flatMap(_ =>
-                  converterService.asApiLearningStepV2(
-                    updatedStep,
-                    updatedPath,
-                    props.DefaultLanguage,
-                    fallback = true,
-                    owner
-                  )
-                )
-
+                val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
+                return Failure(NotFoundException(msg))
+              case Some(ls) => ls
             }
+
+            val (updatedPath, updatedStep) =
+              updateWithStepSeqNo(learningStepId, newStatus, learningPath, stepToUpdate, stepsToChange, owner)
+
+            updateSearchAndTaxonomy(updatedPath, owner.tokenUser).flatMap(_ =>
+              converterService.asApiLearningStepV2(
+                updatedStep,
+                updatedPath,
+                props.DefaultLanguage,
+                fallback = true,
+                owner
+              )
+            )
+
         }
       }
 

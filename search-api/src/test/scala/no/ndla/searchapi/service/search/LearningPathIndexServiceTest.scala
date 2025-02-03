@@ -44,6 +44,7 @@ class LearningPathIndexServiceTest
   }
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 

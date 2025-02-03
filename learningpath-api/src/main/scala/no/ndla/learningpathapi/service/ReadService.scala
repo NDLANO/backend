@@ -19,14 +19,14 @@ import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearnin
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.InvalidLpStatusException
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
 
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: LearningPathRepositoryComponent & FeideApiClient & ConverterService & Clock & RedisClient & MyNDLAApiClient =>
+  this: LearningPathRepositoryComponent & ConverterService & Clock & MyNDLAApiClient =>
   val readService: ReadService
 
   class ReadService {

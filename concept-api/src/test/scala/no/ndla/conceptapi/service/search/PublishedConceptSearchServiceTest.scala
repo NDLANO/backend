@@ -212,26 +212,29 @@ class PublishedConceptSearchServiceTest
     aggregatePaths = List.empty
   )
 
-  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
-    publishedConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    if (elasticSearchContainer.isSuccess) {
+      when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
+      publishedConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
 
-    publishedConceptIndexService.indexDocument(concept1)
-    publishedConceptIndexService.indexDocument(concept2)
-    publishedConceptIndexService.indexDocument(concept3)
-    publishedConceptIndexService.indexDocument(concept4)
-    publishedConceptIndexService.indexDocument(concept5)
-    publishedConceptIndexService.indexDocument(concept6)
-    publishedConceptIndexService.indexDocument(concept7)
-    publishedConceptIndexService.indexDocument(concept8)
-    publishedConceptIndexService.indexDocument(concept9)
-    publishedConceptIndexService.indexDocument(concept10)
-    publishedConceptIndexService.indexDocument(concept11)
-    publishedConceptIndexService.indexDocument(concept12)
+      publishedConceptIndexService.indexDocument(concept1)
+      publishedConceptIndexService.indexDocument(concept2)
+      publishedConceptIndexService.indexDocument(concept3)
+      publishedConceptIndexService.indexDocument(concept4)
+      publishedConceptIndexService.indexDocument(concept5)
+      publishedConceptIndexService.indexDocument(concept6)
+      publishedConceptIndexService.indexDocument(concept7)
+      publishedConceptIndexService.indexDocument(concept8)
+      publishedConceptIndexService.indexDocument(concept9)
+      publishedConceptIndexService.indexDocument(concept10)
+      publishedConceptIndexService.indexDocument(concept11)
+      publishedConceptIndexService.indexDocument(concept12)
 
-    blockUntil(() => {
-      publishedConceptSearchService.countDocuments == 12
-    })
+      blockUntil(() => {
+        publishedConceptSearchService.countDocuments == 12
+      })
+    }
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
