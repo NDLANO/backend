@@ -36,7 +36,7 @@ class LearningPathAndStepCreationTests
     extends IntegrationSuite(
       EnableElasticsearchContainer = true,
       EnablePostgresContainer = true,
-      EnableRedisContainer = true
+      EnableRedisContainer = false
     )
     with UnitSuite {
 
@@ -51,6 +51,7 @@ class LearningPathAndStepCreationTests
     override def MetaPort: Int          = pgc.getMappedPort(5432)
     override def MetaSchema: String     = "testschema"
     override def disableWarmup: Boolean = true
+    override def SearchServer: String   = elasticSearchHost.get
   }
 
   val someDate: NDLADate = NDLADate.of(2017, 1, 1, 1, 59)
@@ -58,9 +59,6 @@ class LearningPathAndStepCreationTests
   val learningpathApi: MainClass = new MainClass(learningpathApiProperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(learningpathApiProperties) {
       override lazy val clock: SystemClock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
-//        override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
-//        override lazy val userRepository: UserRepository     = spy(new UserRepository)
-//        override lazy val userService: UserService           = spy(new UserService)
       override lazy val myndlaApiClient: MyNDLAApiClient     = spy(new MyNDLAApiClient)
       override lazy val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
 
@@ -81,13 +79,11 @@ class LearningPathAndStepCreationTests
     super.beforeAll()
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { learningpathApi.run() }: Unit
-    Thread.sleep(1000)
+    Thread.sleep(5000)
   }
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-//      reset(learningpathApi.componentRegistry.userRepository)
-
     learningpathApi.componentRegistry.inTransaction(implicit session => {
       learningpathApi.componentRegistry.learningPathRepository.deleteAllPathsAndSteps(session)
     })

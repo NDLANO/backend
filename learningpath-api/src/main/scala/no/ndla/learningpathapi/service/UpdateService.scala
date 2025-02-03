@@ -312,7 +312,7 @@ trait UpdateService {
           case ((seqNo, foundStep, steps), curr) =>
             val isChangedStep = curr.id.contains(learningStepId)
             val (mainStep, stepToAdd) =
-              if (isChangedStep) (curr, curr.copy(status = newStatus))
+              if (isChangedStep) (curr.copy(status = newStatus), curr.copy(status = newStatus))
               else (foundStep, curr)
             val updatedMainStep = mainStep.copy(seqNo = seqNo)
             val updatedSteps    = steps :+ stepToAdd.copy(seqNo = seqNo)
@@ -323,7 +323,7 @@ trait UpdateService {
 
       val updated     = newLearningSteps.map(learningPathRepository.updateLearningStep)
       val lp          = converterService.insertLearningSteps(learningPath, updated, owner)
-      val updatedPath = learningPathRepository.update(lp)
+      val updatedPath = learningPathRepository.update(lp.copy(learningsteps = None))
       (updatedPath, updatedStep)
     }
 
