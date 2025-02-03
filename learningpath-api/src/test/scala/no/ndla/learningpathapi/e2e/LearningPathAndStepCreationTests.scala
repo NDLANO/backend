@@ -1,5 +1,5 @@
 /*
- * Part of NDLA backend.learningpath-api.test
+ * Part of NDLA learningpath-api
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE
