@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
@@ -15,7 +15,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.domain.Sort._
+import no.ndla.conceptapi.model.domain.Sort.*
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
@@ -27,10 +27,10 @@ import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with SearchConverterService with StrictLogging with Props =>
+  this: Elastic4sClient & SearchConverterService & StrictLogging & Props =>
 
   trait SearchService[T] {
-    import props._
+    import props.*
 
     val searchIndex: String
 
@@ -122,7 +122,7 @@ trait SearchService {
     ): Option[BoolQuery] = {
       if (language == AllLanguages || language == "*" || fallback) {
         val fields = ISO639.languagePriority.map(l => s"$fieldName.$l.raw")
-        orFilter(seq, fields: _*)
+        orFilter(seq, fields*)
       } else { orFilter(seq, s"$fieldName.$language.raw") }
     }
 

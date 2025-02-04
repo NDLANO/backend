@@ -41,11 +41,11 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   val indexName: String = UUID.randomUUID().toString
   override val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {
-    override val searchIndex = indexName
+    override val searchIndex: String = indexName
   }
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
-    override val indexShards = 1
-    override val searchIndex = indexName
+    override val indexShards         = 1
+    override val searchIndex: String = indexName
   }
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService

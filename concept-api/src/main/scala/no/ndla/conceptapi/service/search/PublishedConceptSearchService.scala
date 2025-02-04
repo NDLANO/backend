@@ -7,8 +7,8 @@
 
 package no.ndla.conceptapi.service.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.SimpleQueryStringFlag
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
@@ -25,24 +25,18 @@ import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
 import scala.annotation.tailrec
-import scala.concurrent._
-import scala.concurrent.duration._
+import scala.concurrent.*
+import scala.concurrent.duration.*
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 trait PublishedConceptSearchService {
-  this: Elastic4sClient
-    with SearchService
-    with PublishedConceptIndexService
-    with ConverterService
-    with SearchConverterService
-    with Props
-    with ErrorHandling
-    with SearchSettingsHelper =>
+  this: Elastic4sClient & SearchService & PublishedConceptIndexService & ConverterService & SearchConverterService &
+    Props & ErrorHandling & SearchSettingsHelper =>
   val publishedConceptSearchService: PublishedConceptSearchService
 
   class PublishedConceptSearchService extends StrictLogging with SearchService[api.ConceptSummaryDTO] {
-    import props._
+    import props.*
     override val searchIndex: String = PublishedConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
@@ -112,23 +106,22 @@ trait PublishedConceptSearchService {
       val language =
         if (settings.fallback) "*" else settings.searchLanguage
 
-      val fullQuery = settings.exactTitleMatch match {
-        case true =>
-          boolQuery().must(simpleStringQuery(query).flags(SimpleQueryStringFlag.NONE).field(s"title.$language.lower"))
-        case false =>
-          boolQuery().must(
-            boolQuery()
-              .should(
-                List(
-                  simpleStringQuery(query).field(s"title.$language", 2),
-                  simpleStringQuery(query).field(s"content.$language", 1),
-                  simpleStringQuery(query).field(s"gloss", 1),
-                  idsQuery(query)
-                ) ++
-                  buildNestedEmbedField(List(query), None, settings.searchLanguage, settings.fallback) ++
-                  buildNestedEmbedField(List.empty, Some(query), settings.searchLanguage, settings.fallback)
-              )
-          )
+      val fullQuery = if (settings.exactTitleMatch) {
+        boolQuery().must(simpleStringQuery(query).flags(SimpleQueryStringFlag.NONE).field(s"title.$language.lower"))
+      } else {
+        boolQuery().must(
+          boolQuery()
+            .should(
+              List(
+                simpleStringQuery(query).field(s"title.$language", 2),
+                simpleStringQuery(query).field(s"content.$language", 1),
+                simpleStringQuery(query).field(s"gloss", 1),
+                idsQuery(query)
+              ) ++
+                buildNestedEmbedField(List(query), None, settings.searchLanguage, settings.fallback) ++
+                buildNestedEmbedField(List.empty, Some(query), settings.searchLanguage, settings.fallback)
+            )
+        )
       }
       executeSearch(fullQuery, settings)
     }

@@ -16,7 +16,7 @@ import no.ndla.conceptapi.controller.{
   InternController,
   PublishedConceptController
 }
-import no.ndla.conceptapi.integration.{ArticleApiClient, SearchApiClient, TaxonomyApiClient}
+import no.ndla.conceptapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -54,8 +54,6 @@ trait TestEnvironment
     with ConverterService
     with StateTransitionRules
     with ContentValidator
-    with ImportService
-    with ArticleApiClient
     with SearchApiClient
     with NdlaClient
     with Clock
@@ -93,12 +91,10 @@ trait TestEnvironment
   val converterService: ConverterService = mock[ConverterService]
   val contentValidator: ContentValidator = mock[ContentValidator]
   val clock: SystemClock                 = mock[SystemClock]
-  val importService: ImportService       = mock[ImportService]
 
-  val ndlaClient: NdlaClient             = mock[NdlaClient]
-  val myndlaApiClient: MyNDLAApiClient   = mock[MyNDLAApiClient]
-  val articleApiClient: ArticleApiClient = mock[ArticleApiClient]
-  val searchApiClient: SearchApiClient   = mock[SearchApiClient]
+  val ndlaClient: NdlaClient           = mock[NdlaClient]
+  val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  val searchApiClient: SearchApiClient = mock[SearchApiClient]
 
   def services: List[TapirController] = List.empty
 }

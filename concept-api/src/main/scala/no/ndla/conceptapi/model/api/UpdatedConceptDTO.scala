@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.{DraftCopyrightDTO, UpdateOrDelete}
 import sttp.tapir.Schema.annotations.description
 import com.scalatsi.TypescriptType.{TSNull, TSUndefined, TSUnion}
-import com.scalatsi._
+import com.scalatsi.*
 
 // format: off
 @description("Information about the concept")
