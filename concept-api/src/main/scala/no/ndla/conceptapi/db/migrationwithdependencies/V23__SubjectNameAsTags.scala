@@ -8,6 +8,7 @@
 
 package no.ndla.conceptapi.db.migrationwithdependencies
 
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Json, parser}
 import no.ndla.common.CirceUtil
 import no.ndla.conceptapi.ConceptApiProperties
@@ -24,7 +25,8 @@ case class TagsObject(tags: List[String], language: String)
 class V23__SubjectNameAsTags(
     properties: ConceptApiProperties,
     prefetchedSubjects: Option[List[TaxonomySubject]] = None
-) extends DocumentMigration {
+) extends DocumentMigration
+    with StrictLogging {
   override val columnName: String = "document"
   override val tableName: String  = "conceptdata"
 
@@ -69,11 +71,16 @@ class V23__SubjectNameAsTags(
     oldDocument.hcursor.downField("subjectIds").as[Option[List[String]]].toTry.get match {
       case Some(subjectIds) if subjectIds.nonEmpty =>
         val newTags = subjectIds.foldLeft(existingTags) { case (accTags, sid) =>
-          val sidTranslations = subjectIdToTranslationsMap(sid)
-          languages.map { lang =>
-            val tr = sidTranslations(lang)
-            val t  = accTags.find(_.language == lang).getOrElse(TagsObject(List.empty, lang))
-            t.copy(tags = t.tags :+ tr)
+          if (subjectIdToTranslationsMap.contains(sid)) {
+            val sidTranslations = subjectIdToTranslationsMap(sid)
+            languages.map { lang =>
+              val tr = sidTranslations(lang)
+              val t  = accTags.find(_.language == lang).getOrElse(TagsObject(List.empty, lang))
+              t.copy(tags = t.tags :+ tr)
+            }
+          } else {
+            logger.error(s"Subject with id '$sid' not found when running '${getClass.getSimpleName}'")
+            accTags
           }
         }
 

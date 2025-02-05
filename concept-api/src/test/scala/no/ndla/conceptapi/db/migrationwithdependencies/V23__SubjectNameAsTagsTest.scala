@@ -59,7 +59,7 @@ class V23__SubjectNameAsTagsTest extends UnitSuite with TestEnvironment {
       tags = List(Tag(List("nb"), "nb"), Tag(List("nn"), "nn"), Tag(List("en"), "en"), Tag(List("zh"), "zh")),
       visualElement = List(VisualElement("zzz", "en")),
       metaImage = List(ConceptMetaImage("123", "zzz", "zh")),
-      subjectIds = Set("urn:subject:1", "urn:subject:2")
+      subjectIds = Set("urn:subject:1", "urn:subject:2", "urn:subject:thatdoesnotexist")
     )
 
     val result = migration.convertColumn(concept.asJson.noSpaces)
