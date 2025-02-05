@@ -27,6 +27,7 @@
         "allowedChildren": [
           "aside",
           "b",
+          "blockquote",
           "br",
           "details",
           "div",
