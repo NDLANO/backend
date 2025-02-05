@@ -464,17 +464,13 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, newLearningPath) =>
-          UserInfo
-            .getWithUserIdOrAdmin(user)
-            .flatMap(userInfo =>
-              updateService
-                .newFromExistingV2(pathId, newLearningPath, userInfo)
-                .map(learningPath => {
-                  logger.info(s"COPIED LearningPath with ID =  ${learningPath.id}")
-                  val headers = DynamicHeaders.fromValue("Location", learningPath.metaUrl)
-                  (learningPath, headers)
-                })
-            )
+          updateService
+            .newFromExistingV2(pathId, newLearningPath, user)
+            .map(learningPath => {
+              logger.info(s"COPIED LearningPath with ID =  ${learningPath.id}")
+              val headers = DynamicHeaders.fromValue("Location", learningPath.metaUrl)
+              (learningPath, headers)
+            })
             .handleErrorsOrOk
         }
       }
