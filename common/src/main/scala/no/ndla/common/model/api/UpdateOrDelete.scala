@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA common
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.common.model.api
 
 import io.circe.{Decoder, Encoder, FailedCursor, Json}

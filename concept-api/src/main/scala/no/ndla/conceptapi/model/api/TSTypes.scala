@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA concept-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.conceptapi.model.api
 
 import com.scalatsi.TypescriptType.TSNull

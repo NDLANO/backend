@@ -1,8 +1,9 @@
 /*
- * Part of GDL language.
- * Copyright (C) 2018 Global Digital Library
+ * Part of NDLA backend
+ * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.language.model

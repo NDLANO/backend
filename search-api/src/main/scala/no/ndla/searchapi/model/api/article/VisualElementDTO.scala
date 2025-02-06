@@ -3,6 +3,7 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.api.article

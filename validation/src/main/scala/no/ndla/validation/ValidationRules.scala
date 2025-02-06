@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA validation
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.validation
 
 import no.ndla.common.CirceUtil

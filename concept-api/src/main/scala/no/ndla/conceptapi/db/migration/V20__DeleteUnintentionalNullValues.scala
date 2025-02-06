@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.db.migration

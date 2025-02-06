@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA common
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.common
 
 import no.ndla.common.ContentURIUtil.NotUrnPatternException
