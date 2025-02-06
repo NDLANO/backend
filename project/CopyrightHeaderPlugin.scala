@@ -79,6 +79,7 @@ object CopyrightHeaderPlugin extends AutoPlugin {
   }
 
   override lazy val projectSettings: Seq[Setting[?]] = Seq(
+    Compile / compile := (Compile / compile dependsOn copyrightGenerate).value,
     copyrightGenerate := {
       val appName                = name.value
       val sourceFiles: Seq[File] = (Compile / sources).value
