@@ -12,9 +12,9 @@ import com.scalatsi.TypescriptType.{TSString, TSUndefined}
 import com.scalatsi.{TSIType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.api.search.SearchTrait
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.search.SearchTrait
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 

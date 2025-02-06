@@ -10,7 +10,7 @@ package no.ndla.searchapi.model.api
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import no.ndla.search.api.MultiSearchTermsAggregationDTO
+import no.ndla.common.model.api.search.{MultiSearchSuggestionDTO, MultiSearchSummaryDTO, MultiSearchTermsAggregationDTO}
 import sttp.tapir.Schema.annotations.description
 
 @description("Search result for group search")

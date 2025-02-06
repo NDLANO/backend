@@ -31,6 +31,7 @@ import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexServi
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
+import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.*
@@ -246,6 +247,13 @@ trait WriteService {
           case Failure(ex)                           => Failure(ex)
         }
       }
+    }
+
+    def migrateOutdatedGreps(): Try[Unit] = {
+
+      // TODO:
+      ???
+
     }
 
     /** Determines which repository function(s) should be called and calls them */

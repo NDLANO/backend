@@ -1,12 +1,12 @@
 /*
- * Part of NDLA search-api
- * Copyright (C) 2024 NDLA
+ * Part of NDLA backend.common.main
+ * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.searchapi.model.search
+package no.ndla.common.model.api.search
 
 import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import com.scalatsi.{TSNamedType, TSType}

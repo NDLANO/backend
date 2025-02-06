@@ -15,10 +15,11 @@ import io.circe.generic.auto.*
 import sttp.tapir.generic.auto.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, Json}
+import no.ndla.common.model.api.search.TitleDTO
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.model.api.{DescriptionDTO, TitleDTO}
+import no.ndla.searchapi.model.api.DescriptionDTO
 import no.ndla.searchapi.model.grep.{
   GrepKjerneelement,
   GrepKompetansemaal,

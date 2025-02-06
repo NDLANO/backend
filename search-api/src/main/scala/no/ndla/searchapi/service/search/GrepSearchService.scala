@@ -17,6 +17,7 @@ import com.sksamuel.elastic4s.requests.searches.sort.SortOrder.{Asc, Desc}
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
@@ -24,7 +25,7 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.*
 import no.ndla.searchapi.model.api.grep.{GrepResultDTO, GrepSearchResultsDTO, GrepSortDTO}
-import no.ndla.searchapi.model.search.{SearchType, SearchableGrepElement}
+import no.ndla.searchapi.model.search.SearchableGrepElement
 
 import scala.util.Try
 

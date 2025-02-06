@@ -11,9 +11,9 @@ package no.ndla.searchapi.controller.parameters
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{SearchTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.search.{SearchTrait, SearchType}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 

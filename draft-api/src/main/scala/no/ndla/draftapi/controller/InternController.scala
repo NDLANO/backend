@@ -261,5 +261,14 @@ trait InternController {
       .serverLogicPure { article =>
         writeService.insertDump(article)
       }
+
+    def migrateOutdatedGreps: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("migrate-greps")
+      .errorOut(errorOutputsFor(500))
+      .out(emptyOutput)
+      .serverLogicPure { _ =>
+        writeService.migrateOutdatedGreps().handleErrorsOrOk
+
+      }
   }
 }

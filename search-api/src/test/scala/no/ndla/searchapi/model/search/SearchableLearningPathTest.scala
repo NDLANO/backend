@@ -9,13 +9,13 @@
 package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.LearningResourceType
 
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 

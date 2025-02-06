@@ -1,20 +1,19 @@
 /*
- * Part of NDLA draft-api
- * Copyright (C) 2019 NDLA
+ * Part of NDLA backend.network.main
+ * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.draftapi.integration
+package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
+import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.model.api.search.{MultiSearchResultDTO, MultiSearchSummaryDTO}
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.draftapi.Props
-import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.client3.quick.*
@@ -24,11 +23,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient & ConverterService & Props =>
+  this: HasBaseProps & NdlaClient =>
+
   val searchApiClient: SearchApiClient
 
   class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends StrictLogging {
-
     private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
     private val SearchEndpointPublished = s"$SearchApiBaseUrl/search-api/v1/search/"
     private val indexTimeout            = 60.seconds
@@ -81,8 +80,8 @@ trait SearchApiClient {
       }
     }
 
-    def publishedWhereUsed(articleId: Long, user: TokenUser): Seq[SearchHit] = {
-      get[SearchResults](
+    def publishedWhereUsed(articleId: Long, user: TokenUser): Seq[MultiSearchSummaryDTO] = {
+      get[MultiSearchResultDTO](
         SearchEndpointPublished,
         user,
         "embed-resource" -> "content-link,related-content",
@@ -97,23 +96,4 @@ trait SearchApiClient {
       ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params*)), Some(user))
     }
   }
-
-}
-
-case class SearchResults(totalCount: Int, results: Seq[SearchHit])
-object SearchResults {
-  implicit val encoder: Encoder[SearchResults] = deriveEncoder
-  implicit val decoder: Decoder[SearchResults] = deriveDecoder
-}
-
-case class SearchHit(id: Long, title: Title)
-object SearchHit {
-  implicit val encoder: Encoder[SearchHit] = deriveEncoder
-  implicit val decoder: Decoder[SearchHit] = deriveDecoder
-}
-
-case class Title(title: String, language: String)
-object Title {
-  implicit val encoder: Encoder[Title] = deriveEncoder
-  implicit val decoder: Decoder[Title] = deriveDecoder
 }

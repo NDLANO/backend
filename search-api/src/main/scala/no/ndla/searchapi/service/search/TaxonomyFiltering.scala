@@ -10,7 +10,7 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import no.ndla.searchapi.model.domain.LearningResourceType
+import no.ndla.common.model.api.search.LearningResourceType
 
 trait TaxonomyFiltering {
 
