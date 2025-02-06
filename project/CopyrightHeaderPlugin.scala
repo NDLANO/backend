@@ -84,7 +84,7 @@ object CopyrightHeaderPlugin extends AutoPlugin {
       val sourceFiles: Seq[File] = (Compile / sources).value
       val testFiles: Seq[File]   = (Test / sources).value
       val allFiles               = sourceFiles ++ testFiles
-      val filteredPath           = s"/$appName/target/scala-2.13/src_managed"
+      val filteredPath           = s"/$appName/target/"
       val filteredFiles          = allFiles.filterNot(_.getAbsolutePath.contains(filteredPath))
 
       val gotError = filteredFiles.foldLeft(false) { case (foundError, file) =>
