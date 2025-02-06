@@ -53,6 +53,7 @@ trait StateTransitionRules {
       (IN_PROGRESS        -> ARCHIVED)            require WritePermission withIllegalStatuses  Set(PUBLISHED) withSideEffect resetResponsible,
       (IN_PROGRESS        -> EXTERNAL_REVIEW)     keepStates Set(PUBLISHED),
       (IN_PROGRESS        -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
+      (IN_PROGRESS        -> LANGUAGE)            keepStates Set(PUBLISHED),
       (IN_PROGRESS        -> PUBLISHED)           keepStates Set() require PublishPermission withSideEffect publishConcept withSideEffect resetResponsible,
       (EXTERNAL_REVIEW    -> IN_PROGRESS)         keepStates Set(PUBLISHED),
        EXTERNAL_REVIEW    -> EXTERNAL_REVIEW,
