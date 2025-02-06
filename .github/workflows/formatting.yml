@@ -33,3 +33,5 @@ jobs:
           --password-stdin
       - name: Check all formatting
         run: sbt scalafmtCheck scalafmtSbtCheck
+      - name: Check copyrights
+        run: sbt copyrightCheck
