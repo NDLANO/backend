@@ -3,6 +3,7 @@
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.api

@@ -1,5 +1,6 @@
 import Dependencies.versions.*
 import GithubWorkflowPlugin.autoImport.*
+import CopyrightHeaderPlugin.autoImport.*
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
   typescriptGenerationImports,

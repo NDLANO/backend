@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA language
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.language
 
 import no.ndla.language.model.{LanguageField, WithLanguage}
