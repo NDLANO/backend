@@ -59,8 +59,9 @@ class ArenaRepositoryTest
       displayName = "Test Testesen",
       email = "example@example.com",
       arenaEnabled = true,
+      arenaAccepted = true,
       arenaGroups = List(),
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val feideId = "feideId1"
 
@@ -111,8 +112,9 @@ class ArenaRepositoryTest
       displayName = "Test Testesen",
       email = "example@example.com",
       arenaEnabled = true,
+      arenaAccepted = true,
       arenaGroups = List(),
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val feideId = "feideId1"
 
@@ -175,8 +177,9 @@ class ArenaRepositoryTest
       displayName = "Test Testesen",
       email = "example@example.com",
       arenaEnabled = true,
+      arenaAccepted = true,
       arenaGroups = List(),
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val feideId  = "feideId1"
     val feideId2 = "feideId2"
@@ -185,9 +188,19 @@ class ArenaRepositoryTest
       userRepository.reserveFeideIdIfNotExists(feideId)(session).get
       userRepository.reserveFeideIdIfNotExists(feideId2)(session).get
       val user1 =
-        userRepository.insertUser(feideId, user.copy(username = "test1", email = "example1@example.com"))(session).get
+        userRepository
+          .insertUser(
+            feideId,
+            user.copy(username = "test1", email = "example1@example.com")
+          )(session)
+          .get
       val user2 =
-        userRepository.insertUser(feideId2, user.copy(username = "test2", email = "example2@example.com"))(session).get
+        userRepository
+          .insertUser(
+            feideId2,
+            user.copy(username = "test2", email = "example2@example.com")
+          )(session)
+          .get
 
       val cat1 = arenaRepository
         .insertCategory(
