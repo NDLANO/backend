@@ -115,25 +115,6 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     repository.delete(10).isSuccess should be(false)
   }
 
-  test("That getting subjects works as expected") {
-    val concept1 = TestData.domainConcept.copy(id = Some(1), subjectIds = Set("urn:subject:1", "urn:subject:2"))
-    val concept2 = TestData.domainConcept.copy(id = Some(2), subjectIds = Set("urn:subject:1", "urn:subject:19"))
-    val concept3 = TestData.domainConcept.copy(id = Some(3), subjectIds = Set("urn:subject:12"))
-
-    repository.insertOrUpdate(concept1)
-    repository.insertOrUpdate(concept2)
-    repository.insertOrUpdate(concept3)
-
-    repository.allSubjectIds should be(
-      Set(
-        "urn:subject:1",
-        "urn:subject:2",
-        "urn:subject:12",
-        "urn:subject:19"
-      )
-    )
-  }
-
   test("Fetching concepts tags works as expected") {
     val concept1 =
       TestData.domainConcept.copy(
@@ -156,10 +137,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
         )
       )
     val concept3 =
-      TestData.domainConcept.copy(
-        id = Some(3),
-        tags = Seq()
-      )
+      TestData.domainConcept.copy(id = Some(3), tags = Seq())
 
     repository.insertOrUpdate(concept1)
     repository.insertOrUpdate(concept2)
@@ -185,26 +163,10 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
 
   test("That count works as expected") {
     val consistentDate = NDLADate.fromUnixTime(0)
-    val concept1 = TestData.domainConcept.copy(
-      id = Some(10),
-      created = consistentDate,
-      updated = consistentDate
-    )
-    val concept2 = TestData.domainConcept.copy(
-      id = Some(11),
-      created = consistentDate,
-      updated = consistentDate
-    )
-    val concept3 = TestData.domainConcept.copy(
-      id = Some(11),
-      created = consistentDate,
-      updated = consistentDate
-    )
-    val concept4 = TestData.domainConcept.copy(
-      id = Some(12),
-      created = consistentDate,
-      updated = consistentDate
-    )
+    val concept1       = TestData.domainConcept.copy(id = Some(10), created = consistentDate, updated = consistentDate)
+    val concept2       = TestData.domainConcept.copy(id = Some(11), created = consistentDate, updated = consistentDate)
+    val concept3       = TestData.domainConcept.copy(id = Some(11), created = consistentDate, updated = consistentDate)
+    val concept4       = TestData.domainConcept.copy(id = Some(12), created = consistentDate, updated = consistentDate)
     repository.conceptCount should be(0)
 
     repository.insertOrUpdate(concept1)
@@ -224,21 +186,21 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     val con1 = TestData.domainConcept.copy(
       id = Some(1),
       content = Seq(ConceptContent("Hei", "nb")),
-      updated = NDLADate.fromUnixTime(0),
-      created = NDLADate.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
     val con2 = TestData.domainConcept.copy(
       id = Some(2),
       revision = Some(100),
       content = Seq(concept.ConceptContent("På", "nb")),
-      updated = NDLADate.fromUnixTime(0),
-      created = NDLADate.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
     val con3 = TestData.domainConcept.copy(
       id = Some(3),
       content = Seq(concept.ConceptContent("Deg", "nb")),
-      updated = NDLADate.fromUnixTime(0),
-      created = NDLADate.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
 
     val Success(ins1) = repository.insertOrUpdate(con1)

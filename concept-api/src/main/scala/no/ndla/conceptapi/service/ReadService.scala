@@ -43,16 +43,6 @@ trait ReadService {
           Failure(NotFoundException(s"A concept with id $id was not found with language '$language'."))
       }
 
-    def allSubjects(draft: Boolean = false): Try[Set[String]] = {
-      if (draft) {
-        val subjectIds = draftConceptRepository.allSubjectIds
-        if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
-      } else {
-        val subjectIds = publishedConceptRepository.allSubjectIds
-        if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
-      }
-    }
-
     def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
       val allConceptTags = publishedConceptRepository.everyTagFromEveryConcept
       (if (fallback || language == Language.AllLanguages) {

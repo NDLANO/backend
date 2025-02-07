@@ -40,10 +40,7 @@ trait DraftConceptRepository {
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new concept: $conceptId")
-      concept.copy(
-        id = Some(conceptId),
-        revision = Some(newRevision)
-      )
+      concept.copy(id = Some(conceptId), revision = Some(newRevision))
     }
 
     def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
@@ -82,16 +79,6 @@ trait DraftConceptRepository {
           logger.warn(s"Failed to update concept with id ${concept.id} and listing id: $listingId: ${ex.getMessage}")
           Failure(ex)
       }
-    }
-
-    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
-      sql"""
-        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id
-        from ${DBConcept.table}
-        where jsonb_array_length(document->'subjectIds') != 0;"""
-        .map(rs => rs.string("subject_id"))
-        .list()
-        .toSet
     }
 
     def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {

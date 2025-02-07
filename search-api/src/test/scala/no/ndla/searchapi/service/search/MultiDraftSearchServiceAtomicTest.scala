@@ -1085,18 +1085,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(4)
     )
 
-    val concept1 = TestData.sampleNbDomainConcept.copy(
-      id = Some(1)
-    )
-    val concept2 = TestData.sampleNbDomainConcept.copy(
-      id = Some(2)
-    )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3)
-    )
-    val concept4 = TestData.sampleNbDomainConcept.copy(
-      id = Some(4)
-    )
+    val concept1 = TestData.sampleNbDomainConcept.copy(id = Some(1))
+    val concept2 = TestData.sampleNbDomainConcept.copy(id = Some(2))
+    val concept3 = TestData.sampleNbDomainConcept.copy(id = Some(3))
+    val concept4 = TestData.sampleNbDomainConcept.copy(id = Some(4))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -1154,18 +1146,9 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3)
     )
 
-    val concept1 = TestData.sampleNbDomainConcept.copy(
-      id = Some(1),
-      content = Seq(ConceptContent("Liten apekatt", "nb"))
-    )
-    val concept2 = TestData.sampleNbDomainConcept.copy(
-      id = Some(2),
-      content = Seq(ConceptContent("Stor giraff", "nb"))
-    )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3),
-      content = Seq(ConceptContent("Medium kylling", "nb"))
-    )
+    val concept1 = TestData.sampleNbDomainConcept.copy(id = Some(1), content = Seq(ConceptContent("Liten apekatt", "nb")))
+    val concept2 = TestData.sampleNbDomainConcept.copy(id = Some(2), content = Seq(ConceptContent("Stor giraff", "nb")))
+    val concept3 = TestData.sampleNbDomainConcept.copy(id = Some(3), content = Seq(ConceptContent("Medium kylling", "nb")))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -1216,14 +1199,8 @@ class MultiDraftSearchServiceAtomicTest
     val learningPath3 = TestData.learningPath1.copy(
       id = Some(3)
     )
-    val concept4 = TestData.sampleNbDomainConcept.copy(
-      id = Some(4),
-      conceptType = ConceptType.CONCEPT
-    )
-    val concept5 = TestData.sampleNbDomainConcept.copy(
-      id = Some(5),
-      conceptType = ConceptType.GLOSS
-    )
+    val concept4 = TestData.sampleNbDomainConcept.copy(id = Some(4), conceptType = ConceptType.CONCEPT)
+    val concept5 = TestData.sampleNbDomainConcept.copy(id = Some(5), conceptType = ConceptType.GLOSS)
 
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
@@ -1306,11 +1283,7 @@ class MultiDraftSearchServiceAtomicTest
       articleType = ArticleType.Standard,
       responsible = None
     )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3),
-      conceptType = ConceptType.CONCEPT,
-      responsible = Some(responsible)
-    )
+    val concept3 = TestData.sampleNbDomainConcept.copy(id = Some(3), responsible = Some(responsible), conceptType = ConceptType.CONCEPT)
 
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
@@ -1341,12 +1314,7 @@ class MultiDraftSearchServiceAtomicTest
       articleType = ArticleType.Standard,
       responsible = None
     )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3),
-      conceptType = ConceptType.CONCEPT,
-      responsible = Some(responsible),
-      subjectIds = Set("urn:subject:1000")
-    )
+    val concept3 = TestData.sampleNbDomainConcept.copy(id = Some(3), responsible = Some(responsible), conceptType = ConceptType.CONCEPT)
 
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get

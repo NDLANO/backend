@@ -101,25 +101,6 @@ class DraftConceptRepositoryTest
     result3 should be(expected3)
   }
 
-  test("That getting subjects works as expected") {
-    val concept1 = TestData.domainConcept.copy(id = Some(1), subjectIds = Set("urn:subject:1", "urn:subject:2"))
-    val concept2 = TestData.domainConcept.copy(id = Some(2), subjectIds = Set("urn:subject:1", "urn:subject:19"))
-    val concept3 = TestData.domainConcept.copy(id = Some(3), subjectIds = Set("urn:subject:12"))
-
-    repository.insert(concept1)
-    repository.insert(concept2)
-    repository.insert(concept3)
-
-    repository.allSubjectIds should be(
-      Set(
-        "urn:subject:1",
-        "urn:subject:2",
-        "urn:subject:12",
-        "urn:subject:19"
-      )
-    )
-  }
-
   test("Fetching concepts tags works as expected") {
     val concept1 =
       TestData.domainConcept.copy(
@@ -142,10 +123,7 @@ class DraftConceptRepositoryTest
         )
       )
     val concept3 =
-      TestData.domainConcept.copy(
-        id = Some(3),
-        tags = Seq()
-      )
+      TestData.domainConcept.copy(id = Some(3), tags = Seq())
 
     repository.insert(concept1)
     repository.insert(concept2)
@@ -170,16 +148,13 @@ class DraftConceptRepositoryTest
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
-    val sampleArticle1 = TestData.domainConcept.copy(
-      tags = Seq(common.Tag(Seq("abc", "bcd", "ddd"), "nb"), common.Tag(Seq("abc", "bcd"), "nn"))
+    val sampleArticle1 = TestData.domainConcept.copy(tags =
+      Seq(common.Tag(Seq("abc", "bcd", "ddd"), "nb"), common.Tag(Seq("abc", "bcd"), "nn"))
     )
-    val sampleArticle2 = TestData.domainConcept.copy(
-      tags = Seq(common.Tag(Seq("bcd", "cde"), "nb"), common.Tag(Seq("bcd", "cde"), "nn"))
-    )
+    val sampleArticle2 =
+      TestData.domainConcept.copy(tags = Seq(common.Tag(Seq("bcd", "cde"), "nb"), common.Tag(Seq("bcd", "cde"), "nn")))
     val sampleArticle3 =
-      TestData.domainConcept.copy(
-        tags = Seq(common.Tag(Seq("def"), "nb"), common.Tag(Seq("d", "def", "asd"), "nn"))
-      )
+      TestData.domainConcept.copy(tags = Seq(common.Tag(Seq("def"), "nb"), common.Tag(Seq("d", "def", "asd"), "nn")))
     val sampleArticle4 = TestData.domainConcept.copy(tags = Seq.empty)
 
     repository.insert(sampleArticle1)
@@ -247,7 +222,7 @@ class DraftConceptRepositoryTest
     repository.withId(insertedId).get.revision should be(Some(1))
 
     val updatedContent = Seq(concept.ConceptContent("Updatedpls", "nb"))
-    val updatedArt1    = art1.copy(revision = Some(10), id = Some(insertedId), content = updatedContent)
+    val updatedArt1    = art1.copy(id = Some(insertedId), revision = Some(10), content = updatedContent)
 
     val updateResult1 = repository.update(updatedArt1)
     updateResult1 should be(Failure(new OptimisticLockException))
@@ -267,18 +242,18 @@ class DraftConceptRepositoryTest
   test("That getByPage returns all concepts in database") {
     val con1 = domainConcept.copy(
       content = Seq(concept.ConceptContent("Hei", "nb")),
-      updated = NDLADate.fromUnixTime(0),
-      created = NDLADate.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
     val con2 = domainConcept.copy(
       content = Seq(concept.ConceptContent("På", "nb")),
-      updated = NDLADate.fromUnixTime(0),
-      created = NDLADate.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
     val con3 = domainConcept.copy(
       content = Seq(concept.ConceptContent("Deg", "nb")),
-      updated = NDLADate.fromUnixTime(0),
-      created = NDLADate.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
 
     val ins1 = repository.insert(con1)

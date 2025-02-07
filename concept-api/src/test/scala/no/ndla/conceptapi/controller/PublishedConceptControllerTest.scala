@@ -86,7 +86,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 
     val expectedSettings =
-      SearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
+      SearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
 
     simpleHttpClient
       .send(

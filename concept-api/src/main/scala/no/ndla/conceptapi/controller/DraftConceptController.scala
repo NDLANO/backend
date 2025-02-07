@@ -52,7 +52,6 @@ trait DraftConceptController {
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getStatusStateMachine,
-      getSubjects,
       getTags,
       postSearchConcepts,
       deleteLanguage,
@@ -87,7 +86,6 @@ trait DraftConceptController {
         pageSize: Int,
         idList: List[Long],
         fallback: Boolean,
-        subjects: Set[String],
         tagsToFilterBy: Set[String],
         statusFilter: Set[String],
         userFilter: Seq[String],
@@ -97,7 +95,7 @@ trait DraftConceptController {
         responsibleId: List[String],
         conceptType: Option[String],
         aggregatePaths: List[String]
-    ): Try[(ConceptSearchResultDTO, DynamicHeaders)] = {
+    ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
         searchLanguage = language,
@@ -105,7 +103,6 @@ trait DraftConceptController {
         pageSize = pageSize,
         sort = sort.getOrElse(Sort.ByRelevanceDesc),
         fallback = fallback,
-        subjects = subjects,
         tagsToFilterBy = tagsToFilterBy,
         statusFilter = statusFilter,
         userFilter = userFilter,
@@ -164,7 +161,6 @@ trait DraftConceptController {
       .in(sort)
       .in(fallback)
       .in(scrollId)
-      .in(subjects)
       .in(tagsToFilterBy)
       .in(statusFilter)
       .in(userFilter)
@@ -183,7 +179,6 @@ trait DraftConceptController {
               sortStr,
               fallback,
               scrollId,
-              subjects,
               tagsToFilterBy,
               statusesToFilterBy,
               usersToFilterBy,
@@ -205,7 +200,6 @@ trait DraftConceptController {
               pageSize,
               idList.values,
               fallback,
-              subjects.values.toSet,
               tagsToFilterBy.values.toSet,
               statusesToFilterBy.values.toSet,
               usersToFilterBy.values,
@@ -219,46 +213,19 @@ trait DraftConceptController {
           }
       }
 
-    def getSubjects: ServerEndpoint[Any, Eff] = endpoint.get
-      .summary("Returns a list of all subjects used in concepts")
-      .description("Returns a list of all subjects used in concepts")
-      .in("subjects")
-      .out(jsonBody[Set[String]])
-      .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-      .errorOut(errorOutputsFor(400))
-      .serverLogicPure { _ =>
-        {
-          readService.allSubjects(true)
-        }
-      }
-
     def getTags: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Returns a list of all tags in the specified subjects")
       .description("Returns a list of all tags in the specified subjects")
       .in("tags")
       .in(language)
       .in(fallback)
-      .in(subjects)
       .out(
-        oneOf[TagOutput](
-          oneOfVariant[SomeTagList](
-            statusCode(StatusCode.Ok).and(jsonBody[List[SubjectTagsDTO]]).map(x => SomeTagList(x))(x => x.list)
-          ),
-          oneOfDefaultVariant[SomeStringList](
-            statusCode(StatusCode.Ok).and(jsonBody[List[String]]).map(x => SomeStringList(x))(x => x.list)
-          )
-        )
+        statusCode(StatusCode.Ok).and(jsonBody[List[String]])
       )
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
-      .serverLogicPure { case (language, fallback, subjects) =>
-        if (subjects.values.nonEmpty) {
-          draftConceptSearchService.getTagsWithSubjects(subjects.values, language, fallback) match {
-            case Success(res) if res.nonEmpty => SomeTagList(res).asRight
-            case Success(_)  => returnLeftError(NotFoundException("Could not find any tags in the specified subjects"))
-            case Failure(ex) => returnLeftError(ex)
-          }
-        } else { SomeStringList(readService.allTagsFromDraftConcepts(language, fallback)).asRight }
+      .serverLogicPure { case (language, fallback) =>
+        readService.allTagsFromDraftConcepts(language, fallback).asRight
       }
 
     def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
@@ -282,7 +249,6 @@ trait DraftConceptController {
           val page           = searchParams.page.getOrElse(1)
           val idList         = searchParams.ids
           val fallback       = searchParams.fallback.getOrElse(false)
-          val subjects       = searchParams.subjects
           val tagsToFilterBy = searchParams.tags
           val statusFilter   = searchParams.status
           val userFilter     = searchParams.users
@@ -301,7 +267,6 @@ trait DraftConceptController {
             pageSize,
             idList.getOrElse(List.empty),
             fallback,
-            subjects.getOrElse(Set.empty),
             tagsToFilterBy.getOrElse(Set.empty),
             statusFilter.getOrElse(Set.empty),
             userFilter.getOrElse(Seq.empty),

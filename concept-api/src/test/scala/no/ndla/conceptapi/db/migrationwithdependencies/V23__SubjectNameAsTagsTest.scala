@@ -44,9 +44,9 @@ class V23__SubjectNameAsTagsTest extends UnitSuite with TestEnvironment {
     val concept = TestData.domainConcept.copy(
       title = List(Title("Tittel", "nb")),
       content = List(ConceptContent("Innhold", "sma")),
+      metaImage = List(ConceptMetaImage("123", "zzz", "zh")),
       tags = List(Tag(List("tag1", "tag2", "tag3"), "nn")),
-      visualElement = List(VisualElement("zzz", "en")),
-      metaImage = List(ConceptMetaImage("123", "zzz", "zh"))
+      visualElement = List(VisualElement("zzz", "en"))
     )
     val languages = migration.getLanguages(concept.asJson)
     languages should be(List("nb", "sma", "nn", "en", "zh"))
@@ -56,20 +56,18 @@ class V23__SubjectNameAsTagsTest extends UnitSuite with TestEnvironment {
     val concept = TestData.domainConcept.copy(
       title = List(Title("Tittel", "nb")),
       content = List(ConceptContent("Innhold", "sma")),
-      tags = List(Tag(List("nb"), "nb"), Tag(List("nn"), "nn"), Tag(List("en"), "en"), Tag(List("zh"), "zh")),
-      visualElement = List(VisualElement("zzz", "en")),
       metaImage = List(ConceptMetaImage("123", "zzz", "zh")),
-      subjectIds = Set("urn:subject:1", "urn:subject:2", "urn:subject:thatdoesnotexist")
+      tags = List(Tag(List("nb"), "nb"), Tag(List("nn"), "nn"), Tag(List("en"), "en"), Tag(List("zh"), "zh")),
+      visualElement = List(VisualElement("zzz", "en"))
     )
 
     val result = migration.convertColumn(concept.asJson.noSpaces)
     CirceUtil.unsafeParseAs[Concept](result).tags.sortBy(_.language) should be(
       List(
-        Tag(List("nb", "Naturfag", "Matematik"), "nb"),
-        Tag(List("nn", "Naturfagi", "Matematiki"), "nn"),
-        Tag(List("en", "Science", "Math"), "en"),
-        Tag(List("zh", "科学", "Matte"), "zh"),
-        Tag(List("Luonddufágga", "Matte"), "sma")
+        Tag(List("nb"), "nb"),
+        Tag(List("nn"), "nn"),
+        Tag(List("en"), "en"),
+        Tag(List("zh"), "zh")
       ).sortBy(_.language)
     )
 
