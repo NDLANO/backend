@@ -285,10 +285,10 @@ trait FolderConverterService {
       }
 
       val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
-
       val arenaGroups =
         if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
         else domainUserData.arenaGroups
+      val shareNameAccepted = updatedUser.shareNameAccepted.getOrElse(domainUserData.shareNameAccepted)
 
       Success(
         DomainMyNDLAUser(
@@ -305,7 +305,7 @@ trait FolderConverterService {
           arenaEnabled = arenaEnabled,
           arenaAccepted = arenaAccepted,
           arenaGroups = arenaGroups,
-          shareNameAccepted = domainUserData.shareNameAccepted
+          shareNameAccepted = shareNameAccepted
         )
       )
     }
