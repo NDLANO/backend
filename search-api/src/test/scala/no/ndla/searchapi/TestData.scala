@@ -1867,37 +1867,54 @@ object TestData {
     learningResourceType = LearningResourceType.Article
   )
 
-  val sampleNbDomainConcept: Concept = Concept(id = Some(1), revision = Some(1), title = Seq(common.Title("Tittel", "nb")), content = Seq(ConceptContent("Innhold", "nb")), copyright = None, created = today, updated = today, updatedBy = Seq("noen"), metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")), tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")), status = no.ndla.common.model.domain.concept.Status(
-    ConceptStatus.LANGUAGE,
-    Set(ConceptStatus.PUBLISHED)
-  ), visualElement = Seq(
-    no.ndla.common.model.domain.concept.VisualElement(
-      s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />""",
-      "nb"
-    )
-  ), responsible = Some(Responsible("some-id", today)), conceptType = ConceptType.CONCEPT, glossData = Some(
-    GlossData(
-      gloss = "hei",
-      wordClass = WordClass.TIME_WORD,
-      originalLanguage = "nb",
-      transcriptions = Map("pling" -> "plong"),
-      examples = List(
-        List(
-          GlossExample(
-            example = "hei",
-            language = "nb",
-            transcriptions = Map("nb" -> "lai")
+  val sampleNbDomainConcept: Concept = Concept(
+    id = Some(1),
+    revision = Some(1),
+    title = Seq(common.Title("Tittel", "nb")),
+    content = Seq(ConceptContent("Innhold", "nb")),
+    copyright = None,
+    created = today,
+    updated = today,
+    updatedBy = Seq("noen"),
+    metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")),
+    tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
+    status = no.ndla.common.model.domain.concept.Status(
+      ConceptStatus.LANGUAGE,
+      Set(ConceptStatus.PUBLISHED)
+    ),
+    visualElement = Seq(
+      no.ndla.common.model.domain.concept.VisualElement(
+        s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />""",
+        "nb"
+      )
+    ),
+    responsible = Some(Responsible("some-id", today)),
+    conceptType = ConceptType.CONCEPT,
+    glossData = Some(
+      GlossData(
+        gloss = "hei",
+        wordClass = WordClass.TIME_WORD,
+        originalLanguage = "nb",
+        transcriptions = Map("pling" -> "plong"),
+        examples = List(
+          List(
+            GlossExample(
+              example = "hei",
+              language = "nb",
+              transcriptions = Map("nb" -> "lai")
+            )
           )
         )
       )
+    ),
+    editorNotes = Seq(
+      ConceptEditorNote(
+        note = "hei",
+        user = "some-id",
+        status = no.ndla.common.model.domain.concept.Status(ConceptStatus.LANGUAGE, Set(ConceptStatus.PUBLISHED)),
+        timestamp = today
+      )
     )
-  ), editorNotes = Seq(
-    ConceptEditorNote(
-      note = "hei",
-      user = "some-id",
-      status = no.ndla.common.model.domain.concept.Status(ConceptStatus.LANGUAGE, Set(ConceptStatus.PUBLISHED)),
-      timestamp = today
-    )
-  ))
+  )
 
 }
