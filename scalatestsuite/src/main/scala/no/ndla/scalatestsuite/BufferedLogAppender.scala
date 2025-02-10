@@ -17,7 +17,7 @@ import scala.collection.mutable.ListBuffer
 object Layout {
   lazy val prebuiltLayout: PatternLayout = PatternLayout
     .newBuilder()
-    .withPattern("[%level] %C.%M#%L: %msg%n")
+    .withPattern("[%level] (%X{correlationID}) %C.%M#%L: %msg%n")
     .build()
 }
 
