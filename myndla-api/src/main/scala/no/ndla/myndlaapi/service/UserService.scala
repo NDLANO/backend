@@ -214,7 +214,7 @@ trait UserService {
           arenaEnabled = userRole == UserRole.EMPLOYEE,
           arenaAccepted = false,
           arenaGroups = getInitialIsArenaGroups(feideId),
-          shareNameAccepted = false
+          shareNameAccepted = true
         )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
