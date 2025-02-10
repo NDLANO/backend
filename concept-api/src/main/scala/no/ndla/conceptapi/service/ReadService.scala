@@ -14,7 +14,7 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 trait ReadService {
   this: DraftConceptRepository & PublishedConceptRepository & ConverterService =>
