@@ -18,7 +18,6 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.{License as _, *}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
@@ -284,26 +283,21 @@ trait LearningpathControllerV2 {
       .in(pageSize)
       .in(pageNo)
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[Seq[LearningPathV2DTO]])
+      .out(jsonBody[List[LearningPathV2DTO]])
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (idList, fallback, language, pageSizeQ, pageNoQ) =>
-          if (!user.isNdla) {
-            forbidden.asLeft
-          } else {
-            val pageSize = pageSizeQ.getOrElse(props.DefaultPageSize) match {
-              case tooSmall if tooSmall < 1 => props.DefaultPageSize
-              case x                        => x
-            }
-            val page = pageNoQ.getOrElse(1) match {
-              case tooSmall if tooSmall < 1 => 1
-              case x                        => x
-            }
-            readService.withIdV2List(idList.values, language, fallback, page, pageSize, user) match {
-              case Failure(ex)       => returnLeftError(ex)
-              case Success(articles) => articles.asRight
-            }
+          val pageSize = pageSizeQ.getOrElse(props.DefaultPageSize) match {
+            case tooSmall if tooSmall < 1 => props.DefaultPageSize
+            case x                        => x
           }
+          val page = pageNoQ.getOrElse(1) match {
+            case tooSmall if tooSmall < 1 => 1
+            case x                        => x
+          }
+          readService
+            .withIdV2List(idList.values, language, fallback, page, pageSize, user)
+            .handleErrorsOrOk
         }
       }
 
