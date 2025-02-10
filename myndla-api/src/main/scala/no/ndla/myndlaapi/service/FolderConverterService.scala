@@ -194,7 +194,8 @@ trait FolderConverterService {
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled,
         arenaAccepted = domainUserData.arenaAccepted,
-        arenaGroups = domainUserData.arenaGroups
+        arenaGroups = domainUserData.arenaGroups,
+        shareNameAccepted = domainUserData.shareNameAccepted
       )
     }
 
@@ -299,11 +300,12 @@ trait FolderConverterService {
           organization = domainUserData.organization,
           groups = domainUserData.groups,
           username = domainUserData.username,
+          displayName = domainUserData.displayName,
           email = domainUserData.email,
           arenaEnabled = arenaEnabled,
-          displayName = domainUserData.displayName,
+          arenaAccepted = arenaAccepted,
           arenaGroups = arenaGroups,
-          arenaAccepted = arenaAccepted
+          shareNameAccepted = domainUserData.shareNameAccepted
         )
       )
     }

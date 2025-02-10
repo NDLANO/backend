@@ -97,11 +97,12 @@ object TestData {
     organization = "",
     groups = Seq.empty,
     username = "",
+    displayName = "",
     email = "",
     arenaEnabled = false,
-    displayName = "",
+    arenaAccepted = false,
     arenaGroups = List.empty,
-    arenaAccepted = false
+    shareNameAccepted = false
   )
 
 }
