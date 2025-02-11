@@ -134,28 +134,29 @@ trait ConverterService {
         val message = lp.message.filter(_ => lp.canEdit(userInfo)).map(asApiMessage)
         val owner   = Some(lp.owner).filter(_ => userInfo.isAdmin)
         Success(
-          api.LearningPathV2DTO(
-            lp.id.get,
-            lp.revision.get,
-            lp.isBasedOn,
-            title,
-            description,
-            createUrlToLearningPath(lp),
-            learningSteps,
-            createUrlToLearningSteps(lp),
-            lp.coverPhotoId.flatMap(asCoverPhoto),
-            lp.duration,
-            lp.status.toString,
-            lp.verificationStatus.toString,
-            lp.created,
-            lp.lastUpdated,
-            tags,
-            asApiCopyright(lp.copyright),
-            lp.canEdit(userInfo),
-            supportedLanguages,
-            owner,
-            message,
-            lp.madeAvailable
+          LearningPathV2DTO(
+            id = lp.id.get,
+            revision = lp.revision.get,
+            isBasedOn = lp.isBasedOn,
+            title = title,
+            description = description,
+            metaUrl = createUrlToLearningPath(lp),
+            learningsteps = learningSteps,
+            learningstepUrl = createUrlToLearningSteps(lp),
+            coverPhoto = lp.coverPhotoId.flatMap(asCoverPhoto),
+            duration = lp.duration,
+            status = lp.status.toString,
+            verificationStatus = lp.verificationStatus.toString,
+            created = lp.created,
+            lastUpdated = lp.lastUpdated,
+            tags = tags,
+            copyright = asApiCopyright(lp.copyright),
+            canEdit = lp.canEdit(userInfo),
+            supportedLanguages = supportedLanguages,
+            ownerId = owner,
+            message = message,
+            madeAvailable = lp.madeAvailable,
+            isMyNDLAOwner = lp.isMyNDLAOwner
           )
         )
       } else

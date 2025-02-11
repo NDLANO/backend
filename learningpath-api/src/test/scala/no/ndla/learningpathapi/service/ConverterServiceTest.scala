@@ -59,7 +59,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     List("nb"),
     None,
     None,
-    None
+    None,
+    false
   )
   val domainLearningStep: LearningStep =
     LearningStep(None, None, None, None, 1, List(), List(), List(), List(), StepType.INTRODUCTION, None)
@@ -136,7 +137,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         List("nb", "en"),
         None,
         None,
-        None
+        None,
+        false
       )
     )
     service.asApiLearningpathV2(
@@ -188,7 +190,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         List("nb", "en"),
         None,
         None,
-        None
+        None,
+        false
       )
     )
     service.asApiLearningpathV2(
