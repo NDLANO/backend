@@ -63,7 +63,8 @@ class SearchServiceTest
     lastUpdated = clock.now(),
     tags = List(),
     owner = "owner",
-    copyright = copyright
+    copyright = copyright,
+    isMyNDLAOwner = false
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

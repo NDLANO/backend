@@ -954,7 +954,8 @@ object TestData {
     lastUpdated = today,
     tags = List(),
     owner = "owner",
-    copyright = copyright
+    copyright = copyright,
+    isMyNDLAOwner = false
   )
 
   val PenguinId   = 1L

@@ -30,9 +30,10 @@ case class LearningPath(
     tags: Seq[Tag],
     owner: String,
     copyright: LearningpathCopyright,
+    isMyNDLAOwner: Boolean,
     learningsteps: Option[Seq[LearningStep]] = None,
     message: Option[Message] = None,
-    madeAvailable: Option[NDLADate] = None
+    madeAvailable: Option[NDLADate] = None,
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {

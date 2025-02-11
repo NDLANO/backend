@@ -83,22 +83,23 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: ConverterService = _
 
   val domainLearningPath: LearningPath = LearningPath(
-    Some(1),
-    Some(1),
-    None,
-    None,
-    List(Title("tittel", DefaultLanguage)),
-    List(Description("deskripsjon", DefaultLanguage)),
-    None,
-    Some(60),
-    LearningPathStatus.PRIVATE,
-    LearningPathVerificationStatus.CREATED_BY_NDLA,
-    randomDate,
-    randomDate,
-    List(Tag(List("tag"), DefaultLanguage)),
-    "me",
-    LearningpathCopyright(CC_BY.toString, List.empty),
-    None
+    id = Some(1L),
+    revision = Some(1),
+    externalId = None,
+    isBasedOn = None,
+    title = List(Title("tittel", DefaultLanguage)),
+    description = List(Description("deskripsjon", DefaultLanguage)),
+    coverPhotoId = None,
+    duration = Some(60),
+    status = LearningPathStatus.PRIVATE,
+    verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
+    created = randomDate,
+    lastUpdated = randomDate,
+    tags = List(Tag(List("tag"), DefaultLanguage)),
+    owner = "me",
+    copyright = LearningpathCopyright(CC_BY.toString, List.empty),
+    isMyNDLAOwner = false,
+    learningsteps = None
   )
 
   override def beforeEach(): Unit = {

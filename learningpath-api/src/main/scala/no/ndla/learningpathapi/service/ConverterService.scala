@@ -415,22 +415,25 @@ trait ConverterService {
 
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
         LearningPath(
-          None,
-          None,
-          None,
-          None,
-          Seq(common.Title(newLearningPath.title, newLearningPath.language)),
-          description,
-          newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
-          newLearningPath.duration,
-          learningpath.LearningPathStatus.PRIVATE,
-          getVerificationStatus(user),
-          clock.now(),
-          clock.now(),
-          domainTags,
-          ownerId,
-          converterService.asCopyright(copyright),
-          Some(Seq.empty)
+          id = None,
+          revision = None,
+          externalId = None,
+          isBasedOn = None,
+          title = Seq(common.Title(newLearningPath.title, newLearningPath.language)),
+          description = description,
+          coverPhotoId = newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
+          duration = newLearningPath.duration,
+          status = learningpath.LearningPathStatus.PRIVATE,
+          verificationStatus = getVerificationStatus(user),
+          created = clock.now(),
+          lastUpdated = clock.now(),
+          tags = domainTags,
+          owner = ownerId,
+          copyright = converterService.asCopyright(copyright),
+          isMyNDLAOwner = user.isMyNDLAUser,
+          learningsteps = Some(Seq.empty),
+          message = None,
+          madeAvailable = None
         )
       }
     }
