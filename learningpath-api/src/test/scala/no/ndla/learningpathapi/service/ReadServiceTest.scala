@@ -42,39 +42,41 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(cruz))
 
   val PUBLISHED_LEARNINGPATH: LearningPath = LearningPath(
-    Some(PUBLISHED_ID),
-    Some(1),
-    None,
-    None,
-    List(Title("Tittel", "nb")),
-    List(),
-    None,
-    Some(1),
-    LearningPathStatus.PUBLISHED,
-    LearningPathVerificationStatus.EXTERNAL,
-    NDLADate.now(),
-    NDLADate.now(),
-    List(),
-    PUBLISHED_OWNER.id,
-    copyright
+    id = Some(PUBLISHED_ID),
+    revision = Some(1),
+    externalId = None,
+    isBasedOn = None,
+    title = List(Title("Tittel", "nb")),
+    description = List(),
+    coverPhotoId = None,
+    duration = Some(1),
+    status = LearningPathStatus.PUBLISHED,
+    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    created = NDLADate.now(),
+    lastUpdated = NDLADate.now(),
+    tags = List(),
+    owner = PUBLISHED_OWNER.id,
+    copyright = copyright,
+    isMyNDLAOwner = false
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
-    Some(PRIVATE_ID),
-    Some(1),
-    None,
-    None,
-    List(Title("Tittel", "nb")),
-    List(),
-    None,
-    Some(1),
-    LearningPathStatus.PRIVATE,
-    LearningPathVerificationStatus.EXTERNAL,
-    NDLADate.now(),
-    NDLADate.now(),
-    List(),
-    PRIVATE_OWNER.id,
-    copyright
+    id = Some(PRIVATE_ID),
+    revision = Some(1),
+    externalId = None,
+    isBasedOn = None,
+    title = List(Title("Tittel", "nb")),
+    description = List(),
+    coverPhotoId = None,
+    duration = Some(1),
+    status = LearningPathStatus.PRIVATE,
+    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    created = NDLADate.now(),
+    lastUpdated = NDLADate.now(),
+    tags = List(),
+    owner = PRIVATE_OWNER.id,
+    copyright = copyright,
+    isMyNDLAOwner = false
   )
 
   val STEP1: LearningStep = LearningStep(
