@@ -653,7 +653,7 @@
               "players.brightcove.net",
               ".*.uio.no",
               ".*.maps.arcgis.com",
-              "*.arcgis.com",
+              ".*.arcgis.com",
               "arcg.is",
               "norgeskart.no",
               "kartiskolen.no",
