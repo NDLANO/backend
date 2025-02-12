@@ -14,7 +14,7 @@ import no.ndla.network.tapir.auth.TokenUser
 sealed trait CombinedUser {
   val tokenUser: Option[TokenUser]
   val myndlaUser: Option[MyNDLAUserDTO]
-  val isMyNDLAUser: Boolean = myndlaUser.isDefined && tokenUser.isEmpty
+  def isMyNDLAUser: Boolean = myndlaUser.isDefined && tokenUser.isEmpty
 }
 
 case class OptionalCombinedUser(tokenUser: Option[TokenUser], myndlaUser: Option[MyNDLAUserDTO]) extends CombinedUser
