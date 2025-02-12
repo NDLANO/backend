@@ -653,11 +653,13 @@
               "players.brightcove.net",
               ".*.uio.no",
               ".*.maps.arcgis.com",
+              "*.arcgis.com",
               "arcg.is",
               "norgeskart.no",
               "kartiskolen.no",
               "norgeibilder.no",
-              "video.qbrick.com"
+              "video.qbrick.com",
+              "www.norskpetroleum.no"
             ]
           }
         },
