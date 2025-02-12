@@ -59,7 +59,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(updatedAndInserted))
 
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
-    when(searchApiClient.indexArticle(any[Article])).thenReturn(updatedAndInserted)
+    when(searchApiClient.indexArticle(any[Article], any)).thenReturn(updatedAndInserted)
 
     service.updateArticle(articleToUpdate, List.empty, useImportValidation = false, useSoftValidation = false)
 
@@ -67,7 +67,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
 
     verify(articleIndexService, times(1)).indexDocument(argCap1.capture())
-    verify(searchApiClient, times(1)).indexArticle(argCap2.capture())
+    verify(searchApiClient, times(1)).indexArticle(argCap2.capture(), any)
 
     val captured1 = argCap1.getValue
     captured1.copy(updated = today) should be(updatedAndInserted)

@@ -69,7 +69,7 @@ trait WriteService {
       article.id match {
         case None => Failure(new IllegalStateException("No id found for article when indexing. This is a bug."))
         case Some(articleId) =>
-          searchApiClient.indexDraft(article, user)(ec): Unit
+          searchApiClient.indexDraft(article, user, 0)(ec): Unit
           articleIndexService.indexAsync(articleId, article)(ec): Unit
           tagIndexService.indexAsync(articleId, article)(ec): Unit
           Success(())

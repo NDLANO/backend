@@ -64,7 +64,7 @@ trait WriteService {
         _             <- validationResult
         domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)
         _             <- articleIndexService.indexDocument(domainArticle)
-        _             <- Try(searchApiClient.indexArticle(domainArticle))
+        _             <- Try(searchApiClient.indexArticle(domainArticle, 0))
       } yield domainArticle
     }
 

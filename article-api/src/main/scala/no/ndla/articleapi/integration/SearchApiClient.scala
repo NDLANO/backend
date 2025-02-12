@@ -30,8 +30,9 @@ trait SearchApiClient {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout     = 30.seconds
+    private val indexRetryCount  = 2
 
-    def indexArticle(article: Article): Article = {
+    def indexArticle(article: Article, retries: Int): Article = {
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
 
@@ -40,15 +41,17 @@ trait SearchApiClient {
         case Success(Success(_)) =>
           logger.info(s"Successfully indexed article with id: '${article.id
               .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api")
+        case Failure(_) if retries < indexRetryCount => indexArticle(article, retries + 1)
         case Failure(e) =>
           logger.error(
-            s"Failed to indexed article with id: '${article.id
+            s"Failed to index article with id: '${article.id
                 .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
             e
           )
+        case Success(Failure(_)) if retries < indexRetryCount => indexArticle(article, retries + 1)
         case Success(Failure(e)) =>
           logger.error(
-            s"Failed to indexed article with id: '${article.id
+            s"Failed to index article with id: '${article.id
                 .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
             e
           )
