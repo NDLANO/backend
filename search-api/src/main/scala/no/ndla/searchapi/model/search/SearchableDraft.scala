@@ -32,6 +32,7 @@ case class SearchableDraft(
     defaultTitle: Option[String],
     supportedLanguages: List[String],
     notes: List[String],
+    context: Option[SearchableTaxonomyContext],
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     draftStatus: SearchableStatus,

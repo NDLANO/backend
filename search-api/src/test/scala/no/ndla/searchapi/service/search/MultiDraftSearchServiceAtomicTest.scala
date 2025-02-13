@@ -905,30 +905,30 @@ class MultiDraftSearchServiceAtomicTest
           case 1 =>
             TestData.searchableDraft.copy(
               id = 1,
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Apekatt emne"),
               defaultParentTopicName = Some("Apekatt emne"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Apekatt emne"),
               defaultRoot = Some("Capekatt rot"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
               resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
               defaultResourceTypeName = Some("Bapekatt ressurs")
             )
           case 2 =>
             TestData.searchableDraft.copy(
               id = 2,
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Bpekatt emne"),
               defaultParentTopicName = Some("Bpekatt emne"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Bpekatt emne"),
               defaultRoot = Some("Apekatt rot"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
               resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
               defaultResourceTypeName = Some("Capekatt ressurs")
             )
           case 3 =>
             TestData.searchableDraft.copy(
               id = 3,
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Cpekatt emne"),
               defaultParentTopicName = Some("Cpekatt emne"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Cpekatt emne"),
               defaultRoot = Some("Bapekatt rot"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
               resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
               defaultResourceTypeName = Some("Apekatt ressurs")
             )

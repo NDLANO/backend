@@ -32,6 +32,7 @@ case class SearchableArticle(
     metaImage: List[ArticleMetaImage],
     defaultTitle: Option[String],
     supportedLanguages: List[String],
+    context: Option[SearchableTaxonomyContext],
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     grepContexts: List[SearchableGrepContext],

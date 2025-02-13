@@ -291,8 +291,8 @@ trait IndexService {
       })
     }
 
-    protected def getTaxonomyContextMapping: NestedField = {
-      nestedField("contexts").fields(
+    protected def getTaxonomyContextMapping(fieldName: String): NestedField = {
+      nestedField(fieldName).fields(
         keywordField("publicId"),
         keywordField("contextId"),
         keywordField("path"),

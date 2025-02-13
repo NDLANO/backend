@@ -18,7 +18,7 @@ import no.ndla.searchapi.model.domain.LearningResourceType
 case class SearchableLearningPath(
     id: Long,
     title: SearchableLanguageValues,
-    content: SearchableLanguageValues, // only for suggestions to work.
+    content: SearchableLanguageValues,
     description: SearchableLanguageValues,
     coverPhotoId: Option[String],
     duration: Option[Int],
@@ -33,6 +33,7 @@ case class SearchableLearningPath(
     isBasedOn: Option[Long],
     supportedLanguages: List[String],
     authors: List[String],
+    context: Option[SearchableTaxonomyContext],
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     favorited: Long,

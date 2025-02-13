@@ -56,6 +56,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       tags = tags,
       learningsteps = learningsteps,
+      license = "by-sa",
       copyright = CopyrightDTO(
         LicenseDTO("by-sa", Some("bysasaa"), None),
         Seq(AuthorDTO("Supplier", "Jonas"), AuthorDTO("Originator", "Kakemonsteret"))
@@ -63,9 +64,9 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       isBasedOn = Some(1001),
       supportedLanguages = List("nb", "en", "nn"),
       authors = List("Yap"),
+      context = searchableTaxonomyContexts.headOption,
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
-      license = "by-sa",
       favorited = 0,
       learningResourceType = LearningResourceType.LearningPath
     )
