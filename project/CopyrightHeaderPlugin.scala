@@ -61,7 +61,7 @@ object CopyrightHeaderPlugin extends AutoPlugin {
         val existingCopyright    = lines.slice(start, end + 1).mkString("\n")
         val year                 = yearPattern.findFirstMatchIn(existingCopyright).map(_.group(1))
         val module               = modulePattern.findFirstMatchIn(existingCopyright).map(_.group(1))
-        val cop                  = copyrightTemplate(year.getOrElse(currentYear), module)
+        val cop                  = copyrightTemplate(year.getOrElse(currentYear), submodule.orElse(module))
         val newCopyrightElements = cop.split("\n")
         lines.patch(start, newCopyrightElements, end + 1)
       case None =>
