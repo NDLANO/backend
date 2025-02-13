@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ImportException, NotFoundException, PartialPublishArticleDTO}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
@@ -20,18 +20,8 @@ import no.ndla.common
 import no.ndla.common.{CirceUtil, Clock, model}
 import no.ndla.common.model.{RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{Delete, DisclaimerDTO, LicenseDTO, Missing, UpdateWith}
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  Description,
-  Introduction,
-  RelatedContent,
-  RequiredLibrary,
-  Tag,
-  Title,
-  VisualElement
-}
-import no.ndla.common.model.domain.article.{Article, Copyright}
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Description, Introduction, RelatedContent, RequiredLibrary, Tag, Title, VisualElement, article}
+import no.ndla.common.model.domain.article.{Article, ArticleMetaDescriptionDTO, ArticleTagDTO, Copyright, PartialPublishArticleDTO}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
@@ -245,10 +235,10 @@ trait ConverterService {
       if (supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
         val meta = findByLanguageOrBestEffort(article.metaDescription, language)
           .map(toApiArticleMetaDescription)
-          .getOrElse(api.ArticleMetaDescriptionDTO("", UnknownLanguage.toString))
+          .getOrElse(ArticleMetaDescriptionDTO("", UnknownLanguage.toString))
         val tags = findByLanguageOrBestEffort(article.tags, language)
           .map(toApiArticleTag)
-          .getOrElse(api.ArticleTagDTO(Seq(), UnknownLanguage.toString))
+          .getOrElse(ArticleTagDTO(Seq(), UnknownLanguage.toString))
         val title = findByLanguageOrBestEffort(article.title, language)
           .map(toApiArticleTitle)
           .getOrElse(api.ArticleTitleDTO("", "", UnknownLanguage.toString))
@@ -341,8 +331,8 @@ trait ConverterService {
       }
     }
 
-    private def toApiArticleTag(tag: Tag): api.ArticleTagDTO = {
-      api.ArticleTagDTO(tag.tags, tag.language)
+    private def toApiArticleTag(tag: Tag): ArticleTagDTO = {
+      article.ArticleTagDTO(tag.tags, tag.language)
     }
 
     private def toApiRequiredLibrary(required: RequiredLibrary): api.RequiredLibraryDTO = {
@@ -361,8 +351,8 @@ trait ConverterService {
       )
     }
 
-    private def toApiArticleMetaDescription(metaDescription: Description): api.ArticleMetaDescriptionDTO = {
-      api.ArticleMetaDescriptionDTO(metaDescription.content, metaDescription.language)
+    private def toApiArticleMetaDescription(metaDescription: Description): ArticleMetaDescriptionDTO = {
+      article.ArticleMetaDescriptionDTO(metaDescription.content, metaDescription.language)
     }
 
     private def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImageDTO = {

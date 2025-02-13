@@ -14,8 +14,8 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{LicenseDTO, UpdateWith}
-import no.ndla.common.model.domain.{Author, Availability, Description, Introduction, RequiredLibrary, Tag, Title}
-import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.domain.{Author, Availability, Description, Introduction, RequiredLibrary, Tag, Title, article}
+import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, Copyright, PartialPublishArticleDTO}
 import org.mockito.Mockito.when
 
 import scala.util.Success
@@ -199,11 +199,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val revisionDate = NDLADate.now()
 
     val partialArticle =
-      api.PartialPublishArticleDTO(
+      PartialPublishArticleDTO(
         availability = Some(Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
-        metaDescription = Some(Seq(api.ArticleMetaDescriptionDTO("nyDesc", "nb"))),
+        metaDescription = Some(Seq(ArticleMetaDescriptionDTO("nyDesc", "nb"))),
         relatedContent = Some(
           Seq(
             Left(commonApi.RelatedContentLinkDTO("New Title", "New Url")),
@@ -211,7 +211,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             Right(42L)
           )
         ),
-        tags = Some(Seq(api.ArticleTagDTO(Seq("nye", "Tags"), "nb"))),
+        tags = Some(Seq(ArticleTagDTO(Seq("nye", "Tags"), "nb"))),
         revisionDate = UpdateWith(revisionDate),
         published = Some(revisionDate)
       )
@@ -247,23 +247,23 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val revisionDate = NDLADate.now()
     val partialArticle =
-      api.PartialPublishArticleDTO(
+      article.PartialPublishArticleDTO(
         availability = Some(Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
         metaDescription = Some(
           Seq(
-            api.ArticleMetaDescriptionDTO("nyDesc", "nb"),
-            api.ArticleMetaDescriptionDTO("newDesc", "en"),
-            api.ArticleMetaDescriptionDTO("neuDesc", "de")
+            article.ArticleMetaDescriptionDTO("nyDesc", "nb"),
+            article.ArticleMetaDescriptionDTO("newDesc", "en"),
+            article.ArticleMetaDescriptionDTO("neuDesc", "de")
           )
         ),
         relatedContent = Some(Seq(Right(42L), Right(420L), Right(4200L))),
         tags = Some(
           Seq(
-            api.ArticleTagDTO(Seq("nye", "Tags"), "nb"),
-            api.ArticleTagDTO(Seq("new", "Tagss"), "en"),
-            api.ArticleTagDTO(Seq("Guten", "Tag"), "de")
+            article.ArticleTagDTO(Seq("nye", "Tags"), "nb"),
+            article.ArticleTagDTO(Seq("new", "Tagss"), "en"),
+            article.ArticleTagDTO(Seq("Guten", "Tag"), "de")
           )
         ),
         revisionDate = UpdateWith(revisionDate),

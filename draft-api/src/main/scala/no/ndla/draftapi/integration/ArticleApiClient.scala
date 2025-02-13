@@ -14,20 +14,26 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.api.{Delete, Missing, UpdateOrDelete, UpdateWith}
+import no.ndla.common.model.api.{Delete, Missing, RelatedContentLinkDTO, UpdateWith}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.{NDLADate, RelatedContentLink, domain as common}
+import no.ndla.common.model.domain.article.{
+  ArticleMetaDescriptionDTO,
+  ArticleTagDTO,
+  PartialPublishArticleDTO,
+  PartialPublishArticlesBulkDTO
+}
+import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{ArticleApiValidationErrorDTO, ContentIdDTO}
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.auth.TokenUser
+import sttp.client3.Response
 import sttp.client3.quick.*
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Try}
 
 trait ArticleApiClient {
@@ -41,10 +47,10 @@ trait ArticleApiClient {
 
     def partialPublishArticle(
         id: Long,
-        article: PartialPublishArticle,
+        article: PartialPublishArticleDTO,
         user: TokenUser
     ): Try[Long] = {
-      patchWithData[ArticleApiId, PartialPublishArticle](
+      patchWithData[ArticleApiId, PartialPublishArticleDTO](
         s"$InternalEndpoint/partial-publish/$id",
         article,
         Some(user)
@@ -107,6 +113,20 @@ trait ArticleApiClient {
       }
     }
 
+    def bulkPartialPublishArticles(
+        ids: Map[Long, PartialPublishArticleDTO],
+        user: TokenUser
+    ): Try[Unit] = {
+      val articles = PartialPublishArticlesBulkDTO(idTo = ids)
+      patchWithDataRaw[PartialPublishArticlesBulkDTO](
+        s"$InternalEndpoint/partial-publish",
+        articles,
+        Some(user),
+        // NOTE: Long timeout since this potentially updates a bunch of articles
+        10.minutes
+      ).unit
+    }
+
     private def post[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params*)), user)
     }
@@ -114,6 +134,23 @@ trait ArticleApiClient {
     private def delete[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest.delete(uri"$endpointUrl".withParams(params*)).readTimeout(deleteTimeout),
+        user
+      )
+    }
+
+    private def patchWithDataRaw[B: Encoder](
+        endpointUrl: String,
+        data: B,
+        user: Option[TokenUser],
+        timeout: Duration,
+        params: (String, String)*
+    ): Try[Response[String]] = {
+      ndlaClient.fetchRawWithForwardedAuth(
+        quickRequest
+          .patch(uri"$endpointUrl".withParams(params*))
+          .body(CirceUtil.toJsonString(data))
+          .header("content-type", "application/json", replaceExisting = true)
+          .readTimeout(timeout),
         user
       )
     }
@@ -150,65 +187,55 @@ trait ArticleApiClient {
     }
   }
 
-  case class PartialPublishArticle(
-      availability: Option[Availability],
-      grepCodes: Option[Seq[String]],
-      license: Option[String],
-      metaDescription: Option[Seq[api.ArticleMetaDescriptionDTO]],
-      relatedContent: Option[Seq[common.RelatedContent]],
-      tags: Option[Seq[api.ArticleTagDTO]],
-      revisionDate: UpdateOrDelete[NDLADate],
-      published: Option[NDLADate]
-  ) {
-    def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
-    def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
-    def withTags(tags: Seq[common.Tag], language: String): PartialPublishArticle =
-      copy(tags =
+  implicit class PartialPublishArticleDTOImplicits(self: PartialPublishArticleDTO) {
+    def withLicense(license: Option[String]): PartialPublishArticleDTO  = self.copy(license = license)
+    def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticleDTO = self.copy(grepCodes = grepCodes.some)
+    def withTags(tags: Seq[common.Tag], language: String): PartialPublishArticleDTO =
+      self.copy(tags =
         tags
           .find(t => t.language == language)
           .toSeq
-          .map(t => api.ArticleTagDTO(t.tags, t.language))
+          .map(t => ArticleTagDTO(t.tags, t.language))
           .some
       )
-    def withTags(tags: Seq[common.Tag]): PartialPublishArticle =
-      copy(tags = tags.map(t => api.ArticleTagDTO(t.tags, t.language)).some)
-    def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticle =
-      copy(relatedContent = relatedContent.some)
-    def withMetaDescription(meta: Seq[common.Description], language: String): PartialPublishArticle =
-      copy(metaDescription =
+    def withTags(tags: Seq[common.Tag]): PartialPublishArticleDTO =
+      self.copy(tags = tags.map(t => ArticleTagDTO(t.tags, t.language)).some)
+    def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticleDTO = {
+      val api = relatedContent.map { rc => rc.leftMap { rcl => RelatedContentLinkDTO(rcl.title, rcl.url) } }
+      self.copy(relatedContent = api.some)
+    }
+
+    def withMetaDescription(meta: Seq[common.Description], language: String): PartialPublishArticleDTO =
+      self.copy(metaDescription =
         meta
           .find(m => m.language == language)
-          .map(m => api.ArticleMetaDescriptionDTO(m.content, m.language))
+          .map(m => ArticleMetaDescriptionDTO(m.content, m.language))
           .toSeq
           .some
       )
-    def withMetaDescription(meta: Seq[common.Description]): PartialPublishArticle =
-      copy(metaDescription = meta.map(m => api.ArticleMetaDescriptionDTO(m.content, m.language)).some)
-    def withAvailability(availability: Availability): PartialPublishArticle =
-      copy(availability = availability.some)
-    def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticle = {
+    def withMetaDescription(meta: Seq[common.Description]): PartialPublishArticleDTO = {
+      val api = meta.map(m => ArticleMetaDescriptionDTO(m.content, m.language))
+      self.copy(metaDescription = api.some)
+    }
+    def withAvailability(availability: Availability): PartialPublishArticleDTO =
+      self.copy(availability = availability.some)
+    def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticleDTO = {
       val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
       val newRev = earliestRevisionDate match {
         case Some(value) => UpdateWith(value)
         case None        => Delete
       }
-      copy(revisionDate = newRev)
+      self.copy(revisionDate = newRev)
     }
-    def withPublished(published: NDLADate): PartialPublishArticle = copy(published = published.some)
+    def withPublished(published: NDLADate): PartialPublishArticleDTO = self.copy(published = published.some)
   }
 
   object PartialPublishArticle {
-    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Missing, None)
-
-    implicit def eitherEnc: Encoder[Either[RelatedContentLink, Long]] = eitherEncoder[RelatedContentLink, Long]
-    implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
-
-    implicit val encoder: Encoder[PartialPublishArticle] = UpdateOrDelete.filterMarkers(deriveEncoder)
-    implicit val decoder: Decoder[PartialPublishArticle] = deriveDecoder[PartialPublishArticle]
+    def empty(): PartialPublishArticleDTO = PartialPublishArticleDTO(None, None, None, None, None, None, Missing, None)
   }
 }
-case class ArticleApiId(id: Long)
 
+case class ArticleApiId(id: Long)
 object ArticleApiId {
   implicit val encoder: Encoder[ArticleApiId] = deriveEncoder
   implicit val decoder: Decoder[ArticleApiId] = deriveDecoder

@@ -11,12 +11,17 @@ package no.ndla.articleapi.service
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticleDTO}
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
+import no.ndla.database.DBUtil
+import no.ndla.language.Language
+import scalikejdbc.{AutoSession, DBSession}
+import cats.implicits.*
+import no.ndla.common.implicits.TryQuestionMark
 
 import scala.util.{Failure, Success, Try}
 
@@ -31,7 +36,7 @@ trait WriteService {
         externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
-    ): Try[Article] = {
+    )(session: DBSession = AutoSession): Try[Article] = {
 
       val strictValidationResult = contentValidator.validateArticle(
         article,
@@ -62,7 +67,7 @@ trait WriteService {
 
       for {
         _             <- validationResult
-        domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)
+        domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(session)
         _             <- articleIndexService.indexDocument(domainArticle)
         _             <- Try(searchApiClient.indexArticle(domainArticle))
       } yield domainArticle
@@ -73,20 +78,34 @@ trait WriteService {
         partialArticle: PartialPublishArticleDTO,
         language: String,
         fallback: Boolean
-    ): Try[api.ArticleV2DTO] = {
-      articleRepository.withId(articleId).toArticle match {
+    )(session: DBSession = AutoSession): Try[api.ArticleV2DTO] = {
+      articleRepository.withId(articleId)(session).toArticle match {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
         case Some(existingArticle) =>
           val newArticle  = converterService.updateArticleFields(existingArticle, partialArticle)
-          val externalIds = articleRepository.getExternalIdsFromId(articleId)
-
-          updateArticle(
-            newArticle,
-            externalIds,
-            useImportValidation = false,
-            useSoftValidation = false
-          ).flatMap(insertedArticle => converterService.toApiArticleV2(insertedArticle, language, fallback))
+          val externalIds = articleRepository.getExternalIdsFromId(articleId)(session)
+          for {
+            insertedArticle <- updateArticle(
+              newArticle,
+              externalIds,
+              useImportValidation = false,
+              useSoftValidation = true
+            )(session)
+            converted <- converterService.toApiArticleV2(insertedArticle, language, fallback)
+          } yield converted
       }
+    }
+
+    def partialUpdateBulk(bulkInput: PartialPublishArticlesBulkDTO): Try[Unit] = {
+      DBUtil.rollbackOnFailure { session =>
+        bulkInput.idTo.toList.traverse { case (id, ppa) =>
+          partialUpdate(id, ppa, Language.AllLanguages, fallback = true)(session).recoverWith {
+            case _: NotFoundException =>
+              logger.warn(s"Article with id '$id' was not found when bulk partial publishing")
+              Success(())
+          }
+        }
+      }.unit
     }
 
     def unpublishArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2DTO] = {

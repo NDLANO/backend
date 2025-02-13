@@ -44,7 +44,12 @@ trait ContentValidator {
       if (validationErrors.isEmpty) {
         Success(article)
       } else {
-        Failure(new ValidationException(errors = validationErrors))
+        val validationMessage = article.id match {
+          case Some(aid) => s"Article with id $aid failed soft article validation"
+          case None      => "Article without id failed soft article validation"
+        }
+
+        Failure(new ValidationException(validationMessage, errors = validationErrors))
       }
     }
 
@@ -64,7 +69,11 @@ trait ContentValidator {
       if (validationErrors.isEmpty) {
         Success(article)
       } else {
-        Failure(new ValidationException(errors = validationErrors))
+        val validationMessage = article.id match {
+          case Some(aid) => s"Article with id $aid failed article validation"
+          case None      => "Article without id failed article validation"
+        }
+        Failure(new ValidationException(validationMessage, errors = validationErrors))
       }
     }
 

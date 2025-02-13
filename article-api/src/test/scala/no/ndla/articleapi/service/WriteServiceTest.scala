@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -34,7 +34,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override def beforeEach(): Unit = {
     Mockito.reset(articleIndexService, articleRepository)
 
-    when(articleRepository.withId(articleId)).thenReturn(Option(toArticleRow(article)))
+    when(articleRepository.withId(eqTo(articleId))(any)).thenReturn(Option(toArticleRow(article)))
     when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Article](0))
     )
@@ -54,14 +54,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedAndInserted = articleToUpdate
       .copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 
-    when(articleRepository.withId(10)).thenReturn(Some(toArticleRow(articleToUpdate)))
+    when(articleRepository.withId(eqTo(10L))(any)).thenReturn(Some(toArticleRow(articleToUpdate)))
     when(articleRepository.updateArticleFromDraftApi(any[Article], any)(any[DBSession]))
       .thenReturn(Success(updatedAndInserted))
 
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
     when(searchApiClient.indexArticle(any[Article])).thenReturn(updatedAndInserted)
 
-    service.updateArticle(articleToUpdate, List.empty, useImportValidation = false, useSoftValidation = false)
+    service.updateArticle(articleToUpdate, List.empty, useImportValidation = false, useSoftValidation = false)()
 
     val argCap1: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
     val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])

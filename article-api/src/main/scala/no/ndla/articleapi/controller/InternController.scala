@@ -19,7 +19,7 @@ import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -139,7 +139,7 @@ trait InternController {
       .out(jsonBody[Article])
       .errorOut(statusCode(StatusCode.NotFound).and(emptyOutput))
       .serverLogicPure { articleId =>
-        articleRepository.withId(articleId).flatMap(_.article) match {
+        articleRepository.withId(articleId)().flatMap(_.article) match {
           case Some(value) => value.asRight
           case None        => ().asLeft
         }
@@ -174,8 +174,7 @@ trait InternController {
             externalIds.values.filterNot(_.isEmpty),
             useImportValidation,
             useSoftValidation
-          )
-
+          )()
       }
 
     def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -210,8 +209,16 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (articleId, partialUpdateBody, language, fallback) = params
-        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback)
+        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback)()
       }
+
+    def partialPublishMultiple: ServerEndpoint[Any, Eff] = endpoint.patch
+      .in("partial-publish")
+      .in(jsonBody[PartialPublishArticlesBulkDTO])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .out(emptyOutput)
+      .requirePermission(ARTICLE_API_WRITE)
+      .serverLogicPure { _ => input => writeService.partialUpdateBulk(input) }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       index,
@@ -225,7 +232,8 @@ trait InternController {
       updateArticle,
       deleteArticle,
       unpublishArticle,
-      partialPublishArticle
+      partialPublishArticle,
+      partialPublishMultiple
     )
   }
 }
