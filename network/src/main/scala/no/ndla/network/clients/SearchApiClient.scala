@@ -95,5 +95,13 @@ trait SearchApiClient {
     private def get[A: Decoder](endpointUrl: String, user: TokenUser, params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params*)), Some(user))
     }
+
+    def convertGrepCodes(grepCodes: Seq[String], user: TokenUser): Try[Map[String, String]] = {
+      get[Map[String, String]](
+        s"${SearchEndpointPublished}grep/replacements",
+        user,
+        "codes" -> grepCodes.mkString(",")
+      )
+    }
   }
 }

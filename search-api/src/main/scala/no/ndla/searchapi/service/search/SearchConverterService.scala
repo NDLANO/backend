@@ -11,7 +11,6 @@ package no.ndla.searchapi.service.search
 import cats.implicits.*
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla
 import no.ndla.common
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
@@ -285,13 +284,26 @@ trait SearchConverterService {
       val defaultTitle = grepElement.getTitle.find(_.spraak == "default")
       val titles       = GrepTitle.convertTitles(grepElement.getTitle)
       val title        = SearchableLanguageValues.fromFields(titles)
+
+      val erstattesAv = grepElement match {
+        case g: GrepLaererplan => g.`erstattes-av`.map(_.kode)
+        case _                 => List.empty
+      }
+
+      val gjenbrukAv = grepElement match {
+        case g: GrepKompetansemaal => g.`gjenbruk-av`.map(_.kode)
+        case _                     => None
+      }
+
       Success(
         SearchableGrepElement(
           code = grepElement.kode,
           title = title,
           defaultTitle = defaultTitle.map(_.verdi),
           laereplanCode = laererplan,
-          domainObject = grepElement
+          domainObject = grepElement,
+          erstattesAv = erstattesAv,
+          gjenbrukAv = gjenbrukAv
         )
       )
     }

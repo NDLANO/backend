@@ -143,7 +143,8 @@ trait SearchController {
       searchDraftLearningResourcesGet,
       postSearchLearningResources,
       subjectAggs,
-      searchGrep
+      searchGrep,
+      getGrepReplacements
     )
 
     def subjectAggs: ServerEndpoint[Any, Eff] = endpoint.post
@@ -544,6 +545,20 @@ trait SearchController {
       .out(jsonBody[GrepSearchResultsDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .serverLogicPure { input => grepSearchService.searchGreps(input) }
+
+    def getGrepReplacements: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Get grep replacements")
+      .in("grep" / "replacements")
+      .in(
+        listQuery[String]("codes").description(
+          "Grep codes to find replacements for. To provide codes ids, separate by comma (,)."
+        )
+      )
+      .errorOut(errorOutputsFor(400))
+      .out(jsonBody[Map[String, String]])
+      .serverLogicPure { input =>
+        grepSearchService.getReplacements(input.values)
+      }
 
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the
       * feide api and should be used sparingly.

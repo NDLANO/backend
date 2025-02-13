@@ -39,6 +39,8 @@ trait GrepIndexService {
         keywordField("defaultTitle"),
         keywordField("code").normalizer("lower"),
         keywordField("laereplanCode").normalizer("lower"),
+        keywordField("gjenbrukAv").normalizer("lower"),
+        keywordField("erstattesAv").normalizer("lower"),
         ObjectField("domainObject", enabled = Some(false))
       )
 

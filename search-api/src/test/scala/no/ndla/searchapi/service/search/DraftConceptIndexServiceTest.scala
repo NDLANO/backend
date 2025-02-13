@@ -16,7 +16,6 @@ import no.ndla.common.model.domain.concept.ConceptMetaImage
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.api
 import no.ndla.searchapi.model.search.SearchableConcept
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
