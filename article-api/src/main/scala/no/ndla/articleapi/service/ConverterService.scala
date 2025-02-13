@@ -20,8 +20,25 @@ import no.ndla.common
 import no.ndla.common.{CirceUtil, Clock, model}
 import no.ndla.common.model.{RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{Delete, DisclaimerDTO, LicenseDTO, Missing, UpdateWith}
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Description, Introduction, RelatedContent, RequiredLibrary, Tag, Title, VisualElement, article}
-import no.ndla.common.model.domain.article.{Article, ArticleMetaDescriptionDTO, ArticleTagDTO, Copyright, PartialPublishArticleDTO}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  Description,
+  Introduction,
+  RelatedContent,
+  RequiredLibrary,
+  Tag,
+  Title,
+  VisualElement,
+  article
+}
+import no.ndla.common.model.domain.article.{
+  Article,
+  ArticleMetaDescriptionDTO,
+  ArticleTagDTO,
+  Copyright,
+  PartialPublishArticleDTO
+}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense

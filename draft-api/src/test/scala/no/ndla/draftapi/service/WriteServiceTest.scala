@@ -16,7 +16,6 @@ import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTa
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
-import no.ndla.database.DBUtil
 import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.PartialArticleFieldsDTO

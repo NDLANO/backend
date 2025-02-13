@@ -11,7 +11,6 @@ package no.ndla.myndlaapi.repository
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.model.arena.domain.InsertCategory
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -22,6 +21,7 @@ class ArenaRepositoryTest
     with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator                     = new DBMigrator
+  override val DBUtil: DBUtility            = new DBUtility
 
   override val arenaRepository: ArenaRepository = new ArenaRepository
   override val userRepository: UserRepository   = new UserRepository

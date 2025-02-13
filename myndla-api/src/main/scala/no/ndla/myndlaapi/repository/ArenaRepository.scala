@@ -19,14 +19,14 @@ import no.ndla.common.errors.InvalidStateException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.MyNDLAUser
-import no.ndla.database.DBUtil.buildWhereClause
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.model.arena.api.{CategoryBreadcrumbDTO, CategorySortDTO}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
 import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
 
 trait ArenaRepository {
-  this: Clock =>
+  this: Clock & DBUtility =>
 
   val arenaRepository: ArenaRepository
 
@@ -972,7 +972,7 @@ trait ArenaRepository {
           else Some(sqls"(select visible from ${domain.Category.table} where id = category_id) = true")
 
         val deleteClause = sqls"deleted is null"
-        val whereClause  = buildWhereClause(conditions ++ visibleSql :+ deleteClause)
+        val whereClause  = DBUtil.buildWhereClause(conditions ++ visibleSql :+ deleteClause)
 
         sql"""
            select count(*) as count
@@ -1110,7 +1110,7 @@ trait ArenaRepository {
         else Some(sqls"(select visible from ${domain.Category.table} where id = ${t.category_id}) = true")
 
       val deleteClause = sqls"${t.deleted} is null"
-      val whereClause  = buildWhereClause(conditions ++ visibleSql :+ deleteClause)
+      val whereClause  = DBUtil.buildWhereClause(conditions ++ visibleSql :+ deleteClause)
 
       val postCountSelect =
         sqls"select count(*) from ${domain.Post.table} where topic_id = ${ts(t).id}"
@@ -1291,7 +1291,7 @@ trait ArenaRepository {
       val visibleSql = if (user.isAdmin) None else Some(sqls"${ca.visible} = true")
 
       val where = if (filterFollowed) {
-        val subWhereClause = buildWhereClause(
+        val subWhereClause = DBUtil.buildWhereClause(
           Seq(
             parentFilter,
             sqls"${domain.CategoryFollow.column.user_id} = ${user.id}"
@@ -1304,7 +1304,7 @@ trait ArenaRepository {
                 $subWhereClause
             )
             """
-      } else buildWhereClause(visibleSql.toSeq :+ parentFilter)
+      } else DBUtil.buildWhereClause(visibleSql.toSeq :+ parentFilter)
 
       val orderByClause = sort match {
         case CategorySortDTO.ByTitle => sqls"order by ${ca.title}"

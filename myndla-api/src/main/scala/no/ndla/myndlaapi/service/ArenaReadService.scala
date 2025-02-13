@@ -14,7 +14,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.myndla.MyNDLAUser
-import no.ndla.database.DBUtil
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
@@ -29,7 +29,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ArenaReadService {
   this: FeideApiClient & ArenaRepository & ConverterService & UserService & Clock & ConfigService & FolderRepository &
-    UserRepository & NodeBBClient =>
+    UserRepository & NodeBBClient & DBUtility =>
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {

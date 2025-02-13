@@ -13,7 +13,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.database.DBUtil
+import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
@@ -36,7 +36,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: DraftRepository & ConverterService & ArticleSearchService & TagSearchService & GrepCodesSearchService &
-    SearchConverterService & UserDataRepository & WriteService & Props & MemoizeHelpers =>
+    SearchConverterService & UserDataRepository & WriteService & Props & MemoizeHelpers & DBUtility =>
   val readService: ReadService
 
   import props.*

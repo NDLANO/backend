@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi.integration
 
-import cats.implicits.{catsSyntaxOptionId, toTraverseOps}
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.common.CirceUtil

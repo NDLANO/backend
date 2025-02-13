@@ -31,7 +31,7 @@ import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
@@ -60,6 +60,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with ReadService
     with MemoizeHelpers
     with WriteService
+    with DBUtility
     with ContentValidator
     with Clock
     with ErrorHandling
@@ -80,6 +81,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
     new V33__ConvertLanguageUnknown(props),
     new V55__SetHideBylineForImagesNotCopyrighted
   )
+  override val DBUtil: DBUtility = new DBUtility
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()

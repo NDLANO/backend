@@ -24,7 +24,7 @@ import no.ndla.common.model.domain.{Priority, Responsible, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain as common}
-import no.ndla.database.DBUtil
+import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
@@ -51,7 +51,7 @@ import scala.util.{Failure, Random, Success, Try}
 trait WriteService {
   this: DraftRepository & UserDataRepository & ConverterService & ContentValidator & ArticleIndexService &
     TagIndexService & GrepCodesIndexService & Clock & ReadService & ArticleApiClient & SearchApiClient &
-    FileStorageService & TaxonomyApiClient & Props =>
+    FileStorageService & TaxonomyApiClient & Props & DBUtility =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {

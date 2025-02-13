@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.{Clock, UUIDUtil}
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.db.migrationwithdependencies.V57__MigrateSavedSearch
@@ -58,6 +58,7 @@ trait TestEnvironment
     with SearchConverterService
     with ReadService
     with WriteService
+    with DBUtility
     with ContentValidator
     with FileController
     with FileStorageService
@@ -76,6 +77,7 @@ trait TestEnvironment
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
   val migrator: DBMigrator = mock[DBMigrator]
+  val DBUtil: DBUtility    = mock[DBUtility]
 
   val articleSearchService: ArticleSearchService     = mock[ArticleSearchService]
   val articleIndexService: ArticleIndexService       = mock[ArticleIndexService]

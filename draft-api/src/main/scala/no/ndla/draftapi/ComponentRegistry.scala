@@ -13,7 +13,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.db.migrationwithdependencies.{
@@ -66,6 +66,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with NdlaClient
     with SearchConverterService
     with ReadService
+    with DBUtility
     with WriteService
     with FileController
     with FileStorageService
@@ -97,6 +98,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     new V66__SetHideBylineForImagesNotCopyrighted
   )
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override val DBUtil: DBUtility            = new DBUtility
   DataSource.connectToDatabase()
 
   lazy val draftRepository    = new ArticleRepository

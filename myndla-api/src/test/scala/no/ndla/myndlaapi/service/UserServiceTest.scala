@@ -12,7 +12,6 @@ import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla.{MyNDLAGroupDTO, MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.TestData.emptyMyNDLAUser
 import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
@@ -150,10 +149,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(DBUtil.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(false))
 
     val feideId = "feide"
@@ -236,10 +235,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(DBUtil.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"
@@ -298,10 +297,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists but needs update") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(DBUtil.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"

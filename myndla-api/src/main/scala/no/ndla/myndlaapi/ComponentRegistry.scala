@@ -11,7 +11,7 @@ package no.ndla.myndlaapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
@@ -50,6 +50,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with DataSource
     with DBMigrator
     with ArenaReadService
+    with DBUtility
     with ConverterService
     with FolderRepository
     with FolderReadService
@@ -105,6 +106,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val ndlaClient: NdlaClient                               = new NdlaClient
   lazy val myndlaApiClient: MyNDLAApiClient                     = new MyNDLAApiClient
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
+  lazy val DBUtil                                               = new DBUtility
 
   override val migrator: DBMigrator         = DBMigrator(v16__MigrateResourcePaths)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource

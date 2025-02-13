@@ -20,7 +20,7 @@ import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
@@ -48,6 +48,7 @@ trait TestEnvironment
     with SearchConverterService
     with ReadService
     with WriteService
+    with DBUtility
     with ContentValidator
     with Clock
     with ErrorHandling
@@ -64,6 +65,7 @@ trait TestEnvironment
   }
   val TestData: TestData   = new TestData
   val migrator: DBMigrator = mock[DBMigrator]
+  val DBUtil: DBUtility    = mock[DBUtility]
 
   val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
   val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]

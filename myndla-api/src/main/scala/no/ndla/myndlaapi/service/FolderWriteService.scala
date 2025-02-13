@@ -15,7 +15,7 @@ import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
-import no.ndla.database.DBUtil
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   FolderSorting,
@@ -52,7 +52,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderWriteService {
   this: FolderReadService & Clock & FeideApiClient & FolderRepository & FolderConverterService & UserRepository &
-    ConfigService & UserService & SearchApiClient =>
+    ConfigService & UserService & SearchApiClient & DBUtility =>
 
   val folderWriteService: FolderWriteService
   class FolderWriteService {

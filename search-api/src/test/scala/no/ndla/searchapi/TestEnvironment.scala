@@ -10,6 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.database.DBUtility
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
@@ -38,6 +39,7 @@ trait TestEnvironment
     with RedisClient
     with Elastic4sClient
     with TaxonomyApiClient
+    with DBUtility
     with IndexService
     with BaseIndexService
     with StrictLogging
@@ -76,6 +78,7 @@ trait TestEnvironment
   val draftConceptApiClient: DraftConceptApiClient = mock[DraftConceptApiClient]
   val feideApiClient: FeideApiClient               = mock[FeideApiClient]
   val redisClient: RedisClient                     = mock[RedisClient]
+  val DBUtil                                       = mock[DBUtility]
 
   val clock: SystemClock = mock[SystemClock]
 

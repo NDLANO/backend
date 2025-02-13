@@ -10,7 +10,6 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.database.DBUtil
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
@@ -32,6 +31,7 @@ class DraftApiClientTest
     with searchapi.TestEnvironment {
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
+  override val DBUtil                 = new DBUtility
 
   val draftApiPort: Int           = findFreePort
   val pgc: PostgreSQLContainer[?] = postgresContainer.get

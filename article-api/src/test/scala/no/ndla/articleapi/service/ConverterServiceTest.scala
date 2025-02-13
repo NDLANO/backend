@@ -14,8 +14,22 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{LicenseDTO, UpdateWith}
-import no.ndla.common.model.domain.{Author, Availability, Description, Introduction, RequiredLibrary, Tag, Title, article}
-import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, Copyright, PartialPublishArticleDTO}
+import no.ndla.common.model.domain.{
+  Author,
+  Availability,
+  Description,
+  Introduction,
+  RequiredLibrary,
+  Tag,
+  Title,
+  article
+}
+import no.ndla.common.model.domain.article.{
+  ArticleMetaDescriptionDTO,
+  ArticleTagDTO,
+  Copyright,
+  PartialPublishArticleDTO
+}
 import org.mockito.Mockito.when
 
 import scala.util.Success

@@ -17,7 +17,7 @@ import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
-import no.ndla.database.DBUtil
+import no.ndla.database.DBUtility
 import no.ndla.language.Language
 import scalikejdbc.{AutoSession, DBSession}
 import cats.implicits.*
@@ -26,7 +26,8 @@ import no.ndla.common.implicits.TryQuestionMark
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ArticleRepository & ConverterService & ContentValidator & ArticleIndexService & ReadService & SearchApiClient =>
+  this: ArticleRepository & ConverterService & ContentValidator & ArticleIndexService & ReadService & SearchApiClient &
+    DBUtility =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {

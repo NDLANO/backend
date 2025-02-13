@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtil.buildWhereClause
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject
@@ -21,6 +21,7 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait UserRepository {
+  this: DBUtility =>
   val userRepository: UserRepository
 
   class UserRepository extends StrictLogging {
@@ -36,7 +37,7 @@ trait UserRepository {
         sqls"u.document->>'displayName' ilike $qString or u.document->>'username' ilike $qString"
       })
 
-      val whereClause = buildWhereClause((teacherClause ++ queryClause).toSeq)
+      val whereClause = DBUtil.buildWhereClause((teacherClause ++ queryClause).toSeq)
 
       val count: Long = sql"""
               select count(*)
