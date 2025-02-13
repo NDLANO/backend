@@ -15,11 +15,11 @@ import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.DBUtil.buildWhereClause
-import no.ndla.common.errors.{InvalidStateException, RollbackException}
+import no.ndla.common.errors.InvalidStateException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.MyNDLAUser
+import no.ndla.database.DBUtil.buildWhereClause
 import no.ndla.myndlaapi.model.arena.api.{CategoryBreadcrumbDTO, CategorySortDTO}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
@@ -835,25 +835,6 @@ trait ArenaRepository {
         ownerId = Some(ownerId),
         toPostId = toPostId
       )
-    }
-
-    def withSession[T](func: DBSession => T): T = {
-      DB.localTx { session =>
-        func(session)
-      }
-    }
-
-    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
-      try {
-        DB.localTx { session =>
-          func(session) match {
-            case Failure(ex)    => throw RollbackException(ex)
-            case Success(value) => Success(value)
-          }
-        }
-      } catch {
-        case RollbackException(ex) => Failure(ex)
-      }
     }
 
     def getCategory(id: Long, includeHidden: Boolean)(implicit session: DBSession): Try[Option[domain.Category]] = {

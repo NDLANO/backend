@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.service
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser, UserRole}
+import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
@@ -36,7 +37,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     resetMocks()
     when(clock.now()).thenReturn(TestData.today)
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
-    when(folderRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    when(DBUtil.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
     })

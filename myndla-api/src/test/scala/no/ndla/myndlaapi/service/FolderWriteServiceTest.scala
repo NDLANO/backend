@@ -12,6 +12,7 @@ import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
+import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.TestData.{emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.domain.FolderSortObject.FolderSorting
@@ -39,7 +40,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     super.beforeEach()
     resetMocks()
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    when(DBUtil.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
     })
@@ -1043,7 +1044,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
     when(folderRepository.updateFolderStatusInBulk(any, any)(any)).thenReturn(Success(List(folderId)))
     when(folderRepository.deleteFolderUserConnections(any)(any)).thenReturn(Success(List(folderId, folderIdChild)))
-    when(folderRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    when(DBUtil.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
     })

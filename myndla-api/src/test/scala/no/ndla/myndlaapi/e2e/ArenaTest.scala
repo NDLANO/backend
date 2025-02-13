@@ -13,6 +13,7 @@ import io.circe.syntax.EncoderOps
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, UserRole}
+import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.model.arena.api
 import no.ndla.myndlaapi.*
 import no.ndla.myndlaapi.model.api.ArenaUserDTO
@@ -99,7 +100,7 @@ class ArenaTest
     reset(myndlaApi.componentRegistry.userService)
     reset(myndlaApi.componentRegistry.userRepository)
 
-    myndlaApi.componentRegistry.arenaRepository.withSession(implicit session => {
+    DBUtil.withSession(implicit session => {
       myndlaApi.componentRegistry.arenaRepository.deleteAllFollows.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllPosts.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllTopics.get

@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.repository
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{MyNDLAUserDocument, UserRole}
+import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.model.arena.domain.InsertCategory
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -26,7 +27,7 @@ class ArenaRepositoryTest
   override val userRepository: UserRepository   = new UserRepository
 
   def emptyTestDatabase(): Unit = {
-    arenaRepository.withSession(implicit session => {
+    DBUtil.withSession(implicit session => {
       arenaRepository.deleteAllFollows.get
       arenaRepository.deleteAllPosts.get
       arenaRepository.deleteAllTopics.get
@@ -66,7 +67,7 @@ class ArenaRepositoryTest
     )
     val feideId = "feideId1"
 
-    arenaRepository.withSession { session =>
+    DBUtil.withSession { session =>
       userRepository.reserveFeideIdIfNotExists(feideId)(session).get
       val user1 = userRepository.insertUser(feideId, user)(session).get
 
@@ -119,7 +120,7 @@ class ArenaRepositoryTest
     )
     val feideId = "feideId1"
 
-    arenaRepository.withSession { session =>
+    DBUtil.withSession { session =>
       userRepository.reserveFeideIdIfNotExists(feideId)(session).get
       val user1 = userRepository.insertUser(feideId, user)(session).get
 
@@ -185,7 +186,7 @@ class ArenaRepositoryTest
     val feideId  = "feideId1"
     val feideId2 = "feideId2"
 
-    arenaRepository.withSession { session =>
+    DBUtil.withSession { session =>
       userRepository.reserveFeideIdIfNotExists(feideId)(session).get
       userRepository.reserveFeideIdIfNotExists(feideId2)(session).get
       val user1 =

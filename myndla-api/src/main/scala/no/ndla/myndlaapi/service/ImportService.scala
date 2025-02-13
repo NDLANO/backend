@@ -8,15 +8,7 @@
 
 package no.ndla.myndlaapi.service
 
-import no.ndla.myndlaapi.integration.nodebb.{
-  CategoryInList,
-  ImportException,
-  NodeBBClient,
-  Owner,
-  Post,
-  SingleTopic,
-  TopicInList
-}
+import no.ndla.myndlaapi.integration.nodebb.{CategoryInList, ImportException, NodeBBClient, Owner, Post, SingleTopic, TopicInList}
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
@@ -24,6 +16,7 @@ import scalikejdbc.*
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
+import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.model.arena.domain.InsertCategory
 import no.ndla.myndlaapi.model.arena.domain
 import no.ndla.myndlaapi.repository.{ArenaRepository, UserRepository}
@@ -40,7 +33,7 @@ trait ImportService {
   class ImportService extends StrictLogging {
 
     def importArenaDataFromNodeBB(): Try[Unit] =
-      arenaRepository.rollbackOnFailure(session => importCategories(session))
+      DBUtil.rollbackOnFailure(session => importCategories(session))
 
     private def importCategories(session: DBSession): Try[Unit] = {
       for {

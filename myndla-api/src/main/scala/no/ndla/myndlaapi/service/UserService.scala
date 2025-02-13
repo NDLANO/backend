@@ -14,6 +14,7 @@ import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
+import no.ndla.database.DBUtil
 import no.ndla.myndlaapi.model.api.{ArenaUserDTO, PaginatedArenaUsersDTO}
 import no.ndla.myndlaapi.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
@@ -61,7 +62,7 @@ trait UserService {
     ): Try[MyNDLAUser] = {
       for {
         feideId <- feideApiClient.getFeideID(feideAccessToken)
-        userData <- userRepository.rollbackOnFailure(session =>
+        userData <- DBUtil.rollbackOnFailure(session =>
           getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         )
       } yield userData
