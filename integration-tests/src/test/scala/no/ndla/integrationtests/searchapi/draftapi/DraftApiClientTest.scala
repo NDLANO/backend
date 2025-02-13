@@ -10,6 +10,7 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.database.DBUtil
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
@@ -69,7 +70,7 @@ class DraftApiClientTest
   }
 
   private def setupArticles() = {
-    draftApi.componentRegistry.draftRepository.withSession { implicit session =>
+    DBUtil.withSession { implicit session =>
       (1L to 10)
         .map(id => {
           draftApi.componentRegistry.draftRepository.insert(

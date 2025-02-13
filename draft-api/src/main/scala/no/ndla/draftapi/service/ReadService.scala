@@ -13,6 +13,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.database.DBUtil
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
@@ -79,7 +80,7 @@ trait ReadService {
 
     def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      draftRepository.withSession { implicit session =>
+      DBUtil.withSession { implicit session =>
         val results = draftRepository
           .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
           .flatMap(article => converterService.toApiArticle(article, lang, fallback).toOption)
@@ -88,7 +89,7 @@ trait ReadService {
     }
 
     def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
-      draftRepository.withSession(implicit session => {
+      DBUtil.withSession(implicit session => {
         val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
         val results = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
 

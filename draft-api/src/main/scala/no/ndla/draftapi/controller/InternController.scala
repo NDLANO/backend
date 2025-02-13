@@ -23,7 +23,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.TapirController
-import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.Permission.{ARTICLE_API_WRITE, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.ReadOnlyAutoSession
 import sttp.model.StatusCode
@@ -91,7 +91,8 @@ trait InternController {
       deleteArticle,
       dumpArticles,
       dumpSingleArticle,
-      postDump
+      postDump,
+      migrateOutdatedGreps
     )
 
     def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
@@ -266,9 +267,9 @@ trait InternController {
       .in("migrate-greps")
       .errorOut(errorOutputsFor(500))
       .out(emptyOutput)
-      .serverLogicPure { _ =>
-        writeService.migrateOutdatedGreps().handleErrorsOrOk
-
+      .requirePermission(ARTICLE_API_WRITE)
+      .serverLogicPure { user => _ =>
+        writeService.migrateOutdatedGreps(user).handleErrorsOrOk
       }
   }
 }
