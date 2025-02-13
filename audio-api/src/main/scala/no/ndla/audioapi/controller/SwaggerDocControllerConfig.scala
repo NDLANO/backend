@@ -1,5 +1,5 @@
 /*
- * Part of NDLA frontpage-api
+ * Part of NDLA audio-api
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
