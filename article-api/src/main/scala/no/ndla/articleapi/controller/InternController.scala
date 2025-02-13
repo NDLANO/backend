@@ -173,7 +173,8 @@ trait InternController {
             article.copy(id = Some(id)),
             externalIds.values.filterNot(_.isEmpty),
             useImportValidation,
-            useSoftValidation
+            useSoftValidation,
+            skipValidation = false
           )()
       }
 
@@ -209,7 +210,14 @@ trait InternController {
       .requirePermission(ARTICLE_API_WRITE)
       .serverLogicPure { _ => params =>
         val (articleId, partialUpdateBody, language, fallback) = params
-        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback)()
+
+        writeService.partialUpdate(
+          articleId,
+          partialUpdateBody,
+          language,
+          fallback,
+          isInBulk = false
+        )()
       }
 
     def partialPublishMultiple: ServerEndpoint[Any, Eff] = endpoint.patch

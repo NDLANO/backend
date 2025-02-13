@@ -61,7 +61,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
     when(searchApiClient.indexArticle(any[Article])).thenReturn(updatedAndInserted)
 
-    service.updateArticle(articleToUpdate, List.empty, useImportValidation = false, useSoftValidation = false)()
+    service.updateArticle(
+      articleToUpdate,
+      List.empty,
+      useImportValidation = false,
+      useSoftValidation = false,
+      skipValidation = false
+    )()
 
     val argCap1: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
     val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])

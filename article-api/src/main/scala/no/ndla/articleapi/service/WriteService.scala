@@ -35,7 +35,8 @@ trait WriteService {
         article: Article,
         externalIds: List[String],
         useImportValidation: Boolean,
-        useSoftValidation: Boolean
+        useSoftValidation: Boolean,
+        skipValidation: Boolean
     )(session: DBSession = AutoSession): Try[Article] = {
 
       val strictValidationResult = contentValidator.validateArticle(
@@ -44,7 +45,7 @@ trait WriteService {
       )
 
       val validationResult =
-        if (useSoftValidation) {
+        if (useSoftValidation && !skipValidation) {
           (
             strictValidationResult,
             contentValidator.softValidateArticle(article, isImported = useImportValidation)
@@ -65,8 +66,21 @@ trait WriteService {
           }
         } else strictValidationResult
 
+      val finalValidationResult = (skipValidation, validationResult) match {
+        case (true, Failure(ex: ValidationException)) =>
+          logger.warn(
+            s"Article with id '${article.id.getOrElse(-1)}' was updated with validation skipped and failed with the following errors:\n${ex.errors
+                .map(msg => {
+                  s"\t'${msg.field}' => '${msg.message}'"
+                })
+                .mkString("\n\t")}"
+          )
+          Success(article)
+        case (_, result) => result
+      }
+
       for {
-        _             <- validationResult
+        _             <- finalValidationResult
         domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(session)
         _             <- articleIndexService.indexDocument(domainArticle)
         _             <- Try(searchApiClient.indexArticle(domainArticle))
@@ -77,7 +91,8 @@ trait WriteService {
         articleId: Long,
         partialArticle: PartialPublishArticleDTO,
         language: String,
-        fallback: Boolean
+        fallback: Boolean,
+        isInBulk: Boolean
     )(session: DBSession = AutoSession): Try[api.ArticleV2DTO] = {
       articleRepository.withId(articleId)(session).toArticle match {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
@@ -89,7 +104,8 @@ trait WriteService {
               newArticle,
               externalIds,
               useImportValidation = false,
-              useSoftValidation = true
+              useSoftValidation = true,
+              skipValidation = isInBulk
             )(session)
             converted <- converterService.toApiArticleV2(insertedArticle, language, fallback)
           } yield converted
@@ -99,7 +115,7 @@ trait WriteService {
     def partialUpdateBulk(bulkInput: PartialPublishArticlesBulkDTO): Try[Unit] = {
       DBUtil.rollbackOnFailure { session =>
         bulkInput.idTo.toList.traverse { case (id, ppa) =>
-          partialUpdate(id, ppa, Language.AllLanguages, fallback = true)(session).recoverWith {
+          partialUpdate(id, ppa, Language.AllLanguages, fallback = true, isInBulk = true)(session).recoverWith {
             case _: NotFoundException =>
               logger.warn(s"Article with id '$id' was not found when bulk partial publishing")
               Success(())
