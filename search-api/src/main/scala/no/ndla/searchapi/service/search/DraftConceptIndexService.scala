@@ -53,7 +53,6 @@ trait DraftConceptIndexService {
           keywordField("language")
         ),
         keywordField("defaultTitle"),
-        keywordField("subjectIds"),
         dateField("lastUpdated"),
         keywordField("draftStatus.current"),
         keywordField("draftStatus.other"),
@@ -61,7 +60,6 @@ trait DraftConceptIndexService {
         keywordField("updatedBy"),
         keywordField("license"),
         keywordField("authors"),
-        longField("articleIds"),
         dateField("created"),
         keywordField("learningResourceType"),
         keywordField("source"),
