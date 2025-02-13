@@ -16,26 +16,42 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about the concept")
 case class ConceptSummaryDTO(
-    @description("The unique id of the concept") id: Long,
-    @description("Available titles for the concept") title: ConceptTitleDTO,
-    @description("The content of the concept in available languages") content: ConceptContent,
-    @description("The metaImage of the concept") metaImage: ConceptMetaImageDTO,
-    @description("Search tags the concept is tagged with") tags: Option[ConceptTagsDTO],
-    @description("All available languages of the current concept") supportedLanguages: Seq[String],
-    @description("The time when the article was last updated") lastUpdated: NDLADate,
-    @description("When the concept was created") created: NDLADate,
-    @description("Status information of the concept") status: StatusDTO,
-    @description("List of people that edited the concept") updatedBy: Seq[String],
-    @description("Describes the license of the concept") license: Option[String],
-    @description("Describes the copyright of the concept") copyright: Option[DraftCopyrightDTO],
-    @description("A visual element for the concept") visualElement: Option[VisualElementDTO],
-    @description("URL for the source of the concept") source: Option[String],
-    @description("Object with data representing the editor responsible for this concept") responsible: Option[
-      ConceptResponsibleDTO
-    ],
-    @description("Type of concept. 'concept', or 'gloss'") conceptType: String,
-    @description("Information about the gloss") glossData: Option[GlossDataDTO],
-    @description("A translated name of the concept type") conceptTypeName: String
+    @description("The unique id of the concept")
+    id: Long,
+    @description("Available titles for the concept")
+    title: ConceptTitleDTO,
+    @description("The content of the concept in available languages")
+    content: ConceptContent,
+    @description("The metaImage of the concept")
+    metaImage: ConceptMetaImageDTO,
+    @description("Search tags the concept is tagged with")
+    tags: Option[ConceptTagsDTO],
+    @description("All available languages of the current concept")
+    supportedLanguages: Seq[String],
+    @description("The time when the article was last updated")
+    lastUpdated: NDLADate,
+    @description("When the concept was created")
+    created: NDLADate,
+    @description("Status information of the concept")
+    status: StatusDTO,
+    @description("List of people that edited the concept")
+    updatedBy: Seq[String],
+    @description("Describes the license of the concept")
+    license: Option[String],
+    @description("Describes the copyright of the concept")
+    copyright: Option[DraftCopyrightDTO],
+    @description("A visual element for the concept")
+    visualElement: Option[VisualElementDTO],
+    @description("URL for the source of the concept")
+    source: Option[String],
+    @description("Object with data representing the editor responsible for this concept")
+    responsible: Option[ConceptResponsibleDTO],
+    @description("Type of concept. 'concept', or 'gloss'")
+    conceptType: String,
+    @description("Information about the gloss")
+    glossData: Option[GlossDataDTO],
+    @description("A translated name of the concept type")
+    conceptTypeName: String
 )
 
 object ConceptSummaryDTO {

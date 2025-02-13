@@ -17,19 +17,28 @@ import com.scalatsi.*
 
 @description("Information about the concept")
 case class UpdatedConceptDTO(
-    @description("The language of this concept") language: String,
-    @description("Available titles for the concept") title: Option[String],
-    @description("The content of the concept") content: Option[String],
-    @description("An image-api ID for the concept meta image") metaImage: UpdateOrDelete[NewConceptMetaImageDTO],
-    @description("Describes the copyright information for the concept") copyright: Option[DraftCopyrightDTO],
-    @description("A list of searchable tags") tags: Option[Seq[String]],
-    @description("The new status of the concept") status: Option[String],
-    @description(
-      "A visual element for the concept. May be anything from an image to a video or H5P"
-    ) visualElement: Option[String],
-    @description("NDLA ID representing the editor responsible for this article") responsibleId: UpdateOrDelete[String],
-    @description("Type of concept. 'concept', or 'gloss'") conceptType: Option[String],
-    @description("Information about the gloss") glossData: Option[GlossDataDTO]
+    @description("The language of this concept")
+    language: String,
+    @description("Available titles for the concept")
+    title: Option[String],
+    @description("The content of the concept")
+    content: Option[String],
+    @description("An image-api ID for the concept meta image")
+    metaImage: UpdateOrDelete[NewConceptMetaImageDTO],
+    @description("Describes the copyright information for the concept")
+    copyright: Option[DraftCopyrightDTO],
+    @description("A list of searchable tags")
+    tags: Option[Seq[String]],
+    @description("The new status of the concept")
+    status: Option[String],
+    @description("A visual element for the concept. May be anything from an image to a video or H5P")
+    visualElement: Option[String],
+    @description("NDLA ID representing the editor responsible for this article")
+    responsibleId: UpdateOrDelete[String],
+    @description("Type of concept. 'concept', or 'gloss'")
+    conceptType: Option[String],
+    @description("Information about the gloss")
+    glossData: Option[GlossDataDTO]
 )
 
 object UpdatedConceptDTO {
