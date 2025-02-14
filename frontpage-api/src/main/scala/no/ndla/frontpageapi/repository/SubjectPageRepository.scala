@@ -108,6 +108,13 @@ trait SubjectPageRepository {
       ).map(_.isDefined)
     }
 
+    def totalCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+      sql"select count(*) from ${DBSubjectPage.table} where document is not NULL"
+        .map(rs => rs.long("count"))
+        .single()
+        .getOrElse(0)
+    }
+
     private def subjectPageWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[SubjectPage]] = {
