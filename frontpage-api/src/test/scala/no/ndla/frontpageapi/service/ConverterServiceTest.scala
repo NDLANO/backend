@@ -8,7 +8,7 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.model.api._
+import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
 import no.ndla.frontpageapi.model.domain.{AboutSubject, Errors, MetaDescription, VisualElement, VisualElementType}
@@ -63,7 +63,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates subject links correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -87,7 +87,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates meta description correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -105,7 +105,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates aboutSubject correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -139,7 +139,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage adds new language correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -188,7 +188,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiSubjectPage failure if subject not found in specified language without fallback") {
-    ConverterService.toApiSubjectPage(TestData.domainSubjectPage, "hei", fallback = false) should be(
+    ConverterService.toApiSubjectPage(TestData.domainSubjectPage, "hei") should be(
       Failure(
         LanguageNotFoundException(
           s"The subjectpage with id ${TestData.domainSubjectPage.id.get} and language hei was not found",

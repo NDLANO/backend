@@ -8,7 +8,7 @@
 
 package no.ndla.frontpageapi.model.api
 
-case class NewOrUpdatedFilmFrontPageDataDTO(
+case class NewOrUpdatedFilmFrontPageDTO(
     name: String,
     about: Seq[NewOrUpdatedAboutSubjectDTO],
     movieThemes: Seq[NewOrUpdatedMovieThemeDTO],
