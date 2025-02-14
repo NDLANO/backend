@@ -79,6 +79,11 @@ trait ReadService {
       } yield api
     }
 
+    def getSubjectPageDomainDump(pageNo: Int, pageSize: Int): SubjectPageDomainDumpDTO = {
+      val results = subjectPageRepository.all(pageNo, pageSize).get
+      SubjectPageDomainDumpDTO(subjectPageRepository.totalCount, pageNo, pageSize, results)
+    }
+
     def getFrontPage: Try[FrontPageDTO] = {
       frontPageRepository.getFrontPage.flatMap {
         case None        => Failure(common.NotFoundException("Front page was not found"))
