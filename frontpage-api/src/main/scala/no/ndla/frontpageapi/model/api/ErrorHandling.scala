@@ -19,9 +19,9 @@ import no.ndla.frontpageapi.model.domain.Errors.{
 import no.ndla.network.tapir.{ErrorBody, TapirErrorHandling}
 
 trait ErrorHandling extends TapirErrorHandling {
-  this: Props with Clock =>
+  this: Props & Clock =>
 
-  import ErrorHelpers._
+  import ErrorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, ErrorBody] = {
     case ex: ValidationException          => badRequest(ex.getMessage)

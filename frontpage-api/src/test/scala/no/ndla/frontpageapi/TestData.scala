@@ -8,15 +8,15 @@
 
 package no.ndla.frontpageapi
 
-import io.circe.generic.auto._
-import io.circe.syntax._
-import no.ndla.frontpageapi.model.api.{NewSubjectFrontPageDataDTO, SubjectPageDataDTO, UpdatedSubjectFrontPageDataDTO}
-import no.ndla.frontpageapi.model.domain.{FilmFrontPageData, SubjectFrontPageData, VisualElementType}
+import io.circe.generic.auto.*
+import io.circe.syntax.*
+import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, SubjectPageDTO, UpdatedSubjectPageDTO}
+import no.ndla.frontpageapi.model.domain.{FilmFrontPage, SubjectPage, VisualElementType}
 import no.ndla.frontpageapi.model.{api, domain}
 
 object TestData {
 
-  val domainSubjectPage: SubjectFrontPageData = domain.SubjectFrontPageData(
+  val domainSubjectPage: SubjectPage = domain.SubjectPage(
     Some(1),
     "Samfunnsfag",
     domain.BannerImage(Some(29668), 29668),
@@ -36,7 +36,7 @@ object TestData {
   )
   val domainSubjectJson: String = domainSubjectPage.asJson.noSpaces
 
-  val domainUpdatedSubjectPage: SubjectFrontPageData = domain.SubjectFrontPageData(
+  val domainUpdatedSubjectPage: SubjectPage = domain.SubjectPage(
     Some(1),
     "Samfunnsfag",
     domain.BannerImage(Some(29668), 29668),
@@ -57,7 +57,7 @@ object TestData {
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
   )
 
-  val apiSubjectPage: SubjectPageDataDTO = api.SubjectPageDataDTO(
+  val apiSubjectPage: SubjectPageDTO = api.SubjectPageDTO(
     1,
     "Samfunnsfag",
     api.BannerImageDTO(
@@ -81,7 +81,7 @@ object TestData {
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
   )
 
-  val apiNewSubjectPage: NewSubjectFrontPageDataDTO = api.NewSubjectFrontPageDataDTO(
+  val apiNewSubjectPage: NewSubjectPageDTO = api.NewSubjectPageDTO(
     "Samfunnsfag",
     None,
     api.NewOrUpdateBannerImageDTO(Some(29668), 29668),
@@ -100,7 +100,7 @@ object TestData {
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
   )
 
-  val apiUpdatedSubjectPage: UpdatedSubjectFrontPageDataDTO = api.UpdatedSubjectFrontPageDataDTO(
+  val apiUpdatedSubjectPage: UpdatedSubjectPageDTO = api.UpdatedSubjectPageDTO(
     Some("Samfunnsfag"),
     None,
     Some(api.NewOrUpdateBannerImageDTO(Some(29668), 29668)),
@@ -121,7 +121,7 @@ object TestData {
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
   )
 
-  val domainFilmFrontPage: FilmFrontPageData = domain.FilmFrontPageData(
+  val domainFilmFrontPage: FilmFrontPage = domain.FilmFrontPage(
     "Film",
     Seq(
       domain.AboutSubject(
@@ -150,5 +150,5 @@ object TestData {
     None
   )
 
-  val apiFilmFrontPage: api.FilmFrontPageDataDTO = api.FilmFrontPageDataDTO("", Seq(), Seq(), Seq(), None)
+  val apiFilmFrontPage: api.FilmFrontPageDTO = api.FilmFrontPageDTO("", Seq(), Seq(), Seq(), None)
 }

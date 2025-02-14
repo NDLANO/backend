@@ -26,11 +26,11 @@ object frontpageapi extends Module {
       "no.ndla.common.model.api.FrontPageDTO",
       "no.ndla.common.model.api.MenuDataDTO",
       "no.ndla.common.model.api.MenuDTO",
-      "FilmFrontPageDataDTO",
-      "NewOrUpdatedFilmFrontPageDataDTO",
-      "SubjectPageDataDTO",
-      "NewSubjectFrontPageDataDTO",
-      "UpdatedSubjectFrontPageDataDTO",
+      "FilmFrontPageDTO",
+      "NewOrUpdatedFilmFrontPageDTO",
+      "SubjectPageDTO",
+      "NewSubjectPageDTO",
+      "UpdatedSubjectPageDTO",
       "ErrorBody"
     )
   )

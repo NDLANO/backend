@@ -10,7 +10,7 @@ package no.ndla.frontpageapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
-import no.ndla.frontpageapi.model.domain.{DBFrontPageData, FrontPage}
+import no.ndla.frontpageapi.model.domain.{DBFrontPage, FrontPage}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import cats.implicits.*
@@ -19,7 +19,7 @@ import no.ndla.database.DataSource
 import scala.util.Try
 
 trait FrontPageRepository {
-  this: DataSource with DBFrontPageData =>
+  this: DataSource & DBFrontPage =>
   val frontPageRepository: FrontPageRepository
 
   class FrontPageRepository extends StrictLogging {
