@@ -15,8 +15,8 @@ import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.ValidationException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.article.PartialPublishArticleDTO
@@ -284,7 +284,9 @@ trait WriteService {
       logger.info(
         s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
       )
-      Success(Some((updated.id.get, partialPart))) // TODO: Avoid the .get call even if it is safe in this case for now
+      lazy val idException = MissingIdException("Article id was missing after updating grep codes. This is a bug.")
+      val id               = updated.id.toTry(idException).?
+      Success(Some((id, partialPart)))
     }
 
     def migrateOutdatedGreps(user: TokenUser): Try[Unit] = logTaskTime("Migrate outdated grep codes") {
