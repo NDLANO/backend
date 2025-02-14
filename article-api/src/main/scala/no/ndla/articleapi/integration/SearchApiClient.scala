@@ -40,26 +40,20 @@ trait SearchApiClient {
         val future = postWithData[Article, Article](s"$InternalEndpoint/article/", article)
         future.onComplete {
           case Success(Success(_)) =>
-            logger.info(s"Successfully indexed article with id: '${
-              article.id
-                .getOrElse(-1)
-            }' and revision '${article.revision.getOrElse(-1)}' in search-api")
+            logger.info(s"Successfully indexed article with id: '${article.id
+                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' after $attempt attempts in search-api")
           case Failure(_) if attempt < indexRetryCount => attemptIndex(article, attempt + 1)
           case Failure(e) =>
             logger.error(
-              s"Failed to index article with id: '${
-                article.id
-                  .getOrElse(-1)
-              }' and revision '${article.revision.getOrElse(-1)}' in search-api",
+              s"Failed to index article with id: '${article.id
+                  .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' after $attempt attempts in search-api",
               e
             )
           case Success(Failure(_)) if attempt < indexRetryCount => attemptIndex(article, attempt + 1)
           case Success(Failure(e)) =>
             logger.error(
-              s"Failed to index article with id: '${
-                article.id
-                  .getOrElse(-1)
-              }' and revision '${article.revision.getOrElse(-1)}' in search-api",
+              s"Failed to index article with id: '${article.id
+                  .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' after $attempt attempts in search-api",
               e
             )
         }
