@@ -32,7 +32,7 @@ trait SearchApiClient {
     private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
     private val SearchEndpointPublished = s"$SearchApiBaseUrl/search-api/v1/search/"
     private val indexTimeout            = 60.seconds
-    private val indexRetryCount         = 2
+    private val indexRetryCount         = 3
 
     def indexDraft(draft: Draft, user: TokenUser)(implicit ex: ExecutionContext): Draft = {
       def attemptIndex(draft: Draft, user: TokenUser, attempt: Int): Draft = {
@@ -58,7 +58,7 @@ trait SearchApiClient {
         }
         draft
       }
-      attemptIndex(draft, user, 0)
+      attemptIndex(draft, user, 1)
     }
 
     private def postWithData[A: Decoder, B <: AnyRef: Encoder](

@@ -30,7 +30,7 @@ trait SearchApiClient {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout     = 30.seconds
-    private val indexRetryCount  = 2
+    private val indexRetryCount  = 3
 
     def indexArticle(article: Article): Article = {
       implicit val executionContext: ExecutionContextExecutorService =
@@ -60,7 +60,7 @@ trait SearchApiClient {
 
         article
       }
-      attemptIndex(article, 0)
+      attemptIndex(article, 1)
     }
 
     private def postWithData[A: Decoder, B <: AnyRef: Encoder](endpointUrl: String, data: B, params: (String, String)*)(
