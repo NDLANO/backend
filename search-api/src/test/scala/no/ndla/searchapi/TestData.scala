@@ -1817,7 +1817,6 @@ object TestData {
   )
   val searchableDraft: SearchableDraft = SearchableDraft(
     id = 100,
-    draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
     title = searchableTitles,
     content = searchableContents,
     visualElement = searchableVisualElements,
@@ -1831,8 +1830,10 @@ object TestData {
     defaultTitle = Some("Christian Tut"),
     supportedLanguages = List("en", "nb", "nn"),
     notes = List("Note1", "note2"),
+    None,
     contexts = searchableTaxonomyContexts,
     contextids = searchableTaxonomyContexts.map(_.contextId),
+    draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
     users = List("ndalId54321", "ndalId12345"),
     previousVersionsNotes = List("OldNote"),
     grepContexts = List(),
@@ -1857,10 +1858,10 @@ object TestData {
       )
     ),
     priority = Priority.Unspecified,
-    parentTopicName = searchableTitles,
     defaultParentTopicName = searchableTitles.defaultValue,
-    primaryRoot = searchableTitles,
+    parentTopicName = searchableTitles,
     defaultRoot = searchableTitles.defaultValue,
+    primaryRoot = searchableTitles,
     resourceTypeName = searchableTitles,
     defaultResourceTypeName = searchableTitles.defaultValue,
     published = TestData.today,

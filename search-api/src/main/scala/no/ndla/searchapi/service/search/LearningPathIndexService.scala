@@ -78,7 +78,8 @@ trait LearningPathIndexService {
         ),
         intField("isBasedOn"),
         keywordField("supportedLanguages"),
-        getTaxonomyContextMapping,
+        getTaxonomyContextMapping("context"),
+        getTaxonomyContextMapping("contexts"),
         keywordField("contextids"),
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),
@@ -94,6 +95,9 @@ trait LearningPathIndexService {
         generateLanguageSupportedDynamicTemplates("relevance") ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("context.root") ++
+        generateLanguageSupportedDynamicTemplates("context.relevance") ++
+        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
         generateLanguageSupportedDynamicTemplates("contexts.root") ++
         generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
         generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
