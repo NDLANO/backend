@@ -34,28 +34,30 @@ trait SearchApiClient {
     private val indexTimeout            = 60.seconds
     private val indexRetryCount         = 2
 
-    def indexDraft(draft: Draft, user: TokenUser, retries: Int)(implicit ex: ExecutionContext): Draft = {
-      val future = postWithData[Draft, Draft](s"$InternalEndpoint/draft/", draft, user)
-      future.onComplete {
-        case Success(Success(_)) =>
-          logger.info(
-            s"Successfully indexed draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' in search-api"
-          )
-        case Failure(_) if retries < indexRetryCount => indexDraft(draft, user, retries + 1)
-        case Failure(e) =>
-          logger.error(
-            s"Failed to index draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' in search-api",
-            e
-          )
-        case Success(Failure(_)) if retries < indexRetryCount => indexDraft(draft, user, retries + 1)
-        case Success(Failure(e)) =>
-          logger.error(
-            s"Failed to index draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' in search-api",
-            e
-          )
+    def indexDraft(draft: Draft, user: TokenUser)(implicit ex: ExecutionContext): Draft = {
+      def attemptIndex(draft: Draft, user: TokenUser, attempt: Int): Draft = {
+        val future = postWithData[Draft, Draft](s"$InternalEndpoint/draft/", draft, user)
+        future.onComplete {
+          case Success(Success(_)) =>
+            logger.info(
+              s"Successfully indexed draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' in search-api"
+            )
+          case Failure(_) if attempt < indexRetryCount => attemptIndex(draft, user, attempt + 1)
+          case Failure(e) =>
+            logger.error(
+              s"Failed to index draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' in search-api",
+              e
+            )
+          case Success(Failure(_)) if attempt < indexRetryCount => attemptIndex(draft, user, attempt + 1)
+          case Success(Failure(e)) =>
+            logger.error(
+              s"Failed to index draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' in search-api",
+              e
+            )
+        }
+        draft
       }
-
-      draft
+      attemptIndex(draft, user, 0)
     }
 
     private def postWithData[A: Decoder, B <: AnyRef: Encoder](
@@ -69,7 +71,7 @@ trait SearchApiClient {
       Future {
         ndlaClient.fetchWithForwardedAuth[A](
           quickRequest
-            .post(uri"$endpointUrl".withParams(params: _*))
+            .post(uri"$endpointUrl".withParams(params *))
             .body(CirceUtil.toJsonString(data))
             .readTimeout(indexTimeout)
             .header("content-type", "application/json", replaceExisting = true),
@@ -83,7 +85,7 @@ trait SearchApiClient {
         SearchEndpointPublished,
         user,
         "embed-resource" -> "content-link,related-content",
-        "embed-id"       -> s"${articleId}"
+        "embed-id"       -> s"$articleId"
       ) match {
         case Success(value) => value.results
         case Failure(_)     => Seq.empty
@@ -91,7 +93,7 @@ trait SearchApiClient {
     }
 
     private def get[A: Decoder](endpointUrl: String, user: TokenUser, params: (String, String)*): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params: _*)), Some(user))
+      ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params *)), Some(user))
     }
   }
 
