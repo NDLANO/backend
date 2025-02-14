@@ -10,7 +10,7 @@ package no.ndla.frontpageapi.repository
 
 import io.circe.syntax.*
 import no.ndla.database.DataSource
-import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, FilmFrontPageData}
+import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, FilmFrontPage}
 import org.log4s.Logger
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -18,14 +18,14 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait FilmFrontPageRepository {
-  this: DataSource with DBFilmFrontPageData =>
+  this: DataSource & DBFilmFrontPage =>
   val filmFrontPageRepository: FilmFrontPageRepository
 
   class FilmFrontPageRepository {
     val logger: Logger = org.log4s.getLogger
-    import FilmFrontPageData._
+    import FilmFrontPage._
 
-    def newFilmFrontPage(page: FilmFrontPageData)(implicit session: DBSession = AutoSession): Try[FilmFrontPageData] = {
+    def newFilmFrontPage(page: FilmFrontPage)(implicit session: DBSession = AutoSession): Try[FilmFrontPage] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(page.asJson.noSpacesDropNull)
@@ -43,7 +43,7 @@ trait FilmFrontPageRepository {
       ).map(_ => id)
     }
 
-    def get(implicit session: DBSession = ReadOnlyAutoSession): Option[FilmFrontPageData] = {
+    def get(implicit session: DBSession = ReadOnlyAutoSession): Option[FilmFrontPage] = {
       val fr = DBFilmFrontPageData.syntax("fr")
 
       Try(

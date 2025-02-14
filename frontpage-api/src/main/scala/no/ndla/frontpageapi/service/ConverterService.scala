@@ -38,8 +38,8 @@ trait ConverterService {
         banner.desktopImageId
       )
 
-    def toApiFilmFrontPage(page: domain.FilmFrontPageData, language: Option[String]): api.FilmFrontPageDataDTO = {
-      api.FilmFrontPageDataDTO(
+    def toApiFilmFrontPage(page: domain.FilmFrontPage, language: Option[String]): api.FilmFrontPageDTO = {
+      api.FilmFrontPageDTO(
         page.name,
         toApiAboutFilmSubject(page.about, language),
         toApiMovieThemes(page.movieThemes, language),
@@ -78,16 +78,16 @@ trait ConverterService {
     }
 
     def toApiSubjectPage(
-        sub: domain.SubjectFrontPageData,
+        sub: domain.SubjectPage,
         language: String,
         fallback: Boolean = false
-    ): Try[api.SubjectPageDataDTO] = {
+    ): Try[api.SubjectPageDTO] = {
       if (sub.supportedLanguages.contains(language) || fallback) {
         sub.id match {
           case None => Failure(MissingIdException())
           case Some(subjectPageId) =>
             Success(
-              api.SubjectPageDataDTO(
+              api.SubjectPageDTO(
                 subjectPageId,
                 sub.name,
                 toApiBannerImage(sub.bannerImage),
@@ -130,16 +130,16 @@ trait ConverterService {
       api.VisualElementDTO(visual.`type`.entryName, url, visual.alt)
     }
 
-    def toDomainSubjectPage(id: Long, subject: api.NewSubjectFrontPageDataDTO): Try[domain.SubjectFrontPageData] =
+    def toDomainSubjectPage(id: Long, subject: api.NewSubjectPageDTO): Try[domain.SubjectPage] =
       toDomainSubjectPage(subject).map(_.copy(id = Some(id)))
 
     private def toDomainBannerImage(banner: api.NewOrUpdateBannerImageDTO): domain.BannerImage =
       domain.BannerImage(banner.mobileImageId, banner.desktopImageId)
 
-    def toDomainSubjectPage(subject: api.NewSubjectFrontPageDataDTO): Try[domain.SubjectFrontPageData] = {
+    def toDomainSubjectPage(subject: api.NewSubjectPageDTO): Try[domain.SubjectPage] = {
       for {
         about <- toDomainAboutSubject(subject.about)
-        newSubject = domain.SubjectFrontPageData(
+        newSubject = domain.SubjectPage(
           id = None,
           name = subject.name,
           bannerImage = toDomainBannerImage(subject.banner),
@@ -155,9 +155,9 @@ trait ConverterService {
     }
 
     def toDomainSubjectPage(
-        toMergeInto: domain.SubjectFrontPageData,
-        subject: api.UpdatedSubjectFrontPageDataDTO
-    ): Try[domain.SubjectFrontPageData] = {
+        toMergeInto: domain.SubjectPage,
+        subject: api.UpdatedSubjectPageDTO
+    ): Try[domain.SubjectPage] = {
       for {
         aboutSubject <- subject.about.traverse(toDomainAboutSubject)
         metaDescription = subject.metaDescription.map(toDomainMetaDescription)
@@ -204,9 +204,9 @@ trait ConverterService {
       domain.FrontPage(articleId = page.articleId, menu = page.menu.map(toDomainMenu))
     }
 
-    def toDomainFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageDataDTO): Try[domain.FilmFrontPageData] = {
+    def toDomainFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageDTO): Try[domain.FilmFrontPage] = {
       val withoutAboutSubject =
-        domain.FilmFrontPageData(page.name, Seq(), toDomainMovieThemes(page.movieThemes), page.slideShow, page.article)
+        domain.FilmFrontPage(page.name, Seq(), toDomainMovieThemes(page.movieThemes), page.slideShow, page.article)
 
       toDomainAboutSubject(page.about) match {
         case Failure(ex)    => Failure(ex)
