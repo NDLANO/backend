@@ -17,12 +17,12 @@ import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageReposi
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: SubjectPageRepository with FrontPageRepository with FilmFrontPageRepository with Props with ConverterService =>
+  this: SubjectPageRepository & FrontPageRepository & FilmFrontPageRepository & Props & ConverterService =>
   val writeService: WriteService
 
   class WriteService {
 
-    def newSubjectPage(subject: api.NewSubjectFrontPageDataDTO): Try[api.SubjectPageDataDTO] = {
+    def newSubjectPage(subject: api.NewSubjectPageDTO): Try[api.SubjectPageDTO] = {
       for {
         convertedSubject <- ConverterService.toDomainSubjectPage(subject)
         subjectPage      <- subjectPageRepository.newSubjectPage(convertedSubject, subject.externalId.getOrElse(""))
@@ -32,9 +32,9 @@ trait WriteService {
 
     def updateSubjectPage(
         id: Long,
-        subject: api.NewSubjectFrontPageDataDTO,
+        subject: api.NewSubjectPageDTO,
         language: String
-    ): Try[api.SubjectPageDataDTO] = {
+    ): Try[api.SubjectPageDTO] = {
       subjectPageRepository.exists(id) match {
         case Success(exists) if exists =>
           for {
@@ -50,10 +50,10 @@ trait WriteService {
 
     def updateSubjectPage(
         id: Long,
-        subject: api.UpdatedSubjectFrontPageDataDTO,
+        subject: api.UpdatedSubjectPageDTO,
         language: String,
         fallback: Boolean
-    ): Try[api.SubjectPageDataDTO] = {
+    ): Try[api.SubjectPageDTO] = {
       subjectPageRepository.withId(id) match {
         case Failure(ex) => Failure(ex)
         case Success(Some(existingSubject)) =>
@@ -71,14 +71,14 @@ trait WriteService {
     }
 
     private def newFromUpdatedSubjectPage(
-        updatedSubjectPage: api.UpdatedSubjectFrontPageDataDTO
-    ): Option[api.NewSubjectFrontPageDataDTO] = {
+        updatedSubjectPage: api.UpdatedSubjectPageDTO
+    ): Option[api.NewSubjectPageDTO] = {
       for {
         name            <- updatedSubjectPage.name
         banner          <- updatedSubjectPage.banner
         about           <- updatedSubjectPage.about
         metaDescription <- updatedSubjectPage.metaDescription
-      } yield api.NewSubjectFrontPageDataDTO(
+      } yield api.NewSubjectPageDTO(
         name = name,
         externalId = updatedSubjectPage.externalId,
         banner = banner,
@@ -99,7 +99,7 @@ trait WriteService {
       } yield api
     }
 
-    def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageDataDTO): Try[api.FilmFrontPageDataDTO] = {
+    def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageDTO): Try[api.FilmFrontPageDTO] = {
       val domainFilmFrontPageT = ConverterService.toDomainFilmFrontPage(page)
       for {
         domainFilmFrontPage <- domainFilmFrontPageT

@@ -46,9 +46,9 @@ trait InternController {
       endpoint.post
         .summary("Create new subject page")
         .in("subjectpage")
-        .in(jsonBody[NewSubjectFrontPageDataDTO])
+        .in(jsonBody[NewSubjectPageDTO])
         .errorOut(errorOutputsFor())
-        .out(jsonBody[SubjectPageDataDTO])
+        .out(jsonBody[SubjectPageDTO])
         .serverLogicPure { subjectPage =>
           writeService
             .newSubjectPage(subjectPage)
@@ -56,10 +56,10 @@ trait InternController {
         },
       endpoint.put
         .in("subjectpage" / path[Long]("subject-id").description("The subject id"))
-        .in(jsonBody[NewSubjectFrontPageDataDTO])
+        .in(jsonBody[NewSubjectPageDTO])
         .errorOut(errorOutputsFor(400, 404))
         .summary("Update subject page")
-        .out(jsonBody[SubjectPageDataDTO])
+        .out(jsonBody[SubjectPageDTO])
         .serverLogicPure { case (id, subjectPage) =>
           writeService
             .updateSubjectPage(id, subjectPage, props.DefaultLanguage)

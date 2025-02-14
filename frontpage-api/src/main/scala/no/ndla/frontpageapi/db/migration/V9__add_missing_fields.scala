@@ -10,10 +10,10 @@ package no.ndla.frontpageapi.db.migration
 
 import io.circe.parser.parse
 import io.circe.{Json, JsonObject}
-import no.ndla.frontpageapi.repository._
+import no.ndla.frontpageapi.repository.*
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success}
 
@@ -26,9 +26,9 @@ class V9__add_missing_fields extends BaseJavaMigration {
         .foreach(update)
     }
 
-  private def subjectPageData(implicit session: DBSession): List[DBSubjectPage] = {
+  private def subjectPageData(implicit session: DBSession): List[V2_DBSubjectPage] = {
     sql"select id, document from subjectpage"
-      .map(rs => DBSubjectPage(rs.long("id"), rs.string("document")))
+      .map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document")))
       .list()
   }
 
@@ -39,7 +39,7 @@ class V9__add_missing_fields extends BaseJavaMigration {
     }
   }
 
-  def convertSubjectpage(subjectPageData: DBSubjectPage): DBSubjectPage =
+  def convertSubjectpage(subjectPageData: V2_DBSubjectPage): V2_DBSubjectPage =
     parse(subjectPageData.document).toTry match {
       case Success(value) =>
         val newSubjectPage = value.mapObject(obj => {
@@ -56,13 +56,13 @@ class V9__add_missing_fields extends BaseJavaMigration {
             .remove("facebook")
             .remove("goTo")
         })
-        DBSubjectPage(subjectPageData.id, newSubjectPage.noSpacesDropNull)
+        V2_DBSubjectPage(subjectPageData.id, newSubjectPage.noSpacesDropNull)
       case Failure(ex) =>
         println(s"Failed to parse subject page data for id '${subjectPageData.id}': ${ex.getMessage}")
         throw ex
     }
 
-  private def update(subjectPageData: DBSubjectPage)(implicit session: DBSession) = {
+  private def update(subjectPageData: V2_DBSubjectPage)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(subjectPageData.document)

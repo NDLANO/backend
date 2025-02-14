@@ -12,7 +12,7 @@ import io.circe.parser.parse
 import io.circe.{Json, JsonObject}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success}
 
@@ -65,7 +65,7 @@ class V11__frontpage_hide_level_flag extends BaseJavaMigration {
 
     addHideLevelFlag(json).mapObject(_.remove("hideLevel"))
   }
-  private def update(frontPageData: V11__DBFrontPage)(implicit session: DBSession) = {
+  private def update(frontPageData: V11__DBFrontPage)(implicit session: DBSession): Int = {
     val pgObject = new PGobject()
     pgObject.setType("jsonb")
     pgObject.setValue(frontPageData.document)

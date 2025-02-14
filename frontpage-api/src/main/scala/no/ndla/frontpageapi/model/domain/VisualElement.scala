@@ -11,7 +11,7 @@ package no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
-import enumeratum._
+import enumeratum.*
 
 case class VisualElement(`type`: VisualElementType, id: String, alt: Option[String])
 

@@ -8,11 +8,11 @@
 
 package no.ndla.frontpageapi.model.api
 
-import io.circe.generic.semiauto._
-import io.circe.generic.auto._
-import io.circe._
+import io.circe.generic.semiauto.*
+import io.circe.generic.auto.*
+import io.circe.*
 
-case class SubjectPageDataDTO(
+case class SubjectPageDTO(
     id: Long,
     name: String,
     banner: BannerImageDTO,
@@ -25,8 +25,7 @@ case class SubjectPageDataDTO(
     leadsTo: List[String]
 )
 
-object SubjectPageDataDTO {
-  implicit def encoder: Encoder[SubjectPageDataDTO] = deriveEncoder[SubjectPageDataDTO]
-
-  implicit def decoder: Decoder[SubjectPageDataDTO] = deriveDecoder[SubjectPageDataDTO]
+object SubjectPageDTO {
+  implicit def encoder: Encoder[SubjectPageDTO] = deriveEncoder[SubjectPageDTO]
+  implicit def decoder: Decoder[SubjectPageDTO] = deriveDecoder[SubjectPageDTO]
 }

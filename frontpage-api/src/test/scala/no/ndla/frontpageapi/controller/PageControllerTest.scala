@@ -19,7 +19,7 @@ import sttp.client3.quick.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-class FrontPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
+class PageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: FrontPageController = new FrontPageController
   when(clock.now()).thenCallRealMethod()
 

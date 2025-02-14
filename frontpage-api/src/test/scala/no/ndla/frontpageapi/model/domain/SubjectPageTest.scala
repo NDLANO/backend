@@ -12,9 +12,9 @@ import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
 
-class SubjectFrontPageDataTest extends UnitSuite with TestEnvironment {
+class SubjectPageTest extends UnitSuite with TestEnvironment {
   test("decodeJson should use correct id") {
-    val Success(subject) = SubjectFrontPageData.decodeJson(TestData.domainSubjectJson, 10)
+    val Success(subject) = SubjectPage.decodeJson(TestData.domainSubjectJson, 10)
     subject.id should be(Some(10))
   }
 
