@@ -43,27 +43,13 @@ trait InternController {
             case Failure(ex)       => returnLeftError(ex)
           }
         },
-      endpoint.post
-        .summary("Create new subject page")
-        .in("subjectpage")
-        .in(jsonBody[NewSubjectPageDTO])
-        .errorOut(errorOutputsFor())
-        .out(jsonBody[SubjectPageDTO])
-        .serverLogicPure { subjectPage =>
-          writeService
-            .newSubjectPage(subjectPage)
-
-        },
-      endpoint.put
-        .in("subjectpage" / path[Long]("subject-id").description("The subject id"))
-        .in(jsonBody[NewSubjectPageDTO])
-        .errorOut(errorOutputsFor(400, 404))
-        .summary("Update subject page")
-        .out(jsonBody[SubjectPageDTO])
-        .serverLogicPure { case (id, subjectPage) =>
-          writeService
-            .updateSubjectPage(id, subjectPage, props.DefaultLanguage)
-
+      endpoint.get
+        .in("dump" / "subjectpage")
+        .in(query[Int]("page").default(1))
+        .in(query[Int]("page-size").default(100))
+        .out(jsonBody[SubjectPageDomainDumpDTO])
+        .serverLogicPure { case (pageNo, pageSize) =>
+          readService.getSubjectPageDomainDump(pageNo, pageSize).asRight
         }
     )
   }
