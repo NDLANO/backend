@@ -29,6 +29,10 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
     })
   }
 
+  test("That TextValidator allows links in html") {
+    allowedHtmlValidator.validate("path1", """<p>This is plain text with a <a href="https://ndla.no">link</a></p>""") should equal(None)
+  }
+
   test("That TextValidator does not allow tags outside BasicHtmlTags") {
     val illegalTag = "aside"
     AllowedHtmlTags.contains(illegalTag) should be(right = false)
@@ -53,4 +57,5 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
   test("That TextValidator allows plain text in plain text") {
     noHtmlValidator.validate("path1", "This is plain text") should be(None)
   }
+
 }
