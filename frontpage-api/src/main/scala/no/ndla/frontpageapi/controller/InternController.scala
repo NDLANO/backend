@@ -10,6 +10,7 @@ package no.ndla.frontpageapi.controller
 
 import cats.implicits.*
 import io.circe.generic.auto.*
+import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
@@ -50,6 +51,13 @@ trait InternController {
         .out(jsonBody[SubjectPageDomainDumpDTO])
         .serverLogicPure { case (pageNo, pageSize) =>
           readService.getSubjectPageDomainDump(pageNo, pageSize).asRight
+        },
+      endpoint.get
+        .in("dump" / "subjectpage" / path[Long]("subjectId"))
+        .out(jsonBody[SubjectPage])
+        .errorOut(errorOutputsFor(400, 404))
+        .serverLogicPure { subjectId =>
+          readService.domainSubjectPage(subjectId)
         }
     )
   }

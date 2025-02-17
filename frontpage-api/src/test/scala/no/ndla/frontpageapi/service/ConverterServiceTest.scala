@@ -8,10 +8,13 @@
 
 package no.ndla.frontpageapi.service
 
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.frontpage
+import no.ndla.common.model.domain.frontpage.{AboutSubject, MetaDescription, VisualElement, VisualElementType}
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
-import no.ndla.frontpageapi.model.domain.{AboutSubject, Errors, MetaDescription, VisualElement, VisualElementType}
+import no.ndla.frontpageapi.model.domain.Errors
 import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.{Failure, Success}
@@ -41,7 +44,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val about         = TestData.apiNewSubjectPage.about.map(_.copy(visualElement = visualElement))
     val page          = TestData.apiNewSubjectPage.copy(about = about)
 
-    val Failure(res: Errors.ValidationException) = ConverterService.toDomainSubjectPage(page)
+    val Failure(res: ValidationException) = ConverterService.toDomainSubjectPage(page)
     res.message should equal("'not an image' is an invalid visual element type")
   }
 
@@ -168,20 +171,21 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Success(
         TestData.domainSubjectPage.copy(
           about = Seq(
-            domain.AboutSubject(
+            frontpage.AboutSubject(
               "Om Samfunnsfag",
               "Dette er samfunnsfag",
               "nb",
-              domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+              frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
             ),
-            domain.AboutSubject(
+            frontpage.AboutSubject(
               "About Social studies",
               "This is social studies",
               "en",
-              domain.VisualElement(VisualElementType.Image, "123", None)
+              frontpage.VisualElement(VisualElementType.Image, "123", None)
             )
           ),
-          metaDescription = Seq(domain.MetaDescription("meta", "nb"), domain.MetaDescription("meta description", "en"))
+          metaDescription =
+            Seq(frontpage.MetaDescription("meta", "nb"), frontpage.MetaDescription("meta description", "en"))
         )
       )
     )
