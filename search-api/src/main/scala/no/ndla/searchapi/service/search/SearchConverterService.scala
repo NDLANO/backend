@@ -36,6 +36,7 @@ import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
+import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -71,7 +72,7 @@ import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
   this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient =>
@@ -1074,6 +1075,34 @@ trait SearchConverterService {
         group
       )
 
-  }
+    def asFrontPage(frontpage: Option[SubjectPage]): Try[Option[Frontpage]] = {
+      frontpage match {
+        case None => Success(None)
+        case Some(fp) =>
+          fp.id match {
+            case None =>
+              // TODO: When MissingIdException is merged, use this.
+              Failure(new RuntimeException("Missing id for fetched frontpage. This is weird and a bug."))
+            case Some(id) =>
+              Success(Some(Frontpage(id = id, name = fp.name, domainObject = fp)))
+          }
+      }
+    }
 
+    def asSearchableNode(node: Node, frontpage: Option[SubjectPage]): Try[SearchableNode] = {
+      asFrontPage(frontpage).map { frontpage =>
+        if (frontpage.nonEmpty) {
+          val x = 0
+        }
+
+        SearchableNode(
+          id = node.id,
+          title = getSearchableLanguageValues(node.name, node.translations),
+          contentUri = node.contentUri,
+          nodeType = node.nodeType,
+          frontpage = frontpage
+        )
+      }
+    }
+  }
 }

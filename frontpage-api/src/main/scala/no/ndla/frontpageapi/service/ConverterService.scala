@@ -8,14 +8,23 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
-import no.ndla.frontpageapi.model.domain.*
+import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, MissingIdException}
 import no.ndla.frontpageapi.model.{api, domain}
 
 import scala.util.{Failure, Success, Try}
 import cats.implicits.*
-import no.ndla.common.errors.MissingIdException
 import no.ndla.common.model
+import no.ndla.common.model.domain.frontpage
+import no.ndla.common.model.domain.frontpage.{
+  AboutSubject,
+  BannerImage,
+  MetaDescription,
+  MovieTheme,
+  MovieThemeName,
+  SubjectPage,
+  VisualElement,
+  VisualElementType
+}
 import no.ndla.frontpageapi.Props
 import no.ndla.language.Language.{findByLanguageOrBestEffort, mergeLanguageFields}
 
@@ -31,7 +40,7 @@ trait ConverterService {
     def toApiFrontPage(frontPage: domain.FrontPage): model.api.FrontPageDTO =
       model.api.FrontPageDTO(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
 
-    private def toApiBannerImage(banner: domain.BannerImage): api.BannerImageDTO =
+    private def toApiBannerImage(banner: BannerImage): api.BannerImageDTO =
       api.BannerImageDTO(
         banner.mobileImageId.map(createImageUrl),
         banner.mobileImageId,
@@ -50,7 +59,7 @@ trait ConverterService {
     }
 
     private def toApiAboutFilmSubject(
-        aboutSeq: Seq[domain.AboutSubject],
+        aboutSeq: Seq[AboutSubject],
         language: Option[String]
     ): Seq[api.AboutFilmSubjectDTO] = {
       val filteredAboutSeq = language match {
@@ -62,12 +71,12 @@ trait ConverterService {
       )
     }
 
-    private def toApiMovieThemes(themes: Seq[domain.MovieTheme], language: Option[String]): Seq[api.MovieThemeDTO] = {
+    private def toApiMovieThemes(themes: Seq[MovieTheme], language: Option[String]): Seq[api.MovieThemeDTO] = {
       themes.map(theme => api.MovieThemeDTO(toApiMovieName(theme.name, language), theme.movies))
     }
 
     private def toApiMovieName(
-        names: Seq[domain.MovieThemeName],
+        names: Seq[MovieThemeName],
         language: Option[String]
     ): Seq[api.MovieThemeNameDTO] = {
       val filteredNames = language match {
@@ -78,54 +87,17 @@ trait ConverterService {
       filteredNames.map(name => api.MovieThemeNameDTO(name.name, name.language))
     }
 
-    def toApiSubjectPage(
-        sub: domain.SubjectPage,
-        language: String,
-        fallback: Boolean = false
-    ): Try[api.SubjectPageDTO] = {
-      if (sub.supportedLanguages.contains(language) || fallback) {
-        sub.id match {
-          case None =>
-            Failure(
-              MissingIdException(s"Could not convert to api.SubjectPageData since domain object did not have an id")
-            )
-          case Some(subjectPageId) =>
-            Success(
-              api.SubjectPageDTO(
-                subjectPageId,
-                sub.name,
-                toApiBannerImage(sub.bannerImage),
-                toApiAboutSubject(findByLanguageOrBestEffort(sub.about, language)),
-                toApiMetaDescription(findByLanguageOrBestEffort(sub.metaDescription, language)),
-                sub.editorsChoices,
-                sub.supportedLanguages,
-                sub.connectedTo,
-                sub.buildsOn,
-                sub.leadsTo
-              )
-            )
-        }
-      } else {
-        Failure(
-          LanguageNotFoundException(
-            s"The subjectpage with id ${sub.id.get} and language $language was not found",
-            sub.supportedLanguages
-          )
-        )
-      }
-    }
-
-    private def toApiAboutSubject(about: Option[domain.AboutSubject]): Option[api.AboutSubjectDTO] = {
+    private def toApiAboutSubject(about: Option[AboutSubject]): Option[api.AboutSubjectDTO] = {
       about
         .map(about => api.AboutSubjectDTO(about.title, about.description, toApiVisualElement(about.visualElement)))
     }
 
-    private def toApiMetaDescription(meta: Option[domain.MetaDescription]): Option[String] = {
+    private def toApiMetaDescription(meta: Option[MetaDescription]): Option[String] = {
       meta
         .map(_.metaDescription)
     }
 
-    private def toApiVisualElement(visual: domain.VisualElement): api.VisualElementDTO = {
+    private def toApiVisualElement(visual: VisualElement): api.VisualElementDTO = {
       val url = visual.`type` match {
         case VisualElementType.Image => createImageUrl(visual.id.toLong)
         case VisualElementType.Brightcove =>
@@ -134,16 +106,16 @@ trait ConverterService {
       api.VisualElementDTO(visual.`type`.entryName, url, visual.alt)
     }
 
-    def toDomainSubjectPage(id: Long, subject: api.NewSubjectPageDTO): Try[domain.SubjectPage] =
+    def toDomainSubjectPage(id: Long, subject: api.NewSubjectPageDTO): Try[SubjectPage] =
       toDomainSubjectPage(subject).map(_.copy(id = Some(id)))
 
-    private def toDomainBannerImage(banner: api.NewOrUpdateBannerImageDTO): domain.BannerImage =
-      domain.BannerImage(banner.mobileImageId, banner.desktopImageId)
+    private def toDomainBannerImage(banner: api.NewOrUpdateBannerImageDTO): BannerImage =
+      frontpage.BannerImage(banner.mobileImageId, banner.desktopImageId)
 
-    def toDomainSubjectPage(subject: api.NewSubjectPageDTO): Try[domain.SubjectPage] = {
+    def toDomainSubjectPage(subject: api.NewSubjectPageDTO): Try[SubjectPage] = {
       for {
         about <- toDomainAboutSubject(subject.about)
-        newSubject = domain.SubjectPage(
+        newSubject = frontpage.SubjectPage(
           id = None,
           name = subject.name,
           bannerImage = toDomainBannerImage(subject.banner),
@@ -159,9 +131,9 @@ trait ConverterService {
     }
 
     def toDomainSubjectPage(
-        toMergeInto: domain.SubjectPage,
+        toMergeInto: SubjectPage,
         subject: api.UpdatedSubjectPageDTO
-    ): Try[domain.SubjectPage] = {
+    ): Try[SubjectPage] = {
       for {
         aboutSubject <- subject.about.traverse(toDomainAboutSubject)
         metaDescription = subject.metaDescription.map(toDomainMetaDescription)
@@ -179,23 +151,23 @@ trait ConverterService {
       } yield merged
     }
 
-    private def toDomainAboutSubject(aboutSeq: Seq[api.NewOrUpdatedAboutSubjectDTO]): Try[Seq[domain.AboutSubject]] = {
+    private def toDomainAboutSubject(aboutSeq: Seq[api.NewOrUpdatedAboutSubjectDTO]): Try[Seq[AboutSubject]] = {
       aboutSeq.traverse(about =>
         toDomainVisualElement(about.visualElement)
-          .map(domain.AboutSubject(about.title, about.description, about.language, _))
+          .map(frontpage.AboutSubject(about.title, about.description, about.language, _))
       )
     }
 
     private def toDomainMetaDescription(
         metaSeq: Seq[api.NewOrUpdatedMetaDescriptionDTO]
-    ): Seq[domain.MetaDescription] = {
-      metaSeq.map(meta => domain.MetaDescription(meta.metaDescription, meta.language))
+    ): Seq[MetaDescription] = {
+      metaSeq.map(meta => frontpage.MetaDescription(meta.metaDescription, meta.language))
     }
 
-    private def toDomainVisualElement(visual: api.NewOrUpdatedVisualElementDTO): Try[domain.VisualElement] =
+    private def toDomainVisualElement(visual: api.NewOrUpdatedVisualElementDTO): Try[VisualElement] =
       for {
         t <- VisualElementType.fromString(visual.`type`)
-        ve = domain.VisualElement(t, visual.id, visual.alt)
+        ve = frontpage.VisualElement(t, visual.id, visual.alt)
         validated <- VisualElementType.validateVisualElement(ve)
       } yield validated
 
@@ -218,12 +190,12 @@ trait ConverterService {
       }
     }
 
-    private def toDomainMovieThemes(themes: Seq[api.NewOrUpdatedMovieThemeDTO]): Seq[domain.MovieTheme] = {
-      themes.map(theme => domain.MovieTheme(toDomainMovieNames(theme.name), theme.movies))
+    private def toDomainMovieThemes(themes: Seq[api.NewOrUpdatedMovieThemeDTO]): Seq[MovieTheme] = {
+      themes.map(theme => frontpage.MovieTheme(toDomainMovieNames(theme.name), theme.movies))
     }
 
-    private def toDomainMovieNames(names: Seq[api.NewOrUpdatedMovieNameDTO]): Seq[domain.MovieThemeName] = {
-      names.map(name => domain.MovieThemeName(name.name, name.language))
+    private def toDomainMovieNames(names: Seq[api.NewOrUpdatedMovieNameDTO]): Seq[MovieThemeName] = {
+      names.map(name => frontpage.MovieThemeName(name.name, name.language))
     }
 
     private def createImageUrl(id: Long): String   = createImageUrl(id.toString)

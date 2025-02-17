@@ -9,13 +9,14 @@
 package no.ndla.frontpageapi.repository
 
 import cats.implicits.*
-import no.ndla.frontpageapi.model.domain.{DBSubjectPage, SubjectPage}
 import org.log4s.{Logger, getLogger}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import io.circe.syntax.*
 import io.circe.generic.auto.*
+import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.database.DataSource
+import no.ndla.frontpageapi.model.domain.DBSubjectPage
 
 import scala.util.{Failure, Success, Try}
 

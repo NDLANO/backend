@@ -8,10 +8,11 @@
 
 package no.ndla.frontpageapi.service
 
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
-import no.ndla.frontpageapi.model.domain.Errors.{SubjectPageNotFoundException, ValidationException}
+import no.ndla.frontpageapi.model.domain.Errors.SubjectPageNotFoundException
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 
 import scala.util.{Failure, Success, Try}
@@ -64,7 +65,7 @@ trait WriteService {
           } yield converted
         case Success(None) =>
           newFromUpdatedSubjectPage(subject) match {
-            case None => Failure(ValidationException(s"Subjectpage can't be converted to NewSubjectFrontPageData"))
+            case None => Failure(ValidationException("subjectpage", s"Subjectpage can't be converted to NewSubjectFrontPageData"))
             case Some(newSubjectPage) => updateSubjectPage(id, newSubjectPage, language)
           }
       }

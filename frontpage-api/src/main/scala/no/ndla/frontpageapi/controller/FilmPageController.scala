@@ -9,8 +9,8 @@ package no.ndla.frontpageapi.controller
 
 import cats.implicits.*
 import io.circe.generic.auto.*
+import no.ndla.common.errors.ValidationException
 import no.ndla.frontpageapi.model.api.*
-import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController

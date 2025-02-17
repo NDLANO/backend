@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.errors as common
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.FrontPageDTO
+import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.{SubjectPageDomainDumpDTO, SubjectPageIdDTO}
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, SubjectPageNotFoundException}
@@ -36,6 +37,14 @@ trait ReadService {
         case Success(None)     => Success(None)
         case Failure(ex)       => Failure(ex)
       }
+
+    def domainSubjectPage(id: Long): Try[SubjectPage] = {
+      subjectPageRepository.withId(id) match {
+        case Failure(ex)            => Failure(ex)
+        case Success(Some(subject)) => Success(subject)
+        case Success(None)          => Failure(SubjectPageNotFoundException(id))
+      }
+    }
 
     def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageDTO] = {
       val maybeSubject = subjectPageRepository.withId(id).?

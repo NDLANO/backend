@@ -10,25 +10,27 @@ package no.ndla.frontpageapi
 
 import io.circe.generic.auto.*
 import io.circe.syntax.*
+import no.ndla.common.model.domain.frontpage
+import no.ndla.common.model.domain.frontpage.{AboutSubject, BannerImage, MetaDescription, MovieTheme, MovieThemeName, SubjectPage, VisualElement, VisualElementType}
 import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, SubjectPageDTO, UpdatedSubjectPageDTO}
-import no.ndla.frontpageapi.model.domain.{FilmFrontPage, SubjectPage, VisualElementType}
+import no.ndla.frontpageapi.model.domain.FilmFrontPage
 import no.ndla.frontpageapi.model.{api, domain}
 
 object TestData {
 
-  val domainSubjectPage: SubjectPage = domain.SubjectPage(
+  val domainSubjectPage: SubjectPage = frontpage.SubjectPage(
     Some(1),
     "Samfunnsfag",
-    domain.BannerImage(Some(29668), 29668),
+    BannerImage(Some(29668), 29668),
     Seq(
-      domain.AboutSubject(
+      AboutSubject(
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
         "nb",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        VisualElement(VisualElementType.Image, "123", Some("alt text"))
       )
     ),
-    Seq(domain.MetaDescription("meta", "nb")),
+    Seq(MetaDescription("meta", "nb")),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
@@ -36,20 +38,20 @@ object TestData {
   )
   val domainSubjectJson: String = domainSubjectPage.asJson.noSpaces
 
-  val domainUpdatedSubjectPage: SubjectPage = domain.SubjectPage(
+  val domainUpdatedSubjectPage: SubjectPage = frontpage.SubjectPage(
     Some(1),
     "Samfunnsfag",
-    domain.BannerImage(Some(29668), 29668),
+    frontpage.BannerImage(Some(29668), 29668),
     Seq(
-      domain.AboutSubject(
+      frontpage.AboutSubject(
         "Om Samfunnsfag",
         "Dette er oppdatert om samfunnsfag",
         "nb",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
       )
     ),
     Seq(
-      domain.MetaDescription("meta", "nb")
+      frontpage.MetaDescription("meta", "nb")
     ),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
@@ -124,24 +126,24 @@ object TestData {
   val domainFilmFrontPage: FilmFrontPage = domain.FilmFrontPage(
     "Film",
     Seq(
-      domain.AboutSubject(
+      frontpage.AboutSubject(
         "Film",
         "Film faget",
         "nb",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
       ),
-      domain.AboutSubject(
+      frontpage.AboutSubject(
         "Film",
         "Subject film",
         "en",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
       )
     ),
     Seq(
-      domain.MovieTheme(
+      MovieTheme(
         Seq(
-          domain.MovieThemeName("Første filmtema", "nb"),
-          domain.MovieThemeName("First movie theme", "en")
+          MovieThemeName("Første filmtema", "nb"),
+          frontpage.MovieThemeName("First movie theme", "en")
         ),
         Seq("movieref1", "movieref2")
       )

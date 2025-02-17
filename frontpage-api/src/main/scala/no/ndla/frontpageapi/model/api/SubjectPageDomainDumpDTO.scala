@@ -7,7 +7,7 @@
  */
 package no.ndla.frontpageapi.model.api
 
-import no.ndla.frontpageapi.model.domain.SubjectPage
+import no.ndla.common.model.domain.frontpage.SubjectPage
 import sttp.tapir.Schema.annotations.description
 
 @description("All the subjectpages")

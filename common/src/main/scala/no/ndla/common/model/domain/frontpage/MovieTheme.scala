@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.frontpageapi.model.domain
+package no.ndla.common.model.domain.frontpage
 
 case class MovieTheme(name: Seq[MovieThemeName], movies: Seq[String])
 case class MovieThemeName(name: String, language: String)

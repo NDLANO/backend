@@ -34,7 +34,8 @@ import no.ndla.searchapi.service.search.{
   DraftIndexService,
   GrepIndexService,
   IndexService,
-  LearningPathIndexService
+  LearningPathIndexService,
+  NodeIndexService
 }
 import sttp.model.StatusCode
 
@@ -49,7 +50,8 @@ import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
   this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
-    TaxonomyApiClient & GrepApiClient & GrepIndexService & Props & ErrorHandling & MyNDLAApiClient & TapirController =>
+    NodeIndexService & TaxonomyApiClient & GrepApiClient & GrepIndexService & Props & ErrorHandling & MyNDLAApiClient &
+    TapirController =>
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
@@ -105,6 +107,7 @@ trait InternController {
       reindexDraft,
       reindexGrep,
       reindexLearningpath,
+      reindexNode,
       reindexConcept
     )
 
@@ -249,6 +252,21 @@ trait InternController {
         resolveResultFutures(List(grepIndex))
       }
 
+    def reindexNode: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("index" / "node")
+      .in(query[Option[Int]]("numShards"))
+      .errorOut(stringInternalServerError)
+      .out(stringBody)
+      .serverLogicPure { numShards =>
+        val requestInfo = RequestInfo.fromThreadContext()
+        val grepIndex = Future {
+          requestInfo.setThreadContextRequestInfo()
+          ("nodes", nodeIndexService.indexDocuments(numShards))
+        }
+
+        resolveResultFutures(List(grepIndex))
+      }
+
     def reindexLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
       .in("index" / "learningpath")
       .in(query[Option[Int]]("numShards"))
@@ -384,6 +402,10 @@ trait InternController {
               Future {
                 requestInfo.setThreadContextRequestInfo()
                 ("greps", grepIndexService.indexDocuments(numShards, Some(grepBundle)))
+              },
+              Future {
+                requestInfo.setThreadContextRequestInfo()
+                ("nodes", nodeIndexService.indexDocuments(numShards, publishedIndexingBundle))
               }
             )
             if (runInBackground) {
