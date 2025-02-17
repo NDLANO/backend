@@ -13,6 +13,7 @@ import io.circe.generic.semiauto.*
 import io.circe.generic.auto.*
 import io.circe.parser.*
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.domain.frontpage.{AboutSubject, MovieTheme}
 import no.ndla.frontpageapi.Props
 import scalikejdbc.{WrappedResultSet, *}
 

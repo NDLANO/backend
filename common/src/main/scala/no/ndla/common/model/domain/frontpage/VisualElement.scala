@@ -6,14 +6,21 @@
  *
  */
 
-package no.ndla.frontpageapi.model.domain
+package no.ndla.common.model.domain.frontpage
 
-import no.ndla.frontpageapi.model.domain.Errors.ValidationException
+import enumeratum.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
-import enumeratum.*
 
 case class VisualElement(`type`: VisualElementType, id: String, alt: Option[String])
+
+object VisualElement {
+  implicit val encoder: Encoder[VisualElement] = deriveEncoder
+  implicit val decoder: Decoder[VisualElement] = deriveDecoder
+}
 
 sealed abstract class VisualElementType(override val entryName: String) extends EnumEntry
 
@@ -29,7 +36,7 @@ object VisualElementType extends Enum[VisualElementType] with CirceEnum[VisualEl
     visualElement.`type` match {
       case Image =>
         visualElement.id.toLongOption match {
-          case None => Failure(ValidationException("Image of visual element should be numeric"))
+          case None => Failure(ValidationException("visualElement.id", "Image of visual element should be numeric"))
           case _    => Success(visualElement)
         }
       case Brightcove => Success(visualElement)
@@ -38,7 +45,7 @@ object VisualElementType extends Enum[VisualElementType] with CirceEnum[VisualEl
   def fromString(str: String): Try[VisualElementType] =
     VisualElementType.values.find(_.entryName == str) match {
       case Some(v) => Success(v)
-      case None    => Failure(ValidationException(s"'$str' is an invalid visual element type"))
+      case None    => Failure(ValidationException("visualElement.id", s"'$str' is an invalid visual element type"))
     }
 
 }
