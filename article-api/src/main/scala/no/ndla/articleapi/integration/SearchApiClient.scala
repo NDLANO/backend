@@ -30,31 +30,37 @@ trait SearchApiClient {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout     = 30.seconds
+    private val indexRetryCount  = 3
 
     def indexArticle(article: Article): Article = {
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
 
-      val future = postWithData[Article, Article](s"$InternalEndpoint/article/", article)
-      future.onComplete {
-        case Success(Success(_)) =>
-          logger.info(s"Successfully indexed article with id: '${article.id
-              .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api")
-        case Failure(e) =>
-          logger.error(
-            s"Failed to indexed article with id: '${article.id
-                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
-            e
-          )
-        case Success(Failure(e)) =>
-          logger.error(
-            s"Failed to indexed article with id: '${article.id
-                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
-            e
-          )
-      }
+      def attemptIndex(article: Article, attempt: Int): Article = {
+        val future = postWithData[Article, Article](s"$InternalEndpoint/article/", article)
+        future.onComplete {
+          case Success(Success(_)) =>
+            logger.info(s"Successfully indexed article with id: '${article.id
+                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' after $attempt attempts in search-api")
+          case Failure(_) if attempt < indexRetryCount => attemptIndex(article, attempt + 1)
+          case Failure(e) =>
+            logger.error(
+              s"Failed to index article with id: '${article.id
+                  .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' after $attempt attempts in search-api",
+              e
+            )
+          case Success(Failure(_)) if attempt < indexRetryCount => attemptIndex(article, attempt + 1)
+          case Success(Failure(e)) =>
+            logger.error(
+              s"Failed to index article with id: '${article.id
+                  .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' after $attempt attempts in search-api",
+              e
+            )
+        }
 
-      article
+        article
+      }
+      attemptIndex(article, 1)
     }
 
     private def postWithData[A: Decoder, B <: AnyRef: Encoder](endpointUrl: String, data: B, params: (String, String)*)(
