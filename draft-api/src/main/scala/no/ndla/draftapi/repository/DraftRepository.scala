@@ -144,11 +144,11 @@ trait DraftRepository {
     private def failIfRevisionMismatch(count: Int, article: Draft, newRevision: Int): Try[Draft] =
       if (count != 1) {
         val message =
-          s"Found revision mismatch when attempting to update article ${article.id} (Updated $count rows...)"
+          s"Found revision mismatch when attempting to update article ${article.id.getOrElse(-1)} (Updated $count rows...)"
         logger.warn(message)
         Failure(new OptimisticLockException)
       } else {
-        logger.info(s"Updated article ${article.id}")
+        logger.info(s"Updated article ${article.id.getOrElse(-1)}")
         val updatedArticle = article.copy(revision = Some(newRevision))
         Success(updatedArticle)
       }
@@ -212,7 +212,9 @@ trait DraftRepository {
       val slug        = article.slug.map(_.toLowerCase)
 
       val deleteCount = deletePreviousRevisions(article)
-      logger.info(s"Deleted $deleteCount revisions of article with id '${article.id}' before import update.")
+      logger.info(
+        s"Deleted $deleteCount revisions of article with id '${article.id.getOrElse(-1)}' before import update."
+      )
 
       val a = DBArticle.syntax("ar")
       val count = withSQL {
