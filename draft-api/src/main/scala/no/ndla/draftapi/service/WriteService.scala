@@ -20,7 +20,7 @@ import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.article.PartialPublishArticleDTO
-import no.ndla.common.model.domain.{Priority, Responsible, UploadedFile}
+import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain as common}
@@ -261,11 +261,12 @@ trait WriteService {
         .toList
     }
 
-    private def convertGrepCodes(grepCodes: Seq[String], user: TokenUser): Try[Seq[String]] = {
-      searchApiClient.convertGrepCodes(grepCodes, user).map(_.values.toSeq)
-    }
-
     private val grepFieldsToPublish = Seq(PartialArticleFieldsDTO.grepCodes)
+
+    def getGrepCodeNote(mapping: Map[String, String], draft: Draft, user: TokenUser): EditorNote = {
+      val grepCodes = mapping.map { case (old, newGrep) => s"$old -> $newGrep" }.mkString(", ")
+      common.EditorNote(s"Migrerte grepkoder: [$grepCodes]", user.id, draft.status, clock.now())
+    }
 
     private def migrateOutdatedGrepForDraft(
         draft: Draft,
@@ -274,13 +275,13 @@ trait WriteService {
       val articleId = draft.id.getOrElse(-1L)
       logger.info(s"Migrating grep codes for article $articleId")
       if (draft.grepCodes.isEmpty) { return Success(None) }
-      val updatedGrepCodes = convertGrepCodes(draft.grepCodes, user).?
-
+      val newGrepCodeMapping = searchApiClient.convertGrepCodes(draft.grepCodes, user).?
+      val updatedGrepCodes   = newGrepCodeMapping.values.toSeq
       if (draft.grepCodes.sorted == updatedGrepCodes.sorted) { return Success(None) }
-
-      val newDraft    = draft.copy(grepCodes = updatedGrepCodes)
-      val updated     = draftRepository.updateArticle(newDraft)(session).?
-      val partialPart = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
+      val grepCodeNote = getGrepCodeNote(newGrepCodeMapping, draft, user)
+      val newDraft     = draft.copy(grepCodes = updatedGrepCodes, notes = draft.notes :+ grepCodeNote)
+      val updated      = draftRepository.updateArticle(newDraft)(session).?
+      val partialPart  = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
       logger.info(
         s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
       )
