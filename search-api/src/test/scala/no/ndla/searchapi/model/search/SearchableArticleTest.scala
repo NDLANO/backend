@@ -77,6 +77,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       metaImage = metaImages,
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
+      context = searchableTaxonomyContexts.headOption,
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
       grepContexts =
@@ -155,6 +156,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       metaImage = metaImages,
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
+      context = Some(singleSearchableTaxonomyContext),
       contexts = List(singleSearchableTaxonomyContext),
       contextids = List(singleSearchableTaxonomyContext.contextId),
       grepContexts =
@@ -170,9 +172,8 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
     val json         = CirceUtil.toJsonString(original)
     val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
 
-    val expected = original.copy(
-      contexts = List(singleSearchableTaxonomyContext)
-    )
+    val expected =
+      original.copy(context = Some(singleSearchableTaxonomyContext), contexts = List(singleSearchableTaxonomyContext))
 
     deserialized should be(expected)
   }

@@ -52,14 +52,15 @@ trait ReadService {
         page: Int,
         pageSize: Int,
         userInfo: CombinedUser
-    ): Try[Seq[LearningPathV2DTO]] = {
+    ): Try[List[LearningPathV2DTO]] = {
       if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
         val offset        = (page - 1) * pageSize
         val learningpaths = learningPathRepository.pageWithIds(ids, pageSize, offset)
-        learningpaths.traverse(learningpath =>
-          converterService.asApiLearningpathV2(learningpath, language, fallback, userInfo)
-        )
+        learningpaths
+          .map(_.isOwnerOrPublic(userInfo))
+          .collect { case Success(lp) => converterService.asApiLearningpathV2(lp, language, fallback, userInfo) }
+          .sequence
       }
     }
 

@@ -194,7 +194,8 @@ trait FolderConverterService {
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled,
         arenaAccepted = domainUserData.arenaAccepted,
-        arenaGroups = domainUserData.arenaGroups
+        arenaGroups = domainUserData.arenaGroups,
+        shareNameAccepted = domainUserData.shareNameAccepted
       )
     }
 
@@ -284,10 +285,10 @@ trait FolderConverterService {
       }
 
       val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
-
       val arenaGroups =
         if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
         else domainUserData.arenaGroups
+      val shareNameAccepted = updatedUser.shareNameAccepted.getOrElse(domainUserData.shareNameAccepted)
 
       Success(
         DomainMyNDLAUser(
@@ -299,11 +300,12 @@ trait FolderConverterService {
           organization = domainUserData.organization,
           groups = domainUserData.groups,
           username = domainUserData.username,
+          displayName = domainUserData.displayName,
           email = domainUserData.email,
           arenaEnabled = arenaEnabled,
-          displayName = domainUserData.displayName,
+          arenaAccepted = arenaAccepted,
           arenaGroups = arenaGroups,
-          arenaAccepted = arenaAccepted
+          shareNameAccepted = shareNameAccepted
         )
       )
     }

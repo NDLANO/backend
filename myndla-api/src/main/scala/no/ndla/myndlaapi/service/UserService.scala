@@ -117,7 +117,8 @@ trait UserService {
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
           arenaGroups = None,
-          arenaAccepted = None
+          arenaAccepted = None,
+          shareNameAccepted = None
         )
         updated <- userService.updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
@@ -208,11 +209,12 @@ trait UserService {
           organization = organization,
           groups = toDomainGroups(feideGroups),
           username = feideExtendedUserData.username,
+          displayName = feideExtendedUserData.displayName,
           email = feideExtendedUserData.email,
           arenaEnabled = userRole == UserRole.EMPLOYEE,
+          arenaAccepted = false,
           arenaGroups = getInitialIsArenaGroups(feideId),
-          displayName = feideExtendedUserData.displayName,
-          arenaAccepted = false
+          shareNameAccepted = true
         )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
@@ -238,11 +240,12 @@ trait UserService {
         organization = organization,
         groups = toDomainGroups(feideGroups),
         username = feideUser.username,
+        displayName = feideUser.displayName,
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled || userRole == UserRole.EMPLOYEE,
-        displayName = feideUser.displayName,
+        arenaAccepted = userData.arenaAccepted,
         arenaGroups = userData.arenaGroups,
-        arenaAccepted = userData.arenaAccepted
+        shareNameAccepted = userData.shareNameAccepted
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }

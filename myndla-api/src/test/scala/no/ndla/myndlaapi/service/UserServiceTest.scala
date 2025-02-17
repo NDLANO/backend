@@ -51,18 +51,20 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
+      arenaAccepted = true,
       arenaGroups = List.empty,
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val updatedUserData =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
         arenaGroups = None,
-        arenaAccepted = None
+        arenaAccepted = None,
+        shareNameAccepted = None
       )
     val userAfterMerge = MyNDLAUser(
       id = 42,
@@ -80,11 +82,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
+      arenaAccepted = true,
       arenaGroups = List.empty,
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val expected = MyNDLAUserDTO(
       id = 42,
@@ -98,7 +101,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
     doReturn(Success(()))
@@ -124,7 +128,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
         arenaGroups = None,
-        arenaAccepted = None
+        arenaAccepted = None,
+        shareNameAccepted = None
       )
 
     doReturn(Success(()))
@@ -177,11 +182,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
+      arenaAccepted = true,
       arenaGroups = List.empty,
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -195,7 +201,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -251,11 +258,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
+      arenaAccepted = true,
       arenaGroups = List.empty,
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -269,7 +277,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
@@ -321,11 +330,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
+      arenaAccepted = true,
       arenaGroups = List.empty,
-      arenaAccepted = true
+      shareNameAccepted = false
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
@@ -346,7 +356,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))

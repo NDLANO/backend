@@ -78,7 +78,8 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
   def ElasticSearchScrollKeepAlive               = "1m"
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
-  def BasicHtmlTags: List[String] = List(
+  def AllowedHtmlTags: List[String] = List(
+    "a",
     "b",
     "blockquote",
     "br",
@@ -94,6 +95,7 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
     "p",
     "pre",
     "q",
+    "section",
     "small",
     "strike",
     "strong",

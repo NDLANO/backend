@@ -112,6 +112,7 @@ export interface IMyNDLAUserDTO {
   arenaEnabled: boolean
   arenaAccepted: boolean
   arenaGroups: ArenaGroup[]
+  shareNameAccepted: boolean
 }
 
 export interface INewCategoryDTO {
@@ -276,6 +277,7 @@ export interface IUpdatedMyNDLAUserDTO {
   arenaEnabled?: boolean
   arenaGroups?: ArenaGroup[]
   arenaAccepted?: boolean
+  shareNameAccepted?: boolean
 }
 
 export interface IUpdatedResourceDTO {

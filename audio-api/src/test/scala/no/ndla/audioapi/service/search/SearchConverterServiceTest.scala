@@ -81,7 +81,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-  override def beforeAll(): Unit = {super.beforeAll()}
+  override def beforeAll(): Unit = { super.beforeAll() }
 
   test("That asSearchableAudioInformation converts titles with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)

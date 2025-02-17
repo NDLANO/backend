@@ -11,34 +11,34 @@ package no.ndla.learningpathapi.validation
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class TextValidatorTest extends UnitSuite with TestEnvironment {
-  import props.BasicHtmlTags
+  import props.AllowedHtmlTags
 
-  var basicHtmlValidator: TextValidator = _
-  var noHtmlValidator: TextValidator    = _
+  var allowedHtmlValidator: TextValidator = _
+  var noHtmlValidator: TextValidator      = _
 
   override def beforeEach(): Unit = {
-    basicHtmlValidator = new TextValidator(allowHtml = true)
+    allowedHtmlValidator = new TextValidator(allowHtml = true)
     noHtmlValidator = new TextValidator(allowHtml = false)
   }
 
-  test("That TextValidator allows all tags in BasicHtmlTags tags") {
-    BasicHtmlTags.foreach(tag => {
+  test("That TextValidator allows all tags in AllowedHtmlTags tags") {
+    AllowedHtmlTags.foreach(tag => {
       val starttext = s"<$tag>This is text with $tag"
       val text      = starttext + (if (tag.equals("br")) "" else s"</$tag>")
-      basicHtmlValidator.validate("path1.path2", text) should equal(None)
+      allowedHtmlValidator.validate("path1.path2", text) should equal(None)
     })
   }
 
-  test("That TextValidator does not allow tags outside BaiscHtmlTags") {
-    val illegalTag = "a"
-    BasicHtmlTags.contains(illegalTag) should be(right = false)
+  test("That TextValidator does not allow tags outside BasicHtmlTags") {
+    val illegalTag = "aside"
+    AllowedHtmlTags.contains(illegalTag) should be(right = false)
 
     val text = s"<$illegalTag>This is text with $illegalTag</$illegalTag>"
 
-    val validationMessage = basicHtmlValidator.validate("path1.path2", text)
+    val validationMessage = allowedHtmlValidator.validate("path1.path2", text)
     validationMessage.isDefined should be(right = true)
     validationMessage.get.field should equal("path1.path2")
-    validationMessage.get.message should equal(basicHtmlValidator.IllegalContentInBasicText)
+    validationMessage.get.message should equal(allowedHtmlValidator.IllegalContentInBasicText)
   }
 
   test("That TextValidator does not allow any html in plain text") {

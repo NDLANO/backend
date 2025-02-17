@@ -286,6 +286,7 @@ export interface IMultiSearchSummaryDTO {
   metaDescription: IMetaDescriptionDTO
   metaImage?: IMetaImageDTO
   url: string
+  context?: IApiTaxonomyContextDTO
   contexts: IApiTaxonomyContextDTO[]
   supportedLanguages: string[]
   learningResourceType: LearningResourceType

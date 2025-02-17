@@ -58,7 +58,8 @@ trait ArticleIndexService {
         keywordField("traits"),
         keywordField("availability"),
         keywordField("learningResourceType"),
-        getTaxonomyContextMapping,
+        getTaxonomyContextMapping("context"),
+        getTaxonomyContextMapping("contexts"),
         keywordField("contextids"),
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),
@@ -83,6 +84,9 @@ trait ArticleIndexService {
         generateLanguageSupportedDynamicTemplates("relevance") ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("context.root") ++
+        generateLanguageSupportedDynamicTemplates("context.relevance") ++
+        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
         generateLanguageSupportedDynamicTemplates("contexts.root") ++
         generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
         generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")

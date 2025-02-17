@@ -71,7 +71,8 @@ trait DraftIndexService {
             dateField("lastUpdated")
           )
         ),
-        getTaxonomyContextMapping,
+        getTaxonomyContextMapping("context"),
+        getTaxonomyContextMapping("contexts"),
         keywordField("contextids"),
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),
@@ -112,6 +113,10 @@ trait DraftIndexService {
         generateLanguageSupportedDynamicTemplates("parentTopicName", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("resourceTypeName", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("primaryRoot", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("context.root") ++
+        generateLanguageSupportedDynamicTemplates("context.relevance") ++
+        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
+        generateLanguageSupportedDynamicTemplates("contexts.root") ++
         generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
         generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
 

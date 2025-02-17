@@ -52,7 +52,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     created = clock.now(),
     lastUpdated = clock.now(),
     owner = "",
-    copyright = copyright
+    copyright = copyright,
+    isMyNDLAOwner = false
   )
 
   private def validMock() = {
