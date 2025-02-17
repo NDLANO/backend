@@ -26,7 +26,7 @@ import scala.util.{Success, Try}
 class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
-  var repository: ArticleRepository         = _
+  var repository: DraftRepository           = _
   val sampleArticle: Draft                  = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
@@ -51,7 +51,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   override def beforeEach(): Unit = {
-    repository = new ArticleRepository()
+    repository = new DraftRepository()
     if (serverIsListening) {
       emptyTestDatabase()
     }

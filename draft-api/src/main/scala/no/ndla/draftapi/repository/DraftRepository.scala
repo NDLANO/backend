@@ -24,9 +24,9 @@ import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
   this: DataSource & ErrorHandling & Clock =>
-  val draftRepository: ArticleRepository
+  val draftRepository: DraftRepository
 
-  class ArticleRepository extends StrictLogging with Repository[Draft] {
+  class DraftRepository extends StrictLogging with Repository[Draft] {
     def insert(article: Draft)(implicit session: DBSession): Draft = {
       val startRevision = article.revision.getOrElse(1)
       val dataObject    = new PGobject()

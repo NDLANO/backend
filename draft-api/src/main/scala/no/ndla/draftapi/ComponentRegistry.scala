@@ -101,7 +101,7 @@ class ComponentRegistry(properties: DraftApiProperties)
   override val DBUtil: DBUtility            = new DBUtility
   DataSource.connectToDatabase()
 
-  lazy val draftRepository    = new ArticleRepository
+  lazy val draftRepository    = new DraftRepository
   lazy val userDataRepository = new UserDataRepository
 
   lazy val articleSearchService   = new ArticleSearchService

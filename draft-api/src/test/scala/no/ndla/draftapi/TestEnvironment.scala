@@ -92,7 +92,7 @@ trait TestEnvironment
   val userDataController: UserDataController = mock[UserDataController]
 
   val dataSource: HikariDataSource           = mock[HikariDataSource]
-  val draftRepository: ArticleRepository     = mock[ArticleRepository]
+  val draftRepository: DraftRepository       = mock[DraftRepository]
   val userDataRepository: UserDataRepository = mock[UserDataRepository]
 
   val converterService: ConverterService = mock[ConverterService]
