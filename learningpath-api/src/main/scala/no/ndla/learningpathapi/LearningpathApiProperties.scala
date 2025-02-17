@@ -79,6 +79,7 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
   def AllowedHtmlTags: List[String] = List(
+    "a",
     "b",
     "blockquote",
     "br",

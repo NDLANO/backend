@@ -29,8 +29,8 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
     })
   }
 
-  test("That TextValidator does not allow tags outside BaiscHtmlTags") {
-    val illegalTag = "a"
+  test("That TextValidator does not allow tags outside BasicHtmlTags") {
+    val illegalTag = "aside"
     AllowedHtmlTags.contains(illegalTag) should be(right = false)
 
     val text = s"<$illegalTag>This is text with $illegalTag</$illegalTag>"
