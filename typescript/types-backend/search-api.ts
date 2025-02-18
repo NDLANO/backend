@@ -308,7 +308,6 @@ export interface IMultiSearchSummaryDTO {
   published?: string
   favorited?: number
   resultType: SearchType
-  conceptSubjectIds?: string[]
 }
 
 export interface IMultiSearchTermsAggregationDTO {
