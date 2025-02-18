@@ -82,9 +82,7 @@ case class MultiSearchSummaryDTO(
     @description("Number of times favorited in MyNDLA")
     favorited: Option[Long],
     @description("Type of the resource")
-    resultType: SearchType,
-    @description("Subject ids for the resource, if a concept")
-    conceptSubjectIds: Option[List[String]]
+    resultType: SearchType
 )
 
 object MultiSearchSummaryDTO {

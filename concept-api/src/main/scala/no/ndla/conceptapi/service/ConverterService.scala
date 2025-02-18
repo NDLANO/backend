@@ -89,12 +89,10 @@ trait ConverterService {
             source = concept.copyright.flatMap(_.origin),
             metaImage = Some(metaImage),
             tags = tags,
-            subjectIds = if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
             created = concept.created,
             updated = concept.updated,
             updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
             supportedLanguages = concept.supportedLanguages,
-            articleIds = concept.articleIds,
             status = status,
             visualElement = visualElement,
             responsible = responsible,
@@ -247,8 +245,6 @@ trait ConverterService {
         metaImage =
           concept.metaImage.map(m => model.domain.concept.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
-        subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-        articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
         visualElement = visualElement,
         responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
@@ -334,8 +330,6 @@ trait ConverterService {
           updatedBy = updatedBy,
           metaImage = updatedMetaImage,
           tags = mergeLanguageFields(toMergeInto.tags, domainTags),
-          subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
-          articleIds = updateConcept.articleIds.map(_.toSeq).getOrElse(toMergeInto.articleIds),
           status = toMergeInto.status,
           visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
           responsible = responsible,
@@ -388,8 +382,6 @@ trait ConverterService {
         updatedBy = Seq(userInfo.id),
         metaImage = newMetaImage,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
-        subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-        articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
         visualElement = concept.visualElement.map(ve => toDomainVisualElement(ve, lang)).toSeq,
         responsible = responsible,
@@ -446,8 +438,7 @@ trait ConverterService {
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
       val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
         case resourceType
-            if resourceType == ResourceType.H5P.toString
-              && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
+            if resourceType == ResourceType.H5P.toString && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
           val path = embedTag.attr(TagAttribute.DataPath.toString)
           Some((resourceType, path))
 

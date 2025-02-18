@@ -1880,8 +1880,6 @@ object TestData {
     updatedBy = Seq("noen"),
     metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleIds = Seq(42),
     status = no.ndla.common.model.domain.concept.Status(
       ConceptStatus.LANGUAGE,
       Set(ConceptStatus.PUBLISHED)

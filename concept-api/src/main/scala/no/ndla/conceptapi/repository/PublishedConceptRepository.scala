@@ -68,16 +68,6 @@ trait PublishedConceptRepository {
 
     def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
 
-    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
-      sql"""
-        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id
-        from ${PublishedConcept.table}
-        where jsonb_array_length(document->'subjectIds') != 0;"""
-        .map(rs => rs.string("subject_id"))
-        .list()
-        .toSet
-    }
-
     def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
       sql"""
            select distinct id, document#>'{tags}' as tags

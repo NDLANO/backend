@@ -372,14 +372,12 @@ trait SearchConverterService {
           metaImage = c.metaImage,
           defaultTitle = title.defaultValue,
           tags = tags,
-          subjectIds = c.subjectIds.toList,
           lastUpdated = c.updated,
           draftStatus = status,
           users = users.toList,
           updatedBy = c.updatedBy,
           license = c.copyright.flatMap(_.license),
           authors = authors,
-          articleIds = c.articleIds,
           created = c.created,
           source = c.copyright.flatMap(_.origin),
           responsible = c.responsible,
@@ -686,8 +684,7 @@ trait SearchConverterService {
         primaryRootName = None,
         published = None,
         favorited = None,
-        resultType = SearchType.Articles,
-        conceptSubjectIds = None
+        resultType = SearchType.Articles
       )
     }
 
@@ -756,15 +753,14 @@ trait SearchConverterService {
         revisions = revisions,
         responsible = responsible,
         comments = Some(comments),
-        priority = Some(searchableDraft.priority.entryName),
         prioritized = Some(searchableDraft.priority == Priority.Prioritized),
+        priority = Some(searchableDraft.priority.entryName),
         resourceTypeName = resourceTypeName,
         parentTopicName = parentTopicName,
         primaryRootName = primaryRootName,
         published = Some(searchableDraft.published),
         favorited = Some(searchableDraft.favorited),
-        resultType = SearchType.Drafts,
-        conceptSubjectIds = None
+        resultType = SearchType.Drafts
       )
     }
 
@@ -830,8 +826,7 @@ trait SearchConverterService {
         primaryRootName = None,
         published = None,
         favorited = Some(searchableLearningPath.favorited),
-        resultType = SearchType.LearningPaths,
-        conceptSubjectIds = None
+        resultType = SearchType.LearningPaths
       )
     }
 
@@ -887,8 +882,7 @@ trait SearchConverterService {
         primaryRootName = None,
         published = None,
         favorited = Some(searchableConcept.favorited),
-        resultType = SearchType.Concepts,
-        conceptSubjectIds = Some(searchableConcept.subjectIds)
+        resultType = SearchType.Concepts
       )
     }
 

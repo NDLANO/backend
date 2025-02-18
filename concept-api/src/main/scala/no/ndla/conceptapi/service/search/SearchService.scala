@@ -56,7 +56,7 @@ trait SearchService {
 
     def hitToApiModel(hit: String, language: String): T
 
-    def buildTermQueryForEmbed(
+    private def buildTermQueryForEmbed(
         path: String,
         resource: List[String],
         id: Option[String],

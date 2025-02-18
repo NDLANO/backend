@@ -41,7 +41,6 @@ trait PublishedConceptController {
     override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-      getSubjects,
       getTags,
       getConceptById,
       getAllConcepts,
@@ -71,7 +70,6 @@ trait PublishedConceptController {
         pageSize: Int,
         idList: List[Long],
         fallback: Boolean,
-        subjects: Set[String],
         tagsToFilterBy: Set[String],
         exactTitleMatch: Boolean,
         shouldScroll: Boolean,
@@ -87,7 +85,6 @@ trait PublishedConceptController {
         pageSize = pageSize,
         sort = sort.getOrElse(Sort.ByRelevanceDesc),
         fallback = fallback,
-        subjects = subjects,
         tagsToFilterBy = tagsToFilterBy,
         exactTitleMatch = exactTitleMatch,
         shouldScroll = shouldScroll,
@@ -139,7 +136,6 @@ trait PublishedConceptController {
       .in(sort)
       .in(fallback)
       .in(scrollId)
-      .in(subjects)
       .in(tagsToFilterBy)
       .in(exactTitleMatch)
       .in(embedResource)
@@ -159,7 +155,6 @@ trait PublishedConceptController {
               sortStr,
               fallback,
               scrollId,
-              subjects,
               tagsToFilterBy,
               exactTitleMatch,
               embedResource,
@@ -179,7 +174,6 @@ trait PublishedConceptController {
               pageSize,
               idList.values,
               fallback,
-              subjects.values.toSet,
               tagsToFilterBy.values.toSet,
               exactTitleMatch,
               shouldScroll,
@@ -208,7 +202,6 @@ trait PublishedConceptController {
           val page            = searchParams.page.getOrElse(1)
           val idList          = searchParams.ids
           val fallback        = searchParams.fallback.getOrElse(false)
-          val subjects        = searchParams.subjects
           val tagsToFilterBy  = searchParams.tags
           val exactTitleMatch = searchParams.exactMatch.getOrElse(false)
           val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
@@ -225,7 +218,6 @@ trait PublishedConceptController {
             pageSize,
             idList.getOrElse(List.empty),
             fallback,
-            subjects.getOrElse(Set.empty),
             tagsToFilterBy.getOrElse(Set.empty),
             exactTitleMatch,
             shouldScroll,
@@ -237,41 +229,18 @@ trait PublishedConceptController {
         }
       }
 
-    def getSubjects: ServerEndpoint[Any, Eff] = endpoint.get
-      .summary("Returns a list of all subjects used in concepts")
-      .description("Returns a list of all subjects used in concepts")
-      .in("subjects")
-      .out(jsonBody[Set[String]])
-      .errorOut(errorOutputsFor(400))
-      .serverLogicPure { _ =>
-        readService.allSubjects()
-      }
-
     def getTags: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Returns a list of all tags in the specified subjects")
       .description("Returns a list of all tags in the specified subjects")
       .in("tags")
       .in(language)
       .in(fallback)
-      .in(subjects)
       .out(
-        oneOf[TagOutput](
-          oneOfVariant[SomeTagList](
-            statusCode(StatusCode.Ok).and(jsonBody[List[SubjectTagsDTO]]).map(x => SomeTagList(x))(x => x.list)
-          ),
-          oneOfDefaultVariant[SomeStringList](
-            statusCode(StatusCode.Ok).and(jsonBody[List[String]]).map(x => SomeStringList(x))(x => x.list)
-          )
-        )
+        statusCode(StatusCode.Ok).and(jsonBody[List[String]])
       )
       .errorOut(errorOutputsFor(400, 403, 404))
-      .serverLogicPure { case (language, fallback, subjects) =>
-        if (subjects.values.nonEmpty) {
-          publishedConceptSearchService.getTagsWithSubjects(subjects.values, language, fallback) match {
-            case Success(res) => SomeTagList(res).asRight
-            case Failure(ex)  => returnLeftError(ex)
-          }
-        } else { SomeStringList(readService.allTagsFromConcepts(language, fallback)).asRight }
+      .serverLogicPure { case (language, fallback) =>
+        readService.allTagsFromConcepts(language, fallback).asRight
       }
   }
 }

@@ -12,12 +12,11 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
-// format: off
 @description("Information about the gloss example")
 case class GlossExampleDTO(
     @description("Example use of the gloss") example: String,
     @description("Language of the example") language: String,
-    @description("Alternative writing of the example") transcriptions: Map[String, String],
+    @description("Alternative writing of the example") transcriptions: Map[String, String]
 )
 
 object GlossExampleDTO {
@@ -31,9 +30,8 @@ case class GlossDataDTO(
     @description("Word class / part of speech, ex. noun, adjective, verb, adverb, ...") wordClass: String,
     @description("Original language of the gloss") originalLanguage: String,
     @description("Alternative writing of the gloss") transcriptions: Map[String, String],
-    @description("List of examples of how the gloss can be used") examples: List[List[GlossExampleDTO]],
+    @description("List of examples of how the gloss can be used") examples: List[List[GlossExampleDTO]]
 )
-// format: on
 
 object GlossDataDTO {
   implicit val encoder: Encoder[GlossDataDTO] = deriveEncoder

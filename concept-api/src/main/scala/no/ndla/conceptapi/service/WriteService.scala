@@ -92,11 +92,7 @@ trait WriteService {
       // Function that sets values we don't want to include when comparing concepts to check if we should update status
       val withComparableValues =
         (concept: DomainConcept) =>
-          concept.copy(
-            revision = None,
-            created = NDLADate.fromUnixTime(0),
-            updated = NDLADate.fromUnixTime(0)
-          )
+          concept.copy(revision = None, created = NDLADate.fromUnixTime(0), updated = NDLADate.fromUnixTime(0))
       withComparableValues(existing) != withComparableValues(changed)
     }
 
@@ -125,8 +121,8 @@ trait WriteService {
             revision = None,
             created = NDLADate.fromUnixTime(0),
             updated = NDLADate.fromUnixTime(0),
-            responsible = None,
-            updatedBy = Seq.empty
+            updatedBy = Seq.empty,
+            responsible = None
           )
       withComparableValues(existing) != withComparableValues(changed)
     }
@@ -222,8 +218,8 @@ trait WriteService {
               val newConcept = existingConcept.copy(
                 title = title,
                 content = content,
-                tags = tags,
                 metaImage = metaImage,
+                tags = tags,
                 visualElement = visualElement
               )
 

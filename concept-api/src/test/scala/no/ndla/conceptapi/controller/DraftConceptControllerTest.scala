@@ -290,7 +290,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 
     val expectedSettings =
-      draftSearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
+      draftSearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
 
     simpleHttpClient
       .send(
