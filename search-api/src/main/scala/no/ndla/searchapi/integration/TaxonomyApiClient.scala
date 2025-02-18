@@ -43,7 +43,8 @@ trait TaxonomyApiClient {
         headers = getVersionHashHeader(shouldUsePublishedTax),
         Seq(
           "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
-          "includeContexts" -> "true"
+          "includeContexts" -> "true",
+          "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax)
         )
       )
 
@@ -55,7 +56,8 @@ trait TaxonomyApiClient {
           "pageSize"         -> "500",
           "nodeType"         -> NodeType.RESOURCE.toString,
           "includeContexts"  -> "true",
-          "filterProgrammes" -> "true"
+          "filterProgrammes" -> "true",
+          "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax)
         )
       )
 
@@ -71,6 +73,10 @@ trait TaxonomyApiClient {
         params = Seq("filterVisibles" -> filterVisibles.toString)
       )
       if (filterContexts) contexts.map(list => list.filter(c => c.rootId.contains("subject"))) else contexts
+    }
+
+    private def getIsVisibleParam(shouldUsePublishedTax: Boolean) = {
+      if (shouldUsePublishedTax) "" else "false"
     }
 
     private def getVersionHashHeader(shouldUsePublishedTax: Boolean): Map[String, String] = {
