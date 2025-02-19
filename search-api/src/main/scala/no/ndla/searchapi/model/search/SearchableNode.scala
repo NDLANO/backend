@@ -17,7 +17,7 @@ case class SearchableNode(
     title: SearchableLanguageValues,
     contentUri: Option[String],
     nodeType: NodeType,
-    frontpage: Option[Frontpage]
+    subjectPage: Option[SearchableSubjectPage]
 )
 
 object SearchableNode {

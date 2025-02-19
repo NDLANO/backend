@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.errors as common
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.FrontPageDTO
+import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.{SubjectPageDomainDumpDTO, SubjectPageIdDTO}
@@ -46,7 +47,7 @@ trait ReadService {
       }
     }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageDTO] = {
+    def subjectPage(id: Long, language: String, fallback: Boolean): Try[SubjectPageDTO] = {
       val maybeSubject = subjectPageRepository.withId(id).?
       val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
       converted.toTry(SubjectPageNotFoundException(id))
@@ -57,7 +58,7 @@ trait ReadService {
         pageSize: Int,
         language: String,
         fallback: Boolean
-    ): Try[List[api.SubjectPageDTO]] = {
+    ): Try[List[SubjectPageDTO]] = {
       val offset    = pageSize * (page - 1)
       val data      = subjectPageRepository.all(offset, pageSize).?
       val converted = data.map(ConverterService.toApiSubjectPage(_, language, fallback))
@@ -79,7 +80,7 @@ trait ReadService {
         fallback: Boolean,
         pageSize: Int,
         page: Int
-    ): Try[List[api.SubjectPageDTO]] = {
+    ): Try[List[SubjectPageDTO]] = {
       val offset = (page - 1) * pageSize
       for {
         ids          <- validateSubjectPageIdsOrError(subjectIds)

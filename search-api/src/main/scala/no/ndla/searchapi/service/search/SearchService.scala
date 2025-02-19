@@ -20,7 +20,7 @@ import SortOrder.{Asc, Desc}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.api.search.{
   MultiSearchSuggestionDTO,
-  MultiSearchSummaryDTO,
+  MultiSummaryBaseDTO,
   SearchSuggestionDTO,
   SearchType,
   SuggestOptionDTO
@@ -57,17 +57,19 @@ trait SearchService {
       * @return
       *   api-model summary of hit
       */
-    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSearchSummaryDTO] = {
+    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSummaryBaseDTO] = {
       val indexName = hit.index.split("_").headOption.traverse(x => props.indexToSearchType(x))
       indexName.flatMap {
         case Some(SearchType.Articles) =>
-          Success(searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive))
+          searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive)
         case Some(SearchType.Drafts) =>
-          Success(searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive))
+          searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive)
         case Some(SearchType.LearningPaths) =>
-          Success(searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive))
+          searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive)
         case Some(SearchType.Concepts) =>
-          Success(searchConverterService.conceptHitAsMultiSummary(hit, language))
+          searchConverterService.conceptHitAsMultiSummary(hit, language)
+        case Some(SearchType.Nodes) =>
+          searchConverterService.nodeHitAsMultiSummary(hit, language)
         case Some(SearchType.Grep) =>
           Failure(NdlaSearchException("Got hit from grep index (SearchType.Grep) in `hitToApiModel`. This is a bug."))
         case None =>
@@ -148,7 +150,7 @@ trait SearchService {
         response: SearchResponse,
         language: String,
         filterInactive: Boolean
-    ): Try[Seq[MultiSearchSummaryDTO]] = {
+    ): Try[Seq[MultiSummaryBaseDTO]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList

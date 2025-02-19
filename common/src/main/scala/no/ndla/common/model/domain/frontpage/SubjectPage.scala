@@ -29,6 +29,7 @@ case class SubjectPage(
 ) {
 
   def supportedLanguages: Seq[String] = getSupportedLanguages(about, metaDescription)
+
 }
 
 object SubjectPage {

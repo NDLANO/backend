@@ -97,7 +97,10 @@ trait GetSearchQueryParams {
       filterInactive: Boolean,
       @query("traits")
       @description("A comma separated list of traits the resources should be filtered by.")
-      traits: CommaSeparatedList[String]
+      traits: CommaSeparatedList[String],
+      @query("result-types")
+      @description("A comma separated list of traits the resources should be filtered by.")
+      resultTypes: CommaSeparatedList[String]
   )
 
   object GetSearchQueryParams {

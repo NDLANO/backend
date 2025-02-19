@@ -1693,7 +1693,8 @@ object TestData {
     embedId = None,
     availability = List.empty,
     articleTypes = List.empty,
-    filterInactive = false
+    filterInactive = false,
+    resultTypes = None
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(

@@ -239,7 +239,8 @@ trait SearchController {
                 embedId = embedId,
                 availability = availability,
                 articleTypes = List.empty,
-                filterInactive = filterInactive
+                filterInactive = filterInactive,
+                resultTypes = None
               )
 
               groupSearch(settings, includeMissingResourceTypeGroup)
@@ -374,7 +375,8 @@ trait SearchController {
               availability = availability,
               articleTypes = q.articleTypes.values,
               filterInactive = q.filterInactive,
-              traits = q.traits.values.flatMap(SearchTrait.valueOf)
+              traits = q.traits.values.flatMap(SearchTrait.valueOf),
+              resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some
             )
             multiSearchService.matchingQuery(settings) match {
               case Success(searchResult) =>
@@ -610,7 +612,8 @@ trait SearchController {
             embedId = params.embedId,
             availability = availability,
             articleTypes = params.articleTypes.getOrElse(List.empty),
-            filterInactive = params.filterInactive.getOrElse(false)
+            filterInactive = params.filterInactive.getOrElse(false),
+            resultTypes = params.resultTypes
           )
 
       }
