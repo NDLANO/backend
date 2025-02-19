@@ -18,7 +18,7 @@ case class MultiSearchResultDTO(
     @description("For which page results are shown from") page: Option[Int],
     @description("The number of results per page") pageSize: Int,
     @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[MultiSearchSummaryDTO],
+    @description("The search results") results: Seq[MultiSummaryBaseDTO],
     @description("The suggestions for other searches") suggestions: Seq[MultiSearchSuggestionDTO],
     @description("The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregationDTO]
 )

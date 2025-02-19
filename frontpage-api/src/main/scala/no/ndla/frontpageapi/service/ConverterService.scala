@@ -8,12 +8,14 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, MissingIdException}
+import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
 import no.ndla.frontpageapi.model.{api, domain}
 
 import scala.util.{Failure, Success, Try}
 import cats.implicits.*
+import no.ndla.common.errors.MissingIdException
 import no.ndla.common.model
+import no.ndla.common.model.api.frontpage.{AboutSubjectDTO, BannerImageDTO, SubjectPageDTO, VisualElementDTO}
 import no.ndla.common.model.domain.frontpage
 import no.ndla.common.model.domain.frontpage.{
   AboutSubject,
@@ -40,13 +42,47 @@ trait ConverterService {
     def toApiFrontPage(frontPage: domain.FrontPage): model.api.FrontPageDTO =
       model.api.FrontPageDTO(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
 
-    private def toApiBannerImage(banner: BannerImage): api.BannerImageDTO =
-      api.BannerImageDTO(
+    private def toApiBannerImage(banner: BannerImage): BannerImageDTO =
+      model.api.frontpage.BannerImageDTO(
         banner.mobileImageId.map(createImageUrl),
         banner.mobileImageId,
         createImageUrl(banner.desktopImageId),
         banner.desktopImageId
       )
+
+    def toApiSubjectPage(
+        sub: SubjectPage,
+        language: String,
+        fallback: Boolean = false
+    ): Try[SubjectPageDTO] = {
+      if (sub.supportedLanguages.contains(language) || fallback) {
+        sub.id match {
+          case None => Failure(MissingIdException("No id found for subjectpage while converting, this is a bug."))
+          case Some(subjectPageId) =>
+            Success(
+              SubjectPageDTO(
+                subjectPageId,
+                sub.name,
+                toApiBannerImage(sub.bannerImage),
+                toApiAboutSubject(findByLanguageOrBestEffort(sub.about, language)),
+                toApiMetaDescription(findByLanguageOrBestEffort(sub.metaDescription, language)),
+                sub.editorsChoices,
+                sub.supportedLanguages,
+                sub.connectedTo,
+                sub.buildsOn,
+                sub.leadsTo
+              )
+            )
+        }
+      } else {
+        Failure(
+          LanguageNotFoundException(
+            s"The subjectpage with id ${sub.id.get} and language $language was not found",
+            sub.supportedLanguages
+          )
+        )
+      }
+    }
 
     def toApiFilmFrontPage(page: domain.FilmFrontPage, language: Option[String]): api.FilmFrontPageDTO = {
       api.FilmFrontPageDTO(
@@ -87,9 +123,9 @@ trait ConverterService {
       filteredNames.map(name => api.MovieThemeNameDTO(name.name, name.language))
     }
 
-    private def toApiAboutSubject(about: Option[AboutSubject]): Option[api.AboutSubjectDTO] = {
+    private def toApiAboutSubject(about: Option[AboutSubject]): Option[AboutSubjectDTO] = {
       about
-        .map(about => api.AboutSubjectDTO(about.title, about.description, toApiVisualElement(about.visualElement)))
+        .map(about => AboutSubjectDTO(about.title, about.description, toApiVisualElement(about.visualElement)))
     }
 
     private def toApiMetaDescription(meta: Option[MetaDescription]): Option[String] = {
@@ -97,13 +133,13 @@ trait ConverterService {
         .map(_.metaDescription)
     }
 
-    private def toApiVisualElement(visual: VisualElement): api.VisualElementDTO = {
+    private def toApiVisualElement(visual: VisualElement): VisualElementDTO = {
       val url = visual.`type` match {
         case VisualElementType.Image => createImageUrl(visual.id.toLong)
         case VisualElementType.Brightcove =>
           s"https://players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayer}_default/index.html?videoId=${visual.id}"
       }
-      api.VisualElementDTO(visual.`type`.entryName, url, visual.alt)
+      VisualElementDTO(visual.`type`.entryName, url, visual.alt)
     }
 
     def toDomainSubjectPage(id: Long, subject: api.NewSubjectPageDTO): Try[SubjectPage] =

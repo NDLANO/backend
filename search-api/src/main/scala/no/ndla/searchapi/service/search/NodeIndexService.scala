@@ -16,10 +16,10 @@ import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{ArticleApiClient, GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.Node
 import cats.implicits.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.common.{CirceUtil, ContentURIUtil}
 import no.ndla.network.clients.FrontpageApiClient
@@ -41,15 +41,16 @@ trait NodeIndexService {
       val fields = List(
         keywordField("id"),
         keywordField("contentUri"),
-        nestedField("frontpage").fields(
+        keywordField("nodeType"),
+        nestedField("subjectPage").fields(
           keywordField("id"),
+          keywordField("name"),
           ObjectField("domainObject", enabled = Some(false))
         )
       )
 
       val dynamics =
-        generateLanguageSupportedDynamicTemplates("title") ++
-          generateLanguageSupportedDynamicTemplates("frontpage.name")
+        generateLanguageSupportedDynamicTemplates("title")
 
       properties(fields).dynamicTemplates(dynamics)
     }
@@ -95,7 +96,6 @@ trait NodeIndexService {
         .traverse(node => createIndexRequest(node, indexName))
         .map(executeRequests)
         .flatten
-
     }
 
     def sendToElastic(indexingBundle: IndexingBundle, indexName: String): Try[BulkIndexResult] = {

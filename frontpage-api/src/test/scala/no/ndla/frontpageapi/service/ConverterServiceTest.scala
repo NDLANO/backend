@@ -12,9 +12,7 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.frontpage
 import no.ndla.common.model.domain.frontpage.{AboutSubject, MetaDescription, VisualElement, VisualElementType}
 import no.ndla.frontpageapi.model.api.*
-import no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
-import no.ndla.frontpageapi.model.domain.Errors
 import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.{Failure, Success}
@@ -45,7 +43,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val page          = TestData.apiNewSubjectPage.copy(about = about)
 
     val Failure(res: ValidationException) = ConverterService.toDomainSubjectPage(page)
-    res.message should equal("'not an image' is an invalid visual element type")
+    val expectedError = ValidationException(
+      "visualElement.type",
+      "'not an image' is an invalid visual element type"
+    )
+    res should be(expectedError)
   }
 
   test("toDomainSubjectPage should return a success if visual element type is valid") {

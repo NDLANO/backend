@@ -17,6 +17,7 @@ import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.SearchTestUtility.*
 
 import scala.util.Success
 
@@ -30,6 +31,9 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
     override val indexShards = 1
   }
   override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+    override val indexShards = 1
+  }
+  override val nodeIndexService: NodeIndexService = new NodeIndexService {
     override val indexShards = 1
   }
   override val multiSearchService     = new MultiSearchService
@@ -89,7 +93,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
 
     search1.totalCount should be(1)
-    search1.results.map(_.id) should be(List(2))
+    search1.summaryResults.map(_.id) should be(List(2))
 
     val Success(search2) =
       multiSearchService.matchingQuery(
@@ -97,7 +101,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
 
     search2.totalCount should be(2)
-    search2.results.map(_.id) should be(List(1, 2))
+    search2.summaryResults.map(_.id) should be(List(1, 2))
 
   }
 
@@ -294,7 +298,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
       .get
 
-    result.results.head.contexts.map(_.publicId) should be(Seq("urn:resource:2"))
+    result.summaryResults.head.contexts.map(_.publicId) should be(Seq("urn:resource:2"))
   }
 
   test("That topic taxonomy contexts with hidden elements are ignored") {
@@ -440,7 +444,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
       .get
 
-    result.results.head.contexts.map(_.publicId) should be(Seq("urn:topic:3"))
+    result.summaryResults.head.contexts.map(_.publicId) should be(Seq("urn:topic:3"))
   }
   test("That aggregating rootId works as expected") {
     val article1 = TestData.article1.copy(id = Some(1))

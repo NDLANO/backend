@@ -194,10 +194,11 @@ trait IndexService {
       val chunks = apiClient.getChunks[D]
       val results = chunks
         .map({
-          case Failure(ex) => Failure(ex)
+          case Failure(ex) =>
+            logger.error(s"Failed to fetch chunk from with api client '${apiClient.name}'", ex)
+            Failure(ex)
           case Success(c) =>
-            indexDocuments(c, indexName, indexingBundle)
-              .map(numIndexed => (numIndexed, c.size))
+            indexDocuments(c, indexName, indexingBundle).map(numIndexed => (numIndexed, c.size))
         })
         .toList
 

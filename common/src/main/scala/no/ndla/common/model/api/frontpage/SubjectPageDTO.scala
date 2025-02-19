@@ -6,11 +6,10 @@
  *
  */
 
-package no.ndla.frontpageapi.model.api
+package no.ndla.common.model.api.frontpage
 
-import io.circe.generic.semiauto.*
-import io.circe.generic.auto.*
 import io.circe.*
+import io.circe.generic.semiauto.*
 
 case class SubjectPageDTO(
     id: Long,

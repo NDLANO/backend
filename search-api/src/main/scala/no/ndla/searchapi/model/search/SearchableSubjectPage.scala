@@ -11,13 +11,13 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.frontpage.SubjectPage
 
-case class Frontpage(
+case class SearchableSubjectPage(
     id: Long,
     name: String,
     domainObject: SubjectPage
 )
 
-object Frontpage {
-  implicit val encoder: Encoder[Frontpage] = deriveEncoder
-  implicit val decoder: Decoder[Frontpage] = deriveDecoder
+object SearchableSubjectPage {
+  implicit val encoder: Encoder[SearchableSubjectPage] = deriveEncoder
+  implicit val decoder: Decoder[SearchableSubjectPage] = deriveDecoder
 }
