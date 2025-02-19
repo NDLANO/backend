@@ -12,7 +12,7 @@ import com.scalatsi.TypescriptType.{TSString, TSUndefined}
 import com.scalatsi.{TSIType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.model.api.search.SearchTrait
+import no.ndla.common.model.api.search.{SearchTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
 import sttp.tapir.Schema
@@ -71,7 +71,9 @@ case class SearchParamsDTO(
     @description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
     embedId: Option[String],
     @description("Filter out inactive taxonomy contexts.")
-    filterInactive: Option[Boolean]
+    filterInactive: Option[Boolean],
+    @description("Which types the search request should return")
+    resultTypes: Option[List[SearchType]]
 )
 
 object SearchParamsDTO {

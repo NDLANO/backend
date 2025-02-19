@@ -10,7 +10,6 @@ package no.ndla.frontpageapi.service
 
 import no.ndla.common.model.domain.frontpage
 import no.ndla.common.model.domain.frontpage.{AboutSubject, MetaDescription, VisualElement, VisualElementType}
-import no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when

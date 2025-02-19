@@ -53,6 +53,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
     case `learningpathIndexName` => Success(SearchType.LearningPaths)
     case `conceptIndexName`      => Success(SearchType.Concepts)
     case `grepIndexName`         => Success(SearchType.Grep)
+    case `nodeIndexName`         => Success(SearchType.Nodes)
     case _                       => Failure(new IllegalArgumentException(s"Unknown index name: $indexName"))
   }
 

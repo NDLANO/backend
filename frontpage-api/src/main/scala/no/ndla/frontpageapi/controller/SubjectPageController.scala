@@ -11,8 +11,9 @@ package no.ndla.frontpageapi.controller
 import io.circe.generic.auto.*
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.frontpageapi.Props
-import no.ndla.frontpageapi.model.api.{ErrorHandling, NewSubjectPageDTO, SubjectPageDTO, UpdatedSubjectPageDTO}
+import no.ndla.frontpageapi.model.api.{ErrorHandling, NewSubjectPageDTO, UpdatedSubjectPageDTO}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController

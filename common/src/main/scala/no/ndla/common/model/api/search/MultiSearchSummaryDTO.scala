@@ -8,7 +8,9 @@
 
 package no.ndla.common.model.api.search
 
+import cats.implicits.toFunctorOps
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.CommentDTO
@@ -23,6 +25,32 @@ case class HighlightedFieldDTO(
 object HighlightedFieldDTO {
   implicit val encoder: Encoder[HighlightedFieldDTO] = deriveEncoder
   implicit val decoder: Decoder[HighlightedFieldDTO] = deriveDecoder
+}
+
+sealed trait MultiSummaryBaseDTO
+
+object MultiSummaryBaseDTO {
+  implicit val encoder: Encoder[MultiSummaryBaseDTO] = Encoder.instance {
+    case x: MultiSearchSummaryDTO => x.asJson
+    case x: NodeHit               => x.asJson
+  }
+
+  implicit val decoder: Decoder[MultiSummaryBaseDTO] = List[Decoder[MultiSummaryBaseDTO]](
+    Decoder[MultiSearchSummaryDTO].widen,
+    Decoder[NodeHit].widen
+  ).reduceLeft(_ or _)
+}
+
+case class NodeHit(
+    @description("The unique id of the taxonomy node")
+    id: String,
+    @description("Subject page summary if the node is connected to a subject page")
+    subjectPage: Option[SubjectPageSummaryDTO]
+) extends MultiSummaryBaseDTO
+
+object NodeHit {
+  implicit val encoder: Encoder[NodeHit] = deriveEncoder
+  implicit val decoder: Decoder[NodeHit] = deriveDecoder
 }
 
 @description("Short summary of information about the resource")
@@ -81,7 +109,7 @@ case class MultiSearchSummaryDTO(
     favorited: Option[Long],
     @description("Type of the resource")
     resultType: SearchType
-)
+) extends MultiSummaryBaseDTO
 
 object MultiSearchSummaryDTO {
   implicit val encoder: Encoder[MultiSearchSummaryDTO] = deriveEncoder

@@ -10,6 +10,7 @@ package no.ndla.frontpageapi.service
 
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.FrontPageDTO
+import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.domain.Errors.SubjectPageNotFoundException
@@ -23,7 +24,7 @@ trait WriteService {
 
   class WriteService {
 
-    def newSubjectPage(subject: api.NewSubjectPageDTO): Try[api.SubjectPageDTO] = {
+    def newSubjectPage(subject: api.NewSubjectPageDTO): Try[SubjectPageDTO] = {
       for {
         convertedSubject <- ConverterService.toDomainSubjectPage(subject)
         subjectPage      <- subjectPageRepository.newSubjectPage(convertedSubject, subject.externalId.getOrElse(""))
@@ -35,7 +36,7 @@ trait WriteService {
         id: Long,
         subject: api.NewSubjectPageDTO,
         language: String
-    ): Try[api.SubjectPageDTO] = {
+    ): Try[SubjectPageDTO] = {
       subjectPageRepository.exists(id) match {
         case Success(exists) if exists =>
           for {
@@ -54,7 +55,7 @@ trait WriteService {
         subject: api.UpdatedSubjectPageDTO,
         language: String,
         fallback: Boolean
-    ): Try[api.SubjectPageDTO] = {
+    ): Try[SubjectPageDTO] = {
       subjectPageRepository.withId(id) match {
         case Failure(ex) => Failure(ex)
         case Success(Some(existingSubject)) =>

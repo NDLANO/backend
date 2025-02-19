@@ -8,12 +8,15 @@
 
 package no.ndla.searchapi.service.search
 
+import cats.implicits.toTraverseOps
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.search.SearchType
-import no.ndla.common.model.domain.{Availability, Content}
+import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License
@@ -28,15 +31,20 @@ import scala.util.{Failure, Success, Try}
 
 trait MultiSearchService {
   this: Elastic4sClient & SearchConverterService & SearchService & IndexService & ArticleIndexService &
-    LearningPathIndexService & Props & ErrorHandling =>
+    LearningPathIndexService & Props & ErrorHandling & NodeIndexService =>
 
   val multiSearchService: MultiSearchService
 
   class MultiSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
     import props.{ElasticSearchScrollKeepAlive, SearchIndex}
 
-    override val searchIndex: List[String] = List(SearchType.Articles, SearchType.LearningPaths).map(SearchIndex)
-    override val indexServices: List[IndexService[? <: Content]] = List(articleIndexService, learningPathIndexService)
+    override val searchIndex: List[String] =
+      List(SearchType.Articles, SearchType.LearningPaths, SearchType.Nodes).map(SearchIndex)
+    override val indexServices: List[BulkIndexingService] = List(
+      articleIndexService,
+      learningPathIndexService,
+      nodeIndexService
+    )
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
 
@@ -77,6 +85,34 @@ trait MultiSearchService {
       executeSearch(settings, fullQuery)
     }
 
+    private def getSearchIndexes(settings: SearchSettings): Try[List[String]] = {
+      settings.resultTypes match {
+        case Some(list) if list.nonEmpty =>
+          val idxs = list.map { st =>
+            val index        = SearchIndex(st)
+            val isValidIndex = searchIndex.contains(index)
+
+            if (isValidIndex) Right(index)
+            else {
+              val validSearchTypes = searchIndex.traverse(props.indexToSearchType).getOrElse(List.empty)
+              val validTypesString = s"[${validSearchTypes.mkString("'", "','", "'")}]"
+              Left(
+                ValidationMessage(
+                  "resultTypes",
+                  s"Invalid result type for endpoint: '$st', expected one of: $validTypesString"
+                )
+              )
+            }
+          }
+
+          val errors = idxs.collect { case Left(e) => e }
+          if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
+          else Success(idxs.collect { case Right(i) => i })
+
+        case _ => Success(List(SearchType.Articles, SearchType.LearningPaths).map(SearchIndex))
+      }
+    }
+
     def executeSearch(settings: SearchSettings, baseQuery: BoolQuery): Try[SearchResult] = {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
@@ -87,8 +123,8 @@ trait MultiSearchService {
 
       getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
         val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
-
-        val searchToExecute = search(searchIndex)
+        val index        = getSearchIndexes(settings).?
+        val searchToExecute = search(index)
           .query(filteredSearch)
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .from(pagination.startAt)

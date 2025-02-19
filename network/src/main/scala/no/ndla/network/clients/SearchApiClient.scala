@@ -87,7 +87,7 @@ trait SearchApiClient {
         "embed-resource" -> "content-link,related-content",
         "embed-id"       -> s"$articleId"
       ) match {
-        case Success(value) => value.results
+        case Success(value) => value.results.collect { case x: MultiSearchSummaryDTO => x }
         case Failure(_)     => Seq.empty
       }
     }

@@ -10,9 +10,11 @@ package no.ndla.frontpageapi
 
 import io.circe.generic.auto.*
 import io.circe.syntax.*
+import no.ndla.common.model
+import no.ndla.common.model.api.frontpage.{AboutSubjectDTO, BannerImageDTO, SubjectPageDTO, VisualElementDTO}
 import no.ndla.common.model.domain.frontpage
 import no.ndla.common.model.domain.frontpage.{AboutSubject, BannerImage, MetaDescription, MovieTheme, MovieThemeName, SubjectPage, VisualElement, VisualElementType}
-import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, SubjectPageDTO, UpdatedSubjectPageDTO}
+import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, UpdatedSubjectPageDTO}
 import no.ndla.frontpageapi.model.domain.FilmFrontPage
 import no.ndla.frontpageapi.model.{api, domain}
 
@@ -59,20 +61,20 @@ object TestData {
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
   )
 
-  val apiSubjectPage: SubjectPageDTO = api.SubjectPageDTO(
+  val apiSubjectPage: SubjectPageDTO = model.api.frontpage.SubjectPageDTO(
     1,
     "Samfunnsfag",
-    api.BannerImageDTO(
+    BannerImageDTO(
       Some("http://api-gateway.ndla-local/image-api/raw/id/29668"),
       Some(29668),
       "http://api-gateway.ndla-local/image-api/raw/id/29668",
       29668
     ),
     Some(
-      api.AboutSubjectDTO(
+      AboutSubjectDTO(
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
-        api.VisualElementDTO("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text"))
+        VisualElementDTO("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text"))
       )
     ),
     Some("meta"),
