@@ -28,7 +28,7 @@ import no.ndla.common.model.domain.{
 }
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.{ResourceType, TagAttribute}
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
 import scalikejdbc.DBSession
 
@@ -73,7 +73,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Seq(VisualElement(visualElementBefore, "nb"))
     )
 
-    when(articleRepository.withId(1)).thenReturn(Some(toArticleRow(article)))
+    when(articleRepository.withId(eqTo(1L))(any)).thenReturn(Some(toArticleRow(article)))
     when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult: Try[Cachable[api.ArticleV2DTO]] = Cachable.yes(
@@ -335,11 +335,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List.empty)
     when(frontpageApiClient.getFrontpage).thenReturn(Success(frontPage))
     when(articleRepository.withSlug("some-slug")).thenReturn(rowOne)
-    when(articleRepository.withId(1)).thenReturn(rowOne)
+    when(articleRepository.withId(eqTo(1L))(any)).thenReturn(rowOne)
     when(articleRepository.withSlug("slug-one")).thenReturn(rowTwo)
-    when(articleRepository.withId(2)).thenReturn(rowTwo)
+    when(articleRepository.withId(eqTo(2L))(any)).thenReturn(rowTwo)
     when(articleRepository.withSlug("slug-two")).thenReturn(rowThree)
-    when(articleRepository.withId(3)).thenReturn(rowThree)
+    when(articleRepository.withId(eqTo(3L))(any)).thenReturn(rowThree)
 
     val xml = readService.getArticleFrontpageRSS("some-slug").get.value
     xml should be(

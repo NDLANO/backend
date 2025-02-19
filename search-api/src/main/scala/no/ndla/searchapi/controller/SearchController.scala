@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, SearchTrait, SearchType}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
@@ -31,9 +32,8 @@ import no.ndla.searchapi.controller.parameters.{
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
-import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResultDTO, MultiSearchResultDTO, SubjectAggregationsDTO}
-import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
-import no.ndla.searchapi.model.search.{SearchTrait, SearchType}
+import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResultDTO, SubjectAggregationsDTO}
+import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
@@ -143,7 +143,8 @@ trait SearchController {
       searchDraftLearningResourcesGet,
       postSearchLearningResources,
       subjectAggs,
-      searchGrep
+      searchGrep,
+      getGrepReplacements
     )
 
     def subjectAggs: ServerEndpoint[Any, Eff] = endpoint.post
@@ -544,6 +545,20 @@ trait SearchController {
       .out(jsonBody[GrepSearchResultsDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .serverLogicPure { input => grepSearchService.searchGreps(input) }
+
+    def getGrepReplacements: ServerEndpoint[Any, Eff] = endpoint.get
+      .summary("Get grep replacements")
+      .in("grep" / "replacements")
+      .in(
+        listQuery[String]("codes").description(
+          "Grep codes to find replacements for. To provide codes ids, separate by comma (,)."
+        )
+      )
+      .errorOut(errorOutputsFor(400))
+      .out(jsonBody[Map[String, String]])
+      .serverLogicPure { input =>
+        grepSearchService.getReplacements(input.values)
+      }
 
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the
       * feide api and should be used sparingly.

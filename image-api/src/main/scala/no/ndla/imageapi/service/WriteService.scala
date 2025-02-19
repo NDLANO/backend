@@ -8,23 +8,23 @@
 
 package no.ndla.imageapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.errors.ValidationException
-import no.ndla.common.implicits._
+import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
-import no.ndla.common.model.{NDLADate, domain => common}
+import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model._
+import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2DTO,
   ImageMetaInformationV3DTO,
   NewImageMetaInformationV2DTO,
   UpdateImageMetaInformationDTO
 }
-import no.ndla.imageapi.model.domain._
+import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}

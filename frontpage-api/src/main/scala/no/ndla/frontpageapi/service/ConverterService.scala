@@ -8,12 +8,13 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, MissingIdException}
+import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
 import no.ndla.frontpageapi.model.domain.*
 import no.ndla.frontpageapi.model.{api, domain}
 
 import scala.util.{Failure, Success, Try}
 import cats.implicits.*
+import no.ndla.common.errors.MissingIdException
 import no.ndla.common.model
 import no.ndla.frontpageapi.Props
 import no.ndla.language.Language.{findByLanguageOrBestEffort, mergeLanguageFields}
@@ -84,7 +85,10 @@ trait ConverterService {
     ): Try[api.SubjectPageDataDTO] = {
       if (sub.supportedLanguages.contains(language) || fallback) {
         sub.id match {
-          case None => Failure(MissingIdException())
+          case None =>
+            Failure(
+              MissingIdException(s"Could not convert to api.SubjectPageData since domain object did not have an id")
+            )
           case Some(subjectPageId) =>
             Success(
               api.SubjectPageDataDTO(

@@ -9,6 +9,7 @@
 package no.ndla.articleapi.model.api
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.article.ArticleMetaDescriptionDTO
 import sttp.tapir.Schema.annotations.description
 
 @description("Short summary of information about the article")

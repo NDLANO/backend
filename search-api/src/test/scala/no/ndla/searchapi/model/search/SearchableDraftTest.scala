@@ -10,12 +10,12 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, Status as CommonStatus}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import java.util.UUID

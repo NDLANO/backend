@@ -99,7 +99,7 @@ class ArenaTest
     reset(myndlaApi.componentRegistry.userService)
     reset(myndlaApi.componentRegistry.userRepository)
 
-    myndlaApi.componentRegistry.arenaRepository.withSession(implicit session => {
+    myndlaApi.componentRegistry.DBUtil.withSession(implicit session => {
       myndlaApi.componentRegistry.arenaRepository.deleteAllFollows.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllPosts.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllTopics.get

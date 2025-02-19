@@ -10,7 +10,7 @@ package no.ndla.myndlaapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
   ArenaController,
   ConfigController,
@@ -58,6 +58,7 @@ trait TestEnvironment
     with UserService
     with ConfigService
     with UserRepository
+    with DBUtility
     with ConfigRepository
     with FeideApiClient
     with ConfigController
@@ -97,6 +98,7 @@ trait TestEnvironment
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
   val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  val DBUtil: DBUtility                              = mock[DBUtility]
 
   def services: List[TapirController] = List.empty
 

@@ -55,7 +55,7 @@ trait ReadService {
     ): Try[Cachable[api.ArticleV2DTO]] = {
       val article = revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
-        case None      => articleRepository.withId(id)
+        case None      => articleRepository.withId(id)()
       }
 
       article.mapArticle(addUrlsOnEmbedResources) match {

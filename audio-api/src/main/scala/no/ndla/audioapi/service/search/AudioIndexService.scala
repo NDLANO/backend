@@ -15,11 +15,11 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.MissingIdException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.common.CirceUtil
+import no.ndla.common.errors.MissingIdException
 import no.ndla.search.Elastic4sClient
 
 import scala.util.{Failure, Try}

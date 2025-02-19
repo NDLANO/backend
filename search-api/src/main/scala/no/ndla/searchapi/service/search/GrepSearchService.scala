@@ -14,9 +14,11 @@ import com.sksamuel.elastic4s.RequestSuccess
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.sort.FieldSort
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder.{Asc, Desc}
-import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
+import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchRequest, SearchResponse}
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
@@ -24,15 +26,22 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.*
 import no.ndla.searchapi.model.api.grep.{GrepResultDTO, GrepSearchResultsDTO, GrepSortDTO}
-import no.ndla.searchapi.model.search.{SearchType, SearchableGrepElement}
+import no.ndla.searchapi.model.grep.{
+  GrepKjerneelement,
+  GrepKompetansemaal,
+  GrepKompetansemaalSett,
+  GrepLaererplan,
+  GrepTverrfagligTema
+}
+import no.ndla.searchapi.model.search.SearchableGrepElement
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait GrepSearchService {
   this: Props & SearchService & GrepIndexService & BaseIndexService & Elastic4sClient & SearchConverterService =>
   val grepSearchService: GrepSearchService
 
-  class GrepSearchService extends SearchService {
+  class GrepSearchService extends SearchService with StrictLogging {
     import props.SearchIndex
     override val searchIndex: List[String]             = List(SearchType.Grep).map(SearchIndex)
     override val indexServices: List[BaseIndexService] = List(grepIndexService)
@@ -116,6 +125,37 @@ trait GrepSearchService {
       case _ => None
     }
 
+    private def getSingleCodeById(code: String): Try[Option[SearchableGrepElement]] = {
+      val searchToExecute = search(searchIndex)
+        .query(termQuery("code", code))
+        .trackTotalHits(true)
+
+      e4sClient.execute(searchToExecute).flatMap { response =>
+        withGrepHits(response, hit => hitToSearchable(hit)).flatMap {
+          case head :: Nil => Success(Some(head))
+          case Nil         => Success(None)
+          case _           => Failure(new RuntimeException(s"Multiple hits for code $code"))
+        }
+      }
+    }
+
+    private def executeAsSearchableGreps(searchToExecute: SearchRequest) = {
+      e4sClient.execute(searchToExecute).flatMap { response =>
+        withGrepHits(response, hit => hitToSearchable(hit))
+      }
+    }
+
+    def getCodesById(codes: List[String]): Try[List[SearchableGrepElement]] = {
+      val filter = termsQuery("code", codes)
+      val searchToExecute = search(searchIndex)
+        .query(boolQuery().filter(filter))
+        .from(0)
+        .size(codes.size)
+        .trackTotalHits(true)
+
+      executeAsSearchableGreps(searchToExecute)
+    }
+
     def searchGreps(input: GrepSearchInputDTO): Try[GrepSearchResultsDTO] = {
       val searchLanguage = input.language match {
         case Some(lang) if Iso639.get(lang).isSuccess => lang
@@ -135,7 +175,7 @@ trait GrepSearchService {
         .sortBy(sort)
 
       e4sClient.execute(searchToExecute).flatMap { response =>
-        getGrepHits(response, searchLanguage).map { results =>
+        withGrepHits(response, hit => hitToResult(hit, searchLanguage)).map { results =>
           GrepSearchResultsDTO(
             totalCount = response.result.totalHits,
             page = pagination.page,
@@ -147,14 +187,118 @@ trait GrepSearchService {
       }
     }
 
-    private def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
+    def getReuseOf(code: String): Try[List[SearchableGrepElement]] = {
+      val filter = termQuery("gjenbrukAv", code)
+      val searchToExecute = search(searchIndex)
+        .query(boolQuery().filter(filter))
+        .from(0)
+        .size(1000)
+        .trackTotalHits(true)
+      executeAsSearchableGreps(searchToExecute)
+    }
+
+    def hitToSearchable(hit: SearchHit): Try[SearchableGrepElement] = {
       val jsonString = hit.sourceAsString
-      val searchable = CirceUtil.tryParseAs[SearchableGrepElement](jsonString).?
+      CirceUtil.tryParseAs[SearchableGrepElement](jsonString)
+    }
+
+    private def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
+      val searchable = hitToSearchable(hit).?
       GrepResultDTO.fromSearchable(searchable, language)
     }
 
-    private def getGrepHits(response: RequestSuccess[SearchResponse], language: String): Try[List[GrepResultDTO]] = {
-      response.result.hits.hits.toList.traverse { hit => hitToResult(hit, language) }
+    private def withGrepHits[T](response: RequestSuccess[SearchResponse], f: SearchHit => Try[T]): Try[List[T]] = {
+      response.result.hits.hits.toList.traverse { hit => f(hit) }
+    }
+
+    private def getCoreElementReplacement(core: GrepKjerneelement): Try[String] = {
+      val lpCode = core.`tilhoerer-laereplan`.kode
+      val foundLp = getSingleCodeById(lpCode) match {
+        case Success(Some(lp)) => lp
+        case Failure(ex)       => return Failure(ex)
+        case Success(None) =>
+          logger.warn(s"Could not find læreplan for core element: ${core.kode} (LP: $lpCode)")
+          return Success(core.kode)
+      }
+
+      val domainObject = foundLp.domainObject match {
+        case lp: GrepLaererplan => lp
+        case _ =>
+          val msg =
+            s"Got unexpected domain object when looking up læreplan (${foundLp.code}) for replacement for core element (${core.kode})"
+          logger.error(msg)
+          return Failure(new RuntimeException(msg))
+      }
+      getLaererplanReplacement(domainObject) match {
+        case None => Success(core.kode)
+        case Some(replacementPlan) =>
+          val elementsInPlan = elementsWithLpCode(replacementPlan).?
+          val foundReplacement = elementsInPlan.find { x =>
+            core.tittel.tekst == x.domainObject.getTitle
+          }
+          Success(foundReplacement.map(_.code).getOrElse(core.kode))
+      }
+    }
+
+    private def elementsWithLpCode(code: String): Try[List[SearchableGrepElement]] = {
+      val filter = termQuery("laereplanCode", code)
+      val searchToExecute = search(searchIndex)
+        .query(boolQuery().filter(filter))
+        .from(0)
+        .size(1000)
+        .trackTotalHits(true)
+      executeAsSearchableGreps(searchToExecute)
+    }
+
+    def getKompetansemaalReplacement(goal: GrepKompetansemaal): Try[String] = {
+      val reuseOf = getReuseOf(goal.kode).?
+      reuseOf match {
+        case head :: Nil =>
+          logger.info(s"Replacing ${goal.kode} with ${head.code}")
+          Success(head.code)
+        case Nil =>
+          Success(goal.kode)
+        case _ =>
+          logger.warn(s"Multiple replacements for goal ${goal.kode}")
+          Success(goal.kode)
+      }
+    }
+
+    private def getLaererplanReplacement(plan: GrepLaererplan): Option[String] = {
+      if (plan.`erstattes-av`.size == 1) {
+        Some(plan.`erstattes-av`.head.kode)
+      } else if (plan.`erstattes-av`.nonEmpty) {
+        None
+      } else {
+        logger.warn(s"Multiple replacements for plan ${plan.kode}")
+        None
+      }
+    }
+
+    private def findReplacementCode(code: SearchableGrepElement): Try[(String, String)] = {
+      val result = code.domainObject match {
+        case x: GrepKompetansemaalSett => Success(x.kode)
+        case x: GrepTverrfagligTema    => Success(x.kode)
+        case x: GrepKjerneelement      => getCoreElementReplacement(x)
+        case x: GrepKompetansemaal     => getKompetansemaalReplacement(x)
+        case x: GrepLaererplan         => Success(getLaererplanReplacement(x).getOrElse(x.kode))
+      }
+
+      result.map(r => code.code -> r)
+    }
+
+    def getReplacements(codes: List[String]): Try[Map[String, String]] = {
+      val foundOldCodes = getCodesById(codes).?
+      val foundAllCodes = foundOldCodes.map(_.code).toSet
+      val missingCodes  = codes.toSet.diff(foundAllCodes)
+      if (missingCodes.nonEmpty) {
+        val msg = s"Not all codes to replace found in search index, missing: [${missingCodes.mkString(",")}]"
+        logger.error(msg)
+      }
+
+      val convertedCodes   = foundOldCodes.traverse { oc => findReplacementCode(oc) }.?
+      val missingCodesList = missingCodes.map(x => x -> x)
+      Success((convertedCodes ++ missingCodesList).toMap)
     }
   }
 }

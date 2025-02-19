@@ -12,6 +12,7 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.{Availability, Content}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
@@ -20,7 +21,6 @@ import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.SearchResult
-import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.SearchSettings
 
 import scala.util.{Failure, Success, Try}

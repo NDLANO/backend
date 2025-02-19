@@ -11,15 +11,16 @@ package no.ndla.draftapi.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.{domain => common}
-import no.ndla.draftapi.integration._
+import no.ndla.common.model.domain as common
+import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.{ErrorHandling, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
+import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import scalikejdbc.ReadOnlyAutoSession
 

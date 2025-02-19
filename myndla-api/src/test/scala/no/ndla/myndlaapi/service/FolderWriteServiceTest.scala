@@ -21,7 +21,7 @@ import no.ndla.myndlaapi.model.api.{FolderDTO, FolderSortRequestDTO, NewFolderDT
 import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, FolderResource, Resource, SavedSharedFolder}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doReturn, spy, times, verify, when}
+import org.mockito.Mockito.{doAnswer, doReturn, spy, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -39,10 +39,10 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     super.beforeEach()
     resetMocks()
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
   }
 
   test("that a user without access cannot delete a folder") {
@@ -1043,11 +1043,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
     when(folderRepository.updateFolderStatusInBulk(any, any)(any)).thenReturn(Success(List(folderId)))
     when(folderRepository.deleteFolderUserConnections(any)(any)).thenReturn(Success(List(folderId, folderIdChild)))
-    when(folderRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[Nothing]](0)
-      func(mock[DBSession])
-    })
-
     val result = service.changeStatusOfFolderAndItsSubfolders(folderId, FolderStatus.PRIVATE, Some(feideId))
 
     result.isSuccess should be(true)

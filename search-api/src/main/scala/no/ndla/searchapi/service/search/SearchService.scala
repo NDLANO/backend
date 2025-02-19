@@ -18,22 +18,23 @@ import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import SortOrder.{Asc, Desc}
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.api.search.{
+  MultiSearchSuggestionDTO,
+  MultiSearchSummaryDTO,
+  SearchSuggestionDTO,
+  SearchType,
+  SuggestOptionDTO
+}
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.getAggregationsFromResult
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaSearchException, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.{
-  ErrorHandling,
-  MultiSearchSuggestionDTO,
-  MultiSearchSummaryDTO,
-  SearchSuggestionDTO,
-  SuggestOptionDTO
-}
+import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.Sort.*
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.search.{SearchPagination, SearchType}
+import no.ndla.searchapi.model.search.SearchPagination
 
 import java.lang.Math.max
 import scala.util.{Failure, Success, Try}

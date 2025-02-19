@@ -1,5 +1,5 @@
 /*
- * Part of NDLA network
+ * Part of NDLA common
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE

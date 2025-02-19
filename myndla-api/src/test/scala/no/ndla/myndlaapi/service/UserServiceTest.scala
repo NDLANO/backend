@@ -149,10 +149,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(false))
 
     val feideId = "feide"
@@ -235,10 +235,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"
@@ -297,10 +297,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists but needs update") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"

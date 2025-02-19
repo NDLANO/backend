@@ -11,10 +11,27 @@ package no.ndla.searchapi.service.search
 import cats.implicits.*
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.draft.CommentDTO
+import no.ndla.common.model.api.search.{
+  ApiTaxonomyContextDTO,
+  DraftResponsibleDTO,
+  HighlightedFieldDTO,
+  LearningResourceType,
+  MetaDescriptionDTO,
+  MetaImageDTO,
+  MultiSearchResultDTO,
+  MultiSearchSummaryDTO,
+  RevisionMetaDTO,
+  SearchTrait,
+  SearchType,
+  StatusDTO,
+  TaxonomyResourceTypeDTO,
+  TitleWithHtmlDTO
+}
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
@@ -42,7 +59,7 @@ import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
-import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType}
+import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.taxonomy.*
@@ -267,13 +284,26 @@ trait SearchConverterService {
       val defaultTitle = grepElement.getTitle.find(_.spraak == "default")
       val titles       = GrepTitle.convertTitles(grepElement.getTitle)
       val title        = SearchableLanguageValues.fromFields(titles)
+
+      val erstattesAv = grepElement match {
+        case g: GrepLaererplan => g.`erstattes-av`.map(_.kode)
+        case _                 => List.empty
+      }
+
+      val gjenbrukAv = grepElement match {
+        case g: GrepKompetansemaal => g.`gjenbruk-av`.map(_.kode)
+        case _                     => None
+      }
+
       Success(
         SearchableGrepElement(
           code = grepElement.kode,
           title = title,
           defaultTitle = defaultTitle.map(_.verdi),
           laereplanCode = laererplan,
-          domainObject = grepElement
+          domainObject = grepElement,
+          erstattesAv = erstattesAv,
+          gjenbrukAv = gjenbrukAv
         )
       )
     }
@@ -627,7 +657,7 @@ trait SearchConverterService {
       val context  = searchableArticle.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableArticle.contexts, language, filterInactive)
       val titles = searchableArticle.domainObject.title.map(title =>
-        api.TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+        TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
       )
       val introductions = searchableArticle.domainObject.introduction.map(intro =>
         api.article
@@ -638,18 +668,20 @@ trait SearchConverterService {
           )
       )
       val metaDescriptions =
-        searchableArticle.metaDescription.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
+        searchableArticle.metaDescription.languageValues.map(lv => MetaDescriptionDTO(lv.value, lv.language))
       val visualElements =
         searchableArticle.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableArticle.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        api.MetaImageDTO(metaImageUrl, image.altText, image.language)
+        MetaImageDTO(metaImageUrl, image.altText, image.language)
       })
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(
+          common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
+        )
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
-        api.MetaDescriptionDTO("", UnknownLanguage.toString)
+        common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
       val metaImage = findByLanguageOrBestEffort(metaImages, language)
 
@@ -694,7 +726,8 @@ trait SearchConverterService {
       val context  = searchableDraft.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableDraft.contexts, language, filterInactive)
       val titles = searchableDraft.domainObject.title.map(title =>
-        api.TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
+        common.model.api.search
+          .TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
       )
       val introductions = searchableDraft.domainObject.introduction.map(intro =>
         api.article
@@ -705,25 +738,29 @@ trait SearchConverterService {
           )
       )
       val metaDescriptions =
-        searchableDraft.metaDescription.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
+        searchableDraft.metaDescription.languageValues.map(lv =>
+          common.model.api.search.MetaDescriptionDTO(lv.value, lv.language)
+        )
       val visualElements =
         searchableDraft.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableDraft.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        api.MetaImageDTO(metaImageUrl, image.altText, image.language)
+        common.model.api.search.MetaImageDTO(metaImageUrl, image.altText, image.language)
       })
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(
+          common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
+        )
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
-        api.MetaDescriptionDTO("", UnknownLanguage.toString)
+        common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
       val metaImage          = findByLanguageOrBestEffort(metaImages, language)
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaDescriptions)
       val url                = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
       val revisions =
-        searchableDraft.revisionMeta.map(m => api.RevisionMetaDTO(m.revisionDate, m.note, m.status.entryName))
-      val responsible = searchableDraft.responsible.map(r => api.DraftResponsibleDTO(r.responsibleId, r.lastUpdated))
+        searchableDraft.revisionMeta.map(m => RevisionMetaDTO(m.revisionDate, m.note, m.status.entryName))
+      val responsible = searchableDraft.responsible.map(r => DraftResponsibleDTO(r.responsibleId, r.lastUpdated))
       val comments =
         searchableDraft.domainObject.comments.map(c =>
           CommentDTO(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
@@ -743,7 +780,9 @@ trait SearchConverterService {
         contexts = contexts,
         supportedLanguages = supportedLanguages,
         learningResourceType = searchableDraft.learningResourceType,
-        status = Some(api.StatusDTO(searchableDraft.draftStatus.current, searchableDraft.draftStatus.other)),
+        status = Some(
+          common.model.api.search.StatusDTO(searchableDraft.draftStatus.current, searchableDraft.draftStatus.other)
+        ),
         traits = searchableDraft.traits,
         score = hit.score,
         highlights = getHighlights(hit.highlight),
@@ -774,9 +813,13 @@ trait SearchConverterService {
       val context  = searchableLearningPath.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableLearningPath.contexts, language, filterInactive)
       val titles =
-        searchableLearningPath.title.languageValues.map(lv => api.TitleWithHtmlDTO(lv.value, lv.value, lv.language))
+        searchableLearningPath.title.languageValues.map(lv =>
+          common.model.api.search.TitleWithHtmlDTO(lv.value, lv.value, lv.language)
+        )
       val metaDescriptions =
-        searchableLearningPath.description.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
+        searchableLearningPath.description.languageValues.map(lv =>
+          common.model.api.search.MetaDescriptionDTO(lv.value, lv.language)
+        )
       val tags =
         searchableLearningPath.tags.languageValues.map(lv =>
           api.learningpath.LearningPathTagsDTO(lv.value, lv.language)
@@ -785,14 +828,16 @@ trait SearchConverterService {
       val supportedLanguages = getSupportedLanguages(titles, metaDescriptions, tags)
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(
+          common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
+        )
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
-        api.MetaDescriptionDTO("", UnknownLanguage.toString)
+        common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
       val url = s"${props.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
       val metaImage =
         searchableLearningPath.coverPhotoId.map(id =>
-          api.MetaImageDTO(
+          common.model.api.search.MetaImageDTO(
             url = s"${props.ExternalApiUrls("raw-image")}/$id",
             alt = "",
             language = language
@@ -809,7 +854,7 @@ trait SearchConverterService {
         contexts = contexts,
         supportedLanguages = supportedLanguages,
         learningResourceType = LearningResourceType.LearningPath,
-        status = Some(api.StatusDTO(searchableLearningPath.status, Seq.empty)),
+        status = Some(common.model.api.search.StatusDTO(searchableLearningPath.status, Seq.empty)),
         traits = List.empty,
         score = hit.score,
         highlights = getHighlights(hit.highlight),
@@ -834,25 +879,33 @@ trait SearchConverterService {
       val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hit.sourceAsString)
 
       val titles =
-        searchableConcept.title.languageValues.map(lv => api.TitleWithHtmlDTO(lv.value, lv.value, lv.language))
+        searchableConcept.title.languageValues.map(lv =>
+          common.model.api.search.TitleWithHtmlDTO(lv.value, lv.value, lv.language)
+        )
 
-      val content = searchableConcept.content.languageValues.map(lv => api.MetaDescriptionDTO(lv.value, lv.language))
-      val tags    = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
+      val content = searchableConcept.content.languageValues.map(lv =>
+        common.model.api.search.MetaDescriptionDTO(lv.value, lv.language)
+      )
+      val tags = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, content, tags)
 
       val title =
-        findByLanguageOrBestEffort(titles, language).getOrElse(api.TitleWithHtmlDTO("", "", UnknownLanguage.toString))
+        findByLanguageOrBestEffort(titles, language).getOrElse(
+          common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
+        )
       val url = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
       val metaImages = searchableConcept.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        api.MetaImageDTO(metaImageUrl, image.altText, image.language)
+        common.model.api.search.MetaImageDTO(metaImageUrl, image.altText, image.language)
       })
       val metaImage = findByLanguageOrBestEffort(metaImages, language)
 
-      val responsible = searchableConcept.responsible.map(r => api.DraftResponsibleDTO(r.responsibleId, r.lastUpdated))
+      val responsible = searchableConcept.responsible.map(r =>
+        common.model.api.search.DraftResponsibleDTO(r.responsibleId, r.lastUpdated)
+      )
       val metaDescription = findByLanguageOrBestEffort(content, language).getOrElse(
-        api.MetaDescriptionDTO("", UnknownLanguage.toString)
+        common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
 
       MultiSearchSummaryDTO(
@@ -999,7 +1052,7 @@ trait SearchConverterService {
     }
 
     def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO =
-      api.MultiSearchResultDTO(
+      common.model.api.search.MultiSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,

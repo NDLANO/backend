@@ -31,6 +31,7 @@ class DraftApiClientTest
     with searchapi.TestEnvironment {
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
+  override val DBUtil                 = new DBUtility
 
   val draftApiPort: Int           = findFreePort
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
@@ -69,7 +70,7 @@ class DraftApiClientTest
   }
 
   private def setupArticles() = {
-    draftApi.componentRegistry.draftRepository.withSession { implicit session =>
+    DBUtil.withSession { implicit session =>
       (1L to 10)
         .map(id => {
           draftApi.componentRegistry.draftRepository.insert(

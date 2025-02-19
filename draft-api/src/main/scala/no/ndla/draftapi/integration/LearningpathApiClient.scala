@@ -10,6 +10,7 @@ package no.ndla.draftapi.integration
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.domain.Title
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient

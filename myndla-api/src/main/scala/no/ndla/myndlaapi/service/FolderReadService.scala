@@ -16,6 +16,7 @@ import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.{ResourceType, myndla}
 import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, UserFolderDTO}
 import no.ndla.myndlaapi.model.{api, domain}
@@ -30,7 +31,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderReadService {
   this: FolderConverterService & FolderRepository & UserRepository & FeideApiClient & Clock & ConfigService &
-    UserService =>
+    UserService & DBUtility =>
 
   val folderReadService: FolderReadService
 
@@ -91,7 +92,7 @@ trait FolderReadService {
         includeResources: Boolean,
         feideId: FeideID
     ): Try[UserFolderDTO] = {
-      folderRepository.rollbackOnFailure(session => {
+      DBUtil.rollbackOnFailure(session => {
         for {
           myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)
           savedSharedFolders <- folderRepository.getSavedSharedFolders(feideId)
@@ -271,7 +272,7 @@ trait FolderReadService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[MyNDLAUserDTO] =
       for {
-        user <- userRepository.rollbackOnFailure(session =>
+        user <- DBUtil.rollbackOnFailure(session =>
           userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         )
       } yield folderConverterService.toApiUserData(user)

@@ -60,7 +60,6 @@ trait ErrorHandling extends TapirErrorHandling {
 
 }
 
-case class MissingIdException(message: String)            extends RuntimeException(message)
 case class CouldNotFindLanguageException(message: String) extends RuntimeException(message)
 class AudioStorageException(message: String)              extends RuntimeException(message)
 class LanguageMappingException(message: String)           extends RuntimeException(message)

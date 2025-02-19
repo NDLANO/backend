@@ -14,11 +14,11 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.article.Article
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.ArticleApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.search.SearchType
 
 import scala.util.Try
 

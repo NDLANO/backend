@@ -15,6 +15,7 @@ import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   FolderSorting,
@@ -51,7 +52,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderWriteService {
   this: FolderReadService & Clock & FeideApiClient & FolderRepository & FolderConverterService & UserRepository &
-    ConfigService & UserService & SearchApiClient =>
+    ConfigService & UserService & SearchApiClient & DBUtility =>
 
   val folderWriteService: FolderWriteService
   class FolderWriteService {
@@ -59,7 +60,7 @@ trait FolderWriteService {
     val MaxFolderDepth = 5L
 
     private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
-      userRepository.rollbackOnFailure(session =>
+      DBUtil.rollbackOnFailure(session =>
         userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
       )
     }
@@ -102,7 +103,7 @@ trait FolderWriteService {
         newStatus: FolderStatus.Value,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[List[UUID]] =
-      folderRepository.rollbackOnFailure({ implicit session =>
+      DBUtil.rollbackOnFailure({ implicit session =>
         for {
           feideId    <- feideApiClient.getFeideID(feideAccessToken)
           _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
@@ -198,7 +199,7 @@ trait FolderWriteService {
         destinationId: Option[UUID],
         feideAccessToken: Option[FeideAccessToken]
     ): Try[FolderDTO] = {
-      folderRepository.rollbackOnFailure { implicit session =>
+      DBUtil.rollbackOnFailure { implicit session =>
         for {
           feideId <- feideApiClient.getFeideID(feideAccessToken)
           _       <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
@@ -236,7 +237,7 @@ trait FolderWriteService {
         feideId: FeideID,
         maybeFeideToken: Option[FeideAccessToken]
     ): Try[ExportedUserDataDTO] = {
-      folderRepository.rollbackOnFailure { session =>
+      DBUtil.rollbackOnFailure { session =>
         for {
           _ <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
           _ <- userService.importUser(toImport.userData, feideId, maybeFeideToken)(session)

@@ -18,6 +18,8 @@ case class SearchableGrepElement(
     title: SearchableLanguageValues,
     defaultTitle: Option[String],
     laereplanCode: Option[String],
+    gjenbrukAv: Option[String],
+    erstattesAv: List[String],
     domainObject: GrepElement
 )
 

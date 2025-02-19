@@ -24,6 +24,7 @@ trait ArticleRepository {
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging {
+
     def updateArticleFromDraftApi(article: Article, externalIds: List[String])(implicit
         session: DBSession = AutoSession
     ): Try[Article] = {
@@ -122,14 +123,14 @@ trait ArticleRepository {
       sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1"
     )
 
-    def withId(articleId: Long): Option[ArticleRow] =
+    def withId(articleId: Long)(session: DBSession = ReadOnlyAutoSession): Option[ArticleRow] =
       articleWhere(
         sqls"""
               ar.article_id=${articleId.toInt}
               ORDER BY revision DESC
               LIMIT 1
               """
-      )
+      )(session)
 
     def withIdAndRevision(articleId: Long, revision: Int): Option[ArticleRow] = {
       articleWhere(

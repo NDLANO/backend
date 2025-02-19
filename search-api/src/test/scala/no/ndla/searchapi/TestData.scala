@@ -10,6 +10,7 @@ package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
+import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
