@@ -24,6 +24,7 @@ import no.ndla.common.model.domain.concept.{
   Status,
   VisualElement
 }
+import no.ndla.mapping.License
 
 object TestData {
 
@@ -101,7 +102,16 @@ object TestData {
     title = Seq(common.Title("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright = Some(
-      common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+      common.draft.DraftCopyright(
+        Some(License.PublicDomain.toString),
+        Some(""),
+        Seq.empty,
+        Seq.empty,
+        Seq.empty,
+        None,
+        None,
+        false
+      )
     ),
     created = NDLADate.now().minusDays(4),
     updated = NDLADate.now().minusDays(2),

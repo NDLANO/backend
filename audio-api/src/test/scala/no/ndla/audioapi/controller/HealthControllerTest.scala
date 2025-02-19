@@ -14,6 +14,7 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.mapping.License
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
@@ -31,7 +32,16 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
   val copyrighted: Copyright =
-    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.Copyrighted.toString,
+      Some("New York"),
+      Seq(Author("Forfatter", "Clark Kent")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val audioMeta: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),

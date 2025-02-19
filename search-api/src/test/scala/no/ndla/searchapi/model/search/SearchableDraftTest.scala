@@ -13,6 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, Status as CommonStatus}
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
@@ -91,7 +92,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       metaDescription = metaDescriptions,
       tags = tags,
       lastUpdated = TestData.today,
-      license = Some("by-sa"),
+      license = Some(License.CC_BY_SA.toString),
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
       defaultTitle = Some("Christian Tut"),

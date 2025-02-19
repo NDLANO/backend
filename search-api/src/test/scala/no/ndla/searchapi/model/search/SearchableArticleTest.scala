@@ -11,6 +11,7 @@ package no.ndla.searchapi.model.search
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.ArticleMetaImage
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -71,7 +72,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       metaDescription = metaDescriptions,
       tags = tags,
       lastUpdated = TestData.today,
-      license = "by-sa",
+      license = License.CC_BY_SA.toString,
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
       metaImage = metaImages,
@@ -150,7 +151,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       metaDescription = metaDescriptions,
       tags = tags,
       lastUpdated = TestData.today,
-      license = "by-sa",
+      license = License.CC_BY_SA.toString,
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
       metaImage = metaImages,

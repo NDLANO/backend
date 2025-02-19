@@ -21,6 +21,7 @@ import no.ndla.imageapi.model.api.{
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
@@ -59,9 +60,9 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       |  "alttext":"test2",
       |  "copyright": {
       |    "license": {
-      |      "license": "by-sa",
-      |      "description": "Creative Commons Attribution-ShareAlike 2.0 Generic",
-      |      "url": "https:\/\/creativecommons.org\/licenses\/by-sa\/2.0\/"
+      |      "license": "CC-BY-SA-4.0",
+      |      "description": "Creative Commons Attribution-ShareAlike 4.0 Generic",
+      |      "url": "https:\/\/creativecommons.org\/licenses\/by-sa\/4.0\/"
       |    },
       |    "origin": "",
       |    "processed": false,
@@ -124,7 +125,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       api.ImageCaptionDTO("Caption", "nb"),
       "http://image-api.ndla-local/image-api/raw/4",
       "http://image-api.ndla-local/image-api/v2/images/4",
-      "by-sa",
+      License.CC_BY_SA.toString,
       Seq("nb"),
       Some("yes"),
       None,
@@ -134,7 +135,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       None
     )
     val expectedBody =
-      s"""{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"caption":{"caption":"Caption","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"by-sa","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"${date.asString}","fileSize":123,"contentType":"image/jpg"}]}"""
+      s"""{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"caption":{"caption":"Caption","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"CC-BY-SA-4.0","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"${date.asString}","fileSize":123,"contentType":"image/jpg"}]}"""
     val domainSearchResult = domain.SearchResult(1, Some(1), 10, "nb", List(imageSummary), None)
     val apiSearchResult    = api.SearchResultDTO(1, Some(1), 10, "nb", List(imageSummary))
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))

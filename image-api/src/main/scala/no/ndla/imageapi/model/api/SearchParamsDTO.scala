@@ -10,7 +10,7 @@ package no.ndla.imageapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.imageapi.model.domain.Sort
-import sttp.tapir.Schema.annotations.description
+import sttp.tapir.Schema.annotations.{description, deprecated}
 
 @description("The search parameters")
 case class SearchParamsDTO(
@@ -24,7 +24,7 @@ case class SearchParamsDTO(
     fallback: Option[Boolean],
     @description("Return only images with full size larger than submitted value in bytes.")
     minimumSize: Option[Int],
-    @description("Return copyrighted images. May be omitted.")
+    @deprecated @description("Return copyrighted images. May be omitted.")
     includeCopyrighted: Option[Boolean],
     @description(
       """The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty."""

@@ -190,7 +190,7 @@ trait TestData {
       None,
       Seq(Title("test", "en")),
       Seq(ArticleContent("<article><div>test</div></article>", "en")),
-      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
+      Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -228,7 +228,7 @@ trait TestData {
           "en"
         )
       ),
-      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
+      Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -263,7 +263,16 @@ trait TestData {
         "en"
       ),
       model.api
-        .CopyrightDTO(model.api.LicenseDTO("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+        .CopyrightDTO(
+          model.api.LicenseDTO(License.PublicDomain.toString, None, None),
+          None,
+          Seq(),
+          Seq(),
+          Seq(),
+          None,
+          None,
+          false
+        ),
       article.ArticleTagDTO(Seq.empty, "en"),
       Seq.empty,
       None,

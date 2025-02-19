@@ -13,6 +13,7 @@ import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, RevisionMeta}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY_SA
 
 import java.util.UUID
@@ -229,7 +230,18 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
     val article = articleToValidate.copy(
-      copyright = Some(DraftCopyright(Some("by-sa"), Some("<h1>origin</h1>"), Seq(), List(), List(), None, None, false))
+      copyright = Some(
+        DraftCopyright(
+          Some(License.CC_BY_SA.toString),
+          Some("<h1>origin</h1>"),
+          Seq(),
+          List(),
+          List(),
+          None,
+          None,
+          false
+        )
+      )
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -273,7 +285,16 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle throws an exception on an article with html in authors field") {
     val article = articleToValidate.copy(
       copyright = Some(
-        DraftCopyright(Some("by-sa"), None, Seq(Author("author", "<h1>john</h1>")), List(), List(), None, None, false)
+        DraftCopyright(
+          Some(License.CC_BY_SA.toString),
+          None,
+          Seq(Author("author", "<h1>john</h1>")),
+          List(),
+          List(),
+          None,
+          None,
+          false
+        )
       )
     )
     contentValidator.validateArticle(article).isFailure should be(true)

@@ -20,6 +20,7 @@ import no.ndla.learningpathapi.model.api.{
   NewLearningStepV2DTO
 }
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.NdlaHttpRequest
@@ -35,7 +36,11 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
   val clinton: commonApi.AuthorDTO = commonApi.AuthorDTO("author", "Crooked Hillary")
   val license: commonApi.LicenseDTO =
-    commonApi.LicenseDTO("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+    commonApi.LicenseDTO(
+      License.PublicDomain.toString,
+      Some("Public Domain"),
+      Some("https://creativecommons.org/about/pdm")
+    )
   val copyright: api.CopyrightDTO = api.CopyrightDTO(license, List(clinton))
 
   val apiLearningPath: api.LearningPathV2DTO = api.LearningPathV2DTO(
@@ -474,7 +479,11 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("New learningPaths get correct verification") {
     val apiRubio = commonApi.AuthorDTO("author", "Little Marco")
     val apiLicense =
-      commonApi.LicenseDTO("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+      commonApi.LicenseDTO(
+        License.PublicDomain.toString,
+        Some("Public Domain"),
+        Some("https://creativecommons.org/about/pdm")
+      )
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)

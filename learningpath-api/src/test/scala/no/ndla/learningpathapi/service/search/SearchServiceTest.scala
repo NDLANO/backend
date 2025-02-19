@@ -26,6 +26,7 @@ import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.mapping.License
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doReturn
@@ -45,7 +46,7 @@ class SearchServiceTest
   override val searchService: SearchService = new SearchService
 
   val paul: Author                     = Author("author", "Truly Weird Rand Paul")
-  val license                          = "publicdomain"
+  val license                          = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(paul))
 
   val DefaultLearningPath: LearningPath = LearningPath(

@@ -20,13 +20,14 @@ import no.ndla.common.model.domain.learningpath.{
 }
 import no.ndla.common.model.domain.Title
 import no.ndla.learningpathapi.*
+import no.ndla.mapping.License
 import org.mockito.Mockito.when
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: LearningStepValidator = _
 
-  val license = "publicdomain"
+  val license = License.PublicDomain.toString
 
   val ValidLearningStep: LearningStep = LearningStep(
     id = None,
