@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.articleapi.db
@@ -28,7 +29,7 @@ abstract class HtmlMigration extends DocumentMigration {
     jsoupDocumentToString(converted)
   }
 
-  protected def convertColumn(document: String): String = {
+  def convertColumn(document: String): String = {
     val oldArticle = parser.parse(document).flatMap(_.as[Article]).toTry.get
     val convertedContent = oldArticle.content.map(c => {
       val converted = convertContent(c.content, c.language)

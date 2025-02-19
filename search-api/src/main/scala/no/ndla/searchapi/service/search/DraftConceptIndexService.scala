@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
@@ -13,10 +14,10 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.DraftConceptApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.search.SearchType
 import no.ndla.common.model.domain.concept.Concept
 
 import scala.util.Try
@@ -52,7 +53,6 @@ trait DraftConceptIndexService {
           keywordField("language")
         ),
         keywordField("defaultTitle"),
-        keywordField("subjectIds"),
         dateField("lastUpdated"),
         keywordField("draftStatus.current"),
         keywordField("draftStatus.other"),
@@ -60,7 +60,6 @@ trait DraftConceptIndexService {
         keywordField("updatedBy"),
         keywordField("license"),
         keywordField("authors"),
-        longField("articleIds"),
         dateField("created"),
         keywordField("learningResourceType"),
         keywordField("source"),

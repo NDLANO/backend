@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.learningpathapi
@@ -71,22 +72,23 @@ object TestData {
   )
 
   val sampleDomainLearningPath: LearningPath = LearningPath(
-    Some(1),
-    Some(1),
-    None,
-    None,
-    List(common.Title("tittel", DefaultLanguage)),
-    List(Description("deskripsjon", DefaultLanguage)),
-    None,
-    Some(60),
-    LearningPathStatus.PUBLISHED,
-    LearningPathVerificationStatus.CREATED_BY_NDLA,
-    today,
-    today,
-    List(common.Tag(List("tag"), DefaultLanguage)),
-    "me",
-    LearningpathCopyright(CC_BY.toString, List.empty),
-    Some(List(domainLearningStep1, domainLearningStep2))
+    id = Some(1),
+    revision = Some(1),
+    externalId = None,
+    isBasedOn = None,
+    title = List(common.Title("tittel", DefaultLanguage)),
+    description = List(Description("deskripsjon", DefaultLanguage)),
+    coverPhotoId = None,
+    duration = Some(60),
+    status = LearningPathStatus.PUBLISHED,
+    verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
+    created = today,
+    lastUpdated = today,
+    tags = List(common.Tag(List("tag"), DefaultLanguage)),
+    owner = "me",
+    copyright = LearningpathCopyright(CC_BY.toString, List.empty),
+    isMyNDLAOwner = false,
+    learningsteps = Some(List(domainLearningStep1, domainLearningStep2))
   )
 
   val searchSettings: SearchSettings = SearchSettings(

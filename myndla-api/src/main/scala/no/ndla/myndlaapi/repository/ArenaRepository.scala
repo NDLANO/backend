@@ -3,6 +3,7 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.myndlaapi.repository
@@ -14,18 +15,18 @@ import no.ndla.myndlaapi.model.arena.domain
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.DBUtil.buildWhereClause
-import no.ndla.common.errors.{InvalidStateException, RollbackException}
+import no.ndla.common.errors.InvalidStateException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.MyNDLAUser
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.model.arena.api.{CategoryBreadcrumbDTO, CategorySortDTO}
 import no.ndla.myndlaapi.model.arena.domain.database.{CompiledFlag, CompiledNotification, CompiledPost, CompiledTopic}
 import no.ndla.myndlaapi.model.arena.domain.{Notification, Owned, Post}
 import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
 
 trait ArenaRepository {
-  this: Clock =>
+  this: Clock & DBUtility =>
 
   val arenaRepository: ArenaRepository
 
@@ -836,25 +837,6 @@ trait ArenaRepository {
       )
     }
 
-    def withSession[T](func: DBSession => T): T = {
-      DB.localTx { session =>
-        func(session)
-      }
-    }
-
-    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
-      try {
-        DB.localTx { session =>
-          func(session) match {
-            case Failure(ex)    => throw RollbackException(ex)
-            case Success(value) => Success(value)
-          }
-        }
-      } catch {
-        case RollbackException(ex) => Failure(ex)
-      }
-    }
-
     def getCategory(id: Long, includeHidden: Boolean)(implicit session: DBSession): Try[Option[domain.Category]] = {
       val ca           = domain.Category.syntax("ca")
       val isVisibleSql = if (includeHidden) sqls"" else sqls"and ${ca.visible} = true"
@@ -990,7 +972,7 @@ trait ArenaRepository {
           else Some(sqls"(select visible from ${domain.Category.table} where id = category_id) = true")
 
         val deleteClause = sqls"deleted is null"
-        val whereClause  = buildWhereClause(conditions ++ visibleSql :+ deleteClause)
+        val whereClause  = DBUtil.buildWhereClause(conditions ++ visibleSql :+ deleteClause)
 
         sql"""
            select count(*) as count
@@ -1128,7 +1110,7 @@ trait ArenaRepository {
         else Some(sqls"(select visible from ${domain.Category.table} where id = ${t.category_id}) = true")
 
       val deleteClause = sqls"${t.deleted} is null"
-      val whereClause  = buildWhereClause(conditions ++ visibleSql :+ deleteClause)
+      val whereClause  = DBUtil.buildWhereClause(conditions ++ visibleSql :+ deleteClause)
 
       val postCountSelect =
         sqls"select count(*) from ${domain.Post.table} where topic_id = ${ts(t).id}"
@@ -1309,7 +1291,7 @@ trait ArenaRepository {
       val visibleSql = if (user.isAdmin) None else Some(sqls"${ca.visible} = true")
 
       val where = if (filterFollowed) {
-        val subWhereClause = buildWhereClause(
+        val subWhereClause = DBUtil.buildWhereClause(
           Seq(
             parentFilter,
             sqls"${domain.CategoryFollow.column.user_id} = ${user.id}"
@@ -1322,7 +1304,7 @@ trait ArenaRepository {
                 $subWhereClause
             )
             """
-      } else buildWhereClause(visibleSql.toSeq :+ parentFilter)
+      } else DBUtil.buildWhereClause(visibleSql.toSeq :+ parentFilter)
 
       val orderByClause = sort match {
         case CategorySortDTO.ByTitle => sqls"order by ${ca.title}"

@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 package no.ndla.conceptapi.controller
 
@@ -120,7 +121,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val body = TestData.updatedConcept.asJson.deepDropNullValues.noSpaces
 
     val res = simpleHttpClient
@@ -289,7 +290,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 
     val expectedSettings =
-      draftSearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
+      draftSearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
 
     simpleHttpClient
       .send(

@@ -3,6 +3,7 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.myndlaapi.service
@@ -13,6 +14,8 @@ import no.ndla.common.implicits.*
 import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.domain.myndla.MyNDLAUser
+import no.ndla.database.DBUtility
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.myndlaapi.model.arena.{api, domain}
 import no.ndla.myndlaapi.model.arena.api.{CategoryDTO, CategorySortDTO, NewCategoryDTO, NewPostDTO, NewTopicDTO}
@@ -25,19 +28,13 @@ import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 import scala.util.{Failure, Success, Try}
 
 trait ArenaReadService {
-  this: FeideApiClient
-    with ArenaRepository
-    with ConverterService
-    with UserService
-    with Clock
-    with ConfigService
-    with FolderRepository
-    with UserRepository =>
+  this: FeideApiClient & ArenaRepository & ConverterService & UserService & Clock & ConfigService & FolderRepository &
+    UserRepository & NodeBBClient & DBUtility =>
   val arenaReadService: ArenaReadService
 
   class ArenaReadService {
     def sortCategories(parentId: Option[Long], sortedIds: List[Long], user: MyNDLAUser): Try[List[api.CategoryDTO]] =
-      arenaRepository.rollbackOnFailure { session =>
+      DBUtil.rollbackOnFailure { session =>
         for {
           existingCategoryIds <- arenaRepository.getAllCategoryIds(parentId)(session)
           _ <-
@@ -353,7 +350,7 @@ trait ArenaReadService {
     }
 
     def postTopic(categoryId: Long, newTopic: NewTopicDTO, user: MyNDLAUser): Try[api.TopicDTO] = {
-      arenaRepository.withSession { session =>
+      DBUtil.withSession { session =>
         val created = clock.now()
         for {
           _ <- getCategory(categoryId, 0, 0, user)(session)
@@ -382,7 +379,7 @@ trait ArenaReadService {
     }
 
     def postPost(topicId: Long, newPost: NewPostDTO, user: MyNDLAUser): Try[api.PostDTO] =
-      arenaRepository.withSession { session =>
+      DBUtil.withSession { session =>
         val created = clock.now()
         for {
           topic <- getCompiledTopic(topicId, user)(session)
@@ -594,16 +591,19 @@ trait ArenaReadService {
         })
 
     def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] =
-      arenaRepository.rollbackOnFailure(session => {
+      DBUtil.rollbackOnFailure(session => {
         for {
-          feideId <- feideApiClient.getFeideID(feideAccessToken)
-          user    <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken, List.empty)(session)
-          _       <- arenaRepository.disconnectPostsByUser(user.id)(session)
-          _       <- arenaRepository.disconnectTopicsByUser(user.id)(session)
-          _       <- arenaRepository.disconnectFlagsByUser(user.id)(session)
-          _       <- folderRepository.deleteAllUserFolders(feideId)(session)
-          _       <- folderRepository.deleteAllUserResources(feideId)(session)
-          _       <- userRepository.deleteUser(feideId)(session)
+          feideToken   <- feideApiClient.getFeideAccessTokenOrFail(feideAccessToken)
+          feideId      <- feideApiClient.getFeideID(feideAccessToken)
+          user         <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+          nodebbUserId <- nodebb.getUserId(feideToken)
+          _            <- arenaRepository.disconnectPostsByUser(user.id)(session)
+          _            <- arenaRepository.disconnectTopicsByUser(user.id)(session)
+          _            <- arenaRepository.disconnectFlagsByUser(user.id)(session)
+          _            <- folderRepository.deleteAllUserFolders(feideId)(session)
+          _            <- folderRepository.deleteAllUserResources(feideId)(session)
+          _            <- userRepository.deleteUser(feideId)(session)
+          _            <- nodebb.deleteUser(nodebbUserId, feideToken)
         } yield ()
       })
   }

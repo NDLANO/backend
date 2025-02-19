@@ -3,6 +3,7 @@
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.imageapi.service.search
@@ -45,6 +46,7 @@ trait ImageIndexService {
         keywordField("modelReleased"),
         textField("editorNotes"),
         keywordField("podcastFriendly"),
+        keywordField("users"),
         nestedField("imageFiles").fields(
           intField("imageSize"),
           textField("previewUrl"),

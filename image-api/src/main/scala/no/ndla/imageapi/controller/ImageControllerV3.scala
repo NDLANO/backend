@@ -84,7 +84,8 @@ trait ImageControllerV3 {
         podcastFriendly: Option[Boolean],
         shouldScroll: Boolean,
         modelReleasedStatus: Seq[ModelReleasedStatus.Value],
-        user: Option[TokenUser]
+        user: Option[TokenUser],
+        userFilter: List[String]
     ) = {
       val settings = query match {
         case Some(searchString) =>
@@ -99,7 +100,8 @@ trait ImageControllerV3 {
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
             shouldScroll = shouldScroll,
-            modelReleased = modelReleasedStatus
+            modelReleased = modelReleasedStatus,
+            userFilter = userFilter
           )
         case None =>
           SearchSettings(
@@ -113,7 +115,8 @@ trait ImageControllerV3 {
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
             shouldScroll = shouldScroll,
-            modelReleased = modelReleasedStatus
+            modelReleased = modelReleasedStatus,
+            userFilter = userFilter
           )
       }
       for {
@@ -138,6 +141,7 @@ trait ImageControllerV3 {
       .in(podcastFriendly)
       .in(scrollId)
       .in(modelReleased)
+      .in(userFilter)
       .errorOut(errorOutputsFor(400))
       .out(jsonBody[SearchResultV3DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
@@ -156,7 +160,8 @@ trait ImageControllerV3 {
                 pageSize,
                 podcastFriendly,
                 scrollId,
-                modelReleased
+                modelReleased,
+                userFilter
               ) =>
             scrollSearchOr(scrollId, language, user) {
               val sort                = Sort.valueOf(sortStr)
@@ -176,7 +181,8 @@ trait ImageControllerV3 {
                 podcastFriendly,
                 shouldScroll,
                 modelReleasedStatus,
-                user
+                user,
+                userFilter.values
               )
             }.handleErrorsOrOk
         }
@@ -210,6 +216,7 @@ trait ImageControllerV3 {
               val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
               val modelReleasedStatus =
                 searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
+              val userFilter = searchParams.users.getOrElse(List.empty)
 
               searchV3(
                 minimumSize,
@@ -223,7 +230,8 @@ trait ImageControllerV3 {
                 podcastFriendly,
                 shouldScroll,
                 modelReleasedStatus,
-                user
+                user,
+                userFilter
               )
             }.handleErrorsOrOk
           }

@@ -1,5 +1,8 @@
 Configuration:
   status: warn
   Loggers:
+    Logger:
+      name: "no.ndla"
+      level: debug
     Root:
       level: warn

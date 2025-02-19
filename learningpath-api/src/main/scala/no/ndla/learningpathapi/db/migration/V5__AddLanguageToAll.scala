@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.learningpathapi.db.migration

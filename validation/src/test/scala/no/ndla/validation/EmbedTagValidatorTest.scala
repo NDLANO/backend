@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.validation
@@ -248,8 +249,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag = generateTagWithAttrsAndChildren(
       Map(
         TagAttribute.DataResource   -> ResourceType.UuDisclaimer.toString,
-        TagAttribute.DataDisclaimer -> "Dette er en disclaimer",
-        TagAttribute.DataArticleId  -> "123"
+        TagAttribute.DataDisclaimer -> "Dette er en disclaimer"
       ),
       generateTagWithAttrs(
         Map(
@@ -270,8 +270,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag = generateTagWithAttrsAndChildren(
       Map(
         TagAttribute.DataResource   -> ResourceType.UuDisclaimer.toString,
-        TagAttribute.DataDisclaimer -> "Dette er en disclaimer",
-        TagAttribute.DataArticleId  -> "123"
+        TagAttribute.DataDisclaimer -> "Dette er en disclaimer"
       ),
       """
         |<p>Her er en disclaimer</p>

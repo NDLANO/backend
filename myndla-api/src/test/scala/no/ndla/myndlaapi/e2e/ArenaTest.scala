@@ -27,7 +27,7 @@ import sttp.client3.Response
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.concurrent.duration.DurationInt
 import scala.util.Success
 
@@ -40,7 +40,7 @@ class ArenaTest
     with UnitSuite {
 
   val myndlaApiPort: Int          = findFreePort
-  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val redisPort: Int              = redisContainer.get.port
   val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int = myndlaApiPort
@@ -87,7 +87,9 @@ class ArenaTest
   val myndlaApiArenaUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/arena"
 
   override def beforeAll(): Unit = {
-    implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    super.beforeAll()
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { myndlaApi.run() }: Unit
     Thread.sleep(1000)
   }
@@ -97,7 +99,7 @@ class ArenaTest
     reset(myndlaApi.componentRegistry.userService)
     reset(myndlaApi.componentRegistry.userRepository)
 
-    myndlaApi.componentRegistry.arenaRepository.withSession(implicit session => {
+    myndlaApi.componentRegistry.DBUtil.withSession(implicit session => {
       myndlaApi.componentRegistry.arenaRepository.deleteAllFollows.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllPosts.get
       myndlaApi.componentRegistry.arenaRepository.deleteAllTopics.get
@@ -124,8 +126,9 @@ class ArenaTest
     displayName = "displayName",
     email = "some@example.com",
     arenaEnabled = true,
+    arenaAccepted = true,
     arenaGroups = List.empty,
-    shareName = false
+    shareNameAccepted = false
   )
 
   val testAdmin: MyNDLAUser = MyNDLAUser(
@@ -140,8 +143,9 @@ class ArenaTest
     displayName = "displayName",
     email = "some@example.com",
     arenaEnabled = true,
+    arenaAccepted = true,
     arenaGroups = List(ArenaGroup.ADMIN),
-    shareName = false
+    shareNameAccepted = false
   )
 
   def createCategory(
@@ -783,7 +787,7 @@ class ArenaTest
 
     val upvoteOwnPost = simpleHttpClient.send(
       quickRequest
-        .put(uri"$myndlaApiArenaUrl/posts/${ownPostId}/upvote")
+        .put(uri"$myndlaApiArenaUrl/posts/$ownPostId/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
@@ -796,7 +800,7 @@ class ArenaTest
 
     val firstUpvote = simpleHttpClient.send(
       quickRequest
-        .put(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
+        .put(uri"$myndlaApiArenaUrl/posts/$otherPostId/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
@@ -809,7 +813,7 @@ class ArenaTest
 
     val secondUpvote = simpleHttpClient.send(
       quickRequest
-        .put(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
+        .put(uri"$myndlaApiArenaUrl/posts/$otherPostId/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )
@@ -818,7 +822,7 @@ class ArenaTest
 
     val unUpvote = simpleHttpClient.send(
       quickRequest
-        .delete(uri"$myndlaApiArenaUrl/posts/${otherPostId}/upvote")
+        .delete(uri"$myndlaApiArenaUrl/posts/$otherPostId/upvote")
         .header("FeideAuthorization", s"Bearer $userToken")
         .readTimeout(10.seconds)
     )

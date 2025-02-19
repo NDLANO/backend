@@ -1,8 +1,9 @@
 /*
- * Part of NDLA search-api
+ * Part of NDLA network
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.network.model

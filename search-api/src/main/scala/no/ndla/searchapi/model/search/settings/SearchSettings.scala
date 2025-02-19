@@ -3,15 +3,16 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.search.settings
 
+import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait}
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
-import no.ndla.searchapi.model.search.SearchTrait
+import no.ndla.searchapi.model.domain.Sort
 
 case class SearchSettings(
     query: Option[NonEmptyString],

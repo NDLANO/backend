@@ -3,6 +3,7 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.validation

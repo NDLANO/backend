@@ -3,6 +3,7 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
@@ -16,6 +17,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{LearningResourceType, SearchType}
 import no.ndla.common.model.domain.{Content, Priority}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
@@ -24,8 +26,7 @@ import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregations
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{ErrorHandling, SubjectAggregationDTO, SubjectAggregationsDTO}
-import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
-import no.ndla.searchapi.model.search.SearchType
+import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
 import scala.util.{Failure, Success, Try}

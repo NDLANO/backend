@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.audioapi.service
@@ -12,7 +13,7 @@ import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.errors.{NotFoundException, ValidationException, ValidationMessage}
 import no.ndla.common.model
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO}
 import no.ndla.common.model.domain.UploadedFile
@@ -393,7 +394,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.updateAudio(1, updatedAudioMeta, None, testUser)
     result.isFailure should be(true)
-    result.failed.get.getMessage should equal(new NotFoundException().getMessage)
+    result.failed.get.getMessage should equal(NotFoundException("Audio not found").getMessage)
   }
 
   test("that updateAudio returns Failure when audio file validation fails") {
@@ -404,7 +405,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(mock[UploadedFile]), testUser)
     result.isFailure should be(true)
-    result.failed.get.getMessage should equal(new ValidationException(errors = Seq()).getMessage)
+    result.failed.get.getMessage should equal(new ValidationException(errors = Seq(validationMessage)).getMessage)
   }
 
   test("that updateAudio returns Failure when audio upload fails") {

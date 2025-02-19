@@ -3,6 +3,7 @@
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE
+ *
  */
 package no.ndla.searchapi.service
 
@@ -11,10 +12,10 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.Environment.{booleanPropOrFalse, prop}
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.Content
 import no.ndla.search.model.domain.ReindexResult
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import sttp.client3.quick.*
 
@@ -135,7 +136,8 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
             Seq(
               reindexWithIndexService(componentRegistry.learningPathIndexService, shouldUsePublishedTax = true),
               reindexWithIndexService(componentRegistry.articleIndexService, shouldUsePublishedTax = true),
-              reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false)
+              reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false),
+              reindexWithIndexService(componentRegistry.draftConceptIndexService, shouldUsePublishedTax = true)
             )
           ),
           Duration.Inf

@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.service
@@ -14,13 +15,16 @@ import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.ValidationException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
+import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
-import no.ndla.common.model.domain.{Priority, Responsible, UploadedFile}
+import no.ndla.common.model.domain.article.PartialPublishArticleDTO
+import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
@@ -30,11 +34,12 @@ import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexServi
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
+import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.*
 import org.jsoup.nodes.Element
-import scalikejdbc.{AutoSession, ReadOnlyAutoSession}
+import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.*
@@ -46,13 +51,13 @@ import scala.util.{Failure, Random, Success, Try}
 trait WriteService {
   this: DraftRepository & UserDataRepository & ConverterService & ContentValidator & ArticleIndexService &
     TagIndexService & GrepCodesIndexService & Clock & ReadService & ArticleApiClient & SearchApiClient &
-    FileStorageService & TaxonomyApiClient & Props =>
+    FileStorageService & TaxonomyApiClient & Props & DBUtility =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {
 
     def insertDump(article: Draft): Try[Draft] =
-      draftRepository.rollbackOnFailure(implicit session => {
+      DBUtil.rollbackOnFailure(implicit session => {
         draftRepository
           .newEmptyArticleId()
           .map(newId => {
@@ -71,7 +76,6 @@ trait WriteService {
           searchApiClient.indexDraft(article, user)(ec): Unit
           articleIndexService.indexAsync(articleId, article)(ec): Unit
           tagIndexService.indexAsync(articleId, article)(ec): Unit
-          grepCodesIndexService.indexAsync(articleId, article)(ec): Unit
           Success(())
       }
 
@@ -84,7 +88,7 @@ trait WriteService {
         fallback: Boolean,
         usePostFix: Boolean
     ): Try[api.ArticleDTO] = {
-      draftRepository.rollbackOnFailure { implicit session =>
+      DBUtil.rollbackOnFailure { implicit session =>
         draftRepository.withId(articleId) match {
           case None => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
           case Some(article) =>
@@ -168,7 +172,7 @@ trait WriteService {
         notes = newNotes,
         visualElement = visualElement
       )
-      draftRepository.rollbackOnFailure { implicit session =>
+      DBUtil.rollbackOnFailure { implicit session =>
         val insertFunction = externalIds match {
           case Nil =>
             (a: Draft) => draftRepository.insert(a)
@@ -222,7 +226,7 @@ trait WriteService {
         statusWasUpdated: Boolean
     ): Try[Draft] = {
       val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED && !isImported
-      draftRepository.rollbackOnFailure { implicit session =>
+      DBUtil.rollbackOnFailure { implicit session =>
         draftRepository.updateArticle(article, isImported) match {
           case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
           case Success(updated)                      => Success(updated)
@@ -239,11 +243,81 @@ trait WriteService {
         statusWasUpdated: Boolean
     ): Try[Draft] = {
       val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
-      draftRepository.rollbackOnFailure { implicit session =>
+      DBUtil.rollbackOnFailure { implicit session =>
         draftRepository.updateWithExternalIds(article, externalIds, externalSubjectIds, importId) match {
           case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
           case Success(updated)                      => Success(updated)
           case Failure(ex)                           => Failure(ex)
+        }
+      }
+    }
+
+    def getRanges(session: DBSession): Try[List[(Long, Long)]] = Try {
+      val (minId, maxId) = draftRepository.minMaxArticleId(session)
+      Seq
+        .range(minId, maxId + 1)
+        .grouped(100)
+        .map(group => (group.head, group.last))
+        .toList
+    }
+
+    private val grepFieldsToPublish = Seq(PartialArticleFieldsDTO.grepCodes)
+
+    def getGrepCodeNote(mapping: Map[String, String], draft: Draft, user: TokenUser): EditorNote = {
+      val grepCodes = mapping.map { case (old, newGrep) => s"$old -> $newGrep" }.mkString(", ")
+      common.EditorNote(s"Oppdaterte grep-koder: [$grepCodes]", user.id, draft.status, clock.now())
+    }
+
+    private def migrateOutdatedGrepForDraft(
+        draft: Draft,
+        user: TokenUser
+    )(session: DBSession): Try[Option[(Long, PartialPublishArticleDTO)]] = {
+      val articleId = draft.id.getOrElse(-1L)
+      logger.info(s"Migrating grep codes for article $articleId")
+      if (draft.grepCodes.isEmpty) { return Success(None) }
+      val newGrepCodeMapping = searchApiClient.convertGrepCodes(draft.grepCodes, user).?
+      val updatedGrepCodes   = newGrepCodeMapping.values.toSeq
+      if (draft.grepCodes.sorted == updatedGrepCodes.sorted) { return Success(None) }
+      val grepCodeNote = getGrepCodeNote(newGrepCodeMapping, draft, user)
+      val newDraft     = draft.copy(grepCodes = updatedGrepCodes, notes = draft.notes :+ grepCodeNote)
+      val updated      = draftRepository.updateArticle(newDraft)(session).?
+      val partialPart  = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
+      logger.info(
+        s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
+      )
+      lazy val idException = MissingIdException("Article id was missing after updating grep codes. This is a bug.")
+      val id               = updated.id.toTry(idException).?
+      Success(Some((id, partialPart)))
+    }
+
+    def migrateOutdatedGreps(user: TokenUser): Try[Unit] = logTaskTime("Migrate outdated grep codes") {
+      DBUtil.rollbackOnFailure { session =>
+        implicit val ec: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
+        val result = getRanges(session)
+          .map(ranges => {
+            val chunkResult = ranges.map { case (start, end) =>
+              Future {
+                val chunk = draftRepository.documentsWithArticleIdBetween(start, end)(session)
+                chunk.map(d => migrateOutdatedGrepForDraft(d, user)(session))
+              }
+            }
+            chunkResult
+          })
+
+        result.flatMap { futures =>
+          val fut = Future.sequence(futures)
+          val awaited = Try(
+            Await
+              .result(fut, 1.hour)
+              .flatten
+              .sequence
+              .map(_.flatten)
+          ).flatten
+
+          awaited.flatMap { toPartialPublish =>
+            articleApiClient.bulkPartialPublishArticles(toPartialPublish.toMap, user)
+          }
         }
       }
     }
@@ -759,7 +833,7 @@ trait WriteService {
         article: Draft,
         articleFieldsToUpdate: Seq[api.PartialArticleFieldsDTO],
         language: String
-    ): PartialPublishArticle = {
+    ): PartialPublishArticleDTO = {
       val isAllLanguage  = language == Language.AllLanguages
       val initialPartial = PartialPublishArticle.empty()
 

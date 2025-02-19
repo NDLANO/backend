@@ -3,9 +3,11 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.model.api
+
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description

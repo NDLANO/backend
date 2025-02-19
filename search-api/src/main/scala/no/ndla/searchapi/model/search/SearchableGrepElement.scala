@@ -11,12 +11,16 @@ package no.ndla.searchapi.model.search
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.search.model.SearchableLanguageValues
+import no.ndla.searchapi.model.grep.GrepElement
 
 case class SearchableGrepElement(
     code: String,
     title: SearchableLanguageValues,
     defaultTitle: Option[String],
-    laereplanCode: Option[String]
+    laereplanCode: Option[String],
+    gjenbrukAv: Option[String],
+    erstattesAv: List[String],
+    domainObject: GrepElement
 )
 
 object SearchableGrepElement {

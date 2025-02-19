@@ -3,14 +3,16 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
-import no.ndla.common.model.api.UpdateWith
+import no.ndla.common.model.api.{RelatedContentLinkDTO, UpdateWith}
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, PartialPublishArticleDTO}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
@@ -64,7 +66,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     doAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[DBSession => Try[?]](0)
       x(mock[DBSession])
-    }).when(draftRepository).rollbackOnFailure(any)
+    }).when(DBUtil).rollbackOnFailure(any)
 
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Option(article))
     when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
@@ -130,7 +132,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(draftRepository, times(0)).updateArticle(any[Draft], any[Boolean])(any)
     verify(articleIndexService, times(1)).indexAsync(any, any)(any)
     verify(tagIndexService, times(1)).indexAsync(any, any)(any)
-    verify(grepCodesIndexService, times(1)).indexAsync(any, any)(any)
   }
 
   test("That updateArticle updates only content properly") {
@@ -1003,44 +1004,44 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       api.PartialArticleFieldsDTO.published
     )
 
-    val expectedPartialPublishFields = PartialPublishArticle(
+    val expectedPartialPublishFields = PartialPublishArticleDTO(
       availability = Some(Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
-      metaDescription = Some(Seq(api.ArticleMetaDescriptionDTO("oldDesc", "nb"))),
-      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
-      tags = Some(Seq(api.ArticleTagDTO(Seq("old", "tag"), "nb"))),
+      metaDescription = Some(Seq(ArticleMetaDescriptionDTO("oldDesc", "nb"))),
+      relatedContent = Some(Seq(Left(RelatedContentLinkDTO("title1", "url2")), Right(12L))),
+      tags = Some(Seq(ArticleTagDTO(Seq("old", "tag"), "nb"))),
       revisionDate = UpdateWith(tomorrow),
       published = Some(tomorrow)
     )
-    val expectedPartialPublishFieldsLangEN = PartialPublishArticle(
+    val expectedPartialPublishFieldsLangEN = PartialPublishArticleDTO(
       availability = Some(Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq.empty),
-      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(RelatedContentLinkDTO("title1", "url2")), Right(12L))),
       tags = Some(Seq.empty),
       revisionDate = UpdateWith(tomorrow),
       published = Some(tomorrow)
     )
-    val expectedPartialPublishFieldsLangALL = PartialPublishArticle(
+    val expectedPartialPublishFieldsLangALL = PartialPublishArticleDTO(
       availability = Some(Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(
         Seq(
-          api.ArticleMetaDescriptionDTO("oldDesc", "nb"),
-          api.ArticleMetaDescriptionDTO("oldDescc", "es"),
-          api.ArticleMetaDescriptionDTO("oldDesccc", "ru"),
-          api.ArticleMetaDescriptionDTO("oldDescccc", "nn")
+          ArticleMetaDescriptionDTO("oldDesc", "nb"),
+          ArticleMetaDescriptionDTO("oldDescc", "es"),
+          ArticleMetaDescriptionDTO("oldDesccc", "ru"),
+          ArticleMetaDescriptionDTO("oldDescccc", "nn")
         )
       ),
-      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(RelatedContentLinkDTO("title1", "url2")), Right(12L))),
       tags = Some(
         Seq(
-          api.ArticleTagDTO(Seq("old", "tag"), "nb"),
-          api.ArticleTagDTO(Seq("guten", "tag"), "de"),
-          api.ArticleTagDTO(Seq("oldd", "tagg"), "es")
+          ArticleTagDTO(Seq("old", "tag"), "nb"),
+          ArticleTagDTO(Seq("guten", "tag"), "de"),
+          ArticleTagDTO(Seq("oldd", "tagg"), "es")
         )
       ),
       revisionDate = UpdateWith(tomorrow),

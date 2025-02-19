@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.service
@@ -49,10 +50,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       responsible = Some(ConceptResponsibleDTO("hei", TestData.today))
     )
 
-  val domainConcept: Concept = TestData.sampleNbDomainConcept.copy(
-    id = Some(conceptId),
-    responsible = Some(Responsible("hei", TestData.today))
-  )
+  val domainConcept: Concept =
+    TestData.sampleNbDomainConcept.copy(id = Some(conceptId), responsible = Some(Responsible("hei", TestData.today)))
 
   def mockWithConcept(concept: Concept): OngoingStubbing[NDLADate] = {
     when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
@@ -95,8 +94,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None,
         None,
-        Some(Seq.empty),
-        None,
         None,
         Missing,
         None,
@@ -106,7 +103,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       content = Option(api.ConceptContent(newContent, newContent, "en")),
       updated = today,
       supportedLanguages = Set("nb", "en"),
-      articleIds = Seq.empty,
       editorNotes = Some(
         Seq(
           api.EditorNoteDTO("New language 'en' added", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today)
@@ -120,26 +116,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only title properly") {
     val newTitle = "NewTitleTest"
     val updatedApiConcept =
-      api.UpdatedConceptDTO(
-        "nn",
-        title = Some(newTitle),
-        None,
-        Missing,
-        None,
-        None,
-        None,
-        Some(Seq.empty),
-        None,
-        None,
-        Missing,
-        None,
-        None
-      )
+      api.UpdatedConceptDTO("nn", title = Some(newTitle), None, Missing, None, None, None, None, Missing, None, None)
     val expectedConcept = concept.copy(
       title = api.ConceptTitleDTO(newTitle, "nn"),
       updated = today,
       supportedLanguages = Set("nb", "nn"),
-      articleIds = Seq.empty,
       editorNotes = Some(
         Seq(
           api.EditorNoteDTO("New language 'nn' added", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today)
@@ -172,8 +153,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       UpdateWith(updatedMetaImage),
       Some(updatedCopyright),
       Some(Seq("Nye", "Tags")),
-      Some(Seq("urn:subject:900")),
-      Some(Seq(69L)),
       None,
       None,
       UpdateWith("123"),
@@ -184,7 +163,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedConcept = concept.copy(
       title = api.ConceptTitleDTO(updatedTitle, "en"),
       content = Option(api.ConceptContent(updatedContent, updatedContent, "en")),
-      metaImage = Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
         commonApi.DraftCopyrightDTO(
           None,
@@ -198,10 +176,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       source = Some("https://ndla.no"),
-      supportedLanguages = Set("nb", "en"),
+      metaImage = Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       tags = Some(api.ConceptTagsDTO(Seq("Nye", "Tags"), "en")),
-      subjectIds = Some(Set("urn:subject:900")),
-      articleIds = Seq(69L),
+      supportedLanguages = Set("nb", "en"),
       responsible = Some(api.ConceptResponsibleDTO("123", today)),
       editorNotes = Some(
         Seq(
@@ -227,10 +204,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         id = Some(3.toLong),
         title = Seq(Title("title", "nb"), Title("title", "nn")),
         content = Seq(ConceptContent("Innhold", "nb"), ConceptContent("Innhald", "nn")),
-        tags = Seq(Tag(Seq("tag"), "nb"), Tag(Seq("tag"), "nn")),
-        visualElement = Seq(VisualElement("VisueltElement", "nb"), VisualElement("VisueltElement", "nn")),
         metaImage = Seq(ConceptMetaImage("1", "Hei", "nb"), ConceptMetaImage("1", "Hei", "nn")),
+        tags = Seq(Tag(Seq("tag"), "nb"), Tag(Seq("tag"), "nn")),
         status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
+        visualElement = Seq(VisualElement("VisueltElement", "nb"), VisualElement("VisueltElement", "nn")),
         responsible = Some(Responsible("hei", TestData.today))
       )
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
@@ -254,8 +231,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val conceptToUpdate = domainConcept.copy(
       revision = Some(951),
       title = Seq(Title("Yolo", "en")),
-      updated = NDLADate.fromUnixTime(0),
-      created = NDLADate.fromUnixTime(0)
+      created = NDLADate.fromUnixTime(0),
+      updated = NDLADate.fromUnixTime(0)
     )
 
     mockWithConcept(conceptToUpdate)
@@ -283,8 +260,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         metaImage = Missing,
         copyright = None,
         tags = None,
-        subjectIds = None,
-        articleIds = Some(Seq(42)),
         status = None,
         visualElement = None,
         responsibleId = UpdateWith(responsibleId),
@@ -294,7 +269,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedConcept = concept.copy(
       updated = today,
       supportedLanguages = Set("nb"),
-      articleIds = Seq(42),
       responsible = Some(api.ConceptResponsibleDTO(responsibleId, today)),
       editorNotes = Some(
         Seq(

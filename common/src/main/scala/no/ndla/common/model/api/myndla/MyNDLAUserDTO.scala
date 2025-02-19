@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.common.model.api.myndla
@@ -35,8 +36,9 @@ case class MyNDLAUserDTO(
     @description("User root organization") organization: String,
     @description("User groups") groups: Seq[MyNDLAGroupDTO],
     @description("Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
-    @description("Whether users name is shared with folders or not") shareName: Boolean,
-    @description("Arena user groups") arenaGroups: List[ArenaGroup]
+    @description("Whether the user has accepted the use of arena") arenaAccepted: Boolean,
+    @description("Arena user groups") arenaGroups: List[ArenaGroup],
+    @description("Whether the user has accepted the sharing of their name") shareNameAccepted: Boolean
 )
 
 object MyNDLAUserDTO {
@@ -44,12 +46,17 @@ object MyNDLAUserDTO {
   implicit def decoder: Decoder[MyNDLAUserDTO] = deriveDecoder
 }
 
-// format: off
 case class UpdatedMyNDLAUserDTO(
-    @description("Favorite subjects of the user") favoriteSubjects: Option[Seq[String]],
-    @description("Whether arena should explicitly be enabled for the user") arenaEnabled: Option[Boolean],
-    @description("Whether users name should be shared with folder or not") shareName: Option[Boolean],
-    @description("Which arena groups the user should be in, only modifiable by admins") arenaGroups: Option[List[ArenaGroup]]
+    @description("Favorite subjects of the user")
+    favoriteSubjects: Option[Seq[String]],
+    @description("Whether arena should explicitly be enabled for the user")
+    arenaEnabled: Option[Boolean],
+    @description("Which arena groups the user should be in, only modifiable by admins")
+    arenaGroups: Option[List[ArenaGroup]],
+    @description("Whether the user has accepted the use of arena")
+    arenaAccepted: Option[Boolean],
+    @description("Whether the user has accepted the sharing of their name")
+    shareNameAccepted: Option[Boolean]
 )
 
 object UpdatedMyNDLAUserDTO {

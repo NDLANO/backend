@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.repository
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.errors.{NotFoundException, RollbackException}
+import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
@@ -45,19 +45,6 @@ trait FolderRepository {
 
     def withTx[T](func: DBSession => T): T =
       DB.localTx { session => func(session) }
-
-    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
-      try {
-        DB.localTx { session =>
-          func(session) match {
-            case Failure(ex)    => throw RollbackException(ex)
-            case Success(value) => Success(value)
-          }
-        }
-      } catch {
-        case RollbackException(ex) => Failure(ex)
-      }
-    }
 
     def insertFolder(
         feideId: FeideID,

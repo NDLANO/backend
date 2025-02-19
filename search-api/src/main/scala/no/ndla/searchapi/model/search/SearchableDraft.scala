@@ -3,6 +3,7 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.search
@@ -10,11 +11,11 @@ package no.ndla.searchapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait}
 import no.ndla.common.model.domain.{Priority, Responsible}
 import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchableDraft(
     id: Long,
@@ -31,6 +32,7 @@ case class SearchableDraft(
     defaultTitle: Option[String],
     supportedLanguages: List[String],
     notes: List[String],
+    context: Option[SearchableTaxonomyContext],
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     draftStatus: SearchableStatus,

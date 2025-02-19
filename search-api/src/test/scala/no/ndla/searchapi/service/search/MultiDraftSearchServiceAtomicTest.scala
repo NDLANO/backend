@@ -3,6 +3,7 @@
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
@@ -12,6 +13,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{ApiTaxonomyContextDTO, LearningResourceType, SearchType}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
@@ -21,9 +23,7 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.api.ApiTaxonomyContextDTO
-import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
-import no.ndla.searchapi.model.search.SearchType
+import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
 
@@ -905,30 +905,30 @@ class MultiDraftSearchServiceAtomicTest
           case 1 =>
             TestData.searchableDraft.copy(
               id = 1,
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Apekatt emne"),
               defaultParentTopicName = Some("Apekatt emne"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Apekatt emne"),
               defaultRoot = Some("Capekatt rot"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
               resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
               defaultResourceTypeName = Some("Bapekatt ressurs")
             )
           case 2 =>
             TestData.searchableDraft.copy(
               id = 2,
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Bpekatt emne"),
               defaultParentTopicName = Some("Bpekatt emne"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Bpekatt emne"),
               defaultRoot = Some("Apekatt rot"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
               resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
               defaultResourceTypeName = Some("Capekatt ressurs")
             )
           case 3 =>
             TestData.searchableDraft.copy(
               id = 3,
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Cpekatt emne"),
               defaultParentTopicName = Some("Cpekatt emne"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
+              parentTopicName = SearchableLanguageValues.from("nb" -> "Cpekatt emne"),
               defaultRoot = Some("Bapekatt rot"),
+              primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
               resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
               defaultResourceTypeName = Some("Apekatt ressurs")
             )
@@ -1085,18 +1085,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(4)
     )
 
-    val concept1 = TestData.sampleNbDomainConcept.copy(
-      id = Some(1)
-    )
-    val concept2 = TestData.sampleNbDomainConcept.copy(
-      id = Some(2)
-    )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3)
-    )
-    val concept4 = TestData.sampleNbDomainConcept.copy(
-      id = Some(4)
-    )
+    val concept1 = TestData.sampleNbDomainConcept.copy(id = Some(1))
+    val concept2 = TestData.sampleNbDomainConcept.copy(id = Some(2))
+    val concept3 = TestData.sampleNbDomainConcept.copy(id = Some(3))
+    val concept4 = TestData.sampleNbDomainConcept.copy(id = Some(4))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -1154,18 +1146,11 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3)
     )
 
-    val concept1 = TestData.sampleNbDomainConcept.copy(
-      id = Some(1),
-      content = Seq(ConceptContent("Liten apekatt", "nb"))
-    )
-    val concept2 = TestData.sampleNbDomainConcept.copy(
-      id = Some(2),
-      content = Seq(ConceptContent("Stor giraff", "nb"))
-    )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3),
-      content = Seq(ConceptContent("Medium kylling", "nb"))
-    )
+    val concept1 =
+      TestData.sampleNbDomainConcept.copy(id = Some(1), content = Seq(ConceptContent("Liten apekatt", "nb")))
+    val concept2 = TestData.sampleNbDomainConcept.copy(id = Some(2), content = Seq(ConceptContent("Stor giraff", "nb")))
+    val concept3 =
+      TestData.sampleNbDomainConcept.copy(id = Some(3), content = Seq(ConceptContent("Medium kylling", "nb")))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -1216,14 +1201,8 @@ class MultiDraftSearchServiceAtomicTest
     val learningPath3 = TestData.learningPath1.copy(
       id = Some(3)
     )
-    val concept4 = TestData.sampleNbDomainConcept.copy(
-      id = Some(4),
-      conceptType = ConceptType.CONCEPT
-    )
-    val concept5 = TestData.sampleNbDomainConcept.copy(
-      id = Some(5),
-      conceptType = ConceptType.GLOSS
-    )
+    val concept4 = TestData.sampleNbDomainConcept.copy(id = Some(4), conceptType = ConceptType.CONCEPT)
+    val concept5 = TestData.sampleNbDomainConcept.copy(id = Some(5), conceptType = ConceptType.GLOSS)
 
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
@@ -1308,8 +1287,8 @@ class MultiDraftSearchServiceAtomicTest
     )
     val concept3 = TestData.sampleNbDomainConcept.copy(
       id = Some(3),
-      conceptType = ConceptType.CONCEPT,
-      responsible = Some(responsible)
+      responsible = Some(responsible),
+      conceptType = ConceptType.CONCEPT
     )
 
     draftIndexService.indexDocument(draft1, indexingBundle).get
@@ -1329,138 +1308,4 @@ class MultiDraftSearchServiceAtomicTest
     search.results.map(_.id) should be(Seq(1, 3))
   }
 
-  test("That subject filtering works for concepts") {
-    val responsible = Responsible("some-user", TestData.today)
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      articleType = ArticleType.Standard,
-      responsible = Some(responsible)
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      articleType = ArticleType.Standard,
-      responsible = None
-    )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3),
-      conceptType = ConceptType.CONCEPT,
-      responsible = Some(responsible),
-      subjectIds = Set("urn:subject:1000")
-    )
-
-    draftIndexService.indexDocument(draft1, indexingBundle).get
-    draftIndexService.indexDocument(draft2, indexingBundle).get
-    draftConceptIndexService.indexDocument(concept3, indexingBundle).get
-
-    blockUntil(() => draftIndexService.countDocuments == 2 && draftConceptIndexService.countDocuments == 1)
-
-    val search = multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
-          subjects = List("urn:subject:1000"),
-          filterInactive = true
-        )
-      )
-      .get
-    search.results.map(_.id) should be(Seq(3))
-  }
-
-  test("That license filtering works as expected") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      articleType = ArticleType.Standard,
-      copyright = Some(
-        DraftCopyright(
-          license = Some(License.Copyrighted.toString),
-          origin = None,
-          creators = Seq(Author("Forfatter", "test testesen")),
-          processors = Seq.empty,
-          rightsholders = Seq.empty,
-          validFrom = None,
-          validTo = None,
-          processed = false
-        )
-      )
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      articleType = ArticleType.Standard,
-      copyright = Some(
-        DraftCopyright(
-          license = Some(License.CC_BY_NC.toString),
-          origin = None,
-          creators = Seq(Author("Forfatter", "test testesen")),
-          processors = Seq.empty,
-          rightsholders = Seq.empty,
-          validFrom = None,
-          validTo = None,
-          processed = false
-        )
-      )
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      articleType = ArticleType.Standard,
-      copyright = Some(
-        DraftCopyright(
-          license = Some(License.CC_BY_SA.toString),
-          origin = None,
-          creators = Seq(Author("Forfatter", "test testesen")),
-          processors = Seq.empty,
-          rightsholders = Seq.empty,
-          validFrom = None,
-          validTo = None,
-          processed = false
-        )
-      )
-    )
-
-    draftIndexService.indexDocument(draft1, indexingBundle).get
-    draftIndexService.indexDocument(draft2, indexingBundle).get
-    draftIndexService.indexDocument(draft3, indexingBundle).get
-
-    blockUntil(() => draftIndexService.countDocuments == 3)
-
-    val search1 = multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          resultTypes = None,
-          license = Some(License.CC_BY_NC.toString)
-        )
-      )
-      .get
-    search1.results.map(_.id) should be(Seq(2))
-
-    val search2 = multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          resultTypes = None,
-          license = Some(License.Copyrighted.toString)
-        )
-      )
-      .get
-    search2.results.map(_.id) should be(Seq(1))
-
-    val search3 = multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          resultTypes = None,
-          license = Some(License.CC_BY_SA.toString)
-        )
-      )
-      .get
-    search3.results.map(_.id) should be(Seq(3))
-
-    val search4 = multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          resultTypes = None,
-          license = Some("all"),
-          sort = Sort.ByIdAsc
-        )
-      )
-      .get
-    search4.results.map(_.id) should be(Seq(1, 2, 3))
-  }
 }

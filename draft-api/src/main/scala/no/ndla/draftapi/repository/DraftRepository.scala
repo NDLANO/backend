@@ -3,13 +3,13 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.{CirceUtil, Clock}
-import no.ndla.common.errors.RollbackException
 import no.ndla.common.model.domain.{ArticleType, EditorNote, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.database.DataSource
@@ -24,28 +24,9 @@ import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
   this: DataSource & ErrorHandling & Clock =>
-  val draftRepository: ArticleRepository
+  val draftRepository: DraftRepository
 
-  class ArticleRepository extends StrictLogging with Repository[Draft] {
-    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
-      try {
-        DB.localTx { session =>
-          func(session) match {
-            case Failure(ex)    => throw RollbackException(ex)
-            case Success(value) => Success(value)
-          }
-        }
-      } catch {
-        case RollbackException(ex) => Failure(ex)
-      }
-    }
-
-    def withSession[T](func: DBSession => T): T = {
-      DB.localTx { session =>
-        func(session)
-      }
-    }
-
+  class DraftRepository extends StrictLogging with Repository[Draft] {
     def insert(article: Draft)(implicit session: DBSession): Draft = {
       val startRevision = article.revision.getOrElse(1)
       val dataObject    = new PGobject()
@@ -163,11 +144,11 @@ trait DraftRepository {
     private def failIfRevisionMismatch(count: Int, article: Draft, newRevision: Int): Try[Draft] =
       if (count != 1) {
         val message =
-          s"Found revision mismatch when attempting to update article ${article.id} (Updated $count rows...)"
+          s"Found revision mismatch when attempting to update article ${article.id.getOrElse(-1)} (Updated $count rows...)"
         logger.warn(message)
         Failure(new OptimisticLockException)
       } else {
-        logger.info(s"Updated article ${article.id}")
+        logger.info(s"Updated article ${article.id.getOrElse(-1)}")
         val updatedArticle = article.copy(revision = Some(newRevision))
         Success(updatedArticle)
       }
@@ -231,7 +212,9 @@ trait DraftRepository {
       val slug        = article.slug.map(_.toLowerCase)
 
       val deleteCount = deletePreviousRevisions(article)
-      logger.info(s"Deleted $deleteCount revisions of article with id '${article.id}' before import update.")
+      logger.info(
+        s"Deleted $deleteCount revisions of article with id '${article.id.getOrElse(-1)}' before import update."
+      )
 
       val a = DBArticle.syntax("ar")
       val count = withSQL {
@@ -390,6 +373,17 @@ trait DraftRepository {
         .list()
     }
 
+    def minMaxArticleId(implicit session: DBSession): (Long, Long) = {
+      sql"select coalesce(MIN(article_id),0) as mi, coalesce(MAX(article_id),0) as ma from ${DBArticle.table}"
+        .map(rs => {
+          (rs.long("mi"), rs.long("ma"))
+        })
+        .single() match {
+        case Some(minmax) => minmax
+        case None         => (0L, 0L)
+      }
+    }
+
     override def minMaxId(implicit session: DBSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBArticle.table}"
         .map(rs => {
@@ -399,6 +393,26 @@ trait DraftRepository {
         case Some(minmax) => minmax
         case None         => (0L, 0L)
       }
+    }
+
+    def documentsWithArticleIdBetween(min: Long, max: Long)(implicit session: DBSession): List[Draft] = {
+      val ar       = DBArticle.syntax("ar")
+      val subquery = DBArticle.syntax("b")
+      sql"""
+           select ${ar.result.*}
+           from ${DBArticle.as(ar)}
+           where ar.document is not NULL
+           and ar.article_id between $min and $max
+           and ar.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}
+           and ar.revision = (
+             select max(b.revision)
+             from ${DBArticle.as(subquery)}
+             where b.article_id = ar.article_id
+           )
+
+           """
+        .map(DBArticle.fromResultSet(ar))
+        .list()
     }
 
     override def documentsWithIdBetween(min: Long, max: Long)(implicit

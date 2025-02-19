@@ -3,28 +3,23 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.myndlaapi.controller
 
-import cats.implicits.*
 import no.ndla.myndlaapi.MyNDLAAuthHelpers
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
-import io.circe.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
-import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
 import no.ndla.myndlaapi.service.{ArenaReadService, FolderReadService, FolderWriteService, UserService}
-import no.ndla.network.model.FeideID
-import no.ndla.network.tapir.auth.TokenUser
 
 trait UserController {
   this: ErrorHandling
@@ -60,30 +55,6 @@ trait UserController {
       .errorOut(errorOutputsFor(401, 403, 404))
       .serverLogicPure { case (feideHeader, updatedMyNdlaUser) =>
         userService.updateMyNDLAUserData(updatedMyNdlaUser, feideHeader)
-      }
-
-    def adminUpdateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint.patch
-      .summary("Update some one elses user data")
-      .description("Update some one elses user data")
-      .in("update-other-user")
-      .in(query[Option[FeideID]]("feide-id").description("FeideID of user"))
-      .in(jsonBody[UpdatedMyNDLAUserDTO])
-      .out(jsonBody[MyNDLAUserDTO])
-      .errorOut(errorOutputsFor(401, 403, 404))
-      .securityIn(TokenUser.oauth2Input(Seq.empty))
-      .securityIn(AuthUtility.feideOauth())
-      .serverSecurityLogicPure { case (tokenUser, feideToken) =>
-        val arenaUser = feideToken.traverse(token => userService.getArenaEnabledUser(Some(token))).toOption.flatten
-        if (tokenUser.hasPermission(LEARNINGPATH_API_ADMIN) || arenaUser.exists(_.isAdmin)) {
-          Right((tokenUser, arenaUser))
-        } else Left(ErrorHelpers.forbidden)
-      }
-      .serverLogicPure {
-        case (tokenUser, myndlaUser) => { case (feideId, updatedMyNdlaUser) =>
-          userService
-            .adminUpdateMyNDLAUserData(updatedMyNdlaUser, feideId, tokenUser, myndlaUser)
-
-        }
       }
 
     def deleteAllUserData: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -123,7 +94,6 @@ trait UserController {
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getMyNDLAUser,
       updateMyNDLAUser,
-      adminUpdateMyNDLAUser,
       deleteAllUserData,
       exportUserData,
       importUserData

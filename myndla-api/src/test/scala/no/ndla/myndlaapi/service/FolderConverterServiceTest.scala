@@ -426,11 +426,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
           )
         ),
         username = "example@email.com",
+        displayName = "Feide",
         email = "example@email.com",
         arenaEnabled = false,
-        displayName = "Feide",
-        shareName = false,
-        arenaGroups = List.empty
+        arenaAccepted = true,
+        arenaGroups = List.empty,
+        shareNameAccepted = false
       )
     val expectedUserData =
       MyNDLAUserDTO(
@@ -444,11 +445,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         organization = "oslo",
         groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
-        shareName = false,
-        arenaGroups = List.empty
+        arenaAccepted = true,
+        arenaGroups = List.empty,
+        shareNameAccepted = false
       )
 
-    service.toApiUserData(domainUserData, List.empty) should be(expectedUserData)
+    service.toApiUserData(domainUserData) should be(expectedUserData)
   }
 
   test("That mergeUserData works correctly") {
@@ -468,27 +470,36 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val updatedUserData1 =
-      UpdatedMyNDLAUserDTO(favoriteSubjects = None, arenaEnabled = None, shareName = None, arenaGroups = None)
+      UpdatedMyNDLAUserDTO(
+        favoriteSubjects = None,
+        arenaEnabled = None,
+        arenaGroups = None,
+        arenaAccepted = None,
+        shareNameAccepted = None
+      )
     val updatedUserData2 =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq.empty),
         arenaEnabled = None,
-        shareName = None,
-        arenaGroups = None
+        arenaGroups = None,
+        arenaAccepted = None,
+        shareNameAccepted = None
       )
     val updatedUserData3 =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("x", "y", "z")),
         arenaEnabled = None,
-        shareName = None,
-        arenaGroups = None
+        arenaGroups = None,
+        arenaAccepted = None,
+        shareNameAccepted = None
       )
 
     val expectedUserData1 = MyNDLAUser(
@@ -507,11 +518,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val expectedUserData2 = MyNDLAUser(
       id = 42,
@@ -529,11 +541,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val expectedUserData3 = MyNDLAUser(
       id = 42,
@@ -551,16 +564,23 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
-    service.mergeUserData(domainUserData, updatedUserData1, None, None, List.empty) should be(expectedUserData1)
-    service.mergeUserData(domainUserData, updatedUserData2, None, None, List.empty) should be(expectedUserData2)
-    service.mergeUserData(domainUserData, updatedUserData3, None, None, List.empty) should be(expectedUserData3)
+    service.mergeUserData(domainUserData, updatedUserData1, None, None, None).get should be(
+      expectedUserData1
+    )
+    service.mergeUserData(domainUserData, updatedUserData2, None, None, None).get should be(
+      expectedUserData2
+    )
+    service.mergeUserData(domainUserData, updatedUserData3, None, None, None).get should be(
+      expectedUserData3
+    )
   }
 
 }

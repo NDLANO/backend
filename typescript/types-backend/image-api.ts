@@ -144,6 +144,7 @@ export interface ISearchParamsDTO {
   podcastFriendly?: boolean
   scrollId?: string
   modelReleased?: string[]
+  users?: string[]
 }
 
 export interface ISearchResultDTO {

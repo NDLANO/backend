@@ -3,6 +3,7 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.myndlaapi.service
@@ -23,6 +24,7 @@ import scalikejdbc.*
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.model.arena.domain.InsertCategory
 import no.ndla.myndlaapi.model.arena.domain
 import no.ndla.myndlaapi.repository.{ArenaRepository, UserRepository}
@@ -32,14 +34,14 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait ImportService {
-  this: ArenaReadService with NodeBBClient with ArenaRepository with UserRepository with Clock =>
+  this: ArenaReadService & NodeBBClient & ArenaRepository & UserRepository & Clock & DBUtility =>
 
   val importService: ImportService
 
   class ImportService extends StrictLogging {
 
     def importArenaDataFromNodeBB(): Try[Unit] =
-      arenaRepository.rollbackOnFailure(session => importCategories(session))
+      DBUtil.rollbackOnFailure(session => importCategories(session))
 
     private def importCategories(session: DBSession): Try[Unit] = {
       for {
@@ -65,8 +67,9 @@ trait ImportService {
             displayName = "ndla_admin",
             email = "ndla@knowit.no",
             arenaEnabled = true,
+            arenaAccepted = true,
             arenaGroups = List(ArenaGroup.ADMIN),
-            shareName = true
+            shareNameAccepted = false
           )
           userRepository.insertUser("ndla_admin", toInsert)(session)
       }

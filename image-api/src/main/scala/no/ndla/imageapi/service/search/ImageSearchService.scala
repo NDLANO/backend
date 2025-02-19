@@ -165,7 +165,12 @@ trait ImageSearchService {
         boolQuery().should(settings.podcastFriendly.map(pf => termQuery("podcastFriendly", pf.toString)))
       )
 
-      val filters        = List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter, podcastFilter)
+      val userFilter = settings.userFilter match {
+        case Nil          => None
+        case nonEmptyList => Some(termsQuery("users", nonEmptyList))
+      }
+
+      val filters = List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter, podcastFilter, userFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

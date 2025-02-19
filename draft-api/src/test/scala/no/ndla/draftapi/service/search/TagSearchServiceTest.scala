@@ -3,6 +3,7 @@
  * Copyright (C) 2020 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.service.search
@@ -67,16 +68,19 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val articlesToIndex: Seq[Draft] = Seq(article1, article2, article3, article4)
 
-  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    tagIndexService.createIndexAndAlias().get
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    if (elasticSearchContainer.isSuccess) {
+      tagIndexService.createIndexAndAlias().get
 
-    articlesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
+      articlesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
 
-    val allTagsToIndex         = articlesToIndex.flatMap(_.tags)
-    val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
-    val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
+      val allTagsToIndex         = articlesToIndex.flatMap(_.tags)
+      val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
+      val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
 
-    blockUntil(() => tagSearchService.countDocuments == tagsDistinctByLanguage.size)
+      blockUntil(() => tagSearchService.countDocuments == tagsDistinctByLanguage.size)
+    }
   }
 
   test("That searching for tags returns sensible results") {

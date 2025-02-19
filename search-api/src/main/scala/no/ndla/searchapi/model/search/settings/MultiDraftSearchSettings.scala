@@ -3,16 +3,17 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, SearchType}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
-import no.ndla.searchapi.model.search.{SearchTrait, SearchType}
+import no.ndla.searchapi.model.domain.Sort
 
 case class MultiDraftSearchSettings(
     query: Option[NonEmptyString],

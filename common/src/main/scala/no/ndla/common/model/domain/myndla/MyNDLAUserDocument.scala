@@ -22,8 +22,9 @@ case class MyNDLAUserDocument(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
+    arenaAccepted: Boolean,
     arenaGroups: List[ArenaGroup],
-    shareName: Boolean
+    shareNameAccepted: Boolean
 ) {
   def toFullUser(id: Long, feideId: String): MyNDLAUser = {
     MyNDLAUser(
@@ -38,8 +39,9 @@ case class MyNDLAUserDocument(
       displayName = displayName,
       email = email,
       arenaEnabled = arenaEnabled,
-      shareName = shareName,
-      arenaGroups = arenaGroups
+      arenaAccepted = arenaAccepted,
+      arenaGroups = arenaGroups,
+      shareNameAccepted = shareNameAccepted
     )
   }
 }

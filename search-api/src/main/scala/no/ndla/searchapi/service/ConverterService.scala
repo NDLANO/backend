@@ -3,15 +3,29 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service
 
 import io.lemonlabs.uri.typesafe.dsl.*
+import no.ndla.common.model
+import no.ndla.common.model.api.search.{TitleDTO, TitleWithHtmlDTO}
 import no.ndla.network.ApplicationUrl
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api
-import no.ndla.searchapi.model.api.LearningPathIntroductionDTO
+import no.ndla.searchapi.model.api.{
+  ArticleResultDTO,
+  ArticleResultsDTO,
+  AudioResultDTO,
+  AudioResultsDTO,
+  ImageAltTextDTO,
+  ImageResultDTO,
+  ImageResultsDTO,
+  LearningPathIntroductionDTO,
+  LearningpathResultDTO,
+  LearningpathResultsDTO,
+  SearchResultsDTO
+}
 import no.ndla.searchapi.model.api.article.ArticleIntroductionDTO
 import no.ndla.searchapi.model.domain.*
 
@@ -22,7 +36,7 @@ trait ConverterService {
   class ConverterService {
     import props.Domain
 
-    def searchResultToApiModel(searchResults: ApiSearchResults): api.SearchResultsDTO = {
+    def searchResultToApiModel(searchResults: ApiSearchResults): SearchResultsDTO = {
       searchResults match {
         case a: ArticleApiSearchResults      => articleSearchResultsToApi(a)
         case l: LearningpathApiSearchResults => learningpathSearchResultsToApi(l)
@@ -31,8 +45,8 @@ trait ConverterService {
       }
     }
 
-    private def articleSearchResultsToApi(articles: ArticleApiSearchResults): api.ArticleResultsDTO = {
-      api.ArticleResultsDTO(
+    private def articleSearchResultsToApi(articles: ArticleApiSearchResults): ArticleResultsDTO = {
+      ArticleResultsDTO(
         "articles",
         articles.language,
         articles.totalCount,
@@ -42,10 +56,10 @@ trait ConverterService {
       )
     }
 
-    private def articleSearchResultToApi(article: ArticleApiSearchResult): api.ArticleResultDTO = {
-      api.ArticleResultDTO(
+    private def articleSearchResultToApi(article: ArticleApiSearchResult): ArticleResultDTO = {
+      ArticleResultDTO(
         article.id,
-        api.TitleWithHtmlDTO(article.title.title, article.title.htmlTitle, article.title.language),
+        TitleWithHtmlDTO(article.title.title, article.title.htmlTitle, article.title.language),
         article.introduction.map(i => ArticleIntroductionDTO(i.introduction, i.htmlIntroduction, i.language)),
         article.articleType,
         article.supportedLanguages
@@ -54,8 +68,8 @@ trait ConverterService {
 
     private def learningpathSearchResultsToApi(
         learningpaths: LearningpathApiSearchResults
-    ): api.LearningpathResultsDTO = {
-      api.LearningpathResultsDTO(
+    ): LearningpathResultsDTO = {
+      LearningpathResultsDTO(
         "learningpaths",
         learningpaths.language,
         learningpaths.totalCount,
@@ -65,17 +79,17 @@ trait ConverterService {
       )
     }
 
-    private def learningpathSearchResultToApi(learningpath: LearningpathApiSearchResult): api.LearningpathResultDTO = {
-      api.LearningpathResultDTO(
+    private def learningpathSearchResultToApi(learningpath: LearningpathApiSearchResult): LearningpathResultDTO = {
+      LearningpathResultDTO(
         learningpath.id,
-        api.TitleDTO(learningpath.title.title, learningpath.title.language),
+        TitleDTO(learningpath.title.title, learningpath.title.language),
         LearningPathIntroductionDTO(learningpath.introduction.introduction, learningpath.introduction.language),
         learningpath.supportedLanguages
       )
     }
 
-    private def imageSearchResultsToApi(images: ImageApiSearchResults): api.ImageResultsDTO = {
-      api.ImageResultsDTO(
+    private def imageSearchResultsToApi(images: ImageApiSearchResults): ImageResultsDTO = {
+      ImageResultsDTO(
         "images",
         images.language,
         images.totalCount,
@@ -85,25 +99,25 @@ trait ConverterService {
       )
     }
 
-    private def imageSearchResultToApi(image: ImageApiSearchResult): api.ImageResultDTO = {
+    private def imageSearchResultToApi(image: ImageApiSearchResult): ImageResultDTO = {
       val scheme = ApplicationUrl.get.schemeOption.getOrElse("https://")
       val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
 
       val previewUrl = image.previewUrl.withHost(host).withScheme(scheme)
       val metaUrl    = image.metaUrl.withHost(host).withScheme(scheme)
 
-      api.ImageResultDTO(
+      ImageResultDTO(
         image.id.toLong,
-        api.TitleDTO(image.title.title, image.title.language),
-        api.ImageAltTextDTO(image.altText.alttext, image.altText.language),
+        TitleDTO(image.title.title, image.title.language),
+        ImageAltTextDTO(image.altText.alttext, image.altText.language),
         previewUrl.toString,
         metaUrl.toString,
         image.supportedLanguages
       )
     }
 
-    private def audioSearchResultsToApi(audios: AudioApiSearchResults): api.AudioResultsDTO = {
-      api.AudioResultsDTO(
+    private def audioSearchResultsToApi(audios: AudioApiSearchResults): AudioResultsDTO = {
+      AudioResultsDTO(
         "audios",
         audios.language,
         audios.totalCount,
@@ -113,14 +127,14 @@ trait ConverterService {
       )
     }
 
-    private def audioSearchResultToApi(audio: AudioApiSearchResult): api.AudioResultDTO = {
+    private def audioSearchResultToApi(audio: AudioApiSearchResult): AudioResultDTO = {
       val scheme = ApplicationUrl.get.schemeOption.getOrElse("https://")
       val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
 
       val url = audio.url.withHost(host).withScheme(scheme).toString
-      api.AudioResultDTO(
+      AudioResultDTO(
         audio.id,
-        api.TitleDTO(audio.title.title, audio.title.language),
+        model.api.search.TitleDTO(audio.title.title, audio.title.language),
         url,
         audio.supportedLanguages
       )

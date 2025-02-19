@@ -3,18 +3,19 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.LearningResourceType
 
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 
@@ -55,6 +56,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       tags = tags,
       learningsteps = learningsteps,
+      license = "by-sa",
       copyright = CopyrightDTO(
         LicenseDTO("by-sa", Some("bysasaa"), None),
         Seq(AuthorDTO("Supplier", "Jonas"), AuthorDTO("Originator", "Kakemonsteret"))
@@ -62,9 +64,9 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       isBasedOn = Some(1001),
       supportedLanguages = List("nb", "en", "nn"),
       authors = List("Yap"),
+      context = searchableTaxonomyContexts.headOption,
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
-      license = "by-sa",
       favorited = 0,
       learningResourceType = LearningResourceType.LearningPath
     )

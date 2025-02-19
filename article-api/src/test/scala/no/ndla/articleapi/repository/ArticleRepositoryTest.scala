@@ -15,7 +15,7 @@ import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Article
 import no.ndla.scalatestsuite.IntegrationSuite
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
+import scalikejdbc.{AutoSession, ConnectionPool, DataSourceConnectionPool}
 
 import java.net.Socket
 import scala.util.{Success, Try}
@@ -92,7 +92,7 @@ class ArticleRepositoryTest
     val Success(res: Article) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
 
     res.id.isDefined should be(true)
-    repository.withId(res.id.get).get.article.get should be(sampleArticle)
+    repository.withId(res.id.get)(AutoSession).get.article.get should be(sampleArticle)
   }
 
   test("Fetching external ids works as expected") {
@@ -145,9 +145,9 @@ class ArticleRepositoryTest
     val art3 =
       repository.updateArticleFromDraftApi(TestData.sampleArticleWithCopyrighted.copy(id = Some(3)), List.empty).get
 
-    repository.withId(1).get.article should be(Some(art1))
-    repository.withId(2).get.article should be(Some(art2))
-    repository.withId(3).get.article should be(Some(art3))
+    repository.withId(1)(AutoSession).get.article should be(Some(art1))
+    repository.withId(2)(AutoSession).get.article should be(Some(art2))
+    repository.withId(3)(AutoSession).get.article should be(Some(art3))
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
@@ -229,7 +229,7 @@ class ArticleRepositoryTest
       List("6000", "10")
     )
 
-    val Right(relatedId) = repository.withId(1).toArticle.get.relatedContent.head
+    val Right(relatedId) = repository.withId(1)(AutoSession).toArticle.get.relatedContent.head
     relatedId should be(2L)
   }
 

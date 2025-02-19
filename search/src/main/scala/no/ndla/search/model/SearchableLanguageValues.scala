@@ -3,6 +3,7 @@
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.search.model
@@ -98,4 +99,6 @@ object SearchableLanguageList {
 
 case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]]) {
   def map[T](f: LanguageValue[Seq[String]] => T): Seq[T] = languageValues.map(lv => f(lv))
+  def fromFields(fields: Seq[LanguageField[Seq[String]]]): SearchableLanguageList =
+    SearchableLanguageList(fields.map(f => LanguageValue(f.language, f.value)))
 }

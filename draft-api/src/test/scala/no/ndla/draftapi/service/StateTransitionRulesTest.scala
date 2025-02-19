@@ -3,16 +3,18 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.api.search.{MultiSearchSummaryDTO, TitleWithHtmlDTO}
 import no.ndla.common.model.domain.{Priority, Responsible, Status}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, domain as common}
-import no.ndla.draftapi.integration.{SearchHit, Title}
 import no.ndla.draftapi.model.domain.StateTransition
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
@@ -244,7 +246,10 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(taxonomyApiClient.queryNodes(articleId)).thenReturn(Success(List.empty))
     when(learningpathApiClient.getLearningpathsWithId(any[Long], any)).thenReturn(Success(Seq.empty))
-    when(searchApiClient.publishedWhereUsed(any[Long], any)).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
+    val result = mock[MultiSearchSummaryDTO]
+    when(result.title).thenReturn(TitleWithHtmlDTO("Title", "Title", "nb"))
+    when(result.id).thenReturn(1L)
+    when(searchApiClient.publishedWhereUsed(any[Long], any)).thenReturn(Seq(result))
 
     val Failure(res: ValidationException) =
       StateTransitionRules.checkIfArticleIsInUse.run(article, false, TestData.userWithAdminAccess)
@@ -356,7 +361,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
     val article = common.article.Article(
       id = Some(articleId),
@@ -381,7 +386,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
     val status = common.Status(END_CONTROL, Set.empty)
 
@@ -479,7 +484,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
@@ -536,7 +541,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
@@ -597,7 +602,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
@@ -659,7 +664,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
     val status                            = common.Status(PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS

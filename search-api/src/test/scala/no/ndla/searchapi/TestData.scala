@@ -3,12 +3,14 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
+import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -38,6 +40,7 @@ import no.ndla.common.model.domain.concept.{
   WordClass
 }
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -57,6 +60,7 @@ import no.ndla.searchapi.model.grep.{
   GrepKjerneelement,
   GrepKompetansemaal,
   GrepLaererplan,
+  GrepTextObj,
   GrepTitle,
   GrepTverrfagligTema
 }
@@ -220,7 +224,7 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDomainArticle: Article = Article(
@@ -246,7 +250,7 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -272,7 +276,7 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -553,9 +557,9 @@ object TestData {
     conceptIds = Seq.empty,
     availability = Availability.everyone,
     relatedContent = Seq.empty,
-    None,
+    revisionDate = None,
     slug = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -590,7 +594,7 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    None
+    disclaimer = OptLanguageFields.empty
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -653,7 +657,7 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = None
+    disclaimer = OptLanguageFields.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -961,7 +965,8 @@ object TestData {
     lastUpdated = today,
     tags = List(),
     owner = "owner",
-    copyright = copyright
+    copyright = copyright,
+    isMyNDLAOwner = false
   )
 
   val PenguinId   = 1L
@@ -1639,18 +1644,40 @@ object TestData {
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
-      GrepKjerneelement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing")), BelongsToObj("LP1")),
-      GrepKjerneelement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")), BelongsToObj("LP1"))
+      GrepKjerneelement(
+        kode = "KE12",
+        tittel = GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP1")
+      ),
+      GrepKjerneelement(
+        kode = "KE34",
+        tittel = GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP2")
+      )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
-        "KM123",
-        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")),
-        BelongsToObj("LP1")
+        kode = "KM123",
+        tittel = GrepTextObj(
+          List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
+        ),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", "Dette er LP1"),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj("KMS1", "Dette er KMS1"),
+        `tilknyttede-tverrfaglige-temaer` = List(),
+        `tilknyttede-kjerneelementer` = List(),
+        `gjenbruk-av` = None
       )
     ),
     tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap")))),
-    laereplaner = List(GrepLaererplan("LP1", Seq(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))))
+    laereplaner = List(
+      GrepLaererplan(
+        "LP1",
+        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))),
+        `erstattes-av` = List.empty
+      )
+    )
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -1801,7 +1828,6 @@ object TestData {
   )
   val searchableDraft: SearchableDraft = SearchableDraft(
     id = 100,
-    draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
     title = searchableTitles,
     content = searchableContents,
     visualElement = searchableVisualElements,
@@ -1815,8 +1841,10 @@ object TestData {
     defaultTitle = Some("Christian Tut"),
     supportedLanguages = List("en", "nb", "nn"),
     notes = List("Note1", "note2"),
+    None,
     contexts = searchableTaxonomyContexts,
     contextids = searchableTaxonomyContexts.map(_.contextId),
+    draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
     users = List("ndalId54321", "ndalId12345"),
     previousVersionsNotes = List("OldNote"),
     grepContexts = List(),
@@ -1841,10 +1869,10 @@ object TestData {
       )
     ),
     priority = Priority.Unspecified,
-    parentTopicName = searchableTitles,
     defaultParentTopicName = searchableTitles.defaultValue,
-    primaryRoot = searchableTitles,
+    parentTopicName = searchableTitles,
     defaultRoot = searchableTitles.defaultValue,
+    primaryRoot = searchableTitles,
     resourceTypeName = searchableTitles,
     defaultResourceTypeName = searchableTitles.defaultValue,
     published = TestData.today,
@@ -1863,8 +1891,6 @@ object TestData {
     updatedBy = Seq("noen"),
     metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleIds = Seq(42),
     status = no.ndla.common.model.domain.concept.Status(
       ConceptStatus.LANGUAGE,
       Set(ConceptStatus.PUBLISHED)

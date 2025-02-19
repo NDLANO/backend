@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.model.search
@@ -23,7 +24,6 @@ case class SearchableConcept(
     metaImage: Seq[ConceptMetaImage],
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
-    subjectIds: Seq[String],
     lastUpdated: NDLADate,
     status: Status,
     updatedBy: Seq[String],
@@ -31,15 +31,12 @@ case class SearchableConcept(
     copyright: Option[SearchableCopyright],
     embedResourcesAndIds: List[EmbedValues],
     visualElement: SearchableLanguageValues,
-    articleIds: Seq[Long],
     created: NDLADate,
     source: Option[String],
     responsible: Option[Responsible],
     gloss: Option[String],
     domainObject: Concept,
-    sortableSubject: SearchableLanguageValues,
     sortableConceptType: SearchableLanguageValues,
-    defaultSortableSubject: Option[String],
     defaultSortableConceptType: Option[String]
 )
 

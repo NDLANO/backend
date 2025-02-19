@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.model.domain
@@ -36,8 +37,6 @@ object DBConcept extends SQLSyntaxSupport[Concept] {
       meta.updatedBy,
       meta.metaImage,
       meta.tags,
-      meta.subjectIds,
-      meta.articleIds,
       meta.status,
       meta.visualElement,
       meta.responsible,

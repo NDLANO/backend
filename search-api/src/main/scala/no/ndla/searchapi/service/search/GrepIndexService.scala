@@ -11,15 +11,16 @@ package no.ndla.searchapi.service.search
 import cats.implicits.toTraverseOps
 import no.ndla.common.implicits.TryQuestionMark
 import com.sksamuel.elastic4s.ElasticDsl.*
+import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.GrepApiClient
 import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement}
-import no.ndla.searchapi.model.search.SearchType
 
 import scala.util.{Success, Try}
 
@@ -37,7 +38,10 @@ trait GrepIndexService {
       val fields = List(
         keywordField("defaultTitle"),
         keywordField("code").normalizer("lower"),
-        keywordField("laereplanCode").normalizer("lower")
+        keywordField("laereplanCode").normalizer("lower"),
+        keywordField("gjenbrukAv").normalizer("lower"),
+        keywordField("erstattesAv").normalizer("lower"),
+        ObjectField("domainObject", enabled = Some(false))
       )
 
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true)

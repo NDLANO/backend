@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.service.search
@@ -13,7 +14,7 @@ import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.repository.{PublishedConceptRepository, Repository}
 
 trait PublishedConceptIndexService {
-  this: IndexService with PublishedConceptRepository with SearchConverterService with Props =>
+  this: IndexService & PublishedConceptRepository & SearchConverterService & Props =>
   val publishedConceptIndexService: PublishedConceptIndexService
 
   class PublishedConceptIndexService extends StrictLogging with IndexService {

@@ -3,6 +3,7 @@
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.imageapi.model.search
@@ -28,7 +29,8 @@ case class SearchableImage(
     editorNotes: Seq[String],
     imageFiles: Seq[SearchableImageFile],
     podcastFriendly: Boolean,
-    domainObject: ImageMetaInformation
+    domainObject: ImageMetaInformation,
+    users: Seq[String]
 )
 
 object SearchableImage {

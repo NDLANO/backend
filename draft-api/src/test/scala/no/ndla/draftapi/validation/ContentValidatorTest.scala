@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.validation
@@ -10,6 +11,7 @@ package no.ndla.draftapi.validation
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, RevisionMeta}
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY_SA
 
@@ -63,21 +65,20 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if disclaimer contains illegal HTML tags") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      disclaimer = Some(Seq(Disclaimer("<p><hallo>hei</hallo></p>", "nb")))
+      disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb")
     )
     val Failure(error: ValidationException) = contentValidator.validateArticle(article)
-    error should be(
-      ValidationException(
-        "disclaimer",
-        "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
-      )
+    val expected = ValidationException(
+      "disclaimer.nb",
+      "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
     )
+    error should be(expected)
   }
 
   test("validateArticle should not throw an error if disclaimer contains legal HTML tags") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      disclaimer = Some(Seq(Disclaimer(validDisclaimer, "nb")))
+      disclaimer = OptLanguageFields.withValue(validDisclaimer, "nb")
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
 
@@ -327,7 +328,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
     res.errors.length should be(1)
     res.errors.head.field should be("revisionMeta")
-    res.errors.head.message should be("An article must contain at least one planned revisiondate")
+    res.errors.head.message should be("An article must contain at least one planned revision date")
   }
 
   test("validation should fail if slug field is present but articleType is not frontpage-article") {
@@ -449,6 +450,6 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     result.isFailure should be(true)
     val Failure(validationError: ValidationException) = result
     validationError.errors.length should be(1)
-    validationError.errors.head.message should be("An article must contain at least one planned revisiondate")
+    validationError.errors.head.message should be("An article must contain at least one planned revision date")
   }
 }

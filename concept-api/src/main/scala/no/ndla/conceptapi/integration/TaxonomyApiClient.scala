@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.integration
@@ -18,7 +19,7 @@ import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
 trait TaxonomyApiClient {
-  this: NdlaClient with Props =>
+  this: NdlaClient & Props =>
   val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient {

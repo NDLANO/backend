@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA common
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.common
 
 import io.circe.DecodingFailure.Reason
@@ -71,6 +78,8 @@ package object implicits {
 
     /** Same as [[?]] except that it returns Unit on success */
     def ?? : Unit = macro doubleTryQuestionMarkOperator
+
+    def unit: Try[Unit] = self.map(_ => ())
   }
 
   def optionQuestionMarkOperator(c: blackbox.Context): c.Tree = {

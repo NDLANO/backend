@@ -3,6 +3,7 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
@@ -44,6 +45,7 @@ class LearningPathIndexServiceTest
   }
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 

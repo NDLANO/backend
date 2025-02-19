@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.service
@@ -12,6 +13,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
@@ -34,7 +36,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: DraftRepository & ConverterService & ArticleSearchService & TagSearchService & GrepCodesSearchService &
-    SearchConverterService & UserDataRepository & WriteService & Props & MemoizeHelpers =>
+    SearchConverterService & UserDataRepository & WriteService & Props & MemoizeHelpers & DBUtility =>
   val readService: ReadService
 
   import props.*
@@ -78,7 +80,7 @@ trait ReadService {
 
     def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      draftRepository.withSession { implicit session =>
+      DBUtil.withSession { implicit session =>
         val results = draftRepository
           .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
           .flatMap(article => converterService.toApiArticle(article, lang, fallback).toOption)
@@ -87,7 +89,7 @@ trait ReadService {
     }
 
     def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
-      draftRepository.withSession(implicit session => {
+      DBUtil.withSession(implicit session => {
         val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
         val results = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
 

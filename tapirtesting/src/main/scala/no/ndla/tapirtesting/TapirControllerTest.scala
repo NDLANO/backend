@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.tapirtesting
@@ -31,6 +32,7 @@ trait TapirControllerTest
   var server: HttpServer = _
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     server = Routes.startJdkServerAsync(s"TapirControllerTest:${this.getClass.getName}", serverPort) {}
     Thread.sleep(1000)
   }

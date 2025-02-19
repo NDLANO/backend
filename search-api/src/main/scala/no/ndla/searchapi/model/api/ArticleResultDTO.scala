@@ -3,10 +3,12 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.api
 
+import no.ndla.common.model.api.search.TitleWithHtmlDTO
 import no.ndla.searchapi.model.api.article.ArticleIntroductionDTO
 import sttp.tapir.Schema.annotations.description
 

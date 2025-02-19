@@ -3,11 +3,13 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, SearchTrait}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.{ArticleType, Availability}
@@ -16,9 +18,8 @@ import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.api.MetaImageDTO
-import no.ndla.searchapi.model.domain.{IndexingBundle, LearningResourceType, Sort}
-import no.ndla.searchapi.model.search.{SearchPagination, SearchTrait}
+import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
+import no.ndla.searchapi.model.search.SearchPagination
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success

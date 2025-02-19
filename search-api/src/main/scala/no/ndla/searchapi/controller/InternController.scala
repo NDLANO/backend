@@ -3,6 +3,7 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.controller
@@ -11,6 +12,7 @@ import cats.implicits.{catsSyntaxEitherId, toTraverseOps}
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.Content
@@ -26,7 +28,6 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.service.search.{
   ArticleIndexService,
   DraftConceptIndexService,

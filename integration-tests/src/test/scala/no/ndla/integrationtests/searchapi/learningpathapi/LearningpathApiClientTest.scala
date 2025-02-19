@@ -3,6 +3,7 @@
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.integrationtests.searchapi.learningpathapi
@@ -50,6 +51,7 @@ class LearningpathApiClientTest
   val learningpathApiBaseUrl: String             = s"http://localhost:$learningpathApiPort"
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

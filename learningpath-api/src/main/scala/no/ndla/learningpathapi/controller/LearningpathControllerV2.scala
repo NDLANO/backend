@@ -18,7 +18,6 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.{License as _, *}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
@@ -199,21 +198,21 @@ trait LearningpathControllerV2 {
       getLearningStep,
       fetchLearningPathContainingArticle,
       getLearningStepStatus,
-      addLearningpath,
+      addLearningpath(),
       copyLearningpath,
-      updateLearningPath,
-      addLearningStep,
-      updateLearningStep,
+      updateLearningPath(),
+      addLearningStep(),
+      updateLearningStep(),
       updatedLearningstepSeqNo,
-      updateLearningStepStatus,
-      updateLearningPathStatus,
+      updateLearningStepStatus(),
+      updateLearningPathStatus(),
       withStatus,
-      deleteLearningpath,
-      deleteLearningStep,
-      updateLearningPathTaxonomy
+      deleteLearningpath(),
+      deleteLearningStep(),
+      updateLearningPathTaxonomy()
     )
 
-    def getLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find public learningpaths")
       .description("Show public learningpaths.")
       .in(queryParam)
@@ -248,7 +247,7 @@ trait LearningpathControllerV2 {
           }.handleErrorsOrOk
       }
 
-    def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
+    private def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Find public learningpaths")
       .description("Show public learningpaths")
       .in("search")
@@ -274,7 +273,7 @@ trait LearningpathControllerV2 {
         }.handleErrorsOrOk
       }
 
-    def getLearningpathsByIds: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningpathsByIds: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch learningpaths that matches ids parameter.")
       .description("Returns learningpaths that matches ids parameter.")
       .in("ids")
@@ -284,30 +283,25 @@ trait LearningpathControllerV2 {
       .in(pageSize)
       .in(pageNo)
       .errorOut(errorOutputsFor(400, 401, 403))
-      .out(jsonBody[Seq[LearningPathV2DTO]])
+      .out(jsonBody[List[LearningPathV2DTO]])
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (idList, fallback, language, pageSizeQ, pageNoQ) =>
-          if (!user.isNdla) {
-            forbidden.asLeft
-          } else {
-            val pageSize = pageSizeQ.getOrElse(props.DefaultPageSize) match {
-              case tooSmall if tooSmall < 1 => props.DefaultPageSize
-              case x                        => x
-            }
-            val page = pageNoQ.getOrElse(1) match {
-              case tooSmall if tooSmall < 1 => 1
-              case x                        => x
-            }
-            readService.withIdV2List(idList.values, language, fallback, page, pageSize, user) match {
-              case Failure(ex)       => returnLeftError(ex)
-              case Success(articles) => articles.asRight
-            }
+          val pageSize = pageSizeQ.getOrElse(props.DefaultPageSize) match {
+            case tooSmall if tooSmall < 1 => props.DefaultPageSize
+            case x                        => x
           }
+          val page = pageNoQ.getOrElse(1) match {
+            case tooSmall if tooSmall < 1 => 1
+            case x                        => x
+          }
+          readService
+            .withIdV2List(idList.values, language, fallback, page, pageSize, user)
+            .handleErrorsOrOk
         }
       }
 
-    def getLearningpath: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningpath: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch details about the specified learningpath")
       .description("Shows all information about the specified learningpath.")
       .in(pathLearningpathId)
@@ -322,7 +316,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def getLearningpathStatus: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningpathStatus: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show status information for the learningpath")
       .description("Shows publishingstatus for the learningpath")
       .in(pathLearningpathId / "status")
@@ -331,7 +325,7 @@ trait LearningpathControllerV2 {
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { maybeUser => id => readService.statusFor(id, maybeUser).handleErrorsOrOk }
 
-    def getLearningsteps: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningsteps: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch learningsteps for given learningpath")
       .description("Show all learningsteps for given learningpath id")
       .in(pathLearningpathId / "learningsteps")
@@ -354,7 +348,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def getLearningStep: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningStep: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch details about the specified learningstep")
       .description("Show the given learningstep for the given learningpath")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
@@ -371,7 +365,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def getLearningStepsInTrash: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningStepsInTrash: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch deleted learningsteps for given learningpath")
       .description("Show all learningsteps for the given learningpath that are marked as deleted")
       .in(pathLearningpathId / "learningsteps" / "trash")
@@ -386,7 +380,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def getLearningStepStatus: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getLearningStepStatus: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show status information for learningstep")
       .description("Shows status for the learningstep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "status")
@@ -408,7 +402,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def getMyLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getMyLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all learningspaths you have created")
       .description("Shows your learningpaths.")
       .in("mine")
@@ -435,7 +429,7 @@ trait LearningpathControllerV2 {
         licenses.map(x => LicenseDTO(x.license.toString, Option(x.description), x.url)).asRight
       }
 
-    def addLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
+    private def addLearningpath(): ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Store new learningpath")
       .description("Adds the given learningpath")
       .in(jsonBody[NewLearningPathV2DTO])
@@ -453,7 +447,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def copyLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
+    private def copyLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Copy given learningpath and store it as a new learningpath")
       .description("Copies the given learningpath, with the option to override some fields")
       .in(pathLearningpathId / "copy")
@@ -464,22 +458,18 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, newLearningPath) =>
-          UserInfo
-            .getWithUserIdOrAdmin(user)
-            .flatMap(userInfo =>
-              updateService
-                .newFromExistingV2(pathId, newLearningPath, userInfo)
-                .map(learningPath => {
-                  logger.info(s"COPIED LearningPath with ID =  ${learningPath.id}")
-                  val headers = DynamicHeaders.fromValue("Location", learningPath.metaUrl)
-                  (learningPath, headers)
-                })
-            )
+          updateService
+            .newFromExistingV2(pathId, newLearningPath, user)
+            .map(learningPath => {
+              logger.info(s"COPIED LearningPath with ID =  ${learningPath.id}")
+              val headers = DynamicHeaders.fromValue("Location", learningPath.metaUrl)
+              (learningPath, headers)
+            })
             .handleErrorsOrOk
         }
       }
 
-    def updateLearningPath: ServerEndpoint[Any, Eff] = endpoint.patch
+    def updateLearningPath(): ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update given learningpath")
       .description("Updates the given learningPath")
       .in(pathLearningpathId)
@@ -499,7 +489,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def addLearningStep: ServerEndpoint[Any, Eff] = endpoint.post
+    private def addLearningStep(): ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Add new learningstep to learningpath")
       .description("Adds the given LearningStep")
       .in(pathLearningpathId / "learningsteps")
@@ -521,7 +511,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def updateLearningStep: ServerEndpoint[Any, Eff] = endpoint.patch
+    def updateLearningStep(): ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update given learningstep")
       .description("Update the given learningStep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
@@ -541,7 +531,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def updatedLearningstepSeqNo: ServerEndpoint[Any, Eff] = endpoint.put
+    private def updatedLearningstepSeqNo: ServerEndpoint[Any, Eff] = endpoint.put
       .summary("Store new sequence number for learningstep.")
       .description(
         "Updates the sequence number for the given learningstep. The sequence number of other learningsteps will be affected by this."
@@ -557,7 +547,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def updateLearningStepStatus: ServerEndpoint[Any, Eff] = endpoint.put
+    private def updateLearningStepStatus(): ServerEndpoint[Any, Eff] = endpoint.put
       .summary("Update status of given learningstep")
       .description("Updates the status of the given learningstep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "status")
@@ -580,7 +570,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def updateLearningPathStatus: ServerEndpoint[Any, Eff] = endpoint.put
+    private def updateLearningPathStatus(): ServerEndpoint[Any, Eff] = endpoint.put
       .summary("Update status of given learningpath")
       .description("Updates the status of the given learningPath")
       .in(pathLearningpathId / "status")
@@ -609,7 +599,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def withStatus: ServerEndpoint[Any, Eff] = endpoint.get
+    private def withStatus: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all learningpaths with specified status")
       .description("Fetch all learningpaths with specified status")
       .in("status" / learningPathStatus)
@@ -618,7 +608,7 @@ trait LearningpathControllerV2 {
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user => status => readService.learningPathWithStatus(status, user).handleErrorsOrOk }
 
-    def deleteLearningpath: ServerEndpoint[Any, Eff] = endpoint.delete
+    private def deleteLearningpath(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete given learningpath")
       .description("Deletes the given learningPath")
       .in(pathLearningpathId)
@@ -639,7 +629,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def deleteLearningStep: ServerEndpoint[Any, Eff] = endpoint.delete
+    private def deleteLearningStep(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete given learningstep")
       .description("Deletes the given learningStep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
@@ -657,7 +647,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def getTags: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getTags: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all previously used tags in learningpaths")
       .description("Retrieves a list of all previously used tags in learningpaths")
       .in("tags")
@@ -673,7 +663,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def getContributors: ServerEndpoint[Any, Eff] = endpoint.get
+    private def getContributors: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all previously used contributors in learningpaths")
       .description("Retrieves a list of all previously used contributors in learningpaths")
       .in("contributors")
@@ -683,7 +673,7 @@ trait LearningpathControllerV2 {
         readService.contributors.asRight
       }
 
-    def updateLearningPathTaxonomy: ServerEndpoint[Any, Eff] = endpoint.post
+    private def updateLearningPathTaxonomy(): ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Update taxonomy for specified learningpath")
       .description("Update taxonomy for specified learningpath")
       .in(pathLearningpathId / "update-taxonomy")
@@ -707,7 +697,7 @@ trait LearningpathControllerV2 {
         }
       }
 
-    def fetchLearningPathContainingArticle: ServerEndpoint[Any, Eff] = endpoint.get
+    private def fetchLearningPathContainingArticle: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch learningpaths containing specified article")
       .description("Fetch learningpaths containing specified article")
       .in("contains-article" / pathArticleId)

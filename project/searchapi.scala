@@ -24,7 +24,8 @@ object searchapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq(
       "no.ndla.searchapi.model.api._",
-      "no.ndla.searchapi.controller.parameters._"
+      "no.ndla.searchapi.controller.parameters._",
+      "no.ndla.common.model.api.search._"
     ),
     exports = Seq(
       "ApiTaxonomyContextDTO",
@@ -43,7 +44,8 @@ object searchapi extends Module {
       "SubjectAggregationsDTO",
       "SubjectAggsInputDTO",
       "GrepSearchInputDTO",
-      "grep.GrepSearchResultsDTO"
+      "grep.GrepSearchResultsDTO",
+      "grep.GrepResultDTO"
     )
   )
 

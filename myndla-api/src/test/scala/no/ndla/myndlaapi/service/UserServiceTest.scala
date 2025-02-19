@@ -51,18 +51,20 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val updatedUserData =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
-        shareName = Some(true),
-        arenaGroups = None
+        arenaGroups = None,
+        arenaAccepted = None,
+        shareNameAccepted = None
       )
     val userAfterMerge = MyNDLAUser(
       id = 42,
@@ -80,11 +82,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = true,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val expected = MyNDLAUserDTO(
       id = 42,
@@ -97,15 +100,16 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       arenaEnabled = false,
-      shareName = true,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
     doReturn(Success(()))
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
     when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
@@ -123,15 +127,16 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
         arenaEnabled = None,
-        shareName = None,
-        arenaGroups = None
+        arenaGroups = None,
+        arenaAccepted = None,
+        shareNameAccepted = None
       )
 
     doReturn(Success(()))
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
 
     service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(
@@ -144,10 +149,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(false))
 
     val feideId = "feide"
@@ -177,11 +182,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -194,8 +200,9 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -228,10 +235,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"
@@ -251,11 +258,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -268,8 +276,9 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
@@ -288,10 +297,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists but needs update") {
     when(clock.now()).thenReturn(NDLADate.now())
-    when(userRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId = "feide"
@@ -321,11 +330,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
@@ -345,8 +355,9 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       arenaEnabled = false,
-      shareName = false,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
     when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))

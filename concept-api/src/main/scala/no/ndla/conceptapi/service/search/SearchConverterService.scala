@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.service.search
@@ -14,8 +15,7 @@ import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title, concept}
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, ConceptType, VisualElement}
-import no.ndla.conceptapi.integration.model.TaxonomyData
-import no.ndla.conceptapi.model.api.{ConceptResponsibleDTO, ConceptSearchResultDTO, SubjectTagsDTO}
+import no.ndla.conceptapi.model.api.{ConceptResponsibleDTO, ConceptSearchResultDTO}
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.*
 import no.ndla.conceptapi.model.api
@@ -55,7 +55,7 @@ trait SearchConverterService {
       })
     }
 
-    def asSearchableConcept(c: Concept, taxonomyData: TaxonomyData): SearchableConcept = {
+    def asSearchableConcept(c: Concept): SearchableConcept = {
       val title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title)))
       val content = SearchableLanguageValues(
         c.content.map(content => LanguageValue(content.language, Jsoup.parseBodyFragment(content.content).text()))
@@ -67,17 +67,6 @@ trait SearchConverterService {
 
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
       val copyright            = asSearchableCopyright(c.copyright)
-
-      val allConnectedSubjects = c.subjectIds.flatMap(subjectId => {
-        taxonomyData.subjectsById
-          .get(subjectId)
-          .map(subject => {
-            val translations = subject.translations.map(_.toLanguageValue)
-            SearchableLanguageValues(translations)
-          })
-      })
-
-      val sortableSubject = SearchableLanguageValues.combine(allConnectedSubjects.toSeq)
 
       val sortableConceptType = c.conceptType match {
         case ConceptType.CONCEPT =>
@@ -99,10 +88,9 @@ trait SearchConverterService {
         conceptType = c.conceptType.entryName,
         title = title,
         content = content,
-        defaultTitle = title.defaultValue,
         metaImage = c.metaImage,
+        defaultTitle = title.defaultValue,
         tags = tags,
-        subjectIds = c.subjectIds.toSeq,
         lastUpdated = c.updated,
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
@@ -110,15 +98,12 @@ trait SearchConverterService {
         copyright = copyright,
         embedResourcesAndIds = embedResourcesAndIds,
         visualElement = visualElement,
-        articleIds = c.articleIds,
         created = c.created,
         source = c.copyright.flatMap(_.origin),
         responsible = c.responsible,
         gloss = c.glossData.map(_.gloss),
         domainObject = c,
-        sortableSubject = sortableSubject,
         sortableConceptType = sortableConceptType,
-        defaultSortableSubject = sortableSubject.defaultValue,
         defaultSortableConceptType = sortableConceptType.defaultValue
       )
     }
@@ -145,8 +130,7 @@ trait SearchConverterService {
       val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
       val visualElement =
         findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
-      val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
-      val license    = converterService.toApiLicense(searchableConcept.license)
+      val license = converterService.toApiLicense(searchableConcept.license)
       val copyright = searchableConcept.copyright.map(c => {
         commonApi.DraftCopyrightDTO(
           license = Some(license),
@@ -162,7 +146,6 @@ trait SearchConverterService {
 
       val responsible = searchableConcept.responsible.map(r => ConceptResponsibleDTO(r.responsibleId, r.lastUpdated))
       val glossData   = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
-      val subjectName = searchableConcept.sortableSubject.getLanguageOrDefault(language)
       val conceptTypeName = searchableConcept.sortableConceptType
         .getLanguageOrDefault(language)
         .getOrElse(searchableConcept.conceptType)
@@ -173,33 +156,21 @@ trait SearchConverterService {
         content = content,
         metaImage = metaImage,
         tags = tag,
-        subjectIds = subjectIds,
         supportedLanguages = supportedLanguages,
         lastUpdated = searchableConcept.lastUpdated,
+        created = searchableConcept.created,
         status = toApiStatus(searchableConcept.status),
         updatedBy = searchableConcept.updatedBy,
         license = searchableConcept.license,
         copyright = copyright,
         visualElement = visualElement,
-        articleIds = searchableConcept.articleIds,
-        created = searchableConcept.created,
         source = searchableConcept.source,
         responsible = responsible,
         conceptType = searchableConcept.conceptType,
         glossData = glossData,
-        subjectName = subjectName,
         conceptTypeName = conceptTypeName
       )
     }
-
-    def groupSubjectTagsByLanguage(subjectId: String, tags: List[api.ConceptTagsDTO]): List[SubjectTagsDTO] =
-      tags
-        .groupBy(_.language)
-        .map { case (lang, conceptTags) =>
-          val tagsForLang = conceptTags.flatMap(_.tags).distinct
-          api.SubjectTagsDTO(subjectId, tagsForLang, lang)
-        }
-        .toList
 
     /** Attempts to extract language that hit from highlights in elasticsearch response.
       *
@@ -224,7 +195,7 @@ trait SearchConverterService {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {

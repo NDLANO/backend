@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.common.model.domain.concept
@@ -25,8 +26,6 @@ case class Concept(
     updatedBy: Seq[String],
     metaImage: Seq[ConceptMetaImage],
     tags: Seq[Tag],
-    subjectIds: Set[String],
-    articleIds: Seq[Long],
     status: Status,
     visualElement: Seq[VisualElement],
     responsible: Option[Responsible],

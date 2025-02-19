@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.common.model.domain.myndla
@@ -23,8 +24,9 @@ case class MyNDLAUser(
     displayName: String,
     email: String,
     arenaEnabled: Boolean,
+    arenaAccepted: Boolean,
     arenaGroups: List[ArenaGroup],
-    shareName: Boolean
+    shareNameAccepted: Boolean
 ) {
   // Keeping FEIDE and our data in sync
   def wasUpdatedLast24h: Boolean = NDLADate.now().isBefore(lastUpdated.minusSeconds(10))

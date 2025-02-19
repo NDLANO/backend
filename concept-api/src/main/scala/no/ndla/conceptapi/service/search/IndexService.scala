@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.service.search
@@ -11,15 +12,12 @@ import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.analysis.{Analysis, CustomNormalizer}
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
-import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.integration.TaxonomyApiClient
-import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
@@ -29,12 +27,12 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService with Props with TaxonomyApiClient with SearchConverterService =>
+  this: Elastic4sClient & BaseIndexService & Props & SearchConverterService =>
   trait IndexService extends BaseIndexService with StrictLogging {
     val repository: Repository[Concept]
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
-    val lowerNormalizer: CustomNormalizer =
+    private val lowerNormalizer: CustomNormalizer =
       CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
 
     override val analysis: Analysis =
@@ -44,14 +42,10 @@ trait IndexService {
         normalizers = List(lowerNormalizer)
       )
 
-    private def createIndexRequest(
-        concept: Concept,
-        indexName: String,
-        taxonomyData: TaxonomyData
-    ): Try[IndexRequest] = {
+    private def createIndexRequest(concept: Concept, indexName: String) = {
       concept.id match {
         case Some(id) =>
-          val searchable = searchConverterService.asSearchableConcept(concept, taxonomyData)
+          val searchable = searchConverterService.asSearchableConcept(concept)
           val source     = CirceUtil.toJsonString(searchable)
           Success(
             indexInto(indexName).doc(source).id(id.toString)
@@ -63,10 +57,9 @@ trait IndexService {
 
     def indexDocument(imported: Concept): Try[Concept] = {
       for {
-        _            <- createIndexIfNotExists()
-        taxonomyData <- if (imported.subjectIds.nonEmpty) taxonomyApiClient.getSubjects else Success(TaxonomyData.empty)
-        request      <- createIndexRequest(imported, searchIndex, taxonomyData)
-        _            <- e4sClient.execute(request)
+        _       <- createIndexIfNotExists()
+        request <- createIndexRequest(imported, searchIndex)
+        _       <- e4sClient.execute(request)
       } yield imported
     }
 
@@ -76,11 +69,10 @@ trait IndexService {
 
     private def sendToElastic(indexName: String): Try[BulkIndexResult] = {
       for {
-        taxonomyData <- taxonomyApiClient.getSubjects
-        ranges       <- getRanges
+        ranges <- getRanges
         indexed <- ranges.traverse { case (start, end) =>
           val toIndex = repository.documentsWithIdBetween(start, end)
-          indexDocuments(toIndex, indexName, taxonomyData).map(numIndexed => (numIndexed, toIndex.size))
+          indexDocuments(toIndex, indexName).map(numIndexed => (numIndexed, toIndex.size))
         }
       } yield countIndexed(indexed)
     }
@@ -96,11 +88,11 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(contents: Seq[Concept], indexName: String, taxonomyData: TaxonomyData): Try[Int] = {
+    def indexDocuments(contents: Seq[Concept], indexName: String): Try[Int] = {
       if (contents.isEmpty) {
         Success(0)
       } else {
-        val req                    = contents.map(content => createIndexRequest(content, indexName, taxonomyData))
+        val req                    = contents.map(content => createIndexRequest(content, indexName))
         val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
         val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
@@ -134,7 +126,7 @@ trait IndexService {
       * @return
       *   Sequence of DynamicTemplateRequest for a field.
       */
-    protected def generateLanguageSupportedDynamicTemplates(
+    private def generateLanguageSupportedDynamicTemplates(
         fieldName: String,
         keepRaw: Boolean = false
     ): Seq[DynamicTemplateRequest] = {
@@ -169,7 +161,6 @@ trait IndexService {
         intField("id"),
         keywordField("conceptType"),
         keywordField("defaultTitle").normalizer("lower"),
-        keywordField("subjectIds"),
         nestedField("metaImage").fields(
           keywordField("imageId"),
           keywordField("altText"),
@@ -177,7 +168,6 @@ trait IndexService {
         ),
         dateField("lastUpdated"),
         dateField("created"),
-        longField("articleIds"),
         keywordField("status.current"),
         keywordField("status.other"),
         keywordField("updatedBy"),
@@ -218,7 +208,6 @@ trait IndexService {
       val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("content") ++
         generateLanguageSupportedDynamicTemplates("tags", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("sortableSubject", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("sortableConceptType", keepRaw = true)
 
       properties(fields).dynamicTemplates(dynamics)

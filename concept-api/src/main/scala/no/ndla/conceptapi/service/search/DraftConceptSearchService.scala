@@ -3,18 +3,18 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.service.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.concept.ConceptStatus
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ErrorHandling, OperationNotAllowedException, SubjectTagsDTO}
+import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.{DraftSearchSettings, DraftSearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
@@ -23,87 +23,20 @@ import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregations
 import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
-import scala.annotation.tailrec
-import scala.concurrent.duration._
-import scala.concurrent._
-import scala.language.postfixOps
+import scala.concurrent.*
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptSearchService {
-  this: Elastic4sClient
-    with SearchService
-    with DraftConceptIndexService
-    with ConverterService
-    with SearchConverterService
-    with Props
-    with ErrorHandling
-    with DraftSearchSettingsHelper =>
+  this: Elastic4sClient & SearchService & DraftConceptIndexService & ConverterService & SearchConverterService & Props &
+    ErrorHandling & DraftSearchSettingsHelper =>
   val draftConceptSearchService: DraftConceptSearchService
 
   class DraftConceptSearchService extends StrictLogging with SearchService[api.ConceptSummaryDTO] {
-    import props._
+    import props.*
     override val searchIndex: String = DraftConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
       searchConverterService.hitAsConceptSummary(hitString, language)
-
-    def getTagsWithSubjects(
-        subjectIds: List[String],
-        language: String,
-        fallback: Boolean
-    ): Try[List[api.SubjectTagsDTO]] = {
-      if (subjectIds.size <= 0) {
-        Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
-      } else {
-        implicit val ec: ExecutionContextExecutor =
-          ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
-        val searches = subjectIds.traverse(subjectId => searchSubjectIdTags(subjectId, language, fallback))
-        Await.result(searches, 1 minute).sequence.map(_.flatten)
-      }
-    }
-
-    private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(implicit
-        executor: ExecutionContext
-    ): Future[Try[List[SubjectTagsDTO]]] =
-      Future {
-        val settings = draftSearchSettings.empty.copy(
-          subjects = Set(subjectId),
-          searchLanguage = language,
-          fallback = fallback,
-          shouldScroll = true
-        )
-
-        searchUntilNoMoreResults(settings).map(searchResults => {
-          val tagsInSubject = for {
-            searchResult <- searchResults
-            searchHits   <- searchResult.results
-            matchedTags  <- searchHits.tags.toSeq
-          } yield matchedTags
-
-          searchConverterService
-            .groupSubjectTagsByLanguage(subjectId, tagsInSubject)
-            .filter(tags => tags.language == language || language == AllLanguages || fallback)
-        })
-      }
-
-    @tailrec
-    private def searchUntilNoMoreResults(
-        searchSettings: DraftSearchSettings,
-        prevResults: List[SearchResult[api.ConceptSummaryDTO]] = List.empty
-    ): Try[List[SearchResult[api.ConceptSummaryDTO]]] = {
-      val page = prevResults.lastOption.flatMap(_.page).getOrElse(0) + 1
-
-      val result = prevResults.lastOption.flatMap(_.scrollId) match {
-        case Some(scrollId) => this.scroll(scrollId, searchSettings.searchLanguage)
-        case None           => this.all(searchSettings.copy(page = page))
-      }
-
-      result match {
-        case Failure(ex)                                                        => Failure(ex)
-        case Success(value) if value.results.size <= 0 || value.totalCount == 0 => Success(prevResults)
-        case Success(value) => searchUntilNoMoreResults(searchSettings, prevResults :+ value)
-      }
-    }
 
     def all(settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] =
       executeSearch(boolQuery(), settings)
@@ -135,12 +68,11 @@ trait DraftConceptSearchService {
         queryBuilder: BoolQuery,
         settings: DraftSearchSettings
     ): Try[SearchResult[api.ConceptSummaryDTO]] = {
-      val idFilter      = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val typeFilter    = settings.conceptType.map(ct => termsQuery("conceptType", ct))
-      val statusFilter  = boolStatusFilter(settings.statusFilter)
-      val subjectFilter = orFilter(settings.subjects, "subjectIds")
-      val tagFilter     = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
-      val userFilter    = orFilter(settings.userFilter, "updatedBy")
+      val idFilter     = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val typeFilter   = settings.conceptType.map(ct => termsQuery("conceptType", ct))
+      val statusFilter = boolStatusFilter(settings.statusFilter)
+      val tagFilter    = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
+      val userFilter   = orFilter(settings.userFilter, "updatedBy")
       val responsibleIdFilter = Option.when(settings.responsibleIdFilter.nonEmpty) {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
       }
@@ -159,7 +91,6 @@ trait DraftConceptSearchService {
           idFilter,
           typeFilter,
           languageFilter,
-          subjectFilter,
           tagFilter,
           statusFilter,
           userFilter,
@@ -173,7 +104,7 @@ trait DraftConceptSearchService {
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {

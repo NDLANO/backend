@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api
+ * Part of NDLA oembed-proxy
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE

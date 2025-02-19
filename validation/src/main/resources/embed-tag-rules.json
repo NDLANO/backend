@@ -27,6 +27,7 @@
         "allowedChildren": [
           "aside",
           "b",
+          "blockquote",
           "br",
           "details",
           "div",
@@ -61,13 +62,6 @@
           "name": "data-disclaimer",
           "validation": {
             "required": true
-          }
-        },
-        {
-          "name": "data-article-id",
-          "validation": {
-            "required": false,
-            "dataType": "NUMBER"
           }
         }
       ],
@@ -659,11 +653,13 @@
               "players.brightcove.net",
               ".*.uio.no",
               ".*.maps.arcgis.com",
+              ".*.arcgis.com",
               "arcg.is",
               "norgeskart.no",
               "kartiskolen.no",
               "norgeibilder.no",
-              "video.qbrick.com"
+              "video.qbrick.com",
+              "www.norskpetroleum.no"
             ]
           }
         },

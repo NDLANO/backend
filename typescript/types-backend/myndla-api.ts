@@ -110,8 +110,9 @@ export interface IMyNDLAUserDTO {
   organization: string
   groups: IMyNDLAGroupDTO[]
   arenaEnabled: boolean
-  shareName: boolean
+  arenaAccepted: boolean
   arenaGroups: ArenaGroup[]
+  shareNameAccepted: boolean
 }
 
 export interface INewCategoryDTO {
@@ -274,8 +275,9 @@ export interface IUpdatedFolderDTO {
 export interface IUpdatedMyNDLAUserDTO {
   favoriteSubjects?: string[]
   arenaEnabled?: boolean
-  shareName?: boolean
   arenaGroups?: ArenaGroup[]
+  arenaAccepted?: boolean
+  shareNameAccepted?: boolean
 }
 
 export interface IUpdatedResourceDTO {

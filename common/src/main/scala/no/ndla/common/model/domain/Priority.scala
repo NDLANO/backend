@@ -3,10 +3,12 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.common.model.domain
-import enumeratum._
+
+import enumeratum.*
 import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}

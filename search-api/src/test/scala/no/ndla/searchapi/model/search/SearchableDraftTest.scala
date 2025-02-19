@@ -3,18 +3,19 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, Status as CommonStatus}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import java.util.UUID
@@ -83,7 +84,6 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
     val original = SearchableDraft(
       id = 100,
-      draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
       title = titles,
       content = contents,
       visualElement = visualElements,
@@ -97,8 +97,10 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
       notes = List("Note1", "note2"),
+      context = searchableTaxonomyContexts.headOption,
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
+      draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
       users = List("ndalId54321", "ndalId12345"),
       previousVersionsNotes = List("OldNote"),
       grepContexts =
@@ -124,10 +126,10 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
         )
       ),
       priority = Priority.Unspecified,
-      parentTopicName = titles,
       defaultParentTopicName = titles.defaultValue,
-      primaryRoot = titles,
+      parentTopicName = titles,
       defaultRoot = titles.defaultValue,
+      primaryRoot = titles,
       resourceTypeName = titles,
       defaultResourceTypeName = titles.defaultValue,
       published = TestData.today,

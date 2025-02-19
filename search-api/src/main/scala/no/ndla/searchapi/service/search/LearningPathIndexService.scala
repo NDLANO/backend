@@ -3,6 +3,7 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
@@ -13,11 +14,11 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.search.SearchType
 
 import scala.util.Try
 
@@ -77,7 +78,8 @@ trait LearningPathIndexService {
         ),
         intField("isBasedOn"),
         keywordField("supportedLanguages"),
-        getTaxonomyContextMapping,
+        getTaxonomyContextMapping("context"),
+        getTaxonomyContextMapping("contexts"),
         keywordField("contextids"),
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),
@@ -93,6 +95,9 @@ trait LearningPathIndexService {
         generateLanguageSupportedDynamicTemplates("relevance") ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("context.root") ++
+        generateLanguageSupportedDynamicTemplates("context.relevance") ++
+        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
         generateLanguageSupportedDynamicTemplates("contexts.root") ++
         generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
         generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")

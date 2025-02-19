@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.common.model.domain.concept
@@ -72,6 +73,6 @@ object WordClass extends Enum[WordClass] with CirceEnum[WordClass] {
   private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
   implicit val enumTsType: TSNamedType[WordClass] = TSType.alias[WordClass](
     "WordClass",
-    TSEnum.string("WordClassEnum", tsEnumValues: _*)
+    TSEnum.string("WordClassEnum", tsEnumValues*)
   )
 }

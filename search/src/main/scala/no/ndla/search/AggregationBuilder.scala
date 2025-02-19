@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.search
@@ -13,7 +14,7 @@ import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField, Te
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
-import no.ndla.search.api.{MultiSearchTermsAggregationDTO, TermValueDTO}
+import no.ndla.common.model.api.search.{MultiSearchTermsAggregationDTO, TermValueDTO}
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 
 import scala.annotation.tailrec

@@ -3,11 +3,13 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.domain
+
+import no.ndla.common.model.api.search.{MultiSearchSuggestionDTO, MultiSearchSummaryDTO}
 import no.ndla.search.model.domain.TermAggregation
-import no.ndla.searchapi.model.api.{MultiSearchSuggestionDTO, MultiSearchSummaryDTO}
 
 case class SearchResult(
     totalCount: Long,

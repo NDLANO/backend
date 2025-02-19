@@ -19,14 +19,14 @@ import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearnin
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.InvalidLpStatusException
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
 
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: LearningPathRepositoryComponent & FeideApiClient & ConverterService & Clock & RedisClient & MyNDLAApiClient =>
+  this: LearningPathRepositoryComponent & ConverterService & Clock & MyNDLAApiClient =>
   val readService: ReadService
 
   class ReadService {
@@ -52,14 +52,15 @@ trait ReadService {
         page: Int,
         pageSize: Int,
         userInfo: CombinedUser
-    ): Try[Seq[LearningPathV2DTO]] = {
+    ): Try[List[LearningPathV2DTO]] = {
       if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
         val offset        = (page - 1) * pageSize
         val learningpaths = learningPathRepository.pageWithIds(ids, pageSize, offset)
-        learningpaths.traverse(learningpath =>
-          converterService.asApiLearningpathV2(learningpath, language, fallback, userInfo)
-        )
+        learningpaths
+          .map(_.isOwnerOrPublic(userInfo))
+          .collect { case Success(lp) => converterService.asApiLearningpathV2(lp, language, fallback, userInfo) }
+          .sequence
       }
     }
 

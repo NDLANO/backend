@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.model.search
@@ -10,11 +11,10 @@ package no.ndla.searchapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{LearningResourceType, StatusDTO}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.concept.{Concept, ConceptMetaImage}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.api.StatusDTO
-import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchableConcept(
     id: Long,
@@ -24,14 +24,12 @@ case class SearchableConcept(
     metaImage: Seq[ConceptMetaImage],
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
-    subjectIds: List[String],
     lastUpdated: NDLADate,
     draftStatus: StatusDTO,
     users: List[String],
     updatedBy: Seq[String],
     license: Option[String],
     authors: List[String],
-    articleIds: Seq[Long],
     created: NDLADate,
     source: Option[String],
     responsible: Option[Responsible],

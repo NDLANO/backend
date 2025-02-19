@@ -98,6 +98,7 @@ export interface ILearningPathV2DTO {
   ownerId?: string
   message?: IMessageDTO
   madeAvailable?: string
+  isMyNDLAOwner: boolean
 }
 
 export interface ILearningStepContainerSummaryDTO {

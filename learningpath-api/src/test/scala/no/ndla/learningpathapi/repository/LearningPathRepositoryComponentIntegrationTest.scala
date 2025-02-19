@@ -48,21 +48,22 @@ class LearningPathRepositoryComponentIntegrationTest
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(clinton))
 
   val DefaultLearningPath: LearningPath = LearningPath(
-    None,
-    None,
-    None,
-    None,
-    List(Title("UNIT-TEST-1", "unknown")),
-    List(Description("UNIT-TEST", "unknown")),
-    None,
-    None,
-    LearningPathStatus.PRIVATE,
-    LearningPathVerificationStatus.EXTERNAL,
-    NDLADate.now().withNano(0),
-    NDLADate.now().withNano(0),
-    List(),
-    "UNIT-TEST",
-    copyright
+    id = None,
+    revision = None,
+    externalId = None,
+    isBasedOn = None,
+    title = List(Title("UNIT-TEST-1", "unknown")),
+    description = List(Description("UNIT-TEST", "unknown")),
+    coverPhotoId = None,
+    duration = None,
+    status = LearningPathStatus.PRIVATE,
+    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    created = NDLADate.now().withNano(0),
+    lastUpdated = NDLADate.now().withNano(0),
+    tags = List(),
+    owner = "UNIT-TEST",
+    copyright = copyright,
+    isMyNDLAOwner = false
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

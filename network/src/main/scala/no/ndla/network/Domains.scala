@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA network
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.network
 
 object Domains {

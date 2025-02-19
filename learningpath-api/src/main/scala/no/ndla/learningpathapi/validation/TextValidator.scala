@@ -20,7 +20,7 @@ trait TextValidator {
     import props.*
 
     val IllegalContentInBasicText: String =
-      s"The content contains illegal html-characters. Allowed characters are ${BasicHtmlTags.mkString(", ")}"
+      s"The content contains illegal html-characters. Allowed characters are ${AllowedHtmlTags.mkString(", ")}"
 
     val IllegalContentInPlainText =
       "The content contains illegal html-characters. No HTML is allowed."
@@ -28,17 +28,17 @@ trait TextValidator {
 
     def validate(fieldPath: String, text: String): Option[ValidationMessage] = {
       if (allowHtml) {
-        validateOnlyBasicHtmlTags(fieldPath, text)
+        validateOnlyAllowedHtmlTags(fieldPath, text)
       } else {
         validateNoHtmlTags(fieldPath, text)
       }
     }
 
-    private def validateOnlyBasicHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
+    private def validateOnlyAllowedHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
       if (text.isEmpty) {
         Some(ValidationMessage(fieldPath, FieldEmpty))
       } else {
-        if (Jsoup.isValid(text, new Safelist().addTags(BasicHtmlTags*))) {
+        if (Jsoup.isValid(text, Safelist.basic().addTags("section"))) {
           None
         } else {
           Some(ValidationMessage(fieldPath, IllegalContentInBasicText))

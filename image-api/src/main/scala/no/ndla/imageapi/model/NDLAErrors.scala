@@ -18,5 +18,4 @@ class ResultWindowTooLargeException(message: String) extends RuntimeException(me
 
 class ImageStorageException(message: String)         extends RuntimeException(message)
 case class ImageConversionException(message: String) extends RuntimeException(message)
-case class MissingIdException(message: String)       extends RuntimeException(message)
 case class ImageCopyException(message: String)       extends RuntimeException(message)

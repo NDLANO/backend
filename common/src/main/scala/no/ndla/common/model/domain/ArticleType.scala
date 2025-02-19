@@ -3,11 +3,12 @@
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.common.model.domain
 
-import enumeratum._
+import enumeratum.*
 import no.ndla.common.errors.ValidationException
 
 sealed abstract class ArticleType(override val entryName: String) extends EnumEntry

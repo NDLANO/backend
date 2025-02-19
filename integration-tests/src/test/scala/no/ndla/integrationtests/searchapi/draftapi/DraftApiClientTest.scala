@@ -3,6 +3,7 @@
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.integrationtests.searchapi.draftapi
@@ -30,6 +31,7 @@ class DraftApiClientTest
     with searchapi.TestEnvironment {
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
+  override val DBUtil                 = new DBUtility
 
   val draftApiPort: Int           = findFreePort
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
@@ -49,6 +51,7 @@ class DraftApiClientTest
   val draftApiBaseUrl: String      = s"http://localhost:$draftApiPort"
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
@@ -67,7 +70,7 @@ class DraftApiClientTest
   }
 
   private def setupArticles() = {
-    draftApi.componentRegistry.draftRepository.withSession { implicit session =>
+    DBUtil.withSession { implicit session =>
       (1L to 10)
         .map(id => {
           draftApi.componentRegistry.draftRepository.insert(

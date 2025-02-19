@@ -3,6 +3,7 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.myndlaapi.controller
@@ -42,8 +43,9 @@ class ArenaControllerTest extends UnitTestSuite with TestEnvironment with TapirC
     displayName = "displayName",
     email = "some@example.com",
     arenaEnabled = true,
+    arenaAccepted = true,
     arenaGroups = List.empty,
-    shareName = false
+    shareNameAccepted = false
   )
 
   test("That feide token parsing works if token present") {

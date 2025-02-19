@@ -34,7 +34,6 @@ object conceptapi extends Module {
       "ConceptSummaryDTO",
       "DraftConceptSearchParamsDTO",
       "NewConceptDTO",
-      "SubjectTagsDTO",
       "TagsSearchResultDTO",
       "UpdatedConceptDTO"
     )

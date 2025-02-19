@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type GrepResultDTO = (IGrepKjerneelementDTO | IGrepKompetansemaalDTO | IGrepKompetansemaalSettDTO | IGrepLaererplanDTO | IGrepTverrfagligTemaDTO)
+
 export type GrepSort = ("-relevance" | "relevance" | "-title" | "title" | "-code" | "code")
 
 export interface IApiTaxonomyContextDTO {
@@ -67,6 +69,11 @@ export interface ICommentDTO {
   solved: boolean
 }
 
+export interface IDescriptionDTO {
+  description: string
+  language: string
+}
+
 export interface IDraftResponsibleDTO {
   responsibleId: string
   lastUpdated: string
@@ -110,10 +117,57 @@ export interface IDraftSearchParamsDTO {
   resultTypes?: SearchType[]
 }
 
-export interface IGrepResultDTO {
+export interface IGrepKjerneelementDTO {
   code: string
   title: ITitleDTO
-  laereplanCode?: string
+  description: IDescriptionDTO
+  laereplan: IGrepReferencedLaereplanDTO
+  typename: "GrepKjerneelementDTO"
+}
+
+export interface IGrepKompetansemaalDTO {
+  code: string
+  title: ITitleDTO
+  laereplan: IGrepReferencedLaereplanDTO
+  kompetansemaalSett: IGrepReferencedKompetansemaalSettDTO
+  tverrfagligeTemaer: IGrepTverrfagligTemaDTO[]
+  kjerneelementer: IGrepReferencedKjerneelementDTO[]
+  reuseOf?: IGrepReferencedKompetansemaalDTO
+  typename: "GrepKompetansemaalDTO"
+}
+
+export interface IGrepKompetansemaalSettDTO {
+  code: string
+  title: ITitleDTO
+  kompetansemaal: IGrepReferencedKompetansemaalDTO[]
+  typename: "GrepKompetansemaalSettDTO"
+}
+
+export interface IGrepLaererplanDTO {
+  code: string
+  title: ITitleDTO
+  replacedBy: IGrepReferencedLaereplanDTO[]
+  typename: "GrepLaererplanDTO"
+}
+
+export interface IGrepReferencedKjerneelementDTO {
+  code: string
+  title: string
+}
+
+export interface IGrepReferencedKompetansemaalDTO {
+  code: string
+  title: string
+}
+
+export interface IGrepReferencedKompetansemaalSettDTO {
+  code: string
+  title: string
+}
+
+export interface IGrepReferencedLaereplanDTO {
+  code: string
+  title: string
 }
 
 export interface IGrepSearchInputDTO {
@@ -131,7 +185,13 @@ export interface IGrepSearchResultsDTO {
   page: number
   pageSize: number
   language: string
-  results: IGrepResultDTO[]
+  results: GrepResultDTO[]
+}
+
+export interface IGrepTverrfagligTemaDTO {
+  code: string
+  title: ITitleDTO
+  typename: "GrepTverrfagligTemaDTO"
 }
 
 export interface IGroupSearchResultDTO {
@@ -226,6 +286,7 @@ export interface IMultiSearchSummaryDTO {
   metaDescription: IMetaDescriptionDTO
   metaImage?: IMetaImageDTO
   url: string
+  context?: IApiTaxonomyContextDTO
   contexts: IApiTaxonomyContextDTO[]
   supportedLanguages: string[]
   learningResourceType: LearningResourceType
@@ -247,7 +308,6 @@ export interface IMultiSearchSummaryDTO {
   published?: string
   favorited?: number
   resultType: SearchType
-  conceptSubjectIds?: string[]
 }
 
 export interface IMultiSearchTermsAggregationDTO {

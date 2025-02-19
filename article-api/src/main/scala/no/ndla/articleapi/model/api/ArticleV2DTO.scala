@@ -13,6 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{CopyrightDTO, DisclaimerDTO, RelatedContent, RelatedContentLinkDTO}
+import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO}
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about the article")

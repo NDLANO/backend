@@ -9,17 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{NotFoundException, ValidationException}
-import no.ndla.common.model.domain.learningpath.{
-  Description,
-  EmbedType,
-  EmbedUrl,
-  LearningPath,
-  LearningPathStatus,
-  LearningPathVerificationStatus,
-  LearningStep,
-  LearningpathCopyright,
-  StepType
-}
+import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
@@ -69,7 +59,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     List("nb"),
     None,
     None,
-    None
+    None,
+    false
   )
   val domainLearningStep: LearningStep =
     LearningStep(None, None, None, None, 1, List(), List(), List(), List(), StepType.INTRODUCTION, None)
@@ -93,22 +84,23 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: ConverterService = _
 
   val domainLearningPath: LearningPath = LearningPath(
-    Some(1),
-    Some(1),
-    None,
-    None,
-    List(Title("tittel", DefaultLanguage)),
-    List(Description("deskripsjon", DefaultLanguage)),
-    None,
-    Some(60),
-    LearningPathStatus.PRIVATE,
-    LearningPathVerificationStatus.CREATED_BY_NDLA,
-    randomDate,
-    randomDate,
-    List(Tag(List("tag"), DefaultLanguage)),
-    "me",
-    LearningpathCopyright(CC_BY.toString, List.empty),
-    None
+    id = Some(1L),
+    revision = Some(1),
+    externalId = None,
+    isBasedOn = None,
+    title = List(Title("tittel", DefaultLanguage)),
+    description = List(Description("deskripsjon", DefaultLanguage)),
+    coverPhotoId = None,
+    duration = Some(60),
+    status = LearningPathStatus.PRIVATE,
+    verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
+    created = randomDate,
+    lastUpdated = randomDate,
+    tags = List(Tag(List("tag"), DefaultLanguage)),
+    owner = "me",
+    copyright = LearningpathCopyright(CC_BY.toString, List.empty),
+    isMyNDLAOwner = false,
+    learningsteps = None
   )
 
   override def beforeEach(): Unit = {
@@ -145,7 +137,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         List("nb", "en"),
         None,
         None,
-        None
+        None,
+        false
       )
     )
     service.asApiLearningpathV2(
@@ -197,7 +190,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         List("nb", "en"),
         None,
         None,
-        None
+        None,
+        false
       )
     )
     service.asApiLearningpathV2(
@@ -427,7 +421,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("asEmbedUrl throws error if an not allowed value for embedType is used") {
-    assertResult("Validation Error") {
+    assertResult("Validation Error:\n\tembedType: 'test' is not a valid embed type.") {
       intercept[ValidationException] {
         service.asEmbedUrlV2(api.EmbedUrlV2DTO("http://test.no/2/oembed/", "test"), "nb")
       }.getMessage
@@ -484,7 +478,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp     = NewLearningPathV2DTO("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+    val newLp     = NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright))
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)

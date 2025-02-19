@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA concept-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptStatus, ConceptType, Status}
@@ -36,8 +43,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("user"),
       metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
-      subjectIds = Set.empty,
-      articleIds = Seq.empty,
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
       responsible = Some(Responsible("hei", TestData.today)),
@@ -84,8 +89,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("user"),
       metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
-      subjectIds = Set.empty,
-      articleIds = Seq.empty,
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
       responsible = Some(Responsible("hei", TestData.today)),
@@ -132,8 +135,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("user"),
       metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
-      subjectIds = Set.empty,
-      articleIds = Seq.empty,
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
       responsible = Some(Responsible("hei", TestData.today)),
@@ -179,8 +180,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = Seq("user"),
       metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
-      subjectIds = Set.empty,
-      articleIds = Seq.empty,
       status = Status(ConceptStatus.PUBLISHED, Set.empty),
       visualElement = Seq.empty,
       responsible = None,

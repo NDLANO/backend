@@ -13,8 +13,9 @@ import no.ndla.articleapi.model.domain.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.article.{Article, ArticleMetaDescriptionDTO, ArticleTagDTO, Copyright}
+import no.ndla.common.model.domain.{article, *}
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.mapping.License
 
 trait TestData {
@@ -65,12 +66,12 @@ trait TestData {
         None,
         false
       ),
-      tags = api.ArticleTagDTO(Seq("tag"), "nb"),
+      tags = ArticleTagDTO(Seq("tag"), "nb"),
       requiredLibraries = Seq(api.RequiredLibraryDTO("JS", "JavaScript", "url")),
       visualElement = None,
       metaImage = None,
       introduction = None,
-      metaDescription = api.ArticleMetaDescriptionDTO("metaDesc", "nb"),
+      metaDescription = ArticleMetaDescriptionDTO("metaDesc", "nb"),
       created = NDLADate.of(2017, 1, 1, 12, 15, 32),
       updated = NDLADate.of(2017, 4, 1, 12, 15, 32),
       updatedBy = "me",
@@ -106,12 +107,12 @@ trait TestData {
         None,
         false
       ),
-      api.ArticleTagDTO(Seq("tag"), "nb"),
+      article.ArticleTagDTO(Seq("tag"), "nb"),
       Seq(),
       None,
       Some(api.ArticleMetaImageDTO(s"http://api-gateway.ndla-local/image-api/raw/id/11", "alt", "nb")),
       None,
-      api.ArticleMetaDescriptionDTO("meta description", "nb"),
+      article.ArticleMetaDescriptionDTO("meta description", "nb"),
       today,
       today,
       "ndalId54321",
@@ -155,7 +156,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = Some(NDLADate.now().withNano(0)),
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleDomainArticle: Article = Article(
@@ -181,7 +182,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleDomainArticle2: Article = Article(
@@ -207,7 +208,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -245,7 +246,7 @@ trait TestData {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = None
+      disclaimer = OptLanguageFields.empty
     )
 
     val apiArticleWithHtmlFaultV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -263,12 +264,12 @@ trait TestData {
       ),
       model.api
         .CopyrightDTO(model.api.LicenseDTO("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None, false),
-      api.ArticleTagDTO(Seq.empty, "en"),
+      article.ArticleTagDTO(Seq.empty, "en"),
       Seq.empty,
       None,
       None,
       None,
-      api.ArticleMetaDescriptionDTO("so meta", "en"),
+      article.ArticleMetaDescriptionDTO("so meta", "en"),
       NDLADate.now().minusDays(4),
       NDLADate.now().minusDays(2),
       "ndalId54321",
@@ -316,7 +317,7 @@ trait TestData {
         relatedContent = Seq.empty,
         revisionDate = None,
         slug = None,
-        disclaimer = None
+        disclaimer = OptLanguageFields.empty
       )
     }
 

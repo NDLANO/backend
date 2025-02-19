@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.validation
@@ -11,6 +12,8 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*
+import no.ndla.common.model.domain.draft.DraftStatus.ARCHIVED
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException, UpdatedArticleDTO}
@@ -84,7 +87,7 @@ trait ContentValidator {
         if (shouldValidateEntireArticle)
           article.content.flatMap(c => validateArticleContent(c)) ++
             article.introduction.flatMap(i => validateIntroduction(i)) ++
-            validateArticleDisclaimer(article.disclaimer.getOrElse(Seq.empty)) ++
+            validateArticleDisclaimer(article.disclaimer) ++
             article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
             validateTitles(article.title) ++
             article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
@@ -97,7 +100,7 @@ trait ContentValidator {
         else Seq.empty
 
       val editorialValidationErrors =
-        validateRevisionMeta(article.revisionMeta)
+        validateRevisionMeta(article.revisionMeta, article.status)
 
       val validationErrors = regularValidationErrors ++ editorialValidationErrors
 
@@ -165,11 +168,12 @@ trait ContentValidator {
         validateLanguage("content.language", content.language)
     }
 
-    private def validateArticleDisclaimer(disclaimers: Seq[Disclaimer]): Seq[ValidationMessage] = {
-      disclaimers.flatMap(disclaimer => {
-        TextValidator.validate("disclaimer", disclaimer.disclaimer, allLegalTags).toList ++
+    private def validateArticleDisclaimer(disclaimers: OptLanguageFields[String]): Seq[ValidationMessage] = {
+      disclaimers.mapExisting { disclaimer =>
+        val field = s"disclaimer.${disclaimer.language}"
+        TextValidator.validate(field, disclaimer.value, allLegalTags).toList ++
           validateLanguage("disclaimer.language", disclaimer.language)
-      })
+      }.flatten
     }
 
     private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
@@ -200,7 +204,8 @@ trait ContentValidator {
         .toList ++ validateLanguage("language", content.language)
     }
 
-    private def validateRevisionMeta(revisionMeta: Seq[RevisionMeta]): Seq[ValidationMessage] = {
+    private def validateRevisionMeta(revisionMeta: Seq[RevisionMeta], newStatus: Status): Seq[ValidationMessage] = {
+      if (newStatus.current == ARCHIVED) return Seq.empty
       revisionMeta.find(rm =>
         rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
       ) match {
@@ -209,7 +214,7 @@ trait ContentValidator {
           Seq(
             ValidationMessage(
               "revisionMeta",
-              "An article must contain at least one planned revisiondate"
+              "An article must contain at least one planned revision date"
             )
           )
       }

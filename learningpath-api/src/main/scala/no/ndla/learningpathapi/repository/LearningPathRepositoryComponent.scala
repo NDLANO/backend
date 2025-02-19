@@ -250,6 +250,12 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       sql"delete from learningsteps where id = $learningStepId".update()
     }
 
+    def deleteAllPathsAndSteps(implicit session: DBSession): Try[Unit] =
+      for {
+        _ <- Try(sql"delete from learningsteps".update())
+        _ <- Try(sql"delete from learningpaths".update())
+      } yield ()
+
     def learningPathsWithIdBetween(min: Long, max: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): List[LearningPath] = {

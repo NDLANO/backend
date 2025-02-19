@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.myndlaapi.repository
@@ -20,12 +21,13 @@ class ArenaRepositoryTest
     with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator                     = new DBMigrator
+  override val DBUtil: DBUtility            = new DBUtility
 
   override val arenaRepository: ArenaRepository = new ArenaRepository
   override val userRepository: UserRepository   = new UserRepository
 
   def emptyTestDatabase(): Unit = {
-    arenaRepository.withSession(implicit session => {
+    DBUtil.withSession(implicit session => {
       arenaRepository.deleteAllFollows.get
       arenaRepository.deleteAllPosts.get
       arenaRepository.deleteAllTopics.get
@@ -59,12 +61,13 @@ class ArenaRepositoryTest
       displayName = "Test Testesen",
       email = "example@example.com",
       arenaEnabled = true,
+      arenaAccepted = true,
       arenaGroups = List(),
-      shareName = true
+      shareNameAccepted = false
     )
     val feideId = "feideId1"
 
-    arenaRepository.withSession { session =>
+    DBUtil.withSession { session =>
       userRepository.reserveFeideIdIfNotExists(feideId)(session).get
       val user1 = userRepository.insertUser(feideId, user)(session).get
 
@@ -111,12 +114,13 @@ class ArenaRepositoryTest
       displayName = "Test Testesen",
       email = "example@example.com",
       arenaEnabled = true,
+      arenaAccepted = true,
       arenaGroups = List(),
-      shareName = true
+      shareNameAccepted = false
     )
     val feideId = "feideId1"
 
-    arenaRepository.withSession { session =>
+    DBUtil.withSession { session =>
       userRepository.reserveFeideIdIfNotExists(feideId)(session).get
       val user1 = userRepository.insertUser(feideId, user)(session).get
 
@@ -175,19 +179,30 @@ class ArenaRepositoryTest
       displayName = "Test Testesen",
       email = "example@example.com",
       arenaEnabled = true,
+      arenaAccepted = true,
       arenaGroups = List(),
-      shareName = true
+      shareNameAccepted = false
     )
     val feideId  = "feideId1"
     val feideId2 = "feideId2"
 
-    arenaRepository.withSession { session =>
+    DBUtil.withSession { session =>
       userRepository.reserveFeideIdIfNotExists(feideId)(session).get
       userRepository.reserveFeideIdIfNotExists(feideId2)(session).get
       val user1 =
-        userRepository.insertUser(feideId, user.copy(username = "test1", email = "example1@example.com"))(session).get
+        userRepository
+          .insertUser(
+            feideId,
+            user.copy(username = "test1", email = "example1@example.com")
+          )(session)
+          .get
       val user2 =
-        userRepository.insertUser(feideId2, user.copy(username = "test2", email = "example2@example.com"))(session).get
+        userRepository
+          .insertUser(
+            feideId2,
+            user.copy(username = "test2", email = "example2@example.com")
+          )(session)
+          .get
 
       val cat1 = arenaRepository
         .insertCategory(

@@ -3,6 +3,7 @@
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.integration
@@ -22,7 +23,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
 
   override val taxonomyApiClient: TaxonomyApiClient = spy(new TaxonomyApiClient)
 
-  override protected def beforeEach(): Unit = {
+  override def beforeEach(): Unit = {
     // Since we use spy, we reset the mock before each test allowing verify to be accurate
     reset(taxonomyApiClient)
   }

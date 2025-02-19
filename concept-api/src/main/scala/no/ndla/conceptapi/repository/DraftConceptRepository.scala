@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.repository
@@ -21,7 +22,7 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptRepository {
-  this: DataSource with Props with ErrorHandling =>
+  this: DataSource & Props & ErrorHandling =>
   val draftConceptRepository: DraftConceptRepository
 
   class DraftConceptRepository extends StrictLogging with Repository[Concept] {
@@ -35,14 +36,11 @@ trait DraftConceptRepository {
       val conceptId: Long =
         sql"""
         insert into ${DBConcept.table} (document, revision)
-        values (${dataObject}, $newRevision)
+        values ($dataObject, $newRevision)
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new concept: $conceptId")
-      concept.copy(
-        id = Some(conceptId),
-        revision = Some(newRevision)
-      )
+      concept.copy(id = Some(conceptId), revision = Some(newRevision))
     }
 
     def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
@@ -72,8 +70,8 @@ trait DraftConceptRepository {
       Try(
         sql"""
            update ${DBConcept.table}
-           set document=${dataObject}
-           where listing_id=${listingId}
+           set document=$dataObject
+           where listing_id=$listingId
          """.updateAndReturnGeneratedKey()
       ) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
@@ -81,16 +79,6 @@ trait DraftConceptRepository {
           logger.warn(s"Failed to update concept with id ${concept.id} and listing id: $listingId: ${ex.getMessage}")
           Failure(ex)
       }
-    }
-
-    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
-      sql"""
-        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id
-        from ${DBConcept.table}
-        where jsonb_array_length(document->'subjectIds') != 0;"""
-        .map(rs => rs.string("subject_id"))
-        .list()
-        .toSet
     }
 
     def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
@@ -122,7 +110,7 @@ trait DraftConceptRepository {
           Try(
             sql"""
                   insert into ${DBConcept.table} (id, document, revision)
-                  values ($id, ${dataObject}, $newRevision)
+                  values ($id, $dataObject, $newRevision)
                """.update()
           ).map(_ => {
             logger.info(s"Inserted new concept: $id")
@@ -139,7 +127,7 @@ trait DraftConceptRepository {
       dataObject.setValue(CirceUtil.toJsonString(concept))
 
       concept.id match {
-        case None => Failure(new NotFoundException("Can not update "))
+        case None => Failure(NotFoundException("Can not update "))
         case Some(conceptId) =>
           val newRevision = concept.revision.getOrElse(0) + 1
           val oldRevision = concept.revision
@@ -148,7 +136,7 @@ trait DraftConceptRepository {
             sql"""
               update ${DBConcept.table}
               set
-                document=${dataObject},
+                document=$dataObject,
                 revision=$newRevision
               where id=$conceptId
               and revision=$oldRevision
@@ -178,7 +166,7 @@ trait DraftConceptRepository {
       conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
     def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
-      sql"select id from ${DBConcept.table} where id=${id}"
+      sql"select id from ${DBConcept.table} where id=$id"
         .map(rs => rs.long("id"))
         .single()
         .isDefined
@@ -254,11 +242,11 @@ trait DraftConceptRepository {
       val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${DBConcept.table}) _
-              where tagObj->>'language' like ${langOrAll}
+              where tagObj->>'language' like $langOrAll
               order by tags) sorted_tags
               where sorted_tags.tags ilike ${sanitizedInput + '%'}
-              offset ${offset}
-              limit ${pageSize}
+              offset $offset
+              limit $pageSize
                       """
         .map(rs => rs.string("tags"))
         .list()
@@ -268,7 +256,7 @@ trait DraftConceptRepository {
               select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${DBConcept.table}) _
-              where tagObj->>'language' like  ${langOrAll}) all_tags
+              where tagObj->>'language' like  $langOrAll) all_tags
               where all_tags.tags ilike ${sanitizedInput + '%'};
            """
           .map(rs => rs.int("count"))

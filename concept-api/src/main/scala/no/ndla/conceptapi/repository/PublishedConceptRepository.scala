@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.repository
@@ -52,7 +53,7 @@ trait PublishedConceptRepository {
       }
     }
 
-    def delete(id: Long)(implicit session: DBSession = AutoSession): Try[_] = {
+    def delete(id: Long)(implicit session: DBSession = AutoSession): Try[?] = {
       Try(
         sql"""
             delete from ${PublishedConcept.table}
@@ -66,16 +67,6 @@ trait PublishedConceptRepository {
     }
 
     def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
-
-    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
-      sql"""
-        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id
-        from ${PublishedConcept.table}
-        where jsonb_array_length(document->'subjectIds') != 0;"""
-        .map(rs => rs.string("subject_id"))
-        .list()
-        .toSet
-    }
 
     def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
       sql"""

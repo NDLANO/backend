@@ -3,6 +3,7 @@
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.integrationtests.draftapi.articleapi
@@ -10,6 +11,7 @@ package no.ndla.integrationtests.draftapi.articleapi
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.integrationtests.UnitSuite
@@ -56,6 +58,7 @@ class ArticleApiClientTest
   val articleApiBaseUrl: String        = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
@@ -126,7 +129,7 @@ class ArticleApiClientTest
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = None
+    disclaimer = OptLanguageFields.empty
   )
 
   val exampleToken =

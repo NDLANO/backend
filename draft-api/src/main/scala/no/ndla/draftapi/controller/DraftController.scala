@@ -3,6 +3,7 @@
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.draftapi.controller
@@ -25,7 +26,7 @@ import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.Permission.{ARTICLE_API_WRITE, DRAFT_API_WRITE}
 import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -121,7 +122,8 @@ trait DraftController {
       partialPublish,
       partialPublishMultiple,
       copyRevisionDates,
-      getArticleBySlug
+      getArticleBySlug,
+      migrateOutdatedGreps
     )
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
@@ -223,6 +225,7 @@ trait DraftController {
       .in("grep-codes")
       .summary("Retrieves a list of all previously used grepCodes in articles")
       .description("Retrieves a list of all previously used grepCodes in articles")
+      .deprecated()
       .in(queryParam)
       .in(pageSize)
       .in(pageNo)
@@ -675,6 +678,17 @@ trait DraftController {
           if (permitted) article
           else ErrorHelpers.forbidden.asLeft
         }
+      }
+
+    def migrateOutdatedGreps: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("migrate-greps")
+      .summary("Iterate all articles and migrate outdated grep codes")
+      .description("Iterate all articles and migrate outdated grep codes")
+      .errorOut(errorOutputsFor(500))
+      .out(emptyOutput)
+      .requirePermission(DRAFT_API_WRITE, ARTICLE_API_WRITE)
+      .serverLogicPure { user => _ =>
+        writeService.migrateOutdatedGreps(user).handleErrorsOrOk
       }
   }
 }

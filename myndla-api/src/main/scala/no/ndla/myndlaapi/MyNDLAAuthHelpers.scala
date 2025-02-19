@@ -18,12 +18,13 @@ import sttp.tapir.*
 import sttp.tapir.server.PartialServerEndpoint
 
 trait MyNDLAAuthHelpers {
-  this: UserService with TapirErrorHandling =>
+  this: UserService & TapirErrorHandling =>
 
   object MyNDLAAuthHelpers {
     implicit class authlessEndpointFeideExtension[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
-      type MaybeFeideToken            = Option[FeideAccessToken]
-      type PartialFeideEndpoint[F[_]] = PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
+      private type MaybeFeideToken = Option[FeideAccessToken]
+      private type PartialFeideEndpoint[F[_]] =
+        PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
       def requireMyNDLAUser[F[_]](
           requireArena: Boolean = false,
           requireArenaAdmin: Boolean = false
@@ -37,7 +38,7 @@ trait MyNDLAAuthHelpers {
               case Left(err)                                                  => Left(err)
             }
           } else if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
-          else userService.getMyNdlaUserDataDomain(maybeToken, List.empty).handleErrorsOrOk
+          else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk
         }
         val securityLogic = (m: MonadError[F]) => (a: Option[FeideAccessToken]) => m.unit(authFunc(a))
         PartialServerEndpoint(newEndpoint, securityLogic)

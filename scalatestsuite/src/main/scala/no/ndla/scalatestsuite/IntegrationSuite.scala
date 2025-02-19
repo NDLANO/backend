@@ -3,6 +3,7 @@
  * Copyright (C) 2020 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.scalatestsuite
@@ -24,7 +25,7 @@ abstract class IntegrationSuite(
     EnableElasticsearchContainer: Boolean = false,
     EnablePostgresContainer: Boolean = false,
     EnableRedisContainer: Boolean = false,
-    PostgresqlVersion: String = "13.12",
+    PostgresqlVersion: String = "16.3",
     ElasticsearchImage: String = "6409dd6", // elasticsearch 8.11.4
     schemaName: String = "testschema"
 ) extends UnitTestSuite {
@@ -149,8 +150,13 @@ abstract class IntegrationSuite(
     })
   }
 
-  override def beforeAll(): Unit = setDatabaseEnvironment()
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    setDatabaseEnvironment()
+  }
+
   override def afterAll(): Unit = {
+    super.afterAll()
     setPropEnv(previousDatabaseEnv)
     elasticSearchContainer.foreach(c => c.stop())
     postgresContainer.foreach(c => c.stop())

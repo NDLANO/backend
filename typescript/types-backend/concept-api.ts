@@ -39,12 +39,10 @@ export interface IConceptDTO {
   source?: string
   metaImage?: IConceptMetaImageDTO
   tags?: IConceptTagsDTO
-  subjectIds?: string[]
   created: string
   updated: string
   updatedBy?: string[]
   supportedLanguages: string[]
-  articleIds: number[]
   status: IStatusDTO
   visualElement?: IVisualElementDTO
   responsible?: IConceptResponsibleDTO
@@ -73,7 +71,6 @@ export interface IConceptSearchParamsDTO {
   sort?: Sort
   fallback?: boolean
   scrollId?: string
-  subjects?: string[]
   tags?: string[]
   exactMatch?: boolean
   embedResource?: string[]
@@ -97,7 +94,6 @@ export interface IConceptSummaryDTO {
   content: IConceptContent
   metaImage: IConceptMetaImageDTO
   tags?: IConceptTagsDTO
-  subjectIds?: string[]
   supportedLanguages: string[]
   lastUpdated: string
   created: string
@@ -106,12 +102,10 @@ export interface IConceptSummaryDTO {
   license?: string
   copyright?: IDraftCopyrightDTO
   visualElement?: IVisualElementDTO
-  articleIds: number[]
   source?: string
   responsible?: IConceptResponsibleDTO
   conceptType: string
   glossData?: IGlossDataDTO
-  subjectName?: string
   conceptTypeName: string
 }
 
@@ -134,7 +128,6 @@ export interface IDraftConceptSearchParamsDTO {
   sort?: Sort
   fallback?: boolean
   scrollId?: string
-  subjects?: string[]
   tags?: string[]
   status?: string[]
   users?: string[]
@@ -197,8 +190,6 @@ export interface INewConceptDTO {
   copyright?: IDraftCopyrightDTO
   metaImage?: INewConceptMetaImageDTO
   tags?: string[]
-  subjectIds?: string[]
-  articleIds?: number[]
   visualElement?: string
   responsibleId?: string
   conceptType: string
@@ -213,12 +204,6 @@ export interface INewConceptMetaImageDTO {
 export interface IStatusDTO {
   current: string
   other: string[]
-}
-
-export interface ISubjectTagsDTO {
-  subjectId: string
-  tags: string[]
-  language: string
 }
 
 export interface ITagsSearchResultDTO {
@@ -241,8 +226,6 @@ export interface IUpdatedConceptDTO {
   metaImage: UpdateOrDeleteNewConceptMetaImageDTO
   copyright?: IDraftCopyrightDTO
   tags?: string[]
-  subjectIds?: string[]
-  articleIds?: number[]
   status?: string
   visualElement?: string
   responsibleId: UpdateOrDeleteString

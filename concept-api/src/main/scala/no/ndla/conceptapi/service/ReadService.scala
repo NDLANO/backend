@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.service
@@ -13,7 +14,7 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 trait ReadService {
   this: DraftConceptRepository & PublishedConceptRepository & ConverterService =>
@@ -41,16 +42,6 @@ trait ReadService {
         case None =>
           Failure(NotFoundException(s"A concept with id $id was not found with language '$language'."))
       }
-
-    def allSubjects(draft: Boolean = false): Try[Set[String]] = {
-      if (draft) {
-        val subjectIds = draftConceptRepository.allSubjectIds
-        if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
-      } else {
-        val subjectIds = publishedConceptRepository.allSubjectIds
-        if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
-      }
-    }
 
     def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
       val allConceptTags = publishedConceptRepository.everyTagFromEveryConcept

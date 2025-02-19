@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.model.search
@@ -18,7 +19,6 @@ case class SearchSettings(
     pageSize: Int,
     sort: Sort,
     fallback: Boolean,
-    subjects: Set[String],
     tagsToFilterBy: Set[String],
     exactTitleMatch: Boolean,
     shouldScroll: Boolean,
@@ -39,7 +39,6 @@ trait SearchSettingsHelper {
         pageSize = props.MaxPageSize,
         sort = Sort.ByRelevanceDesc,
         fallback = false,
-        subjects = Set.empty,
         tagsToFilterBy = Set.empty,
         exactTitleMatch = false,
         shouldScroll = false,

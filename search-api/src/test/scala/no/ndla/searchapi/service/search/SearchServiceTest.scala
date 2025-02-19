@@ -3,12 +3,13 @@
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.api.search.SearchType
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
-import no.ndla.searchapi.model.search.SearchType
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 

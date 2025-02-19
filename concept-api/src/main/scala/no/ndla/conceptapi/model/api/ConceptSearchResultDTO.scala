@@ -3,13 +3,14 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.search.api.MultiSearchTermsAggregationDTO
+import no.ndla.common.model.api.search.MultiSearchTermsAggregationDTO
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about search-results")

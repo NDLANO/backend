@@ -3,6 +3,7 @@
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.myndlaapi
@@ -96,11 +97,12 @@ object TestData {
     organization = "",
     groups = Seq.empty,
     username = "",
+    displayName = "",
     email = "",
     arenaEnabled = false,
-    displayName = "",
-    shareName = false,
-    arenaGroups = List.empty
+    arenaAccepted = false,
+    arenaGroups = List.empty,
+    shareNameAccepted = false
   )
 
 }

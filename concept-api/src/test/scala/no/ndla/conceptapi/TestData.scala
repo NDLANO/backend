@@ -3,6 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.conceptapi
@@ -60,12 +61,10 @@ object TestData {
     None,
     Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     Some(api.ConceptTagsDTO(Seq("stor", "kaktus"), "nb")),
-    Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     Some(Seq("")),
     Set("nn", "nb"),
-    Seq(42),
     api.StatusDTO(
       current = "IN_PROGRESS",
       other = Seq.empty
@@ -88,8 +87,6 @@ object TestData {
     updatedBy = Seq.empty,
     metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleIds = Seq(42),
     status = Status.default,
     visualElement = Seq(VisualElement(visualElementString, "nb")),
     responsible = None,
@@ -111,8 +108,6 @@ object TestData {
     updatedBy = Seq.empty,
     metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("liten", "fisk"), "nb")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleIds = Seq(42),
     status = Status.default,
     visualElement = Seq(concept.VisualElement("VisualElement for begrep", "nb")),
     responsible = None,
@@ -132,8 +127,6 @@ object TestData {
     updatedBy = Seq(""),
     metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb"), common.Tag(Seq("liten", "fisk"), "nn")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleIds = Seq(42),
     status = Status.default,
     visualElement = Seq(concept.VisualElement(visualElementString, "nb")),
     responsible = None,
@@ -153,8 +146,6 @@ object TestData {
     updatedBy = Seq(""),
     metaImage = Seq.empty,
     tags = Seq.empty,
-    subjectIds = Set.empty,
-    articleIds = Seq.empty,
     status = Status.default,
     visualElement = Seq.empty,
     responsible = None,
@@ -172,12 +163,10 @@ object TestData {
     None,
     Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
     Some(api.ConceptTagsDTO(Seq("liten", "fisk"), "nn")),
-    Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     updatedBy = Some(Seq("")),
     Set("nn", "nb"),
-    Seq(42),
     api.StatusDTO(
       current = "IN_PROGRESS",
       other = Seq.empty
@@ -196,8 +185,6 @@ object TestData {
     metaImage = Missing,
     copyright = None,
     tags = None,
-    subjectIds = None,
-    articleIds = None,
     status = None,
     visualElement = None,
     Missing,
@@ -206,20 +193,7 @@ object TestData {
   )
 
   val sampleNewConcept: api.NewConceptDTO =
-    api.NewConceptDTO(
-      "nb",
-      "Tittel",
-      Some("Innhold"),
-      None,
-      None,
-      None,
-      None,
-      Some(Seq(42)),
-      None,
-      None,
-      "concept",
-      None
-    )
+    api.NewConceptDTO("nb", "Tittel", Some("Innhold"), None, None, None, None, None, "concept", None)
 
   val emptyApiNewConcept: api.NewConceptDTO = api.NewConceptDTO(
     language = "",
@@ -228,8 +202,6 @@ object TestData {
     copyright = None,
     metaImage = None,
     tags = None,
-    subjectIds = None,
-    articleIds = None,
     visualElement = None,
     responsibleId = None,
     conceptType = "concept",
@@ -244,8 +216,6 @@ object TestData {
       Missing,
       None,
       None,
-      None,
-      Some(Seq(12L)),
       None,
       None,
       Missing,

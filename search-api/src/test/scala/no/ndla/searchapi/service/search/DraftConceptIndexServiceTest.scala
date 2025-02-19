@@ -3,19 +3,19 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{LearningResourceType, StatusDTO}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.concept.ConceptMetaImage
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.api
-import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.search.SearchableConcept
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
@@ -51,14 +51,12 @@ class DraftConceptIndexServiceTest
       metaImage = Seq(ConceptMetaImage("1", "alt", "nb")),
       defaultTitle = Some("hei"),
       tags = languageList,
-      subjectIds = List("urn:subject:1"),
       lastUpdated = now,
-      draftStatus = api.StatusDTO("IN_PROGRESS", Seq("PUBLISHED")),
+      draftStatus = StatusDTO("IN_PROGRESS", Seq("PUBLISHED")),
       users = List("noen", "some-id"),
       updatedBy = Seq("noen"),
       license = Some("CC-BY-SA-4.0"),
       authors = List("Noen Kule"),
-      articleIds = Seq(1, 2, 3),
       created = now,
       source = Some("heidu"),
       responsible = Some(Responsible("some-id", now)),

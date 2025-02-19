@@ -35,8 +35,8 @@ trait ImageControllerV2 {
   val imageControllerV2: ImageControllerV2
 
   class ImageControllerV2 extends TapirController with BaseImageController {
-    import ErrorHelpers._
-    import props._
+    import ErrorHelpers.*
+    import props.*
 
     override val serviceName: String         = "images V2"
     override val prefix: EndpointInput[Unit] = "image-api" / "v2" / "images"
@@ -50,7 +50,7 @@ trait ImageControllerV2 {
       deleteImage,
       deleteLanguage,
       editImage
-    )
+    ).map(_.deprecated())
 
     /** Does a scroll with [[ImageSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -102,7 +102,8 @@ trait ImageControllerV2 {
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
             shouldScroll = shouldScroll,
-            modelReleased = modelReleasedStatus
+            modelReleased = modelReleasedStatus,
+            userFilter = List.empty
           )
         case None =>
           SearchSettings(
@@ -116,7 +117,8 @@ trait ImageControllerV2 {
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
             shouldScroll = shouldScroll,
-            modelReleased = modelReleasedStatus
+            modelReleased = modelReleasedStatus,
+            userFilter = List.empty
           )
       }
 

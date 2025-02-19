@@ -82,6 +82,7 @@ class FolderTest
   val myndlaApiFolderUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { myndlaApi.run() }: Unit
     Thread.sleep(4000)

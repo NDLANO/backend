@@ -19,7 +19,7 @@ import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO, ResourceStatsDTO}
 import no.ndla.myndlaapi.model.domain.Resource
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{doAnswer, reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -36,10 +36,10 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     resetMocks()
     when(clock.now()).thenReturn(TestData.today)
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
-    when(folderRepository.rollbackOnFailure(any)).thenAnswer((i: InvocationOnMock) => {
+    doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    })
+    }).when(DBUtil).rollbackOnFailure(any)
   }
 
   test("That getSingleFolder returns folder and its data when user is the owner") {
@@ -255,7 +255,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         breadcrumbs = List(api.BreadcrumbDTO(id = favoriteUUID.toString, name = "favorite"))
       )
 
-    val user               = emptyMyNDLAUser.copy(id = 1996, shareName = true, displayName = "hallois")
+    val user               = emptyMyNDLAUser.copy(id = 1996, displayName = "hallois")
     val folderId           = UUID.randomUUID()
     val sharedFolderDomain = emptyDomainFolder.copy(id = folderId, name = "SharedFolder", status = FolderStatus.SHARED)
     val savedFolderDomain =
@@ -362,11 +362,12 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         )
       ),
       username = "example@email.com",
+      displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      displayName = "Feide",
-      shareName = true,
-      arenaGroups = List.empty
+      arenaAccepted = true,
+      arenaGroups = List.empty,
+      shareNameAccepted = false
     )
 
     val folderUUID   = UUID.randomUUID()
@@ -492,7 +493,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       name = "",
       status = "shared",
       breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID.toString, name = "")),
-      resources = List(apiResource)
+      resources = List(apiResource),
+      owner = Some(OwnerDTO(name = "User Name"))
     )
 
     when(feideApiClient.getFeideID(Some(ownerId))).thenReturn(Success(ownerId))
@@ -529,8 +531,9 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             displayName = "User Name",
             email = "user_name@example.com",
             arenaEnabled = true,
+            arenaAccepted = true,
             arenaGroups = List.empty,
-            shareName = false
+            shareNameAccepted = false
           )
         )
       )
@@ -551,8 +554,9 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             displayName = "User Name",
             email = "user_name@example.com",
             arenaEnabled = true,
+            arenaAccepted = true,
             arenaGroups = List.empty,
-            shareName = false
+            shareNameAccepted = false
           )
         )
       )
