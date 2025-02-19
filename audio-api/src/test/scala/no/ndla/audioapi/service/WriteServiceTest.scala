@@ -18,6 +18,7 @@ import no.ndla.common.model
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.mapping.License
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when, withSettings}
 import org.mockito.invocation.InvocationOnMock
@@ -68,7 +69,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val updated1: model.NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val publicDomain: common.article.Copyright = common.article.Copyright(
-    "publicdomain",
+    License.PublicDomain.toString,
     Some("Metropolis"),
     List(common.Author("Forfatter", "Bruce Wayne")),
     Seq(),

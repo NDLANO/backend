@@ -40,10 +40,19 @@ class AudioSearchServiceTest
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.CC_BY_NC_SA.toString,
+      Some("Gotham City"),
+      List(Author("Forfatter", "DC Comics")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val publicDomain: Copyright = Copyright(
-    "publicdomain",
+    License.PublicDomain.toString,
     Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
     Seq(),
@@ -281,7 +290,8 @@ class AudioSearchServiceTest
   }
 
   test("That filtering on license only returns documents with given license for all languages") {
-    val Success(results) = audioSearchService.matchingQuery(searchSettings.copy(license = Some("publicdomain")))
+    val Success(results) =
+      audioSearchService.matchingQuery(searchSettings.copy(license = Some(License.PublicDomain.toString)))
     results.totalCount should be(2)
     results.results.head.id should be(4)
     results.results.last.id should be(2)

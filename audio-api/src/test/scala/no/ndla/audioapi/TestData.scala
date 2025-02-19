@@ -13,7 +13,8 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, SearchSet
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.api
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
+import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -118,7 +119,16 @@ object TestData {
     1,
     api.TitleDTO("title", "nb"),
     api.AudioDTO("audio/test.mp3", "audio/mpeg", 1024, "nb"),
-    commonApi.CopyrightDTO(commonApi.LicenseDTO("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+    commonApi.CopyrightDTO(
+      commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None),
+      None,
+      Seq(),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    ),
     api.TagDTO(Seq("tag"), "nb"),
     Seq("nb"),
     "standard",

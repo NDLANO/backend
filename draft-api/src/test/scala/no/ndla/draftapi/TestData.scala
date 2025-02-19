@@ -45,7 +45,16 @@ object TestData {
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
   val publicDomainCopyright: common.draft.DraftCopyright =
-    common.draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
+    common.draft.DraftCopyright(
+      Some(License.PublicDomain.toString),
+      Some(""),
+      List.empty,
+      List(),
+      List(),
+      None,
+      None,
+      false
+    )
   private val byNcSaCopyright = common.draft.DraftCopyright(
     Some(CC_BY_NC_SA.toString),
     Some("Gotham City"),
@@ -412,7 +421,7 @@ object TestData {
     None,
     Some(
       model.api.DraftCopyrightDTO(
-        Some(commonApi.LicenseDTO("publicdomain", None, None)),
+        Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,
@@ -461,7 +470,16 @@ object TestData {
       )
     ),
     copyright = Some(
-      common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+      common.draft.DraftCopyright(
+        Some(License.PublicDomain.toString),
+        Some(""),
+        Seq.empty,
+        Seq.empty,
+        Seq.empty,
+        None,
+        None,
+        false
+      )
     ),
     tags = Seq.empty,
     requiredLibraries = Seq.empty,
@@ -509,7 +527,7 @@ object TestData {
     ),
     copyright = Some(
       model.api.DraftCopyrightDTO(
-        Some(commonApi.LicenseDTO("publicdomain", None, None)),
+        Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,

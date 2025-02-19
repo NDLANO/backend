@@ -33,7 +33,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
-    Some("by-nc-sa"),
+    Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
     List(),
@@ -44,7 +44,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
-    Some("publicdomain"),
+    Some(License.PublicDomain.toString),
     Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
     List(),
@@ -362,7 +362,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   test("That all filtering on license only returns documents with given license") {
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
-        license = Some("publicdomain"),
+        license = Some(License.PublicDomain.toString),
         sort = Sort.ByTitleAsc
       )
     )

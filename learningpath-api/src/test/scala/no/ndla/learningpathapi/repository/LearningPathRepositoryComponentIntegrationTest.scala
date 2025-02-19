@@ -27,6 +27,7 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
+import no.ndla.mapping.License
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
@@ -44,7 +45,7 @@ class LearningPathRepositoryComponentIntegrationTest
   var repository: LearningPathRepository = _
 
   val clinton: Author                  = Author("author", "Hilla the Hun")
-  val license                          = "publicdomain"
+  val license                          = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(clinton))
 
   val DefaultLearningPath: LearningPath = LearningPath(

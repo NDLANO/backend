@@ -12,6 +12,7 @@ import no.ndla.articleapi.*
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
+import no.ndla.mapping.License
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
@@ -31,7 +32,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
       Vector(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))
     ),
     lastUpdated = NDLADate.of(2018, 2, 22, 14, 0, 51),
-    license = "by-sa",
+    license = License.CC_BY_SA.toString,
     authors = Seq("Jonas Natty"),
     articleType = "standard",
     defaultTitle = Some("tjuppidu"),
