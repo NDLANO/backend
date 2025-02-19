@@ -265,7 +265,7 @@ trait WriteService {
 
     def getGrepCodeNote(mapping: Map[String, String], draft: Draft, user: TokenUser): EditorNote = {
       val grepCodes = mapping.map { case (old, newGrep) => s"$old -> $newGrep" }.mkString(", ")
-      common.EditorNote(s"Migrerte grepkoder: [$grepCodes]", user.id, draft.status, clock.now())
+      common.EditorNote(s"Oppdaterte grep-koder: [$grepCodes]", user.id, draft.status, clock.now())
     }
 
     private def migrateOutdatedGrepForDraft(
