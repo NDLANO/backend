@@ -1,5 +1,5 @@
 /*
- * Part of NDLA frontpage-api
+ * Part of NDLA common
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
@@ -45,7 +45,7 @@ object VisualElementType extends Enum[VisualElementType] with CirceEnum[VisualEl
   def fromString(str: String): Try[VisualElementType] =
     VisualElementType.values.find(_.entryName == str) match {
       case Some(v) => Success(v)
-      case None    => Failure(ValidationException("visualElement.id", s"'$str' is an invalid visual element type"))
+      case None    => Failure(ValidationException("visualElement.type", s"'$str' is an invalid visual element type"))
     }
 
 }

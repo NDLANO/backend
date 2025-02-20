@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA network
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.network.clients
 
 import io.circe.Decoder
@@ -16,7 +23,7 @@ trait FrontpageApiClient {
     val timeout: FiniteDuration = 15.seconds
 
     def getSubjectPage(id: Long): Try[SubjectPage] = {
-        get[SubjectPage](s"${props.FrontpageApiUrl}/intern/dump/subjectpage/$id", Map.empty, Seq.empty)
+      get[SubjectPage](s"${props.FrontpageApiUrl}/intern/dump/subjectpage/$id", Map.empty, Seq.empty)
     }
 
     private def get[A: Decoder](url: String, headers: Map[String, String], params: Seq[(String, String)]): Try[A] = {

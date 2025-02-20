@@ -13,7 +13,16 @@ import io.circe.syntax.*
 import no.ndla.common.model
 import no.ndla.common.model.api.frontpage.{AboutSubjectDTO, BannerImageDTO, SubjectPageDTO, VisualElementDTO}
 import no.ndla.common.model.domain.frontpage
-import no.ndla.common.model.domain.frontpage.{AboutSubject, BannerImage, MetaDescription, MovieTheme, MovieThemeName, SubjectPage, VisualElement, VisualElementType}
+import no.ndla.common.model.domain.frontpage.{
+  AboutSubject,
+  BannerImage,
+  MetaDescription,
+  MovieTheme,
+  MovieThemeName,
+  SubjectPage,
+  VisualElement,
+  VisualElementType
+}
 import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, UpdatedSubjectPageDTO}
 import no.ndla.frontpageapi.model.domain.FilmFrontPage
 import no.ndla.frontpageapi.model.{api, domain}
