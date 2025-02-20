@@ -39,7 +39,7 @@ trait NodeIndexService {
 
     override def getMapping: MappingDefinition = {
       val fields = List(
-        keywordField("id"),
+        keywordField("nodeId"),
         keywordField("contentUri"),
         keywordField("nodeType"),
         nestedField("subjectPage").fields(
@@ -71,7 +71,8 @@ trait NodeIndexService {
     private def getFrontPage(contentUri: Option[String]): Try[Option[SubjectPage]] = {
       contentUri.map(ContentURIUtil.parseFrontpageId) match {
         case Some(Success(frontpageId)) =>
-          frontpageApiClient.getSubjectPage(frontpageId) match {
+          val subjectPage = frontpageApiClient.getSubjectPage(frontpageId)
+          subjectPage match {
             case Failure(exception: HttpRequestException) if exception.is404 =>
               Success(None)
             case Failure(ex) =>

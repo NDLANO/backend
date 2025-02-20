@@ -1694,7 +1694,8 @@ object TestData {
     availability = List.empty,
     articleTypes = List.empty,
     filterInactive = false,
-    resultTypes = None
+    resultTypes = None,
+    nodeTypeFilter = List.empty
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(

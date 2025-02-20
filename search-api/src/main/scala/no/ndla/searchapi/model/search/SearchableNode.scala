@@ -13,7 +13,7 @@ import no.ndla.search.model.SearchableLanguageValues
 import no.ndla.searchapi.model.taxonomy.NodeType
 
 case class SearchableNode(
-    id: String,
+    nodeId: String,
     title: SearchableLanguageValues,
     contentUri: Option[String],
     nodeType: NodeType,

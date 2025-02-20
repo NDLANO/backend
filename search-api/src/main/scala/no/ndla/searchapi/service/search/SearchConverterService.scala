@@ -126,7 +126,7 @@ trait SearchConverterService {
 
       Success(
         NodeHitDTO(
-          id = searchableNode.id,
+          id = searchableNode.nodeId,
           subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language))
         )
       )
@@ -1134,7 +1134,7 @@ trait SearchConverterService {
     def asSearchableNode(node: Node, frontpage: Option[SubjectPage]): Try[SearchableNode] = {
       asFrontPage(frontpage).map { frontpage =>
         SearchableNode(
-          id = node.id,
+          nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
           contentUri = node.contentUri,
           nodeType = node.nodeType,

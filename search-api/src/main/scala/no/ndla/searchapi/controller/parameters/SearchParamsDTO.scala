@@ -15,6 +15,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.search.{SearchTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.taxonomy.NodeType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
@@ -73,13 +74,15 @@ case class SearchParamsDTO(
     @description("Filter out inactive taxonomy contexts.")
     filterInactive: Option[Boolean],
     @description("Which types the search request should return")
-    resultTypes: Option[List[SearchType]]
+    resultTypes: Option[List[SearchType]],
+    @description("Which node types the search request should return")
+    nodeTypeFilter: Option[List[NodeType]]
 )
 
 object SearchParamsDTO {
   implicit val encoder: Encoder[SearchParamsDTO] = deriveEncoder
   implicit val decoder: Decoder[SearchParamsDTO] = deriveDecoder
-  implicit val schema: Schema[SearchParamsDTO]   = Schema.derived[SearchParamsDTO]
+  implicit val schema: Schema[SearchParamsDTO]   = Schema.any // Schema.derived[SearchParamsDTO]
 
   import com.scalatsi.dsl.*
   implicit val tsType: TSIType[SearchParamsDTO] =
