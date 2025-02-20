@@ -14,7 +14,7 @@ import com.scalatsi.{TSNamedType, TSType, TypescriptType}
 import io.circe.generic.auto.*
 import sttp.tapir.generic.auto.*
 import io.circe.syntax.*
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.TitleDTO
 import no.ndla.language.Language

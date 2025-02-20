@@ -81,7 +81,7 @@ trait TestEnvironment
   val feideApiClient: FeideApiClient               = mock[FeideApiClient]
   val redisClient: RedisClient                     = mock[RedisClient]
   val frontpageApiClient: FrontpageApiClient       = mock[FrontpageApiClient]
-  val DBUtil                                       = mock[DBUtility]
+  val DBUtil: DBUtility                            = mock[DBUtility]
 
   val clock: SystemClock = mock[SystemClock]
 

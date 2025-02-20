@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi.service.search
 
-import cats.implicits.toTraverseOps
+import cats.implicits.{catsSyntaxOptionId, toTraverseOps}
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
@@ -26,6 +26,7 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.settings.SearchSettings
+import no.ndla.searchapi.model.taxonomy.NodeType
 
 import scala.util.{Failure, Success, Try}
 
@@ -45,6 +46,11 @@ trait MultiSearchService {
       learningPathIndexService,
       nodeIndexService
     )
+
+    def getIndexFilter(indexes: List[SearchType]): Query = {
+      val indexNames = indexes.map(SearchIndex)
+      termsQuery("_index", indexNames)
+    }
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
 
@@ -79,10 +85,42 @@ trait MultiSearchService {
         )
       })
 
-      val boolQueries: List[BoolQuery] = List(contentSearch).flatten
-      val fullQuery                    = boolQuery().must(boolQueries)
+      val nodeSearch = settings.query.map { q =>
+        val langQueryFunc = (fieldName: String, boost: Double) =>
+          buildSimpleStringQueryForField(
+            q,
+            fieldName,
+            boost,
+            settings.language,
+            settings.fallback,
+            searchDecompounded = true
+          )
+        boolQuery().must(
+          boolQuery().should(
+            langQueryFunc("title", 6)
+          )
+        )
+      }
+      val indexFilterNode    = getIndexFilter(List(SearchType.Nodes))
+      val indexFilterContent = getIndexFilter(List(SearchType.Articles, SearchType.LearningPaths))
 
-      executeSearch(settings, fullQuery)
+      val boolQueries: List[BoolQuery] = List(
+        contentSearch.map(_.filter(indexFilterContent)),
+        nodeSearch.map(_.filter(indexFilterNode))
+      ).flatten
+
+      val contentFilter = boolQuery().must(getSearchFilters(settings)).filter(indexFilterContent)
+      val ntf           = getNodeTypeFilter(settings.nodeTypeFilter)
+      val nodeFilter    = boolQuery().must(ntf).filter(indexFilterNode)
+
+      val fullQuery = boolQuery()
+        .should(boolQueries)
+        .minimumShouldMatch(Math.min(boolQueries.size, 1))
+        .filter(boolQuery().should(contentFilter, nodeFilter).minimumShouldMatch(1))
+
+      val filteredSearch = fullQuery
+
+      executeSearch(settings, filteredSearch)
     }
 
     private def getSearchIndexes(settings: SearchSettings): Try[List[String]] = {
@@ -113,20 +151,18 @@ trait MultiSearchService {
       }
     }
 
-    def executeSearch(settings: SearchSettings, baseQuery: BoolQuery): Try[SearchResult] = {
+    def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
         case _                                                        => AllLanguages
       }
-
-      val filteredSearch = baseQuery.filter(getSearchFilters(settings))
 
       getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
         val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
         val index        = getSearchIndexes(settings).?
         val searchToExecute = search(index)
           .query(filteredSearch)
-          .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
+          // TODO: .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .from(pagination.startAt)
           .trackTotalHits(true)
           .size(pagination.pageSize)
@@ -142,6 +178,7 @@ trait MultiSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
+            // TODO: Log failed shards here
             getHits(response.result, settings.language, settings.filterInactive).map(hits => {
               SearchResult(
                 totalCount = response.result.totalHits,
@@ -156,6 +193,19 @@ trait MultiSearchService {
             })
           case Failure(ex) => Failure(ex)
         }
+      }
+    }
+
+    def getNodeTypeFilter(maybeTypes: List[NodeType]): Option[Query] = {
+      maybeTypes match {
+        case types if types.nonEmpty =>
+          boolQuery()
+            .should(
+              boolQuery().not(existsQuery("nodeType")),
+              termsQuery("nodeType", types.map(_.entryName))
+            )
+            .some
+        case _ => None
       }
     }
 
