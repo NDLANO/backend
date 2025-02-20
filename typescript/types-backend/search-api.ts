@@ -199,7 +199,7 @@ export interface IGroupSearchResultDTO {
   page?: number
   pageSize: number
   language: string
-  results: IMultiSearchSummaryDTO[]
+  results: MultiSummaryBaseDTO[]
   suggestions: IMultiSearchSuggestionDTO[]
   aggregations: IMultiSearchTermsAggregationDTO[]
   resourceType: string
@@ -270,7 +270,7 @@ export interface IMultiSearchResultDTO {
   page?: number
   pageSize: number
   language: string
-  results: IMultiSearchSummaryDTO[]
+  results: MultiSummaryBaseDTO[]
   suggestions: IMultiSearchSuggestionDTO[]
   aggregations: IMultiSearchTermsAggregationDTO[]
 }
@@ -308,6 +308,7 @@ export interface IMultiSearchSummaryDTO {
   published?: string
   favorited?: number
   resultType: SearchType
+  typename: "MultiSearchSummaryDTO"
 }
 
 export interface IMultiSearchTermsAggregationDTO {
@@ -315,6 +316,12 @@ export interface IMultiSearchTermsAggregationDTO {
   sumOtherDocCount: number
   docCountErrorUpperBound: number
   values: ITermValueDTO[]
+}
+
+export interface INodeHitDTO {
+  id: string
+  subjectPage?: ISubjectPageSummaryDTO
+  typename: "NodeHitDTO"
 }
 
 export interface IRevisionMetaDTO {
@@ -344,6 +351,7 @@ export interface ISearchParamsDTO {
   embedResource?: string[]
   embedId?: string
   filterInactive?: boolean
+  resultTypes?: SearchType[]
   sort?: string
 }
 
@@ -376,6 +384,12 @@ export interface ISubjectAggsInputDTO {
   subjects?: string[]
 }
 
+export interface ISubjectPageSummaryDTO {
+  id: number
+  name: string
+  metaDescription: IMetaDescriptionDTO
+}
+
 export interface ISuggestOptionDTO {
   text: string
   score: number
@@ -405,9 +419,11 @@ export interface ITitleWithHtmlDTO {
 
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
+export type MultiSummaryBaseDTO = (IMultiSearchSummaryDTO | INodeHitDTO)
+
 export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "PODCAST")
 
-export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep")
+export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep" | "node")
 
 export type Sort = SortEnum
 

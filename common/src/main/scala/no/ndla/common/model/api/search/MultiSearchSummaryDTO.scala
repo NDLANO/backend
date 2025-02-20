@@ -12,6 +12,7 @@ import cats.implicits.toFunctorOps
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil.deriveEncoderWithTypename
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.CommentDTO
 import sttp.tapir.Schema.annotations.description
@@ -32,25 +33,25 @@ sealed trait MultiSummaryBaseDTO
 object MultiSummaryBaseDTO {
   implicit val encoder: Encoder[MultiSummaryBaseDTO] = Encoder.instance {
     case x: MultiSearchSummaryDTO => x.asJson
-    case x: NodeHit               => x.asJson
+    case x: NodeHitDTO            => x.asJson
   }
 
   implicit val decoder: Decoder[MultiSummaryBaseDTO] = List[Decoder[MultiSummaryBaseDTO]](
     Decoder[MultiSearchSummaryDTO].widen,
-    Decoder[NodeHit].widen
+    Decoder[NodeHitDTO].widen
   ).reduceLeft(_ or _)
 }
 
-case class NodeHit(
+case class NodeHitDTO(
     @description("The unique id of the taxonomy node")
     id: String,
     @description("Subject page summary if the node is connected to a subject page")
     subjectPage: Option[SubjectPageSummaryDTO]
 ) extends MultiSummaryBaseDTO
 
-object NodeHit {
-  implicit val encoder: Encoder[NodeHit] = deriveEncoder
-  implicit val decoder: Decoder[NodeHit] = deriveDecoder
+object NodeHitDTO {
+  implicit val encoder: Encoder[NodeHitDTO] = deriveEncoderWithTypename[NodeHitDTO]
+  implicit val decoder: Decoder[NodeHitDTO] = deriveDecoder
 }
 
 @description("Short summary of information about the resource")
@@ -112,6 +113,6 @@ case class MultiSearchSummaryDTO(
 ) extends MultiSummaryBaseDTO
 
 object MultiSearchSummaryDTO {
-  implicit val encoder: Encoder[MultiSearchSummaryDTO] = deriveEncoder
+  implicit val encoder: Encoder[MultiSearchSummaryDTO] = deriveEncoderWithTypename[MultiSearchSummaryDTO]
   implicit val decoder: Decoder[MultiSearchSummaryDTO] = deriveDecoder
 }

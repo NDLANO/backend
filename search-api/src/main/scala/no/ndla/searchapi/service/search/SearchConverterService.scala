@@ -26,7 +26,7 @@ import no.ndla.common.model.api.search.{
   MetaImageDTO,
   MultiSearchResultDTO,
   MultiSearchSummaryDTO,
-  NodeHit,
+  NodeHitDTO,
   RevisionMetaDTO,
   SearchTrait,
   SearchType,
@@ -121,11 +121,11 @@ trait SearchConverterService {
       })
     }
 
-    def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHit] = {
+    def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHitDTO] = {
       val searchableNode = CirceUtil.tryParseAs[SearchableNode](hit.sourceAsString).?
 
       Success(
-        NodeHit(
+        NodeHitDTO(
           id = searchableNode.id,
           subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language))
         )

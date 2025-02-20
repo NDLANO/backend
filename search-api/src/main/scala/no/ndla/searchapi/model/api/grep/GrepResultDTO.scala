@@ -15,6 +15,7 @@ import io.circe.generic.auto.*
 import sttp.tapir.generic.auto.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, Json}
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.TitleDTO
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
@@ -51,7 +52,7 @@ object GrepResultDTO {
     }
     // NOTE: Adding the discriminator field that scala-tsi generates in the typescript type.
     //       Useful for guarding the type of the object in the frontend.
-    json.mapObject(_.add("typename", Json.fromString(result.getClass.getSimpleName)))
+    CirceUtil.addTypenameDiscriminator(json, result.getClass)
   }
 
   val typescriptUnionTypes: Seq[TypescriptType.TSInterface] = Seq(
