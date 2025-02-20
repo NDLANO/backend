@@ -66,7 +66,8 @@ trait WriteService {
           } yield converted
         case Success(None) =>
           newFromUpdatedSubjectPage(subject) match {
-            case None => Failure(ValidationException("subjectpage", s"Subjectpage can't be converted to NewSubjectFrontPageData"))
+            case None =>
+              Failure(ValidationException("subjectpage", s"Subjectpage can't be converted to NewSubjectFrontPageData"))
             case Some(newSubjectPage) => updateSubjectPage(id, newSubjectPage, language)
           }
       }

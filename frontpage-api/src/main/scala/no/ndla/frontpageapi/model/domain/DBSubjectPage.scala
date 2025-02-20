@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA frontpage-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
 package no.ndla.frontpageapi.model.domain
 
 import cats.implicits.catsSyntaxOptionId
