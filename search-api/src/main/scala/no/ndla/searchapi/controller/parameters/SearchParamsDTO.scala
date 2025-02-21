@@ -82,7 +82,7 @@ case class SearchParamsDTO(
 object SearchParamsDTO {
   implicit val encoder: Encoder[SearchParamsDTO] = deriveEncoder
   implicit val decoder: Decoder[SearchParamsDTO] = deriveDecoder
-  implicit val schema: Schema[SearchParamsDTO]   = Schema.any // Schema.derived[SearchParamsDTO]
+  implicit val schema: Schema[SearchParamsDTO]   = Schema.derived[SearchParamsDTO]
 
   import com.scalatsi.dsl.*
   implicit val tsType: TSIType[SearchParamsDTO] =
