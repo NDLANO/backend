@@ -45,6 +45,10 @@ object MultiSummaryBaseDTO {
 case class NodeHitDTO(
     @description("The unique id of the taxonomy node")
     id: String,
+    @description("The title of the taxonomy node")
+    title: String,
+    @description("The url to the frontend page of the taxonomy node")
+    url: Option[String],
     @description("Subject page summary if the node is connected to a subject page")
     subjectPage: Option[SubjectPageSummaryDTO]
 ) extends MultiSummaryBaseDTO

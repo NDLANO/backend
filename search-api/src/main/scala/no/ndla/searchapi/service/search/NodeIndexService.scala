@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticApi.*
@@ -42,6 +43,7 @@ trait NodeIndexService {
         keywordField("nodeId"),
         keywordField("contentUri"),
         keywordField("nodeType"),
+        keywordField("url"),
         nestedField("subjectPage").fields(
           keywordField("id"),
           keywordField("name"),

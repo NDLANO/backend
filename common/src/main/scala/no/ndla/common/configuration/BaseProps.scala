@@ -58,6 +58,12 @@ trait BaseProps {
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
   def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
 
+  def ndlaFrontendUrl: String = Environment match {
+    case "local" => "http://localhost:30017"
+    case "prod"  => "https://ndla.no"
+    case _       => s"https://$Environment.ndla.no"
+  }
+
   def MAX_SEARCH_THREADS: Int    = intPropOrDefault("MAX_SEARCH_THREADS", 100)
   def SEARCH_INDEX_SHARDS: Int   = intPropOrDefault("SEARCH_INDEX_SHARDS", 1)
   def SEARCH_INDEX_REPLICAS: Int = intPropOrDefault("SEARCH_INDEX_REPLICAS", 1)

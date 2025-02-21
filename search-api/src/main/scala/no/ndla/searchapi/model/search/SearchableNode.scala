@@ -16,6 +16,7 @@ case class SearchableNode(
     nodeId: String,
     title: SearchableLanguageValues,
     contentUri: Option[String],
+    url: Option[String],
     nodeType: NodeType,
     subjectPage: Option[SearchableSubjectPage]
 )

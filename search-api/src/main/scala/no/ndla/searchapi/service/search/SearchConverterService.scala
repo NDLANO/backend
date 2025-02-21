@@ -123,10 +123,14 @@ trait SearchConverterService {
 
     def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHitDTO] = {
       val searchableNode = CirceUtil.tryParseAs[SearchableNode](hit.sourceAsString).?
+      val title          = searchableNode.title.getLanguageOrDefault(language).getOrElse("")
+      val url            = searchableNode.url.map(urlPath => s"${props.ndlaFrontendUrl}$urlPath")
 
       Success(
         NodeHitDTO(
           id = searchableNode.nodeId,
+          title = title,
+          url = url,
           subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language))
         )
       )
@@ -1136,6 +1140,7 @@ trait SearchConverterService {
         SearchableNode(
           nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
+          url = node.url,
           contentUri = node.contentUri,
           nodeType = node.nodeType,
           subjectPage = frontpage
