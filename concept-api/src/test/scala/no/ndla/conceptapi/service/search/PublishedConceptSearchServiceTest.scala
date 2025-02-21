@@ -30,6 +30,7 @@ import no.ndla.common.model.domain.concept.{
   WordClass
 }
 import no.ndla.conceptapi.integration.model.TaxonomyData
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import org.mockito.Mockito.when
 
@@ -47,7 +48,7 @@ class PublishedConceptSearchServiceTest
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
-    Some("by-nc-sa"),
+    Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
     List(),
@@ -58,7 +59,7 @@ class PublishedConceptSearchServiceTest
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
-    Some("publicdomain"),
+    Some(License.PublicDomain.toString),
     Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
     List(),
@@ -69,7 +70,7 @@ class PublishedConceptSearchServiceTest
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),
@@ -722,9 +723,9 @@ class PublishedConceptSearchServiceTest
       sumOtherDocCount = 0,
       docCountErrorUpperBound = 0,
       buckets = Seq(
-        Bucket("by-nc-sa", 7),
-        Bucket("copyrighted", 2),
-        Bucket("publicdomain", 2)
+        Bucket(License.CC_BY_NC_SA.toString, 7),
+        Bucket(License.Copyrighted.toString, 2),
+        Bucket(License.PublicDomain.toString, 2)
       )
     )
 

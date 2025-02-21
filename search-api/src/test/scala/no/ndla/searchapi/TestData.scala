@@ -50,6 +50,7 @@ import no.ndla.common.model.domain.learningpath.{
 }
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.*
@@ -73,11 +74,30 @@ import scala.util.Random
 
 object TestData {
 
-  private val publicDomainCopyright = Copyright("publicdomain", None, List(), List(), List(), None, None, false)
+  private val publicDomainCopyright =
+    Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
   private val byNcSaCopyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Writer", "DC Comics")), List(), List(), None, None, false)
+    Copyright(
+      License.CC_BY_NC_SA.toString,
+      Some("Gotham City"),
+      List(Author("Writer", "DC Comics")),
+      List(),
+      List(),
+      None,
+      None,
+      false
+    )
   private val copyrighted =
-    Copyright("copyrighted", Some("New York"), List(Author("Writer", "Clark Kent")), List(), List(), None, None, false)
+    Copyright(
+      License.Copyrighted.toString,
+      Some("New York"),
+      List(Author("Writer", "Clark Kent")),
+      List(),
+      List(),
+      None,
+      None,
+      false
+    )
   val today: NDLADate = NDLADate.now().withNano(0)
 
   val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "tittell", "nb")
@@ -248,7 +268,7 @@ object TestData {
     None,
     Seq(Title("test", "en")),
     Seq(ArticleContent("<article><div>test</div></article>", "en")),
-    Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
+    Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
     Seq(),
     Seq(),
     Seq(),
@@ -591,10 +611,10 @@ object TestData {
   val importedDraftStatus: Status = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
 
   val draftPublicDomainCopyright: draft.DraftCopyright =
-    draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
+    draft.DraftCopyright(Some(License.PublicDomain.toString), Some(""), List.empty, List(), List(), None, None, false)
 
   val draftByNcSaCopyright: DraftCopyright = draft.DraftCopyright(
-    Some("by-nc-sa"),
+    Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
     List(),
@@ -605,7 +625,7 @@ object TestData {
   )
 
   val draftCopyrighted: DraftCopyright = draft.DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
     List(),
@@ -935,7 +955,7 @@ object TestData {
   )
 
   val paul: Author                        = Author("author", "Truly Weird Rand Paul")
-  val license                             = "publicdomain"
+  val license                             = License.PublicDomain.toString
   val copyright: LearningpathCopyright    = common.learningpath.LearningpathCopyright(license, List(paul))
   val visibleMetadata: Option[Metadata]   = Some(Metadata(Seq.empty, visible = true, Map.empty))
   val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false, Map.empty))
@@ -1825,7 +1845,7 @@ object TestData {
     metaDescription = searchableMetaDescriptions,
     tags = searchableTags,
     lastUpdated = TestData.today,
-    license = Some("by-sa"),
+    license = Some(License.CC_BY_SA.toString),
     authors = List("Jonas", "Papi"),
     articleType = LearningResourceType.Article.toString,
     defaultTitle = Some("Christian Tut"),

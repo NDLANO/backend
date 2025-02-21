@@ -14,6 +14,7 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
+import no.ndla.mapping.License
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
@@ -30,7 +31,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Some(1),
     Seq(common.Title("title", "nb")),
     Seq(domain.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb")),
-    Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, false),
+    Copyright(License.CC_BY_SA.toString, None, Seq(), Seq(), Seq(), None, None, false),
     Seq(common.Tag(Seq("tag"), "nb")),
     "ndla124",
     updated,
@@ -47,7 +48,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Some(1),
     Seq(common.Title("title", "unknown")),
     Seq(domain.Audio("audio/test.mp3", "audio/mpeg", 1024, "unknown")),
-    Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, false),
+    Copyright(License.CC_BY_SA.toString, None, Seq(), Seq(), Seq(), None, None, false),
     Seq(common.Tag(Seq("tag"), "unknown")),
     "ndla124",
     updated,

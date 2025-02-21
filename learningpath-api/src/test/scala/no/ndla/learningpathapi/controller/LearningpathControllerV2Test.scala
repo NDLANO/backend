@@ -16,6 +16,7 @@ import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2DTO, SearchResult
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicenses
 import no.ndla.network.model.CombinedUser
 import no.ndla.tapirtesting.TapirControllerTest
@@ -36,7 +37,8 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
   }
 
-  val copyright: api.CopyrightDTO = api.CopyrightDTO(commonApi.LicenseDTO("by-sa", None, None), List())
+  val copyright: api.CopyrightDTO =
+    api.CopyrightDTO(commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None), List())
 
   val DefaultLearningPathSummary: LearningPathSummaryV2DTO = api.LearningPathSummaryV2DTO(
     1,

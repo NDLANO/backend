@@ -8,14 +8,15 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ErrorHandling
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.*
 import no.ndla.language.Language
+import no.ndla.mapping.License
 import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
@@ -35,7 +36,7 @@ trait ArticleSearchService {
   class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryDTO] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 
-    private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
+    private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = props.DraftSearchIndex
 
@@ -80,8 +81,9 @@ trait ArticleSearchService {
         else None
 
       val licenseFilter = settings.license match {
-        case None      => Some(noCopyright)
-        case Some(lic) => Some(termQuery("license", lic))
+        case Some("all") => None
+        case Some(lic)   => Some(termQuery("license", lic))
+        case None        => Some(noCopyright)
       }
 
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))

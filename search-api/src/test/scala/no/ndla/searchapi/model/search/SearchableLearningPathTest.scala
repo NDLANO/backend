@@ -12,6 +12,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
+import no.ndla.mapping.License
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -56,9 +57,9 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       tags = tags,
       learningsteps = learningsteps,
-      license = "by-sa",
+      license = License.CC_BY_SA.toString,
       copyright = CopyrightDTO(
-        LicenseDTO("by-sa", Some("bysasaa"), None),
+        LicenseDTO(License.CC_BY_SA.toString, Some("bysasaa"), None),
         Seq(AuthorDTO("Supplier", "Jonas"), AuthorDTO("Originator", "Kakemonsteret"))
       ),
       isBasedOn = Some(1001),

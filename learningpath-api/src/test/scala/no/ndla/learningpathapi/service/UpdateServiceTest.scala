@@ -15,6 +15,7 @@ import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.*
 import no.ndla.learningpathapi.model.api.*
+import no.ndla.mapping.License
 import no.ndla.network.model.CombinedUser
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
@@ -143,11 +144,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     UpdatedLearningStepV2DTO(1, Option("Tittel"), None, "nb", Some("Beskrivelse"), None, Some(false), None, None)
 
   val rubio: Author                    = Author("author", "Little Marco")
-  val license                          = "publicdomain"
+  val license                          = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(rubio))
   val apiRubio: commonApi.AuthorDTO    = commonApi.AuthorDTO("author", "Little Marco")
   val apiLicense: commonApi.LicenseDTO =
-    commonApi.LicenseDTO("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+    commonApi.LicenseDTO(
+      License.PublicDomain.toString,
+      Some("Public Domain"),
+      Some("https://creativecommons.org/about/pdm")
+    )
   val apiCopyright: CopyrightDTO = api.CopyrightDTO(apiLicense, List(apiRubio))
 
   val PUBLISHED_LEARNINGPATH: LearningPath = LearningPath(

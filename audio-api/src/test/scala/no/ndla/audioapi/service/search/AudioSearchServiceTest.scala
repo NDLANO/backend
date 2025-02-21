@@ -15,6 +15,7 @@ import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.mapping.License
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -39,10 +40,19 @@ class AudioSearchServiceTest
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.CC_BY_NC_SA.toString,
+      Some("Gotham City"),
+      List(Author("Forfatter", "DC Comics")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val publicDomain: Copyright = Copyright(
-    "publicdomain",
+    License.PublicDomain.toString,
     Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
     Seq(),
@@ -53,7 +63,16 @@ class AudioSearchServiceTest
   )
 
   val copyrighted: Copyright =
-    Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.Copyrighted.toString,
+      Some("New York"),
+      List(Author("Forfatter", "Clark Kent")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val updated1: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val updated2: NDLADate = NDLADate.of(2017, 5, 1, 12, 15, 32)
@@ -271,7 +290,8 @@ class AudioSearchServiceTest
   }
 
   test("That filtering on license only returns documents with given license for all languages") {
-    val Success(results) = audioSearchService.matchingQuery(searchSettings.copy(license = Some("publicdomain")))
+    val Success(results) =
+      audioSearchService.matchingQuery(searchSettings.copy(license = Some(License.PublicDomain.toString)))
     results.totalCount should be(2)
     results.results.head.id should be(4)
     results.results.last.id should be(2)
@@ -339,7 +359,7 @@ class AudioSearchServiceTest
       searchSettings.copy(
         query = Some("batmen"),
         language = Some("nb"),
-        license = Some("copyrighted")
+        license = Some(License.Copyrighted.toString)
       )
     )
     results.totalCount should be(1)

@@ -22,6 +22,7 @@ import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.common.implicits.*
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
+import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.Elastic4sClient
@@ -38,7 +39,7 @@ trait ImageSearchService {
   val imageSearchService: ImageSearchService
   class ImageSearchService extends StrictLogging with SearchService[(SearchableImage, MatchedLanguage)] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-    private val noCopyright                      = boolQuery().not(termQuery("license", "copyrighted"))
+    private val noCopyright                      = boolQuery().not(termQuery("license", License.Copyrighted.toString))
     override val searchIndex: String             = props.SearchIndex
     override val indexService: ImageIndexService = imageIndexService
 
@@ -133,8 +134,9 @@ trait ImageSearchService {
     ): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
 
       val licenseFilter = settings.license match {
-        case None      => Option.unless(settings.includeCopyrighted)(noCopyright)
-        case Some(lic) => Some(termQuery("license", lic))
+        case Some("all") => None
+        case Some(lic)   => Some(termQuery("license", lic))
+        case None        => Some(noCopyright)
       }
 
       val sizeFilter = settings.minimumSize match {

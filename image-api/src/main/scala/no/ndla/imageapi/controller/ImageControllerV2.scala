@@ -85,7 +85,6 @@ trait ImageControllerV2 {
         pageSize: Option[Int],
         page: Option[Int],
         podcastFriendly: Option[Boolean],
-        includeCopyrighted: Boolean,
         shouldScroll: Boolean,
         modelReleasedStatus: Seq[ModelReleasedStatus.Value],
         user: Option[TokenUser]
@@ -102,7 +101,6 @@ trait ImageControllerV2 {
             page = page,
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
-            includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus,
             userFilter = List.empty
@@ -118,7 +116,6 @@ trait ImageControllerV2 {
             page = page,
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
-            includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus,
             userFilter = List.empty
@@ -142,7 +139,6 @@ trait ImageControllerV2 {
       .in(language)
       .in(fallback)
       .in(license)
-      .in(includeCopyrighted)
       .in(sort)
       .in(pageNo)
       .in(pageSize)
@@ -161,7 +157,6 @@ trait ImageControllerV2 {
                 language,
                 fallback,
                 license,
-                includeCopyrighted,
                 sortStr,
                 pageNo,
                 pageSize,
@@ -184,7 +179,6 @@ trait ImageControllerV2 {
                 pageSize,
                 pageNo,
                 podcastFriendly,
-                includeCopyrighted,
                 shouldScroll,
                 modelReleasedStatus,
                 user
@@ -206,15 +200,14 @@ trait ImageControllerV2 {
         val language = searchParams.language.getOrElse(Language.AllLanguages)
         val fallback = searchParams.fallback.getOrElse(false)
         scrollSearchOr(searchParams.scrollId, language, user) {
-          val minimumSize        = searchParams.minimumSize
-          val query              = searchParams.query
-          val license            = searchParams.license
-          val pageSize           = searchParams.pageSize
-          val page               = searchParams.page
-          val podcastFriendly    = searchParams.podcastFriendly
-          val sort               = searchParams.sort
-          val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
-          val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val minimumSize = searchParams.minimumSize
+          val query       = searchParams.query
+          val license  = searchParams.license.orElse(Option.when(searchParams.includeCopyrighted.contains(true))("all"))
+          val pageSize = searchParams.pageSize
+          val page     = searchParams.page
+          val podcastFriendly = searchParams.podcastFriendly
+          val sort            = searchParams.sort
+          val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           val modelReleasedStatus =
             searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
 
@@ -228,7 +221,6 @@ trait ImageControllerV2 {
             pageSize,
             page,
             podcastFriendly,
-            includeCopyrighted,
             shouldScroll,
             modelReleasedStatus,
             user
