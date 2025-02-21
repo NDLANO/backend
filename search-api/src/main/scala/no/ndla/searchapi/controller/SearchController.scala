@@ -220,7 +220,7 @@ trait SearchController {
                 query = query,
                 fallback = fallback,
                 language = language,
-                license = None,
+                license = Some("all"),
                 page = page,
                 pageSize = pageSize,
                 sort = sort,
