@@ -76,7 +76,6 @@ class ArenaTest
           Success(FeideExtendedUserInfo("", Seq("employee"), None, "email@ndla.no", Some(Seq("email@ndla.no"))))
         )
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
-      when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List("zxc")))
       when(clock.now()).thenReturn(someDate)
     }
   }

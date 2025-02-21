@@ -17,9 +17,6 @@ sealed abstract class ConfigKey(override val entryName: String) extends EnumEntr
 object ConfigKey extends Enum[ConfigKey] with CirceEnum[ConfigKey] {
   case object LearningpathWriteRestricted extends ConfigKey("LEARNINGPATH_WRITE_RESTRICTED")
   case object MyNDLAWriteRestricted       extends ConfigKey("MY_NDLA_WRITE_RESTRICTED")
-  case object ArenaEnabledOrgs            extends ConfigKey("ARENA_ENABLED_ORGS")
-  case object ArenaEnabledUsers           extends ConfigKey("ARENA_ENABLED_USERS")
-  case object AiEnabledOrgs               extends ConfigKey("AI_ENABLED_ORGS")
 
   val values: IndexedSeq[ConfigKey] = findValues
 
