@@ -9,7 +9,7 @@
 package no.ndla.network
 
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest._
+import org.scalatest.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 

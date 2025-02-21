@@ -16,7 +16,7 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
-  this: Props with ErrorHandling with ImportService with TapirController =>
+  this: Props & ErrorHandling & ImportService & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController {

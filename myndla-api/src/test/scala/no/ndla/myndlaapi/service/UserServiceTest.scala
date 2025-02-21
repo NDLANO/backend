@@ -110,8 +110,6 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
-    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
 
@@ -212,8 +210,6 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       mail = Some(Seq("example@email.com"))
     )
 
-    when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
-    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
@@ -281,8 +277,6 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       shareNameAccepted = false
     )
 
-    when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
-    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
 
@@ -360,8 +354,6 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       shareNameAccepted = false
     )
 
-    when(configService.getMyNDLAEnabledOrgs).thenReturn(Success(List.empty))
-    when(configService.getMyNDLAEnabledUsers).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
     when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))

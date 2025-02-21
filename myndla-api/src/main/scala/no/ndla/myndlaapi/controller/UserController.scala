@@ -22,13 +22,8 @@ import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
 import no.ndla.myndlaapi.service.{ArenaReadService, FolderReadService, FolderWriteService, UserService}
 
 trait UserController {
-  this: ErrorHandling
-    with UserService
-    with MyNDLAAuthHelpers
-    with FolderWriteService
-    with FolderReadService
-    with ArenaReadService
-    with TapirController =>
+  this: ErrorHandling & UserService & MyNDLAAuthHelpers & FolderWriteService & FolderReadService & ArenaReadService &
+    TapirController =>
   val userController: UserController
 
   class UserController extends TapirController {

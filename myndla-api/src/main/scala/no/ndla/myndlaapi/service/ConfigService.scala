@@ -16,10 +16,11 @@ import no.ndla.myndlaapi.repository.ConfigRepository
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 trait ConfigService {
-  this: ConfigRepository with Clock =>
+  this: ConfigRepository & Clock =>
 
   val configService: ConfigService
 
@@ -28,10 +29,6 @@ trait ConfigService {
     def isWriteRestricted: Try[Boolean] = getConfigBoolean(ConfigKey.LearningpathWriteRestricted)
 
     def isMyNDLAWriteRestricted: Try[Boolean] = getConfigBoolean(ConfigKey.MyNDLAWriteRestricted)
-
-    def getMyNDLAEnabledOrgs: Try[List[String]] = getConfigStringList(ConfigKey.ArenaEnabledOrgs)
-
-    def getMyNDLAEnabledUsers: Try[List[String]] = getConfigStringList(ConfigKey.ArenaEnabledUsers)
 
     private def getConfigBoolean(configKey: ConfigKey): Try[Boolean] = {
       configRepository
@@ -44,6 +41,7 @@ trait ConfigService {
         )
     }
 
+    @unused // for now
     private def getConfigStringList(configKey: ConfigKey): Try[List[String]] = {
       configRepository
         .getConfigWithKey(configKey)
