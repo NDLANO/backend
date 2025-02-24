@@ -8,7 +8,7 @@
 
 package no.ndla.myndlaapi.model.domain
 
-import enumeratum._
+import enumeratum.*
 
 import java.util.UUID
 

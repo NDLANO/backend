@@ -13,16 +13,14 @@ import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
-import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
+import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.database.DBUtility
-import no.ndla.myndlaapi.model.api.{ArenaUserDTO, PaginatedArenaUsersDTO}
 import no.ndla.myndlaapi.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import no.ndla.network.tapir.auth.TokenUser
-import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
+import scalikejdbc.{AutoSession, DBSession}
 
-import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 trait UserService {
@@ -32,30 +30,12 @@ trait UserService {
   val userService: UserService
 
   class UserService {
-    def getArenaUserByUserName(username: String): Try[ArenaUserDTO] = {
-      userRepository.userWithUsername(username) match {
-        case Failure(ex)         => Failure(ex)
-        case Success(Some(user)) => Success(ArenaUserDTO.from(user))
-        case Success(None)       => Failure(NotFoundException(s"User with username '$username' was not found"))
-      }
-    }
-
     private def getUserById(userId: Long)(session: DBSession): Try[MyNDLAUser] = {
       userRepository.userWithId(userId)(session) match {
         case Failure(ex)         => Failure(ex)
         case Success(Some(user)) => Success(user)
         case Success(None)       => Failure(NotFoundException(s"User with id '$userId' was not found"))
       }
-    }
-
-    def getArenaUsersPaginated(page: Long, pageSize: Long, filterTeachers: Boolean, query: Option[String])(
-        session: DBSession = ReadOnlyAutoSession
-    ): Try[PaginatedArenaUsersDTO] = {
-      val offset = (page - 1) * pageSize
-      for {
-        (totalCount, users) <- userRepository.getUsersPaginated(offset, pageSize, filterTeachers, query)(session)
-        arenaUsers = users.map(ArenaUserDTO.from)
-      } yield PaginatedArenaUsersDTO(totalCount, page, pageSize, arenaUsers)
     }
 
     def getMyNdlaUserDataDomain(
@@ -118,7 +98,6 @@ trait UserService {
         updatedFeideUser = UpdatedMyNDLAUserDTO(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
-          arenaGroups = None,
           arenaAccepted = None,
           shareNameAccepted = None
         )
@@ -188,11 +167,6 @@ trait UserService {
         )
     }
 
-    def getInitialIsArenaGroups(@unused feideId: FeideID): List[ArenaGroup] = {
-      // NOTE: This exists to simplify mocking in tests until we have api user management
-      List.empty
-    }
-
     private def createMyNDLAUser(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
@@ -215,7 +189,6 @@ trait UserService {
           email = feideExtendedUserData.email,
           arenaEnabled = userRole == UserRole.EMPLOYEE,
           arenaAccepted = false,
-          arenaGroups = getInitialIsArenaGroups(feideId),
           shareNameAccepted = true
         )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
@@ -246,7 +219,6 @@ trait UserService {
         email = feideUser.email,
         arenaEnabled = userData.arenaEnabled || userRole == UserRole.EMPLOYEE,
         arenaAccepted = userData.arenaAccepted,
-        arenaGroups = userData.arenaGroups,
         shareNameAccepted = userData.shareNameAccepted
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)

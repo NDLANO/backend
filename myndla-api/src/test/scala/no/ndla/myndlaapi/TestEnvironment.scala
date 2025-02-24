@@ -12,7 +12,6 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
-  ArenaController,
   ConfigController,
   ErrorHandling,
   FolderController,
@@ -22,15 +21,13 @@ import no.ndla.myndlaapi.controller.{
 }
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.repository.{ArenaRepository, ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
   ArenaReadService,
   ConfigService,
-  ConverterService,
   FolderConverterService,
   FolderReadService,
   FolderWriteService,
-  ImportService,
   UserService
 }
 import no.ndla.network.NdlaClient
@@ -47,10 +44,7 @@ trait TestEnvironment
     with DataSource
     with DBMigrator
     with ArenaReadService
-    with ArenaRepository
-    with ArenaController
     with MyNDLAAuthHelpers
-    with ConverterService
     with FolderRepository
     with FolderReadService
     with FolderWriteService
@@ -67,7 +61,6 @@ trait TestEnvironment
     with UserController
     with StatsController
     with ErrorHandling
-    with ImportService
     with NodeBBClient
     with SearchApiClient
     with NdlaClient {
@@ -90,10 +83,6 @@ trait TestEnvironment
   val folderController: FolderController             = mock[FolderController]
   val userController: UserController                 = mock[UserController]
   val statsController: StatsController               = mock[StatsController]
-  val arenaController: ArenaController               = mock[ArenaController]
-  val arenaRepository: ArenaRepository               = mock[ArenaRepository]
-  val converterService: ConverterService             = mock[ConverterService]
-  val importService: ImportService                   = mock[ImportService]
   val nodebb: NodeBBClient                           = mock[NodeBBClient]
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
@@ -120,9 +109,6 @@ trait TestEnvironment
     reset(redisClient)
     reset(folderController)
     reset(userController)
-    reset(arenaController)
-    reset(arenaRepository)
-    reset(converterService)
     reset(ndlaClient)
     reset(searchApiClient)
   }

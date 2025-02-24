@@ -13,7 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.Success
 

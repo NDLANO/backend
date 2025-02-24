@@ -25,7 +25,7 @@ import sttp.client3.quick.*
 
 import java.util.UUID
 import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Success
 
 class FolderTest
@@ -37,7 +37,7 @@ class FolderTest
     with UnitSuite {
 
   val myndlaApiPort: Int          = findFreePort
-  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val redisPort: Int              = redisContainer.get.port
   val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int = myndlaApiPort
@@ -83,7 +83,7 @@ class FolderTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { myndlaApi.run() }: Unit
     Thread.sleep(4000)
   }
