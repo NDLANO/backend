@@ -62,6 +62,9 @@ trait BaseIndexService {
     protected def buildCreateIndexRequest(indexName: String, numShards: Option[Int]): CreateIndexRequest = {
       createIndex(indexName)
         .shards(numShards.getOrElse(indexShards))
+        // NOTE: we have more than 1000 fields in some indexes, index.mapping.total_fields.limit
+        // is set to 2000 to avoid errors.
+//        .indexSetting("mapping.total_fields.limit", 10000)
         .mapping(getMapping)
         .indexSetting("max_result_window", MaxResultWindowOption)
         .replicas(0) // Spawn with 0 replicas to make indexing faster

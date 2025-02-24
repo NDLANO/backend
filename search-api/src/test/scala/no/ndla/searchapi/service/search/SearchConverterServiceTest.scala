@@ -189,11 +189,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         )
       )
 
-    searchable2.contexts.head.resourceTypes.map(_.id).sorted should be(
+    searchable2.contexts.head.resourceTypeIds.sorted should be(
       Seq("urn:resourcetype:subjectMaterial", "urn:resourcetype:academicArticle").sorted
     )
-    searchable4.contexts.head.resourceTypes.map(_.id).sorted should be(Seq("urn:resourcetype:subjectMaterial").sorted)
-    searchable7.contexts.head.resourceTypes.map(_.id).sorted should be(
+    searchable4.contexts.head.resourceTypeIds.sorted should be(Seq("urn:resourcetype:subjectMaterial").sorted)
+    searchable7.contexts.head.resourceTypeIds.sorted should be(
       Seq(
         "urn:resourcetype:nested",
         "urn:resourcetype:peerEvaluation",
@@ -304,13 +304,13 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       )
 
     searchable1.contexts.size should be(2)
-    searchable1.contexts.map(_.root.languageValues.map(_.value)) should be(Seq(Seq("Matte"), Seq("Historie")))
+    searchable1.contexts.map(_.domainObject.root.languageValues.map(_.value)) should be(Seq(Seq("Matte"), Seq("Historie")))
 
     searchable4.contexts.size should be(1)
-    searchable4.contexts.head.root.languageValues.map(_.value) should be(Seq("Matte"))
+    searchable4.contexts.head.domainObject.root.languageValues.map(_.value) should be(Seq("Matte"))
 
     searchable5.contexts.size should be(2)
-    searchable5.contexts.map(_.root.languageValues.map(_.value)) should be(Seq(Seq("Historie"), Seq("Matte")))
+    searchable5.contexts.map(_.domainObject.root.languageValues.map(_.value)) should be(Seq(Seq("Historie"), Seq("Matte")))
   }
 
   test("That invisible contexts are not indexed") {

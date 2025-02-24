@@ -209,16 +209,15 @@ trait SearchConverterService {
     ): List[SearchableTaxonomyContext] = {
       taxonomyContexts.map(context =>
         SearchableTaxonomyContext(
+          domainObject = context,
           publicId = context.publicId,
           contextId = context.contextId,
           rootId = context.rootId,
-          root = context.root,
           path = context.path,
           breadcrumbs = context.breadcrumbs,
           contextType = context.contextType.getOrElse(""),
           relevanceId = context.relevanceId,
-          relevance = context.relevance,
-          resourceTypes = context.resourceTypes,
+          resourceTypeIds = context.resourceTypes.map(_.id),
           parentIds = context.parentIds,
           isPrimary = context.isPrimary,
           isActive = context.isActive,
@@ -991,19 +990,21 @@ trait SearchConverterService {
         context: SearchableTaxonomyContext,
         language: String
     ): ApiTaxonomyContextDTO = {
-      val subjectName = findByLanguageOrBestEffort(context.root.languageValues, language).map(_.value).getOrElse("")
+      val subjectName =
+        findByLanguageOrBestEffort(context.domainObject.root.languageValues, language).map(_.value).getOrElse("")
       val breadcrumbs = findByLanguageOrBestEffort(context.breadcrumbs.languageValues, language)
         .map(_.value)
         .getOrElse(Seq.empty)
         .toList
 
-      val resourceTypes = context.resourceTypes.map(rt => {
+      val resourceTypes = context.domainObject.resourceTypes.map(rt => {
         val name = findByLanguageOrBestEffort(rt.name.languageValues, language)
           .getOrElse(LanguageValue(UnknownLanguage.toString, ""))
         TaxonomyResourceTypeDTO(id = rt.id, name = name.value, language = name.language)
       })
 
-      val relevance = findByLanguageOrBestEffort(context.relevance.languageValues, language).map(_.value).getOrElse("")
+      val relevance =
+        findByLanguageOrBestEffort(context.domainObject.relevance.languageValues, language).map(_.value).getOrElse("")
 
       ApiTaxonomyContextDTO(
         publicId = context.publicId,

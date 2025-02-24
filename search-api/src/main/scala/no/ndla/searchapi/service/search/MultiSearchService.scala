@@ -153,7 +153,7 @@ trait MultiSearchService {
       }
     }
 
-    def logShardErrors(response: RequestSuccess[SearchResponse]) = {
+    private def logShardErrors(response: RequestSuccess[SearchResponse]) = {
       if (response.result.shards.failed > 0) {
         response.body.map { body =>
           io.circe.parser.parse(body).toTry match {
@@ -183,7 +183,11 @@ trait MultiSearchService {
         val index        = getSearchIndexes(settings).?
         val searchToExecute = search(index)
           .query(filteredSearch)
-          // TODO: .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
+          // TODO: This fails because `node` doesn't have a field indexed at "content.bla.bla"
+          //       Even if we do dynamic mapping template, that field does not exist until data is indexed.
+          //       This even happens for other fields in other indexes, so maybe we need to reconsider using the dynamic mapping templates.
+          //       Since this might be a problem for other fields or other languages (especially ones where not every index has every language).
+          .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .from(pagination.startAt)
           .trackTotalHits(true)
           .size(pagination.pageSize)

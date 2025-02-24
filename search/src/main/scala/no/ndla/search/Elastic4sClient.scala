@@ -38,7 +38,8 @@ trait Elastic4sClient {
         request: T
     )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Future[Try[RequestSuccess[U]]] = {
       val result = client.execute(request).map {
-        case failure: RequestFailure   => Failure(NdlaSearchException(request, failure))
+        case failure: RequestFailure   =>
+          Failure(NdlaSearchException(request, failure))
         case result: RequestSuccess[U] => Success(result)
       }
 

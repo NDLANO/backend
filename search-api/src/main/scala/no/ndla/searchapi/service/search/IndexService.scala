@@ -10,7 +10,7 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.analysis.*
-import com.sksamuel.elastic4s.fields.{ElasticField, NestedField}
+import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
@@ -31,6 +31,32 @@ trait IndexService {
     MyNDLAApiClient =>
 
   trait BulkIndexingService extends BaseIndexService {
+
+    protected def languageValuesMapping(name: String, keepRaw: Boolean = false): Seq[ElasticField] = {
+      val subfields = List(
+        textField("trigram").analyzer("trigram"),
+        textField("decompounded").searchAnalyzer("standard").analyzer("compound_analyzer"),
+        textField("exact").analyzer("exact")
+      )
+      val subfieldsWithRaw = if (keepRaw) subfields :+ keywordField("raw") else subfields
+
+      val analyzedFields = SearchLanguage.languageAnalyzers.map(langAnalyzer => {
+        textField(s"$name.${langAnalyzer.languageTag.toString}")
+          .analyzer(langAnalyzer.analyzer)
+          .fields(subfieldsWithRaw)
+      })
+
+//      val analyzedCodes = SearchLanguage.languageAnalyzers.map(_.languageTag.toString).toSet
+//      val notAnalyzedFields =
+//        CodeLists.iso639Definitions
+//          .flatMap(_.part1)
+//          .filterNot(analyzedCodes.contains)
+//          .map(x => )
+
+      // TODO: Not analyzed fields
+
+      analyzedFields
+    }
 
     /** Returns Sequence of DynamicTemplateRequest for a given field.
       *
@@ -294,18 +320,19 @@ trait IndexService {
 
     protected def getTaxonomyContextMapping(fieldName: String): NestedField = {
       nestedField(fieldName).fields(
-        keywordField("publicId"),
-        keywordField("contextId"),
-        keywordField("path"),
-        keywordField("contextType"),
-        keywordField("rootId"),
-        keywordField("parentIds"),
-        keywordField("relevanceId"),
-        booleanField("isActive"),
-        booleanField("isPrimary"),
-        keywordField("url"),
-        nestedField("resourceTypes").fields(
-          keywordField("id")
+        List(
+          ObjectField("domainObject", enabled = Some(false)),
+          keywordField("publicId"),
+          keywordField("contextId"),
+          keywordField("path"),
+          keywordField("contextType"),
+          keywordField("rootId"),
+          keywordField("parentIds"),
+          keywordField("relevanceId"),
+          booleanField("isActive"),
+          booleanField("isPrimary"),
+          keywordField("url"),
+          keywordField("resourceTypeIds")
         )
       )
     }

@@ -52,9 +52,10 @@ trait NodeIndexService {
       )
 
       val dynamics =
-        generateLanguageSupportedDynamicTemplates("title")
+        languageValuesMapping("title") ++
+          languageValuesMapping("content")
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
 
     def indexDocuments(numShards: Option[Int], indexingBundle: IndexingBundle): Try[ReindexResult] = {

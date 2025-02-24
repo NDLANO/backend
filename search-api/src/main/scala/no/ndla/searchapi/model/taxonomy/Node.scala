@@ -61,6 +61,7 @@ object Node {
   })
 }
 
+// NOTE: This will need to match `TaxonomyContextDTO` in `taxonomy-api`
 case class TaxonomyContext(
     publicId: String,
     rootId: String,

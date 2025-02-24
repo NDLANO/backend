@@ -73,25 +73,19 @@ trait ArticleIndexService {
         ),
         dateField("nextRevision.revisionDate") // This is needed for sorting, even if it is never used for articles
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("metaDescription") ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("visualElement") ++
-        generateLanguageSupportedDynamicTemplates("introduction") ++
-        generateLanguageSupportedDynamicTemplates("metaDescription") ++
-        generateLanguageSupportedDynamicTemplates("tags") ++
-        generateLanguageSupportedDynamicTemplates("embedAttributes") ++
-        generateLanguageSupportedDynamicTemplates("relevance") ++
-        generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
-        generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("context.root") ++
-        generateLanguageSupportedDynamicTemplates("context.relevance") ++
-        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
-        generateLanguageSupportedDynamicTemplates("contexts.root") ++
-        generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
-        generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
+      val dynamics =
+        languageValuesMapping("title", keepRaw = true) ++
+          languageValuesMapping("metaDescription") ++
+          languageValuesMapping("content") ++
+          languageValuesMapping("visualElement") ++
+          languageValuesMapping("introduction") ++
+          languageValuesMapping("tags") ++
+          languageValuesMapping("embedAttributes") ++
+          languageValuesMapping("relevance") ++
+          languageValuesMapping("breadcrumbs") ++
+          languageValuesMapping("name", keepRaw = true)
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
   }
 
