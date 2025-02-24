@@ -65,77 +65,11 @@ trait SearchController {
     override val serviceName: String         = "search"
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
 
-    private val queryParam =
-      query[Option[NonEmptyString]]("query")
-        .description("Return only results with content matching the specified query.")
-        .schema(NonEmptyString.schemaOpt)
-    private val language =
-      query[String]("language")
-        .description("The ISO 639-1 language code describing language.")
-        .default(AllLanguages)
-    private val sort = query[Option[String]]("sort").description(s"""The sorting used on results.
-             The following are supported: ${Sort.all.mkString(", ")}. Default is by -relevance (desc).""".stripMargin)
-
-    private val pageNo = query[Int]("page")
-      .description("The page number of the search hits to display.")
-      .default(1)
-      .validate(Validator.min(1))
-    private val pageSize = query[Int]("page-size")
-      .description(
-        s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
-      )
-      .default(DefaultPageSize)
-      .validate(Validator.inRange(0, MaxPageSize))
-    private val learningResourceIds =
-      listQuery[Long]("ids")
-        .description(
-          "Return only learning resources that have one of the provided ids. To provide multiple ids, separate by comma (,)."
-        )
-    private val fallback =
-      query[Boolean]("fallback")
-        .description("Fallback to existing language if language is specified.")
-        .default(false)
-    private val subjects =
-      listQuery[String]("subjects")
-        .description("A comma separated list of subjects the learning resources should be filtered by.")
-    private val contextTypes =
-      listQuery[String]("context-types")
-        .description(
-          s"A comma separated list of types the learning resources should be filtered by. Available values is ${LearningResourceType.values
-              .mkString(", ")}"
-        )
-    private val groupTypes =
-      listQuery[String]("resource-types")
-        .description("A comma separated list of resource-types the learning resources should be grouped by.")
-    private val languageFilter = listQuery[String]("language-filter")
-      .description("A comma separated list of ISO 639-1 language codes that the learning resource can be available in.")
-    private val relevanceFilter = listQuery[String]("relevance")
-      .description(
-        """A comma separated list of relevances the learning resources should be filtered by.
-        |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-        |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin
-      )
     private val includeMissingResourceTypeGroup = query[Boolean]("missing-group")
       .description(
         "Whether to include group without resource-types for group-search. Defaults to false."
       )
       .default(false)
-    private val grepCodes = listQuery[String]("grep-codes")
-      .description("A comma separated list of codes from GREP API the resources should be filtered by.")
-    private val traits = listQuery[String]("traits")
-      .description("A comma separated list of traits the resources should be filtered by.")
-    private val aggregatePaths = listQuery[String]("aggregate-paths")
-      .description("List of index-paths that should be term-aggregated and returned in result.")
-    private val embedResource =
-      listQuery[String]("embed-resource")
-        .description(
-          "Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types."
-        )
-    private val embedId =
-      query[Option[String]]("embed-id")
-        .description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
-    private val filterInactive =
-      query[Boolean]("filter-inactive").description("Filter out inactive taxonomy contexts.").default(false)
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       groupSearch,
@@ -165,88 +99,45 @@ trait SearchController {
       .summary("Search across multiple groups of learning resources")
       .description("Search across multiple groups of learning resources")
       .in("group")
-      .in(queryParam)
-      .in(groupTypes)
-      .in(pageNo)
-      .in(pageSize)
-      .in(language)
-      .in(fallback)
-      .in(subjects)
-      .in(sort)
-      .in(learningResourceIds)
-      .in(contextTypes)
-      .in(languageFilter)
-      .in(relevanceFilter)
+      .in(GetSearchQueryParams.input)
       .in(includeMissingResourceTypeGroup)
-      .in(aggregatePaths)
-      .in(grepCodes)
-      .in(traits)
-      .in(embedResource)
-      .in(embedId)
-      .in(filterInactive)
       .in(feideHeader)
       .out(jsonBody[Seq[GroupSearchResultDTO]])
       .errorOut(errorOutputsFor(401, 403))
-      .serverLogicPure {
-        case (
-              query,
-              groupTypes,
-              page,
-              pageSize,
-              language,
-              fallback,
-              subjects,
-              sortStr,
-              learningResourceIds,
-              contextTypes,
-              languageFilter,
-              relevanceFilter,
-              includeMissingResourceTypeGroup,
-              aggregatePaths,
-              grepCodes,
-              traits,
-              embedResource,
-              embedId,
-              filterInactive,
-              feideToken
-            ) =>
-          val sort = sortStr
-            .flatMap(Sort.valueOf)
-            .getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByRelevanceDesc)
-
-          getAvailability(feideToken) match {
-            case Failure(ex) => returnLeftError(ex)
-            case Success(availability) =>
-              val settings = SearchSettings(
-                query = query,
-                fallback = fallback,
-                language = language,
-                license = Some("all"),
-                page = page,
-                pageSize = pageSize,
-                sort = sort,
-                withIdIn = learningResourceIds.values,
-                subjects = subjects.values,
-                resourceTypes = groupTypes.values,
-                learningResourceTypes = contextTypes.values.flatMap(LearningResourceType.valueOf),
-                supportedLanguages = languageFilter.values,
-                relevanceIds = relevanceFilter.values,
-                grepCodes = grepCodes.values,
-                traits = traits.values.flatMap(SearchTrait.valueOf),
-                shouldScroll = false,
-                filterByNoResourceType = false,
-                aggregatePaths = aggregatePaths.values,
-                embedResource = embedResource.values,
-                embedId = embedId,
-                availability = availability,
-                articleTypes = List.empty,
-                filterInactive = filterInactive,
-                resultTypes = None,
-                nodeTypeFilter = List.empty
-              )
-
-              groupSearch(settings, includeMissingResourceTypeGroup)
-          }
+      .serverLogicPure { case (q, includeMissingResourceTypeGroup, feideToken) =>
+        val sort = q.sort
+          .flatMap(Sort.valueOf)
+          .getOrElse(if (q.queryParam.isDefined) Sort.ByRelevanceDesc else Sort.ByRelevanceDesc)
+        getAvailability(feideToken) match {
+          case Failure(ex) => returnLeftError(ex)
+          case Success(availability) =>
+            val settings = SearchSettings(
+              query = q.queryParam,
+              fallback = q.fallback,
+              language = q.language,
+              license = q.license,
+              page = q.page,
+              pageSize = q.pageSize,
+              sort = sort,
+              withIdIn = q.learningResourceIds.values,
+              subjects = q.subjects.values,
+              resourceTypes = q.resourceTypes.values,
+              learningResourceTypes = q.contextTypes.values.flatMap(LearningResourceType.valueOf),
+              supportedLanguages = q.languageFilter.values,
+              relevanceIds = q.relevanceFilter.values,
+              grepCodes = q.grepCodes.values,
+              traits = q.traits.values.flatMap(SearchTrait.valueOf),
+              shouldScroll = false,
+              filterByNoResourceType = false,
+              aggregatePaths = q.aggregatePaths.values,
+              embedResource = q.embedResource.values,
+              embedId = q.embedId,
+              availability = availability,
+              articleTypes = List.empty,
+              filterInactive = q.filterInactive
+            )
+            groupSearch(settings, includeMissingResourceTypeGroup)
+        }
       }
 
     private def searchInGroup(group: String, settings: SearchSettings): Try[GroupSearchResultDTO] = {
