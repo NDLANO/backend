@@ -10,6 +10,8 @@ package no.ndla.searchapi.service.search
 
 import cats.implicits.{catsSyntaxOptionId, toTraverseOps}
 import com.sksamuel.elastic4s.ElasticDsl.*
+import com.sksamuel.elastic4s.RequestSuccess
+import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
@@ -151,6 +153,25 @@ trait MultiSearchService {
       }
     }
 
+    def logShardErrors(response: RequestSuccess[SearchResponse]) = {
+      if (response.result.shards.failed > 0) {
+        response.body.map { body =>
+          io.circe.parser.parse(body).toTry match {
+            case Failure(exception) =>
+              logger.error(s"Got error parsing search response: $body", exception)
+            case Success(jsonBody) =>
+              val failures = jsonBody.hcursor.downField("_shards").downField("failures").focus.map(_.spaces2)
+              failures match {
+                case Some(shardFailure) =>
+                  logger.error(s"${response.result.shards.failed} failed shards in search response: \n$shardFailure")
+                case None =>
+                  logger.error(s"${response.result.shards.failed} failed shards in search response")
+              }
+          }
+        }
+      }
+    }
+
     def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
@@ -178,7 +199,7 @@ trait MultiSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            // TODO: Log failed shards here
+            logShardErrors(response)
             getHits(response.result, settings.language, settings.filterInactive).map(hits => {
               SearchResult(
                 totalCount = response.result.totalHits,
