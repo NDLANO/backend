@@ -162,7 +162,7 @@ trait ContentValidator {
         val field = s"title.language"
         TextValidator.validate(field, title.value, inlineHtmlTags).toList ++
           validateLanguage("title.language", title.language) ++
-          validateLength("title", title.value, 256)
+          validateLength("title", title.value, 0, 256)
       }) ++ validateNonEmpty("title", titles)
     }
 
@@ -171,9 +171,9 @@ trait ContentValidator {
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages =
-        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", props.creatorTypes)) ++
-          copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", props.processorTypes)) ++
-          copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", props.rightsholderTypes))
+        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators")) ++
+          copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors")) ++
+          copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders"))
       val originMessage =
         copyright.origin
           .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
@@ -195,22 +195,9 @@ trait ContentValidator {
       if (license == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(license))
     }
 
-    private def validateAuthor(author: Author, fieldPath: String, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
-      TextValidator.validate(s"$fieldPath.type", author.`type`, Set.empty).toList ++
-        TextValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
-        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList
-    }
-
-    private def validateAuthorType(
-        fieldPath: String,
-        `type`: String,
-        allowedTypes: Seq[String]
-    ): Option[ValidationMessage] = {
-      if (allowedTypes.contains(`type`.toLowerCase)) {
-        None
-      } else {
-        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
-      }
+    private def validateAuthor(author: Author, fieldPath: String): Seq[ValidationMessage] = {
+      TextValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
+        validateLength(s"$fieldPath.name", author.name, 1, 256)
     }
 
     private def validateTags(tags: Seq[Tag], isImported: Boolean): Seq[ValidationMessage] = {
@@ -273,9 +260,16 @@ trait ContentValidator {
       }
     }
 
-    private def validateLength(fieldPath: String, content: String, maxLength: Int): Option[ValidationMessage] = {
+    private def validateLength(fieldPath: String, content: String, minLength: Int, maxLength: Int) = {
       if (content.length > maxLength)
         Some(ValidationMessage(fieldPath, s"This field exceeds the maximum permitted length of $maxLength characters"))
+      else if (content.length < minLength)
+        Some(
+          ValidationMessage(
+            fieldPath,
+            s"This field is shorter than the minimum permitted length of $minLength characters"
+          )
+        )
       else
         None
     }

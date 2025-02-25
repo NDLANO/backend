@@ -35,7 +35,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val byNcSa: DraftCopyright = DraftCopyright(
     Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(Author("Forfatter", "DC Comics")),
+    List(Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -46,7 +46,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val publicDomain: DraftCopyright = DraftCopyright(
     Some(License.PublicDomain.toString),
     Some("Metropolis"),
-    List(Author("Forfatter", "Bruce Wayne")),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
     List(),
     List(),
     None,
@@ -57,7 +57,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val copyrighted: DraftCopyright = DraftCopyright(
     Some(License.Copyrighted.toString),
     Some("New York"),
-    List(Author("Forfatter", "Clark Kent")),
+    List(Author(ContributorType.Writer, "Clark Kent")),
     List(),
     List(),
     None,

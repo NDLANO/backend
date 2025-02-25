@@ -216,7 +216,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         DraftCopyright(
           Some(CC_BY_SA.toString),
           None,
-          Seq(Author("processor", "navn")),
+          Seq(Author(ContributorType.Processor, "navn")),
           List(),
           List(),
           None,
@@ -253,7 +253,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           Some(CC_BY_SA.toString),
           None,
           Seq(),
-          List(Author("rightsholder", "test")),
+          List(Author(ContributorType.RightsHolder, "test")),
           List(),
           None,
           None,
@@ -270,7 +270,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         DraftCopyright(
           Some(CC_BY_SA.toString),
           None,
-          Seq(Author("author", "John Doe")),
+          Seq(Author(ContributorType.Writer, "John Doe")),
           List(),
           List(),
           None,
@@ -288,7 +288,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         DraftCopyright(
           Some(License.CC_BY_SA.toString),
           None,
-          Seq(Author("author", "<h1>john</h1>")),
+          Seq(Author(ContributorType.Writer, "<h1>john</h1>")),
           List(),
           List(),
           None,

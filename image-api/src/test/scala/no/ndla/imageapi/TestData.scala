@@ -10,7 +10,7 @@ package no.ndla.imageapi
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag}
 import no.ndla.common.model.api as commonApi
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
@@ -50,9 +50,9 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
-        List(Author("Redaksjonelt", "Kåre Knegg")),
-        List(Author("Leverandør", "Leverans Leveransensen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
+        List(Author(ContributorType.Editorial, "Kåre Knegg")),
+        List(Author(ContributorType.Supplier, "Leverans Leveransensen")),
         None,
         None,
         false
@@ -82,7 +82,7 @@ trait TestData {
           Some("https://creativecommons.org/licenses/by-nc-sa/4.0/")
         ),
         Some("http://www.scanpix.no"),
-        List(commonApi.AuthorDTO("Fotograf", "Test Testesen")),
+        List(commonApi.AuthorDTO(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -114,7 +114,7 @@ trait TestData {
           Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
         ),
         Some("http://www.scanpix.no"),
-        List(commonApi.AuthorDTO("Fotograf", "Test Testesen")),
+        List(commonApi.AuthorDTO(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -151,7 +151,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -188,7 +188,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -225,7 +225,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -262,7 +262,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -299,7 +299,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -336,7 +336,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,

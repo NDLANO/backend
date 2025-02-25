@@ -12,6 +12,7 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, SearchSettings}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.api
+import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.mapping.License
@@ -39,9 +40,9 @@ object TestData {
   val sampleCopyright: Copyright = Copyright(
     license = "CC-BY-4.0",
     origin = Some("origin"),
-    creators = Seq(common.Author("originator", "ole")),
-    processors = Seq(common.Author("processor", "dole")),
-    rightsholders = Seq(common.Author("rightsholder", "doffen")),
+    creators = Seq(common.Author(ContributorType.Originator, "ole")),
+    processors = Seq(common.Author(ContributorType.Processor, "dole")),
+    rightsholders = Seq(common.Author(ContributorType.RightsHolder, "doffen")),
     validFrom = None,
     validTo = None,
     false

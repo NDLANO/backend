@@ -124,7 +124,7 @@ trait LearningPathValidator {
     }
 
     private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      noHtmlTextValidator.validate("author.type", author.`type`).toList ++
+      noHtmlTextValidator.validate("author.type", author.`type`.entryName).toList ++
         noHtmlTextValidator.validate("author.name", author.name).toList
     }
   }
