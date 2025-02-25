@@ -1863,7 +1863,6 @@ object TestData {
     id = 100,
     title = searchableTitles,
     content = searchableContents,
-    visualElement = searchableVisualElements,
     introduction = searchableIntroductions,
     metaDescription = searchableMetaDescriptions,
     tags = searchableTags,

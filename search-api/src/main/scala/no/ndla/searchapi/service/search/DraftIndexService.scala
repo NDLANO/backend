@@ -103,7 +103,6 @@ trait DraftIndexService {
         languageValuesMapping("title", keepRaw = true) ++
           languageValuesMapping("metaDescription") ++
           languageValuesMapping("content") ++
-          languageValuesMapping("visualElement") ++
           languageValuesMapping("introduction") ++
           languageValuesMapping("tags") ++
           languageValuesMapping("embedAttributes") ++

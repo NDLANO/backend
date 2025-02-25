@@ -273,9 +273,6 @@ trait SearchConverterService {
           content = model.SearchableLanguageValues(
             ai.content.map(article => LanguageValue(article.language, toPlaintext(article.content)))
           ),
-          visualElement = model.SearchableLanguageValues(
-            ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
-          ),
           introduction = model.SearchableLanguageValues(
             ai.introduction.map(intro => LanguageValue(intro.language, toPlaintext(intro.introduction)))
           ),
@@ -534,7 +531,6 @@ trait SearchConverterService {
 
       val title           = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
       val content         = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
-      val visualElement   = model.SearchableLanguageValues.fromFields(draft.visualElement)
       val introduction    = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
       val metaDescription = model.SearchableLanguageValues.fromFields(draft.metaDescription)
       val contexts        = asSearchableTaxonomyContexts(taxonomyContexts)
@@ -544,7 +540,6 @@ trait SearchConverterService {
           id = draft.id.get,
           title = title,
           content = content,
-          visualElement = visualElement,
           introduction = introduction,
           metaDescription = metaDescription,
           tags = SearchableLanguageList(draft.tags.map(tag => LanguageValue(tag.language, tag.tags))),
@@ -705,7 +700,7 @@ trait SearchConverterService {
       val metaDescriptions =
         searchableArticle.metaDescription.languageValues.map(lv => MetaDescriptionDTO(lv.value, lv.language))
       val visualElements =
-        searchableArticle.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
+        searchableArticle.domainObject.visualElement.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableArticle.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
         MetaImageDTO(metaImageUrl, image.altText, image.language)
@@ -783,7 +778,7 @@ trait SearchConverterService {
           common.model.api.search.MetaDescriptionDTO(lv.value, lv.language)
         )
       val visualElements =
-        searchableDraft.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
+        searchableDraft.domainObject.visualElement.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableDraft.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
         common.model.api.search.MetaImageDTO(metaImageUrl, image.altText, image.language)
