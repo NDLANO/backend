@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.model.domain.learningpath.*
-import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.domain.{ContributorType, Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{
@@ -34,7 +34,7 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
-  val clinton: commonApi.AuthorDTO = commonApi.AuthorDTO("author", "Crooked Hillary")
+  val clinton: commonApi.AuthorDTO = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
   val license: commonApi.LicenseDTO =
     commonApi.LicenseDTO(
       License.PublicDomain.toString,
@@ -477,7 +477,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("New learningPaths get correct verification") {
-    val apiRubio = commonApi.AuthorDTO("author", "Little Marco")
+    val apiRubio = commonApi.AuthorDTO(ContributorType.Writer, "Little Marco")
     val apiLicense =
       commonApi.LicenseDTO(
         License.PublicDomain.toString,

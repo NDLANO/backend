@@ -11,7 +11,7 @@ package no.ndla.conceptapi.validation
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent}
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.common.model.domain.{Author, Responsible, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Responsible, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.{Failure, Success}
@@ -67,7 +67,18 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("Copyright validation succeeds if license is included and copyright holders are not empty") {
 
     val concept = baseConcept.copy(copyright =
-      Some(DraftCopyright(Some("CC-BY-4.0"), None, Seq(Author("creator", "test")), Seq(), Seq(), None, None, false))
+      Some(
+        DraftCopyright(
+          Some("CC-BY-4.0"),
+          None,
+          Seq(Author(ContributorType.Writer, "test")),
+          Seq(),
+          Seq(),
+          None,
+          None,
+          false
+        )
+      )
     )
     val result = contentValidator.validateConcept(concept)
     result should be(Success(concept))

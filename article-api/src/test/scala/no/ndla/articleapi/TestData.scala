@@ -28,7 +28,7 @@ trait TestData {
       Copyright(
         License.CC_BY_NC_SA.toString,
         Some("Gotham City"),
-        List(Author("Writer", "DC Comics")),
+        List(Author(ContributorType.Writer, "DC Comics")),
         List(),
         List(),
         None,
@@ -39,7 +39,7 @@ trait TestData {
       Copyright(
         License.Copyrighted.toString,
         Some("New York"),
-        List(Author("Writer", "Clark Kent")),
+        List(Author(ContributorType.Writer, "Clark Kent")),
         List(),
         List(),
         None,
@@ -59,7 +59,7 @@ trait TestData {
       copyright = model.api.CopyrightDTO(
         model.api.LicenseDTO("licence", None, None),
         Some("origin"),
-        Seq(model.api.AuthorDTO("developer", "Per")),
+        Seq(model.api.AuthorDTO(ContributorType.Editorial, "Per")),
         List(),
         List(),
         None,

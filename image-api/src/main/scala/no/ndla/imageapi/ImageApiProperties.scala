@@ -47,44 +47,6 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
     "image/svg+xml"
   )
 
-  val oldCreatorTypes: List[String] = List(
-    "opphavsmann",
-    "fotograf",
-    "kunstner",
-    "forfatter",
-    "manusforfatter",
-    "innleser",
-    "oversetter",
-    "regissør",
-    "illustratør",
-    "medforfatter",
-    "komponist"
-  )
-
-  val creatorTypes: List[String] = List(
-    "originator",
-    "photographer",
-    "artist",
-    "writer",
-    "scriptwriter",
-    "reader",
-    "translator",
-    "director",
-    "illustrator",
-    "cowriter",
-    "composer"
-  )
-
-  val oldProcessorTypes: List[String] =
-    List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
-  val processorTypes: List[String] =
-    List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
-
-  val oldRightsholderTypes: List[String] = List("rettighetshaver", "forlag", "distributør", "leverandør")
-  val rightsholderTypes: List[String]    = List("rightsholder", "publisher", "distributor", "supplier")
-
-  val allowedAuthors: Seq[String] = creatorTypes ++ processorTypes ++ rightsholderTypes
-
   val IsoMappingCacheAgeInMs: Int     = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching
 

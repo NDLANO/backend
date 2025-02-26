@@ -21,7 +21,7 @@ import no.ndla.common.model.domain.learningpath.{
   StepStatus,
   StepType
 }
-import no.ndla.common.model.domain.{Author, Tag, Title, learningpath}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, learningpath}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
@@ -45,8 +45,8 @@ class SearchServiceTest
   }
   override val searchService: SearchService = new SearchService
 
-  val paul: Author                     = Author("author", "Truly Weird Rand Paul")
-  val license                          = License.PublicDomain.toString
+  val paul: Author                     = Author(ContributorType.Writer, "Truly Weird Rand Paul")
+  val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(paul))
 
   val DefaultLearningPath: LearningPath = LearningPath(
@@ -95,7 +95,9 @@ class SearchServiceTest
     if (elasticSearchContainer.isSuccess) {
       searchIndexService.createIndexAndAlias().get
 
-      doReturn(commonApi.AuthorDTO("Forfatter", "En eier"), Nil*).when(converterService).asAuthor(any[NdlaUserName])
+      doReturn(commonApi.AuthorDTO(ContributorType.Writer, "En eier"), Nil*)
+        .when(converterService)
+        .asAuthor(any[NdlaUserName])
 
       val today      = NDLADate.now()
       val yesterday  = NDLADate.now().minusDays(1)

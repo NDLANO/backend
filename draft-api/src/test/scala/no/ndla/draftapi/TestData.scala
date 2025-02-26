@@ -11,7 +11,7 @@ package no.ndla.draftapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.api.{DraftCopyrightDTO, Missing}
-import no.ndla.common.model.domain.{Priority, Title}
+import no.ndla.common.model.domain.{ContributorType, Priority, Title}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.language.OptLanguageFields
@@ -58,7 +58,7 @@ object TestData {
   private val byNcSaCopyright = common.draft.DraftCopyright(
     Some(CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(common.Author("Forfatter", "DC Comics")),
+    List(common.Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -68,7 +68,7 @@ object TestData {
   private val copyrighted = common.draft.DraftCopyright(
     Some(License.Copyrighted.toString),
     Some("New York"),
-    List(common.Author("Forfatter", "Clark Kent")),
+    List(common.Author(ContributorType.Writer, "Clark Kent")),
     List(),
     List(),
     None,
@@ -90,7 +90,7 @@ object TestData {
       DraftCopyrightDTO(
         Some(commonApi.LicenseDTO("licence", None, None)),
         Some("origin"),
-        Seq(commonApi.AuthorDTO("developer", "Per")),
+        Seq(commonApi.AuthorDTO(ContributorType.Artist, "Per")),
         List(),
         List(),
         None,

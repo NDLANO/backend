@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.common.model.domain.{Author, Responsible, Tag, Title, concept}
+import no.ndla.common.model.domain.{Author, ContributorType, Responsible, Tag, Title, concept}
 import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search.DraftSearchSettings
@@ -54,7 +54,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val byNcSa: DraftCopyright = DraftCopyright(
     Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(Author("Forfatter", "DC Comics")),
+    List(Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -65,7 +65,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val publicDomain: DraftCopyright = DraftCopyright(
     Some(License.PublicDomain.toString),
     Some("Metropolis"),
-    List(Author("Forfatter", "Bruce Wayne")),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
     List(),
     List(),
     None,
@@ -76,7 +76,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val copyrighted: DraftCopyright = DraftCopyright(
     Some(License.Copyrighted.toString),
     Some("New York"),
-    List(Author("Forfatter", "Clark Kent")),
+    List(Author(ContributorType.Writer, "Clark Kent")),
     List(),
     List(),
     None,

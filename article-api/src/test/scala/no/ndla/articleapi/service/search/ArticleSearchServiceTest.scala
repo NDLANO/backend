@@ -40,7 +40,7 @@ class ArticleSearchServiceTest
     Copyright(
       CC_BY_NC_SA.toString,
       Some("Gotham City"),
-      List(Author("Forfatter", "DC Comics")),
+      List(Author(ContributorType.Writer, "DC Comics")),
       List(),
       List(),
       None,
@@ -52,7 +52,7 @@ class ArticleSearchServiceTest
     Copyright(
       PublicDomain.toString,
       Some("Metropolis"),
-      List(Author("Forfatter", "Bruce Wayne")),
+      List(Author(ContributorType.Writer, "Bruce Wayne")),
       List(),
       List(),
       None,
@@ -64,7 +64,7 @@ class ArticleSearchServiceTest
     Copyright(
       Copyrighted.toString,
       Some("New York"),
-      List(Author("Forfatter", "Clark Kent")),
+      List(Author(ContributorType.Writer, "Clark Kent")),
       List(),
       List(),
       None,

@@ -125,8 +125,8 @@ trait ContentValidator {
     }
 
     private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      TextValidator.validate("author.type", author.`type`, Set.empty).toList ++
-        TextValidator.validate("author.name", author.name, Set.empty).toList
+      TextValidator.validate("author.name", author.name, Set.empty).toList ++
+        validateMinimumLength("author.name", author.name, 1)
     }
 
     private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {

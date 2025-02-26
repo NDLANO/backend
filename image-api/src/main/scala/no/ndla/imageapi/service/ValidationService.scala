@@ -10,9 +10,9 @@ package no.ndla.imageapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag, UploadedFile}
-import no.ndla.common.model.{domain => commonDomain}
+import no.ndla.common.model.domain as commonDomain
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.domain._
+import no.ndla.imageapi.model.domain.*
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
@@ -44,7 +44,7 @@ trait ValidationService {
         return Some(
           ValidationMessage(
             "file",
-            s"The file ${fn} is not a valid image file. Only valid type is '${ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
+            s"The file $fn is not a valid image file. Only valid type is '${ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
           )
         )
 
@@ -108,13 +108,13 @@ trait ValidationService {
           Some(copyright.license),
           copyright.rightsholders ++ copyright.creators ++ copyright.processors
         ) ++
-        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, props.creatorTypes)) ++
-        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, props.processorTypes)) ++
-        copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, props.rightsholderTypes)) ++
+        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a)) ++
+        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a)) ++
+        copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a)) ++
         copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
-    def validateLicense(license: String): Seq[ValidationMessage] = {
+    private def validateLicense(license: String): Seq[ValidationMessage] = {
       getLicense(license) match {
         case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
         case _    => Seq()
@@ -130,21 +130,23 @@ trait ValidationService {
       }
     }
 
-    def validateAuthor(fieldPath: String, author: Author, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
-      containsNoHtml(s"$fieldPath.type", author.`type`).toList ++
-        containsNoHtml(s"$fieldPath.name", author.name).toList ++
-        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList
+    private def validateAuthor(fieldPath: String, author: Author): Seq[ValidationMessage] = {
+      containsNoHtml(s"$fieldPath.name", author.name).toList ++
+        validateMinimumLength(s"$fieldPath.name", author.name, 1)
     }
 
-    def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
-      if (allowedTypes.contains(`type`.toLowerCase)) {
+    private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
+      if (content.trim.length < minLength)
+        Some(
+          ValidationMessage(
+            fieldPath,
+            s"This field does not meet the minimum length requirement of $minLength characters"
+          )
+        )
+      else
         None
-      } else {
-        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
-      }
-    }
 
-    def validateTags(tags: Seq[Tag], oldLanguages: Seq[String]): Seq[ValidationMessage] = {
+    private def validateTags(tags: Seq[Tag], oldLanguages: Seq[String]): Seq[ValidationMessage] = {
       tags.flatMap(tagList => {
         tagList.tags.flatMap(containsNoHtml("tags.tags", _)).toList :::
           validateLanguage("tags.language", tagList.language, oldLanguages).toList

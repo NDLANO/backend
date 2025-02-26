@@ -9,7 +9,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, ContributorType}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.domain.{
   ImageAltText,
@@ -38,7 +38,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Copyright(
       License.Copyrighted.toString,
       Some("New York"),
-      Seq(Author("Forfatter", "Clark Kent")),
+      Seq(Author(ContributorType.Writer, "Clark Kent")),
       Seq(),
       Seq(),
       None,

@@ -11,6 +11,7 @@ package no.ndla.searchapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
 import no.ndla.common.model.api.search.LearningResourceType
+import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -80,7 +81,7 @@ object TestData {
     Copyright(
       License.CC_BY_NC_SA.toString,
       Some("Gotham City"),
-      List(Author("Writer", "DC Comics")),
+      List(Author(ContributorType.Writer, "DC Comics")),
       List(),
       List(),
       None,
@@ -91,7 +92,7 @@ object TestData {
     Copyright(
       License.Copyrighted.toString,
       Some("New York"),
-      List(Author("Writer", "Clark Kent")),
+      List(Author(ContributorType.Writer, "Clark Kent")),
       List(),
       List(),
       None,
@@ -301,7 +302,7 @@ object TestData {
     content = List(
       ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
     ),
-    copyright = byNcSaCopyright.copy(creators = List(Author("Forfatter", "Kjekspolitiet"))),
+    copyright = byNcSaCopyright.copy(creators = List(Author(ContributorType.Writer, "Kjekspolitiet"))),
     tags = List(Tag(List("fugl"), "nb")),
     visualElement = List.empty,
     introduction = List(Introduction("Batmen", "nb")),
@@ -317,7 +318,10 @@ object TestData {
     title = List(Title("Pingvinen er ute og går", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
     copyright = publicDomainCopyright
-      .copy(creators = List(Author("Forfatter", "Pjolter")), processors = List(Author("Editorial", "Svims"))),
+      .copy(
+        creators = List(Author(ContributorType.Writer, "Pjolter")),
+        processors = List(Author(ContributorType.Editorial, "Svims"))
+      ),
     tags = List(Tag(List("fugl"), "nb")),
     visualElement = List.empty,
     introduction = List(Introduction("Pingvinen", "nb")),
@@ -616,7 +620,7 @@ object TestData {
   val draftByNcSaCopyright: DraftCopyright = draft.DraftCopyright(
     Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(Author("Forfatter", "DC Comics")),
+    List(Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -627,7 +631,7 @@ object TestData {
   val draftCopyrighted: DraftCopyright = draft.DraftCopyright(
     Some(License.Copyrighted.toString),
     Some("New York"),
-    List(Author("Forfatter", "Clark Kent")),
+    List(Author(ContributorType.Writer, "Clark Kent")),
     List(),
     List(),
     None,
@@ -685,7 +689,7 @@ object TestData {
     tags = List(Tag(List("fugl"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(3),
-    copyright = Some(draftByNcSaCopyright.copy(creators = List(Author("Forfatter", "Kjekspolitiet")))),
+    copyright = Some(draftByNcSaCopyright.copy(creators = List(Author(ContributorType.Writer, "Kjekspolitiet")))),
     grepCodes = Seq("K123", "K456")
   )
 
@@ -701,7 +705,10 @@ object TestData {
     updated = today.minusDays(2),
     copyright = Some(
       draftPublicDomainCopyright
-        .copy(creators = List(Author("Forfatter", "Pjolter")), processors = List(Author("Editorial", "Svims")))
+        .copy(
+          creators = List(Author(ContributorType.Writer, "Pjolter")),
+          processors = List(Author(ContributorType.Editorial, "Svims"))
+        )
     ),
     grepCodes = Seq("K456", "K123")
   )
@@ -954,8 +961,8 @@ object TestData {
     draft16
   )
 
-  val paul: Author                        = Author("author", "Truly Weird Rand Paul")
-  val license                             = License.PublicDomain.toString
+  val paul: Author                        = Author(ContributorType.Writer, "Truly Weird Rand Paul")
+  val license: String                     = License.PublicDomain.toString
   val copyright: LearningpathCopyright    = common.learningpath.LearningpathCopyright(license, List(paul))
   val visibleMetadata: Option[Metadata]   = Some(Metadata(Seq.empty, visible = true, Map.empty))
   val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false, Map.empty))
@@ -1032,7 +1039,7 @@ object TestData {
     duration = Some(5),
     lastUpdated = today.minusDays(6),
     tags = List(),
-    copyright = copyright.copy(contributors = List(Author("Writer", "Svims")))
+    copyright = copyright.copy(contributors = List(Author(ContributorType.Writer, "Svims")))
   )
 
   val learningPath6: LearningPath = DefaultLearningPath.copy(

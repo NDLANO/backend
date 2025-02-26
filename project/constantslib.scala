@@ -30,10 +30,12 @@ object constantslib extends Module {
     typescriptGenerationImports := Seq(
       "no.ndla.common.model.domain.config._",
       "no.ndla.network.tapir.auth._",
+      "no.ndla.common.model.domain._",
       "no.ndla.common.model.domain.draft._",
       "no.ndla.common.model.domain.concept._"
     ),
     typescriptExports := Seq(
+      "ContributorType",
       "ConfigKey",
       "DraftStatus",
       "Permission",

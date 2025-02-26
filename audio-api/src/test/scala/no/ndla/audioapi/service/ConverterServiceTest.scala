@@ -12,7 +12,7 @@ import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY_SA
@@ -29,7 +29,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     Copyright(
       License.Copyrighted.toString,
       Some("New York"),
-      Seq(Author("Forfatter", "Clark Kent")),
+      Seq(Author(ContributorType.Writer, "Clark Kent")),
       Seq(),
       Seq(),
       None,

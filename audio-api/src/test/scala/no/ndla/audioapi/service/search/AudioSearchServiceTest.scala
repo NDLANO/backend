@@ -14,7 +14,7 @@ import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.mapping.License
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
@@ -26,7 +26,7 @@ class AudioSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
-  import props._
+  import props.*
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -43,7 +43,7 @@ class AudioSearchServiceTest
     Copyright(
       License.CC_BY_NC_SA.toString,
       Some("Gotham City"),
-      List(Author("Forfatter", "DC Comics")),
+      List(Author(ContributorType.Writer, "DC Comics")),
       Seq(),
       Seq(),
       None,
@@ -54,7 +54,7 @@ class AudioSearchServiceTest
   val publicDomain: Copyright = Copyright(
     License.PublicDomain.toString,
     Some("Metropolis"),
-    List(Author("Forfatter", "Bruce Wayne")),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
     Seq(),
     Seq(),
     None,
@@ -66,7 +66,7 @@ class AudioSearchServiceTest
     Copyright(
       License.Copyrighted.toString,
       Some("New York"),
-      List(Author("Forfatter", "Clark Kent")),
+      List(Author(ContributorType.Writer, "Clark Kent")),
       Seq(),
       Seq(),
       None,
@@ -585,7 +585,7 @@ class AudioSearchServiceTest
       )
     )
     result1.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
-    result1.results(0).title.language should be("nb")
+    result1.results.head.title.language should be("nb")
     result1.results(1).title.language should be("nb")
     result1.results(2).title.language should be("en")
     result1.results(3).title.language should be("nb")
@@ -601,7 +601,7 @@ class AudioSearchServiceTest
       )
     )
     result2.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
-    result2.results(0).title.language should be("nb")
+    result2.results.head.title.language should be("nb")
     result2.results(1).title.language should be("nb")
     result2.results(2).title.language should be("nb")
     result2.results(3).title.language should be("nb")
