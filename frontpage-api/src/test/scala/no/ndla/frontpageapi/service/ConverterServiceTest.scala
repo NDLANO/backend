@@ -8,10 +8,11 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.model.api._
-import no.ndla.frontpageapi.model.domain
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.frontpage
+import no.ndla.common.model.domain.frontpage.{AboutSubject, MetaDescription, VisualElement, VisualElementType}
+import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
-import no.ndla.frontpageapi.model.domain.{AboutSubject, Errors, MetaDescription, VisualElement, VisualElementType}
 import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.{Failure, Success}
@@ -41,8 +42,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val about         = TestData.apiNewSubjectPage.about.map(_.copy(visualElement = visualElement))
     val page          = TestData.apiNewSubjectPage.copy(about = about)
 
-    val Failure(res: Errors.ValidationException) = ConverterService.toDomainSubjectPage(page)
-    res.message should equal("'not an image' is an invalid visual element type")
+    val Failure(res: ValidationException) = ConverterService.toDomainSubjectPage(page)
+    val expectedError = ValidationException(
+      "visualElement.type",
+      "'not an image' is an invalid visual element type"
+    )
+    res should be(expectedError)
   }
 
   test("toDomainSubjectPage should return a success if visual element type is valid") {
@@ -63,7 +68,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates subject links correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -87,7 +92,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates meta description correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -105,7 +110,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage updates aboutSubject correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -139,7 +144,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainSubjectPage adds new language correctly") {
-    val updateWith = UpdatedSubjectFrontPageDataDTO(
+    val updateWith = UpdatedSubjectPageDTO(
       None,
       None,
       None,
@@ -168,27 +173,28 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Success(
         TestData.domainSubjectPage.copy(
           about = Seq(
-            domain.AboutSubject(
+            frontpage.AboutSubject(
               "Om Samfunnsfag",
               "Dette er samfunnsfag",
               "nb",
-              domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+              frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
             ),
-            domain.AboutSubject(
+            frontpage.AboutSubject(
               "About Social studies",
               "This is social studies",
               "en",
-              domain.VisualElement(VisualElementType.Image, "123", None)
+              frontpage.VisualElement(VisualElementType.Image, "123", None)
             )
           ),
-          metaDescription = Seq(domain.MetaDescription("meta", "nb"), domain.MetaDescription("meta description", "en"))
+          metaDescription =
+            Seq(frontpage.MetaDescription("meta", "nb"), frontpage.MetaDescription("meta description", "en"))
         )
       )
     )
   }
 
   test("toApiSubjectPage failure if subject not found in specified language without fallback") {
-    ConverterService.toApiSubjectPage(TestData.domainSubjectPage, "hei", fallback = false) should be(
+    ConverterService.toApiSubjectPage(TestData.domainSubjectPage, "hei") should be(
       Failure(
         LanguageNotFoundException(
           s"The subjectpage with id ${TestData.domainSubjectPage.id.get} and language hei was not found",

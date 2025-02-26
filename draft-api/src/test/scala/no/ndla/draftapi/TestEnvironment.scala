@@ -25,7 +25,7 @@ import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -38,6 +38,7 @@ trait TestEnvironment
     with GrepCodesSearchService
     with GrepCodesIndexService
     with IndexService
+    with SearchLanguage
     with BaseIndexService
     with SearchService
     with StrictLogging

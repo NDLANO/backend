@@ -26,7 +26,7 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
-  this: ConverterService =>
+  this: ConverterService & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {

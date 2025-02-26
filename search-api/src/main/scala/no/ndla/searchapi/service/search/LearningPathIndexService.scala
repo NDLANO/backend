@@ -88,21 +88,16 @@ trait LearningPathIndexService {
         ),
         dateField("nextRevision.revisionDate") // This is needed for sorting, even if it is never used for learningpaths
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("description") ++
-        generateLanguageSupportedDynamicTemplates("tags", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("relevance") ++
-        generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
-        generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("context.root") ++
-        generateLanguageSupportedDynamicTemplates("context.relevance") ++
-        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
-        generateLanguageSupportedDynamicTemplates("contexts.root") ++
-        generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
-        generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
+      val dynamics =
+        languageValuesMapping("title", keepRaw = true) ++
+          languageValuesMapping("content") ++
+          languageValuesMapping("description") ++
+          languageValuesMapping("tags", keepRaw = true) ++
+          languageValuesMapping("relevance") ++
+          languageValuesMapping("breadcrumbs") ++
+          languageValuesMapping("name", keepRaw = true)
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
   }
 

@@ -13,21 +13,19 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.analysis.{Analysis, CustomNormalizer}
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.repository.Repository
-import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient & BaseIndexService & Props & SearchConverterService =>
+  this: Elastic4sClient & BaseIndexService & Props & SearchConverterService & SearchLanguage =>
   trait IndexService extends BaseIndexService with StrictLogging {
     val repository: Repository[Concept]
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -37,7 +35,7 @@ trait IndexService {
 
     override val analysis: Analysis =
       Analysis(
-        analyzers = List(NynorskLanguageAnalyzer),
+        analyzers = List(SearchLanguage.NynorskLanguageAnalyzer),
         tokenFilters = SearchLanguage.NynorskTokenFilters,
         normalizers = List(lowerNormalizer)
       )
@@ -115,46 +113,25 @@ trait IndexService {
       }
     }
 
-    def findAllIndexes: Try[Seq[String]] = findAllIndexes(this.searchIndex)
-
-    /** Returns Sequence of DynamicTemplateRequest for a given field.
-      *
-      * @param fieldName
-      *   Name of field in mapping.
-      * @param keepRaw
-      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
-      * @return
-      *   Sequence of DynamicTemplateRequest for a field.
-      */
-    private def generateLanguageSupportedDynamicTemplates(
-        fieldName: String,
-        keepRaw: Boolean = false
-    ): Seq[DynamicTemplateRequest] = {
-      val fields =
-        if (keepRaw)
-          List(
-            keywordField("raw"),
-            keywordField("lower").normalizer("lower")
-          )
-        else List.empty
-
-      val languageTemplates = languageAnalyzers.map(languageAnalyzer => {
-        val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
-        DynamicTemplateRequest(
-          name = name,
-          mapping = textField(name).analyzer(languageAnalyzer.analyzer).fields(fields),
-          matchMappingType = Some("string"),
-          pathMatch = Some(name)
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
+      if (keepRaw) {
+        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .analyzer(langAnalyzer.analyzer)
+            .fields(
+              keywordField("raw"),
+              keywordField("lower").normalizer("lower")
+            )
         )
-      })
-      val catchAlltemplate = DynamicTemplateRequest(
-        name = fieldName,
-        mapping = textField(fieldName).analyzer("standard").fields(fields),
-        matchMappingType = Some("string"),
-        pathMatch = Some(s"$fieldName.*")
-      )
-      languageTemplates ++ Seq(catchAlltemplate)
+      } else {
+        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .analyzer(langAnalyzer.analyzer)
+        )
+      }
     }
+
+    def findAllIndexes: Try[Seq[String]] = findAllIndexes(this.searchIndex)
 
     def getMapping: MappingDefinition = {
       val fields: Seq[ElasticField] = List(
@@ -205,12 +182,12 @@ trait IndexService {
         textField("gloss"),
         ObjectField("domainObject", enabled = Some(false))
       )
-      val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("tags", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("sortableConceptType", keepRaw = true)
+      val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
+        generateLanguageSupportedFieldList("content") ++
+        generateLanguageSupportedFieldList("tags", keepRaw = true) ++
+        generateLanguageSupportedFieldList("sortableConceptType", keepRaw = true)
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
 
   }

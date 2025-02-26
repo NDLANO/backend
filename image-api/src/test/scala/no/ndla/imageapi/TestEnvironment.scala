@@ -34,7 +34,7 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -47,6 +47,7 @@ trait TestEnvironment
     with ImageSearchService
     with TagSearchService
     with SearchConverterService
+    with SearchLanguage
     with DataSource
     with ConverterService
     with ValidationService

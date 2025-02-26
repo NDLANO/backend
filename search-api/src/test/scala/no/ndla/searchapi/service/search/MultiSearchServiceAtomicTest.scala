@@ -9,14 +9,20 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.ArticleContent
+import no.ndla.common.model.api.search.{MultiSearchSummaryDTO, NodeHitDTO, SearchType}
+import no.ndla.common.model.domain.frontpage.{BannerImage, MetaDescription, SubjectPage}
+import no.ndla.common.model.domain.{ArticleContent, Title}
+import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
-import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.SearchTestUtility.*
+import org.mockito.Mockito.*
+import org.mockito.ArgumentMatchers.eq as eqTo
 
 import scala.util.Success
 
@@ -30,6 +36,9 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
     override val indexShards = 1
   }
   override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+    override val indexShards = 1
+  }
+  override val nodeIndexService: NodeIndexService = new NodeIndexService {
     override val indexShards = 1
   }
   override val multiSearchService     = new MultiSearchService
@@ -89,7 +98,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
 
     search1.totalCount should be(1)
-    search1.results.map(_.id) should be(List(2))
+    search1.summaryResults.map(_.id) should be(List(2))
 
     val Success(search2) =
       multiSearchService.matchingQuery(
@@ -97,7 +106,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
 
     search2.totalCount should be(2)
-    search2.results.map(_.id) should be(List(1, 2))
+    search2.summaryResults.map(_.id) should be(List(1, 2))
 
   }
 
@@ -294,7 +303,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
       .get
 
-    result.results.head.contexts.map(_.publicId) should be(Seq("urn:resource:2"))
+    result.summaryResults.head.contexts.map(_.publicId) should be(Seq("urn:resource:2"))
   }
 
   test("That topic taxonomy contexts with hidden elements are ignored") {
@@ -440,7 +449,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
       .get
 
-    result.results.head.contexts.map(_.publicId) should be(Seq("urn:topic:3"))
+    result.summaryResults.head.contexts.map(_.publicId) should be(Seq("urn:topic:3"))
   }
   test("That aggregating rootId works as expected") {
     val article1 = TestData.article1.copy(id = Some(1))
@@ -693,5 +702,121 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         buckets = List(Bucket("urn:subject:1", 3), Bucket("urn:subject:2", 2))
       )
     result.aggregations should be(Seq(expectedAggs))
+  }
+
+  test("That nodes and articles are searchable in the same searchresult") {
+    val taxonomyBundle = TaxonomyBundle(
+      List(
+        Node(
+          id = "urn:subject:19284",
+          name = "Apekatt fag",
+          contentUri = Some("urn:frontpage:1"),
+          path = Some("/subject:19284"),
+          url = Some("/f/sub1/asdf2362"),
+          metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
+          translations = List.empty,
+          nodeType = NodeType.SUBJECT,
+          contextids = List(),
+          contexts = List()
+        ),
+        Node(
+          id = "urn:subject:19285",
+          name = "Snabel fag",
+          contentUri = Some("urn:frontpage:2"),
+          path = Some("/subject:19285"),
+          url = Some("/f/sub1/asdf2362"),
+          metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
+          translations = List.empty,
+          nodeType = NodeType.SUBJECT,
+          contextids = List(),
+          contexts = List()
+        )
+      ) ++
+        indexingBundle.taxonomyBundle.get.nodes
+    )
+
+    doReturn(
+      Success(
+        SubjectPage(
+          id = Some(1),
+          name = "Apekatt fag",
+          bannerImage = BannerImage(None, 5),
+          about = Seq(),
+          metaDescription = Seq(MetaDescription("Apekatt fag beskrivelse", "nb")),
+          editorsChoices = List(),
+          connectedTo = List(),
+          buildsOn = List(),
+          leadsTo = List()
+        )
+      )
+    ).when(frontpageApiClient).getSubjectPage(eqTo(1L))
+
+    doReturn(
+      Success(
+        SubjectPage(
+          id = Some(2),
+          name = "Snabel fag",
+          bannerImage = BannerImage(None, 5),
+          about = Seq(),
+          metaDescription = Seq(MetaDescription("Snabel fag beskrivelse", "nb")),
+          editorsChoices = List(),
+          connectedTo = List(),
+          buildsOn = List(),
+          leadsTo = List()
+        )
+      )
+    ).when(frontpageApiClient).getSubjectPage(eqTo(2L))
+
+    val article1 = TestData.article1.copy(
+      id = Some(1),
+      title = Seq(Title("Apekatt en", "nb"))
+    )
+    val article2 = TestData.article1.copy(
+      id = Some(2),
+      title = Seq(Title("Apekatt to", "nb"))
+    )
+    val article3 = TestData.article1.copy(
+      id = Some(3),
+      title = Seq(Title("Noe helt annet", "nb"))
+    )
+    val bundle = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
+
+    nodeIndexService.indexDocuments(None, bundle).get
+    articleIndexService.indexDocument(article1, bundle).get
+    articleIndexService.indexDocument(article2, bundle).get
+    articleIndexService.indexDocument(article3, bundle).get
+
+    blockUntil(() => {
+      val indexedNodes    = nodeIndexService.countDocuments
+      val indexedArticles = articleIndexService.countDocuments
+      indexedNodes == 23 && indexedArticles == 3
+    })
+
+    val search1 =
+      multiSearchService.matchingQuery(
+        TestData.searchSettings.copy(
+          sort = Sort.ByRelevanceDesc,
+          query = NonEmptyString.fromString("Apekatt"),
+          nodeTypeFilter = List(NodeType.SUBJECT),
+          resultTypes = Some(
+            List(
+              SearchType.Nodes,
+              SearchType.Articles
+            )
+          )
+        )
+      )
+
+    search1.get.totalCount should be(3)
+    search1.get.results.map {
+      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+      case x: NodeHitDTO            => s"Node:${x.id}"
+    } should be(
+      List(
+        "Node:urn:subject:19284",
+        "Multi:1",
+        "Multi:2"
+      )
+    )
   }
 }

@@ -97,16 +97,16 @@ trait TaxonomyFiltering {
       if (filterByNoResourceType) {
         Some(
           boolQuery().not(
-            nestedQuery("contexts.resourceTypes", existsQuery("contexts.resourceTypes"))
+            nestedQuery("contexts", existsQuery("contexts.resourceTypeIds"))
           )
         )
       } else { None }
     } else {
       Some(
         nestedQuery(
-          "contexts.resourceTypes",
+          "contexts",
           boolQuery().should(
-            resourceTypes.map(resourceTypeId => termQuery("contexts.resourceTypes.id", resourceTypeId))
+            resourceTypes.map(resourceTypeId => termQuery("contexts.resourceTypeIds", resourceTypeId))
           )
         )
       )
