@@ -25,7 +25,7 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import scala.util.Try
 
 trait SearchConverterService {
-  this: ConverterService with Props =>
+  this: ConverterService & Props & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {

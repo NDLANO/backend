@@ -55,6 +55,7 @@ object Language {
     "sv",
     "th",
     "tr",
+    "ukr",
     "und"
   )
 
