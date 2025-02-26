@@ -19,7 +19,7 @@ import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.conceptapi.db.migrationwithdependencies.{V23__SubjectNameAsTags, V25__SubjectNameAsTagsPublished}
@@ -44,6 +44,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with DraftConceptSearchService
     with PublishedConceptSearchService
     with SearchService
+    with SearchLanguage
     with SearchConverterService
     with Elastic4sClient
     with DraftConceptIndexService

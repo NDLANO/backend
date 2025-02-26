@@ -27,7 +27,7 @@ import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -61,6 +61,7 @@ trait TestEnvironment
     with Props
     with ErrorHandling
     with SearchSettingsHelper
+    with SearchLanguage
     with DraftSearchSettingsHelper
     with DBMigrator
     with InternController {
