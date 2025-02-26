@@ -29,7 +29,7 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties)
     extends BaseComponentRegistry[ImageApiProperties]
@@ -41,6 +41,7 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ImageIndexService
     with SearchService
     with ImageSearchService
+    with SearchLanguage
     with TagSearchService
     with SearchConverterService
     with DataSource
