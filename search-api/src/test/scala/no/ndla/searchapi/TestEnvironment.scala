@@ -14,7 +14,7 @@ import no.ndla.database.DBUtility
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
@@ -43,6 +43,7 @@ trait TestEnvironment
     with TaxonomyApiClient
     with DBUtility
     with IndexService
+    with SearchLanguage
     with BaseIndexService
     with StrictLogging
     with LearningPathApiClient

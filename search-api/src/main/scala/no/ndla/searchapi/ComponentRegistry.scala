@@ -14,7 +14,7 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
 import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
 import no.ndla.searchapi.integration.*
@@ -43,6 +43,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with TaxonomyApiClient
     with IndexService
     with BaseIndexService
+    with SearchLanguage
     with StrictLogging
     with LearningPathApiClient
     with NdlaClient

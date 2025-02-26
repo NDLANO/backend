@@ -393,21 +393,6 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     search.totalCount should equal(0)
   }
 
-  test("Searching with query for language not in analyzers should work as expected") {
-    val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(
-        query = Some(NonEmptyString.fromString("Chhattisgarhi").get),
-        language = "hne",
-        sort = Sort.ByRelevanceDesc
-      )
-    )
-
-    search.totalCount should equal(1)
-    search.summaryResults.head.id should equal(13)
-    search.summaryResults.head.title.title should equal("Chhattisgarhi title")
-    search.summaryResults.head.title.language should equal("hne")
-  }
-
   test("metadescription is searchable") {
     val Success(search) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings

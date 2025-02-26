@@ -15,6 +15,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.search.SearchType
@@ -156,9 +157,9 @@ trait MultiSearchService {
     private def logShardErrors(response: RequestSuccess[SearchResponse]) = {
       if (response.result.shards.failed > 0) {
         response.body.map { body =>
-          io.circe.parser.parse(body).toTry match {
-            case Failure(exception) =>
-              logger.error(s"Got error parsing search response: $body", exception)
+          CirceUtil.tryParse(body) match {
+            case Failure(ex) =>
+              logger.error(s"Got error parsing search response: $body", ex)
             case Success(jsonBody) =>
               val failures = jsonBody.hcursor.downField("_shards").downField("failures").focus.map(_.spaces2)
               failures match {
@@ -183,10 +184,6 @@ trait MultiSearchService {
         val index        = getSearchIndexes(settings).?
         val searchToExecute = search(index)
           .query(filteredSearch)
-          // TODO: This fails because `node` doesn't have a field indexed at "content.bla.bla"
-          //       Even if we do dynamic mapping template, that field does not exist until data is indexed.
-          //       This even happens for other fields in other indexes, so maybe we need to reconsider using the dynamic mapping templates.
-          //       Since this might be a problem for other fields or other languages (especially ones where not every index has every language).
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .from(pagination.startAt)
           .trackTotalHits(true)

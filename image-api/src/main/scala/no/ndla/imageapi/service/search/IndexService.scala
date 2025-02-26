@@ -83,32 +83,6 @@ trait IndexService {
       }
     }
 
-    /** Returns Sequence of FieldDefinitions for a given field.
-      *
-      * @param fieldName
-      *   Name of field in mapping.
-      * @param keepRaw
-      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
-      * @return
-      *   Sequence of FieldDefinitions for a field.
-      */
-    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
-      if (keepRaw) {
-        languageAnalyzers.map(langAnalyzer =>
-          textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
-            .fielddata(false)
-            .analyzer(langAnalyzer.analyzer)
-            .fields(keywordField("raw"))
-        )
-      } else {
-        languageAnalyzers.map(langAnalyzer =>
-          textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
-            .fielddata(false)
-            .analyzer(langAnalyzer.analyzer)
-        )
-      }
-    }
-
     /** Returns Sequence of DynamicTemplateRequest for a given field.
       *
       * @param fieldName

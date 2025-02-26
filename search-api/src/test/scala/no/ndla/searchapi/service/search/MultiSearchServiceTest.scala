@@ -390,21 +390,6 @@ class MultiSearchServiceTest
     searchEn.totalCount should equal(0)
   }
 
-  test("Searching with query for language not in analyzer should return something") {
-    val Success(searchEn) = multiSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some(NonEmptyString.fromString("Chhattisgarhi").get),
-        language = "hne",
-        sort = Sort.ByRelevanceDesc
-      )
-    )
-
-    searchEn.totalCount should equal(1)
-    searchEn.summaryResults.head.id should equal(11)
-    searchEn.summaryResults.head.title.title should equal("Chhattisgarhi")
-    searchEn.summaryResults.head.title.language should equal("hne")
-  }
-
   test("metadescription is searchable") {
     val Success(search) = multiSearchService.matchingQuery(
       searchSettings.copy(

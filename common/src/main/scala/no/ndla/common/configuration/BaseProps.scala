@@ -58,6 +58,9 @@ trait BaseProps {
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
   def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
 
+  def SupportedLanguages: List[String] =
+    propOrElse("SUPPORTED_LANGUAGES", "nb,nn,en,sma,se,de,es,zh,ukr").split(",").toList
+
   def ndlaFrontendUrl: String = Environment match {
     case "local" => "http://localhost:30017"
     case "prod"  => "https://ndla.no"

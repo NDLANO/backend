@@ -78,7 +78,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
-  this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient =>
+  this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {

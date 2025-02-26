@@ -18,7 +18,6 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 
 import java.text.SimpleDateFormat
@@ -26,9 +25,10 @@ import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 
 trait BaseIndexService {
-  this: Elastic4sClient with HasBaseProps =>
+  this: Elastic4sClient & HasBaseProps & SearchLanguage =>
 
   trait BaseIndexService extends StrictLogging {
+    import SearchLanguage.NynorskLanguageAnalyzer
     val documentType: String
     val searchIndex: String
     val MaxResultWindowOption: Int
@@ -62,9 +62,6 @@ trait BaseIndexService {
     protected def buildCreateIndexRequest(indexName: String, numShards: Option[Int]): CreateIndexRequest = {
       createIndex(indexName)
         .shards(numShards.getOrElse(indexShards))
-        // NOTE: we have more than 1000 fields in some indexes, index.mapping.total_fields.limit
-        // is set to 2000 to avoid errors.
-//        .indexSetting("mapping.total_fields.limit", 10000)
         .mapping(getMapping)
         .indexSetting("max_result_window", MaxResultWindowOption)
         .replicas(0) // Spawn with 0 replicas to make indexing faster

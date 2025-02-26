@@ -41,7 +41,7 @@ import scala.util.{Failure, Success, Try}
 
 trait SearchService {
   this: Elastic4sClient & IndexService & SearchConverterService & StrictLogging & Props & BaseIndexService &
-    ErrorHandling =>
+    ErrorHandling & SearchLanguage =>
 
   trait SearchService {
     import props.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
