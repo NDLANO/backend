@@ -171,9 +171,11 @@ trait ContentValidator {
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages =
-        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators")) ++
-          copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors")) ++
-          copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders"))
+        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ContributorType.creators)) ++
+          copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ContributorType.processors)) ++
+          copyright.rightsholders.flatMap(a =>
+            validateAuthor(a, "copyright.rightsholders", ContributorType.rightsholders)
+          )
       val originMessage =
         copyright.origin
           .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
@@ -195,9 +197,26 @@ trait ContentValidator {
       if (license == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(license))
     }
 
-    private def validateAuthor(author: Author, fieldPath: String): Seq[ValidationMessage] = {
+    private def validateAuthor(
+        author: Author,
+        fieldPath: String,
+        allowedTypes: Seq[ContributorType]
+    ): Seq[ValidationMessage] = {
       TextValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
+        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList ++
         validateLength(s"$fieldPath.name", author.name, 1, 256)
+    }
+
+    private def validateAuthorType(
+        fieldPath: String,
+        `type`: ContributorType,
+        allowedTypes: Seq[ContributorType]
+    ): Option[ValidationMessage] = {
+      if (allowedTypes.contains(`type`)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
+      }
     }
 
     private def validateTags(tags: Seq[Tag], isImported: Boolean): Seq[ValidationMessage] = {

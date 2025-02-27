@@ -11,13 +11,14 @@ package no.ndla.common.model.domain
 import com.scalatsi.{TSNamedType, TSType}
 import com.scalatsi.TypescriptType.TSEnum
 import enumeratum.*
+import no.ndla.common.CirceUtil.CirceEnumWithErrors
 import no.ndla.common.errors.ValidationException
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class ContributorType(override val entryName: String) extends EnumEntry
 
-object ContributorType extends Enum[ContributorType] with CirceEnum[ContributorType] {
+object ContributorType extends Enum[ContributorType] with CirceEnumWithErrors[ContributorType] {
   case object Artist       extends ContributorType("artist")
   case object CoWriter     extends ContributorType("cowriter")
   case object Compiler     extends ContributorType("compiler")
@@ -54,6 +55,11 @@ object ContributorType extends Enum[ContributorType] with CirceEnum[ContributorT
       )
     )
 
+  def creators: Seq[ContributorType] = Seq(Artist, CoWriter, Composer, Director, Illustrator, Originator, Photographer, Reader, ScriptWriter, Translator, Writer)
+  def processors: Seq[ContributorType] = Seq(Compiler, Correction, Editorial, Facilitator, Idea, Linguistic, Processor)
+  def rightsholders: Seq[ContributorType] = Seq(Distributor, Publisher, RightsHolder, Supplier)
+  def contributors: Seq[ContributorType] = creators ++ processors ++ rightsholders
+
   // TODO: Remove when all data are converted
   val mapping: Map[String, ContributorType] = Map(
     "bearbeider"       -> ContributorType.Processor,
@@ -83,6 +89,7 @@ object ContributorType extends Enum[ContributorType] with CirceEnum[ContributorT
 
   implicit def schema: Schema[ContributorType]    = schemaForEnumEntry[ContributorType]
   private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
+
   implicit val enumTsType: TSNamedType[ContributorType] =
     TSType.alias[ContributorType]("ContributorType", TSEnum.string("ContributorTypeEnum", tsEnumValues*))
 }

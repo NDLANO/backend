@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.{Author, Tag, UploadedFile}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, UploadedFile}
 import no.ndla.common.model.domain as commonDomain
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.*
@@ -108,9 +108,11 @@ trait ValidationService {
           Some(copyright.license),
           copyright.rightsholders ++ copyright.creators ++ copyright.processors
         ) ++
-        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a)) ++
-        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a)) ++
-        copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a)) ++
+        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, ContributorType.creators)) ++
+        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, ContributorType.processors)) ++
+        copyright.rightsholders.flatMap(a =>
+          validateAuthor("copyright.rightsholders", a, ContributorType.rightsholders)
+        ) ++
         copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
@@ -130,9 +132,26 @@ trait ValidationService {
       }
     }
 
-    private def validateAuthor(fieldPath: String, author: Author): Seq[ValidationMessage] = {
+    private def validateAuthor(
+        fieldPath: String,
+        author: Author,
+        allowedTypes: Seq[ContributorType]
+    ): Seq[ValidationMessage] = {
       containsNoHtml(s"$fieldPath.name", author.name).toList ++
+        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes) ++
         validateMinimumLength(s"$fieldPath.name", author.name, 1)
+    }
+
+    private def validateAuthorType(
+        fieldPath: String,
+        `type`: ContributorType,
+        allowedTypes: Seq[ContributorType]
+    ): Option[ValidationMessage] = {
+      if (allowedTypes.contains(`type`)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
+      }
     }
 
     private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
