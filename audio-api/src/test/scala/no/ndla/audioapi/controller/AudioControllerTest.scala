@@ -74,7 +74,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       |    "audioFile": "test.mp3",
       |    "copyright": {
       |        "license": {
-      |            "license": "${License.CC_BY.toString}"
+      |            "license": "${License.CC_BY_SA.toString}"
       |        },
       |        "origin": "",
       |        "creators": [],
