@@ -19,32 +19,7 @@ export enum ConceptSortEnum {
   ByConceptTypeDesc = "-conceptType",
 }
 
-export type ContributorType = ContributorTypeEnum
-
-export enum ContributorTypeEnum {
-  Artist = "artist",
-  CoWriter = "cowriter",
-  Compiler = "compiler",
-  Composer = "composer",
-  Correction = "correction",
-  Director = "director",
-  Distributor = "distributor",
-  Editorial = "editorial",
-  Facilitator = "facilitator",
-  Idea = "idea",
-  Illustrator = "illustrator",
-  Linguistic = "linguistic",
-  Originator = "originator",
-  Photographer = "photographer",
-  Processor = "processor",
-  Publisher = "publisher",
-  Reader = "reader",
-  RightsHolder = "rightsholder",
-  ScriptWriter = "scriptwriter",
-  Supplier = "supplier",
-  Translator = "translator",
-  Writer = "writer",
-}
+export type ContributorType = ("artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer")
 
 export interface IAuthorDTO {
   type: ContributorType
