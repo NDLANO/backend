@@ -10,6 +10,7 @@ package no.ndla.searchapi.service.search
 
 import cats.implicits.{catsSyntaxOptionId, toTraverseOps}
 import com.sksamuel.elastic4s.ElasticDsl.*
+import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
 import com.sksamuel.elastic4s.RequestSuccess
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.Query
@@ -119,11 +120,12 @@ trait MultiSearchService {
       val fullQuery = boolQuery()
         .should(boolQueries)
         .minimumShouldMatch(Math.min(boolQueries.size, 1))
-        .filter(boolQuery().should(contentFilter, nodeFilter).minimumShouldMatch(1))
+
+      val filters = boolQuery().should(contentFilter, nodeFilter).minimumShouldMatch(1)
 
       val filteredSearch = fullQuery
 
-      executeSearch(settings, filteredSearch)
+      executeSearch(settings, fullQuery, filters)
     }
 
     private def getSearchIndexes(settings: SearchSettings): Try[List[String]] = {
@@ -154,6 +156,17 @@ trait MultiSearchService {
       }
     }
 
+    def getAggregations(settings: SearchSettings, globalAggregationQuery: Query): Seq[Aggregation] = {
+      val aggregateIndexes      = indexServices.map(_.getMapping)
+      val aggregations          = buildTermsAggregation(settings.aggregatePaths, aggregateIndexes)
+      val globalAggregations    = buildTermsAggregation(settings.globalAggregatePaths, aggregateIndexes)
+      val filterAggregation     = filterAgg("filterAgg", globalAggregationQuery).subAggregations(globalAggregations)
+      val unfilteredAggregation = globalAggregation("globalAggregations").subAggregations(filterAggregation)
+      aggregations :+ unfilteredAggregation
+    }
+
+    def getFilters()
+
     private def logShardErrors(response: RequestSuccess[SearchResponse]) = {
       if (response.result.shards.failed > 0) {
         response.body.map { body =>
@@ -173,18 +186,21 @@ trait MultiSearchService {
       }
     }
 
-    def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = {
+    def executeSearch(settings: SearchSettings, query: BoolQuery, filters: BoolQuery): Try[SearchResult] = {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
         case _                                                        => AllLanguages
       }
 
       getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
-        val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
-        val index        = getSearchIndexes(settings).?
+        val index          = getSearchIndexes(settings).?
+        val suggestion     = suggestions(settings.query.underlying, searchLanguage, settings.fallback)
+        val filteredSearch = query.filter(filters)
+        val aggregations   = getAggregations(settings, query)
+
         val searchToExecute = search(index)
           .query(filteredSearch)
-          .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
+          .suggestions(suggestion)
           .from(pagination.startAt)
           .trackTotalHits(true)
           .size(pagination.pageSize)

@@ -126,6 +126,9 @@ trait SearchController {
       .description("A comma separated list of traits the resources should be filtered by.")
     private val aggregatePaths = listQuery[String]("aggregate-paths")
       .description("List of index-paths that should be term-aggregated and returned in result.")
+    private val unfilteredAggregationPaths = listQuery[String](
+      "List of index-paths that should be term-aggregated and returned in result, but without filters applied."
+    )
     private val embedResource =
       listQuery[String]("embed-resource")
         .description(
@@ -242,7 +245,8 @@ trait SearchController {
                 articleTypes = List.empty,
                 filterInactive = filterInactive,
                 resultTypes = None,
-                nodeTypeFilter = List.empty
+                nodeTypeFilter = List.empty,
+                globalAggregatePaths = List.empty
               )
 
               groupSearch(settings, includeMissingResourceTypeGroup)

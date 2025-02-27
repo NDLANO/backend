@@ -808,15 +808,11 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
 
     search1.get.totalCount should be(3)
-    search1.get.results.map {
+    val resultIdsWithType = search1.get.results.map {
       case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
       case x: NodeHitDTO            => s"Node:${x.id}"
-    } should be(
-      List(
-        "Node:urn:subject:19284",
-        "Multi:1",
-        "Multi:2"
-      )
-    )
+    }
+
+    resultIdsWithType should be(List("Node:urn:subject:19284", "Multi:1", "Multi:2"))
   }
 }

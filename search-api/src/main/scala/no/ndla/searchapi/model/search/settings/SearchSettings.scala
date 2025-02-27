@@ -40,7 +40,8 @@ case class SearchSettings(
     articleTypes: List[String],
     filterInactive: Boolean,
     resultTypes: Option[List[SearchType]],
-    nodeTypeFilter: List[NodeType]
+    nodeTypeFilter: List[NodeType],
+    globalAggregatePaths: List[String]
 )
 
 object SearchSettings {
@@ -63,6 +64,7 @@ object SearchSettings {
     shouldScroll = false,
     filterByNoResourceType = false,
     aggregatePaths = List.empty,
+    globalAggregatePaths = List.empty,
     embedResource = List.empty,
     embedId = None,
     availability = List.empty,
