@@ -189,7 +189,7 @@ trait FolderConverterService {
         email = domainUserData.email,
         displayName = domainUserData.displayName,
         favoriteSubjects = domainUserData.favoriteSubjects,
-        role = domainUserData.userRole.toString,
+        role = domainUserData.userRole,
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled,
