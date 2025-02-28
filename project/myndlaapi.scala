@@ -33,7 +33,7 @@ object myndlaapi extends Module {
       "ConfigMetaRestrictedDTO",
       "no.ndla.common.model.api.myndla.MyNDLAUserDTO",
       "no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO",
-      "no.ndla.common.model.api.myndla.UserRole",
+      "no.ndla.common.model.domain.myndla.UserRole",
       "no.ndla.common.model.domain.ResourceType",
       "config.ConfigMetaDTO",
       "FolderDTO",
