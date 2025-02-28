@@ -39,7 +39,7 @@ import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValida
 import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
-import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
+import no.ndla.network.model.{CombinedUser, CombinedUserRequired, HttpRequestException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -653,6 +653,15 @@ trait ConverterService {
 
     def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2DTO, language: String): Try[EmbedUrl] = {
       val hostOpt = embedUrl.url.hostOption
+
+      lazy val domainEmbedUrl = Success(
+        learningpath.EmbedUrl(
+          embedUrl.url,
+          language,
+          EmbedType.valueOfOrError(embedUrl.embedType)
+        )
+      )
+
       hostOpt match {
         case Some(host) if NdlaFrontendHostNames.contains(host.toString) =>
           oembedProxyClient
@@ -667,14 +676,8 @@ trait ConverterService {
                 embedType = EmbedType.IFrame
               )
             })
-        case _ =>
-          Success(
-            learningpath.EmbedUrl(
-              embedUrl.url,
-              language,
-              EmbedType.valueOfOrError(embedUrl.embedType)
-            )
-          )
+            .recoverWith { case e: HttpRequestException if 400 until 500 contains e.code => domainEmbedUrl }
+        case _ => domainEmbedUrl
       }
     }
 
