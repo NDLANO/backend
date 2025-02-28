@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.common.model.domain.learningpath.{
   Description,
   LearningPath,
@@ -33,7 +33,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   }
 
-  val trump: Author                    = Author("author", "Donald Drumpf")
+  val trump: Author                    = Author(ContributorType.Writer, "Donald Drumpf")
   val license: String                  = PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(trump))
 
@@ -288,9 +288,9 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns error when copyright.contributors contains html") {
     validMock()
     val invalidCopyright =
-      ValidLearningPath.copyright.copy(contributors = List(Author("<h1>wizardry</h1>", "<h1>Gandalf</h1>")))
+      ValidLearningPath.copyright.copy(contributors = List(Author(ContributorType.Writer, "<h1>Gandalf</h1>")))
     val validationErrors = validator.validateLearningPath(ValidLearningPath.copy(copyright = invalidCopyright), false)
-    validationErrors.size should be(2)
+    validationErrors.size should be(1)
   }
 
   test("That validate returns no errors when copyright.contributors contains no html") {

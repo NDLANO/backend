@@ -204,7 +204,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedCopyright = model.api.DraftCopyrightDTO(
       Some(commonApi.LicenseDTO("a", Some("b"), None)),
       Some("c"),
-      Seq(commonApi.AuthorDTO("Opphavsmann", "Jonas")),
+      Seq(commonApi.AuthorDTO(ContributorType.Originator, "Jonas")),
       List(),
       List(),
       None,
@@ -236,7 +236,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(Title(updatedTitle, "en")),
       content = Seq(ArticleContent(updatedContent, "en")),
       copyright = Some(
-        DraftCopyright(Some("a"), Some("c"), Seq(Author("Opphavsmann", "Jonas")), List(), List(), None, None, false)
+        DraftCopyright(
+          Some("a"),
+          Some("c"),
+          Seq(Author(ContributorType.Originator, "Jonas")),
+          List(),
+          List(),
+          None,
+          None,
+          false
+        )
       ),
       tags = Seq(Tag(Seq("en", "to", "tre"), "en")),
       requiredLibraries = Seq(RequiredLibrary("tjup", "tjap", "tjim")),
@@ -916,7 +925,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("cloneEmbedAndUpdateElement updates file embeds") {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val embed1 =
       s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf" />"""
     val embed2 =

@@ -11,6 +11,7 @@ package no.ndla.imageapi.service
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
+import no.ndla.common.model.domain.ContributorType
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
@@ -50,7 +51,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val testRawUrl = s"${props.Domain}/image-api/raw/Elg.jpg"
     val dateString = TestData.updated().asString
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"$dateString","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"$dateString","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"photographer","name":"Test Testesen"}],"processors":[{"type":"editorial","name":"Kåre Knegg"}],"rightsholders":[{"type":"supplier","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
 
     val expectedObject: ImageMetaInformationV2DTO = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
     val agreementElg = new ImageMetaInformation(
@@ -73,9 +74,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       copyright = Copyright(
         TestData.ByNcSa,
         Some("http://www.scanpix.no"),
-        List(common.Author("Fotograf", "Test Testesen")),
-        List(common.Author("Redaksjonelt", "Kåre Knegg")),
-        List(common.Author("Leverandør", "Leverans Leveransensen")),
+        List(common.Author(ContributorType.Photographer, "Test Testesen")),
+        List(common.Author(ContributorType.Editorial, "Kåre Knegg")),
+        List(common.Author(ContributorType.Supplier, "Leverans Leveransensen")),
         None,
         None,
         false

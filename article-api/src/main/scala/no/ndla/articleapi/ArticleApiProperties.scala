@@ -45,42 +45,6 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
-  def oldCreatorTypes: List[String] = List(
-    "opphavsmann",
-    "fotograf",
-    "kunstner",
-    "forfatter",
-    "manusforfatter",
-    "innleser",
-    "oversetter",
-    "regissør",
-    "illustratør",
-    "medforfatter",
-    "komponist"
-  )
-
-  def creatorTypes: List[String] = List(
-    "originator",
-    "photographer",
-    "artist",
-    "writer",
-    "scriptwriter",
-    "reader",
-    "translator",
-    "director",
-    "illustrator",
-    "cowriter",
-    "composer"
-  )
-
-  def oldProcessorTypes: List[String] =
-    List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
-  def processorTypes: List[String] =
-    List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
-
-  def oldRightsholderTypes: List[String] = List("rettighetshaver", "forlag", "distributør", "leverandør")
-  def rightsholderTypes: List[String]    = List("rightsholder", "publisher", "distributor", "supplier")
-
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   def maxConvertionRounds = 5

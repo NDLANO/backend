@@ -8,7 +8,7 @@
 
 package no.ndla.conceptapi.service
 
-import no.ndla.common.model.domain.{Responsible, Tag, Title}
+import no.ndla.common.model.domain.{ContributorType, Responsible, Tag, Title}
 import no.ndla.common.model.api as commonApi
 import no.ndla.conceptapi.model.api.ConceptResponsibleDTO
 import no.ndla.conceptapi.model.api
@@ -137,7 +137,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       commonApi.DraftCopyrightDTO(
         None,
         Some("https://ndla.no"),
-        Seq(commonApi.AuthorDTO("Opphavsmann", "Katrine")),
+        Seq(commonApi.AuthorDTO(ContributorType.Originator, "Katrine")),
         List(),
         List(),
         None,
@@ -167,7 +167,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         commonApi.DraftCopyrightDTO(
           None,
           Some("https://ndla.no"),
-          Seq(commonApi.AuthorDTO("Opphavsmann", "Katrine")),
+          Seq(commonApi.AuthorDTO(ContributorType.Originator, "Katrine")),
           List(),
           List(),
           None,

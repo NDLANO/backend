@@ -17,6 +17,7 @@ import no.ndla.common.model.api.{LicenseDTO, UpdateWith}
 import no.ndla.common.model.domain.{
   Author,
   Availability,
+  ContributorType,
   Description,
   Introduction,
   RequiredLibrary,
@@ -39,7 +40,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service                          = new ConverterService
   val contentTitle: Title              = Title("", "und")
-  val author: Author                   = Author("forfatter", "Henrik")
+  val author: Author                   = Author(ContributorType.Writer, "Henrik")
   val tag: Tag                         = Tag(List("asdf"), "nb")
   val requiredLibrary: RequiredLibrary = RequiredLibrary("", "", "")
   val nodeId                           = "1234"
