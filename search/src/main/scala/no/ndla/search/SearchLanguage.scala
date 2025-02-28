@@ -76,6 +76,7 @@ trait SearchLanguage {
       LanguageAnalyzer(LanguageTag("sv"), LanguageAnalyzers.swedish),
       LanguageAnalyzer(LanguageTag("th"), LanguageAnalyzers.thai),
       LanguageAnalyzer(LanguageTag("tr"), LanguageAnalyzers.turkish),
+      LanguageAnalyzer(LanguageTag("ukr"), standardAnalyzer),
       LanguageAnalyzer(UnknownLanguage, standardAnalyzer)
     ).filter { analyzer =>
       // NOTE: Since we use the indexers to determine which fields should be mapped
