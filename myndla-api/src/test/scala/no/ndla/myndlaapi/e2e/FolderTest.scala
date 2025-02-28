@@ -83,7 +83,8 @@ class FolderTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { myndlaApi.run() }: Unit
     Thread.sleep(4000)
   }

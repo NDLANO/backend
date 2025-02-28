@@ -563,13 +563,13 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       shareNameAccepted = false
     )
 
-    service.mergeUserData(domainUserData, updatedUserData1, None, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData1, None, None).get should be(
       expectedUserData1
     )
-    service.mergeUserData(domainUserData, updatedUserData2, None, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData2, None, None).get should be(
       expectedUserData2
     )
-    service.mergeUserData(domainUserData, updatedUserData3, None, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData3, None, None).get should be(
       expectedUserData3
     )
   }

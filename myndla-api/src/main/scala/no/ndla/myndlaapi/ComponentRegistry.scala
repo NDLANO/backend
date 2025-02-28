@@ -25,7 +25,6 @@ import no.ndla.myndlaapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
-  ArenaReadService,
   ConfigService,
   FolderConverterService,
   FolderReadService,
@@ -45,7 +44,6 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
-    with ArenaReadService
     with DBUtility
     with FolderRepository
     with FolderReadService
@@ -85,7 +83,6 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val configService: ConfigService                         = new ConfigService
   lazy val configController: ConfigController                   = new ConfigController
   lazy val statsController: StatsController                     = new StatsController
-  lazy val arenaReadService: ArenaReadService                   = new ArenaReadService
   lazy val nodebb: NodeBBClient                                 = new NodeBBClient
   lazy val searchApiClient: SearchApiClient                     = new SearchApiClient
   lazy val taxonomyApiClient: TaxonomyApiClient                 = new TaxonomyApiClient

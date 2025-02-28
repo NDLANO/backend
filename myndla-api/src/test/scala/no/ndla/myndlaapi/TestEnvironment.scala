@@ -23,7 +23,6 @@ import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
-  ArenaReadService,
   ConfigService,
   FolderConverterService,
   FolderReadService,
@@ -43,7 +42,6 @@ trait TestEnvironment
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
-    with ArenaReadService
     with MyNDLAAuthHelpers
     with FolderRepository
     with FolderReadService
@@ -68,7 +66,6 @@ trait TestEnvironment
   lazy val clock: SystemClock                        = mock[SystemClock]
   val dataSource: HikariDataSource                   = mock[HikariDataSource]
   val migrator: DBMigrator                           = mock[DBMigrator]
-  val arenaReadService: ArenaReadService             = mock[ArenaReadService]
   val folderRepository: FolderRepository             = mock[FolderRepository]
   val folderReadService: FolderReadService           = mock[FolderReadService]
   val folderWriteService: FolderWriteService         = mock[FolderWriteService]
@@ -95,7 +92,6 @@ trait TestEnvironment
     reset(clock)
     reset(migrator)
     reset(dataSource)
-    reset(arenaReadService)
     reset(folderRepository)
     reset(folderReadService)
     reset(folderWriteService)

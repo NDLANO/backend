@@ -272,7 +272,6 @@ trait FolderConverterService {
         domainUserData: DomainMyNDLAUser,
         updatedUser: UpdatedMyNDLAUserDTO,
         updaterToken: Option[TokenUser],
-        updaterUser: Option[DomainMyNDLAUser],
         feideToken: Option[FeideAccessToken]
     ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
@@ -283,7 +282,7 @@ trait FolderConverterService {
           domainUserData.arenaEnabled
       }
 
-      val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
+      val arenaAccepted     = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
       val shareNameAccepted = updatedUser.shareNameAccepted.getOrElse(domainUserData.shareNameAccepted)
 
       Success(

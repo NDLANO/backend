@@ -26,7 +26,7 @@ trait MyNDLAAuthHelpers {
       private type PartialFeideEndpoint[F[_]] =
         PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
       def requireMyNDLAUser[F[_]](
-          requireArena: Boolean = false,
+          requireArena: Boolean = false
       ): PartialFeideEndpoint[F] = {
         val newEndpoint = self.securityIn(AuthUtility.feideOauth())
         val authFunc: Option[FeideAccessToken] => Either[AllErrors, MyNDLAUser] = { maybeToken =>

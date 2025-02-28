@@ -15,29 +15,21 @@ import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.database.DBUtility
-import no.ndla.myndlaapi.repository.UserRepository
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
+import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
-import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.{AutoSession, DBSession}
 
 import scala.util.{Failure, Success, Try}
 
 trait UserService {
   this: FeideApiClient & FolderConverterService & ConfigService & UserRepository & Clock & FolderWriteService &
-    DBUtility =>
+    NodeBBClient & FolderRepository & DBUtility =>
 
   val userService: UserService
 
   class UserService {
-    private def getUserById(userId: Long)(session: DBSession): Try[MyNDLAUser] = {
-      userRepository.userWithId(userId)(session) match {
-        case Failure(ex)         => Failure(ex)
-        case Success(Some(user)) => Success(user)
-        case Success(None)       => Failure(NotFoundException(s"User with id '$userId' was not found"))
-      }
-    }
-
     def getMyNdlaUserDataDomain(
         feideAccessToken: Option[FeideAccessToken]
     ): Try[MyNDLAUser] = {
@@ -116,32 +108,9 @@ trait UserService {
           existingUserData,
           updatedUser,
           None,
-          Some(existingUserData),
           feideAccessToken
         )
         updated <- userRepository.updateUser(feideId, combined)
-        api = folderConverterService.toApiUserData(updated)
-      } yield api
-    }
-
-    def adminUpdateMyNDLAUserData(
-        userId: Long,
-        updatedUser: UpdatedMyNDLAUserDTO,
-        updaterToken: Option[TokenUser],
-        updaterMyNdla: Option[MyNDLAUser]
-    )(session: DBSession = AutoSession): Try[myndla.MyNDLAUserDTO] = {
-      for {
-        existing <- userService.getUserById(userId)(session)
-        converted <- folderConverterService.mergeUserData(
-          existing,
-          updatedUser,
-          updaterToken,
-          updaterMyNdla,
-          // NOTE: This token is used to create a nodebb profile
-          //       since the one updating here is an admin, we cannot use it to create a profile.
-          feideToken = None
-        )
-        updated <- userRepository.updateUserById(userId, converted)(session)
         api = folderConverterService.toApiUserData(updated)
       } yield api
     }
@@ -224,6 +193,17 @@ trait UserService {
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }
 
+    def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] =
+      DBUtil.rollbackOnFailure(session => {
+        for {
+          feideToken   <- feideApiClient.getFeideAccessTokenOrFail(feideAccessToken)
+          feideId      <- feideApiClient.getFeideID(feideAccessToken)
+          nodebbUserId <- nodebb.getUserId(feideToken)
+          _            <- folderRepository.deleteAllUserFolders(feideId)(session)
+          _            <- folderRepository.deleteAllUserResources(feideId)(session)
+          _            <- userRepository.deleteUser(feideId)(session)
+          _            <- nodebb.deleteUser(nodebbUserId, feideToken)
+        } yield ()
+      })
   }
-
 }
