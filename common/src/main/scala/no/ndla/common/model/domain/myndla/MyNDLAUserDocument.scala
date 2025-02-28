@@ -14,7 +14,7 @@ import no.ndla.common.model.NDLADate
 
 case class MyNDLAUserDocument(
     favoriteSubjects: Seq[String],
-    userRole: UserRole.Value,
+    userRole: UserRole,
     lastUpdated: NDLADate,
     organization: String,
     groups: Seq[MyNDLAGroup],

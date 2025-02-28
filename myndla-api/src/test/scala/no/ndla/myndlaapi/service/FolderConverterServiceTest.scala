@@ -441,7 +441,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         email = "example@email.com",
         displayName = "Feide",
         favoriteSubjects = Seq("a", "b"),
-        role = "student",
+        role = UserRole.STUDENT,
         organization = "oslo",
         groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,

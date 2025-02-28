@@ -16,7 +16,7 @@ case class MyNDLAUser(
     id: Long,
     feideId: String,
     favoriteSubjects: Seq[String],
-    userRole: UserRole.Value,
+    userRole: UserRole,
     lastUpdated: NDLADate,
     organization: String,
     groups: Seq[MyNDLAGroup],
