@@ -695,8 +695,8 @@ class FolderRepositoryTest
   }
 
   test("that fetched saved folders come with the rank of the user that saved them") {
-    implicit val session = AutoSession
-    val created          = NDLADate.now().withNano(0)
+    implicit val session: AutoSession.type = AutoSession
+    val created                            = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val feideId1 = "feide1"

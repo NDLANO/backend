@@ -65,33 +65,6 @@ trait NodeBBClient {
       }
     }
 
-    def getCategories: Try[Categories] = Try {
-      val request = quickRequest.get(uri"$baseUrl/api/categories")
-      val resp    = doReq(request).?
-      parse(resp.body).flatMap(_.as[Categories]).toTry
-    }.flatten
-
-    def getSingleCategory(cid: Long): Try[SingleCategory] = Try {
-      val request = quickRequest.get(uri"$baseUrl/api/category/$cid")
-      val resp    = doReq(request).?
-      parse(resp.body).flatMap(_.as[SingleCategory]).toTry
-    }.flatten
-
-    def getSingleTopic(tid: Long, pageNum: Long): Try[SingleTopic] = Try {
-      val request = quickRequest.get(uri"$baseUrl/api/topic/$tid?page=$pageNum")
-      val resp    = doReq(request).?
-      parse(resp.body).flatMap(_.as[SingleTopic]).toTry
-    }.flatten
-
-    def getSinglePost(pid: Long): Try[SinglePost] = Try {
-      val request = quickRequest.get(uri"$baseUrl/api/v3/posts/$pid")
-      val resp    = doReq(request).?
-      parse(resp.body)
-        .flatMap(_.as[SinglePostResponse])
-        .toTry
-        .map(_.response)
-    }.flatten
-
     def getUserId(feideToken: FeideAccessToken): Try[Option[Long]] = {
       val request = quickRequest
         .get(uri"$baseUrl/api/config")

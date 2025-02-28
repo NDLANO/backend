@@ -447,7 +447,7 @@ trait FolderRepository {
         case Some(value) =>
           getFolderAndChildrenSubfoldersWithResourcesWhere(
             id,
-            sqls"AND (child.status = ${status.toString} OR child.feide_id = ${value})"
+            sqls"AND (child.status = ${status.toString} OR child.feide_id = $value)"
           )
       }
     }
@@ -550,7 +550,7 @@ trait FolderRepository {
     private def findUser(feideId: FeideID, users: collection.Seq[MyNDLAUser]): Try[Option[MyNDLAUser]] =
       users.find(user => feideId == user.feideId) match {
         case Some(u) => Success(Some(u))
-        case None    => Failure(NDLASQLException(s"${feideId} does not match any users with folder"))
+        case None    => Failure(NDLASQLException(s"$feideId does not match any users with folder"))
       }
 
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {

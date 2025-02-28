@@ -194,7 +194,6 @@ trait FolderConverterService {
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled,
         arenaAccepted = domainUserData.arenaAccepted,
-        arenaGroups = domainUserData.arenaGroups,
         shareNameAccepted = domainUserData.shareNameAccepted
       )
     }
@@ -242,7 +241,7 @@ trait FolderConverterService {
         case _                          => domainUserData.arenaAccepted
       }
 
-      def getToken = feideToken.toTry(
+      def getToken: Try[FeideAccessToken] = feideToken.toTry(
         ValidationException(
           "arenaAccepted",
           "Tried to update arenaAccepted without a token connected to the feide user."
@@ -273,21 +272,17 @@ trait FolderConverterService {
         domainUserData: DomainMyNDLAUser,
         updatedUser: UpdatedMyNDLAUserDTO,
         updaterToken: Option[TokenUser],
-        updaterUser: Option[DomainMyNDLAUser],
         feideToken: Option[FeideAccessToken]
     ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val arenaEnabled = {
-        if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN) || updaterUser.exists(_.isAdmin))
+        if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
         else
           domainUserData.arenaEnabled
       }
 
-      val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
-      val arenaGroups =
-        if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
-        else domainUserData.arenaGroups
+      val arenaAccepted     = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
       val shareNameAccepted = updatedUser.shareNameAccepted.getOrElse(domainUserData.shareNameAccepted)
 
       Success(
@@ -304,7 +299,6 @@ trait FolderConverterService {
           email = domainUserData.email,
           arenaEnabled = arenaEnabled,
           arenaAccepted = arenaAccepted,
-          arenaGroups = arenaGroups,
           shareNameAccepted = shareNameAccepted
         )
       )

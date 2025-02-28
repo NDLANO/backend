@@ -366,7 +366,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty,
       shareNameAccepted = false
     )
 
@@ -532,7 +531,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             email = "user_name@example.com",
             arenaEnabled = true,
             arenaAccepted = true,
-            arenaGroups = List.empty,
             shareNameAccepted = false
           )
         )
@@ -555,7 +553,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             email = "user_name@example.com",
             arenaEnabled = true,
             arenaAccepted = true,
-            arenaGroups = List.empty,
             shareNameAccepted = false
           )
         )
