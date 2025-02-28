@@ -9,7 +9,7 @@
 package no.ndla.integrationtests.draftapi.articleapi
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.{ContributorType, Priority}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, domain as common}
@@ -82,7 +82,7 @@ class ArticleApiClientTest
   val testCopyright: common.draft.DraftCopyright = common.draft.DraftCopyright(
     Some("CC-BY-SA-4.0"),
     Some("Origin"),
-    Seq(common.Author("Writer", "John doe")),
+    Seq(common.Author(ContributorType.Writer, "John doe")),
     Seq.empty,
     Seq.empty,
     None,

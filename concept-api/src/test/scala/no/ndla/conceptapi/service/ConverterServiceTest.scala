@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service
 
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.concept.*
-import no.ndla.common.model.domain.{Responsible, concept}
+import no.ndla.common.model.domain.{ContributorType, Responsible, concept}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{NewConceptDTO, NotFoundException, UpdatedConceptDTO}
@@ -122,9 +122,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         commonApi.DraftCopyrightDTO(
           None,
           None,
-          Seq(commonApi.AuthorDTO("Photographer", "Photographer")),
-          Seq(commonApi.AuthorDTO("Photographer", "Photographer")),
-          Seq(commonApi.AuthorDTO("Photographer", "Photographer")),
+          Seq(commonApi.AuthorDTO(ContributorType.Photographer, "Photographer")),
+          Seq(commonApi.AuthorDTO(ContributorType.Photographer, "Photographer")),
+          Seq(commonApi.AuthorDTO(ContributorType.Photographer, "Photographer")),
           None,
           None,
           false
@@ -147,9 +147,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           common.draft.DraftCopyright(
             None,
             None,
-            Seq(common.Author("Photographer", "Photographer")),
-            Seq(common.Author("Photographer", "Photographer")),
-            Seq(common.Author("Photographer", "Photographer")),
+            Seq(common.Author(ContributorType.Photographer, "Photographer")),
+            Seq(common.Author(ContributorType.Photographer, "Photographer")),
+            Seq(common.Author(ContributorType.Photographer, "Photographer")),
             None,
             None,
             false

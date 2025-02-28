@@ -12,12 +12,12 @@ import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
-import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.{ContributorType, learningpath}
 import no.ndla.common.model.domain.learningpath.{
   Description,
-  Introduction,
   EmbedType,
   EmbedUrl,
+  Introduction,
   LearningPath,
   LearningPathStatus,
   LearningPathVerificationStatus,
@@ -39,7 +39,7 @@ import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValida
 import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
-import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
+import no.ndla.network.model.{CombinedUser, CombinedUserRequired, HttpRequestException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -86,7 +86,7 @@ trait ConverterService {
       val names = Array(user.first_name, user.middle_name, user.last_name)
         .filter(_.isDefined)
         .map(_.get)
-      commonApi.AuthorDTO("Forfatter", names.mkString(" "))
+      commonApi.AuthorDTO(ContributorType.Writer, names.mkString(" "))
     }
 
     def asCoverPhoto(imageId: String): Option[CoverPhotoDTO] = {
@@ -441,7 +441,10 @@ trait ConverterService {
 
     private def newDefaultCopyright(user: CombinedUser): CopyrightDTO = {
       val contributors =
-        user.myndlaUser.map(_.displayName).map(name => Seq(commonApi.AuthorDTO("Forfatter", name))).getOrElse(Seq.empty)
+        user.myndlaUser
+          .map(_.displayName)
+          .map(name => Seq(commonApi.AuthorDTO(ContributorType.Writer, name)))
+          .getOrElse(Seq.empty)
       CopyrightDTO(asApiLicense(License.CC_BY.toString), contributors)
     }
 
@@ -650,6 +653,15 @@ trait ConverterService {
 
     def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2DTO, language: String): Try[EmbedUrl] = {
       val hostOpt = embedUrl.url.hostOption
+
+      lazy val domainEmbedUrl = Success(
+        learningpath.EmbedUrl(
+          embedUrl.url,
+          language,
+          EmbedType.valueOfOrError(embedUrl.embedType)
+        )
+      )
+
       hostOpt match {
         case Some(host) if NdlaFrontendHostNames.contains(host.toString) =>
           oembedProxyClient
@@ -664,14 +676,8 @@ trait ConverterService {
                 embedType = EmbedType.IFrame
               )
             })
-        case _ =>
-          Success(
-            learningpath.EmbedUrl(
-              embedUrl.url,
-              language,
-              EmbedType.valueOfOrError(embedUrl.embedType)
-            )
-          )
+            .recoverWith { case e: HttpRequestException if 400 until 500 contains e.code => domainEmbedUrl }
+        case _ => domainEmbedUrl
       }
     }
 
