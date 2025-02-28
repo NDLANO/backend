@@ -27,6 +27,7 @@ import no.ndla.imageapi.model.api.{
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
+import no.ndla.language.Language
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
@@ -142,25 +143,49 @@ trait WriteService {
       }
     }
 
-    def storeNewImage(
-        newImage: NewImageMetaInformationV2DTO,
-        file: UploadedFile,
+    def copyImage(
+        imageId: Long,
+        newFile: UploadedFile,
+        maybeLanguage: Option[String],
         user: TokenUser
+    ): Try[ImageMetaInformation] = {
+      imageRepository.withId(imageId) match {
+        case None => Failure(new ImageNotFoundException(s"Image with id $imageId was not found."))
+        case Some(existing) =>
+          val now = clock.now()
+          val toInsert = existing.copy(
+            id = None,
+            images = None,
+            editorNotes = Seq(domain.EditorNote(now, user.id, s"Image created as a copy of image with id '$imageId'."))
+          )
+
+          val language = Language
+            .findByLanguageOrBestEffort(existing.images.getOrElse(Seq.empty), maybeLanguage)
+            .map(_.language)
+            .getOrElse(Language.DefaultLanguage)
+          insertAndStoreImage(toInsert, newFile, existing.some, language)
+      }
+    }
+
+    private def insertAndStoreImage(
+        toInsert: ImageMetaInformation,
+        file: UploadedFile,
+        copiedFrom: Option[ImageMetaInformation],
+        language: String
     ): Try[ImageMetaInformation] = {
       validationService.validateImageFile(file) match {
         case Some(validationMessage) => return Failure(new ValidationException(errors = Seq(validationMessage)))
         case _                       =>
       }
 
-      val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user).?
-      validationService.validate(toInsert, None).??
+      validationService.validate(toInsert, copiedFrom).??
       val insertedMeta       = Try(imageRepository.insert(toInsert)).?
       val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
       val imageId            = insertedMeta.id.toTry(missingIdException).?
 
       val uploadedImage = uploadImage(file).?
 
-      val imageDocument = converterService.toImageDocument(uploadedImage, newImage.language)
+      val imageDocument = converterService.toImageDocument(uploadedImage, language)
       val image         = imageRepository.insertImageFile(imageId, uploadedImage.fileName, imageDocument).?
       val imageMeta     = insertedMeta.copy(images = Some(Seq(image)))
 
@@ -187,6 +212,15 @@ trait WriteService {
           Try(imageRepository.delete(imageId)): Unit
           Failure(e)
       }
+    }
+
+    def storeNewImage(
+        newImage: NewImageMetaInformationV2DTO,
+        file: UploadedFile,
+        user: TokenUser
+    ): Try[ImageMetaInformation] = {
+      val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user).?
+      insertAndStoreImage(toInsert, file, None, newImage.language)
     }
 
     private def hasChangedMetadata(lhs: ImageMetaInformation, rhs: ImageMetaInformation): Boolean = {

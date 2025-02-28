@@ -69,10 +69,8 @@ trait ValidationService {
         image.alttexts.flatMap(alt => validateAltText("altTexts", alt, oldLanguages)) ++
         image.captions.flatMap(caption => validateCaption("captions", caption, oldLanguages))
 
-      if (validationMessages.isEmpty)
-        return Success(image)
-
-      Failure(new ValidationException(errors = validationMessages))
+      if (validationMessages.isEmpty) Success(image)
+      else Failure(new ValidationException(errors = validationMessages))
     }
 
     private def validateTitle(

@@ -10,7 +10,7 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
+import no.ndla.imageapi.controller.multipart.{CopyMetaDataAndFileForm, MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
@@ -378,6 +378,25 @@ trait ImageControllerV3 {
         readService.getAllTags(query, pageSize, pageNo, language, sort).handleErrorsOrOk
       }
 
+    def copyImageMeta: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Copy image meta data with a new image file")
+      .description("Copy image meta data with a new image file")
+      .in(pathImageId / "copy")
+      .in(languageOpt)
+      .in(multipartBody[CopyMetaDataAndFileForm])
+      .out(jsonBody[ImageMetaInformationV3DTO])
+      .errorOut(errorOutputsFor(400))
+      .requirePermission(IMAGE_API_WRITE)
+      .serverLogicPure { user => input =>
+        val (imageId, language, formData) = input
+        doWithStream(formData.file) { uploadedFile =>
+          for {
+            storedImage <- writeService.copyImage(imageId, uploadedFile, language, user)
+            converted   <- converterService.asApiImageMetaInformationV3(storedImage, language, Some(user))
+          } yield converted
+        }
+      }
+
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getImagesV3,
       getImagesByIds,
@@ -388,7 +407,8 @@ trait ImageControllerV3 {
       newImageV3,
       deleteImageV3,
       deleteLanguageV3,
-      editImageV3
+      editImageV3,
+      copyImageMeta
     )
 
   }
