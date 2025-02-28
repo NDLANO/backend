@@ -165,8 +165,6 @@ trait MultiSearchService {
       aggregations :+ unfilteredAggregation
     }
 
-    def getFilters()
-
     private def logShardErrors(response: RequestSuccess[SearchResponse]) = {
       if (response.result.shards.failed > 0) {
         response.body.map { body =>

@@ -1715,7 +1715,8 @@ object TestData {
     articleTypes = List.empty,
     filterInactive = false,
     resultTypes = None,
-    nodeTypeFilter = List.empty
+    nodeTypeFilter = List.empty,
+    globalAggregatePaths = List.empty
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(

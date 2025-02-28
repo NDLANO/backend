@@ -91,6 +91,9 @@ trait GetSearchQueryParams {
       @query("aggregate-paths")
       @description("List of index-paths that should be term-aggregated and returned in result.")
       aggregatePaths: CommaSeparatedList[String],
+      @query("filtered-aggregate-paths")
+      @description("List of index-paths that should be term-aggregated and returned in result, where a filter does not affect the aggregation on its own type.")
+      filteredAggregatePaths: CommaSeparatedList[String],
       @query("embed-resource")
       @description(
         "Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types."

@@ -385,7 +385,8 @@ trait SearchController {
               filterInactive = q.filterInactive,
               traits = q.traits.values.flatMap(SearchTrait.valueOf),
               resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
-              nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption)
+              nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption),
+              globalAggregatePaths = q.filteredAggregatePaths.values
             )
             multiSearchService.matchingQuery(settings) match {
               case Success(searchResult) =>
@@ -623,7 +624,8 @@ trait SearchController {
             articleTypes = params.articleTypes.getOrElse(List.empty),
             filterInactive = params.filterInactive.getOrElse(false),
             resultTypes = params.resultTypes,
-            nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty)
+            nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty),
+            globalAggregatePaths = params.filteredAggregatePaths.getOrElse(List.empty)
           )
 
       }

@@ -66,6 +66,10 @@ case class SearchParamsDTO(
     @description("List of index-paths that should be term-aggregated and returned in result.")
     aggregatePaths: Option[List[String]],
     @description(
+      "List of index-paths that should be term-aggregated and returned in result, where a filter does not affect the aggregation on its own type."
+    )
+    filteredAggregatePaths: Option[List[String]],
+    @description(
       "Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types."
     )
     embedResource: Option[List[String]],
