@@ -22,7 +22,7 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: AudioApiProperties)
     extends BaseComponentRegistry[AudioApiProperties]
@@ -47,6 +47,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with Elastic4sClient
     with IndexService
     with BaseIndexService
+    with SearchLanguage
     with AudioIndexService
     with SeriesIndexService
     with TagIndexService

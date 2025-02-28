@@ -12,9 +12,9 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
 import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
 import no.ndla.searchapi.integration.*
@@ -31,6 +31,8 @@ class ComponentRegistry(properties: SearchApiProperties)
     with DraftConceptIndexService
     with LearningPathIndexService
     with DraftIndexService
+    with NodeIndexService
+    with FrontpageApiClient
     with MultiSearchService
     with ErrorHandling
     with Clock
@@ -41,6 +43,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with TaxonomyApiClient
     with IndexService
     with BaseIndexService
+    with SearchLanguage
     with StrictLogging
     with LearningPathApiClient
     with NdlaClient
@@ -75,6 +78,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val articleApiClient      = new ArticleApiClient(ArticleApiUrl)
   lazy val feideApiClient        = new FeideApiClient
   lazy val redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
+  lazy val frontpageApiClient    = new FrontpageApiClient
 
   lazy val converterService         = new ConverterService
   lazy val searchConverterService   = new SearchConverterService
@@ -86,6 +90,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val multiDraftSearchService  = new MultiDraftSearchService
   lazy val grepIndexService         = new GrepIndexService
   lazy val grepSearchService        = new GrepSearchService
+  lazy val nodeIndexService         = new NodeIndexService
 
   lazy val searchController                        = new SearchController
   lazy val healthController: TapirHealthController = new TapirHealthController

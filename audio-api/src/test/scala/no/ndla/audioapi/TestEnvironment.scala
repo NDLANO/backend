@@ -20,7 +20,7 @@ import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.database.DataSource
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -41,6 +41,7 @@ trait TestEnvironment
     with Elastic4sClient
     with IndexService
     with BaseIndexService
+    with SearchLanguage
     with AudioIndexService
     with SeriesIndexService
     with SearchConverterService

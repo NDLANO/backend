@@ -12,7 +12,6 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.Series
@@ -24,7 +23,7 @@ import no.ndla.search.Elastic4sClient
 import scala.util.{Failure, Success, Try}
 
 trait SeriesIndexService {
-  this: Elastic4sClient with SearchConverterService with IndexService with SeriesRepository with Props =>
+  this: Elastic4sClient & SearchConverterService & IndexService & SeriesRepository & Props =>
 
   val seriesIndexService: SeriesIndexService
 
@@ -50,11 +49,11 @@ trait SeriesIndexService {
         dateField("lastUpdated")
       )
 
-    val seriesDynamics: Seq[DynamicTemplateRequest] =
-      generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("descriptions", keepRaw = true)
+    val seriesDynamics =
+      generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+        generateLanguageSupportedFieldList("descriptions", keepRaw = true)
 
-    def getMapping: MappingDefinition = properties(seriesIndexFields).dynamicTemplates(seriesDynamics)
+    def getMapping: MappingDefinition = properties(seriesIndexFields ++ seriesDynamics)
   }
 
 }

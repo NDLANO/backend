@@ -8,11 +8,12 @@
 
 package no.ndla.searchapi.model.search.settings
 
-import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait}
+import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, SearchType}
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.taxonomy.NodeType
 
 case class SearchSettings(
     query: Option[NonEmptyString],
@@ -37,7 +38,9 @@ case class SearchSettings(
     embedId: Option[String],
     availability: List[Availability],
     articleTypes: List[String],
-    filterInactive: Boolean
+    filterInactive: Boolean,
+    resultTypes: Option[List[SearchType]],
+    nodeTypeFilter: List[NodeType]
 )
 
 object SearchSettings {
@@ -64,6 +67,13 @@ object SearchSettings {
     embedId = None,
     availability = List.empty,
     articleTypes = List.empty,
-    filterInactive = false
+    filterInactive = false,
+    nodeTypeFilter = List(NodeType.SUBJECT),
+    resultTypes = Some(
+      List(
+        SearchType.Articles,
+        SearchType.LearningPaths
+      )
+    )
   )
 }

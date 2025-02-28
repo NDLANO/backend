@@ -13,6 +13,8 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.search.SearchableTaxonomyResourceType
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed trait NodeType extends EnumEntry {}
 object NodeType extends Enum[NodeType] with CirceEnum[NodeType] {
@@ -23,6 +25,8 @@ object NodeType extends Enum[NodeType] with CirceEnum[NodeType] {
   case object PROGRAMME extends NodeType
 
   val values: IndexedSeq[NodeType] = findValues
+
+  implicit def schema: Schema[NodeType] = schemaForEnumEntry[NodeType]
 }
 
 case class Node(
@@ -57,6 +61,7 @@ object Node {
   })
 }
 
+// NOTE: This will need to match `TaxonomyContextDTO` in `taxonomy-api`
 case class TaxonomyContext(
     publicId: String,
     rootId: String,

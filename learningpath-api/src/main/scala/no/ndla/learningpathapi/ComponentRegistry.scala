@@ -42,7 +42,7 @@ import no.ndla.learningpathapi.validation.{
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: LearningpathApiProperties)
     extends BaseComponentRegistry[LearningpathApiProperties]
@@ -75,7 +75,8 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with TextValidator
     with UrlValidator
     with ErrorHandling
-    with SwaggerDocControllerConfig {
+    with SwaggerDocControllerConfig
+    with SearchLanguage {
   override val props: LearningpathApiProperties = properties
   override val migrator: DBMigrator = DBMigrator(
     new V11__CreatedByNdlaStatusForOwnersWithRoles,

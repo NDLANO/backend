@@ -8,27 +8,40 @@
 
 package no.ndla.frontpageapi
 
-import io.circe.generic.auto._
-import io.circe.syntax._
-import no.ndla.frontpageapi.model.api.{NewSubjectFrontPageDataDTO, SubjectPageDataDTO, UpdatedSubjectFrontPageDataDTO}
-import no.ndla.frontpageapi.model.domain.{FilmFrontPageData, SubjectFrontPageData, VisualElementType}
+import io.circe.generic.auto.*
+import io.circe.syntax.*
+import no.ndla.common.model
+import no.ndla.common.model.api.frontpage.{AboutSubjectDTO, BannerImageDTO, SubjectPageDTO, VisualElementDTO}
+import no.ndla.common.model.domain.frontpage
+import no.ndla.common.model.domain.frontpage.{
+  AboutSubject,
+  BannerImage,
+  MetaDescription,
+  MovieTheme,
+  MovieThemeName,
+  SubjectPage,
+  VisualElement,
+  VisualElementType
+}
+import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, UpdatedSubjectPageDTO}
+import no.ndla.frontpageapi.model.domain.FilmFrontPage
 import no.ndla.frontpageapi.model.{api, domain}
 
 object TestData {
 
-  val domainSubjectPage: SubjectFrontPageData = domain.SubjectFrontPageData(
+  val domainSubjectPage: SubjectPage = frontpage.SubjectPage(
     Some(1),
     "Samfunnsfag",
-    domain.BannerImage(Some(29668), 29668),
+    BannerImage(Some(29668), 29668),
     Seq(
-      domain.AboutSubject(
+      AboutSubject(
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
         "nb",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        VisualElement(VisualElementType.Image, "123", Some("alt text"))
       )
     ),
-    Seq(domain.MetaDescription("meta", "nb")),
+    Seq(MetaDescription("meta", "nb")),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
@@ -36,20 +49,20 @@ object TestData {
   )
   val domainSubjectJson: String = domainSubjectPage.asJson.noSpaces
 
-  val domainUpdatedSubjectPage: SubjectFrontPageData = domain.SubjectFrontPageData(
+  val domainUpdatedSubjectPage: SubjectPage = frontpage.SubjectPage(
     Some(1),
     "Samfunnsfag",
-    domain.BannerImage(Some(29668), 29668),
+    frontpage.BannerImage(Some(29668), 29668),
     Seq(
-      domain.AboutSubject(
+      frontpage.AboutSubject(
         "Om Samfunnsfag",
         "Dette er oppdatert om samfunnsfag",
         "nb",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
       )
     ),
     Seq(
-      domain.MetaDescription("meta", "nb")
+      frontpage.MetaDescription("meta", "nb")
     ),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
@@ -57,20 +70,20 @@ object TestData {
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
   )
 
-  val apiSubjectPage: SubjectPageDataDTO = api.SubjectPageDataDTO(
+  val apiSubjectPage: SubjectPageDTO = model.api.frontpage.SubjectPageDTO(
     1,
     "Samfunnsfag",
-    api.BannerImageDTO(
+    BannerImageDTO(
       Some("http://api-gateway.ndla-local/image-api/raw/id/29668"),
       Some(29668),
       "http://api-gateway.ndla-local/image-api/raw/id/29668",
       29668
     ),
     Some(
-      api.AboutSubjectDTO(
+      AboutSubjectDTO(
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
-        api.VisualElementDTO("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text"))
+        VisualElementDTO("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text"))
       )
     ),
     Some("meta"),
@@ -81,7 +94,7 @@ object TestData {
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
   )
 
-  val apiNewSubjectPage: NewSubjectFrontPageDataDTO = api.NewSubjectFrontPageDataDTO(
+  val apiNewSubjectPage: NewSubjectPageDTO = api.NewSubjectPageDTO(
     "Samfunnsfag",
     None,
     api.NewOrUpdateBannerImageDTO(Some(29668), 29668),
@@ -100,7 +113,7 @@ object TestData {
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
   )
 
-  val apiUpdatedSubjectPage: UpdatedSubjectFrontPageDataDTO = api.UpdatedSubjectFrontPageDataDTO(
+  val apiUpdatedSubjectPage: UpdatedSubjectPageDTO = api.UpdatedSubjectPageDTO(
     Some("Samfunnsfag"),
     None,
     Some(api.NewOrUpdateBannerImageDTO(Some(29668), 29668)),
@@ -121,27 +134,27 @@ object TestData {
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
   )
 
-  val domainFilmFrontPage: FilmFrontPageData = domain.FilmFrontPageData(
+  val domainFilmFrontPage: FilmFrontPage = domain.FilmFrontPage(
     "Film",
     Seq(
-      domain.AboutSubject(
+      frontpage.AboutSubject(
         "Film",
         "Film faget",
         "nb",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
       ),
-      domain.AboutSubject(
+      frontpage.AboutSubject(
         "Film",
         "Subject film",
         "en",
-        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
       )
     ),
     Seq(
-      domain.MovieTheme(
+      MovieTheme(
         Seq(
-          domain.MovieThemeName("Første filmtema", "nb"),
-          domain.MovieThemeName("First movie theme", "en")
+          MovieThemeName("Første filmtema", "nb"),
+          frontpage.MovieThemeName("First movie theme", "en")
         ),
         Seq("movieref1", "movieref2")
       )
@@ -150,5 +163,5 @@ object TestData {
     None
   )
 
-  val apiFilmFrontPage: api.FilmFrontPageDataDTO = api.FilmFrontPageDataDTO("", Seq(), Seq(), Seq(), None)
+  val apiFilmFrontPage: api.FilmFrontPageDTO = api.FilmFrontPageDTO("", Seq(), Seq(), Seq(), None)
 }

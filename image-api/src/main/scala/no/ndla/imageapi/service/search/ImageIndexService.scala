@@ -12,16 +12,16 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
+import no.ndla.search.SearchLanguage
 
 trait ImageIndexService {
-  this: SearchConverterService with IndexService with ImageRepository with Props =>
+  this: SearchConverterService & IndexService & ImageRepository & Props & SearchLanguage =>
   val imageIndexService: ImageIndexService
 
   class ImageIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableImage] {
@@ -34,6 +34,23 @@ trait ImageIndexService {
       val source     = CirceUtil.toJsonString(searchable)
 
       Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+    }
+
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
+      if (keepRaw) {
+        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
+      } else {
+        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+        )
+      }
     }
 
     def getMapping: MappingDefinition = {
@@ -60,12 +77,12 @@ trait ImageIndexService {
         )
       )
 
-      val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("alttexts", keepRaw = false) ++
-        generateLanguageSupportedDynamicTemplates("captions", keepRaw = false) ++
-        generateLanguageSupportedDynamicTemplates("tags", keepRaw = false)
+      val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+        generateLanguageSupportedFieldList("alttexts") ++
+        generateLanguageSupportedFieldList("captions") ++
+        generateLanguageSupportedFieldList("tags")
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
   }
 

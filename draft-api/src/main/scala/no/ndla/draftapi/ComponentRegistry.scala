@@ -36,7 +36,7 @@ import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: DraftApiProperties)
     extends BaseComponentRegistry[DraftApiProperties]
@@ -83,6 +83,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with DBMigrator
     with ErrorHandling
     with SwaggerDocControllerConfig
+    with SearchLanguage
     with V57__MigrateSavedSearch
     with V66__SetHideBylineForImagesNotCopyrighted {
   override val props: DraftApiProperties = properties

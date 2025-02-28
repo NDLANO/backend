@@ -9,15 +9,11 @@
 package no.ndla.frontpageapi.controller
 
 import io.circe.generic.auto.*
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.frontpageapi.Props
-import no.ndla.frontpageapi.model.api.{
-  ErrorHandling,
-  NewSubjectFrontPageDataDTO,
-  SubjectPageDataDTO,
-  UpdatedSubjectFrontPageDataDTO
-}
-import no.ndla.frontpageapi.model.domain.Errors.ValidationException
+import no.ndla.frontpageapi.model.api.{ErrorHandling, NewSubjectPageDTO, UpdatedSubjectPageDTO}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
@@ -42,7 +38,7 @@ trait SubjectPageController {
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
       .errorOut(errorOutputsFor(400, 404))
-      .out(jsonBody[List[SubjectPageDataDTO]])
+      .out(jsonBody[List[SubjectPageDTO]])
       .serverLogicPure { case (page, pageSize, language, fallback) =>
         readService.subjectPages(page, pageSize, language, fallback)
       }
@@ -52,7 +48,7 @@ trait SubjectPageController {
       .in(path[Long]("subjectpage-id").description("The subjectpage id"))
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
-      .out(jsonBody[SubjectPageDataDTO])
+      .out(jsonBody[SubjectPageDTO])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (id, language, fallback) =>
         readService.subjectPage(id, language, fallback)
@@ -66,7 +62,7 @@ trait SubjectPageController {
       .in(query[Boolean]("fallback").default(false))
       .in(query[Int]("page-size").default(props.DefaultPageSize))
       .in(query[Int]("page").default(1))
-      .out(jsonBody[List[SubjectPageDataDTO]])
+      .out(jsonBody[List[SubjectPageDTO]])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
         val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
@@ -77,8 +73,8 @@ trait SubjectPageController {
 
     def createNewSubjectPage: ServerEndpoint[Any, Eff] = endpoint.post
       .summary("Create new subject page")
-      .in(jsonBody[NewSubjectFrontPageDataDTO])
-      .out(jsonBody[SubjectPageDataDTO])
+      .in(jsonBody[NewSubjectPageDTO])
+      .out(jsonBody[SubjectPageDTO])
       .errorOut(errorOutputsFor(400, 404))
       .requirePermission(FRONTPAGE_API_WRITE)
       .serverLogicPure { _ => newSubjectFrontPageData =>
@@ -92,11 +88,11 @@ trait SubjectPageController {
       }
     def updateSubjectPage: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update subject page")
-      .in(jsonBody[UpdatedSubjectFrontPageDataDTO])
+      .in(jsonBody[UpdatedSubjectPageDTO])
       .in(path[Long]("subjectpage-id").description("The subjectpage id"))
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
-      .out(jsonBody[SubjectPageDataDTO])
+      .out(jsonBody[SubjectPageDTO])
       .errorOut(errorOutputsFor(400, 404))
       .requirePermission(FRONTPAGE_API_WRITE)
       .serverLogicPure { _ =>
