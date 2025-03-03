@@ -395,6 +395,7 @@ trait ConverterService {
           status = LearningPathStatus.PRIVATE,
           verificationStatus = getVerificationStatus(user),
           lastUpdated = clock.now(),
+          madeAvailable = None,
           owner = ownerId,
           copyright = copyright,
           learningsteps = existing.learningsteps
