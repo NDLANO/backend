@@ -12,7 +12,7 @@ import no.ndla.audioapi.model.domain.{AudioType, CoverPhoto, PodcastMeta}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag}
 import no.ndla.mapping.License.CC_BY
 import org.mockito.Mockito.{doReturn, reset, spy, when}
 
@@ -87,7 +87,16 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validateCopyright should succeed if a copyright holder is provided") {
     val copyright =
-      Copyright(CC_BY.toString, None, Seq(Author("artist", "test")), Seq.empty, Seq.empty, None, None, false)
+      Copyright(
+        CC_BY.toString,
+        None,
+        Seq(Author(ContributorType.Artist, "test")),
+        Seq.empty,
+        Seq.empty,
+        None,
+        None,
+        false
+      )
     val result = validationService.validateCopyright(copyright)
     result.length should be(0)
   }

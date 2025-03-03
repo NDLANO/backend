@@ -2,6 +2,8 @@
 
 export type Availability = ("everyone" | "teacher")
 
+export type ContributorType = ("artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer")
+
 export enum DraftSortEnum {
   ByRelevanceDesc = "-relevance",
   ByRelevanceAsc = "relevance",
@@ -117,7 +119,7 @@ export interface IArticleTitleDTO {
 }
 
 export interface IAuthorDTO {
-  type: string
+  type: ContributorType
   name: string
 }
 

@@ -13,6 +13,8 @@ export enum ArticleSortEnum {
 
 export type Availability = ("everyone" | "teacher")
 
+export type ContributorType = ("artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer")
+
 export interface IArticleContentV2DTO {
   content: string
   language: string
@@ -118,7 +120,7 @@ export interface IArticleV2DTO {
 }
 
 export interface IAuthorDTO {
-  type: string
+  type: ContributorType
   name: string
 }
 

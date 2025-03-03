@@ -28,8 +28,7 @@ object learningpathapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
     imports = Seq(
       "no.ndla.learningpathapi.model.api._",
-      "no.ndla.common.model.api._",
-      "no.ndla.common.model.api.config._"
+      "no.ndla.common.model.api._"
     ),
     exports = Seq(
       "AuthorDTO",
@@ -44,7 +43,7 @@ object learningpathapi extends Module {
       "LearningStepV2DTO",
       "LicenseDTO",
       "SearchResultV2DTO",
-      "ConfigMetaRestrictedDTO",
+      "config.ConfigMetaRestrictedDTO",
       "config.ConfigMetaDTO"
     )
   )

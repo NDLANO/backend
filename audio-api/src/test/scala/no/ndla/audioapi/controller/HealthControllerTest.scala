@@ -13,7 +13,7 @@ import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.mapping.License
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.when
@@ -35,7 +35,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Copyright(
       License.Copyrighted.toString,
       Some("New York"),
-      Seq(Author("Forfatter", "Clark Kent")),
+      Seq(Author(ContributorType.Writer, "Clark Kent")),
       Seq(),
       Seq(),
       None,

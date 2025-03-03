@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
   Author,
+  ContributorType,
   Description,
   Introduction,
   RequiredLibrary,
@@ -206,7 +207,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with an invalid license") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("beerware", None, Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, false)
+      copyright =
+        Copyright("beerware", None, Seq(Author(ContributorType.Writer, "John doe")), Seq(), Seq(), None, None, false)
     )
     contentValidator.validateArticle(article, false).isFailure should be(true)
   }
@@ -214,7 +216,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle does not throw an exception on an article with a valid license") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(
-        copyright = Copyright("CC-BY-SA-4.0", None, Seq(Author("Writer", "test")), Seq(), Seq(), None, None, false)
+        copyright =
+          Copyright("CC-BY-SA-4.0", None, Seq(Author(ContributorType.Writer, "test")), Seq(), Seq(), None, None, false)
       )
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
@@ -224,7 +227,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       copyright = Copyright(
         "CC-BY-SA-4.0",
         Some("<h1>origin</h1>"),
-        Seq(Author("Writer", "John Doe")),
+        Seq(Author(ContributorType.Writer, "John Doe")),
         Seq(),
         Seq(),
         None,
@@ -238,43 +241,80 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(
-        copyright = Copyright("CC-BY-SA-4.0", None, Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, false)
+        copyright = Copyright(
+          "CC-BY-SA-4.0",
+          None,
+          Seq(Author(ContributorType.Writer, "John doe")),
+          Seq(),
+          Seq(),
+          None,
+          None,
+          false
+        )
       )
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in authors field") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", None, Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, false)
+      copyright = Copyright(
+        "CC-BY-SA-4.0",
+        None,
+        Seq(Author(ContributorType.Writer, "John Doe")),
+        Seq(),
+        Seq(),
+        None,
+        None,
+        false
+      )
     )
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in authors field") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA", None, Seq(Author("Writer", "<h1>john</h1>")), Seq(), Seq(), None, None, false)
+      copyright = Copyright(
+        "CC-BY-SA",
+        None,
+        Seq(Author(ContributorType.Writer, "<h1>john</h1>")),
+        Seq(),
+        Seq(),
+        None,
+        None,
+        false
+      )
     )
     contentValidator.validateArticle(article, false).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with correct author type") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", None, Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, false)
+      copyright = Copyright(
+        "CC-BY-SA-4.0",
+        None,
+        Seq(Author(ContributorType.Writer, "John Doe")),
+        Seq(),
+        Seq(),
+        None,
+        None,
+        false
+      )
     )
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
 
-  test("validateArticle throws an exception on an article with invalid author type") {
+  test("validateArticle throws an exception on an article with empty author name") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", None, Seq(Author("invalid", "John Doe")), Seq(), Seq(), None, None, false)
+      copyright =
+        Copyright("CC-BY-SA-4.0", None, Seq(Author(ContributorType.Writer, "")), Seq(), Seq(), None, None, false)
     )
     val result = contentValidator.validateArticle(article, false)
     result.isSuccess should be(false)
     result.failed.get.asInstanceOf[ValidationException].errors.length should be(1)
     result.failed.get.asInstanceOf[ValidationException].errors.head.message should be(
-      "Author is of illegal type. Must be one of originator, photographer, artist, writer, scriptwriter, reader, translator, director, illustrator, cowriter, composer"
+      "This field is shorter than the minimum permitted length of 1 characters"
     )
-    result.failed.get.asInstanceOf[ValidationException].errors.head.field should be("copyright.creators.type")
+    result.failed.get.asInstanceOf[ValidationException].errors.head.field should be("copyright.creators.name")
   }
 
   test("Validation should not fail with language=unknown if allowUnknownLanguage is set") {
@@ -413,8 +453,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("an article with one or more copyright holder can pass validation, regardless of license") {
-    val copyright = Copyright(CC_BY_SA.toString, None, Seq(Author("reader", "test")), Seq(), Seq(), None, None, false)
-    val article   = TestData.sampleArticleWithByNcSa.copy(copyright = copyright)
+    val copyright =
+      Copyright(CC_BY_SA.toString, None, Seq(Author(ContributorType.Reader, "test")), Seq(), Seq(), None, None, false)
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright = copyright)
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
 

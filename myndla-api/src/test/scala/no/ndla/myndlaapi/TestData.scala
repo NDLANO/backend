@@ -101,7 +101,6 @@ object TestData {
     email = "",
     arenaEnabled = false,
     arenaAccepted = false,
-    arenaGroups = List.empty,
     shareNameAccepted = false
   )
 

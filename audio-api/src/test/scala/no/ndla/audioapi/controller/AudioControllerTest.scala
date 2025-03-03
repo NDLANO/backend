@@ -15,6 +15,7 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO}
+import no.ndla.mapping.License
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.ArgumentCaptor
@@ -66,14 +67,14 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   val fileBody: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
 
   val sampleNewAudioMeta: String =
-    """
+    s"""
       |{
       |    "title": "Test",
       |    "language": "nb",
       |    "audioFile": "test.mp3",
       |    "copyright": {
       |        "license": {
-      |            "license": "by-sa"
+      |            "license": "${License.CC_BY_SA.toString}"
       |        },
       |        "origin": "",
       |        "creators": [],
@@ -115,7 +116,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
         1,
         TitleDTO("title", "nb"),
         AudioDTO("", "", -1, "nb"),
-        CopyrightDTO(LicenseDTO("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+        CopyrightDTO(LicenseDTO(License.CC_BY.toString, None, None), None, Seq(), Seq(), Seq(), None, None, false),
         TagDTO(Seq(), "nb"),
         Seq("nb"),
         "podcast",
@@ -142,7 +143,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
   test("That POST / returns 500 if an unexpected error occurs") {
     val runtimeMock = mock[RuntimeException](withSettings.strictness(Strictness.LENIENT))
-    doNothing.when(runtimeMock).printStackTrace()
+    doNothing().when(runtimeMock).printStackTrace()
     when(runtimeMock.getMessage).thenReturn("Something (not really) wrong (this is a test hehe)")
 
     when(writeService.storeNewAudio(any[NewAudioMetaInformationDTO], any, any))
@@ -292,7 +293,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That deleting language returns audio if exists") {
-    import io.circe.generic.auto._
+    import io.circe.generic.auto.*
 
     when(writeService.deleteAudioLanguageVersion(1, "nb"))
       .thenReturn(Success(Some(TestData.DefaultApiImageMetaInformation)))
@@ -329,7 +330,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       1,
       TitleDTO("one", "nb"),
       AudioDTO("", "", -1, "nb"),
-      CopyrightDTO(LicenseDTO("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+      CopyrightDTO(LicenseDTO(License.CC_BY.toString, None, None), None, Seq(), Seq(), Seq(), None, None, false),
       TagDTO(Seq(), "nb"),
       Seq("nb"),
       "podcast",
@@ -351,7 +352,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
         .get(uri"http://localhost:$serverPort/audio-api/v1/audio/ids/?ids=1,2,3")
     )
     response.code.code should be(200)
-    import io.circe.generic.auto._
+    import io.circe.generic.auto.*
     val parsedBody = unsafeParseAs[List[api.AudioMetaInformationDTO]](response.body)
     parsedBody should be(expectedResult)
 
@@ -388,7 +389,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
         1,
         TitleDTO("title", "nb"),
         AudioDTO("", "", -1, "nb"),
-        CopyrightDTO(LicenseDTO("by", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+        CopyrightDTO(LicenseDTO(License.CC_BY.toString, None, None), None, Seq(), Seq(), Seq(), None, None, false),
         TagDTO(Seq(), "nb"),
         Seq("nb"),
         "podcast",

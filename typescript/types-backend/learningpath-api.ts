@@ -1,7 +1,9 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type ContributorType = ("artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer")
+
 export interface IAuthorDTO {
-  type: string
+  type: ContributorType
   name: string
 }
 

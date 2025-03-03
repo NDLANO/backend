@@ -11,6 +11,8 @@ export enum AudioSortEnum {
   ByIdAsc = "id",
 }
 
+export type ContributorType = ("artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer")
+
 export interface IAudioDTO {
   url: string
   mimeType: string
@@ -56,7 +58,7 @@ export interface IAudioSummarySearchResultDTO {
 }
 
 export interface IAuthorDTO {
-  type: string
+  type: ContributorType
   name: string
 }
 

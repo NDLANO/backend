@@ -64,37 +64,6 @@ class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   val AudioFilesUrlSuffix = "audio/files"
 
-  val creatorTypeMap: Map[String, String] = Map(
-    "opphavsmann"    -> "originator",
-    "fotograf"       -> "photographer",
-    "kunstner"       -> "artist",
-    "forfatter"      -> "writer",
-    "manusforfatter" -> "scriptwriter",
-    "innleser"       -> "reader",
-    "oversetter"     -> "translator",
-    "regissør"       -> "director",
-    "illustratør"    -> "illustrator",
-    "medforfatter"   -> "cowriter",
-    "komponist"      -> "composer"
-  )
-
-  val processorTypeMap: Map[String, String] = Map(
-    "bearbeider"     -> "processor",
-    "tilrettelegger" -> "facilitator",
-    "redaksjonelt"   -> "editorial",
-    "språklig"       -> "linguistic",
-    "ide"            -> "idea",
-    "sammenstiller"  -> "compiler",
-    "korrektur"      -> "correction"
-  )
-
-  val rightsholderTypeMap: Map[String, String] = Map(
-    "rettighetshaver" -> "rightsholder",
-    "forlag"          -> "publisher",
-    "distributør"     -> "distributor",
-    "leverandør"      -> "supplier"
-  )
-
   lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   lazy val RawImageApiUrl: String = s"$Domain/image-api/raw/id"

@@ -14,7 +14,7 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.mapping.License
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
@@ -26,7 +26,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Copyright(
       License.CC_BY_NC_SA.toString,
       Some("Gotham City"),
-      List(Author("Forfatter", "DC Comics")),
+      List(Author(ContributorType.Writer, "DC Comics")),
       Seq(),
       Seq(),
       None,

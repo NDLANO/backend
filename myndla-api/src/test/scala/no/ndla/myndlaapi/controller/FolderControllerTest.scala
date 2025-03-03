@@ -44,7 +44,6 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     email = "some@example.com",
     arenaEnabled = true,
     arenaAccepted = true,
-    arenaGroups = List.empty,
     shareNameAccepted = false
   )
 

@@ -12,7 +12,14 @@ import io.circe.syntax.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Author, Description, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  Author,
+  ContributorType,
+  Description,
+  VisualElement
+}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.TestData.*
@@ -137,9 +144,9 @@ class ArticleIndexServiceTest
       copyright = Copyright(
         license = "CC-BY-SA-4.0",
         origin = None,
-        creators = Seq(Author("writer", "hå")),
-        processors = Seq(Author("writer", "hå")),
-        rightsholders = Seq(Author("writer", "hå")),
+        creators = Seq(Author(ContributorType.Writer, "hå")),
+        processors = Seq(Author(ContributorType.Writer, "hå")),
+        rightsholders = Seq(Author(ContributorType.Writer, "hå")),
         validFrom = None,
         validTo = None,
         processed = false

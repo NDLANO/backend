@@ -7,6 +7,8 @@ export enum ConfigKeyEnum {
   MY_NDLA_WRITE_RESTRICTED = "MY_NDLA_WRITE_RESTRICTED",
 }
 
+export type ContributorType = ("artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer")
+
 export type DraftStatus = DraftStatusEnum
 
 export enum DraftStatusEnum {

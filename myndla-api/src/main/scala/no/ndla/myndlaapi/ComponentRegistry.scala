@@ -13,11 +13,9 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
-  ArenaController,
   ConfigController,
   ErrorHandling,
   FolderController,
-  InternController,
   StatsController,
   SwaggerDocControllerConfig,
   UserController
@@ -25,15 +23,12 @@ import no.ndla.myndlaapi.controller.{
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
 import no.ndla.myndlaapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.repository.{ArenaRepository, ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
-  ArenaReadService,
   ConfigService,
-  ConverterService,
   FolderConverterService,
   FolderReadService,
   FolderWriteService,
-  ImportService,
   UserService
 }
 import no.ndla.network.NdlaClient
@@ -49,9 +44,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
-    with ArenaReadService
     with DBUtility
-    with ConverterService
     with FolderRepository
     with FolderReadService
     with FolderWriteService
@@ -66,12 +59,8 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with FolderController
     with UserController
     with StatsController
-    with ArenaController
     with MyNDLAAuthHelpers
-    with ArenaRepository
-    with ImportService
     with NodeBBClient
-    with InternController
     with SearchApiClient
     with TaxonomyApiClient
     with V16__MigrateResourcePaths
@@ -94,13 +83,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val configService: ConfigService                         = new ConfigService
   lazy val configController: ConfigController                   = new ConfigController
   lazy val statsController: StatsController                     = new StatsController
-  lazy val arenaRepository: ArenaRepository                     = new ArenaRepository
-  lazy val arenaReadService: ArenaReadService                   = new ArenaReadService
-  lazy val arenaController: ArenaController                     = new ArenaController
-  lazy val converterService: ConverterService                   = new ConverterService
-  lazy val importService: ImportService                         = new ImportService
   lazy val nodebb: NodeBBClient                                 = new NodeBBClient
-  lazy val internController: InternController                   = new InternController
   lazy val searchApiClient: SearchApiClient                     = new SearchApiClient
   lazy val taxonomyApiClient: TaxonomyApiClient                 = new TaxonomyApiClient
   lazy val ndlaClient: NdlaClient                               = new NdlaClient
@@ -118,9 +101,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
       folderController,
       userController,
       configController,
-      statsController,
-      arenaController,
-      internController
+      statsController
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )
