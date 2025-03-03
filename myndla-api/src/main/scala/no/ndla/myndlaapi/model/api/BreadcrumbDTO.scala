@@ -8,7 +8,7 @@
 
 package no.ndla.myndlaapi.model.api
 
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 

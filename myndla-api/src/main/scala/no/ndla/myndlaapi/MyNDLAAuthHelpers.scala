@@ -9,7 +9,7 @@
 package no.ndla.myndlaapi
 
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
-import no.ndla.common.model.domain.myndla.{ArenaGroup, MyNDLAUser}
+import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.network.model.FeideAccessToken
 import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
@@ -26,18 +26,11 @@ trait MyNDLAAuthHelpers {
       private type PartialFeideEndpoint[F[_]] =
         PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
       def requireMyNDLAUser[F[_]](
-          requireArena: Boolean = false,
-          requireArenaAdmin: Boolean = false
+          requireArena: Boolean = false
       ): PartialFeideEndpoint[F] = {
         val newEndpoint = self.securityIn(AuthUtility.feideOauth())
         val authFunc: Option[FeideAccessToken] => Either[AllErrors, MyNDLAUser] = { maybeToken =>
-          if (requireArenaAdmin) {
-            userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk match {
-              case Right(user) if user.arenaGroups.contains(ArenaGroup.ADMIN) => Right(user)
-              case Right(_)                                                   => Left(ErrorHelpers.forbidden)
-              case Left(err)                                                  => Left(err)
-            }
-          } else if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
+          if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
           else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk
         }
         val securityLogic = (m: MonadError[F]) => (a: Option[FeideAccessToken]) => m.unit(authFunc(a))
