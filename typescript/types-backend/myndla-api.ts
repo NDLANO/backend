@@ -49,7 +49,7 @@ export interface IMyNDLAUserDTO {
   email: string
   displayName: string
   favoriteSubjects: string[]
-  role: string
+  role: UserRole
   organization: string
   groups: IMyNDLAGroupDTO[]
   arenaEnabled: boolean
@@ -130,3 +130,5 @@ export interface IUserFolderDTO {
 }
 
 export type ResourceType = ("article" | "audio" | "concept" | "image" | "learningpath" | "multidisciplinary" | "topic" | "video")
+
+export type UserRole = ("employee" | "student")

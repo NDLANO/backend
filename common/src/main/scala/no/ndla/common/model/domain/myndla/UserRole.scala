@@ -8,16 +8,23 @@
 
 package no.ndla.common.model.domain.myndla
 
-import io.circe.{Decoder, Encoder}
+import enumeratum.*
+import com.scalatsi.{TSNamedType, TSType}
+import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
+import enumeratum.{CirceEnum, EnumEntry}
 
-object UserRole extends Enumeration {
-  val EMPLOYEE: UserRole.Value = Value("employee")
-  val STUDENT: UserRole.Value  = Value("student")
+sealed abstract class UserRole(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
+object UserRole extends Enum[UserRole] with CirceEnum[UserRole] {
+  case object EMPLOYEE extends UserRole("employee")
+  case object STUDENT  extends UserRole("student")
 
-  def valueOf(s: String): Option[FolderStatus.Value]         = FolderStatus.values.find(_.toString == s)
-  def valueOf(s: Option[String]): Option[FolderStatus.Value] = s.flatMap(valueOf)
+  val values: IndexedSeq[UserRole] = findValues
 
-  implicit val encoder: Encoder[UserRole.Value] = Encoder.encodeEnumeration(UserRole)
-  implicit val decoder: Decoder[UserRole.Value] = Decoder.decodeEnumeration(UserRole)
+  def all: Seq[String]                     = UserRole.values.map(_.entryName)
+  def valueOf(s: String): Option[UserRole] = UserRole.withNameOption(s)
 
+  implicit val availability: TSNamedType[UserRole] =
+    TSType.alias[UserRole]("UserRole", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 }
