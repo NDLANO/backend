@@ -25,25 +25,30 @@ object NdlaSearchException {
       shard: Option[String],
       requestString: String
   ): String = {
-    val indexError = index.map(idx => s"\nindex: $idx")
-    val shardError = shard.map(s => s"\nshard: $s")
+    val indexError = index.map(idx => s"index: $idx").getOrElse("")
+    val shardError = shard.map(s => s" shard: $s").getOrElse("")
     s"""SearchError with following content occurred:
        |Error type: $errorType
        |reason: $reason
-       |$indexError$shardError
+       |$indexError
+       |$shardError
        |Caused by request: $requestString
        |""".stripMargin
   }
 
   def apply[T](request: T, rf: RequestFailure): NdlaSearchException[T] = {
-    val msg = message(
-      rf.error.`type`,
-      rf.error.reason,
-      rf.error.index,
-      rf.error.shard,
-      request.toString
-    )
-    new NdlaSearchException(msg, Some(rf))
+    if (rf.status != 409) {
+      val msg = message(
+        rf.error.`type`,
+        rf.error.reason,
+        rf.error.index,
+        rf.error.shard,
+        request.toString
+      )
+      new NdlaSearchException(msg, Some(rf))
+    } else {
+      new NdlaSearchException("Conflict when indexing document", Some(rf))
+    }
   }
 
   def apply[T](msg: String, ex: Throwable): NdlaSearchException[T] = {
