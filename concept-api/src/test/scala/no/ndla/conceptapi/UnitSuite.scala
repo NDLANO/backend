@@ -19,7 +19,6 @@ trait UnitSuite extends UnitTestSuite {
   setPropEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
   setPropEnv("SEARCH_INDEX_NAME", "draft-integration-test-index")
   setPropEnv("CONCEPT_SEARCH_INDEX_NAME", "concept-integration-test-index")
-  setPropEnv("AGREEMENT_SEARCH_INDEX_NAME", "agreement-integration-test-index")
 
   setPropEnv("AUDIO_API_URL", "localhost:30014")
   setPropEnv("IMAGE_API_URL", "localhost:30001")

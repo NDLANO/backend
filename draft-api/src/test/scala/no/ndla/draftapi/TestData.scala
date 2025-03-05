@@ -618,14 +618,4 @@ object TestData {
     grepCodes = Seq.empty,
     shouldScroll = false
   )
-
-  val agreementSearchSettings: domain.AgreementSearchSettings = domain.AgreementSearchSettings(
-    query = None,
-    withIdIn = List.empty,
-    license = None,
-    page = 1,
-    pageSize = 10,
-    sort = domain.Sort.ByIdAsc,
-    shouldScroll = false
-  )
 }
