@@ -13,7 +13,7 @@ import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 import no.ndla.searchapi.service.StandaloneIndexing
 
-class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain {
+class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path: String, options: Map[String, String]) =>
@@ -32,7 +32,7 @@ class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain {
     if (booleanPropOrFalse("STANDALONE_INDEXING_ENABLED")) {
       new StandaloneIndexing(props, componentRegistry).doStandaloneIndexing()
     } else {
-      componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
+      super.startServer(name, port)(warmupFunc)
     }
   }
 }

@@ -68,6 +68,8 @@ trait SwaggerControllerConfig {
       docsWithComponents.asJson
     }
 
+    def printSwagger(): Unit = println(docs.noSpaces)
+
     private def addCorsHeaders[A, I, X, O, R](end: Endpoint[A, I, X, O, R]) =
       if (props.Environment == "local") end.out(header("Access-Control-Allow-Origin", "*"))
       else end

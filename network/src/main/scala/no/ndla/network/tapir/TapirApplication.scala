@@ -22,4 +22,6 @@ trait TapirApplication
     with HasBaseProps
     with Routes
     with SwaggerControllerConfig
-    with TapirHealthController
+    with TapirHealthController {
+  val swagger: SwaggerController
+}
