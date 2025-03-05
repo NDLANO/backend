@@ -444,7 +444,7 @@ export type LearningResourceType = ("standard" | "topic-article" | "frontpage-ar
 
 export type MultiSummaryBaseDTO = (IMultiSearchSummaryDTO | INodeHitDTO)
 
-export type NodeType = (ISUBJECT | IRESOURCE | ITOPIC | IPROGRAMME | INODE)
+export type NodeType = (INODE | ITOPIC | ISUBJECT | IPROGRAMME | IRESOURCE)
 
 export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "PODCAST")
 
