@@ -14,17 +14,17 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Concept as DomainConcept}
-import no.ndla.conceptapi.integration.SearchApiClient
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation.*
 import no.ndla.language.Language
+import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.auth.TokenUser
 
 import java.util.concurrent.Executors
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
@@ -164,11 +164,11 @@ trait WriteService {
     }
 
     private def indexConcept(toIndex: DomainConcept, user: TokenUser): Unit = {
-      val executor = Executors.newSingleThreadExecutor
-      val ec       = ExecutionContext.fromExecutorService(executor)
+      val executor                                     = Executors.newSingleThreadExecutor
+      implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(executor)
 
       draftConceptIndexService.indexDocument(toIndex): Unit
-      searchApiClient.indexConcept(toIndex, user)(ec): Unit
+      searchApiClient.indexDocument("concept", toIndex, Some(user)): Unit
     }
 
     def updateConcept(id: Long, updatedConcept: api.UpdatedConceptDTO, user: TokenUser): Try[api.ConceptDTO] = {
