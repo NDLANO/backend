@@ -11,7 +11,7 @@ package no.ndla.articleapi
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain {
+class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path: String, options: Map[String, String]) =>
@@ -32,7 +32,4 @@ class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain 
     componentRegistry.migrator.migrate()
     logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
   }
-
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
-    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

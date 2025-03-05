@@ -40,6 +40,7 @@ trait TestEnvironment
   val clock: SystemClock                           = mock[SystemClock]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 
   def resetMocks(): Unit = {
     reset(oEmbedService)

@@ -11,8 +11,8 @@ package no.ndla.frontpageapi
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMain {
-  private val componentRegistry = new ComponentRegistry(props)
+class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMain[ComponentRegistry] {
+  val componentRegistry = new ComponentRegistry(props)
 
   override def beforeStart(): Unit = {
     logger.info("Starting DB Migration")
@@ -29,7 +29,4 @@ class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMai
 
     componentRegistry.healthController.setWarmedUp()
   }
-
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
-    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

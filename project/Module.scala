@@ -1,5 +1,6 @@
 import Dependencies.versions.*
 import GithubWorkflowPlugin.autoImport.*
+import OpenApiPlugin.autoImport.*
 import CopyrightHeaderPlugin.autoImport.*
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
@@ -54,6 +55,7 @@ trait Module {
     scalaVersion        := ScalaV,
     javacOptions ++= Seq("-source", "21", "-target", "21"),
     ghGenerateEnable        := true,
+    openapiTSEnable           := this.MainClass.isDefined,
     ghGenerateEnableRelease := this.enableReleases,
     javaOptions ++= reflectiveAccessOptions,
     tpolecatScalacOptions ++= scalacOptions,

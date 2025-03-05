@@ -62,7 +62,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
   override val ndlaClient: NdlaClient           = new NdlaClient
 
-  private val swagger = new SwaggerController(
+  val swagger =new SwaggerController(
     List(
       subjectPageController,
       frontPageController,

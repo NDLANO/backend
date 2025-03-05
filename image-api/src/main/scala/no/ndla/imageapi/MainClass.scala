@@ -11,7 +11,7 @@ package no.ndla.imageapi
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain {
+class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path: String, options: Map[String, String]) =>
@@ -35,7 +35,4 @@ class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain {
     componentRegistry.imageSearchService.createEmptyIndexIfNoIndexesExist()
     componentRegistry.tagSearchService.createEmptyIndexIfNoIndexesExist()
   }
-
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
-    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }
