@@ -18,6 +18,8 @@ case class MetaDataAndFileForm(
     file: Part[File]
 )
 
+case class CopyMetaDataAndFileForm(file: Part[File])
+
 case class UpdateMetaDataAndFileForm(
     metadata: Part[UpdateImageMetaInformationDTO],
     file: Option[Part[File]]
