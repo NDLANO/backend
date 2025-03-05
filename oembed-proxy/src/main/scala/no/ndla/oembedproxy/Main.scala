@@ -16,6 +16,6 @@ object Main {
     setPropsFromEnv()
     val props     = new OEmbedProxyProperties
     val mainClass = new MainClass(props)
-    mainClass.run()
+    mainClass.run(args)
   }
 }

@@ -90,6 +90,7 @@ trait TestEnvironment
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 
   def resetMocks(): Unit = {
     reset(dataSource)

@@ -62,7 +62,7 @@ class ArticleApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
-    Future { articleApi.run() }: Unit
+    Future { articleApi.run(Array.empty) }: Unit
     blockUntil(() => {
       import sttp.client3.quick.*
       val req = quickRequest.get(uri"$articleApiBaseUrl/health/readiness")

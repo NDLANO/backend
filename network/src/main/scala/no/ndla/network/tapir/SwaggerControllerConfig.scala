@@ -68,6 +68,20 @@ trait SwaggerControllerConfig {
       docsWithComponents.asJson
     }
 
+    def printSwagger(): Unit = println(docs.noSpaces)
+
+    def saveSwagger(): Unit = {
+      import java.io.*
+      val swaggerLocation = new File(s"./typescript/types-backend/openapi")
+      val jsonFile        = new File(swaggerLocation, s"${props.ApplicationName}.json")
+
+      swaggerLocation.mkdir()
+
+      val pw = new PrintWriter(jsonFile)
+      pw.write(docs.noSpaces)
+      pw.close()
+    }
+
     private def addCorsHeaders[A, I, X, O, R](end: Endpoint[A, I, X, O, R]) =
       if (props.Environment == "local") end.out(header("Access-Control-Allow-Origin", "*"))
       else end

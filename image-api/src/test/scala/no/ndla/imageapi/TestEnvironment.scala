@@ -107,4 +107,5 @@ trait TestEnvironment
   val random: Random     = mock[Random]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }

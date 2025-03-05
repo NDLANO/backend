@@ -101,4 +101,5 @@ trait TestEnvironment
   val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 
   override def services: List[TapirController] = List()
+  val swagger: SwaggerController               = mock[SwaggerController]
 }

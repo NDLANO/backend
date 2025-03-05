@@ -90,7 +90,7 @@ class CloneFolderTest
     super.beforeAll()
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    Future { myndlaApi.run() }: Unit
+    Future { myndlaApi.run(Array.empty) }: Unit
     Thread.sleep(4000)
   }
 

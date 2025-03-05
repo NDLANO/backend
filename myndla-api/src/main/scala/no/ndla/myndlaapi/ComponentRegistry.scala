@@ -97,7 +97,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       healthController,
       folderController,
