@@ -146,7 +146,7 @@ trait BaseIndexService {
     def createIndexWithGeneratedName: Try[String] =
       createIndexWithName(getNewIndexName())
 
-    def reindexWithShards(numShards: Int): Try[_] = {
+    def reindexWithShards(numShards: Int): Try[?] = {
       logger.info(s"Internal reindexing $searchIndex with $numShards shards...")
       val maybeAliasTarget = getAliasTarget.?
       val currentIndex = maybeAliasTarget match {
@@ -164,7 +164,7 @@ trait BaseIndexService {
       } yield ()
     }
 
-    def createIndexIfNotExists(): Try[_] = getAliasTarget.flatMap {
+    def createIndexIfNotExists(): Try[?] = getAliasTarget.flatMap {
       case Some(index) => Success(index)
       case None        => createIndexAndAlias(indexShards.some)
     }
@@ -187,13 +187,13 @@ trait BaseIndexService {
       }
     }
 
-    def updateReplicaNumber(overrideReplicaNumber: Int): Try[_] = getAliasTarget.flatMap {
+    def updateReplicaNumber(overrideReplicaNumber: Int): Try[?] = getAliasTarget.flatMap {
       case None => Success(())
       case Some(indexName) =>
         updateReplicaNumber(indexName, overrideReplicaNumber.some)
     }
 
-    private def updateReplicaNumber(indexName: String, overrideReplicaNumber: Option[Int]): Try[_] = {
+    private def updateReplicaNumber(indexName: String, overrideReplicaNumber: Option[Int]): Try[?] = {
       if (props.Environment == "local") {
         logger.info("Skipping replica change in local environment, since the cluster only has one node.")
         Success(())
@@ -292,14 +292,14 @@ trait BaseIndexService {
       }
     }
 
-    def deleteIndexAndAlias(): Try[_] = {
+    def deleteIndexAndAlias(): Try[?] = {
       for {
         indexToDelete <- deleteAlias()
         _             <- deleteIndexWithName(indexToDelete)
       } yield ()
     }
 
-    def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
+    def deleteIndexWithName(optIndexName: Option[String]): Try[?] = {
       optIndexName match {
         case None => Success(optIndexName)
         case Some(indexName) =>

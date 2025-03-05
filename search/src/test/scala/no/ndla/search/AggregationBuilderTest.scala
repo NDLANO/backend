@@ -9,7 +9,7 @@
 package no.ndla.search
 
 import com.sksamuel.elastic4s.ElasticApi.{nestedAggregation, termsAgg}
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import no.ndla.scalatestsuite.UnitTestSuite

@@ -20,13 +20,11 @@ case class NdlaSearchException[T](
 object NdlaSearchException {
   def apply[T](request: T, rf: RequestFailure): NdlaSearchException[T] = {
     val msg =
-      if (rf.status != 409)
-        s"""Got error from elasticsearch:
+      s"""Got error from elasticsearch:
         |  Status: ${rf.status}
         |  Error: ${rf.error}
         |  Caused by request: $request
         |""".stripMargin
-      else "Document already exists"
 
     new NdlaSearchException(msg, Some(rf))
   }

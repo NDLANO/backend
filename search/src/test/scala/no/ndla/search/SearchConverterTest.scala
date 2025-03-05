@@ -5,7 +5,7 @@
  * See LICENSE
  *
  */
- 
+
 package no.ndla.search
 
 import no.ndla.scalatestsuite.UnitTestSuite
