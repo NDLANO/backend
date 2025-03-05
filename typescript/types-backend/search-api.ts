@@ -318,16 +318,34 @@ export interface IMultiSearchTermsAggregationDTO {
   values: ITermValueDTO[]
 }
 
+export interface INODE {
+  typename: "NODE"
+}
+
 export interface INodeHitDTO {
   id: string
+  title: string
+  url?: string
   subjectPage?: ISubjectPageSummaryDTO
   typename: "NodeHitDTO"
+}
+
+export interface IPROGRAMME {
+  typename: "PROGRAMME"
+}
+
+export interface IRESOURCE {
+  typename: "RESOURCE"
 }
 
 export interface IRevisionMetaDTO {
   revisionDate: string
   note: string
   status: string
+}
+
+export interface ISUBJECT {
+  typename: "SUBJECT"
 }
 
 export interface ISearchParamsDTO {
@@ -352,6 +370,7 @@ export interface ISearchParamsDTO {
   embedId?: string
   filterInactive?: boolean
   resultTypes?: SearchType[]
+  nodeTypeFilter?: NodeType[]
   sort?: string
 }
 
@@ -395,6 +414,10 @@ export interface ISuggestOptionDTO {
   score: number
 }
 
+export interface ITOPIC {
+  typename: "TOPIC"
+}
+
 export interface ITaxonomyResourceTypeDTO {
   id: string
   name: string
@@ -420,6 +443,8 @@ export interface ITitleWithHtmlDTO {
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
 export type MultiSummaryBaseDTO = (IMultiSearchSummaryDTO | INodeHitDTO)
+
+export type NodeType = (ISUBJECT | IRESOURCE | INODE | IPROGRAMME | ITOPIC)
 
 export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "PODCAST")
 

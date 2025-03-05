@@ -27,7 +27,7 @@ export interface IErrorBody {
   statusCode: number
 }
 
-export interface IFilmFrontPageDataDTO {
+export interface IFilmFrontPageDTO {
   name: string
   about: IAboutFilmSubjectDTO[]
   movieThemes: IMovieThemeDTO[]
@@ -70,7 +70,7 @@ export interface INewOrUpdatedAboutSubjectDTO {
   visualElement: INewOrUpdatedVisualElementDTO
 }
 
-export interface INewOrUpdatedFilmFrontPageDataDTO {
+export interface INewOrUpdatedFilmFrontPageDTO {
   name: string
   about: INewOrUpdatedAboutSubjectDTO[]
   movieThemes: INewOrUpdatedMovieThemeDTO[]
@@ -99,7 +99,7 @@ export interface INewOrUpdatedVisualElementDTO {
   alt?: string
 }
 
-export interface INewSubjectFrontPageDataDTO {
+export interface INewSubjectPageDTO {
   name: string
   externalId?: string
   banner: INewOrUpdateBannerImageDTO
@@ -111,7 +111,7 @@ export interface INewSubjectFrontPageDataDTO {
   leadsTo?: string[]
 }
 
-export interface ISubjectPageDataDTO {
+export interface ISubjectPageDTO {
   id: number
   name: string
   banner: IBannerImageDTO
@@ -124,7 +124,7 @@ export interface ISubjectPageDataDTO {
   leadsTo: string[]
 }
 
-export interface IUpdatedSubjectFrontPageDataDTO {
+export interface IUpdatedSubjectPageDTO {
   name?: string
   externalId?: string
   banner?: INewOrUpdateBannerImageDTO
