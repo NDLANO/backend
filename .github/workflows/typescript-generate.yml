@@ -2,6 +2,9 @@ name: 'Generate typescript types'
 on:
   workflow_dispatch:
     inputs: { }
+  push:
+    branches:
+      - master
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
   AWS_DEFAULT_REGION: eu-west-1
@@ -53,4 +56,13 @@ jobs:
           
           git add typescript/*
           git commit -m "AUTOMATION: Generated new typescript files"
-          git push
+      - name: Verify no unstable typescript types
+        run: |
+          sbt clean generateTypescript
+          git diff --exit-code
+          sbt clean generateTypescript
+          git diff --exit-code
+      - name: Push typescript changes
+        continue-on-error: true
+        run: git push
+
