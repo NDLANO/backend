@@ -44,8 +44,8 @@ trait GrepIndexService {
         ObjectField("domainObject", enabled = Some(false))
       )
 
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true)
-      properties(fields).dynamicTemplates(dynamics)
+      val dynamics = languageValuesMapping("title", keepRaw = true)
+      properties(fields ++ dynamics)
     }
 
     def indexDocuments(numShards: Option[Int], grepBundle: Option[GrepBundle]): Try[ReindexResult] = {

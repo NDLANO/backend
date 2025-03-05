@@ -21,7 +21,7 @@ import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -35,6 +35,7 @@ trait TestEnvironment
     with UpdateService
     with SearchConverterServiceComponent
     with SearchService
+    with SearchLanguage
     with SearchIndexService
     with BaseIndexService
     with SearchApiClient

@@ -23,7 +23,7 @@ import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 trait SearchConverterServiceComponent {
-  this: ConverterService & Props =>
+  this: ConverterService & Props & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService {

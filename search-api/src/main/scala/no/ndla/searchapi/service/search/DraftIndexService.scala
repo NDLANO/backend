@@ -104,29 +104,21 @@ trait DraftIndexService {
         keywordField("defaultRoot"),
         keywordField("defaultResourceTypeName")
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("metaDescription") ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("visualElement") ++
-        generateLanguageSupportedDynamicTemplates("introduction") ++
-        generateLanguageSupportedDynamicTemplates("tags") ++
-        generateLanguageSupportedDynamicTemplates("embedAttributes") ++
-        generateLanguageSupportedDynamicTemplates("relevance") ++
-        generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
-        generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("contexts.root", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("parentTopicName", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("resourceTypeName", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("primaryRoot", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("context.root") ++
-        generateLanguageSupportedDynamicTemplates("context.relevance") ++
-        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
-        generateLanguageSupportedDynamicTemplates("contexts.root") ++
-        generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
-        generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
+      val dynamics =
+        languageValuesMapping("title", keepRaw = true) ++
+          languageValuesMapping("metaDescription") ++
+          languageValuesMapping("content") ++
+          languageValuesMapping("introduction") ++
+          languageValuesMapping("tags") ++
+          languageValuesMapping("embedAttributes") ++
+          languageValuesMapping("relevance") ++
+          languageValuesMapping("breadcrumbs") ++
+          languageValuesMapping("name", keepRaw = true) ++
+          languageValuesMapping("parentTopicName", keepRaw = true) ++
+          languageValuesMapping("resourceTypeName", keepRaw = true) ++
+          languageValuesMapping("primaryRoot", keepRaw = true)
 
-      properties(fields).dynamicTemplates(dynamics)
-
+      properties(fields ++ dynamics)
     }
   }
 

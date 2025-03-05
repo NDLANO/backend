@@ -18,7 +18,6 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 
 import java.text.SimpleDateFormat
@@ -26,9 +25,10 @@ import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 
 trait BaseIndexService {
-  this: Elastic4sClient with HasBaseProps =>
+  this: Elastic4sClient & HasBaseProps & SearchLanguage =>
 
   trait BaseIndexService extends StrictLogging {
+    import SearchLanguage.NynorskLanguageAnalyzer
     val documentType: String
     val searchIndex: String
     val MaxResultWindowOption: Int

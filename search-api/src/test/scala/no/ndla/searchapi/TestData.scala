@@ -1720,7 +1720,9 @@ object TestData {
     embedId = None,
     availability = List.empty,
     articleTypes = List.empty,
-    filterInactive = false
+    filterInactive = false,
+    resultTypes = None,
+    nodeTypeFilter = List.empty
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
@@ -1778,7 +1780,6 @@ object TestData {
       publicId = "urn:resource:101",
       contextId = "contextId",
       rootId = "urn:subject:1",
-      root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
       path = "/subject:3/topic:1/topic:151/resource:101",
       breadcrumbs = SearchableLanguageList(
         Seq(
@@ -1787,12 +1788,34 @@ object TestData {
       ),
       contextType = LearningResourceType.Article.toString,
       relevanceId = "urn:relevance:core",
-      relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
-      resourceTypes = searchableResourceTypes,
+      resourceTypeIds = searchableResourceTypes.map(_.id),
       parentIds = List("urn:topic:1"),
       isPrimary = true,
       isActive = true,
-      url = "/subject:3/topic:1/topic:151/resource:101"
+      url = "/subject:3/topic:1/topic:151/resource:101",
+      domainObject = TaxonomyContext(
+        publicId = "urn:resource:101",
+        rootId = "urn:subject:1",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
+        path = "/subject:3/topic:1/topic:151/resource:101",
+        breadcrumbs = SearchableLanguageList(
+          Seq(
+            LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen"))
+          )
+        ),
+        contextType = Some(LearningResourceType.Article.toString),
+        relevanceId = "urn:relevance:core",
+        relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
+        resourceTypes = resourceTypes.map(rt =>
+          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+        ),
+        parentIds = List("urn:topic:1"),
+        isPrimary = true,
+        contextId = Random.alphanumeric.take(12).mkString,
+        isVisible = true,
+        isActive = true,
+        url = "/subject:3/topic:1/topic:151/resource:101"
+      )
     )
 
   val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(
@@ -1847,7 +1870,6 @@ object TestData {
     id = 100,
     title = searchableTitles,
     content = searchableContents,
-    visualElement = searchableVisualElements,
     introduction = searchableIntroductions,
     metaDescription = searchableMetaDescriptions,
     tags = searchableTags,

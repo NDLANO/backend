@@ -26,7 +26,7 @@ import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchExcept
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with SearchConverterService with Props =>
+  this: Elastic4sClient & SearchConverterService & Props & SearchLanguage =>
 
   trait SearchService[T] extends StrictLogging {
     import props._

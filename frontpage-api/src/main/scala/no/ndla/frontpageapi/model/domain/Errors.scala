@@ -12,6 +12,5 @@ object Errors {
   case class SubjectPageNotFoundException(id: Long) extends RuntimeException(s"The page with id $id was not found")
   case class LanguageNotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)
       extends RuntimeException(message)
-  case class ValidationException(message: String)          extends RuntimeException(message)
   case class OperationNotAllowedException(message: String) extends RuntimeException(message)
 }

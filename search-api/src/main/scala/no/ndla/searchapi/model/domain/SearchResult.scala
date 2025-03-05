@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi.model.domain
 
-import no.ndla.common.model.api.search.{MultiSearchSuggestionDTO, MultiSearchSummaryDTO}
+import no.ndla.common.model.api.search.{MultiSearchSuggestionDTO, MultiSummaryBaseDTO}
 import no.ndla.search.model.domain.TermAggregation
 
 case class SearchResult(
@@ -16,7 +16,7 @@ case class SearchResult(
     page: Option[Int],
     pageSize: Int,
     language: String,
-    results: Seq[MultiSearchSummaryDTO],
+    results: Seq[MultiSummaryBaseDTO],
     suggestions: Seq[MultiSearchSuggestionDTO],
     aggregations: Seq[TermAggregation],
     scrollId: Option[String] = None

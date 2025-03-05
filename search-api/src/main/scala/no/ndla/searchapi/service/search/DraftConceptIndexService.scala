@@ -80,11 +80,12 @@ trait DraftConceptIndexService {
         ObjectField("domainObject", enabled = Some(false))
       )
       val dynamics =
-        generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-          generateLanguageSupportedDynamicTemplates("content", keepRaw = true) ++
-          generateLanguageSupportedDynamicTemplates("tags")
+        languageValuesMapping("title", keepRaw = true) ++
+          languageValuesMapping("content", keepRaw = true) ++
+          languageValuesMapping("tags")
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
+
     }
   }
 

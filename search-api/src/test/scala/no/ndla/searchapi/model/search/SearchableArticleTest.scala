@@ -31,8 +31,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    val visualElements = SearchableLanguageValues(Seq(LanguageValue("nn", "image"), LanguageValue("nb", "image")))
-
     val introductions = SearchableLanguageValues(
       Seq(
         LanguageValue("en", "Wroom wroom")
@@ -67,7 +65,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       id = 100,
       title = titles,
       content = contents,
-      visualElement = visualElements,
       introduction = introductions,
       metaDescription = metaDescriptions,
       tags = tags,
@@ -110,8 +107,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    val visualElements = SearchableLanguageValues(Seq(LanguageValue("nn", "image"), LanguageValue("nb", "image")))
-
     val introductions = SearchableLanguageValues(
       Seq(
         LanguageValue("en", "Wroom wroom")
@@ -146,7 +141,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       id = 100,
       title = titles,
       content = contents,
-      visualElement = visualElements,
       introduction = introductions,
       metaDescription = metaDescriptions,
       tags = tags,

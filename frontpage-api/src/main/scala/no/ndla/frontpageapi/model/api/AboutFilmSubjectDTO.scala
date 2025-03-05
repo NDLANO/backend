@@ -8,6 +8,8 @@
 
 package no.ndla.frontpageapi.model.api
 
+import no.ndla.common.model.api.frontpage.VisualElementDTO
+
 case class AboutFilmSubjectDTO(
     title: String,
     description: String,

@@ -8,16 +8,16 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import io.circe.generic.auto._
-import io.circe.generic.semiauto._
+import io.circe.generic.auto.*
+import io.circe.generic.semiauto.*
 import io.circe.parser.parse
-import io.circe.syntax._
+import io.circe.syntax.*
 import io.circe.{Decoder, Encoder}
-import no.ndla.frontpageapi.repository._
+import no.ndla.frontpageapi.repository.*
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession}
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success}
 
@@ -32,13 +32,13 @@ class V4__add_language_to_about extends BaseJavaMigration {
       subjectPageData.flatMap(convertSubjectpage).foreach(update)
     }
 
-  private def subjectPageData(implicit session: DBSession): List[DBSubjectPage] = {
+  private def subjectPageData(implicit session: DBSession): List[V2_DBSubjectPage] = {
     sql"select id, document from subjectpage"
-      .map(rs => DBSubjectPage(rs.long("id"), rs.string("document")))
+      .map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document")))
       .list()
   }
 
-  def convertSubjectpage(subjectPageData: DBSubjectPage): Option[DBSubjectPage] = {
+  def convertSubjectpage(subjectPageData: V2_DBSubjectPage): Option[V2_DBSubjectPage] = {
     parse(subjectPageData.document).flatMap(_.as[V3_SubjectFrontPageData]).toTry match {
       case Success(value) =>
         val newSubjectPage = V4_SubjectFrontPageData(
@@ -56,7 +56,7 @@ class V4__add_language_to_about extends BaseJavaMigration {
           latestContent = value.latestContent,
           goTo = value.goTo
         )
-        Some(DBSubjectPage(subjectPageData.id, newSubjectPage.asJson.noSpacesDropNull))
+        Some(V2_DBSubjectPage(subjectPageData.id, newSubjectPage.asJson.noSpacesDropNull))
       case Failure(_) => None
     }
   }
@@ -65,7 +65,7 @@ class V4__add_language_to_about extends BaseJavaMigration {
     Seq(V4_AboutSubject(aboutSubject.title, aboutSubject.description, "nb", aboutSubject.visualElement))
   }
 
-  private def update(subjectPageData: DBSubjectPage)(implicit session: DBSession) = {
+  private def update(subjectPageData: V2_DBSubjectPage)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(subjectPageData.document)

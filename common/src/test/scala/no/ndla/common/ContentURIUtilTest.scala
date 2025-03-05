@@ -30,8 +30,19 @@ class ContentURIUtilTest extends UnitTestSuite {
     val result = ContentURIUtil.parseArticleIdAndRevision("one")
     result should be(
       (
-        Failure(NotUrnPatternException("Pattern passed to `parseArticleIdAndRevision` did not match urn pattern.")),
+        Failure(
+          NotUrnPatternException("Pattern \"one\" passed to `parseArticleIdAndRevision` did not match urn pattern.")
+        ),
         None
+      )
+    )
+  }
+
+  test("That frontpages are matched, but does not match article :^)") {
+    ContentURIUtil.parseFrontpageId("urn:frontpage:15") should be(Success(15))
+    ContentURIUtil.parseFrontpageId("urn:article:15") should be(
+      Failure(
+        NotUrnPatternException("Pattern \"urn:article:15\" passed to `parseFrontpageId` did not match urn pattern.")
       )
     )
   }

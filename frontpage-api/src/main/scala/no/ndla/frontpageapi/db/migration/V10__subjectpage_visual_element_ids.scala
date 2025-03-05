@@ -10,10 +10,10 @@ package no.ndla.frontpageapi.db.migration
 
 import io.circe.parser.parse
 import io.circe.{Json, JsonObject}
-import no.ndla.frontpageapi.repository._
+import no.ndla.frontpageapi.repository.*
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success}
 
@@ -76,7 +76,7 @@ class V10__subjectpage_visual_element_ids extends BaseJavaMigration {
     }
   }
 
-  private def update(subjectPageData: V10__DBSubjectPage)(implicit session: DBSession) = {
+  private def update(subjectPageData: V10__DBSubjectPage)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(subjectPageData.document)

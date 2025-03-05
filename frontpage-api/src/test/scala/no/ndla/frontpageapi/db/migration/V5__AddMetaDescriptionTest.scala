@@ -8,7 +8,7 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import no.ndla.frontpageapi.db.migration.{DBSubjectPage, V5__add_meta_description}
+import no.ndla.frontpageapi.db.migration.{V2_DBSubjectPage, V5__add_meta_description}
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 
 class V5__AddMetaDescriptionTest extends UnitSuite with TestEnvironment {
@@ -21,7 +21,7 @@ class V5__AddMetaDescriptionTest extends UnitSuite with TestEnvironment {
     val after =
       """{"name":"Kinesisk","layout":"double","bannerImage":{"mobileImageId":66,"desktopImageId":65},"about":[{"title":"Om kinesisk","description":"Kinesiskfaget gir en grunnleggende innsikt i levemåter og tankesett i Kina.","language":"nb","visualElement":{"type":"brightcove","id":"182071"}}],"metaDescription":[],"mostRead":["urn:resource:1:148063"],"editorsChoices":["urn:resource:1:163488"],"goTo":[]}"""
 
-    migration.convertSubjectpage(DBSubjectPage(1, before)).get.document should equal(after)
+    migration.convertSubjectpage(V2_DBSubjectPage(1, before)).get.document should equal(after)
   }
 
 }

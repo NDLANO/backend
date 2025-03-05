@@ -210,23 +210,23 @@ class AudioSearchServiceTest
   val audio7: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(7),
     Some(1),
-    List(Title("Não relacionado", "pt-br"), Title("Dogosé", "dos")),
-    List(Audio("pt-br.mp3", "audio/mpeg", 1024, "pt-br"), Audio("pt-br.mp3", "audio/mpeg", 1024, "dos")),
+    List(Title("Não relacionado", "es"), Title("ukranian", "ukr")),
+    List(Audio("pt-br.mp3", "audio/mpeg", 1024, "es"), Audio("pt-br.mp3", "audio/mpeg", 1024, "ukr")),
     byNcSa,
-    List(Tag(List("wubbi"), "pt-br"), Tag(List("asdf"), "dos")),
+    List(Tag(List("wubbi"), "es"), Tag(List("asdf"), "ukr")),
     "ndla123",
     updated7,
     created,
     Seq(
       domain.PodcastMeta(
-        introduction = "portugeseintro",
+        introduction = "spanishintro",
         coverPhoto = domain.CoverPhoto("2", "meta"),
-        language = "pt-br"
+        language = "es"
       ),
       domain.PodcastMeta(
-        introduction = "dogose intro",
+        introduction = "ukranian intro",
         coverPhoto = domain.CoverPhoto("1", "alt "),
-        language = "dos"
+        language = "ukr"
       )
     ),
     AudioType.Podcast,
@@ -412,12 +412,12 @@ class AudioSearchServiceTest
   }
 
   test("That searching for language not in predefined list should work") {
-    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("dos")))
+    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("ukr")))
     result.totalCount should be(1)
-    result.language should be("dos")
+    result.language should be("ukr")
 
-    result.results.head.title.title should be("Dogosé")
-    result.results.head.title.language should be("dos")
+    result.results.head.title.title should be("ukranian")
+    result.results.head.title.language should be("ukr")
   }
 
   test("That searching for language not in indexed data should not fail") {
@@ -590,7 +590,7 @@ class AudioSearchServiceTest
     result1.results(2).title.language should be("en")
     result1.results(3).title.language should be("nb")
     result1.results(4).title.language should be("en")
-    result1.results(5).title.language should be("pt-br")
+    result1.results(5).title.language should be("es")
 
     val Success(result2) = audioSearchService.matchingQuery(
       searchSettings.copy(
@@ -606,7 +606,7 @@ class AudioSearchServiceTest
     result2.results(2).title.language should be("nb")
     result2.results(3).title.language should be("nb")
     result2.results(4).title.language should be("nb")
-    result2.results(5).title.language should be("pt-br")
+    result2.results(5).title.language should be("es")
   }
 
   test("That fallback searching includes audios with languages outside the search with query") {

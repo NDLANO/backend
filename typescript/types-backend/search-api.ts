@@ -199,7 +199,7 @@ export interface IGroupSearchResultDTO {
   page?: number
   pageSize: number
   language: string
-  results: IMultiSearchSummaryDTO[]
+  results: MultiSummaryBaseDTO[]
   suggestions: IMultiSearchSuggestionDTO[]
   aggregations: IMultiSearchTermsAggregationDTO[]
   resourceType: string
@@ -270,7 +270,7 @@ export interface IMultiSearchResultDTO {
   page?: number
   pageSize: number
   language: string
-  results: IMultiSearchSummaryDTO[]
+  results: MultiSummaryBaseDTO[]
   suggestions: IMultiSearchSuggestionDTO[]
   aggregations: IMultiSearchTermsAggregationDTO[]
 }
@@ -308,6 +308,7 @@ export interface IMultiSearchSummaryDTO {
   published?: string
   favorited?: number
   resultType: SearchType
+  typename: "MultiSearchSummaryDTO"
 }
 
 export interface IMultiSearchTermsAggregationDTO {
@@ -317,10 +318,34 @@ export interface IMultiSearchTermsAggregationDTO {
   values: ITermValueDTO[]
 }
 
+export interface INODE {
+  typename: "NODE"
+}
+
+export interface INodeHitDTO {
+  id: string
+  title: string
+  url?: string
+  subjectPage?: ISubjectPageSummaryDTO
+  typename: "NodeHitDTO"
+}
+
+export interface IPROGRAMME {
+  typename: "PROGRAMME"
+}
+
+export interface IRESOURCE {
+  typename: "RESOURCE"
+}
+
 export interface IRevisionMetaDTO {
   revisionDate: string
   note: string
   status: string
+}
+
+export interface ISUBJECT {
+  typename: "SUBJECT"
 }
 
 export interface ISearchParamsDTO {
@@ -344,6 +369,8 @@ export interface ISearchParamsDTO {
   embedResource?: string[]
   embedId?: string
   filterInactive?: boolean
+  resultTypes?: SearchType[]
+  nodeTypeFilter?: NodeType[]
   sort?: string
 }
 
@@ -376,9 +403,19 @@ export interface ISubjectAggsInputDTO {
   subjects?: string[]
 }
 
+export interface ISubjectPageSummaryDTO {
+  id: number
+  name: string
+  metaDescription: IMetaDescriptionDTO
+}
+
 export interface ISuggestOptionDTO {
   text: string
   score: number
+}
+
+export interface ITOPIC {
+  typename: "TOPIC"
 }
 
 export interface ITaxonomyResourceTypeDTO {
@@ -405,9 +442,13 @@ export interface ITitleWithHtmlDTO {
 
 export type LearningResourceType = ("standard" | "topic-article" | "frontpage-article" | "learningpath" | "concept" | "gloss")
 
+export type MultiSummaryBaseDTO = (IMultiSearchSummaryDTO | INodeHitDTO)
+
+export type NodeType = (INODE | IRESOURCE | ITOPIC | IPROGRAMME | ISUBJECT)
+
 export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "PODCAST")
 
-export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep")
+export type SearchType = ("article" | "draft" | "learningpath" | "concept" | "grep" | "node")
 
 export type Sort = SortEnum
 

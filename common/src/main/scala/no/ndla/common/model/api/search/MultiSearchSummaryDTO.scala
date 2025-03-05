@@ -8,8 +8,11 @@
 
 package no.ndla.common.model.api.search
 
+import cats.implicits.toFunctorOps
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil.deriveEncoderWithTypename
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.CommentDTO
 import sttp.tapir.Schema.annotations.description
@@ -23,6 +26,36 @@ case class HighlightedFieldDTO(
 object HighlightedFieldDTO {
   implicit val encoder: Encoder[HighlightedFieldDTO] = deriveEncoder
   implicit val decoder: Decoder[HighlightedFieldDTO] = deriveDecoder
+}
+
+sealed trait MultiSummaryBaseDTO
+
+object MultiSummaryBaseDTO {
+  implicit val encoder: Encoder[MultiSummaryBaseDTO] = Encoder.instance {
+    case x: MultiSearchSummaryDTO => x.asJson
+    case x: NodeHitDTO            => x.asJson
+  }
+
+  implicit val decoder: Decoder[MultiSummaryBaseDTO] = List[Decoder[MultiSummaryBaseDTO]](
+    Decoder[MultiSearchSummaryDTO].widen,
+    Decoder[NodeHitDTO].widen
+  ).reduceLeft(_ or _)
+}
+
+case class NodeHitDTO(
+    @description("The unique id of the taxonomy node")
+    id: String,
+    @description("The title of the taxonomy node")
+    title: String,
+    @description("The url to the frontend page of the taxonomy node")
+    url: Option[String],
+    @description("Subject page summary if the node is connected to a subject page")
+    subjectPage: Option[SubjectPageSummaryDTO]
+) extends MultiSummaryBaseDTO
+
+object NodeHitDTO {
+  implicit val encoder: Encoder[NodeHitDTO] = deriveEncoderWithTypename[NodeHitDTO]
+  implicit val decoder: Decoder[NodeHitDTO] = deriveDecoder
 }
 
 @description("Short summary of information about the resource")
@@ -81,9 +114,9 @@ case class MultiSearchSummaryDTO(
     favorited: Option[Long],
     @description("Type of the resource")
     resultType: SearchType
-)
+) extends MultiSummaryBaseDTO
 
 object MultiSearchSummaryDTO {
-  implicit val encoder: Encoder[MultiSearchSummaryDTO] = deriveEncoder
+  implicit val encoder: Encoder[MultiSearchSummaryDTO] = deriveEncoderWithTypename[MultiSearchSummaryDTO]
   implicit val decoder: Decoder[MultiSearchSummaryDTO] = deriveDecoder
 }

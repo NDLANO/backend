@@ -30,7 +30,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
-  this: ConverterService with Props =>
+  this: ConverterService & Props & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
