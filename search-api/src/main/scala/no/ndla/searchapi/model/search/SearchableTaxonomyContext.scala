@@ -10,20 +10,19 @@ package no.ndla.searchapi.model.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.model.SearchableLanguageList
+import no.ndla.searchapi.model.taxonomy.TaxonomyContext
 
-// NOTE: This will need to match `TaxonomyContextDTO` in `taxonomy-api`
 case class SearchableTaxonomyContext(
+    domainObject: TaxonomyContext,
     publicId: String,
     contextId: String,
     rootId: String,
-    root: SearchableLanguageValues,
     path: String,
     breadcrumbs: SearchableLanguageList,
     contextType: String,
     relevanceId: String,
-    relevance: SearchableLanguageValues,
-    resourceTypes: List[SearchableTaxonomyResourceType],
+    resourceTypeIds: List[String],
     parentIds: List[String],
     isPrimary: Boolean,
     isActive: Boolean,

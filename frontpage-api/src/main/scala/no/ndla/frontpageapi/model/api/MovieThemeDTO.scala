@@ -9,5 +9,4 @@
 package no.ndla.frontpageapi.model.api
 
 case class MovieThemeDTO(name: Seq[MovieThemeNameDTO], movies: Seq[String])
-
 case class MovieThemeNameDTO(name: String, language: String)

@@ -35,7 +35,7 @@ import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ArticleApiProperties)
     extends BaseComponentRegistry[ArticleApiProperties]
@@ -52,6 +52,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with ArticleSearchService
     with IndexService
     with BaseIndexService
+    with SearchLanguage
     with ArticleIndexService
     with SearchService
     with ConverterService

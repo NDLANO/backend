@@ -8,8 +8,8 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.model.domain
-import no.ndla.frontpageapi.model.domain.VisualElementType
+import no.ndla.common.model.domain.frontpage
+import no.ndla.common.model.domain.frontpage.{AboutSubject, MetaDescription, VisualElement, VisualElementType}
 import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -23,19 +23,19 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val norwegianSubjectPage = TestData.domainSubjectPage.copy(
       id = Some(2),
       metaDescription = Seq(
-        domain.MetaDescription("hei", "nb")
+        MetaDescription("hei", "nb")
       ),
       about = Seq(
-        domain.AboutSubject("tittel", "besk", "nb", domain.VisualElement(VisualElementType.Image, "", None))
+        AboutSubject("tittel", "besk", "nb", VisualElement(VisualElementType.Image, "", None))
       )
     )
     val englishSubjectPage = TestData.domainSubjectPage.copy(
       id = Some(2),
       metaDescription = Seq(
-        domain.MetaDescription("hello", "en")
+        frontpage.MetaDescription("hello", "en")
       ),
       about = Seq(
-        domain.AboutSubject("title", "desc", "en", domain.VisualElement(VisualElementType.Image, "1", None))
+        frontpage.AboutSubject("title", "desc", "en", frontpage.VisualElement(VisualElementType.Image, "1", None))
       )
     )
 

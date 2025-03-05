@@ -21,7 +21,6 @@ case class SearchableDraft(
     id: Long,
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
-    visualElement: SearchableLanguageValues,
     introduction: SearchableLanguageValues,
     metaDescription: SearchableLanguageValues,
     tags: SearchableLanguageList,

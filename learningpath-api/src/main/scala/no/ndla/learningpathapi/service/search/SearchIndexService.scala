@@ -12,15 +12,12 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestSuccess
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.SearchApiClient
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
-import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 import cats.implicits.*
 import no.ndla.common.CirceUtil
@@ -30,7 +27,7 @@ import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, R
 
 trait SearchIndexService {
   this: Elastic4sClient & SearchConverterServiceComponent & LearningPathRepositoryComponent & SearchApiClient &
-    BaseIndexService & Props =>
+    BaseIndexService & Props & SearchLanguage =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends BaseIndexService with StrictLogging {
@@ -161,51 +158,29 @@ trait SearchIndexService {
         ),
         intField("isBasedOn")
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("descriptions") ++
-        generateLanguageSupportedDynamicTemplates("tags", keepRaw = true)
+      val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+        generateLanguageSupportedFieldList("descriptions") ++
+        generateLanguageSupportedFieldList("tags", keepRaw = true)
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
 
-    /** Returns Sequence of DynamicTemplateRequest for a given field.
-      *
-      * @param fieldName
-      *   Name of field in mapping.
-      * @param keepRaw
-      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
-      * @return
-      *   Sequence of DynamicTemplateRequest for a field.
-      */
-    protected def generateLanguageSupportedDynamicTemplates(
-        fieldName: String,
-        keepRaw: Boolean = false
-    ): Seq[DynamicTemplateRequest] = {
-
-      val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
-        DynamicTemplateRequest(
-          name = name,
-          mapping = textField(name).analyzer(analyzer).fields(subFields),
-          matchMappingType = Some("string"),
-          pathMatch = Some(name)
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
+      if (keepRaw) {
+        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .analyzer(langAnalyzer.analyzer)
+            .fields(
+              keywordField("raw")
+            )
+        )
+      } else {
+        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .analyzer(langAnalyzer.analyzer)
         )
       }
-      val fields = new ListBuffer[ElasticField]()
-      if (keepRaw) {
-        fields += keywordField("raw")
-      }
-      val languageTemplates = languageAnalyzers.map(languageAnalyzer => {
-        val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
-        dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
-      })
-      val languageSubTemplates = languageAnalyzers.map(languageAnalyzer => {
-        val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
-        dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
-      })
-      val catchAllTemplate = dynamicFunc(s"$fieldName.*", SearchLanguage.standardAnalyzer, fields.toList)
-      languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate)
     }
-
   }
 
 }

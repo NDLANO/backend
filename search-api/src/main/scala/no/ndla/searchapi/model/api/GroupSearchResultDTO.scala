@@ -10,7 +10,7 @@ package no.ndla.searchapi.model.api
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import no.ndla.common.model.api.search.{MultiSearchSuggestionDTO, MultiSearchSummaryDTO, MultiSearchTermsAggregationDTO}
+import no.ndla.common.model.api.search.{MultiSearchSuggestionDTO, MultiSearchTermsAggregationDTO, MultiSummaryBaseDTO}
 import sttp.tapir.Schema.annotations.description
 
 @description("Search result for group search")
@@ -19,7 +19,7 @@ case class GroupSearchResultDTO(
     @description("For which page results are shown from") page: Option[Int],
     @description("The number of results per page") pageSize: Int,
     @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[MultiSearchSummaryDTO],
+    @description("The search results") results: Seq[MultiSummaryBaseDTO],
     @description("The suggestions for other searches") suggestions: Seq[MultiSearchSuggestionDTO],
     @description("The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregationDTO],
     @description("Type of resources in this object") resourceType: String

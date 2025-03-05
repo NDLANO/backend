@@ -36,6 +36,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
   val learningpathIndexName = propOrElse("LEARNINGPATH_SEARCH_INDEX_NAME", "learningpaths")
   val conceptIndexName      = propOrElse("DRAFT_CONCEPT_SEARCH_INDEX_NAME", "draftconcepts")
   val grepIndexName         = propOrElse("GREP_SEARCH_INDEX_NAME", "greps")
+  val nodeIndexName         = propOrElse("NODE_SEARCH_INDEX_NAME", "nodes")
 
   def SearchIndex(searchType: SearchType) = searchType match {
     case SearchType.Articles      => articleIndexName
@@ -43,6 +44,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
     case SearchType.LearningPaths => learningpathIndexName
     case SearchType.Concepts      => conceptIndexName
     case SearchType.Grep          => grepIndexName
+    case SearchType.Nodes         => nodeIndexName
   }
 
   def indexToSearchType(indexName: String): Try[SearchType] = indexName match {
@@ -51,6 +53,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
     case `learningpathIndexName` => Success(SearchType.LearningPaths)
     case `conceptIndexName`      => Success(SearchType.Concepts)
     case `grepIndexName`         => Success(SearchType.Grep)
+    case `nodeIndexName`         => Success(SearchType.Nodes)
     case _                       => Failure(new IllegalArgumentException(s"Unknown index name: $indexName"))
   }
 

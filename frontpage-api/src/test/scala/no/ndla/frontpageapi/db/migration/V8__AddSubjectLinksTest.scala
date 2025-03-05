@@ -8,7 +8,7 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import no.ndla.frontpageapi.db.migration.{DBSubjectPage, V8__add_subject_links}
+import no.ndla.frontpageapi.db.migration.{V2_DBSubjectPage, V8__add_subject_links}
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 
 class V8__AddSubjectLinksTest extends UnitSuite with TestEnvironment {
@@ -21,6 +21,6 @@ class V8__AddSubjectLinksTest extends UnitSuite with TestEnvironment {
     val after =
       """{"name":"Kinesisk","bannerImage":{"mobileImageId":66,"desktopImageId":65},"about":[{"title":"Om kinesisk","description":"Kinesiskfaget gir en grunnleggende innsikt i levemåter og tankesett i Kina.","language":"nb","visualElement":{"type":"brightcove","id":"182071"}}],"metaDescription":[],"editorsChoices":["urn:resource:1:163488"],"connectedTo":[],"buildsOn":[],"leadsTo":[]}"""
 
-    migration.convertSubjectpage(DBSubjectPage(1, before)).get.document should equal(after)
+    migration.convertSubjectpage(V2_DBSubjectPage(1, before)).get.document should equal(after)
   }
 }

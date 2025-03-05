@@ -215,7 +215,8 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
         language = "nn",
         pageSize = 10,
         shouldScroll = true,
-        sort = Sort.ByRelevanceDesc
+        sort = Sort.ByRelevanceDesc,
+        resultTypes = Some(List.empty)
       )
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
@@ -230,7 +231,12 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
-    val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10, sort = Sort.ByRelevanceDesc)
+    val baseSettings = TestData.searchSettings.copy(
+      language = "*",
+      pageSize = 10,
+      sort = Sort.ByRelevanceDesc,
+      resultTypes = Some(List.empty)
+    )
 
     val response = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/")
@@ -255,7 +261,12 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacheruser))
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
-    val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10, sort = Sort.ByRelevanceDesc)
+    val baseSettings = TestData.searchSettings.copy(
+      language = "*",
+      pageSize = 10,
+      sort = Sort.ByRelevanceDesc,
+      resultTypes = Some(List.empty)
+    )
     val teacherToken = "abcd"
 
     val response = simpleHttpClient.send(

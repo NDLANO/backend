@@ -24,7 +24,7 @@ import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -57,6 +57,7 @@ trait TestEnvironment
     with Props
     with TestData
     with DBMigrator
+    with SearchLanguage
     with FrontpageApiClient
     with ImageApiClient {
   val props: ArticleApiProperties = new ArticleApiProperties {

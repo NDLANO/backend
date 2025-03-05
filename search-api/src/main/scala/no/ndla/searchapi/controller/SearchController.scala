@@ -35,6 +35,7 @@ import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
 import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResultDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
+import no.ndla.searchapi.model.taxonomy.NodeType
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
   MultiDraftSearchService,
@@ -239,7 +240,9 @@ trait SearchController {
                 embedId = embedId,
                 availability = availability,
                 articleTypes = List.empty,
-                filterInactive = filterInactive
+                filterInactive = filterInactive,
+                resultTypes = None,
+                nodeTypeFilter = List.empty
               )
 
               groupSearch(settings, includeMissingResourceTypeGroup)
@@ -346,7 +349,9 @@ trait SearchController {
       .out(EndpointOutput.derived[DynamicHeaders])
       .in(GetSearchQueryParams.input)
       .in(feideHeader)
-      .serverLogicPure { case (q, feideToken) =>
+      .serverLogicPure { case (queryWrapper, feideToken) =>
+        val pagination = queryWrapper.pagination
+        val q          = queryWrapper.searchParams
         scrollWithOr(q.scrollId, q.language, multiSearchService) {
           val sort         = q.sort.flatMap(Sort.valueOf)
           val shouldScroll = q.scrollId.exists(InitialScrollContextKeywords.contains)
@@ -356,8 +361,8 @@ trait SearchController {
               fallback = q.fallback,
               language = q.language,
               license = q.license,
-              page = q.page,
-              pageSize = q.pageSize,
+              page = pagination.page,
+              pageSize = pagination.pageSize,
               sort = sort.getOrElse(Sort.ByRelevanceDesc),
               withIdIn = q.learningResourceIds.values,
               subjects = q.subjects.values,
@@ -374,7 +379,9 @@ trait SearchController {
               availability = availability,
               articleTypes = q.articleTypes.values,
               filterInactive = q.filterInactive,
-              traits = q.traits.values.flatMap(SearchTrait.valueOf)
+              traits = q.traits.values.flatMap(SearchTrait.valueOf),
+              resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
+              nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption)
             )
             multiSearchService.matchingQuery(settings) match {
               case Success(searchResult) =>
@@ -610,7 +617,9 @@ trait SearchController {
             embedId = params.embedId,
             availability = availability,
             articleTypes = params.articleTypes.getOrElse(List.empty),
-            filterInactive = params.filterInactive.getOrElse(false)
+            filterInactive = params.filterInactive.getOrElse(false),
+            resultTypes = params.resultTypes,
+            nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty)
           )
 
       }

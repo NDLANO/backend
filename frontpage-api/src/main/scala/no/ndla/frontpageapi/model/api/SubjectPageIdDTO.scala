@@ -8,13 +8,12 @@
 
 package no.ndla.frontpageapi.model.api
 
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 
 case class SubjectPageIdDTO(id: Long)
 
 object SubjectPageIdDTO {
   implicit def encoder: Encoder.AsObject[SubjectPageIdDTO] = deriveEncoder[SubjectPageIdDTO]
-
-  implicit def decoder: Decoder[SubjectPageIdDTO] = deriveDecoder[SubjectPageIdDTO]
+  implicit def decoder: Decoder[SubjectPageIdDTO]          = deriveDecoder[SubjectPageIdDTO]
 }

@@ -20,6 +20,6 @@ class V9__add_missing_fields_Test extends UnitSuite with TestEnvironment {
     val after =
       """{"name":"Kinesisk","bannerImage":{"desktopImageId":65},"about":[{"title":"Om kinesisk","description":"Kinesiskfaget gir en grunnleggende innsikt i levemåter og tankesett i Kina.","language":"nb","visualElement":{"type":"brightcove","id":"182071"}}],"metaDescription":[],"editorsChoices":["urn:resource:1:163488"],"connectedTo":[],"buildsOn":[],"leadsTo":[]}"""
 
-    migration.convertSubjectpage(DBSubjectPage(1, before)).document should be(after)
+    migration.convertSubjectpage(V2_DBSubjectPage(1, before)).document should be(after)
   }
 }
