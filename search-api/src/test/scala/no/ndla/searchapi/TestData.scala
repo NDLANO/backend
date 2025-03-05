@@ -969,7 +969,7 @@ object TestData {
 
   val DefaultLearningPath: LearningPath = LearningPath(
     id = None,
-    revision = None,
+    revision = Some(1),
     externalId = None,
     isBasedOn = None,
     title = List(),

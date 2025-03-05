@@ -42,7 +42,7 @@ object SearchableLanguageValues {
     case c: FailedCursor if !c.incorrectFocus => Right(SearchableLanguageValues(Seq.empty))
     case c =>
       c.as[Map[String, String]].map { map =>
-        SearchableLanguageValues.from(map.toSeq: _*)
+        SearchableLanguageValues.from(map.toSeq*)
       }
   }
 

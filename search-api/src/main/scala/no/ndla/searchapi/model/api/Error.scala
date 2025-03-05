@@ -12,14 +12,15 @@ import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.network.tapir.{AllErrors, TapirErrorHandling, ValidationErrorBody}
+import no.ndla.search.model.domain.DocumentConflictException
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 
 trait ErrorHandling extends TapirErrorHandling {
-  this: Props with Clock =>
+  this: Props & Clock =>
 
-  import ErrorHelpers._
-  import SearchErrorHelpers._
+  import ErrorHelpers.*
+  import SearchErrorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case rw: ResultWindowTooLargeException => errorBody(WINDOW_TOO_LARGE, rw.getMessage, 422)
@@ -28,7 +29,8 @@ trait ErrorHandling extends TapirErrorHandling {
     case te: TaxonomyException             => errorBody(TAXONOMY_FAILURE, te.getMessage, 500)
     case v: ValidationException =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
-    case ade: AccessDeniedException => forbiddenMsg(ade.getMessage)
+    case ade: AccessDeniedException   => forbiddenMsg(ade.getMessage)
+    case _: DocumentConflictException => indexConflict
     case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>

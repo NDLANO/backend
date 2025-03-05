@@ -15,7 +15,7 @@ import no.ndla.scalatestsuite.UnitTestSuite
 class SearchableLanguageValuesTest extends UnitTestSuite {
 
   test("That SearchableLanguageValues serialization and deserialization results in same object") {
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val searchableLanguageValues = SearchableLanguageValues(
       Seq(
         LanguageValue("nb", "Norsk"),
@@ -40,7 +40,7 @@ class SearchableLanguageValuesTest extends UnitTestSuite {
   }
 
   test("That SearchableLanguageValues serialization results in object with language as key") {
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val searchableLanguageValues = SearchableLanguageValues(
       Seq(
         LanguageValue("nb", "Norsk"),
@@ -55,7 +55,7 @@ class SearchableLanguageValuesTest extends UnitTestSuite {
   }
 
   test("That SearchableLanguageList serialization and deserialization results in same object") {
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val searchableLanguageList = SearchableLanguageList(
       Seq(
         LanguageValue("nb", List("Norsk", "Norskere", "Norskest")),
@@ -70,7 +70,7 @@ class SearchableLanguageValuesTest extends UnitTestSuite {
   }
 
   test("That SearchableLanguageList serialization results in object with language as key") {
-    import io.circe.syntax._
+    import io.circe.syntax.*
     val searchableLanguageList = SearchableLanguageList(
       Seq(
         LanguageValue("nb", List("Norsk", "Norskere", "Norskest")),

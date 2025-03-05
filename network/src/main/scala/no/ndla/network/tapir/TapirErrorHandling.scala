@@ -104,6 +104,7 @@ trait TapirErrorHandling extends StrictLogging {
       "The search-context specified was not expected. Please create one by searching from page 1."
     val INDEX_MISSING_DESCRIPTION: String =
       s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
+    val INDEX_CONFLICT_DESCRIPTION: String = "This document is already indexed in a newer version. Move along."
 
     val ILLEGAL_STATUS_TRANSITION: String = "Illegal status transition"
 
@@ -119,6 +120,7 @@ trait TapirErrorHandling extends StrictLogging {
     def invalidSearchContext: ErrorBody =
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
     def methodNotAllowed: ErrorBody = ErrorBody(METHOD_NOT_ALLOWED, METHOD_NOT_ALLOWED_DESCRIPTION, clock.now(), 405)
+    def indexConflict: ErrorBody    = ErrorBody(CONFLICT, INDEX_CONFLICT_DESCRIPTION, clock.now(), 409)
     def validationError(ve: ValidationException): ValidationErrorBody =
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = ve.errors.some, 400)
     def errorBody(code: String, description: String, statusCode: Int): ErrorBody =

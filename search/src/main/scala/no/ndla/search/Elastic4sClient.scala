@@ -8,10 +8,11 @@
 
 package no.ndla.search
 
-import com.sksamuel.elastic4s._
+import com.sksamuel.elastic4s.*
 import com.sksamuel.elastic4s.http.JavaClient
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.search.model.domain.DocumentConflictException
 import org.apache.http.client.config.RequestConfig
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
 
@@ -29,7 +30,7 @@ trait Elastic4sClient {
     private def recreateClient(): Unit = client = Elastic4sClientFactory.getNonSigningClient(searchServer)
     private val elasticTimeout         = 10.minutes
 
-    def showQuery[T](t: T)(implicit handler: Handler[T, _]): String = client.show(t)
+    def showQuery[T](t: T)(implicit handler: Handler[T, ?]): String = client.show(t)
 
     private val clientExecutionContext: ExecutionContextExecutor =
       ExecutionContext.fromExecutor(Executors.newWorkStealingPool(props.MAX_SEARCH_THREADS))
@@ -38,6 +39,8 @@ trait Elastic4sClient {
         request: T
     )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Future[Try[RequestSuccess[U]]] = {
       val result = client.execute(request).map {
+        case failure: RequestFailure if failure.status == 409 =>
+          Failure(DocumentConflictException(failure.error.reason))
         case failure: RequestFailure   => Failure(NdlaSearchException(request, failure))
         case result: RequestSuccess[U] => Success(result)
       }
