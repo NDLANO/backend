@@ -28,6 +28,8 @@ trait BaseProps {
 
   def Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
 
+  def PrintSwagger: Boolean = booleanPropOrElse("PRINT_SWAGGER", default = true)
+
   def ContactName: String  = propOrElse("CONTACT_NAME", "NDLA")
   def ContactUrl: String   = propOrElse("CONTACT_URL", "https://ndla.no")
   def ContactEmail: String = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
