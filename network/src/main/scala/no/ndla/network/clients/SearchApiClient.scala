@@ -38,30 +38,27 @@ trait SearchApiClient {
         ex: ExecutionContext
     ): D = {
       def attemptIndex(document: D, user: Option[TokenUser], attempt: Int): D = {
-        def maybeRetry(e: Throwable) = {
-          if (e.asInstanceOf[HttpRequestException].is409) {
-            logger.info(
-              s"$name with id '${document.id.getOrElse(-1)}' and revision '${document.revision.getOrElse(-1)}' already exists in search index. Skipping."
-            )
-          } else if (attempt < indexRetryCount) {
-            attemptIndex(document, user, attempt + 1)
-          } else {
-            logger.error(
-              s"Failed to index $name with id '${document.id.getOrElse(-1)}' and revision '${document.revision
-                  .getOrElse(-1)}' after $attempt attempts in search-api",
-              e
-            )
-          }
-        }
         val future = postWithData[D, D](s"$InternalEndpoint/$name/", document, user)
-        future.onComplete {
-          case Success(Success(_)) =>
-            logger.info(
-              s"Successfully indexed $name with id: '${document.id.getOrElse(-1)}' and revision '${document.revision
-                  .getOrElse(-1)}' after $attempt attempts in search-api"
-            )
-          case Success(Failure(e)) => maybeRetry(e)
-          case Failure(e)          => maybeRetry(e)
+
+        val id       = document.id.getOrElse(-1L)
+        val revision = document.revision.getOrElse(-1)
+
+        future.onComplete { completed =>
+          completed.flatten match {
+            case Success(_) =>
+              logger.info(
+                s"Successfully indexed $name with id '$id' and revision '$revision' after $attempt attempts in search-api"
+              )
+            case Failure(ex: HttpRequestException) if ex.is409 =>
+              logger.info(s"$name with id '$id' and revision '$revision' already exists in search index. Skipping.")
+            case Failure(_) if attempt < indexRetryCount =>
+              attemptIndex(document, user, attempt + 1)
+            case Failure(ex) =>
+              logger.error(
+                s"Failed to index $name with id '$id' and revision '$revision' after $attempt attempts in search-api",
+                ex
+              )
+          }
         }
         document
       }
