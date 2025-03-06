@@ -15,6 +15,7 @@ import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.model.api.search.{MultiSearchResultDTO, MultiSearchSummaryDTO}
 import no.ndla.common.model.domain.Content
 import no.ndla.network.NdlaClient
+import no.ndla.network.tapir.TapirErrorHandling
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.client3.quick.*
 
@@ -23,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: HasBaseProps & NdlaClient =>
+  this: HasBaseProps & NdlaClient & TapirErrorHandling =>
 
   val searchApiClient: SearchApiClient
 
@@ -37,6 +38,21 @@ trait SearchApiClient {
         ex: ExecutionContext
     ): D = {
       def attemptIndex(document: D, user: Option[TokenUser], attempt: Int): D = {
+        def maybeRetry(e: Throwable) = {
+          if (e.getMessage.contains(ErrorHelpers.INDEX_CONFLICT_DESCRIPTION)) {
+            logger.info(
+              s"$name with id '${document.id.getOrElse(-1)}' and revision '${document.revision.getOrElse(-1)}' already exists in search index. Skipping."
+            )
+          } else if (attempt < indexRetryCount) {
+            attemptIndex(document, user, attempt + 1)
+          } else {
+            logger.error(
+              s"Failed to index $name with id '${document.id.getOrElse(-1)}' and revision '${document.revision
+                  .getOrElse(-1)}' after $attempt attempts in search-api",
+              e
+            )
+          }
+        }
         val future = postWithData[D, D](s"$InternalEndpoint/$name/", document, user)
         future.onComplete {
           case Success(Success(_)) =>
@@ -44,20 +60,8 @@ trait SearchApiClient {
               s"Successfully indexed $name with id: '${document.id.getOrElse(-1)}' and revision '${document.revision
                   .getOrElse(-1)}' after $attempt attempts in search-api"
             )
-          case Failure(_) if attempt < indexRetryCount => attemptIndex(document, user, attempt + 1)
-          case Failure(e) =>
-            logger.error(
-              s"Failed to index $name with id: '${document.id.getOrElse(-1)}' and revision '${document.revision
-                  .getOrElse(-1)}' after $attempt attempts in search-api",
-              e
-            )
-          case Success(Failure(_)) if attempt < indexRetryCount => attemptIndex(document, user, attempt + 1)
-          case Success(Failure(e)) =>
-            logger.error(
-              s"Failed to index $name with id: '${document.id.getOrElse(-1)}' and revision '${document.revision
-                  .getOrElse(-1)}' after $attempt attempts in search-api",
-              e
-            )
+          case Success(Failure(e)) => maybeRetry(e)
+          case Failure(e)          => maybeRetry(e)
         }
         document
       }
