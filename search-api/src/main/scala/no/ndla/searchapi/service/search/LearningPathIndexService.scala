@@ -10,7 +10,7 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
-import com.sksamuel.elastic4s.requests.common.VersionType.External
+import com.sksamuel.elastic4s.requests.common.VersionType.EXTERNAL_GTE
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
@@ -43,7 +43,7 @@ trait LearningPathIndexService {
         indexInto(indexName)
           .doc(source)
           .id(domainModel.id.get.toString)
-          .versionType(External)
+          .versionType(EXTERNAL_GTE)
           .version(domainModel.revision.map(_.toLong).get)
       }
     }
