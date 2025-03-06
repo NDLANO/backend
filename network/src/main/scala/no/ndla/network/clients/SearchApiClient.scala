@@ -15,7 +15,7 @@ import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.model.api.search.{MultiSearchResultDTO, MultiSearchSummaryDTO}
 import no.ndla.common.model.domain.Content
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.TapirErrorHandling
+import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.client3.quick.*
 
@@ -24,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: HasBaseProps & NdlaClient & TapirErrorHandling =>
+  this: HasBaseProps & NdlaClient =>
 
   val searchApiClient: SearchApiClient
 
@@ -39,7 +39,7 @@ trait SearchApiClient {
     ): D = {
       def attemptIndex(document: D, user: Option[TokenUser], attempt: Int): D = {
         def maybeRetry(e: Throwable) = {
-          if (e.getMessage.contains(ErrorHelpers.INDEX_CONFLICT_DESCRIPTION)) {
+          if (e.asInstanceOf[HttpRequestException].is409) {
             logger.info(
               s"$name with id '${document.id.getOrElse(-1)}' and revision '${document.revision.getOrElse(-1)}' already exists in search index. Skipping."
             )
