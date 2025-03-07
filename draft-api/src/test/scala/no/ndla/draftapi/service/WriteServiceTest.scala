@@ -477,7 +477,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleIndexService.indexAsync(any, any[Draft])(any))
       .thenReturn(Future.successful(Success(updatedAndInserted)))
-    when(searchApiClient.indexDraft(any[Draft], any)(any)).thenReturn(updatedAndInserted)
+    when(searchApiClient.indexDocument(any[String], any[Draft], any)(any, any, any)).thenReturn(updatedAndInserted)
 
     service.updateArticleStatus(DraftStatus.IN_PROGRESS, 10, user, isImported = false)
 
@@ -485,7 +485,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val argCap2: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
     verify(articleIndexService, times(1)).indexAsync(any, argCap1.capture())(any)
-    verify(searchApiClient, times(1)).indexDraft(argCap2.capture(), any)(any)
+    verify(searchApiClient, times(1)).indexDocument(any[String], argCap2.capture(), any)(any, any, any)
 
     val captured1 = argCap1.getValue
     captured1.copy(updated = today, notes = captured1.notes.map(_.copy(timestamp = today))) should be(

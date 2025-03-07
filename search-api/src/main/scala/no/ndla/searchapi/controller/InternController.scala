@@ -154,7 +154,7 @@ trait InternController {
           oneOfVariant(jsonBody[Concept])
         )
       )
-      .errorOut(errorOutputsFor(400))
+      .errorOut(errorOutputsFor(400, 409))
       .serverLogicPure { case (indexType, body) =>
         indexType match {
           case articleIndexService.documentType      => indexRequestWithService(articleIndexService, body)

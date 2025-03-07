@@ -13,8 +13,9 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.model.api.search.{MultiSearchResultDTO, MultiSearchSummaryDTO}
-import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.Content
 import no.ndla.network.NdlaClient
+import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.client3.quick.*
 
@@ -33,37 +34,50 @@ trait SearchApiClient {
     private val indexTimeout            = 60.seconds
     private val indexRetryCount         = 3
 
-    def indexDraft(draft: Draft, user: TokenUser)(implicit ex: ExecutionContext): Draft = {
-      def attemptIndex(draft: Draft, user: TokenUser, attempt: Int): Draft = {
-        val future = postWithData[Draft, Draft](s"$InternalEndpoint/draft/", draft, user)
-        future.onComplete {
-          case Success(Success(_)) =>
-            logger.info(
-              s"Successfully indexed draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision
-                  .getOrElse(-1)}' after $attempt attempts in search-api"
-            )
-          case Failure(_) if attempt < indexRetryCount => attemptIndex(draft, user, attempt + 1)
-          case Failure(e) =>
-            logger.error(
-              s"Failed to index draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' after $attempt attempts in search-api",
-              e
-            )
-          case Success(Failure(_)) if attempt < indexRetryCount => attemptIndex(draft, user, attempt + 1)
-          case Success(Failure(e)) =>
-            logger.error(
-              s"Failed to index draft with id: '${draft.id.getOrElse(-1)}' and revision '${draft.revision.getOrElse(-1)}' after $attempt attempts in search-api",
-              e
-            )
+    def indexDocument[D <: Content: Decoder: Encoder](name: String, document: D, user: Option[TokenUser])(implicit
+        ex: ExecutionContext
+    ): D = {
+      def attemptIndex(document: D, user: Option[TokenUser], attempt: Int): D = {
+        val future = postWithData[D, D](s"$InternalEndpoint/$name/", document, user)
+
+        val id       = document.id.getOrElse(-1L)
+        val revision = document.revision.getOrElse(-1)
+
+        future.onComplete { completed =>
+          completed.flatten match {
+            case Success(_) =>
+              logger.info(
+                s"Successfully indexed $name with id '$id' and revision '$revision' after $attempt attempts in search-api"
+              )
+            case Failure(ex: HttpRequestException) if ex.is409 =>
+              logger.info(s"$name with id '$id' and revision '$revision' already exists in search index. Skipping.")
+            case Failure(_) if attempt < indexRetryCount =>
+              attemptIndex(document, user, attempt + 1)
+            case Failure(ex) =>
+              logger.error(
+                s"Failed to index $name with id '$id' and revision '$revision' after $attempt attempts in search-api",
+                ex
+              )
+          }
         }
-        draft
+        document
       }
-      attemptIndex(draft, user, 1)
+      attemptIndex(document, user, 1)
+    }
+
+    def deleteDocument(id: Long, name: String): Long = {
+      ndlaClient.doRequest(
+        quickRequest
+          .delete(uri"$InternalEndpoint/$name/$id")
+          .readTimeout(indexTimeout)
+      ): Unit
+      id
     }
 
     private def postWithData[A: Decoder, B <: AnyRef: Encoder](
         endpointUrl: String,
         data: B,
-        user: TokenUser,
+        user: Option[TokenUser],
         params: (String, String)*
     )(implicit
         executionContext: ExecutionContext
@@ -75,7 +89,7 @@ trait SearchApiClient {
             .body(CirceUtil.toJsonString(data))
             .readTimeout(indexTimeout)
             .header("content-type", "application/json", replaceExisting = true),
-          Some(user)
+          user
         )
       }
     }

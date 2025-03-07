@@ -14,6 +14,7 @@ class HttpRequestException(message: String, val httpResponse: Option[Response[St
     extends RuntimeException(message) {
   def code: Int      = httpResponse.map(_.code.code).getOrElse(-1)
   def is404: Boolean = httpResponse.exists(_.code.code == 404)
+  def is409: Boolean = httpResponse.exists(_.code.code == 409)
   def is410: Boolean = httpResponse.exists(_.code.code == 410)
 }
 

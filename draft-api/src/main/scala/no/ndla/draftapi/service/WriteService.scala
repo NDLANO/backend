@@ -67,15 +67,15 @@ trait WriteService {
       })
 
     private def indexArticle(article: Draft, user: TokenUser): Try[Unit] = {
-      val executor = Executors.newSingleThreadExecutor
-      val ec       = ExecutionContext.fromExecutorService(executor)
+      val executor                                     = Executors.newSingleThreadExecutor
+      implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(executor)
 
       article.id match {
         case None => Failure(new IllegalStateException("No id found for article when indexing. This is a bug."))
         case Some(articleId) =>
-          searchApiClient.indexDraft(article, user)(ec): Unit
-          articleIndexService.indexAsync(articleId, article)(ec): Unit
-          tagIndexService.indexAsync(articleId, article)(ec): Unit
+          searchApiClient.indexDocument("draft", article, Some(user)): Unit
+          articleIndexService.indexAsync(articleId, article): Unit
+          tagIndexService.indexAsync(articleId, article): Unit
           Success(())
       }
 
@@ -263,7 +263,7 @@ trait WriteService {
 
     private val grepFieldsToPublish = Seq(PartialArticleFieldsDTO.grepCodes)
 
-    def getGrepCodeNote(mapping: Map[String, String], draft: Draft, user: TokenUser): EditorNote = {
+    private def getGrepCodeNote(mapping: Map[String, String], draft: Draft, user: TokenUser): EditorNote = {
       val grepCodes = mapping.map { case (old, newGrep) => s"$old -> $newGrep" }.mkString(", ")
       common.EditorNote(s"Oppdaterte grep-koder: [$grepCodes]", user.id, draft.status, clock.now())
     }

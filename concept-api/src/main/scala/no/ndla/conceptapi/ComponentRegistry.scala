@@ -11,7 +11,7 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.*
-import no.ndla.conceptapi.integration.{SearchApiClient, TaxonomyApiClient}
+import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -24,6 +24,7 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.conceptapi.db.migrationwithdependencies.{V23__SubjectNameAsTags, V25__SubjectNameAsTagsPublished}
 import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
 
 class ComponentRegistry(properties: ConceptApiProperties)

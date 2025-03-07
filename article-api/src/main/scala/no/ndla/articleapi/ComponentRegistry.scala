@@ -26,7 +26,6 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
@@ -34,7 +33,7 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, RedisClient, SearchApiClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ArticleApiProperties)

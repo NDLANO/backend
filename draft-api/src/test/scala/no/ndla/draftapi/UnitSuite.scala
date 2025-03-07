@@ -21,7 +21,6 @@ trait UnitSuite extends UnitTestSuite {
   setProp("SEARCH_REGION", "some-region")
   setProp("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
   setProp("SEARCH_INDEX_NAME", "draft-integration-test-index")
-  setProp("AGREEMENT_SEARCH_INDEX_NAME", "agreement-integration-test-index")
 
   setProp("AUDIO_API_URL", "localhost:30014")
   setProp("IMAGE_API_URL", "localhost:30001")

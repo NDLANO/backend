@@ -8,7 +8,7 @@
 
 package no.ndla.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
 
 /** [[FakeAgg]] and inheriting classes are an abstraction to easier work with Elastic4s' Aggregations They are usually

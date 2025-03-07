@@ -10,6 +10,7 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
+import com.sksamuel.elastic4s.requests.common.VersionType.EXTERNAL_GTE
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
@@ -39,7 +40,11 @@ trait DraftIndexService {
     ): Try[IndexRequest] = {
       searchConverterService.asSearchableDraft(domainModel, indexingBundle).map { searchableDraft =>
         val source = CirceUtil.toJsonString(searchableDraft)
-        indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+        indexInto(indexName)
+          .doc(source)
+          .id(domainModel.id.get.toString)
+          .versionType(EXTERNAL_GTE)
+          .version(domainModel.revision.map(_.toLong).get)
       }
     }
 

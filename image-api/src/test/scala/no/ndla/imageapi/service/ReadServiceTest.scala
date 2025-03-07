@@ -51,10 +51,36 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val testRawUrl = s"${props.Domain}/image-api/raw/Elg.jpg"
     val dateString = TestData.updated().asString
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"$dateString","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"photographer","name":"Test Testesen"}],"processors":[{"type":"editorial","name":"Kåre Knegg"}],"rightsholders":[{"type":"supplier","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""{
+         |  "id":"1",
+         |  "metaUrl":"$testUrl",
+         |  "title":{"title":"Elg i busk","language":"nb"},
+         |  "created":"$dateString",
+         |  "createdBy":"ndla124",
+         |  "modelRelease":"yes",
+         |  "alttext":{"alttext":"Elg i busk","language":"nb"},
+         |  "imageUrl":"$testRawUrl",
+         |  "size":2865539,
+         |  "contentType":"image/jpeg",
+         |  "copyright":{
+         |    "license":{
+         |      "license":"CC-BY-NC-SA-4.0",
+         |      "description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+         |      "url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"
+         |    },
+         |    "origin":"http://www.scanpix.no",
+         |    "creators":[{"type":"photographer","name":"Test Testesen"}],
+         |    "processors":[{"type":"editorial","name":"Kåre Knegg"}],
+         |    "rightsholders":[{"type":"supplier","name":"Leverans Leveransensen"}],
+         |    "processed":false
+         |  },
+         |  "tags":{"tags":["rovdyr","elg"],"language":"nb"},
+         |  "caption":{"caption":"Elg i busk","language":"nb"},
+         |  "supportedLanguages":["nb"]
+         |}""".stripMargin
 
     val expectedObject: ImageMetaInformationV2DTO = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
-    val agreementElg = new ImageMetaInformation(
+    val imageElg = new ImageMetaInformation(
       id = Some(1),
       titles = List(domain.ImageTitle("Elg i busk", "nb")),
       alttexts = List(domain.ImageAltText("Elg i busk", "nb")),
@@ -91,7 +117,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       editorNotes = Seq.empty
     )
 
-    when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
+    when(imageRepository.withId(1)).thenReturn(Some(imageElg))
     readService.withId(1, None, None) should be(Success(Some(expectedObject)))
   }
 

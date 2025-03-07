@@ -17,7 +17,7 @@ import no.ndla.conceptapi.controller.{
   InternController,
   PublishedConceptController
 }
-import no.ndla.conceptapi.integration.{SearchApiClient, TaxonomyApiClient}
+import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -26,6 +26,7 @@ import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
+import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
