@@ -1,0 +1,11 @@
+# @name search
+GET {{SEARCH_API_HOST}}/search-api/v1/search
+
+###
+
+# @name editorial
+< ./get_token.js
+GET {{SEARCH_API_HOST}}/search-api/v1/search/editorial
+Authorization: Bearer {{token}}
+
+###
