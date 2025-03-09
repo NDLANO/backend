@@ -4,8 +4,14 @@ GET {{SEARCH_API_HOST}}/search-api/v1/search
 ###
 
 # @name editorial
+
+@query=
+@pageSize=5
+@page=1
+
+
 < ./get_token.js
-GET {{SEARCH_API_HOST}}/search-api/v1/search/editorial
+GET {{SEARCH_API_HOST}}/search-api/v1/search/editorial?page-size={{pageSize}}&page={{page}}&query={{query}}
 Authorization: Bearer {{token}}
 
 ###
