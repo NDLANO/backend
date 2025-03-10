@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.learningpath as commonApi
 import no.ndla.common.model.domain.learningpath as commonDomain
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDumpDTO, LearningPathSummaryV2DTO}
@@ -44,7 +45,8 @@ trait InternController {
       dumpLearningpaths,
       dumpSingleLearningPath,
       postLearningPathDump,
-      containsArticle
+      containsArticle,
+      learningPathStats
     )
 
     private def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
@@ -145,6 +147,15 @@ trait InternController {
           case Success(result) => result.results.asRight
           case Failure(ex)     => returnLeftError(ex)
         }
+      }
+
+    private def learningPathStats: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("stats")
+      .out(jsonBody[commonApi.LearningPathStatsDTO])
+      .serverLogicPure { _ =>
+        commonApi.LearningPathStatsDTO(
+          learningPathRepository.learningPathCount
+        ).asRight
       }
   }
 }
