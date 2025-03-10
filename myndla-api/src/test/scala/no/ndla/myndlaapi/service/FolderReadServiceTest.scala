@@ -9,6 +9,7 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
+import no.ndla.common.model.api.learningpath.LearningPathStatsDTO
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.TestData.{emptyApiFolder, emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
@@ -413,6 +414,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
     when(userRepository.numberOfFavouritedSubjects()(any)).thenReturn(Some(15))
     when(folderRepository.numberOfSharedFolders()(any)).thenReturn(Some(5))
+    when(learningPathApiClient.getStats).thenReturn(Success(LearningPathStatsDTO(25)))
     when(folderRepository.numberOfResourcesGrouped()(any))
       .thenReturn(List((1, "article"), (2, "learningpath"), (3, "video")))
     when(folderRepository.numberOfUsersWithFavourites(any)).thenReturn(Some(3))
@@ -427,6 +429,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         10,
         15,
         5,
+        25,
         List(ResourceStatsDTO("article", 1), ResourceStatsDTO("learningpath", 2), ResourceStatsDTO("video", 3)),
         Map("article" -> 1, "learningpath" -> 2, "video" -> 3),
         UserStatsDTO(
