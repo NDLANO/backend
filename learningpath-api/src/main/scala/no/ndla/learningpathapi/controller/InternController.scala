@@ -153,9 +153,11 @@ trait InternController {
       .in("stats")
       .out(jsonBody[commonApi.LearningPathStatsDTO])
       .serverLogicPure { _ =>
-        commonApi.LearningPathStatsDTO(
-          learningPathRepository.learningPathCount
-        ).asRight
+        commonApi
+          .LearningPathStatsDTO(
+            learningPathRepository.learningPathCount
+          )
+          .asRight
       }
   }
 }

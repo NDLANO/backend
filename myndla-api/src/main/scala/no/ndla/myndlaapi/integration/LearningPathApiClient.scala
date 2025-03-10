@@ -23,7 +23,7 @@ trait LearningPathApiClient {
   val learningPathApiClient: LearningPathApiClient
   class LearningPathApiClient extends StrictLogging {
     import props.LearningpathApiUrl
-    private val learningPathTimeout     = 20.seconds
+    private val learningPathTimeout = 20.seconds
 
     def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"$LearningpathApiUrl/intern/stats")
 

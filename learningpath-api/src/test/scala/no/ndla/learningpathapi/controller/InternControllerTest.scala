@@ -92,7 +92,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That GET /stats returns statistics for learning paths") {
-    val count = 42
+    val count = 42L
     when(learningPathRepository.learningPathCount(any)).thenReturn(count)
     val res = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/intern/stats")
