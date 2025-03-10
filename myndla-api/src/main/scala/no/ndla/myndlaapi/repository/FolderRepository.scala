@@ -351,6 +351,24 @@ trait FolderRepository {
         .getOrElse(0L)
     }
 
+    def numberOfUsersWithFavourites(implicit session: DBSession = AutoSession): Option[Long] = {
+      sql"""
+           select count(distinct feide_id) as count from ${Resource.table}
+         """
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
+    def numberOfUsersWithoutFavourites(implicit session: DBSession = AutoSession): Option[Long] = {
+      sql"""
+           select count(*) as count from ${DBMyNDLAUser.table} u
+           left join ${Resource.table} r on u.feide_id = r.feide_id
+           where r.feide_id = null
+         """
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
     def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${Folder.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)

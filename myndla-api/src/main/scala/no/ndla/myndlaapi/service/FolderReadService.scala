@@ -282,6 +282,20 @@ trait FolderReadService {
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
       val favouritedResources         = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
       val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
+
+      val userStats = for {
+        numberOfUsers                  <- userRepository.numberOfUsers()
+        numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites()
+        numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites()
+        numberOfUsersInArena           <- userRepository.numberOfUsersInArena()
+        stats = api.UserStatsDTO(
+          numberOfUsers,
+          numberOfUsersWithFavourites,
+          numberOfUsersWithoutFavourites,
+          numberOfUsersInArena
+        )
+      } yield stats
+
       for {
         numberOfUsers         <- userRepository.numberOfUsers()
         numberOfFolders       <- folderRepository.numberOfFolders()
@@ -289,6 +303,7 @@ trait FolderReadService {
         numberOfTags          <- folderRepository.numberOfTags()
         numberOfSubjects      <- userRepository.numberOfFavouritedSubjects()
         numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
+        userStats             <- userStats
         stats = api.StatsDTO(
           numberOfUsers,
           numberOfFolders,
@@ -297,7 +312,8 @@ trait FolderReadService {
           numberOfSubjects,
           numberOfSharedFolders,
           favouritedResources,
-          favourited
+          favourited,
+          userStats
         )
       } yield stats
     }
