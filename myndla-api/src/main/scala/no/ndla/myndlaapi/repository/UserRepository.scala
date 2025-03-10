@@ -202,6 +202,15 @@ trait UserRepository {
         .single()
     }
 
+    def numberOfUsersInArena(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"""
+           select count(*) as count from ${DBMyNDLAUser.table}
+           where (document->'arenaAccepted')::boolean = true
+         """
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
     def getAllUsers(implicit session: DBSession): List[MyNDLAUser] = {
       val u = DBMyNDLAUser.syntax("u")
       sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)}"

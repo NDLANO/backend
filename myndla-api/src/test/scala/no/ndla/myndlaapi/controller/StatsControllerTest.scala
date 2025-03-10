@@ -9,7 +9,7 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.model.api.SingleResourceStatsDTO
-import no.ndla.myndlaapi.model.api.StatsDTO
+import no.ndla.myndlaapi.model.api.{StatsDTO, UserStatsDTO}
 import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
@@ -23,7 +23,9 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
   val controller: StatsController = new StatsController()
 
   test("That getting stats returns in fact stats") {
-    when(folderReadService.getStats).thenReturn(Some(StatsDTO(1, 2, 3, 4, 5, 6, List.empty, Map.empty)))
+    when(folderReadService.getStats).thenReturn(
+      Some(StatsDTO(1, 2, 3, 4, 5, 6, 7, List.empty, Map.empty, UserStatsDTO(1, 2, 3, 4)))
+    )
 
     val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats"))
     response.code.code should be(200)

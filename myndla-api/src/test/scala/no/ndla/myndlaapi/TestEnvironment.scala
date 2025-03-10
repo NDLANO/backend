@@ -19,7 +19,7 @@ import no.ndla.myndlaapi.controller.{
   SwaggerDocControllerConfig,
   UserController
 }
-import no.ndla.myndlaapi.integration.SearchApiClient
+import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
@@ -61,6 +61,7 @@ trait TestEnvironment
     with ErrorHandling
     with NodeBBClient
     with SearchApiClient
+    with LearningPathApiClient
     with NdlaClient {
   val props                                          = new MyNdlaApiProperties
   lazy val clock: SystemClock                        = mock[SystemClock]
@@ -82,6 +83,7 @@ trait TestEnvironment
   val statsController: StatsController               = mock[StatsController]
   val nodebb: NodeBBClient                           = mock[NodeBBClient]
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  val learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]
   val ndlaClient: NdlaClient                         = mock[NdlaClient]
   val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
   val DBUtil: DBUtility                              = mock[DBUtility]
