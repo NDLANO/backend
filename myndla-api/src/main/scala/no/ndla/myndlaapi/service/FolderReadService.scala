@@ -280,12 +280,13 @@ trait FolderReadService {
 
     def getStats: Option[api.StatsDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)
+      val numberOfUsers               = userRepository.numberOfUsers()
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
       val favouritedResources         = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
       val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
 
       val userStats = for {
-        numberOfUsers                  <- userRepository.numberOfUsers()
+        numberOfUsers                  <- numberOfUsers
         numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites()
         numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites()
         numberOfUsersInArena           <- userRepository.numberOfUsersInArena()
@@ -298,7 +299,7 @@ trait FolderReadService {
       } yield stats
 
       for {
-        numberOfUsers         <- userRepository.numberOfUsers()
+        numberOfUsers         <- numberOfUsers
         numberOfFolders       <- folderRepository.numberOfFolders()
         numberOfResources     <- folderRepository.numberOfResources()
         numberOfTags          <- folderRepository.numberOfTags()
@@ -313,7 +314,7 @@ trait FolderReadService {
           numberOfTags,
           numberOfSubjects,
           numberOfSharedFolders,
-          learningPathStats.numberOfMyNdlaOwnerLearningPaths,
+          learningPathStats.numberOfMyNdlaLearningPaths,
           favouritedResources,
           favourited,
           userStats

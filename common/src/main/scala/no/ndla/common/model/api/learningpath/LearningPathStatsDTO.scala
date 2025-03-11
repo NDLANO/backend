@@ -14,7 +14,7 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Statistics for learning paths")
 case class LearningPathStatsDTO(
-    @description("The total number of learning paths with My NDLA owner") numberOfMyNdlaOwnerLearningPaths: Long
+    @description("The total number of learning paths in My NDLA") numberOfMyNdlaLearningPaths: Long
 )
 
 object LearningPathStatsDTO {
