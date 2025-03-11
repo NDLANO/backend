@@ -438,7 +438,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       val lp = DBLearningPath.syntax("lp")
       sql"""
            select count(*) from ${DBLearningPath.as(lp)}
-           where document@>'{"isMyNDLAOwner": true}')
+           where document@>'{"isMyNDLAOwner": true}' and document->>'status' != ${LearningPathStatus.DELETED.toString}
          """
         .map(rs => rs.long("count"))
         .single()
