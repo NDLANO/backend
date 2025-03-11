@@ -433,6 +433,17 @@ trait LearningPathRepositoryComponent extends StrictLogging {
         .single()
         .getOrElse(0)
     }
+
+    def myNdlaOwnerLearningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+      val lp = DBLearningPath.syntax("lp")
+      sql"""
+           select count(*) from ${DBLearningPath.as(lp)}
+           where document@>'{"isMyNDLAOwner": true}')
+         """
+        .map(rs => rs.long("count"))
+        .single()
+        .getOrElse(0)
+    }
   }
 
 }

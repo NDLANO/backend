@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.myndlaapi.integration
 
 import com.typesafe.scalalogging.StrictLogging

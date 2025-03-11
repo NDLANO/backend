@@ -313,7 +313,7 @@ trait FolderReadService {
           numberOfTags,
           numberOfSubjects,
           numberOfSharedFolders,
-          learningPathStats.numberOfLearningPaths,
+          learningPathStats.numberOfMyNdlaOwnerLearningPaths,
           favouritedResources,
           favourited,
           userStats

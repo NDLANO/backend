@@ -20,7 +20,7 @@ case class StatsDTO(
     @description("The total number of created tags") numberOfTags: Long,
     @description("The total number of favourited subjects") numberOfSubjects: Long,
     @description("The total number of shared folders") numberOfSharedFolders: Long,
-    @description("The total number of learning paths") numberOfLearningPaths: Long,
+    @description("The total number of learning paths") numberOfMyNdlaOwnerLearningPaths: Long,
     @description("Stats for type resources") favouritedResources: List[ResourceStatsDTO],
     @description("Stats for favourited resources") favourited: Map[String, Long],
     @description("Stats for the users") users: UserStatsDTO

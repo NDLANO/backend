@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common.model.api.learningpath
 
 import io.circe.{Decoder, Encoder}
@@ -13,7 +14,7 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Statistics for learning paths")
 case class LearningPathStatsDTO(
-    @description("The total number of learning paths") numberOfLearningPaths: Long
+    @description("The total number of learning paths with My NDLA owner") numberOfMyNdlaOwnerLearningPaths: Long
 )
 
 object LearningPathStatsDTO {
