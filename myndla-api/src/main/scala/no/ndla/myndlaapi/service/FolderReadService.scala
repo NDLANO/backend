@@ -284,6 +284,7 @@ trait FolderReadService {
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
       val favouritedResources         = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
       val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
+      val learningPathStats           = learningPathApiClient.getStats.get
 
       val userStats = for {
         numberOfUsers                  <- numberOfUsers
@@ -305,7 +306,6 @@ trait FolderReadService {
         numberOfTags          <- folderRepository.numberOfTags()
         numberOfSubjects      <- userRepository.numberOfFavouritedSubjects()
         numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
-        learningPathStats     <- learningPathApiClient.getStats.toOption
         userStats             <- userStats
         stats = api.StatsDTO(
           numberOfUsers,
