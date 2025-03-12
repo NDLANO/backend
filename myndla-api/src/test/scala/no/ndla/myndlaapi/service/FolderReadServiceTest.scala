@@ -417,6 +417,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(learningPathApiClient.getStats).thenReturn(Success(LearningPathStatsDTO(25)))
     when(folderRepository.numberOfResourcesGrouped()(any))
       .thenReturn(List((1, "article"), (2, "learningpath"), (3, "video")))
+    when(userRepository.numberOfEmployees()(any)).thenReturn(Some(2))
+    when(userRepository.numberOfStudents()(any)).thenReturn(Some(3))
     when(folderRepository.numberOfUsersWithFavourites(any)).thenReturn(Some(3))
     when(folderRepository.numberOfUsersWithoutFavourites(any)).thenReturn(Some(2))
     when(userRepository.numberOfUsersInArena(any)).thenReturn(Some(4))
@@ -434,6 +436,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         Map("article" -> 1, "learningpath" -> 2, "video" -> 3),
         UserStatsDTO(
           5,
+          2,
+          3,
           3,
           2,
           4

@@ -288,11 +288,15 @@ trait FolderReadService {
 
       val userStats = for {
         numberOfUsers                  <- numberOfUsers
+        numberOfEmployees              <- userRepository.numberOfEmployees()
+        numberOfStudents               <- userRepository.numberOfStudents()
         numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites()
         numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites()
         numberOfUsersInArena           <- userRepository.numberOfUsersInArena()
         stats = api.UserStatsDTO(
           numberOfUsers,
+          numberOfEmployees,
+          numberOfStudents,
           numberOfUsersWithFavourites,
           numberOfUsersWithoutFavourites,
           numberOfUsersInArena

@@ -196,6 +196,18 @@ trait UserRepository {
         .single()
     }
 
+    def numberOfEmployees()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(*) from ${DBMyNDLAUser.table} where (document->>'userRole') = ${UserRole.EMPLOYEE.toString}"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
+    def numberOfStudents()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(*) from ${DBMyNDLAUser.table} where (document->>'userRole') = ${UserRole.STUDENT.toString}"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
     def numberOfFavouritedSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
       sql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
         .map(rs => rs.long("count"))
