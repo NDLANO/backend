@@ -12,6 +12,7 @@ import cats.implicits.*
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, NewFolderData, Resource, ResourceDocument}
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
@@ -27,15 +28,17 @@ class FolderRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
     with UnitSuite
     with TestEnvironment {
-  override val dataSource: HikariDataSource = testDataSource.get
-  override val migrator: DBMigrator         = new DBMigrator
-  var repository: FolderRepository          = _
+  override val dataSource: HikariDataSource   = testDataSource.get
+  override val migrator: DBMigrator           = new DBMigrator
+  var repository: FolderRepository            = _
+  override val userRepository: UserRepository = new UserRepository
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
       sql"delete from folders;".execute()(session)
       sql"delete from resources;".execute()(session)
       sql"delete from folder_resources;".execute()(session)
+      sql"delete from my_ndla_users;".execute()(session)
     })
   }
 
@@ -731,5 +734,22 @@ class FolderRepositoryTest
 
     val user2Folders = repository.foldersWithFeideAndParentID(None, feideId2).failIfFailure
     user2Folders should be(List.empty)
+  }
+
+  test("that number of users with/without favourites return correct amount") {
+    implicit val session: AutoSession.type = AutoSession
+    val feideId1                           = "feide1"
+    val feideId2                           = "feide2"
+    val feideId3                           = "feide3"
+    userRepository.reserveFeideIdIfNotExists(feideId1).failIfFailure
+    userRepository.reserveFeideIdIfNotExists(feideId2).failIfFailure
+    userRepository.reserveFeideIdIfNotExists(feideId3).failIfFailure
+    repository.insertResource(feideId1, "", Article, NDLADate.now(), ResourceDocument(List(), "")).failIfFailure
+
+    val numberOfUsersWithFavourites    = repository.numberOfUsersWithFavourites()
+    val numberOfUsersWithoutFavourites = repository.numberOfUsersWithoutFavourites()
+
+    numberOfUsersWithFavourites should be(Some(1))
+    numberOfUsersWithoutFavourites should be(Some(2))
   }
 }

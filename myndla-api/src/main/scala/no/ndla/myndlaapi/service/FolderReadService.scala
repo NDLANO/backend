@@ -18,6 +18,7 @@ import no.ndla.common.model.domain.{ResourceType, myndla}
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
+import no.ndla.myndlaapi.integration.LearningPathApiClient
 import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, UserFolderDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
@@ -31,7 +32,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderReadService {
   this: FolderConverterService & FolderRepository & UserRepository & FeideApiClient & Clock & ConfigService &
-    UserService & DBUtility =>
+    UserService & DBUtility & LearningPathApiClient =>
 
   val folderReadService: FolderReadService
 
@@ -279,16 +280,33 @@ trait FolderReadService {
 
     def getStats: Option[api.StatsDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)
+      val numberOfUsers               = userRepository.numberOfUsers()
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
       val favouritedResources         = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
       val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
+      val learningPathStats           = learningPathApiClient.getStats.get
+
+      val userStats = for {
+        numberOfUsers                  <- numberOfUsers
+        numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites()
+        numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites()
+        numberOfUsersInArena           <- userRepository.numberOfUsersInArena()
+        stats = api.UserStatsDTO(
+          numberOfUsers,
+          numberOfUsersWithFavourites,
+          numberOfUsersWithoutFavourites,
+          numberOfUsersInArena
+        )
+      } yield stats
+
       for {
-        numberOfUsers         <- userRepository.numberOfUsers()
+        numberOfUsers         <- numberOfUsers
         numberOfFolders       <- folderRepository.numberOfFolders()
         numberOfResources     <- folderRepository.numberOfResources()
         numberOfTags          <- folderRepository.numberOfTags()
         numberOfSubjects      <- userRepository.numberOfFavouritedSubjects()
         numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
+        userStats             <- userStats
         stats = api.StatsDTO(
           numberOfUsers,
           numberOfFolders,
@@ -296,8 +314,10 @@ trait FolderReadService {
           numberOfTags,
           numberOfSubjects,
           numberOfSharedFolders,
+          learningPathStats.numberOfMyNdlaLearningPaths,
           favouritedResources,
-          favourited
+          favourited,
+          userStats
         )
       } yield stats
     }
