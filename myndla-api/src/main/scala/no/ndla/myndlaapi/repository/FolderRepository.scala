@@ -361,9 +361,9 @@ trait FolderRepository {
 
     def numberOfUsersWithoutFavourites(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"""
-           select count(*) as count from ${DBMyNDLAUser.table} u
+           select count(distinct u.feide_id) as count from ${DBMyNDLAUser.table} u
            left join ${Resource.table} r on u.feide_id = r.feide_id
-           where r.feide_id = null
+           where r.feide_id is null
          """
         .map(rs => rs.long("count"))
         .single()
