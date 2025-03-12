@@ -14,7 +14,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title, concept}
 import no.ndla.common.model.api as commonApi
-import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, ConceptType, VisualElement}
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, VisualElement}
 import no.ndla.conceptapi.model.api.{ConceptResponsibleDTO, ConceptSearchResultDTO}
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.*
@@ -34,13 +34,10 @@ trait SearchConverterService {
 
   class SearchConverterService extends StrictLogging {
     private def getEmbedResourcesAndIdsToIndex(
-        visualElement: Seq[VisualElement],
-        metaImage: Seq[ConceptMetaImage]
+        visualElement: Seq[VisualElement]
     ): List[EmbedValues] = {
       val visualElementTuples = visualElement.flatMap(v => getEmbedValues(v.visualElement, v.language))
-      val metaImageTuples =
-        metaImage.map(m => EmbedValues(id = List(m.imageId), resource = Some("image"), language = m.language))
-      (visualElementTuples ++ metaImageTuples).toList
+      visualElementTuples.toList
 
     }
 
@@ -65,7 +62,7 @@ trait SearchConverterService {
         c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
       )
 
-      val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
+      val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement)
       val copyright            = asSearchableCopyright(c.copyright)
 
       val sortableConceptType = c.conceptType match {
@@ -88,7 +85,6 @@ trait SearchConverterService {
         conceptType = c.conceptType.entryName,
         title = title,
         content = content,
-        metaImage = c.metaImage,
         defaultTitle = title.defaultValue,
         tags = tags,
         lastUpdated = c.updated,
@@ -124,9 +120,6 @@ trait SearchConverterService {
       val content = findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
         .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString()))
-      val metaImage = findByLanguageOrBestEffort(searchableConcept.metaImage, language)
-        .map(converterService.toApiMetaImage)
-        .getOrElse(api.ConceptMetaImageDTO("", "", UnknownLanguage.toString()))
       val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
       val visualElement =
         findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
@@ -154,7 +147,6 @@ trait SearchConverterService {
         id = searchableConcept.id,
         title = title,
         content = content,
-        metaImage = metaImage,
         tags = tag,
         supportedLanguages = supportedLanguages,
         lastUpdated = searchableConcept.lastUpdated,

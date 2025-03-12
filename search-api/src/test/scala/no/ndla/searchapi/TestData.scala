@@ -33,7 +33,6 @@ import no.ndla.common.model.domain.concept.{
   Concept,
   ConceptContent,
   ConceptEditorNote,
-  ConceptMetaImage,
   ConceptStatus,
   ConceptType,
   GlossData,
@@ -1928,7 +1927,6 @@ object TestData {
     created = today,
     updated = today,
     updatedBy = Seq("noen"),
-    metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
     status = no.ndla.common.model.domain.concept.Status(
       ConceptStatus.LANGUAGE,
