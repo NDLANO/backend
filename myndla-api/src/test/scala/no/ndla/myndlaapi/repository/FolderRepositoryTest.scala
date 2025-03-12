@@ -749,7 +749,7 @@ class FolderRepositoryTest
     val numberOfUsersWithFavourites    = repository.numberOfUsersWithFavourites()
     val numberOfUsersWithoutFavourites = repository.numberOfUsersWithoutFavourites()
 
-    numberOfUsersWithFavourites should be(Some(1))
-    numberOfUsersWithoutFavourites should be(Some(2))
+    numberOfUsersWithFavourites should be(Success(Some(1)))
+    numberOfUsersWithoutFavourites should be(Success(Some(2)))
   }
 }
