@@ -408,7 +408,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That getting stats fetches stats for my ndla usage") {
-    when(userRepository.numberOfUsers()(any)).thenReturn(Some(5))
+    when(userRepository.usersGrouped()(any)).thenReturn(Map(UserRole.EMPLOYEE -> 2, UserRole.STUDENT -> 3))
     when(folderRepository.numberOfFolders()(any)).thenReturn(Some(10))
     when(folderRepository.numberOfResources()(any)).thenReturn(Some(20))
     when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
@@ -417,8 +417,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(learningPathApiClient.getStats).thenReturn(Success(LearningPathStatsDTO(25)))
     when(folderRepository.numberOfResourcesGrouped()(any))
       .thenReturn(List((1, "article"), (2, "learningpath"), (3, "video")))
-    when(userRepository.numberOfEmployees()(any)).thenReturn(Some(2))
-    when(userRepository.numberOfStudents()(any)).thenReturn(Some(3))
     when(folderRepository.numberOfUsersWithFavourites(any)).thenReturn(Some(3))
     when(folderRepository.numberOfUsersWithoutFavourites(any)).thenReturn(Some(2))
     when(userRepository.numberOfUsersInArena(any)).thenReturn(Some(4))

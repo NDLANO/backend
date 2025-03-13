@@ -15,7 +15,7 @@ import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.{ResourceType, myndla}
-import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.integration.LearningPathApiClient
@@ -280,16 +280,17 @@ trait FolderReadService {
 
     def getStats: Option[api.StatsDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)
-      val numberOfUsers               = userRepository.numberOfUsers()
+      val usersGrouped                = userRepository.usersGrouped()
+      val numberOfEmployees           = usersGrouped(UserRole.EMPLOYEE)
+      val numberOfStudents            = usersGrouped(UserRole.STUDENT)
+      val numberOfUsers               = numberOfStudents + numberOfEmployees
       val groupedResources            = folderRepository.numberOfResourcesGrouped()
       val favouritedResources         = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
       val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
       val learningPathStats           = learningPathApiClient.getStats.get
 
       val userStats = for {
-        numberOfUsers                  <- numberOfUsers
-        numberOfEmployees              <- userRepository.numberOfEmployees()
-        numberOfStudents               <- userRepository.numberOfStudents()
+        numberOfUsers                  <- Some(numberOfUsers)
         numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites()
         numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites()
         numberOfUsersInArena           <- userRepository.numberOfUsersInArena()
@@ -304,7 +305,7 @@ trait FolderReadService {
       } yield stats
 
       for {
-        numberOfUsers         <- numberOfUsers
+        numberOfUsers         <- Some(numberOfUsers)
         numberOfFolders       <- folderRepository.numberOfFolders()
         numberOfResources     <- folderRepository.numberOfResources()
         numberOfTags          <- folderRepository.numberOfTags()
