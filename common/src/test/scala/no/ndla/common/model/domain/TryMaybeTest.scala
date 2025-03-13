@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common.model.domain
 
 import no.ndla.common.model.domain.TryMaybe.*
