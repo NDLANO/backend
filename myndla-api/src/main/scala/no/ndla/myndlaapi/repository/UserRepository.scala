@@ -160,7 +160,7 @@ trait UserRepository {
 
     def userWithId(userId: Long)(implicit session: DBSession): Try[Option[MyNDLAUser]] = userWhere(sqls"u.id=$userId")
 
-    def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = Try {
+    private def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = Try {
       val u = DBMyNDLAUser.syntax("u")
       sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"
         .map(DBMyNDLAUser.fromResultSet(u))
@@ -194,6 +194,13 @@ trait UserRepository {
       sql"select count(*) from ${DBMyNDLAUser.table}"
         .map(rs => rs.long("count"))
         .single()
+    }
+
+    def usersGrouped()(implicit session: DBSession = ReadOnlyAutoSession): Try[Map[UserRole, Long]] = Try {
+      sql"select count(*), (document->>'userRole') as rolle from ${DBMyNDLAUser.table} group by rolle"
+        .map(rs => (UserRole.withName(rs.string("rolle")), rs.long("count")))
+        .list()
+        .toMap
     }
 
     def numberOfFavouritedSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {

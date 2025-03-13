@@ -25,7 +25,7 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
 
   test("That getting stats returns in fact stats") {
     when(folderReadService.getStats).thenReturn(
-      TryMaybe.from(StatsDTO(1, 2, 3, 4, 5, 6, 7, List.empty, Map.empty, UserStatsDTO(1, 2, 3, 4)))
+      TryMaybe.from(StatsDTO(1, 2, 3, 4, 5, 6, 7, List.empty, Map.empty, UserStatsDTO(1, 2, 3, 4, 5, 6)))
     )
 
     val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats"))

@@ -408,7 +408,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That getting stats fetches stats for my ndla usage") {
-    when(userRepository.numberOfUsers()(any)).thenReturn(Success(Some(5)))
+    when(userRepository.usersGrouped()(any)).thenReturn(Success(Map(UserRole.EMPLOYEE -> 2, UserRole.STUDENT -> 3)))
     when(folderRepository.numberOfFolders()(any)).thenReturn(Success(Some(10)))
     when(folderRepository.numberOfResources()(any)).thenReturn(Success(Some(20)))
     when(folderRepository.numberOfTags()(any)).thenReturn(Success(Some(10)))
@@ -433,10 +433,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
         List(ResourceStatsDTO("article", 1), ResourceStatsDTO("learningpath", 2), ResourceStatsDTO("video", 3)),
         Map("article" -> 1, "learningpath" -> 2, "video" -> 3),
         UserStatsDTO(
-          5,
-          3,
-          2,
-          4
+          5, 2, 3, 3, 2, 4
         )
       )
     )

@@ -16,7 +16,7 @@ import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.TryMaybe.*
 import no.ndla.common.model.domain.{ResourceType, TryMaybe, myndla}
-import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.integration.LearningPathApiClient
@@ -284,9 +284,14 @@ trait FolderReadService {
         numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites(session).toTryMaybe
         numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites(session).toTryMaybe
         numberOfUsersInArena           <- userRepository.numberOfUsersInArena(session).toTryMaybe
-        numberOfUsers                  <- userRepository.numberOfUsers()(session).toTryMaybe
+        usersGrouped                   <- userRepository.usersGrouped().toTrySome
+        numberOfEmployees = usersGrouped(UserRole.EMPLOYEE)
+        numberOfStudents  = usersGrouped(UserRole.STUDENT)
+        numberOfUsers     = numberOfStudents + numberOfEmployees
       } yield UserStatsDTO(
         numberOfUsers,
+        numberOfEmployees,
+        numberOfStudents,
         numberOfUsersWithFavourites,
         numberOfUsersWithoutFavourites,
         numberOfUsersInArena
