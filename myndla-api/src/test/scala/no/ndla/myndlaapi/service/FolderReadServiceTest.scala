@@ -408,20 +408,20 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That getting stats fetches stats for my ndla usage") {
-    when(userRepository.numberOfUsers()(any)).thenReturn(Some(5))
-    when(folderRepository.numberOfFolders()(any)).thenReturn(Some(10))
-    when(folderRepository.numberOfResources()(any)).thenReturn(Some(20))
-    when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
-    when(userRepository.numberOfFavouritedSubjects()(any)).thenReturn(Some(15))
-    when(folderRepository.numberOfSharedFolders()(any)).thenReturn(Some(5))
+    when(userRepository.numberOfUsers()(any)).thenReturn(Success(Some(5)))
+    when(folderRepository.numberOfFolders()(any)).thenReturn(Success(Some(10)))
+    when(folderRepository.numberOfResources()(any)).thenReturn(Success(Some(20)))
+    when(folderRepository.numberOfTags()(any)).thenReturn(Success(Some(10)))
+    when(userRepository.numberOfFavouritedSubjects()(any)).thenReturn(Success(Some(15)))
+    when(folderRepository.numberOfSharedFolders()(any)).thenReturn(Success(Some(5)))
     when(learningPathApiClient.getStats).thenReturn(Success(LearningPathStatsDTO(25)))
     when(folderRepository.numberOfResourcesGrouped()(any))
-      .thenReturn(List((1, "article"), (2, "learningpath"), (3, "video")))
-    when(folderRepository.numberOfUsersWithFavourites(any)).thenReturn(Some(3))
-    when(folderRepository.numberOfUsersWithoutFavourites(any)).thenReturn(Some(2))
-    when(userRepository.numberOfUsersInArena(any)).thenReturn(Some(4))
+      .thenReturn(Success(List((1, "article"), (2, "learningpath"), (3, "video"))))
+    when(folderRepository.numberOfUsersWithFavourites(any)).thenReturn(Success(Some(3)))
+    when(folderRepository.numberOfUsersWithoutFavourites(any)).thenReturn(Success(Some(2)))
+    when(userRepository.numberOfUsersInArena(any)).thenReturn(Success(Some(4)))
 
-    service.getStats.get should be(
+    service.getStats.unsafeGet should be(
       api.StatsDTO(
         5,
         10,

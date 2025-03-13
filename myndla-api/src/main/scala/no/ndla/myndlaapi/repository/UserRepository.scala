@@ -190,19 +190,19 @@ trait UserRepository {
       }
     }
 
-    def numberOfUsers()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfUsers()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(*) from ${DBMyNDLAUser.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfFavouritedSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfFavouritedSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfUsersInArena(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfUsersInArena(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"""
            select count(*) as count from ${DBMyNDLAUser.table}
            where (document->'arenaAccepted')::boolean = true
