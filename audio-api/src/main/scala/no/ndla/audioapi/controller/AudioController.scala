@@ -175,11 +175,14 @@ trait AudioController {
       .in(audioIds)
       .in(language)
       .errorOut(errorOutputsFor(400, 404))
-      .out(jsonBody[List[AudioMetaInformationDTO]])
+      .out(jsonBody[Array[AudioMetaInformationDTO]])
       .summary("Fetch audio that matches ids parameter.")
       .description("Fetch audios that matches ids parameter.")
       .serverLogicPure { case (audioIds, language) =>
-        readService.getAudiosByIds(audioIds.values, language)
+        // NOTE: For some weird reason the generated openapi spec fails if this is a List[AudioMetaInformation]
+        //       I assume it is because of the recursive nature of `AudioMetaInformation`.
+        //       For Array[AudioMetaInformation] it works fine so lets just convert it here for now.
+        readService.getAudiosByIds(audioIds.values, language).map(_.toArray)
       }
 
     def deleteAudio: ServerEndpoint[Any, Eff] = endpoint.delete
