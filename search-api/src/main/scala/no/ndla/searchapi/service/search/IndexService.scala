@@ -94,6 +94,7 @@ trait IndexService {
           keywordField("relevanceId"),
           booleanField("isActive"),
           booleanField("isPrimary"),
+          booleanField("isVisible"),
           keywordField("url"),
           keywordField("resourceTypeIds")
         )

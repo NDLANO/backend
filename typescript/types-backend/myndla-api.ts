@@ -102,8 +102,10 @@ export interface IStatsDTO {
   numberOfTags: number
   numberOfSubjects: number
   numberOfSharedFolders: number
+  numberOfMyNdlaLearningPaths: number
   favouritedResources: IResourceStatsDTO[]
   favourited: { [ key: string ]: number }
+  users: IUserStatsDTO
 }
 
 export interface IUpdatedFolderDTO {
@@ -127,6 +129,15 @@ export interface IUpdatedResourceDTO {
 export interface IUserFolderDTO {
   folders: IFolderDTO[]
   sharedFolders: IFolderDTO[]
+}
+
+export interface IUserStatsDTO {
+  total: number
+  employees: number
+  students: number
+  withFavourites: number
+  noFavourites: number
+  arena: number
 }
 
 export type ResourceType = ("article" | "audio" | "concept" | "image" | "learningpath" | "multidisciplinary" | "topic" | "video")

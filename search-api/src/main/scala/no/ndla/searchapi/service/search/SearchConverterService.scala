@@ -226,6 +226,7 @@ trait SearchConverterService {
           parentIds = context.parentIds,
           isPrimary = context.isPrimary,
           isActive = context.isActive,
+          isVisible = context.isVisible,
           url = context.url
         )
       )
@@ -1138,6 +1139,7 @@ trait SearchConverterService {
 
     def asSearchableNode(node: Node, frontpage: Option[SubjectPage]): Try[SearchableNode] = {
       asFrontPage(frontpage).map { frontpage =>
+        val context  = node.context.map(ctx => asSearchableTaxonomyContexts(List(ctx)).head)
         val contexts = asSearchableTaxonomyContexts(node.contexts)
         SearchableNode(
           nodeId = node.id,
@@ -1146,7 +1148,7 @@ trait SearchConverterService {
           contentUri = node.contentUri,
           nodeType = node.nodeType,
           subjectPage = frontpage,
-          context = contexts.find(_.isPrimary),
+          context = context.orElse(contexts.find(_.isPrimary)),
           contexts = contexts
         )
       }
