@@ -163,8 +163,8 @@ trait Routes {
       ),
       forResponse = List(
         "status" -> {
-          case Right(r) => r.code.code.toString
-          case Left(_)  => "5xx"
+          case Right(r) => Some(r.code.code.toString)
+          case Left(_)  => Some("5xx")
         }
       )
     )
