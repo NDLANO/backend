@@ -15,7 +15,7 @@ import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Concept as DomainConcept}
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation.*
@@ -33,50 +33,6 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService {
-
-    def insertListingImportedConcepts(
-        conceptsWithListingId: Seq[(DomainConcept, Long)],
-        forceUpdate: Boolean
-    ): Seq[Try[DomainConcept]] = {
-      conceptsWithListingId.map { case (concept, listingId) =>
-        val existing = draftConceptRepository.withListingId(listingId).nonEmpty
-        if (existing && !forceUpdate) {
-          logger.warn(
-            s"Concept with listing_id of $listingId already exists, and forceUpdate was not 'true', skipping..."
-          )
-          Failure(ConceptExistsAlreadyException(s"the concept already exists with listing_id of $listingId."))
-        } else if (existing && forceUpdate) {
-          draftConceptRepository.updateWithListingId(concept, listingId)
-        } else {
-          Success(draftConceptRepository.insertwithListingId(concept, listingId))
-        }
-      }
-    }
-
-    def saveImportedConcepts(
-        concepts: Seq[DomainConcept],
-        forceUpdate: Boolean,
-        user: TokenUser
-    ): Seq[Try[DomainConcept]] = {
-      concepts.map(concept => {
-        concept.id match {
-          case Some(id) if draftConceptRepository.exists(id) =>
-            if (forceUpdate) {
-              updateConcept(concept, user) match {
-                case Failure(ex) =>
-                  logger.error(s"Could not update concept with id '${concept.id.getOrElse(-1)}' when importing.")
-                  Failure(ex)
-                case Success(c) =>
-                  logger.info(s"Updated concept with id '${c.id.getOrElse(-1)}' successfully during import.")
-                  Success(c)
-              }
-            } else {
-              Failure(ConceptExistsAlreadyException("The concept already exists."))
-            }
-          case _ => draftConceptRepository.insertWithId(concept)
-        }
-      })
-    }
 
     def newConcept(newConcept: api.NewConceptDTO, user: TokenUser): Try[api.ConceptDTO] = {
       for {
@@ -212,13 +168,11 @@ trait WriteService {
               val title         = existingConcept.title.filter(_.language != language)
               val content       = existingConcept.content.filter(_.language != language)
               val tags          = existingConcept.tags.filter(_.language != language)
-              val metaImage     = existingConcept.metaImage.filter(_.language != language)
               val visualElement = existingConcept.visualElement.filter(_.language != language)
 
               val newConcept = existingConcept.copy(
                 title = title,
                 content = content,
-                metaImage = metaImage,
                 tags = tags,
                 visualElement = visualElement
               )

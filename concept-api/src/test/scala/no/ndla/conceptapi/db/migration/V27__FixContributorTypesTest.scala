@@ -62,7 +62,6 @@ class V27__FixContributorTypesTest extends UnitSuite with TestEnvironment {
         |  "updated": "2025-02-18T08:21:46.910Z",
         |  "revision": 18,
         |  "glossData": null,
-        |  "metaImage": [],
         |  "updatedBy": [
         |    "-jME11plz_kZ-T8vqKlztgmn",
         |    "TQ4PTLdcsPWRhfNxGVfRAlt9",
@@ -137,7 +136,6 @@ class V27__FixContributorTypesTest extends UnitSuite with TestEnvironment {
         |  "updated": "2025-02-18T08:21:46.910Z",
         |  "revision": 18,
         |  "glossData": null,
-        |  "metaImage": [],
         |  "updatedBy": [
         |    "-jME11plz_kZ-T8vqKlztgmn",
         |    "TQ4PTLdcsPWRhfNxGVfRAlt9",

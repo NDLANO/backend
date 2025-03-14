@@ -82,7 +82,6 @@ class V28__FixContributorTypesPublishedTest extends UnitSuite with TestEnvironme
         |    "rightsholders": []
         |  },
         |  "glossData": null,
-        |  "metaImage": [],
         |  "updatedBy": [
         |    "-jME11plz_kZ-T8vqKlztgmn",
         |    "TQ4PTLdcsPWRhfNxGVfRAlt9",
@@ -177,7 +176,6 @@ class V28__FixContributorTypesPublishedTest extends UnitSuite with TestEnvironme
         |    "rightsholders": []
         |  },
         |  "glossData": null,
-        |  "metaImage": [],
         |  "updatedBy": [
         |    "-jME11plz_kZ-T8vqKlztgmn",
         |    "TQ4PTLdcsPWRhfNxGVfRAlt9",

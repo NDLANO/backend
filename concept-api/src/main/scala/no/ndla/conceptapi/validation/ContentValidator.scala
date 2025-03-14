@@ -10,7 +10,7 @@ package no.ndla.conceptapi.validation
 
 import no.ndla.common.model.domain.{Author, ContributorType, Title}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, ConceptStatus, VisualElement}
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptStatus, VisualElement}
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.repository.DraftConceptRepository
@@ -33,7 +33,6 @@ trait ContentValidator {
       val validationErrors =
         concept.content.flatMap(c => validateConceptContent(c)) ++
           concept.visualElement.flatMap(ve => validateVisualElement(ve)) ++
-          concept.metaImage.flatMap(mi => validateMetaImage(mi)) ++
           validateTitles(concept.title) ++
           concept.copyright.map(co => validateCopyright(co)).getOrElse(Seq()) ++
           validateResponsible(concept) ++
@@ -54,10 +53,6 @@ trait ContentValidator {
           s"Responsible needs to be set if the status is not ${ConceptStatus.thatDoesNotRequireResponsible}"
         )
       }
-    }
-
-    private def validateMetaImage(metaImage: ConceptMetaImage): Seq[ValidationMessage] = {
-      validateMinimumLength(s"metaImage.id", metaImage.imageId, 1).toSeq
     }
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {

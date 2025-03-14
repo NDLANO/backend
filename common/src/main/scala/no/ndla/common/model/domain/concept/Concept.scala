@@ -24,7 +24,6 @@ case class Concept(
     created: NDLADate,
     updated: NDLADate,
     updatedBy: Seq[String],
-    metaImage: Seq[ConceptMetaImage],
     tags: Seq[Tag],
     status: Status,
     visualElement: Seq[VisualElement],
@@ -34,7 +33,7 @@ case class Concept(
     editorNotes: Seq[ConceptEditorNote]
 ) extends Content {
   def supportedLanguages: Set[String] =
-    getSupportedLanguages(title, content, tags, visualElement, metaImage).toSet
+    getSupportedLanguages(title, content, tags, visualElement).toSet
 }
 
 object Concept {

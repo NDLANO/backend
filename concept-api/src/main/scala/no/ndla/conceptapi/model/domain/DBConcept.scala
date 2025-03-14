@@ -35,7 +35,6 @@ object DBConcept extends SQLSyntaxSupport[Concept] {
       meta.created,
       meta.updated,
       meta.updatedBy,
-      meta.metaImage,
       meta.tags,
       meta.status,
       meta.visualElement,
