@@ -39,6 +39,7 @@ case class Node(
     translations: List[TaxonomyTranslation],
     nodeType: NodeType,
     contextids: List[String],
+    context: Option[TaxonomyContext],
     var contexts: List[TaxonomyContext]
 )
 
@@ -55,8 +56,9 @@ object Node {
       translations <- c.downField("translations").as[List[TaxonomyTranslation]]
       nodeType     <- c.downField("nodeType").as[NodeType]
       contextids   <- c.downField("contextids").as[List[String]]
+      context      <- c.downField("context").as[Option[TaxonomyContext]]
       contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
-    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, contexts)
+    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, context, contexts)
 
   })
 }

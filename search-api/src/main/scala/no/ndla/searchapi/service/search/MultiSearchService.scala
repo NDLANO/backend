@@ -50,7 +50,7 @@ trait MultiSearchService {
       nodeIndexService
     )
 
-    def getIndexFilter(indexes: List[SearchType]): Query = {
+    private def getIndexFilter(indexes: List[SearchType]): Query = {
       val indexNames = indexes.map(SearchIndex)
       termsQuery("_index", indexNames)
     }
@@ -218,12 +218,14 @@ trait MultiSearchService {
       }
     }
 
-    def getNodeTypeFilter(maybeTypes: List[NodeType]): Option[Query] = {
+    private def getNodeTypeFilter(maybeTypes: List[NodeType]): Option[Query] = {
       maybeTypes match {
         case types if types.nonEmpty =>
           boolQuery()
             .should(
-              boolQuery().not(existsQuery("nodeType")),
+              boolQuery()
+                .not(existsQuery("nodeType"))
+                .must(nestedQuery("context", termQuery("context.isVisible", true))),
               termsQuery("nodeType", types.map(_.entryName))
             )
             .some

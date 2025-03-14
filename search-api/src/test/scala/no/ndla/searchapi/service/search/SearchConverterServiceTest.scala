@@ -80,6 +80,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.RESOURCE,
       List("asdf3456"),
+      None,
       List.empty
     ),
     Node(
@@ -92,6 +93,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.TOPIC,
       List("asdf3457"),
+      None,
       List.empty
     ),
     Node(
@@ -104,6 +106,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.SUBJECT,
       List("asdf3458"),
+      None,
       List.empty
     )
   )

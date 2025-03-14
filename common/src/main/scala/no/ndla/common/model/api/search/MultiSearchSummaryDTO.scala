@@ -50,7 +50,11 @@ case class NodeHitDTO(
     @description("The url to the frontend page of the taxonomy node")
     url: Option[String],
     @description("Subject page summary if the node is connected to a subject page")
-    subjectPage: Option[SubjectPageSummaryDTO]
+    subjectPage: Option[SubjectPageSummaryDTO],
+    @description("Primary context of the resource")
+    context: Option[ApiTaxonomyContextDTO],
+    @description("Contexts of the resource")
+    contexts: List[ApiTaxonomyContextDTO]
 ) extends MultiSummaryBaseDTO
 
 object NodeHitDTO {

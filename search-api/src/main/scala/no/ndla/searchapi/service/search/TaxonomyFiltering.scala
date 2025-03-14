@@ -115,7 +115,11 @@ trait TaxonomyFiltering {
 
   protected def contextActiveFilter(filterInactive: Boolean): Option[Query] =
     if (filterInactive) {
-      val contextActiveQuery = nestedQuery("contexts", termQuery("contexts.isActive", true)).ignoreUnmapped(true)
+      val contextActiveQuery = nestedQuery("contexts", termQuery("contexts.isActive", "true")).ignoreUnmapped(true)
       Some(mustBeConceptOr(contextActiveQuery))
     } else None
+
+  protected def mainContextVisibleFilter(): Option[Query] =
+    Some(boolQuery().should(nestedQuery("context", termQuery("context.isVisible", "true")).ignoreUnmapped(true)))
+
 }

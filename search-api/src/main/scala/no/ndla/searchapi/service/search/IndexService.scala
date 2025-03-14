@@ -71,7 +71,7 @@ trait IndexService {
     val trigram: CustomAnalyzer =
       CustomAnalyzer(name = "trigram", tokenizer = "standard", tokenFilters = List("lowercase", "shingle"))
 
-    val lowerNormalizer: CustomNormalizer =
+    private val lowerNormalizer: CustomNormalizer =
       CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
 
     override val analysis: Analysis =
@@ -80,6 +80,26 @@ trait IndexService {
         tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters,
         normalizers = List(lowerNormalizer)
       )
+
+    protected def getTaxonomyContextMapping(fieldName: String): NestedField = {
+      nestedField(fieldName).fields(
+        List(
+          ObjectField("domainObject", enabled = Some(false)),
+          keywordField("publicId"),
+          keywordField("contextId"),
+          keywordField("path"),
+          keywordField("contextType"),
+          keywordField("rootId"),
+          keywordField("parentIds"),
+          keywordField("relevanceId"),
+          booleanField("isActive"),
+          booleanField("isPrimary"),
+          booleanField("isVisible"),
+          keywordField("url"),
+          keywordField("resourceTypeIds")
+        )
+      )
+    }
   }
 
   trait IndexService[D <: Content] extends BulkIndexingService with StrictLogging {
@@ -232,26 +252,6 @@ trait IndexService {
         }
       }
     }
-
-    protected def getTaxonomyContextMapping(fieldName: String): NestedField = {
-      nestedField(fieldName).fields(
-        List(
-          ObjectField("domainObject", enabled = Some(false)),
-          keywordField("publicId"),
-          keywordField("contextId"),
-          keywordField("path"),
-          keywordField("contextType"),
-          keywordField("rootId"),
-          keywordField("parentIds"),
-          keywordField("relevanceId"),
-          booleanField("isActive"),
-          booleanField("isPrimary"),
-          keywordField("url"),
-          keywordField("resourceTypeIds")
-        )
-      )
-    }
-
   }
 
 }
