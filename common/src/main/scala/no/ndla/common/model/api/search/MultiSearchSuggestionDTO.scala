@@ -10,6 +10,7 @@ package no.ndla.common.model.api.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about search-suggestions")

@@ -320,11 +320,6 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
-        /** ::_AudioMetaInformationDTO */
-        "::_AudioMetaInformationDTO": {
-            head: components["schemas"]["AudioMetaInformationDTO"];
-            next: components["schemas"]["List_AudioMetaInformationDTO"];
-        };
         /** AllErrors */
         AllErrors: components["schemas"]["ErrorBody"] | components["schemas"]["NotFoundWithSupportedLanguages"] | components["schemas"]["ValidationErrorBody"];
         /**
@@ -515,8 +510,6 @@ export type components = {
             /** @description Url to where the license can be found */
             url?: string;
         };
-        /** List_AudioMetaInformationDTO */
-        List_AudioMetaInformationDTO: components["schemas"]["::_AudioMetaInformationDTO"] | components["schemas"]["Nil"];
         /** ManuscriptDTO */
         ManuscriptDTO: {
             /** @description The manuscript of the audio file */
@@ -596,8 +589,6 @@ export type components = {
             /** @description Specifies if this series generates rss-feed */
             hasRSS?: boolean;
         };
-        /** Nil */
-        Nil: Record<string, never>;
         /**
          * NotFoundWithSupportedLanguages
          * @description Information about an error
@@ -920,6 +911,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
@@ -1039,6 +1034,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
@@ -1091,7 +1090,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["List_AudioMetaInformationDTO"];
+                    "application/json": components["schemas"]["AudioMetaInformationDTO"][];
                 };
             };
             400: {
@@ -1457,6 +1456,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
@@ -1568,6 +1571,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
