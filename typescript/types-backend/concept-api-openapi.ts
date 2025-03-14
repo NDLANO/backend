@@ -822,6 +822,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -887,6 +891,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -943,6 +951,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -1003,6 +1015,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -1053,6 +1069,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -1112,6 +1132,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -1169,6 +1193,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -1238,6 +1266,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -1332,6 +1364,10 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -1380,6 +1416,10 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /**
+                     * @description null
+                     * @example null
+                     */
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };

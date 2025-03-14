@@ -548,11 +548,11 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["MultiSummaryBaseDTO"][];
+            results: components["schemas"]["MultiSummaryBaseDTO"][];
             /** @description The suggestions for other searches */
-            suggestions?: components["schemas"]["MultiSearchSuggestionDTO"][];
+            suggestions: components["schemas"]["MultiSearchSuggestionDTO"][];
             /** @description The aggregated fields if specified in query */
-            aggregations?: components["schemas"]["MultiSearchTermsAggregationDTO"][];
+            aggregations: components["schemas"]["MultiSearchTermsAggregationDTO"][];
         };
         /**
          * MultiSearchSuggestionDTO

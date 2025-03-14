@@ -35,7 +35,7 @@ import no.ndla.common.model.api.search.{
   TaxonomyResourceTypeDTO,
   TitleWithHtmlDTO
 }
-import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
+import no.ndla.common.model.api.{AuthorDTO, LicenseDTO, ListDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
@@ -1101,7 +1101,8 @@ trait SearchConverterService {
       }
     }
 
-    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO =
+    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO = {
+      import no.ndla.common.model.api.ListDTO.implicits.*
       common.model.api.search.MultiSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
@@ -1111,6 +1112,7 @@ trait SearchConverterService {
         searchResult.suggestions,
         searchResult.aggregations.map(toApiMultiTermsAggregation)
       )
+    }
 
     def toApiGroupMultiSearchResult(group: String, searchResult: domain.SearchResult): GroupSearchResultDTO =
       api.GroupSearchResultDTO(
