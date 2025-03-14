@@ -126,17 +126,22 @@ trait SearchConverterService {
       val title          = searchableNode.title.getLanguageOrDefault(language).getOrElse("")
       val url            = searchableNode.url.map(urlPath => s"${props.ndlaFrontendUrl}$urlPath")
 
+      val context  = searchableNode.context.map(c => searchableContextToApiContext(c, language))
+      val contexts = filterContexts(searchableNode.contexts, language, true)
+
       Success(
         NodeHitDTO(
           id = searchableNode.nodeId,
           title = title,
           url = url,
-          subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language))
+          subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language)),
+          context = context,
+          contexts = contexts
         )
       )
     }
 
-    def subjectPageToSummary(subjectPage: SearchableSubjectPage, language: String): SubjectPageSummaryDTO = {
+    private def subjectPageToSummary(subjectPage: SearchableSubjectPage, language: String): SubjectPageSummaryDTO = {
       val metaDescription =
         findByLanguageOrBestEffort(subjectPage.domainObject.metaDescription, language)
           .map(meta => MetaDescriptionDTO(meta.metaDescription, meta.language))
@@ -1118,7 +1123,7 @@ trait SearchConverterService {
         group
       )
 
-    def asFrontPage(frontpage: Option[SubjectPage]): Try[Option[SearchableSubjectPage]] = {
+    private def asFrontPage(frontpage: Option[SubjectPage]): Try[Option[SearchableSubjectPage]] = {
       frontpage match {
         case None => Success(None)
         case Some(fp) =>
@@ -1133,13 +1138,16 @@ trait SearchConverterService {
 
     def asSearchableNode(node: Node, frontpage: Option[SubjectPage]): Try[SearchableNode] = {
       asFrontPage(frontpage).map { frontpage =>
+        val contexts = asSearchableTaxonomyContexts(node.contexts)
         SearchableNode(
           nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
           url = node.url,
           contentUri = node.contentUri,
           nodeType = node.nodeType,
-          subjectPage = frontpage
+          subjectPage = frontpage,
+          context = contexts.find(_.isPrimary),
+          contexts = contexts
         )
       }
     }
