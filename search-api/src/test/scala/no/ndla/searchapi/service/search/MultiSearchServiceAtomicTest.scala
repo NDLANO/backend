@@ -725,12 +725,30 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
           name = "Apekatt fag",
           contentUri = Some("urn:frontpage:1"),
           path = Some("/subject:19284"),
-          url = Some("/f/sub1/asdf2362"),
+          url = Some("/f/apekatt-fag/asdf2362"),
           metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           contextids = List(),
-          context = None,
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19284",
+              rootId = "urn:subject:19284",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Apekatt fag"))),
+              path = "/subject:19284",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/apekatt-fag/asdf2362"
+            )
+          ),
           contexts = List()
         ),
         Node(
@@ -738,12 +756,31 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
           name = "Snabel fag",
           contentUri = Some("urn:frontpage:2"),
           path = Some("/subject:19285"),
-          url = Some("/f/sub1/asdf2362"),
+          url = Some("/f/snabel-fag/asdf2362"),
           metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           contextids = List(),
-          context = None,
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19285",
+              rootId = "urn:subject:19285",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Snabel fag"))),
+              path = "/subject:19285",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/snabel-fag/asdf2362"
+            )
+          ),
+
           contexts = List()
         )
       ) ++
