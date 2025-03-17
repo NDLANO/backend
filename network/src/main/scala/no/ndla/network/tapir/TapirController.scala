@@ -42,6 +42,9 @@ trait TapirController extends TapirErrorHandling {
     protected val prefix: EndpointInput[Unit]
     val endpoints: List[ServerEndpoint[Any, Eff]]
 
+    implicit def requiredSeq[T](implicit s: Schema[T]): Schema[Seq[T]]   = s.asIterable[Seq].copy(isOptional = false)
+    implicit def requiredList[T](implicit s: Schema[T]): Schema[List[T]] = s.asIterable[List].copy(isOptional = false)
+
     lazy val builtEndpoints: List[ServerEndpoint[Any, Eff]] = {
       this.endpoints.map(e => {
         ServerEndpoint(

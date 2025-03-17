@@ -35,7 +35,7 @@ import no.ndla.common.model.api.search.{
   TaxonomyResourceTypeDTO,
   TitleWithHtmlDTO
 }
-import no.ndla.common.model.api.{AuthorDTO, LicenseDTO, ListDTO}
+import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
