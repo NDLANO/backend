@@ -223,10 +223,11 @@ trait MultiSearchService {
         case types if types.nonEmpty =>
           boolQuery()
             .should(
-              boolQuery()
-                .not(existsQuery("nodeType"))
-                .must(nestedQuery("context", termQuery("context.isVisible", true))),
-              termsQuery("nodeType", types.map(_.entryName))
+              boolQuery().not(existsQuery("nodeType")),
+              boolQuery().must(
+                termsQuery("nodeType", types.map(_.entryName)),
+                nestedQuery("context", termQuery("context.isVisible", true))
+              )
             )
             .some
         case _ => None
