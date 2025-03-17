@@ -80,7 +80,6 @@ object GrepResultDTO {
     Decoder[GrepTverrfagligTemaDTO].widen
   ).reduceLeft(_ or _)
 
-  implicit val s: Schema[GrepResultDTO] = Schema.oneOfWrapped[GrepResultDTO]
   def fromSearchable(searchable: SearchableGrepElement, language: String): Try[GrepResultDTO] = {
     val titleLv = findByLanguageOrBestEffort(searchable.title.languageValues, language)
       .getOrElse(LanguageValue(Language.DefaultLanguage, ""))

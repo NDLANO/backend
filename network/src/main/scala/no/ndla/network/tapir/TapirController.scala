@@ -10,19 +10,12 @@ package no.ndla.network.tapir
 import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, SchemaImplicits}
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.model.{
-  CombinedUser,
-  CombinedUserRequired,
-  CombinedUserWithBoth,
-  CombinedUserWithMyNDLAUser,
-  HttpRequestException,
-  OptionalCombinedUser
-}
+import no.ndla.network.model.{CombinedUser, CombinedUserRequired, CombinedUserWithBoth, CombinedUserWithMyNDLAUser, HttpRequestException, OptionalCombinedUser}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.client3.Identity
 import sttp.model.StatusCode
@@ -35,15 +28,12 @@ import scala.util.{Failure, Success}
 
 trait TapirController extends TapirErrorHandling {
   this: HasBaseProps & Clock & MyNDLAApiClient =>
-  trait TapirController extends StrictLogging {
+  trait TapirController extends StrictLogging with SchemaImplicits {
     type Eff[A] = Identity[A]
     val enableSwagger: Boolean = true
     val serviceName: String    = this.getClass.getSimpleName
     protected val prefix: EndpointInput[Unit]
     val endpoints: List[ServerEndpoint[Any, Eff]]
-
-    implicit def requiredSeq[T](implicit s: Schema[T]): Schema[Seq[T]]   = s.asIterable[Seq].copy(isOptional = false)
-    implicit def requiredList[T](implicit s: Schema[T]): Schema[List[T]] = s.asIterable[List].copy(isOptional = false)
 
     lazy val builtEndpoints: List[ServerEndpoint[Any, Eff]] = {
       this.endpoints.map(e => {
