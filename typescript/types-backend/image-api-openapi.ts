@@ -392,11 +392,11 @@ export type components = {
             /** @description Reference to where the article is procured */
             origin?: string;
             /** @description List of creators */
-            creators?: components["schemas"]["AuthorDTO"][];
+            creators: components["schemas"]["AuthorDTO"][];
             /** @description List of processors */
-            processors?: components["schemas"]["AuthorDTO"][];
+            processors: components["schemas"]["AuthorDTO"][];
             /** @description List of rightsholders */
-            rightsholders?: components["schemas"]["AuthorDTO"][];
+            rightsholders: components["schemas"]["AuthorDTO"][];
             /** @description Date from which the copyright is valid */
             validFrom?: string;
             /** @description Date to which the copyright is valid */
@@ -512,7 +512,7 @@ export type components = {
             /** @description Searchable caption for the image */
             caption: components["schemas"]["ImageCaptionDTO"];
             /** @description Supported languages for the image title, alt-text, tags and caption. */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description Describes when the image was created */
             created: string;
             /** @description Describes who created the image */
@@ -541,7 +541,7 @@ export type components = {
             /** @description Searchable caption for the image */
             caption: components["schemas"]["ImageCaptionDTO"];
             /** @description Supported languages for the image title, alt-text, tags and caption. */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description Describes when the image was created */
             created: string;
             /** @description Describes who created the image */
@@ -562,7 +562,7 @@ export type components = {
             /** @description The title for this image */
             title: components["schemas"]["ImageTitleDTO"];
             /** @description The copyright authors for this image */
-            contributors?: string[];
+            contributors: string[];
             /** @description The alt text for this image */
             altText: components["schemas"]["ImageAltTextDTO"];
             /** @description The caption for this image */
@@ -574,7 +574,7 @@ export type components = {
             /** @description Describes the license of the image */
             license: string;
             /** @description List of supported languages in priority */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description Describes if the model has released use of the image */
             modelRelease?: string;
             /** @description Describes the changes made to the image, only visible to editors */
@@ -596,7 +596,7 @@ export type components = {
          */
         ImageTagDTO: {
             /** @description The searchable tag. */
-            tags?: string[];
+            tags: string[];
             /** @description ISO 639-1 code that represents the language used in tag */
             language: string;
         };
@@ -638,7 +638,7 @@ export type components = {
             alttext?: string;
             copyright: components["schemas"]["CopyrightDTO"];
             /** @description Searchable tags for the image */
-            tags?: string[];
+            tags: string[];
             /** @description Caption for the image */
             caption: string;
             /** @description ISO 639-1 code that represents the language used in the caption */
@@ -731,7 +731,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["ImageMetaSummaryDTO"][];
+            results: components["schemas"]["ImageMetaSummaryDTO"][];
         };
         /**
          * SearchResultV3DTO
@@ -756,7 +756,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["ImageMetaInformationV3DTO"][];
+            results: components["schemas"]["ImageMetaInformationV3DTO"][];
         };
         /**
          * Sort
@@ -787,7 +787,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: string[];
+            results: string[];
         };
         /**
          * UpdateImageMetaInformationDTO

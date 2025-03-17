@@ -443,7 +443,7 @@ export type components = {
             /** @description Describes the license of the learningpath */
             license: components["schemas"]["LicenseDTO"];
             /** @description List of authors */
-            contributors?: components["schemas"]["AuthorDTO"][];
+            contributors: components["schemas"]["AuthorDTO"][];
         };
         /**
          * CoverPhotoDTO
@@ -542,7 +542,7 @@ export type components = {
             /** @description The contributors of this learningpath */
             copyright: components["schemas"]["CopyrightDTO"];
             /** @description A list of available languages for this audio */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /**
              * Format: int64
              * @description The id this learningpath is based on, if any
@@ -557,7 +557,7 @@ export type components = {
          */
         LearningPathTagsDTO: {
             /** @description The searchable tags. Must be plain text */
-            tags?: string[];
+            tags: string[];
             /** @description ISO 639-1 code that represents the language used in tag */
             language: string;
         };
@@ -566,9 +566,9 @@ export type components = {
             /** @description The chosen language. Default is 'nb' */
             language: string;
             /** @description The supported languages for these tags */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description The searchable tags. Must be plain text */
-            tags?: string[];
+            tags: string[];
         };
         /**
          * LearningPathV2DTO
@@ -597,7 +597,7 @@ export type components = {
             /** @description The full url to where the complete metainformation about the learningpath can be found */
             metaUrl: string;
             /** @description The learningsteps-summaries for this learningpath */
-            learningsteps?: components["schemas"]["LearningStepV2DTO"][];
+            learningsteps: components["schemas"]["LearningStepV2DTO"][];
             /** @description The full url to where the learningsteps can be found */
             learningstepUrl: string;
             coverPhoto?: components["schemas"]["CoverPhotoDTO"];
@@ -620,7 +620,7 @@ export type components = {
             /** @description True if authenticated user may edit this learningpath */
             canEdit: boolean;
             /** @description The supported languages for this learningpath */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description Visible if administrator or owner of LearningPath */
             ownerId?: string;
             message?: components["schemas"]["MessageDTO"];
@@ -637,9 +637,9 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The chosen search language */
-            learningsteps?: components["schemas"]["LearningStepSummaryV2DTO"][];
+            learningsteps: components["schemas"]["LearningStepSummaryV2DTO"][];
             /** @description The chosen search language */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
         };
         /**
          * LearningStepSeqNoDTO
@@ -722,7 +722,7 @@ export type components = {
             /** @description The status of the learningstep */
             status: string;
             /** @description The supported languages of the learningstep */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
         };
         /** LicenseDTO */
         LicenseDTO: {
@@ -886,7 +886,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["LearningPathSummaryV2DTO"][];
+            results: components["schemas"]["LearningPathSummaryV2DTO"][];
         };
         /**
          * Sort

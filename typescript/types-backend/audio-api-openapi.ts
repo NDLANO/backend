@@ -360,7 +360,7 @@ export type components = {
             copyright: components["schemas"]["CopyrightDTO"];
             tags: components["schemas"]["TagDTO"];
             /** @description The languages available for this audio */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description Type of audio. 'standard', or 'podcast'. */
             audioType: string;
             podcastMeta?: components["schemas"]["PodcastMetaDTO"];
@@ -392,7 +392,7 @@ export type components = {
             /** @description Describes the license of the audio */
             license: string;
             /** @description A list of available languages for this audio */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description A manuscript for the audio */
             manuscript?: components["schemas"]["ManuscriptDTO"];
             podcastMeta?: components["schemas"]["PodcastMetaDTO"];
@@ -424,7 +424,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["AudioSummaryDTO"][];
+            results: components["schemas"]["AudioSummaryDTO"][];
         };
         /**
          * AuthorDTO
@@ -450,11 +450,11 @@ export type components = {
             /** @description Reference to where the article is procured */
             origin?: string;
             /** @description List of creators */
-            creators?: components["schemas"]["AuthorDTO"][];
+            creators: components["schemas"]["AuthorDTO"][];
             /** @description List of processors */
-            processors?: components["schemas"]["AuthorDTO"][];
+            processors: components["schemas"]["AuthorDTO"][];
             /** @description List of rightsholders */
-            rightsholders?: components["schemas"]["AuthorDTO"][];
+            rightsholders: components["schemas"]["AuthorDTO"][];
             /** @description Date from which the copyright is valid */
             validFrom?: string;
             /** @description Date to which the copyright is valid */
@@ -540,7 +540,7 @@ export type components = {
             language: string;
             copyright: components["schemas"]["CopyrightDTO"];
             /** @description Tags for this audio file */
-            tags?: string[];
+            tags: string[];
             /** @description Type of audio. 'standard', or 'podcast', defaults to 'standard' */
             audioType?: string;
             podcastMeta?: components["schemas"]["NewPodcastMetaDTO"];
@@ -674,7 +674,7 @@ export type components = {
             /** @description The metainfo of the episodes in the series */
             episodes?: components["schemas"]["AudioMetaInformationDTO"][];
             /** @description A list of available languages for this series */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description Specifies if this series generates rss-feed */
             hasRSS: boolean;
         };
@@ -714,7 +714,7 @@ export type components = {
             title: components["schemas"]["TitleDTO"];
             description: components["schemas"]["DescriptionDTO"];
             /** @description A list of available languages for this series */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description A list of episode summaries */
             episodes?: components["schemas"]["AudioSummaryDTO"][];
             /** @description Cover photo for the series */
@@ -743,7 +743,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["SeriesSummaryDTO"][];
+            results: components["schemas"]["SeriesSummaryDTO"][];
         };
         /**
          * Sort
@@ -757,7 +757,7 @@ export type components = {
          */
         TagDTO: {
             /** @description The searchable tag. */
-            tags?: string[];
+            tags: string[];
             /** @description ISO 639-1 code that represents the language used in tag */
             language: string;
         };
@@ -784,7 +784,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: string[];
+            results: string[];
         };
         /** TitleDTO */
         TitleDTO: {
@@ -819,7 +819,7 @@ export type components = {
             language: string;
             copyright: components["schemas"]["CopyrightDTO"];
             /** @description Tags for this audio file */
-            tags?: string[];
+            tags: string[];
             /** @description Type of audio. 'standard', or 'podcast', defaults to 'standard' */
             audioType?: string;
             podcastMeta?: components["schemas"]["NewPodcastMetaDTO"];

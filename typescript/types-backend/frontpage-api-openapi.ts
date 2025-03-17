@@ -141,9 +141,9 @@ export type components = {
         /** FilmFrontPageDTO */
         FilmFrontPageDTO: {
             name: string;
-            about?: components["schemas"]["AboutFilmSubjectDTO"][];
-            movieThemes?: components["schemas"]["MovieThemeDTO"][];
-            slideShow?: string[];
+            about: components["schemas"]["AboutFilmSubjectDTO"][];
+            movieThemes: components["schemas"]["MovieThemeDTO"][];
+            slideShow: string[];
             article?: string;
         };
         /**
@@ -157,7 +157,7 @@ export type components = {
              */
             articleId: number;
             /** @description List of Menu objects */
-            menu?: components["schemas"]["MenuDTO"][];
+            menu: components["schemas"]["MenuDTO"][];
         };
         /**
          * MenuDTO
@@ -170,7 +170,7 @@ export type components = {
              */
             articleId: number;
             /** @description List of submenu objects */
-            menu?: components["schemas"]["MenuDataDTO"][];
+            menu: components["schemas"]["MenuDataDTO"][];
             /** @description Hide this level in menu */
             hideLevel?: boolean;
         };
@@ -178,8 +178,8 @@ export type components = {
         MenuDataDTO: components["schemas"]["MenuDTO"];
         /** MovieThemeDTO */
         MovieThemeDTO: {
-            name?: components["schemas"]["MovieThemeNameDTO"][];
-            movies?: string[];
+            name: components["schemas"]["MovieThemeNameDTO"][];
+            movies: string[];
         };
         /** MovieThemeNameDTO */
         MovieThemeNameDTO: {
@@ -203,9 +203,9 @@ export type components = {
         /** NewOrUpdatedFilmFrontPageDTO */
         NewOrUpdatedFilmFrontPageDTO: {
             name: string;
-            about?: components["schemas"]["NewOrUpdatedAboutSubjectDTO"][];
-            movieThemes?: components["schemas"]["NewOrUpdatedMovieThemeDTO"][];
-            slideShow?: string[];
+            about: components["schemas"]["NewOrUpdatedAboutSubjectDTO"][];
+            movieThemes: components["schemas"]["NewOrUpdatedMovieThemeDTO"][];
+            slideShow: string[];
             article?: string;
         };
         /** NewOrUpdatedMetaDescriptionDTO */
@@ -220,8 +220,8 @@ export type components = {
         };
         /** NewOrUpdatedMovieThemeDTO */
         NewOrUpdatedMovieThemeDTO: {
-            name?: components["schemas"]["NewOrUpdatedMovieNameDTO"][];
-            movies?: string[];
+            name: components["schemas"]["NewOrUpdatedMovieNameDTO"][];
+            movies: string[];
         };
         /** NewOrUpdatedVisualElementDTO */
         NewOrUpdatedVisualElementDTO: {
@@ -234,8 +234,8 @@ export type components = {
             name: string;
             externalId?: string;
             banner: components["schemas"]["NewOrUpdateBannerImageDTO"];
-            about?: components["schemas"]["NewOrUpdatedAboutSubjectDTO"][];
-            metaDescription?: components["schemas"]["NewOrUpdatedMetaDescriptionDTO"][];
+            about: components["schemas"]["NewOrUpdatedAboutSubjectDTO"][];
+            metaDescription: components["schemas"]["NewOrUpdatedMetaDescriptionDTO"][];
             editorsChoices?: string[];
             connectedTo?: string[];
             buildsOn?: string[];
@@ -268,11 +268,11 @@ export type components = {
             banner: components["schemas"]["BannerImageDTO"];
             about?: components["schemas"]["AboutSubjectDTO"];
             metaDescription?: string;
-            editorsChoices?: string[];
-            supportedLanguages?: string[];
-            connectedTo?: string[];
-            buildsOn?: string[];
-            leadsTo?: string[];
+            editorsChoices: string[];
+            supportedLanguages: string[];
+            connectedTo: string[];
+            buildsOn: string[];
+            leadsTo: string[];
         };
         /** UpdatedSubjectPageDTO */
         UpdatedSubjectPageDTO: {

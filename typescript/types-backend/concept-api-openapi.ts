@@ -384,9 +384,9 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["ConceptSummaryDTO"][];
+            results: components["schemas"]["ConceptSummaryDTO"][];
             /** @description The aggregated fields if specified in query */
-            aggregations?: components["schemas"]["MultiSearchTermsAggregationDTO"][];
+            aggregations: components["schemas"]["MultiSearchTermsAggregationDTO"][];
         };
         /**
          * ConceptSummaryDTO
@@ -405,7 +405,7 @@ export type components = {
             metaImage: components["schemas"]["ConceptMetaImageDTO"];
             tags?: components["schemas"]["ConceptTagsDTO"];
             /** @description All available languages of the current concept */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description The time when the article was last updated */
             lastUpdated: string;
             /** @description When the concept was created */
@@ -413,7 +413,7 @@ export type components = {
             /** @description Status information of the concept */
             status: components["schemas"]["StatusDTO"];
             /** @description List of people that edited the concept */
-            updatedBy?: string[];
+            updatedBy: string[];
             /** @description Describes the license of the concept */
             license?: string;
             /** @description Describes the copyright of the concept */
@@ -434,7 +434,7 @@ export type components = {
          */
         ConceptTagsDTO: {
             /** @description Searchable tags */
-            tags?: string[];
+            tags: string[];
             /** @description The ISO 639-1 language code describing which concept translation these tags belongs to */
             language: string;
         };
@@ -505,11 +505,11 @@ export type components = {
             /** @description Reference to where the article is procured */
             origin?: string;
             /** @description List of creators */
-            creators?: components["schemas"]["AuthorDTO"][];
+            creators: components["schemas"]["AuthorDTO"][];
             /** @description List of processors */
-            processors?: components["schemas"]["AuthorDTO"][];
+            processors: components["schemas"]["AuthorDTO"][];
             /** @description List of rightsholders */
-            rightsholders?: components["schemas"]["AuthorDTO"][];
+            rightsholders: components["schemas"]["AuthorDTO"][];
             /** @description Date from which the copyright is valid */
             validFrom?: string;
             /** @description Date to which the copyright is valid */
@@ -562,7 +562,7 @@ export type components = {
             /** @description Alternative writing of the gloss */
             transcriptions: components["schemas"]["Map_String"];
             /** @description List of examples of how the gloss can be used */
-            examples?: components["schemas"]["GlossExampleDTO"][][];
+            examples: components["schemas"]["GlossExampleDTO"][][];
         };
         /**
          * GlossExampleDTO
@@ -616,7 +616,7 @@ export type components = {
              */
             docCountErrorUpperBound: number;
             /** @description Values appearing in the field */
-            values?: components["schemas"]["TermValueDTO"][];
+            values: components["schemas"]["TermValueDTO"][];
         };
         /**
          * NewConceptDTO
@@ -680,7 +680,7 @@ export type components = {
             /** @description The current status of the concept */
             current: string;
             /** @description Previous statuses this concept has been in */
-            other?: string[];
+            other: string[];
         };
         /**
          * TagsSearchResultDTO
@@ -705,7 +705,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: string[];
+            results: string[];
         };
         /**
          * TermValueDTO

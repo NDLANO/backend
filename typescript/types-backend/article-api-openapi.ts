@@ -208,7 +208,7 @@ export type components = {
         ArticleIdsDTO: {
             /** Format: int64 */
             articleId: number;
-            externalIds?: string[];
+            externalIds: string[];
         };
         /**
          * ArticleIntroductionDTO
@@ -300,9 +300,9 @@ export type components = {
             /** @description The time when the article was last updated */
             lastUpdated: string;
             /** @description A list of available languages for this article */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description A list of codes from GREP API attached to this article */
-            grepCodes?: string[];
+            grepCodes: string[];
             /** @description Value that dictates who gets to see the article. Possible values are: everyone/teacher */
             availability: string;
         };
@@ -312,7 +312,7 @@ export type components = {
          */
         ArticleTagDTO: {
             /** @description The searchable tag. */
-            tags?: string[];
+            tags: string[];
             /** @description ISO 639-1 code that represents the language used in tag */
             language: string;
         };
@@ -348,7 +348,7 @@ export type components = {
             copyright: components["schemas"]["CopyrightDTO"];
             tags: components["schemas"]["ArticleTagDTO"];
             /** @description Required libraries in order to render the article */
-            requiredLibraries?: components["schemas"]["RequiredLibraryDTO"][];
+            requiredLibraries: components["schemas"]["RequiredLibraryDTO"][];
             visualElement?: components["schemas"]["VisualElementDTO"];
             metaImage?: components["schemas"]["ArticleMetaImageDTO"];
             introduction?: components["schemas"]["ArticleIntroductionDTO"];
@@ -365,15 +365,15 @@ export type components = {
             /** @description The type of article this is. Possible values are frontpage-article, standard, topic-article */
             articleType: string;
             /** @description The languages this article supports */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description A list of codes from GREP API connected to the article */
-            grepCodes?: string[];
+            grepCodes: string[];
             /** @description A list of conceptIds connected to the article */
-            conceptIds?: number[];
+            conceptIds: number[];
             /** @description Value that dictates who gets to see the article. Possible values are: everyone/teacher */
             availability: string;
             /** @description A list of content related to the article */
-            relatedContent?: (components["schemas"]["RelatedContentLinkDTO"] | number)[];
+            relatedContent: (components["schemas"]["RelatedContentLinkDTO"] | number)[];
             /** @description The date for the next planned revision which indicates when the article might be outdated */
             revisionDate?: string;
             /** @description The path to the frontpage article */
@@ -404,11 +404,11 @@ export type components = {
             /** @description Reference to where the article is procured */
             origin?: string;
             /** @description List of creators */
-            creators?: components["schemas"]["AuthorDTO"][];
+            creators: components["schemas"]["AuthorDTO"][];
             /** @description List of processors */
-            processors?: components["schemas"]["AuthorDTO"][];
+            processors: components["schemas"]["AuthorDTO"][];
             /** @description List of rightsholders */
-            rightsholders?: components["schemas"]["AuthorDTO"][];
+            rightsholders: components["schemas"]["AuthorDTO"][];
             /** @description Date from which the copyright is valid */
             validFrom?: string;
             /** @description Date to which the copyright is valid */
@@ -519,7 +519,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["ArticleSummaryV2DTO"][];
+            results: components["schemas"]["ArticleSummaryV2DTO"][];
         };
         /**
          * Sort
@@ -550,7 +550,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: string[];
+            results: string[];
         };
         /**
          * ValidationErrorBody

@@ -437,7 +437,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["GrepResultDTO"][];
+            results: components["schemas"]["GrepResultDTO"][];
         };
         /**
          * GrepSortDTO
@@ -478,11 +478,11 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: components["schemas"]["MultiSummaryBaseDTO"][];
+            results: components["schemas"]["MultiSummaryBaseDTO"][];
             /** @description The suggestions for other searches */
-            suggestions?: components["schemas"]["MultiSearchSuggestionDTO"][];
+            suggestions: components["schemas"]["MultiSearchSuggestionDTO"][];
             /** @description The aggregated fields if specified in query */
-            aggregations?: components["schemas"]["MultiSearchTermsAggregationDTO"][];
+            aggregations: components["schemas"]["MultiSearchTermsAggregationDTO"][];
             /** @description Type of resources in this object */
             resourceType: string;
         };
@@ -562,7 +562,7 @@ export type components = {
             /** @description The name of the field suggested for */
             name: string;
             /** @description The list of suggestions for given field */
-            suggestions?: components["schemas"]["SearchSuggestionDTO"][];
+            suggestions: components["schemas"]["SearchSuggestionDTO"][];
         };
         /**
          * MultiSearchSummaryDTO
@@ -627,6 +627,8 @@ export type components = {
             favorited?: number;
             /** @description Type of the resource */
             resultType: components["schemas"]["SearchType"];
+            /** @description Discriminator field */
+            typename: string;
         };
         /**
          * MultiSearchTermsAggregationDTO
@@ -646,7 +648,7 @@ export type components = {
              */
             docCountErrorUpperBound: number;
             /** @description Values appearing in the field */
-            values?: components["schemas"]["TermValueDTO"][];
+            values: components["schemas"]["TermValueDTO"][];
         };
         /** MultiSummaryBaseDTO */
         MultiSummaryBaseDTO: components["schemas"]["MultiSearchSummaryDTO"] | components["schemas"]["NodeHitDTO"];
@@ -659,6 +661,8 @@ export type components = {
             /** @description The url to the frontend page of the taxonomy node */
             url?: string;
             subjectPage?: components["schemas"]["SubjectPageSummaryDTO"];
+            /** @description Discriminator field */
+            typename: string;
         };
         /**
          * NodeType
@@ -773,7 +777,7 @@ export type components = {
              */
             length: number;
             /** @description The list of suggest options for the field */
-            options?: components["schemas"]["SuggestOptionDTO"][];
+            options: components["schemas"]["SuggestOptionDTO"][];
         };
         /**
          * SearchTrait
@@ -839,7 +843,7 @@ export type components = {
          * @description Result of subject aggregations
          */
         SubjectAggregationsDTO: {
-            subjects?: components["schemas"]["SubjectAggregationDTO"][];
+            subjects: components["schemas"]["SubjectAggregationDTO"][];
         };
         /**
          * SubjectAggsInputDTO

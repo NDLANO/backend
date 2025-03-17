@@ -523,7 +523,7 @@ export type components = {
             /** @description The users data */
             userData: components["schemas"]["MyNDLAUserDTO"];
             /** @description The users folders */
-            folders?: components["schemas"]["FolderDTO"][];
+            folders: components["schemas"]["FolderDTO"][];
         };
         /** FolderDTO */
         FolderDTO: {
@@ -536,11 +536,11 @@ export type components = {
             /** @description UUID of parent folder */
             parentId?: string;
             /** @description List of parent folders to resource */
-            breadcrumbs?: components["schemas"]["BreadcrumbDTO"][];
+            breadcrumbs: components["schemas"]["BreadcrumbDTO"][];
             /** @description List of subfolders */
-            subfolders?: components["schemas"]["FolderDataDTO"][];
+            subfolders: components["schemas"]["FolderDataDTO"][];
             /** @description List of resources */
-            resources?: components["schemas"]["ResourceDTO"][];
+            resources: components["schemas"]["ResourceDTO"][];
             /**
              * Format: int32
              * @description Where the folder is sorted within its parent
@@ -561,7 +561,7 @@ export type components = {
         /** FolderSortRequestDTO */
         FolderSortRequestDTO: {
             /** @description List of the children ids in sorted order, MUST be all ids */
-            sortedIds?: string[];
+            sortedIds: string[];
         };
         /**
          * FolderStatus
@@ -603,12 +603,12 @@ export type components = {
             /** @description Name of the user */
             displayName: string;
             /** @description Favorite subjects of the user */
-            favoriteSubjects?: string[];
+            favoriteSubjects: string[];
             role: components["schemas"]["UserRole"];
             /** @description User root organization */
             organization: string;
             /** @description User groups */
-            groups?: components["schemas"]["MyNDLAGroupDTO"][];
+            groups: components["schemas"]["MyNDLAGroupDTO"][];
             /** @description Whether arena is explicitly enabled for the user */
             arenaEnabled: boolean;
             /** @description Whether the user has accepted the use of arena */
@@ -676,7 +676,7 @@ export type components = {
             /** @description When the resource was created */
             created: string;
             /** @description List of tags */
-            tags?: string[];
+            tags: string[];
             /** @description The id of the resource, useful for fetching metadata for the resource */
             resourceId: string;
             /**
@@ -756,7 +756,7 @@ export type components = {
              */
             numberOfMyNdlaLearningPaths: number;
             /** @description Stats for type resources */
-            favouritedResources?: components["schemas"]["ResourceStatsDTO"][];
+            favouritedResources: components["schemas"]["ResourceStatsDTO"][];
             /** @description Stats for favourited resources */
             favourited: components["schemas"]["Map_Long"];
             users: components["schemas"]["UserStatsDTO"];
@@ -794,9 +794,9 @@ export type components = {
          */
         UserFolderDTO: {
             /** @description The users own folders */
-            folders?: components["schemas"]["FolderDTO"][];
+            folders: components["schemas"]["FolderDTO"][];
             /** @description The shared folder the user has saved */
-            sharedFolders?: components["schemas"]["FolderDTO"][];
+            sharedFolders: components["schemas"]["FolderDTO"][];
         };
         /**
          * UserRole

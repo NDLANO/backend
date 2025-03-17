@@ -482,7 +482,7 @@ export type components = {
             copyright?: components["schemas"]["DraftCopyrightDTO"];
             tags?: components["schemas"]["ArticleTagDTO"];
             /** @description Required libraries in order to render the article */
-            requiredLibraries?: components["schemas"]["RequiredLibraryDTO"][];
+            requiredLibraries: components["schemas"]["RequiredLibraryDTO"][];
             visualElement?: components["schemas"]["VisualElementDTO"];
             introduction?: components["schemas"]["ArticleIntroductionDTO"];
             metaDescription?: components["schemas"]["ArticleMetaDescriptionDTO"];
@@ -498,26 +498,26 @@ export type components = {
             /** @description The type of article this is. Possible values are frontpage-article, standard, topic-article */
             articleType: string;
             /** @description The languages this article supports */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description The notes for this article draft */
-            notes?: components["schemas"]["EditorNoteDTO"][];
+            notes: components["schemas"]["EditorNoteDTO"][];
             /** @description The labels attached to this article; meant for editors. */
-            editorLabels?: string[];
+            editorLabels: string[];
             /** @description A list of codes from GREP API connected to the article */
-            grepCodes?: string[];
+            grepCodes: string[];
             /** @description A list of conceptIds connected to the article */
-            conceptIds?: number[];
+            conceptIds: number[];
             /** @description Value that dictates who gets to see the article. Possible values are: everyone/teacher */
             availability: string;
             /** @description A list of content related to the article */
-            relatedContent?: (components["schemas"]["RelatedContentLinkDTO"] | number)[];
+            relatedContent: (components["schemas"]["RelatedContentLinkDTO"] | number)[];
             /** @description A list of revisions planned for the article */
-            revisions?: components["schemas"]["RevisionMetaDTO"][];
+            revisions: components["schemas"]["RevisionMetaDTO"][];
             responsible?: components["schemas"]["DraftResponsibleDTO"];
             /** @description The path to the frontpage article */
             slug?: string;
             /** @description Information about comments attached to the article */
-            comments?: components["schemas"]["CommentDTO"][];
+            comments: components["schemas"]["CommentDTO"][];
             /** @description If the article should be prioritized */
             prioritized: boolean;
             /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
@@ -615,7 +615,7 @@ export type components = {
              */
             pageSize: number;
             /** @description The search results */
-            results?: components["schemas"]["ArticleSummaryDTO"][];
+            results: components["schemas"]["ArticleSummaryDTO"][];
         };
         /**
          * ArticleSummaryDTO
@@ -638,14 +638,14 @@ export type components = {
             /** @description The type of article this is. Possible values are frontpage-article, standard, topic-article */
             articleType: string;
             /** @description A list of available languages for this audio */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             tags?: components["schemas"]["ArticleTagDTO"];
             /** @description The notes for this draft article */
-            notes?: string[];
+            notes: string[];
             /** @description The users saved for this draft article */
-            users?: string[];
+            users: string[];
             /** @description The codes from GREP API registered for this draft article */
-            grepCodes?: string[];
+            grepCodes: string[];
             /** @description The status of this article */
             status: components["schemas"]["StatusDTO"];
             /** @description When the article was last updated */
@@ -657,7 +657,7 @@ export type components = {
          */
         ArticleTagDTO: {
             /** @description The searchable tag. */
-            tags?: string[];
+            tags: string[];
             /** @description ISO 639-1 code that represents the language used in tag */
             language: string;
         };
@@ -736,11 +736,11 @@ export type components = {
             /** @description Reference to where the article is procured */
             origin?: string;
             /** @description List of creators */
-            creators?: components["schemas"]["AuthorDTO"][];
+            creators: components["schemas"]["AuthorDTO"][];
             /** @description List of processors */
-            processors?: components["schemas"]["AuthorDTO"][];
+            processors: components["schemas"]["AuthorDTO"][];
             /** @description List of rightsholders */
-            rightsholders?: components["schemas"]["AuthorDTO"][];
+            rightsholders: components["schemas"]["AuthorDTO"][];
             /** @description Date from which the copyright is valid */
             validFrom?: string;
             /** @description Date to which the copyright is valid */
@@ -822,7 +822,7 @@ export type components = {
              */
             pageSize: number;
             /** @description The search results */
-            results?: string[];
+            results: string[];
         };
         /** LicenseDTO */
         LicenseDTO: {
@@ -845,9 +845,9 @@ export type components = {
          */
         MultiPartialPublishResultDTO: {
             /** @description Successful ids */
-            successes?: number[];
+            successes: number[];
             /** @description Failed ids with error messages */
-            failures?: components["schemas"]["PartialPublishFailureDTO"][];
+            failures: components["schemas"]["PartialPublishFailureDTO"][];
         };
         /**
          * NewArticleDTO
@@ -949,9 +949,9 @@ export type components = {
          */
         PartialBulkArticlesDTO: {
             /** @description A list of article ids to partially publish */
-            articleIds?: number[];
+            articleIds: number[];
             /** @description A list of fields that should be partially published */
-            fields?: components["schemas"]["PartialArticleFieldsDTO"][];
+            fields: components["schemas"]["PartialArticleFieldsDTO"][];
         };
         /**
          * PartialPublishFailureDTO
@@ -1032,7 +1032,7 @@ export type components = {
             /** @description The current status of the article */
             current: string;
             /** @description Previous statuses this article has been in */
-            other?: string[];
+            other: string[];
         };
         /**
          * TagsSearchResultDTO
@@ -1057,7 +1057,7 @@ export type components = {
             /** @description The chosen search language */
             language: string;
             /** @description The search results */
-            results?: string[];
+            results: string[];
         };
         /**
          * UpdateOrDelete_NewArticleMetaImageDTO
@@ -2377,7 +2377,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": components["schemas"]["PartialArticleFieldsDTO"][];
             };
