@@ -118,35 +118,35 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       val hiddenMeta  = Some(Metadata(List.empty, visible = false, Map.empty))
 
       // Visible subject
+      val context_1 = TaxonomyContext(
+        publicId = "urn:subject:1",
+        rootId = "urn:subject:1",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
+        path = "/subject:1",
+        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+        contextType = None,
+        relevanceId = core.id,
+        relevance = SearchableLanguageValues(Seq.empty),
+        resourceTypes = List.empty,
+        parentIds = List.empty,
+        isPrimary = true,
+        contextId = "asdf2345",
+        isVisible = true,
+        isActive = true,
+        url = "/f/sub1/asdf2345"
+      )
       val subject_1 = Node(
-        "urn:subject:1",
+        context_1.publicId,
         "Sub1",
         None,
-        Some("/subject:1"),
-        Some("/f/sub1/asdf2345"),
+        Some(context_1.path),
+        Some(context_1.url),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
-        List("asdf2345"),
-        List(
-          TaxonomyContext(
-            publicId = "urn:subject:1",
-            rootId = "urn:subject:1",
-            root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
-            path = "/subject:1",
-            breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-            contextType = None,
-            relevanceId = core.id,
-            relevance = SearchableLanguageValues(Seq.empty),
-            resourceTypes = List.empty,
-            parentIds = List.empty,
-            isPrimary = true,
-            contextId = "asdf2345",
-            isVisible = true,
-            isActive = true,
-            url = "/f/sub1/asdf2345"
-          )
-        )
+        List(context_1.contextId),
+        Some(context_1),
+        List(context_1)
       )
       // Hidden topic with visible subject
       val topic_1 = Node(
@@ -159,6 +159,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2346"),
+        None,
         List.empty
       )
       topic_1.contexts = generateContexts(
@@ -183,6 +184,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2347"),
+        None,
         List.empty
       )
       topic_2.contexts = generateContexts(
@@ -207,6 +209,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2348"),
+        None,
         List.empty
       )
       topic_3.contexts = generateContexts(
@@ -231,6 +234,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.RESOURCE,
         List("asdf2349"),
+        None,
         List.empty
       )
       resource_1.contexts = generateContexts(
@@ -255,6 +259,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.RESOURCE,
         List("asdf2350"),
+        None,
         List.empty
       )
       resource_2.contexts = generateContexts(
@@ -314,35 +319,35 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       val hiddenMeta  = Some(Metadata(List.empty, visible = false, Map.empty))
 
       // Visible subject
+      val context_1 = TaxonomyContext(
+        publicId = "urn:subject:1",
+        rootId = "urn:subject:1",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
+        path = "/subject:1",
+        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+        contextType = None,
+        relevanceId = core.id,
+        relevance = SearchableLanguageValues(Seq.empty),
+        resourceTypes = List.empty,
+        parentIds = List.empty,
+        isPrimary = true,
+        contextId = "asdf2351",
+        isVisible = true,
+        isActive = true,
+        url = "/f/sub1/asdf2351"
+      )
       val subject_1 = Node(
-        "urn:subject:1",
+        context_1.publicId,
         "Sub1",
         None,
-        Some("/subject:1"),
-        Some("/f/sub1/asdf2351"),
+        Some(context_1.path),
+        Some(context_1.url),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
-        List("asdf2351"),
-        List(
-          TaxonomyContext(
-            publicId = "urn:subject:1",
-            rootId = "urn:subject:1",
-            root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
-            path = "/subject:1",
-            breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-            contextType = None,
-            relevanceId = core.id,
-            relevance = SearchableLanguageValues(Seq.empty),
-            resourceTypes = List.empty,
-            parentIds = List.empty,
-            isPrimary = true,
-            contextId = "asdf2351",
-            isVisible = true,
-            isActive = true,
-            url = "/f/sub1/asdf2351"
-          )
-        )
+        List(context_1.contextId),
+        Some(context_1),
+        List(context_1)
       )
       // Hidden topic with visible subject
       val topic_1 = Node(
@@ -355,6 +360,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2352"),
+        None,
         List.empty
       )
       topic_1.contexts = generateContexts(
@@ -379,6 +385,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2353"),
+        None,
         List.empty
       )
       topic_2.contexts = generateContexts(
@@ -403,6 +410,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2354"),
+        None,
         List.empty
       )
       topic_3.contexts = generateContexts(
@@ -462,65 +470,65 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       val visibleMeta = Some(Metadata(List.empty, visible = true, Map.empty))
       val hiddenMeta  = Some(Metadata(List.empty, visible = false, Map.empty))
 
+      val context_1 = TaxonomyContext(
+        publicId = "urn:subject:1",
+        rootId = "urn:subject:1",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
+        path = "/subject:1",
+        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+        contextType = None,
+        relevanceId = core.id,
+        relevance = SearchableLanguageValues(Seq.empty),
+        resourceTypes = List.empty,
+        parentIds = List.empty,
+        isPrimary = true,
+        contextId = "asdf2355",
+        isVisible = true,
+        isActive = true,
+        url = "/f/sub1/asdf2355"
+      )
       val subject_1 = Node(
-        "urn:subject:1",
+        context_1.publicId,
         "Sub1",
         None,
-        Some("/subject:1"),
-        Some("/f/sub1/asdf2355"),
+        Some(context_1.path),
+        Some(context_1.url),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
-        List("asdf2355"),
-        List(
-          TaxonomyContext(
-            publicId = "urn:subject:1",
-            rootId = "urn:subject:1",
-            root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub1"))),
-            path = "/subject:1",
-            breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-            contextType = None,
-            relevanceId = core.id,
-            relevance = SearchableLanguageValues(Seq.empty),
-            resourceTypes = List.empty,
-            parentIds = List.empty,
-            isPrimary = true,
-            contextId = "asdf2355",
-            isVisible = true,
-            isActive = true,
-            url = "/f/sub1/asdf2355"
-          )
-        )
+        List(context_1.contextId),
+        Some(context_1),
+        List(context_1)
+      )
+      val context_2 = TaxonomyContext(
+        publicId = "urn:subject:2",
+        rootId = "urn:subject:2",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub2"))),
+        path = "/subject:2",
+        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+        contextType = None,
+        relevanceId = core.id,
+        relevance = SearchableLanguageValues(Seq.empty),
+        resourceTypes = List.empty,
+        parentIds = List.empty,
+        isPrimary = true,
+        contextId = "asdf2356",
+        isVisible = true,
+        isActive = true,
+        url = "/f/sub2/asdf2356"
       )
       val subject_2 = Node(
-        "urn:subject:2",
+        context_2.publicId,
         "Sub2",
         None,
-        Some("/subject:2"),
-        Some("/f/sub2/asdf2356"),
+        Some(context_2.path),
+        Some(context_2.url),
         visibleMeta,
         List.empty,
         NodeType.SUBJECT,
-        List("asdf2356"),
-        List(
-          TaxonomyContext(
-            publicId = "urn:subject:2",
-            rootId = "urn:subject:2",
-            root = SearchableLanguageValues(Seq(LanguageValue("nb", "Sub2"))),
-            path = "/subject:2",
-            breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-            contextType = None,
-            relevanceId = core.id,
-            relevance = SearchableLanguageValues(Seq.empty),
-            resourceTypes = List.empty,
-            parentIds = List.empty,
-            isPrimary = true,
-            contextId = "asdf2356",
-            isVisible = true,
-            isActive = true,
-            url = "/f/sub2/asdf2356"
-          )
-        )
+        List(context_2.contextId),
+        Some(context_2),
+        List(context_2)
       )
       val topic_1 = Node(
         "urn:topic:1",
@@ -532,6 +540,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2357"),
+        None,
         List.empty
       )
       topic_1.contexts = generateContexts(
@@ -555,6 +564,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2358"),
+        None,
         List.empty
       )
       topic_2.contexts = generateContexts(
@@ -578,6 +588,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2359"),
+        None,
         List.empty
       )
       topic_3.contexts = generateContexts(
@@ -601,6 +612,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2360"),
+        None,
         List.empty
       )
       topic_4.contexts = generateContexts(
@@ -624,6 +636,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         List.empty,
         NodeType.TOPIC,
         List("asdf2361"),
+        None,
         List.empty
       )
       topic_5.contexts = generateContexts(
@@ -712,11 +725,30 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
           name = "Apekatt fag",
           contentUri = Some("urn:frontpage:1"),
           path = Some("/subject:19284"),
-          url = Some("/f/sub1/asdf2362"),
+          url = Some("/f/apekatt-fag/asdf2362"),
           metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           contextids = List(),
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19284",
+              rootId = "urn:subject:19284",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Apekatt fag"))),
+              path = "/subject:19284",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/apekatt-fag/asdf2362"
+            )
+          ),
           contexts = List()
         ),
         Node(
@@ -724,11 +756,31 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
           name = "Snabel fag",
           contentUri = Some("urn:frontpage:2"),
           path = Some("/subject:19285"),
-          url = Some("/f/sub1/asdf2362"),
+          url = Some("/f/snabel-fag/asdf2362"),
           metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           contextids = List(),
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19285",
+              rootId = "urn:subject:19285",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Snabel fag"))),
+              path = "/subject:19285",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/snabel-fag/asdf2362"
+            )
+          ),
+
           contexts = List()
         )
       ) ++

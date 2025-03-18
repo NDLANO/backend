@@ -26,6 +26,7 @@ case class SearchableTaxonomyContext(
     parentIds: List[String],
     isPrimary: Boolean,
     isActive: Boolean,
+    isVisible: Boolean,
     url: String
 )
 

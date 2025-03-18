@@ -327,6 +327,8 @@ export interface INodeHitDTO {
   title: string
   url?: string
   subjectPage?: ISubjectPageSummaryDTO
+  context?: IApiTaxonomyContextDTO
+  contexts: IApiTaxonomyContextDTO[]
   typename: "NodeHitDTO"
 }
 
@@ -444,7 +446,7 @@ export type LearningResourceType = ("standard" | "topic-article" | "frontpage-ar
 
 export type MultiSummaryBaseDTO = (IMultiSearchSummaryDTO | INodeHitDTO)
 
-export type NodeType = (INODE | IRESOURCE | ITOPIC | IPROGRAMME | ISUBJECT)
+export type NodeType = (IRESOURCE | IPROGRAMME | ISUBJECT | ITOPIC | INODE)
 
 export type SearchTrait = ("VIDEO" | "H5P" | "AUDIO" | "PODCAST")
 
