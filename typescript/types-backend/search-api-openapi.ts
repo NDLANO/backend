@@ -152,13 +152,13 @@ export type components = {
             /** @description Path to the resource in this context. */
             path: string;
             /** @description Breadcrumbs of path to the resource in this context. */
-            breadcrumbs?: string[];
+            breadcrumbs: string[];
             /** @description Unique id of this context. */
             contextId: string;
             /** @description Type in this context. */
             contextType: string;
             /** @description Resource-types of this context. */
-            resourceTypes?: components["schemas"]["TaxonomyResourceTypeDTO"][];
+            resourceTypes: components["schemas"]["TaxonomyResourceTypeDTO"][];
             /** @description Language for this context. */
             language: string;
             /** @description Whether this context is the primary connection */
@@ -318,8 +318,13 @@ export type components = {
             title: components["schemas"]["TitleDTO"];
             description: components["schemas"]["DescriptionDTO"];
             laereplan: components["schemas"]["GrepReferencedLaereplanDTO"];
-            typename: string;
+            typename: components["schemas"]["GrepKjerneelementDTO1"];
         };
+        /**
+         * GrepKjerneelementDTO
+         * @enum {string}
+         */
+        GrepKjerneelementDTO1: "GrepKjerneelementDTO";
         /**
          * GrepKompetansemaalDTO
          * @description Information about a single grep search result entry
@@ -330,11 +335,16 @@ export type components = {
             title: components["schemas"]["TitleDTO"];
             laereplan: components["schemas"]["GrepReferencedLaereplanDTO"];
             kompetansemaalSett: components["schemas"]["GrepReferencedKompetansemaalSettDTO"];
-            tverrfagligeTemaer?: components["schemas"]["GrepTverrfagligTemaDTO"][];
-            kjerneelementer?: components["schemas"]["GrepReferencedKjerneelementDTO"][];
+            tverrfagligeTemaer: components["schemas"]["GrepTverrfagligTemaDTO"][];
+            kjerneelementer: components["schemas"]["GrepReferencedKjerneelementDTO"][];
             reuseOf?: components["schemas"]["GrepReferencedKompetansemaalDTO"];
-            typename: string;
+            typename: components["schemas"]["GrepKompetansemaalDTO1"];
         };
+        /**
+         * GrepKompetansemaalDTO
+         * @enum {string}
+         */
+        GrepKompetansemaalDTO1: "GrepKompetansemaalDTO";
         /**
          * GrepKompetansemaalSettDTO
          * @description Information about a single grep search result entry
@@ -343,9 +353,14 @@ export type components = {
             /** @description The grep code */
             code: string;
             title: components["schemas"]["TitleDTO"];
-            kompetansemaal?: components["schemas"]["GrepReferencedKompetansemaalDTO"][];
-            typename: string;
+            kompetansemaal: components["schemas"]["GrepReferencedKompetansemaalDTO"][];
+            typename: components["schemas"]["GrepKompetansemaalSettDTO1"];
         };
+        /**
+         * GrepKompetansemaalSettDTO
+         * @enum {string}
+         */
+        GrepKompetansemaalSettDTO1: "GrepKompetansemaalSettDTO";
         /**
          * GrepLaererplanDTO
          * @description Information about a single grep search result entry
@@ -354,9 +369,14 @@ export type components = {
             /** @description The grep code */
             code: string;
             title: components["schemas"]["TitleDTO"];
-            replacedBy?: components["schemas"]["GrepReferencedLaereplanDTO"][];
-            typename: string;
+            replacedBy: components["schemas"]["GrepReferencedLaereplanDTO"][];
+            typename: components["schemas"]["GrepLaererplanDTO1"];
         };
+        /**
+         * GrepLaererplanDTO
+         * @enum {string}
+         */
+        GrepLaererplanDTO1: "GrepLaererplanDTO";
         /** GrepReferencedKjerneelementDTO */
         GrepReferencedKjerneelementDTO: {
             code: string;
@@ -378,17 +398,7 @@ export type components = {
             title: string;
         };
         /** GrepResultDTO */
-        GrepResultDTO: {
-            GrepKjerneelementDTO: components["schemas"]["GrepKjerneelementDTO"];
-        } | {
-            GrepKompetansemaalDTO: components["schemas"]["GrepKompetansemaalDTO"];
-        } | {
-            GrepKompetansemaalSettDTO: components["schemas"]["GrepKompetansemaalSettDTO"];
-        } | {
-            GrepLaererplanDTO: components["schemas"]["GrepLaererplanDTO"];
-        } | {
-            GrepTverrfagligTemaDTO: components["schemas"]["GrepTverrfagligTemaDTO"];
-        };
+        GrepResultDTO: components["schemas"]["GrepKjerneelementDTO"] | components["schemas"]["GrepKompetansemaalDTO"] | components["schemas"]["GrepKompetansemaalSettDTO"] | components["schemas"]["GrepLaererplanDTO"] | components["schemas"]["GrepTverrfagligTemaDTO"];
         /**
          * GrepSearchInputDTO
          * @description Input parameters to subject aggregations endpoint
@@ -453,8 +463,13 @@ export type components = {
             /** @description The grep code */
             code: string;
             title: components["schemas"]["TitleDTO"];
-            typename: string;
+            typename: components["schemas"]["GrepTverrfagligTemaDTO1"];
         };
+        /**
+         * GrepTverrfagligTemaDTO
+         * @enum {string}
+         */
+        GrepTverrfagligTemaDTO1: "GrepTverrfagligTemaDTO";
         /**
          * GroupSearchResultDTO
          * @description Search result for group search
@@ -494,7 +509,7 @@ export type components = {
             /** @description Field that matched */
             field: string;
             /** @description List of segments that matched in `field` */
-            matches?: string[];
+            matches: string[];
         };
         /**
          * LearningResourceType
@@ -583,28 +598,28 @@ export type components = {
             /** @description Primary context of the resource */
             context?: components["schemas"]["ApiTaxonomyContextDTO"];
             /** @description Contexts of the resource */
-            contexts?: components["schemas"]["ApiTaxonomyContextDTO"][];
+            contexts: components["schemas"]["ApiTaxonomyContextDTO"][];
             /** @description Languages the resource exists in */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             learningResourceType: components["schemas"]["LearningResourceType"];
             status?: components["schemas"]["StatusDTO"];
             /** @description Traits for the resource */
-            traits?: components["schemas"]["SearchTrait"][];
+            traits: components["schemas"]["SearchTrait"][];
             /**
              * Format: float
              * @description Relevance score. The higher the score, the better the document matches your search criteria.
              */
             score: number;
             /** @description List of objects describing matched field with matching words emphasized */
-            highlights?: components["schemas"]["HighlightedFieldDTO"][];
+            highlights: components["schemas"]["HighlightedFieldDTO"][];
             /** @description The taxonomy paths for the resource */
-            paths?: string[];
+            paths: string[];
             /** @description The time and date of last update */
             lastUpdated: string;
             /** @description Describes the license of the resource */
             license?: string;
             /** @description A list of revisions planned for the article */
-            revisions?: components["schemas"]["RevisionMetaDTO"][];
+            revisions: components["schemas"]["RevisionMetaDTO"][];
             responsible?: components["schemas"]["DraftResponsibleDTO"];
             /** @description Information about comments attached to the article */
             comments?: components["schemas"]["CommentDTO"][];
@@ -803,7 +818,7 @@ export type components = {
             /** @description The current status of the resource */
             current: string;
             /** @description Previous statuses this resource has been in */
-            other?: string[];
+            other: string[];
         };
         /**
          * SubjectAggregationDTO

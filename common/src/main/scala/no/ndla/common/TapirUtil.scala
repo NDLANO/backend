@@ -7,7 +7,8 @@
  */
 package no.ndla.common
 
-import sttp.tapir.{FieldName, Schema, SchemaType}
+import sttp.tapir.Schema.SName
+import sttp.tapir.{FieldName, Schema, SchemaAnnotations, SchemaType, Validator}
 
 object TapirUtil {
   def withDiscriminator[T](schema: Schema[T]): Schema[T] = {
@@ -22,6 +23,14 @@ object TapirUtil {
       case x => x
     }
     schema.copy(schemaType = schemaType)
+  }
+
+  def stringLiteralSchema[T <: String](value: T)(implicit annotations: SchemaAnnotations[T]): Schema[T] = {
+    annotations.enrich(
+      Schema[T](SchemaType.SString()).validate(
+        Validator.enumeration(List(value), v => Some(v), Some(SName(value)))
+      )
+    )
   }
 
   def throwNewError[T](schema: Schema[T]): Nothing = {
