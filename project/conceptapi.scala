@@ -15,7 +15,7 @@ object conceptapi extends Module {
       enumeratum,
       catsEffect,
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.typelevel" %% "cats-core" % "2.12.0"
+      "org.typelevel" %% "cats-core" % "2.13.0"
     ),
     melody,
     elastic4s,

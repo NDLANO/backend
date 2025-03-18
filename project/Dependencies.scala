@@ -7,29 +7,29 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "2.13.15"
-    val HikariConnectionPoolV = "5.1.0"
+    val ScalaV                = "2.13.16"
+    val HikariConnectionPoolV = "6.2.1"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.19"
-    val Log4JV                = "2.23.1"
-    val AwsSdkV               = "2.28.9"
+    val Log4JV                = "2.24.3"
+    val AwsSdkV               = "2.31.2"
     val MockitoV              = "1.17.30"
     val Elastic4sV            = "8.11.5"
-    val JacksonV              = "2.18.0"
+    val JacksonV              = "2.18.3"
     val CatsEffectV           = "3.5.4"
-    val FlywayV               = "10.17.3"
-    val PostgresV             = "42.7.3"
+    val FlywayV               = "11.4.0"
+    val PostgresV             = "42.7.5"
     val ScalaTsiV             = "0.8.3"
-    val Http4sV               = "0.23.27"
-    val TapirV                = "1.11.2"
-    val ApiSpecV              = "0.11.0"
+    val Http4sV               = "0.23.30"
+    val TapirV                = "1.11.19"
+    val ApiSpecV              = "0.11.7"
     val SttpV                 = "3.9.7"
-    val CirceV                = "0.14.9"
-    val ScalikeJDBCV          = "4.3.0"
-    val TestContainersV       = "1.20.0"
-    val JsoupV                = "1.18.1"
-    val JavaMelodyV           = "2.2.0"
-    val EnumeratumV           = "1.7.4"
+    val CirceV                = "0.14.12"
+    val ScalikeJDBCV          = "4.3.2"
+    val TestContainersV       = "1.20.6"
+    val JsoupV                = "1.19.1"
+    val JavaMelodyV           = "2.5.0"
+    val EnumeratumV           = "1.7.5"
     val FlexmarkV             = "0.64.8"
 
     lazy val scalaUri = ("io.lemonlabs" %% "scala-uri" % "4.0.3").excludeAll("org.typelevel", "cats-parse")
@@ -124,7 +124,7 @@ object Dependencies {
       "org.apache.logging.log4j"    % "log4j-core"        % Log4JV,
       "org.apache.logging.log4j"    % "log4j-slf4j2-impl" % Log4JV,
       "com.typesafe.scala-logging" %% "scala-logging"     % ScalaLoggingV,
-      "org.slf4j"                   % "slf4j-api"         % "2.0.12",
+      "org.slf4j"                   % "slf4j-api"         % "2.0.17",
       // We need jackson to load `log4j2.yaml`
       "com.fasterxml.jackson.core"       % "jackson-core"            % JacksonV,
       "com.fasterxml.jackson.core"       % "jackson-databind"        % JacksonV,
@@ -134,9 +134,9 @@ object Dependencies {
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides: Seq[ModuleID] = Seq(
-      "commons-codec"             % "commons-codec" % "1.17.0",
+      "commons-codec"             % "commons-codec" % "1.18.0",
       "org.apache.httpcomponents" % "httpclient"    % "4.5.14",
-      "org.yaml"                  % "snakeyaml"     % "2.0"
+      "org.yaml"                  % "snakeyaml"     % "2.4"
     )
     lazy val jave: Seq[ModuleID] = Seq(
       "ws.schild" % "jave-core"     % "3.5.0",
