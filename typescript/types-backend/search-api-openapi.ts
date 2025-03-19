@@ -642,9 +642,13 @@ export type components = {
             favorited?: number;
             /** @description Type of the resource */
             resultType: components["schemas"]["SearchType"];
-            /** @description Discriminator field */
-            typename: string;
+            typename: components["schemas"]["MultiSearchSummaryDTO1"];
         };
+        /**
+         * MultiSearchSummaryDTO
+         * @enum {string}
+         */
+        MultiSearchSummaryDTO1: "MultiSearchSummaryDTO";
         /**
          * MultiSearchTermsAggregationDTO
          * @description Information about search aggregation on `field`
@@ -676,9 +680,13 @@ export type components = {
             /** @description The url to the frontend page of the taxonomy node */
             url?: string;
             subjectPage?: components["schemas"]["SubjectPageSummaryDTO"];
-            /** @description Discriminator field */
-            typename: string;
+            typename: components["schemas"]["NodeHitDTO1"];
         };
+        /**
+         * NodeHitDTO
+         * @enum {string}
+         */
+        NodeHitDTO1: "NodeHitDTO";
         /**
          * NodeType
          * @enum {string}

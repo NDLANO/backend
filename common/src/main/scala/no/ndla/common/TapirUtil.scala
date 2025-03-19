@@ -10,13 +10,15 @@ package no.ndla.common
 import sttp.tapir.Schema.SName
 import sttp.tapir.{FieldName, Schema, SchemaAnnotations, SchemaType, Validator}
 
+import scala.reflect.ClassTag
+
 object TapirUtil {
-  def withDiscriminator[T](schema: Schema[T]): Schema[T] = {
+  def withDiscriminator[T](schema: Schema[T])(implicit ct: ClassTag[T]): Schema[T] = {
     val schemaType: SchemaType[T] = schema.schemaType match {
       case st: SchemaType.SProduct[T] =>
         val newField = SchemaType.SProductField[T, String](
           FieldName("typename"),
-          Schema.string.description("Discriminator field"),
+          stringLiteralSchema(ct.runtimeClass.getSimpleName),
           _ => throwNewError(schema)
         )
         st.copy(fields = st.fields :+ newField)
