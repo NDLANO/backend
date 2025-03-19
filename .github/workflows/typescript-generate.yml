@@ -40,7 +40,7 @@ jobs:
         run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME
           --password-stdin
       - name: Generate typescript types
-        run: sbt generateTypescript
+        run: sbt openapiTSGenerate
       - name: Verify typescript types
         run: cd typescript/types-backend && yarn install && yarn tsc
       - name: Commit typescript changes
