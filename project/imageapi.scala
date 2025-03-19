@@ -17,9 +17,9 @@ object imageapi extends Module {
       "org.scalatest" %% "scalatest"    % ScalaTestV % "test",
       "org.imgscalr"   % "imgscalr-lib" % "4.2",
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
-      "com.twelvemonkeys.imageio" % "imageio-core" % "3.10.1",
-      "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.11.0",
-      "commons-io"                % "commons-io"   % "2.16.1"
+      "com.twelvemonkeys.imageio" % "imageio-core" % "3.12.0",
+      "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.12.0",
+      "commons-io"                % "commons-io"   % "2.18.0"
     ),
     awsS3,
     melody,
