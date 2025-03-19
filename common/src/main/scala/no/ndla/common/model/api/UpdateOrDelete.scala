@@ -7,7 +7,10 @@
  */
 package no.ndla.common.model.api
 
+import cats.implicits.catsSyntaxOptionId
 import io.circe.{Decoder, Encoder, FailedCursor, Json}
+import sttp.tapir.{FieldName, Schema, SchemaType}
+
 import java.util.UUID
 
 /** To handle `null` and `undefined` differently on `PATCH` endpoints
@@ -24,6 +27,43 @@ case object Delete                       extends UpdateOrDelete[Nothing]
 final case class UpdateWith[A](value: A) extends UpdateOrDelete[A]
 
 object UpdateOrDelete {
+  val schemaName = s"UpdateOrDeleteInnerSchema-${UUID.randomUUID()}"
+
+  def replaceSchema(schema: sttp.apispec.Schema): Option[sttp.apispec.Schema] = {
+    val updateOrDeleteSchema = schema.properties.find { case (k, _) =>
+      k == UpdateOrDelete.schemaName
+    }
+
+    updateOrDeleteSchema match {
+      case Some((_, v: sttp.apispec.Schema)) =>
+        v
+          .copy(
+            title = schema.title,
+            description = schema.description,
+            deprecated = schema.deprecated
+          )
+          .nullable
+          .some
+      case _ => None
+    }
+  }
+
+  implicit def schema[T](implicit subschema: Schema[T]): Schema[UpdateOrDelete[T]] = {
+    val st: SchemaType.SProduct[UpdateOrDelete[T]] = SchemaType.SProduct(
+      List(
+        SchemaType.SProductField[UpdateOrDelete[T], Any](
+          FieldName(schemaName),
+          subschema.as,
+          _ => throw new RuntimeException("This is a bug")
+        )
+      )
+    )
+
+    subschema.asOption
+      .as[UpdateOrDelete[T]]
+      .copy(schemaType = st)
+  }
+
   implicit def decodeUpdateOrDelete[A](implicit decodeA: Decoder[A]): Decoder[UpdateOrDelete[A]] =
     Decoder.withReattempt {
       case c: FailedCursor if !c.incorrectFocus => Right(Missing)

@@ -12,7 +12,7 @@ object commonlib extends Module {
       enumeratum,
       enumeratumCirce,
       sttp,
-      scalikejdbc,
+      scalikejdbc
     ),
     awsS3,
     awsTranscribe,

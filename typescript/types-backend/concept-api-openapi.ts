@@ -454,8 +454,6 @@ export type components = {
          * @enum {string}
          */
         ContributorType: "artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer";
-        /** Delete */
-        Delete: Record<string, never>;
         /**
          * DraftConceptSearchParamsDTO
          * @description The search parameters
@@ -596,8 +594,6 @@ export type components = {
         Map_String: {
             [key: string]: string;
         };
-        /** Missing */
-        Missing: Record<string, never>;
         /**
          * MultiSearchTermsAggregationDTO
          * @description Information about search aggregation on `field`
@@ -721,24 +717,6 @@ export type components = {
             count: number;
         };
         /**
-         * UpdateOrDelete_NewConceptMetaImageDTO
-         * @description An image-api ID for the concept meta image
-         */
-        UpdateOrDelete_NewConceptMetaImageDTO: components["schemas"]["Delete"] | components["schemas"]["Missing"] | components["schemas"]["UpdateWith_NewConceptMetaImageDTO"];
-        /**
-         * UpdateOrDelete_String
-         * @description NDLA ID representing the editor responsible for this article
-         */
-        UpdateOrDelete_String: components["schemas"]["Delete"] | components["schemas"]["Missing"] | components["schemas"]["UpdateWith_String"];
-        /** UpdateWith_NewConceptMetaImageDTO */
-        UpdateWith_NewConceptMetaImageDTO: {
-            value: components["schemas"]["NewConceptMetaImageDTO"];
-        };
-        /** UpdateWith_String */
-        UpdateWith_String: {
-            value: string;
-        };
-        /**
          * UpdatedConceptDTO
          * @description Information about the concept
          */
@@ -749,7 +727,7 @@ export type components = {
             title?: string;
             /** @description The content of the concept */
             content?: string;
-            metaImage: components["schemas"]["UpdateOrDelete_NewConceptMetaImageDTO"];
+            metaImage?: components["schemas"]["NewConceptMetaImageDTO"] | null;
             /** @description Describes the copyright information for the concept */
             copyright?: components["schemas"]["DraftCopyrightDTO"];
             /** @description A list of searchable tags */
@@ -758,7 +736,11 @@ export type components = {
             status?: string;
             /** @description A visual element for the concept. May be anything from an image to a video or H5P */
             visualElement?: string;
-            responsibleId: components["schemas"]["UpdateOrDelete_String"];
+            /**
+             * @deprecated
+             * @description NDLA ID representing the editor responsible for this article
+             */
+            responsibleId?: string | null;
             /** @description Type of concept. 'concept', or 'gloss' */
             conceptType?: string;
             glossData?: components["schemas"]["GlossDataDTO"];

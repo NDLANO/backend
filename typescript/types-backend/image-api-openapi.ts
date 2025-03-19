@@ -404,8 +404,6 @@ export type components = {
             /** @description Whether or not the content has been processed */
             processed: boolean;
         };
-        /** Delete */
-        Delete: Record<string, never>;
         /**
          * EditorNoteDTO
          * @description Note about a change that happened to the image
@@ -625,8 +623,6 @@ export type components = {
             /** Format: binary */
             file: string;
         };
-        /** Missing */
-        Missing: Record<string, never>;
         /**
          * NewImageMetaInformationV2DTO
          * @description Meta information for the image
@@ -798,7 +794,8 @@ export type components = {
             language: string;
             /** @description Title for the image */
             title?: string;
-            alttext: components["schemas"]["UpdateOrDelete_String"];
+            /** @description Alternative text for the image */
+            alttext?: string | null;
             copyright?: components["schemas"]["CopyrightDTO"];
             /** @description Searchable tags for the image */
             tags?: string[];
@@ -812,15 +809,6 @@ export type components = {
             metadata: components["schemas"]["UpdateImageMetaInformationDTO"];
             /** Format: binary */
             file?: string;
-        };
-        /**
-         * UpdateOrDelete_String
-         * @description Alternative text for the image
-         */
-        UpdateOrDelete_String: components["schemas"]["Delete"] | components["schemas"]["Missing"] | components["schemas"]["UpdateWith_String"];
-        /** UpdateWith_String */
-        UpdateWith_String: {
-            value: string;
         };
         /**
          * ValidationErrorBody

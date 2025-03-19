@@ -680,6 +680,10 @@ export type components = {
             /** @description The url to the frontend page of the taxonomy node */
             url?: string;
             subjectPage?: components["schemas"]["SubjectPageSummaryDTO"];
+            /** @description Primary context of the resource */
+            context?: components["schemas"]["ApiTaxonomyContextDTO"];
+            /** @description Contexts of the resource */
+            contexts: components["schemas"]["ApiTaxonomyContextDTO"][];
             typename: components["schemas"]["NodeHitDTO1"];
         };
         /**

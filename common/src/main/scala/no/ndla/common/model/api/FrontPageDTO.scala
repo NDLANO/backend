@@ -14,8 +14,6 @@ import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.unused
-
 @description("The Menu object")
 case class MenuDTO(
     @description("Id of the article") articleId: Long,

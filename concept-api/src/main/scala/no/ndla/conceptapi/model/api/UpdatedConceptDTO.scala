@@ -11,7 +11,7 @@ package no.ndla.conceptapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.{DraftCopyrightDTO, UpdateOrDelete}
-import sttp.tapir.Schema.annotations.description
+import sttp.tapir.Schema.annotations.{description, deprecated}
 
 @description("Information about the concept")
 case class UpdatedConceptDTO(
@@ -32,6 +32,7 @@ case class UpdatedConceptDTO(
     @description("A visual element for the concept. May be anything from an image to a video or H5P")
     visualElement: Option[String],
     @description("NDLA ID representing the editor responsible for this article")
+    @deprecated
     responsibleId: UpdateOrDelete[String],
     @description("Type of concept. 'concept', or 'gloss'")
     conceptType: Option[String],

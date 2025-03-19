@@ -9,11 +9,14 @@
 package no.ndla.network.tapir
 
 import cats.implicits.*
+import io.circe.Json
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.model.api.UpdateOrDelete
+import sttp.apispec
 import sttp.apispec.openapi.{Components, Contact, Info, License}
-import sttp.apispec.{OAuthFlow, OAuthFlows, SecurityScheme}
+import sttp.apispec.{AnySchema, OAuthFlow, OAuthFlows, SchemaLike, SecurityScheme}
 import sttp.tapir.*
-import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
+import sttp.tapir.docs.openapi.{OpenAPIDocsInterpreter, OpenAPIDocsOptions}
 import sttp.tapir.server.ServerEndpoint
 
 import scala.collection.immutable.ListMap
@@ -60,15 +63,48 @@ trait SwaggerControllerConfig {
       openIdConnectUrl = None
     )
 
-    private val docs = {
-      val docs                = OpenAPIDocsInterpreter().serverEndpointsToOpenAPI(swaggerEndpoints, info)
-      val generatedComponents = docs.components.getOrElse(Components.Empty)
-      val newComponents       = generatedComponents.copy(securitySchemes = ListMap("oauth2" -> Right(securityScheme)))
-      val docsWithComponents  = docs.components(newComponents).asJson
-      docsWithComponents.asJson
+    /** NOTE: This is a hack to allow us to create nullable types in the specification. If possible this should probably
+      * be replaced by a tapir alternative when that is possible.
+      *
+      * https://github.com/softwaremill/tapir/issues/2953
+      */
+    private val schemaPostProcessingFunctions: List[apispec.Schema => Option[apispec.Schema]] = List(
+      UpdateOrDelete.replaceSchema
+    )
+
+    private def postProcessSchema(schema: SchemaLike): SchemaLike = {
+      schema match {
+        case schema: AnySchema => schema
+        case schema: apispec.Schema =>
+          val convertedSchema = schemaPostProcessingFunctions.foldLeft(None: Option[apispec.Schema]) {
+            case (None, f)                  => f(schema)
+            case (Some(convertedSchema), _) => Some(convertedSchema)
+          }
+
+          convertedSchema match {
+            case Some(value) => value
+            case None =>
+              val props = schema.properties.map {
+                case (k, v: apispec.Schema) => k -> postProcessSchema(v)
+                case (k, v)                 => k -> v
+              }
+              schema.copy(properties = props)
+          }
+      }
     }
 
-    def printSwagger(): Unit = println(docs.noSpaces)
+    private val docs: Json = {
+      val options             = OpenAPIDocsOptions.default
+      val docs                = OpenAPIDocsInterpreter(options).serverEndpointsToOpenAPI(swaggerEndpoints, info)
+      val generatedComponents = docs.components.getOrElse(Components.Empty)
+      val newSchemas          = generatedComponents.schemas.map { case (k, v) => k -> postProcessSchema(v) }
+      val newComponents = generatedComponents.copy(
+        securitySchemes = ListMap("oauth2" -> Right(securityScheme)),
+        schemas = newSchemas
+      )
+      val docsWithComponents = docs.components(newComponents).asJson
+      docsWithComponents.asJson
+    }
 
     def saveSwagger(): Unit = {
       import java.io.*

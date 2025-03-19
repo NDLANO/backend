@@ -714,8 +714,6 @@ export type components = {
          * @enum {string}
          */
         ContributorType: "artist" | "cowriter" | "compiler" | "composer" | "correction" | "director" | "distributor" | "editorial" | "facilitator" | "idea" | "illustrator" | "linguistic" | "originator" | "photographer" | "processor" | "publisher" | "reader" | "rightsholder" | "scriptwriter" | "supplier" | "translator" | "writer";
-        /** Delete */
-        Delete: Record<string, never>;
         /**
          * DisclaimerDTO
          * @description The disclaimer of the article
@@ -837,8 +835,6 @@ export type components = {
         Map_List_String: {
             [key: string]: string[];
         };
-        /** Missing */
-        Missing: Record<string, never>;
         /**
          * MultiPartialPublishResultDTO
          * @description A list of articles that were partial published to article-api
@@ -1060,24 +1056,6 @@ export type components = {
             results: string[];
         };
         /**
-         * UpdateOrDelete_NewArticleMetaImageDTO
-         * @description An image-api ID for the article meta image
-         */
-        UpdateOrDelete_NewArticleMetaImageDTO: components["schemas"]["Delete"] | components["schemas"]["Missing"] | components["schemas"]["UpdateWith_NewArticleMetaImageDTO"];
-        /**
-         * UpdateOrDelete_String
-         * @description NDLA ID representing the editor responsible for this article
-         */
-        UpdateOrDelete_String: components["schemas"]["Delete"] | components["schemas"]["Missing"] | components["schemas"]["UpdateWith_String"];
-        /** UpdateWith_NewArticleMetaImageDTO */
-        UpdateWith_NewArticleMetaImageDTO: {
-            value: components["schemas"]["NewArticleMetaImageDTO"];
-        };
-        /** UpdateWith_String */
-        UpdateWith_String: {
-            value: string;
-        };
-        /**
          * UpdatedArticleDTO
          * @description Information about the article
          */
@@ -1103,7 +1081,7 @@ export type components = {
             introduction?: string;
             /** @description A meta description */
             metaDescription?: string;
-            metaImage: components["schemas"]["UpdateOrDelete_NewArticleMetaImageDTO"];
+            metaImage?: components["schemas"]["NewArticleMetaImageDTO"] | null;
             /** @description A visual element for the article. May be anything from an image to a video or H5P */
             visualElement?: string;
             copyright?: components["schemas"]["DraftCopyrightDTO"];
@@ -1127,7 +1105,8 @@ export type components = {
             relatedContent?: (components["schemas"]["RelatedContentLinkDTO"] | number)[];
             /** @description A list of all revisions of the article */
             revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
-            responsibleId: components["schemas"]["UpdateOrDelete_String"];
+            /** @description NDLA ID representing the editor responsible for this article */
+            responsibleId?: string | null;
             /** @description The path to the frontpage article */
             slug?: string;
             /** @description Information about a comment attached to an article */
