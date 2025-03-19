@@ -12,7 +12,6 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.{DraftCopyrightDTO, UpdateOrDelete}
 import sttp.tapir.Schema.annotations.description
-import com.scalatsi.TypescriptType.{TSNull, TSUndefined, TSUnion}
 import com.scalatsi.*
 
 @description("Information about the concept")
@@ -23,8 +22,6 @@ case class UpdatedConceptDTO(
     title: Option[String],
     @description("The content of the concept")
     content: Option[String],
-    @description("An image-api ID for the concept meta image")
-    metaImage: UpdateOrDelete[NewConceptMetaImageDTO],
     @description("Describes the copyright information for the concept")
     copyright: Option[DraftCopyrightDTO],
     @description("A list of searchable tags")
@@ -45,12 +42,5 @@ object UpdatedConceptDTO {
   implicit val encoder: Encoder[UpdatedConceptDTO] = UpdateOrDelete.filterMarkers(deriveEncoder)
   implicit val decoder: Decoder[UpdatedConceptDTO] = deriveDecoder
 
-  implicit val typescriptUpdatedArticle: TSType[UpdatedConceptDTO]    = TSType.fromCaseClass[UpdatedConceptDTO]
-  implicit def typescriptNewMetaImage: TSType[NewConceptMetaImageDTO] = TSType.fromCaseClass[NewConceptMetaImageDTO]
-  implicit def typescriptNewMetaImageUnion: TSType[UpdateOrDelete[NewConceptMetaImageDTO]] = {
-    TSType.alias[UpdateOrDelete[NewConceptMetaImageDTO]](
-      "UpdateOrDeleteNewConceptMetaImageDTO",
-      TSUnion(Seq(TSNull, TSUndefined, typescriptNewMetaImage.get))
-    )
-  }
+  implicit val typescriptUpdatedConcept: TSType[UpdatedConceptDTO] = TSType.fromCaseClass[UpdatedConceptDTO]
 }

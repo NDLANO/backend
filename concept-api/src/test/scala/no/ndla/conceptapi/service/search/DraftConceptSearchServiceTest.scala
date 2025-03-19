@@ -22,7 +22,6 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.concept.{
   Concept,
   ConceptContent,
-  ConceptMetaImage,
   ConceptStatus,
   ConceptType,
   GlossData,
@@ -30,9 +29,7 @@ import no.ndla.common.model.domain.concept.{
   VisualElement,
   WordClass
 }
-import no.ndla.conceptapi.integration.model.TaxonomyData
 import no.ndla.mapping.License
-import org.mockito.Mockito.when
 
 import java.util.UUID
 
@@ -162,10 +159,10 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     copyright = Some(byNcSa),
-    metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en")),
     tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
     status = concept.Status(current = ConceptStatus.PUBLISHED, other = Set.empty),
-    responsible = Some(Responsible("test1", today))
+    responsible = Some(Responsible("test1", today)),
+    visualElement = Seq(VisualElement(s"""<$EmbedTagName data-resource="image" data-resource_id="test.image" data-url="test.url" />""", "nb"))
   )
 
   val concept10: Concept = TestData.sampleConcept.copy(
@@ -237,7 +234,6 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
     if (elasticSearchContainer.isSuccess) {
       draftConceptIndexService.createIndexAndAlias().get
 
@@ -659,8 +655,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
         searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url"))
       )
 
-    search.totalCount should be(1)
-    search.results.head.id should be(10)
+    search.totalCount should be(2)
+    search.results.map(_.id) should be(List(9,10))
   }
 
   test("that search on embedResource matches visual element") {
@@ -673,7 +669,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     search.results.head.id should be(10)
   }
 
-  test("that search on embedId matches meta image") {
+  test("that search on embedId matches visual element image") {
     val Success(search) =
       draftConceptSearchService.all(
         searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.image"))
@@ -683,7 +679,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     search.results.head.id should be(9)
   }
 
-  test("that search on query parameter as embedId matches meta image") {
+  test("that search on query parameter as embedId matches visual element image") {
     val Success(search) =
       draftConceptSearchService.matchingQuery(
         "test.image",
@@ -712,8 +708,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
         searchSettings.copy()
       )
 
-    search.totalCount should be(1)
-    search.results.head.id should be(10)
+    search.totalCount should be(2)
+    search.results.map(_.id) should be(List(9,10))
   }
 
   test("that search on query parameter matches on concept id") {
@@ -731,7 +727,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(search) =
       draftConceptSearchService.all(
         searchSettings
-          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.url2"))
+          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.image"))
       )
 
     search.totalCount should be(1)

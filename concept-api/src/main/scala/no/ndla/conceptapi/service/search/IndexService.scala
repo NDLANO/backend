@@ -113,7 +113,7 @@ trait IndexService {
       }
     }
 
-    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
+    private def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
       if (keepRaw) {
         SearchLanguage.languageAnalyzers.map(langAnalyzer =>
           textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
@@ -138,11 +138,6 @@ trait IndexService {
         intField("id"),
         keywordField("conceptType"),
         keywordField("defaultTitle").normalizer("lower"),
-        nestedField("metaImage").fields(
-          keywordField("imageId"),
-          keywordField("altText"),
-          keywordField("language")
-        ),
         dateField("lastUpdated"),
         dateField("created"),
         keywordField("status.current"),

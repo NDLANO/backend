@@ -433,7 +433,6 @@ trait SearchConverterService {
           conceptType = c.conceptType.entryName,
           title = title,
           content = content,
-          metaImage = c.metaImage,
           defaultTitle = title.defaultValue,
           tags = tags,
           lastUpdated = c.updated,
@@ -941,11 +940,6 @@ trait SearchConverterService {
           common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
         )
       val url = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
-      val metaImages = searchableConcept.domainObject.metaImage.map(image => {
-        val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        common.model.api.search.MetaImageDTO(metaImageUrl, image.altText, image.language)
-      })
-      val metaImage = findByLanguageOrBestEffort(metaImages, language)
 
       val responsible = searchableConcept.responsible.map(r =>
         common.model.api.search.DraftResponsibleDTO(r.responsibleId, r.lastUpdated)
@@ -959,7 +953,7 @@ trait SearchConverterService {
           id = searchableConcept.id,
           title = title,
           metaDescription = metaDescription,
-          metaImage = metaImage,
+          metaImage = None,
           url = url,
           context = None,
           contexts = List.empty,

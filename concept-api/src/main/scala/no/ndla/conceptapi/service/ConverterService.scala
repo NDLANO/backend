@@ -15,7 +15,6 @@ import no.ndla.common.model.domain.{Responsible, Tag, Title, concept}
 import no.ndla.common.model.domain.concept.{
   ConceptContent,
   ConceptEditorNote,
-  ConceptMetaImage,
   ConceptStatus,
   ConceptType,
   GlossData,
@@ -27,7 +26,7 @@ import no.ndla.common.model.domain.concept.{
 }
 import no.ndla.common.{Clock, model}
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
+import no.ndla.common.model.api.{Delete, UpdateWith}
 import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptTagsDTO, NotFoundException}
@@ -50,7 +49,6 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
-    import props.externalApiUrls
 
     def toApiConcept(
         concept: DomainConcept,
@@ -67,9 +65,6 @@ trait ConverterService {
         val content = findByLanguageOrBestEffort(concept.content, language)
           .map(toApiConceptContent)
           .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString))
-        val metaImage = findByLanguageOrBestEffort(concept.metaImage, language)
-          .map(toApiMetaImage)
-          .getOrElse(api.ConceptMetaImageDTO("", "", UnknownLanguage.toString))
 
         val tags = findByLanguageOrBestEffort(concept.tags, language).map(toApiTags)
 
@@ -87,7 +82,6 @@ trait ConverterService {
             content = Some(content),
             copyright = concept.copyright.map(toApiCopyright),
             source = concept.copyright.flatMap(_.origin),
-            metaImage = Some(metaImage),
             tags = tags,
             created = concept.created,
             updated = concept.updated,
@@ -183,13 +177,6 @@ trait ConverterService {
     def toApiConceptContent(content: ConceptContent): api.ConceptContent =
       api.ConceptContent(Jsoup.parseBodyFragment(content.content).body().text(), content.content, content.language)
 
-    def toApiMetaImage(metaImage: ConceptMetaImage): api.ConceptMetaImageDTO =
-      api.ConceptMetaImageDTO(
-        s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
-        metaImage.altText,
-        metaImage.language
-      )
-
     def toApiVisualElement(visualElement: VisualElement): api.VisualElementDTO =
       api.VisualElementDTO(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
@@ -242,8 +229,6 @@ trait ConverterService {
         created = now,
         updated = now,
         updatedBy = Seq(userInfo.id),
-        metaImage =
-          concept.metaImage.map(m => model.domain.concept.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         status = Status.default,
         visualElement = visualElement,
@@ -296,14 +281,6 @@ trait ConverterService {
       val domainVisualElement =
         updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq
 
-      val updatedMetaImage = updateConcept.metaImage match {
-        case Delete => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
-        case UpdateWith(m) =>
-          val domainMetaImage = concept.ConceptMetaImage(m.id, m.alt, updateConcept.language)
-          mergeLanguageFields(toMergeInto.metaImage, Seq(domainMetaImage))
-        case Missing => toMergeInto.metaImage
-      }
-
       val updatedBy = {
         val userId = userInfo.id
         if (!toMergeInto.updatedBy.contains(userId)) toMergeInto.updatedBy :+ userId
@@ -328,7 +305,6 @@ trait ConverterService {
           created = toMergeInto.created,
           updated = clock.now(),
           updatedBy = updatedBy,
-          metaImage = updatedMetaImage,
           tags = mergeLanguageFields(toMergeInto.tags, domainTags),
           status = toMergeInto.status,
           visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
@@ -345,11 +321,6 @@ trait ConverterService {
 
     def toDomainConcept(id: Long, concept: api.UpdatedConceptDTO, userInfo: TokenUser): DomainConcept = {
       val lang = concept.language
-
-      val newMetaImage = concept.metaImage match {
-        case UpdateWith(m) => Seq(model.domain.concept.ConceptMetaImage(m.id, m.alt, lang))
-        case _             => Seq.empty
-      }
 
       val responsible = concept.responsibleId match {
         case UpdateWith(responsibleId) => Some(Responsible(responsibleId, clock.now()))
@@ -380,7 +351,6 @@ trait ConverterService {
         created = clock.now(),
         updated = clock.now(),
         updatedBy = Seq(userInfo.id),
-        metaImage = newMetaImage,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         status = Status.default,
         visualElement = concept.visualElement.map(ve => toDomainVisualElement(ve, lang)).toSeq,
