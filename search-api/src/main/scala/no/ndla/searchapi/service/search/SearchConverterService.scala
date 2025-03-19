@@ -1102,7 +1102,6 @@ trait SearchConverterService {
     }
 
     def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO = {
-      import no.ndla.common.model.api.ListDTO.implicits.*
       common.model.api.search.MultiSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
