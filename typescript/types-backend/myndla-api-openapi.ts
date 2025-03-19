@@ -499,8 +499,6 @@ export type components = {
             /** @description Value to set configuration param to. */
             value: string[] | boolean;
         };
-        /** EMPLOYEE */
-        EMPLOYEE: Record<string, never>;
         /**
          * ErrorBody
          * @description Information about an error
@@ -700,8 +698,6 @@ export type components = {
          * @enum {string}
          */
         ResourceType: "article" | "audio" | "concept" | "image" | "learningpath" | "multidisciplinary" | "topic" | "video";
-        /** STUDENT */
-        STUDENT: Record<string, never>;
         /**
          * SingleResourceStatsDTO
          * @description Stats for single resource
@@ -801,8 +797,9 @@ export type components = {
         /**
          * UserRole
          * @description User role
+         * @enum {string}
          */
-        UserRole: components["schemas"]["EMPLOYEE"] | components["schemas"]["STUDENT"];
+        UserRole: "employee" | "student";
         /**
          * UserStatsDTO
          * @description Stats for the users

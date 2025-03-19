@@ -6,7 +6,7 @@
  *
  */
 
-import OpenApiPlugin.autoImport.{openapiTSEnable, openapiTSGenerate}
+import OpenApiTypescriptPlugin.autoImport.{openapiTSEnable, openapiTSGenerate}
 import sbt.*
 import sbt.Keys.*
 
@@ -15,14 +15,17 @@ import java.nio.file.Paths
 import scala.io.Source
 import _root_.io.circe.parser.parse
 
-object OpenApiPlugin extends AutoPlugin {
+object OpenApiTypescriptPlugin extends AutoPlugin {
   object autoImport {
     val openapiTSGenerate = taskKey[Unit]("Generate openapi specification and typescript types")
     val openapiTSEnable   = settingKey[Boolean]("Whether or not openapi specification should be generated")
   }
 
   def getTypeExportString(schemaType: String): String = {
-    s"""export type I$schemaType = schemas["$schemaType"];"""
+    // NOTE: Generates with I prefix as well as without
+    //       Because the old solution used it we'll keep it for now to avoid too many breaking changes.
+    s"""export type $schemaType = schemas["$schemaType"];
+       |export type I$schemaType = schemas["$schemaType"];""".stripMargin
   }
 
   def generateTypescriptFile(appName: String, schemaTypes: List[String]): String = {
