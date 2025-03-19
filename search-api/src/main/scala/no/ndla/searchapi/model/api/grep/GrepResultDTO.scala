@@ -9,8 +9,6 @@
 package no.ndla.searchapi.model.api.grep
 
 import cats.implicits.*
-import com.scalatsi.TypescriptType.TSUnion
-import com.scalatsi.{TSNamedType, TSType, TypescriptType}
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder}
@@ -54,17 +52,6 @@ object GrepResultDTO {
     //       Useful for guarding the type of the object in the frontend.
     CirceUtil.addTypenameDiscriminator(json, result.getClass)
   }
-
-  val typescriptUnionTypes: Seq[TypescriptType.TSInterface] = Seq(
-    TSType.fromCaseClass[GrepKjerneelementDTO].get,
-    TSType.fromCaseClass[GrepKompetansemaalDTO].get,
-    TSType.fromCaseClass[GrepKompetansemaalSettDTO].get,
-    TSType.fromCaseClass[GrepLaererplanDTO].get,
-    TSType.fromCaseClass[GrepTverrfagligTemaDTO].get
-  )
-
-  implicit val t2: TSNamedType[GrepResultDTO] =
-    TSType.alias[GrepResultDTO]("GrepResultDTO", TSUnion(typescriptUnionTypes))
 
   implicit val s1: Schema["GrepLaererplanDTO"]         = stringLiteralSchema("GrepLaererplanDTO")
   implicit val s2: Schema["GrepTverrfagligTemaDTO"]    = stringLiteralSchema("GrepTverrfagligTemaDTO")

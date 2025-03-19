@@ -15,7 +15,14 @@ import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.model.{CombinedUser, CombinedUserRequired, CombinedUserWithBoth, CombinedUserWithMyNDLAUser, HttpRequestException, OptionalCombinedUser}
+import no.ndla.network.model.{
+  CombinedUser,
+  CombinedUserRequired,
+  CombinedUserWithBoth,
+  CombinedUserWithMyNDLAUser,
+  HttpRequestException,
+  OptionalCombinedUser
+}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.client3.Identity
 import sttp.model.StatusCode

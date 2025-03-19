@@ -103,7 +103,7 @@ class ComponentRegistry(properties: AudioApiProperties)
 
   lazy val clock = new SystemClock
 
-  val swagger =new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       audioApiController,
       seriesController,

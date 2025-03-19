@@ -145,7 +145,7 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val userDataController                      = new UserDataController
   lazy val healthController: TapirHealthController = new TapirHealthController
 
-  val swagger =new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       draftController,
       fileController,

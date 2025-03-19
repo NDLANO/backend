@@ -97,7 +97,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val internController                        = new InternController
   lazy val clock: SystemClock                      = new SystemClock
 
-  val swagger =new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       searchController,
       internController,

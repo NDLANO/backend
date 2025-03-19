@@ -8,10 +8,7 @@
 
 package no.ndla.audioapi.model.api
 
-import com.scalatsi._
 import sttp.tapir.Schema.annotations.description
-
-import scala.annotation.unused
 
 @description("Short summary of information about the series")
 case class SeriesSummaryDTO(
@@ -22,12 +19,3 @@ case class SeriesSummaryDTO(
     @description("A list of episode summaries") episodes: Option[Seq[AudioSummaryDTO]],
     @description("Cover photo for the series") coverPhoto: CoverPhotoDTO
 )
-
-object SeriesSummaryDTO {
-  implicit val SeriesSummaryTSI: TSIType[SeriesSummaryDTO] = {
-    @unused
-    implicit val audioSummaryReference: TSType[Option[Seq[AudioSummaryDTO]]] =
-      TSType.external[Option[Seq[AudioSummaryDTO]]]("IAudioSummary")
-    TSType.fromCaseClass[SeriesSummaryDTO]
-  }
-}

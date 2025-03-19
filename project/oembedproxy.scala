@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.*
 import sbt.Keys.*
 import sbtdocker.DockerPlugin
@@ -27,9 +26,5 @@ object oembedproxy extends Module {
 
   override lazy val plugins: Seq[Plugins] = Seq(
     DockerPlugin
-  )
-
-  override lazy val disablePlugins: Seq[AutoPlugin] = Seq(
-    ScalaTsiPlugin
   )
 }

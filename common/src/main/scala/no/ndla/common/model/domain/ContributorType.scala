@@ -8,8 +8,6 @@
 
 package no.ndla.common.model.domain
 
-import com.scalatsi.{TSNamedType, TSType}
-import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
 import enumeratum.*
 import no.ndla.common.CirceUtil.CirceEnumWithErrors
 import no.ndla.common.errors.ValidationException
@@ -100,6 +98,4 @@ object ContributorType extends Enum[ContributorType] with CirceEnumWithErrors[Co
   ).withDefaultValue(ContributorType.Writer)
 
   implicit def schema: Schema[ContributorType] = schemaForEnumEntry[ContributorType]
-  implicit val enumTsType: TSNamedType[ContributorType] =
-    TSType.alias[ContributorType]("ContributorType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 }

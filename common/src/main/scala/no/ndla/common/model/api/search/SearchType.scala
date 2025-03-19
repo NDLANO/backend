@@ -8,8 +8,6 @@
 
 package no.ndla.common.model.api.search
 
-import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import no.ndla.common.CirceUtil.CirceEnumWithErrors
 import sttp.tapir.Schema
@@ -30,7 +28,4 @@ object SearchType extends Enum[SearchType] with CirceEnumWithErrors[SearchType] 
   override def values: IndexedSeq[SearchType] = findValues
 
   implicit def schema: Schema[SearchType] = schemaForEnumEntry[SearchType]
-
-  implicit val enumTsType: TSNamedType[SearchType] =
-    TSType.alias[SearchType]("SearchType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 }

@@ -8,14 +8,12 @@
 
 package no.ndla.draftapi.model.api
 
-import com.scalatsi.TypescriptType.{TSNull, TSUndefined, TSUnion}
 import no.ndla.common.implicits._
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto._
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{DraftCopyrightDTO, RelatedContent, RelatedContentLinkDTO, UpdateOrDelete}
 import sttp.tapir.Schema.annotations.description
-import com.scalatsi._
 
 // format: off
 @description("Information about the article")
@@ -58,13 +56,4 @@ object UpdatedArticleDTO {
 
   implicit def encoder: Encoder[UpdatedArticleDTO] = deriveEncoder[UpdatedArticleDTO]
   implicit def decoder: Decoder[UpdatedArticleDTO] = deriveDecoder[UpdatedArticleDTO]
-
-  implicit val typescriptUpdatedArticle: TSType[UpdatedArticleDTO]    = TSType.fromCaseClass[UpdatedArticleDTO]
-  implicit def typescriptNewMetaImage: TSType[NewArticleMetaImageDTO] = TSType.fromCaseClass[NewArticleMetaImageDTO]
-  implicit def typescriptNewMetaImageUnion: TSType[UpdateOrDelete[NewArticleMetaImageDTO]] = {
-    TSType.alias[UpdateOrDelete[NewArticleMetaImageDTO]](
-      "UpdateOrDeleteNewArticleMetaImageDTO",
-      TSUnion(Seq(TSNull, TSUndefined, typescriptNewMetaImage.get))
-    )
-  }
 }

@@ -2,12 +2,6 @@ import Dependencies.versions.*
 import GithubWorkflowPlugin.autoImport.*
 import OpenApiTypescriptPlugin.autoImport.*
 import CopyrightHeaderPlugin.autoImport.*
-import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
-  typescriptExports,
-  typescriptGenerationImports,
-  typescriptOutputFile,
-  typescriptTaggedUnionDiscriminator
-}
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
 import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.*
 import org.typelevel.scalacoptions.*
@@ -55,7 +49,7 @@ trait Module {
     scalaVersion        := ScalaV,
     javacOptions ++= Seq("-source", "21", "-target", "21"),
     ghGenerateEnable        := true,
-    openapiTSEnable           := this.MainClass.isDefined,
+    openapiTSEnable         := this.MainClass.isDefined,
     ghGenerateEnableRelease := this.enableReleases,
     javaOptions ++= reflectiveAccessOptions,
     tpolecatScalacOptions ++= scalacOptions,
@@ -192,13 +186,4 @@ trait Module {
   }
 
   val fmtSettings: Seq[Def.Setting[Task[Unit]]] = Seq(checkfmtSetting, fmtSetting)
-
-  protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
-    Seq(
-      typescriptGenerationImports        := imports,
-      typescriptExports                  := exports,
-      typescriptOutputFile               := file("./typescript/types-backend") / s"${this.moduleName}.ts",
-      typescriptTaggedUnionDiscriminator := Some("typename")
-    )
-  }
 }

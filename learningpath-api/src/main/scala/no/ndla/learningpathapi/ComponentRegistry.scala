@@ -113,7 +113,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val statsController                         = new StatsController
   lazy val healthController: TapirHealthController = new TapirHealthController
 
-  val swagger =new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       learningpathControllerV2,
       internController,

@@ -8,10 +8,7 @@
 
 package no.ndla.audioapi.model.api
 
-import com.scalatsi._
 import sttp.tapir.Schema.annotations.description
-
-import scala.annotation.unused
 
 @description("Meta information about the series")
 case class SeriesDTO(
@@ -24,12 +21,3 @@ case class SeriesDTO(
     @description("A list of available languages for this series") supportedLanguages: Seq[String],
     @description("Specifies if this series generates rss-feed") hasRSS: Boolean
 )
-
-object SeriesDTO {
-  implicit val seriesTSI: TSIType[SeriesDTO] = {
-    @unused
-    implicit val audioMetaInformationReference: TSNamedType[AudioMetaInformationDTO] =
-      TSType.external[AudioMetaInformationDTO]("IAudioMetaInformationDTO")
-    TSType.fromCaseClass[SeriesDTO]
-  }
-}

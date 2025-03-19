@@ -27,5 +27,5 @@ case class TitleWithHtmlDTO(
 object TitleWithHtmlDTO {
   implicit val encoder: Encoder[TitleWithHtmlDTO] = deriveEncoder
   implicit val decoder: Decoder[TitleWithHtmlDTO] = deriveDecoder
-  implicit val schema: Schema[TitleWithHtmlDTO] = Schema.derived
+  implicit val schema: Schema[TitleWithHtmlDTO]   = Schema.derived
 }

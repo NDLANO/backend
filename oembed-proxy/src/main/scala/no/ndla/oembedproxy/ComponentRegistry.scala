@@ -40,7 +40,7 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
 
   lazy val clock = new SystemClock
 
-  val swagger =new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       oEmbedProxyController,
       healthController
