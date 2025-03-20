@@ -292,7 +292,7 @@ export type components = {
             /** @description List of people that updated this concept */
             updatedBy?: string[];
             /** @description All available languages of the current concept */
-            supportedLanguages?: string[];
+            supportedLanguages: string[];
             /** @description Status information of the concept */
             status: components["schemas"]["StatusDTO"];
             visualElement?: components["schemas"]["VisualElementDTO"];

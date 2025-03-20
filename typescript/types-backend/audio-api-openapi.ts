@@ -578,7 +578,7 @@ export type components = {
             /** @description Cover photo alttext for the series */
             coverPhotoAltText: string;
             /** @description Ids for episodes of the series */
-            episodes?: number[];
+            episodes: number[];
             /** @description ISO 639-1 code that represents the language used in this resource */
             language: string;
             /**
