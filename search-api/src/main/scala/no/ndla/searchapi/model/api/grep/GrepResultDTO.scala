@@ -9,13 +9,11 @@
 package no.ndla.searchapi.model.api.grep
 
 import cats.implicits.*
-import com.scalatsi.TypescriptType.TSUnion
-import com.scalatsi.{TSNamedType, TSType, TypescriptType}
 import io.circe.generic.auto.*
-import sttp.tapir.generic.auto.*
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
+import no.ndla.common.TapirUtil.stringLiteralSchema
 import no.ndla.common.model.api.search.TitleDTO
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
@@ -55,22 +53,11 @@ object GrepResultDTO {
     CirceUtil.addTypenameDiscriminator(json, result.getClass)
   }
 
-  val typescriptUnionTypes: Seq[TypescriptType.TSInterface] = Seq(
-    TSType.fromCaseClass[GrepKjerneelementDTO].get,
-    TSType.fromCaseClass[GrepKompetansemaalDTO].get,
-    TSType.fromCaseClass[GrepKompetansemaalSettDTO].get,
-    TSType.fromCaseClass[GrepLaererplanDTO].get,
-    TSType.fromCaseClass[GrepTverrfagligTemaDTO].get
-  )
-
-  implicit val t2: TSNamedType[GrepResultDTO] =
-    TSType.alias[GrepResultDTO]("GrepResultDTO", TSUnion(typescriptUnionTypes))
-
-  implicit val s1: Schema["GrepLaererplanDTO"]         = Schema.string
-  implicit val s2: Schema["GrepTverrfagligTemaDTO"]    = Schema.string
-  implicit val s3: Schema["GrepKompetansemaalSettDTO"] = Schema.string
-  implicit val s4: Schema["GrepKompetansemaalDTO"]     = Schema.string
-  implicit val s5: Schema["GrepKjerneelementDTO"]      = Schema.string
+  implicit val s1: Schema["GrepLaererplanDTO"]         = stringLiteralSchema("GrepLaererplanDTO")
+  implicit val s2: Schema["GrepTverrfagligTemaDTO"]    = stringLiteralSchema("GrepTverrfagligTemaDTO")
+  implicit val s3: Schema["GrepKompetansemaalSettDTO"] = stringLiteralSchema("GrepKompetansemaalSettDTO")
+  implicit val s4: Schema["GrepKompetansemaalDTO"]     = stringLiteralSchema("GrepKompetansemaalDTO")
+  implicit val s5: Schema["GrepKjerneelementDTO"]      = stringLiteralSchema("GrepKjerneelementDTO")
 
   implicit val decoder: Decoder[GrepResultDTO] = List[Decoder[GrepResultDTO]](
     Decoder[GrepKjerneelementDTO].widen,
@@ -80,7 +67,6 @@ object GrepResultDTO {
     Decoder[GrepTverrfagligTemaDTO].widen
   ).reduceLeft(_ or _)
 
-  implicit val s: Schema[GrepResultDTO] = Schema.oneOfWrapped[GrepResultDTO]
   def fromSearchable(searchable: SearchableGrepElement, language: String): Try[GrepResultDTO] = {
     val titleLv = findByLanguageOrBestEffort(searchable.title.languageValues, language)
       .getOrElse(LanguageValue(Language.DefaultLanguage, ""))

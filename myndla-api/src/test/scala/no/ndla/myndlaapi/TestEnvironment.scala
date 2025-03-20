@@ -89,6 +89,7 @@ trait TestEnvironment
   val DBUtil: DBUtility                              = mock[DBUtility]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 
   def resetMocks(): Unit = {
     reset(clock)

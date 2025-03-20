@@ -15,7 +15,6 @@ lazy val `learningpath-api`  = Module.setup(project in file("./learningpath-api/
 lazy val `oembed-proxy`      = Module.setup(project in file("./oembed-proxy/"),     oembedproxy,     deps = Seq(network, common, database, testWith(scalatestsuite), testWith(tapirtesting)))
 lazy val `search-api`        = Module.setup(project in file("./search-api/"),       searchapi,       deps = Seq(network, mapping, language, common, search, database, testWith(scalatestsuite), testWith(tapirtesting)))
 lazy val `myndla-api`        = Module.setup(project in file("./myndla-api/"),       myndlaapi,       deps = Seq(network, mapping, language, common, database, testWith(scalatestsuite), testWith(tapirtesting)))
-lazy val constants           = Module.setup(project, constantslib,                                   deps = Seq(common, network, language, mapping, database, testWith(scalatestsuite)))
 
 // Libraries
 lazy val common              = Module.setup(project in file("./common/"),            commonlib,         deps = Seq(testWith(scalatestsuite), language))

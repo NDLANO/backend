@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.Props

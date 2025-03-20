@@ -58,4 +58,5 @@ trait TestEnvironment
   override val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }

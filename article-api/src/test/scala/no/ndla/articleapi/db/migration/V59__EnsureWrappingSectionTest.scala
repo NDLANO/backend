@@ -21,7 +21,7 @@ class V59__EnsureWrappingSectionTest extends UnitSuite with TestEnvironment {
   }
 
   test("That the content should not be wrapped if there exists a <section>") {
-    val migration  = new V59__EnsureWrappingSection
+    val migration    = new V59__EnsureWrappingSection
     val validArticle = """<section>Dette er en forklaringsartikkel.</section><p>Her er et paragraf.</p>"""
 
     migration.convertContent(validArticle, "nb") should be(validArticle)

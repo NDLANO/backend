@@ -8,10 +8,10 @@
 
 package no.ndla.common.model.domain.draft
 
-import com.scalatsi.TypescriptType.TSEnum
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import no.ndla.common.errors.ValidationException
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -53,9 +53,5 @@ object DraftStatus extends Enum[DraftStatus] with CirceEnum[DraftStatus] {
   implicit def ordering[A <: DraftStatus]: Ordering[DraftStatus] =
     (x: DraftStatus, y: DraftStatus) => indexOf(x) - indexOf(y)
 
-  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
-  implicit val enumTsType: TSNamedType[DraftStatus] = TSType.alias[DraftStatus](
-    "DraftStatus",
-    TSEnum.string("DraftStatusEnum", tsEnumValues*)
-  )
+  implicit val schema: Schema[DraftStatus] = schemaForEnumEntry[DraftStatus]
 }

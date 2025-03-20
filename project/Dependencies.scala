@@ -19,7 +19,6 @@ object Dependencies {
     val CatsEffectV           = "3.5.4"
     val FlywayV               = "11.4.0"
     val PostgresV             = "42.7.5"
-    val ScalaTsiV             = "0.8.3"
     val Http4sV               = "0.23.30"
     val TapirV                = "1.11.19"
     val ApiSpecV              = "0.11.7"
@@ -79,8 +78,6 @@ object Dependencies {
       "net.bull.javamelody" % "javamelody-core" % JavaMelodyV,
       "org.jrobin"          % "jrobin"          % "1.5.9" // This is needed for javamelody graphing
     )
-
-    lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
     lazy val circe: Seq[ModuleID] = Seq(
       "io.circe" %% "circe-generic" % CirceV,

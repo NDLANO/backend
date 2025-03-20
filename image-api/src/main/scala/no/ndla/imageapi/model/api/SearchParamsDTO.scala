@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.imageapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}

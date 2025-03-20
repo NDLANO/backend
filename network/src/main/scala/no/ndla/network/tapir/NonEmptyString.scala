@@ -8,7 +8,6 @@
 
 package no.ndla.network.tapir
 
-import com.scalatsi.TSType
 import io.circe.{Decoder, DecodingFailure, Encoder, FailedCursor, HCursor, Json}
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
@@ -47,8 +46,6 @@ object NonEmptyString {
         )
       )(x => x.map(_.underlying).toList)
   }
-
-  implicit val typescriptType: TSType[NonEmptyString] = TSType.sameAs[NonEmptyString, String]
 
   implicit def circeOptionDecoder: Decoder[Option[NonEmptyString]] = Decoder.withReattempt {
     case c: FailedCursor if !c.incorrectFocus => Right(None)

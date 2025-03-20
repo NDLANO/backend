@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.network.clients
 
 import io.circe.Decoder

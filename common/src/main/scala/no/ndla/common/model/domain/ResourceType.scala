@@ -8,8 +8,6 @@
 
 package no.ndla.common.model.domain
 
-import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import sttp.tapir.Codec.PlainCodec
 import sttp.tapir.Schema
@@ -24,8 +22,6 @@ object ResourceType extends Enum[ResourceType] with CirceEnum[ResourceType] {
 
   implicit val codec: PlainCodec[ResourceType] = plainCodecEnumEntry[ResourceType]
   implicit val schema: Schema[ResourceType]    = schemaForEnumEntry[ResourceType]
-  implicit val enumTsType: TSNamedType[ResourceType] =
-    TSType.alias[ResourceType]("ResourceType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 
   case object Article           extends ResourceType("article")
   case object Audio             extends ResourceType("audio")

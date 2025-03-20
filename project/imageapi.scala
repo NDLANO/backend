@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.*
 import sbt.Keys.libraryDependencies
 import sbtdocker.DockerPlugin
@@ -9,7 +8,6 @@ object imageapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.imageapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      scalaTsi,
       scalaUri,
       enumeratum,
       sttp,
@@ -29,35 +27,14 @@ object imageapi extends Module {
     vulnerabilityOverrides
   )
 
-  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
-    imports = Seq(
-      "no.ndla.imageapi.model.api._",
-      "no.ndla.imageapi.model.api.UpdateImageMetaInformationDTO._"
-    ),
-    exports = Seq(
-      "ImageDTO",
-      "ImageMetaInformationV2DTO",
-      "ImageMetaInformationV3DTO",
-      "ImageMetaSummaryDTO",
-      "NewImageMetaInformationV2DTO",
-      "SearchParamsDTO",
-      "SearchResultDTO",
-      "SearchResultV3DTO",
-      "TagsSearchResultDTO",
-      "UpdateImageMetaInformationDTO"
-    )
-  )
-
   override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
     dockerSettings() ++
-    tsSettings ++
     assemblySettings()
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
-    DockerPlugin,
-    ScalaTsiPlugin
+    DockerPlugin
   )
 }

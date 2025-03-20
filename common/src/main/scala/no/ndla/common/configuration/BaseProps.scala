@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common.configuration
 
 import sttp.client3.UriContext

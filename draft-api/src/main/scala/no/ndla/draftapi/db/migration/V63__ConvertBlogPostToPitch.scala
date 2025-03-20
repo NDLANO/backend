@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.draftapi.db.migration
 
 import no.ndla.draftapi.db.HtmlMigration

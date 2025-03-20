@@ -11,6 +11,7 @@ package no.ndla.common.model.api.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.WithLanguage
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta description of the resource")
@@ -24,4 +25,5 @@ case class MetaDescriptionDTO(
 object MetaDescriptionDTO {
   implicit val encoder: Encoder[MetaDescriptionDTO] = deriveEncoder
   implicit val decoder: Decoder[MetaDescriptionDTO] = deriveDecoder
+  implicit val schema: Schema[MetaDescriptionDTO]   = Schema.derived
 }

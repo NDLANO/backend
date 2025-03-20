@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.*
 import sbt.Keys.*
 import sbtassembly.AssemblyPlugin
@@ -10,7 +9,6 @@ object conceptapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.conceptapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      scalaTsi,
       scalaUri,
       enumeratum,
       catsEffect,
@@ -25,31 +23,15 @@ object conceptapi extends Module {
     vulnerabilityOverrides
   )
 
-  lazy val tsSettings: Seq[Def.Setting[?]] = typescriptSettings(
-    imports = Seq("no.ndla.conceptapi.model.api._", "no.ndla.conceptapi.model.api.TSTypes._"),
-    exports = Seq(
-      "ConceptDTO",
-      "ConceptSearchParamsDTO",
-      "ConceptSearchResultDTO",
-      "ConceptSummaryDTO",
-      "DraftConceptSearchParamsDTO",
-      "NewConceptDTO",
-      "TagsSearchResultDTO",
-      "UpdatedConceptDTO"
-    )
-  )
-
   override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
     assemblySettings() ++
-    dockerSettings() ++
-    tsSettings
+    dockerSettings()
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
-    ScalaTsiPlugin,
     AssemblyPlugin
   )
 }

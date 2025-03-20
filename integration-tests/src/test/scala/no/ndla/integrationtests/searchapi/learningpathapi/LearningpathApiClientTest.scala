@@ -56,7 +56,7 @@ class LearningpathApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
-    Future { learningpathApi.run() }: Unit
+    Future { learningpathApi.run(Array.empty) }: Unit
     blockUntil(() => {
       import sttp.client3.quick.*
       val req = quickRequest.get(uri"$learningpathApiBaseUrl/health/readiness")

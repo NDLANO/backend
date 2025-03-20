@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.searchapi.service
 
 import com.typesafe.scalalogging.StrictLogging

@@ -100,4 +100,5 @@ trait TestEnvironment
   val searchApiClient: SearchApiClient = mock[SearchApiClient]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }

@@ -123,4 +123,5 @@ trait TestEnvironment
   val imageApiClient: ImageApiClient       = mock[ImageApiClient]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }
