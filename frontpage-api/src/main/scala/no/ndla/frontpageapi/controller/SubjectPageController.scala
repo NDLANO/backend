@@ -30,6 +30,8 @@ trait SubjectPageController {
   class SubjectPageController extends TapirController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
+    private val pathArticleId = path[Long]("article_id").description("Id of the article that is to be fetched")
+    private val pathLanguage  = path[String]("language").description("The ISO 639-1 language code describing language.")
 
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all subjectpages")
@@ -105,12 +107,26 @@ trait SubjectPageController {
         }
       }
 
+    def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in(pathArticleId / "language" / pathLanguage)
+      .summary("Delete language from subject page")
+      .description("Delete language from subject page")
+      .out(jsonBody[SubjectPageDTO])
+      .errorOut(errorOutputsFor(400, 401, 403, 404))
+      .requirePermission(FRONTPAGE_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (articleId, language) =>
+          writeService.deleteSubjectPageLanguage(articleId, language)
+        }
+      }
+
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getAllSubjectPages,
       getSubjectPagesByIds,
       getSingleSubjectPage,
       createNewSubjectPage,
-      updateSubjectPage
+      updateSubjectPage,
+      deleteLanguage
     )
   }
 }
