@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.frontpageapi.controller
 
 import cats.implicits.*

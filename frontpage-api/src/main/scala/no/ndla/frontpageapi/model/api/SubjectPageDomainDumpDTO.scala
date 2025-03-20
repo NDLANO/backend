@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.frontpageapi.model.api
 
 import no.ndla.common.model.domain.frontpage.SubjectPage

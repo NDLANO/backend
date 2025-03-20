@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.network.tapir
 
 import cats.implicits.catsSyntaxEitherId

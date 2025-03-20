@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common
 
 import io.circe.DecodingFailure.Reason

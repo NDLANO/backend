@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.searchapi
 
 import no.ndla.common.model.api.search.MultiSearchSummaryDTO

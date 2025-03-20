@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common.model.api
 
 import no.ndla.scalatestsuite.UnitTestSuite

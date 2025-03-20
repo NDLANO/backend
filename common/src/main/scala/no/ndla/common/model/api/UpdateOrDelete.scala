@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common.model.api
 
 import cats.implicits.catsSyntaxOptionId

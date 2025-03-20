@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.audioapi.model.api
 
 import no.ndla.audioapi.model.Sort
