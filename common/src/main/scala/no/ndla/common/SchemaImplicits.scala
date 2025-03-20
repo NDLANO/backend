@@ -14,4 +14,6 @@ trait SchemaImplicits {
     s.asIterable[Seq].copy(isOptional = false)
   implicit def requiredList[T](implicit s: Schema[T]): Schema[List[T]] =
     s.asIterable[List].copy(isOptional = false)
+  implicit def requiredSet[T](implicit s: Schema[T]): Schema[Set[T]] =
+    s.asIterable[Set].copy(isOptional = false)
 }
