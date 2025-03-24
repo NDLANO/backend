@@ -39,6 +39,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
+  test("That deleting last language for subject page throws exception") {
+    when(subjectPageRepository.withId(any)).thenReturn(Success(Some(TestData.domainSubjectPage)))
+    when(subjectPageRepository.updateSubjectPage(any)(any)).thenAnswer(i => Success(i.getArgument(0)))
+
+    val result = writeService.deleteSubjectPageLanguage(TestData.domainSubjectPage.id.get, "nb")
+    result.isFailure should be(true)
+  }
+
   test("That language is deleted for film front page") {
     val filmFrontPage = TestData.domainFilmFrontPage.copy(
       about =
@@ -52,5 +60,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.deleteFilmFrontPageLanguage("nn")
     result should be(Success(ConverterService.toApiFilmFrontPage(TestData.domainFilmFrontPage, None)))
+  }
+
+  test("That deleting last language for film front page throws exception") {
+    val filmFrontPage = TestData.domainFilmFrontPage.copy(
+      about = TestData.domainFilmFrontPage.about.filter(_.language == "nb"),
+      movieThemes = TestData.domainFilmFrontPage.movieThemes.map(movieTheme =>
+        movieTheme.copy(name = movieTheme.name.filter(_.language == "nb"))
+      )
+    )
+    when(filmFrontPageRepository.get(any)).thenReturn(Some(filmFrontPage))
+    when(filmFrontPageRepository.update(any)(any)).thenAnswer(i => Success(i.getArgument(0)))
+
+    val result = writeService.deleteFilmFrontPageLanguage("nb")
+    result.isFailure should be(true)
   }
 }

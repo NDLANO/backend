@@ -13,7 +13,7 @@ import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
-import no.ndla.frontpageapi.model.domain.Errors.SubjectPageNotFoundException
+import no.ndla.frontpageapi.model.domain.Errors.{OperationNotAllowedException, SubjectPageNotFoundException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.language.Language
 
@@ -114,16 +114,20 @@ trait WriteService {
     def deleteSubjectPageLanguage(id: Long, language: String): Try[SubjectPageDTO] = {
       subjectPageRepository.withId(id) match {
         case Success(Some(subjectPage)) =>
-          val about           = subjectPage.about.filter(_.language != language)
-          val metaDescription = subjectPage.metaDescription.filter(_.language != language)
-          subjectPageRepository
-            .updateSubjectPage(
-              subjectPage.copy(
-                about = about,
-                metaDescription = metaDescription
-              )
-            )
-            .flatMap(ConverterService.toApiSubjectPage(_, Language.NoLanguage, fallback = true))
+          subjectPage.about.size match {
+            case 1 => Failure(OperationNotAllowedException("Only one language left"))
+            case _ =>
+              val about           = subjectPage.about.filter(_.language != language)
+              val metaDescription = subjectPage.metaDescription.filter(_.language != language)
+              subjectPageRepository
+                .updateSubjectPage(
+                  subjectPage.copy(
+                    about = about,
+                    metaDescription = metaDescription
+                  )
+                )
+                .flatMap(ConverterService.toApiSubjectPage(_, Language.NoLanguage, fallback = true))
+          }
         case Success(None) => Failure(SubjectPageNotFoundException(id))
         case Failure(ex)   => Failure(ex)
       }
@@ -132,16 +136,20 @@ trait WriteService {
     def deleteFilmFrontPageLanguage(language: String): Try[api.FilmFrontPageDTO] = {
       filmFrontPageRepository.get match {
         case Some(page) =>
-          filmFrontPageRepository
-            .update(
-              page.copy(
-                about = page.about.filter(_.language != language),
-                movieThemes = page.movieThemes.map(movieTheme =>
-                  movieTheme.copy(name = movieTheme.name.filter(_.language != language))
+          page.about.size match {
+            case 1 => Failure(OperationNotAllowedException("Only one language left"))
+            case _ =>
+              filmFrontPageRepository
+                .update(
+                  page.copy(
+                    about = page.about.filter(_.language != language),
+                    movieThemes = page.movieThemes.map(movieTheme =>
+                      movieTheme.copy(name = movieTheme.name.filter(_.language != language))
+                    )
+                  )
                 )
-              )
-            )
-            .map(ConverterService.toApiFilmFrontPage(_, None))
+                .map(ConverterService.toApiFilmFrontPage(_, None))
+          }
         case None => Failure(NotFoundException("The film front page was not found"))
       }
     }
