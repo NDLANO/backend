@@ -105,37 +105,11 @@ trait SearchController {
       .out(jsonBody[Seq[GroupSearchResultDTO]])
       .errorOut(errorOutputsFor(401, 403))
       .serverLogicPure { case (q, includeMissingResourceTypeGroup, feideToken) =>
-        val sort = q.sort
-          .flatMap(Sort.valueOf)
-          .getOrElse(if (q.queryParam.isDefined) Sort.ByRelevanceDesc else Sort.ByRelevanceDesc)
         getAvailability(feideToken) match {
           case Failure(ex) => returnLeftError(ex)
           case Success(availability) =>
-            val settings = SearchSettings(
-              query = q.queryParam,
-              fallback = q.fallback,
-              language = q.language,
-              license = q.license,
-              page = q.page,
-              pageSize = q.pageSize,
-              sort = sort,
-              withIdIn = q.learningResourceIds.values,
-              subjects = q.subjects.values,
-              resourceTypes = q.resourceTypes.values,
-              learningResourceTypes = q.contextTypes.values.flatMap(LearningResourceType.valueOf),
-              supportedLanguages = q.languageFilter.values,
-              relevanceIds = q.relevanceFilter.values,
-              grepCodes = q.grepCodes.values,
-              traits = q.traits.values.flatMap(SearchTrait.valueOf),
-              shouldScroll = false,
-              filterByNoResourceType = false,
-              aggregatePaths = q.aggregatePaths.values,
-              embedResource = q.embedResource.values,
-              embedId = q.embedId,
-              availability = availability,
-              articleTypes = List.empty,
-              filterInactive = q.filterInactive
-            )
+            val searchParams = asSearchParamsDTO(q)
+            val settings     = asSettings(searchParams.some, availability)
             groupSearch(settings, includeMissingResourceTypeGroup)
         }
       }
@@ -232,6 +206,38 @@ trait SearchController {
       }
     }
 
+    private def asSearchParamsDTO(queryWrapper: GetParamsWrapper): SearchParamsDTO = {
+      val pagination = queryWrapper.pagination
+      val q          = queryWrapper.searchParams
+      val sort       = q.sort.flatMap(Sort.valueOf)
+
+      SearchParamsDTO(
+        page = pagination.page.some,
+        pageSize = pagination.pageSize.some,
+        articleTypes = q.articleTypes.values.some,
+        scrollId = q.scrollId,
+        query = q.queryParam,
+        fallback = q.fallback.some,
+        language = q.language.some,
+        license = q.license,
+        sort = sort,
+        ids = q.learningResourceIds.values.some,
+        subjects = q.subjects.values.some,
+        resourceTypes = q.resourceTypes.values.some,
+        contextTypes = q.contextTypes.values.some,
+        relevance = q.relevanceFilter.values.some,
+        languageFilter = q.languageFilter.values.some,
+        grepCodes = q.grepCodes.values.some,
+        traits = q.traits.values.flatMap(SearchTrait.valueOf).some,
+        aggregatePaths = q.aggregatePaths.values.some,
+        embedResource = q.embedResource.values.some,
+        embedId = q.embedId,
+        filterInactive = q.filterInactive.some,
+        resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
+        nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption).some
+      )
+    }
+
     def searchLearningResources: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find learning resources")
       .description("Shows all learning resources. You can search too.")
@@ -241,39 +247,10 @@ trait SearchController {
       .in(GetSearchQueryParams.input)
       .in(feideHeader)
       .serverLogicPure { case (queryWrapper, feideToken) =>
-        val pagination = queryWrapper.pagination
-        val q          = queryWrapper.searchParams
-        scrollWithOr(q.scrollId, q.language, multiSearchService) {
-          val sort         = q.sort.flatMap(Sort.valueOf)
-          val shouldScroll = q.scrollId.exists(InitialScrollContextKeywords.contains)
-          getAvailability(feideToken).flatMap(availability => {
-            val settings = SearchSettings(
-              query = q.queryParam,
-              fallback = q.fallback,
-              language = q.language,
-              license = q.license,
-              page = pagination.page,
-              pageSize = pagination.pageSize,
-              sort = sort.getOrElse(Sort.ByRelevanceDesc),
-              withIdIn = q.learningResourceIds.values,
-              subjects = q.subjects.values,
-              resourceTypes = q.resourceTypes.values,
-              learningResourceTypes = q.contextTypes.values.flatMap(LearningResourceType.valueOf),
-              supportedLanguages = q.languageFilter.values,
-              relevanceIds = q.relevanceFilter.values,
-              grepCodes = q.grepCodes.values,
-              shouldScroll = shouldScroll,
-              filterByNoResourceType = false,
-              aggregatePaths = q.aggregatePaths.values,
-              embedResource = q.embedResource.values,
-              embedId = q.embedId,
-              availability = availability,
-              articleTypes = q.articleTypes.values,
-              filterInactive = q.filterInactive,
-              traits = q.traits.values.flatMap(SearchTrait.valueOf),
-              resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
-              nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption)
-            )
+        scrollWithOr(queryWrapper.searchParams.scrollId, queryWrapper.searchParams.language, multiSearchService) {
+          val searchParams = asSearchParamsDTO(queryWrapper)
+          getAvailability(feideToken).flatMap { availability =>
+            val settings = asSettings(searchParams.some, availability)
             multiSearchService.matchingQuery(settings) match {
               case Success(searchResult) =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
@@ -281,9 +258,8 @@ trait SearchController {
                 Success((result, headers))
               case Failure(ex) => Failure(ex)
             }
-          })
+          }
         }
-
       }
 
     def postSearchLearningResources: ServerEndpoint[Any, Eff] = endpoint.post
