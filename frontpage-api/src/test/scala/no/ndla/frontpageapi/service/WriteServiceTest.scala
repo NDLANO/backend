@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.frontpageapi.service
 
 import no.ndla.common.model.domain.frontpage.VisualElementType.Image

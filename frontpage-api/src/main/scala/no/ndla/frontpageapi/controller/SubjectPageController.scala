@@ -30,8 +30,9 @@ trait SubjectPageController {
   class SubjectPageController extends TapirController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
-    private val pathArticleId = path[Long]("article_id").description("Id of the article that is to be fetched")
-    private val pathLanguage  = path[String]("language").description("The ISO 639-1 language code describing language.")
+    private val pathSubjectPageId =
+      path[Long]("subject_page_id").description("Id of the subject page that is to be fetched")
+    private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
 
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all subjectpages")
@@ -108,7 +109,7 @@ trait SubjectPageController {
       }
 
     def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
-      .in(pathArticleId / "language" / pathLanguage)
+      .in(pathSubjectPageId / "language" / pathLanguage)
       .summary("Delete language from subject page")
       .description("Delete language from subject page")
       .out(jsonBody[SubjectPageDTO])
