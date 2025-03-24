@@ -30,8 +30,7 @@ trait SubjectPageController {
   class SubjectPageController extends TapirController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
-    private val pathSubjectPageId =
-      path[Long]("subject_page_id").description("Id of the subject page that is to be fetched")
+    private val pathSubjectPageId            = path[Long]("subjectpage-id").description("The subjectpage id")
     private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
 
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
@@ -48,7 +47,7 @@ trait SubjectPageController {
 
     def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get data to display on a subject page")
-      .in(path[Long]("subjectpage-id").description("The subjectpage id"))
+      .in(pathSubjectPageId)
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
       .out(jsonBody[SubjectPageDTO])
@@ -92,7 +91,7 @@ trait SubjectPageController {
     def updateSubjectPage: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update subject page")
       .in(jsonBody[UpdatedSubjectPageDTO])
-      .in(path[Long]("subjectpage-id").description("The subjectpage id"))
+      .in(pathSubjectPageId)
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
       .out(jsonBody[SubjectPageDTO])
