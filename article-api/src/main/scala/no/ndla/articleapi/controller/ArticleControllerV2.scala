@@ -19,6 +19,7 @@ import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.Props
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
@@ -147,7 +148,7 @@ trait ArticleControllerV2 {
               queryOrEmpty,
               parsedPageSize,
               parsedPageNo,
-              language
+              Language.languageOrParam(language)
             )
             .asRight
         }
@@ -234,7 +235,7 @@ trait ArticleControllerV2 {
               search(
                 query,
                 sort,
-                language,
+                Language.languageOrParam(language),
                 license,
                 page,
                 pageSize,
@@ -275,7 +276,7 @@ trait ArticleControllerV2 {
         readService
           .getArticlesByIds(
             ids.values,
-            language,
+            Language.languageOrParam(language),
             fallback,
             page,
             pageSize,
@@ -310,7 +311,7 @@ trait ArticleControllerV2 {
           search(
             query,
             sort,
-            language,
+            Language.languageOrParam(language),
             license,
             page,
             pageSize,
@@ -337,10 +338,10 @@ trait ArticleControllerV2 {
         val (articleId, revisionQuery, feideToken, language, fallback) = params
         (parseArticleIdAndRevision(articleId) match {
           case (Failure(_), _) =>
-            readService.getArticleBySlug(articleId, language, fallback)
+            readService.getArticleBySlug(articleId, Language.languageOrParam(language), fallback)
           case (Success(articleId), inlineRevision) =>
             val revision = inlineRevision.orElse(revisionQuery)
-            readService.withIdV2(articleId, language, fallback, revision, feideToken)
+            readService.withIdV2(articleId, Language.languageOrParam(language), fallback, revision, feideToken)
         }).map(_.Ok())
       }
 

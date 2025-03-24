@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.repository.AudioRepository
 
 trait SearchIndexService {
-  this: AudioRepository with AudioIndexService =>
+  this: AudioRepository & AudioIndexService =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends StrictLogging {}

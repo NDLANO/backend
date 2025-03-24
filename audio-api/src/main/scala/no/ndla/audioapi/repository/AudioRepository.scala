@@ -20,7 +20,7 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait AudioRepository {
-  this: DataSource with SeriesRepository with Props with ErrorHandling =>
+  this: DataSource & SeriesRepository & Props & ErrorHandling =>
   val audioRepository: AudioRepository
 
   class AudioRepository extends StrictLogging with Repository[AudioMetaInformation] {

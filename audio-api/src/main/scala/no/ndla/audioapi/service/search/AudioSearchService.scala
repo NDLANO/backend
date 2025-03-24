@@ -27,16 +27,11 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 trait AudioSearchService {
-  this: Elastic4sClient
-    with AudioIndexService
-    with SearchConverterService
-    with SearchService
-    with Props
-    with ErrorHandling =>
+  this: Elastic4sClient & AudioIndexService & SearchConverterService & SearchService & Props & ErrorHandling =>
   val audioSearchService: AudioSearchService
 
   class AudioSearchService extends StrictLogging with SearchService[api.AudioSummaryDTO] {
-    import props._
+    import props.*
 
     override val searchIndex: String = SearchIndex
 
