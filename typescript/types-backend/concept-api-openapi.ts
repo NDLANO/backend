@@ -736,10 +736,7 @@ export type components = {
             status?: string;
             /** @description A visual element for the concept. May be anything from an image to a video or H5P */
             visualElement?: string;
-            /**
-             * @deprecated
-             * @description NDLA ID representing the editor responsible for this article
-             */
+            /** @description NDLA ID representing the editor responsible for this article */
             responsibleId?: string | null;
             /** @description Type of concept. 'concept', or 'gloss' */
             conceptType?: string;
