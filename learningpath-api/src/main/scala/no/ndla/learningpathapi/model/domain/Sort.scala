@@ -8,8 +8,6 @@
 
 package no.ndla.learningpathapi.model.domain
 
-import com.scalatsi.TypescriptType.TSEnum
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import sttp.tapir.Codec.PlainCodec
 import sttp.tapir.Schema
@@ -43,12 +41,6 @@ object Sort extends Enum[Sort] with CirceEnum[Sort] {
     }
   }
 
-  implicit val schema: Schema[Sort]               = schemaForEnumEntry[Sort]
-  implicit val codec: PlainCodec[Sort]            = plainCodecEnumEntry[Sort]
-  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
-  implicit val enumTsType: TSNamedType[Sort] = TSType.alias[Sort](
-    "Sort",
-    TSEnum.string("LearningpathSortEnum", tsEnumValues*)
-  )
-
+  implicit val schema: Schema[Sort]    = schemaForEnumEntry[Sort]
+  implicit val codec: PlainCodec[Sort] = plainCodecEnumEntry[Sort]
 }

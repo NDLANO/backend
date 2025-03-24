@@ -56,7 +56,7 @@ class DraftApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     draftApi = new draftapi.MainClass(draftApiProperties)
-    Future { draftApi.run() }: Unit
+    Future { draftApi.run(Array.empty) }: Unit
     blockUntil(() => {
       import sttp.client3.quick.*
       val req = quickRequest.get(uri"$draftApiBaseUrl/health/readiness")

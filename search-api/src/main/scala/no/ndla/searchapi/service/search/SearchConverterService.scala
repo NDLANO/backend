@@ -1101,7 +1101,7 @@ trait SearchConverterService {
       }
     }
 
-    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO =
+    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO = {
       common.model.api.search.MultiSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
@@ -1111,6 +1111,7 @@ trait SearchConverterService {
         searchResult.suggestions,
         searchResult.aggregations.map(toApiMultiTermsAggregation)
       )
+    }
 
     def toApiGroupMultiSearchResult(group: String, searchResult: domain.SearchResult): GroupSearchResultDTO =
       api.GroupSearchResultDTO(

@@ -11,8 +11,8 @@ package no.ndla.audioapi
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 
-class MainClass(val props: AudioApiProperties) extends NdlaTapirMain {
-  private val componentRegistry = new ComponentRegistry(props)
+class MainClass(val props: AudioApiProperties) extends NdlaTapirMain[ComponentRegistry] {
+  val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params)
   def warmup(): Unit = {
@@ -31,7 +31,4 @@ class MainClass(val props: AudioApiProperties) extends NdlaTapirMain {
     componentRegistry.migrator.migrate()
     logger.info(s"Done DB Migration took ${System.currentTimeMillis() - dBstartMillis} ms")
   }
-
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit =
-    componentRegistry.Routes.startJdkServer(name, port)(warmupFunc)
 }

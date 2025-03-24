@@ -100,7 +100,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val healthController: TapirHealthController = new TapirHealthController
   lazy val internController                        = new InternController
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       draftConceptController,
       publishedConceptController,

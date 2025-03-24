@@ -9,13 +9,10 @@
 package no.ndla.common.model.api
 
 import cats.implicits.toFunctorOps
-import com.scalatsi.{TSIType, TSNamedType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
-
-import scala.annotation.unused
 
 @description("The Menu object")
 case class MenuDTO(
@@ -41,15 +38,6 @@ object MenuDTO {
 
   implicit val encodeMenuData: Encoder[MenuDataDTO] = Encoder.instance { case menu: MenuDTO => menu.asJson }
   implicit val decodeMenuData: Decoder[MenuDataDTO] = Decoder[MenuDTO].widen
-
-  implicit val menuTSI: TSIType[MenuDTO] = {
-    @unused
-    implicit val menuData: TSNamedType[MenuDataDTO] = TSType.external[MenuDataDTO]("IMenuDataDTO")
-    TSType.fromCaseClass[MenuDTO]
-  }
 }
 
 sealed trait MenuDataDTO {}
-object MenuDataDTO {
-  implicit val menuDataAlias: TSNamedType[MenuDataDTO] = TSType.alias[MenuDataDTO]("IMenuDataDTO", MenuDTO.menuTSI.get)
-}

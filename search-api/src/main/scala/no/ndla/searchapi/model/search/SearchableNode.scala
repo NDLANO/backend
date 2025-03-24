@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.searchapi.model.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}

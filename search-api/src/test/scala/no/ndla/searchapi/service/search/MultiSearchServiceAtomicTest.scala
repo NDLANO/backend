@@ -780,7 +780,6 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
               url = "/f/snabel-fag/asdf2362"
             )
           ),
-
           contexts = List()
         )
       ) ++

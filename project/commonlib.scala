@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.scalatsi.plugin.ScalaTsiPlugin
 import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.*
 import org.typelevel.scalacoptions.*
 import sbt.*
@@ -13,8 +12,7 @@ object commonlib extends Module {
       enumeratum,
       enumeratumCirce,
       sttp,
-      scalikejdbc,
-      scalaTsi
+      scalikejdbc
     ),
     awsS3,
     awsTranscribe,
@@ -30,6 +28,4 @@ object commonlib extends Module {
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
   )
-
-  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
 }

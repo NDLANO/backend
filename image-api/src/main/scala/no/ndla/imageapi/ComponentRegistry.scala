@@ -102,7 +102,7 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val internController  = new InternController
   lazy val healthController  = new HealthController
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       imageControllerV2,
       imageControllerV3,

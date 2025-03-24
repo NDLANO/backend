@@ -112,7 +112,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
 
   lazy val clock = new SystemClock
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       articleControllerV2,
       internController,

@@ -8,10 +8,10 @@
 
 package no.ndla.common.model.domain.concept
 
-import com.scalatsi.TypescriptType.TSEnum
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import no.ndla.common.errors.InvalidStatusException
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.schemaForEnumEntry
 
 import scala.util.{Failure, Success, Try}
 
@@ -70,9 +70,5 @@ object WordClass extends Enum[WordClass] with CirceEnum[WordClass] {
       case Some(conceptType) => Success(conceptType)
     }
   }
-  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
-  implicit val enumTsType: TSNamedType[WordClass] = TSType.alias[WordClass](
-    "WordClass",
-    TSEnum.string("WordClassEnum", tsEnumValues*)
-  )
+  implicit val schema: Schema[WordClass] = schemaForEnumEntry[WordClass]
 }

@@ -8,8 +8,6 @@
 
 package no.ndla.searchapi.controller.parameters
 
-import com.scalatsi.TypescriptType.{TSString, TSUndefined}
-import com.scalatsi.{TSIType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.search.{SearchTrait, SearchType}
@@ -83,8 +81,4 @@ object SearchParamsDTO {
   implicit val encoder: Encoder[SearchParamsDTO] = deriveEncoder
   implicit val decoder: Decoder[SearchParamsDTO] = deriveDecoder
   implicit val schema: Schema[SearchParamsDTO]   = Schema.derived[SearchParamsDTO]
-
-  import com.scalatsi.dsl.*
-  implicit val tsType: TSIType[SearchParamsDTO] =
-    TSType.fromCaseClass[SearchParamsDTO] - "sort" + ("sort", TSString | TSUndefined)
 }

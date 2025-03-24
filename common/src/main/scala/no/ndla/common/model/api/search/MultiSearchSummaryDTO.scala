@@ -13,8 +13,11 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil.deriveEncoderWithTypename
+import no.ndla.common.SchemaImplicits
+import no.ndla.common.TapirUtil.withDiscriminator
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.draft.CommentDTO
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Object describing matched field with matching words emphasized")
@@ -57,9 +60,14 @@ case class NodeHitDTO(
     contexts: List[ApiTaxonomyContextDTO]
 ) extends MultiSummaryBaseDTO
 
-object NodeHitDTO {
+object NodeHitDTO extends SchemaImplicits {
   implicit val encoder: Encoder[NodeHitDTO] = deriveEncoderWithTypename[NodeHitDTO]
   implicit val decoder: Decoder[NodeHitDTO] = deriveDecoder
+  implicit def schema: Schema[NodeHitDTO] = {
+    import sttp.tapir.generic.auto.*
+    def nodeHitSchema: Schema[NodeHitDTO] = Schema.derived[NodeHitDTO]
+    withDiscriminator(nodeHitSchema)
+  }
 }
 
 @description("Short summary of information about the resource")
@@ -120,7 +128,12 @@ case class MultiSearchSummaryDTO(
     resultType: SearchType
 ) extends MultiSummaryBaseDTO
 
-object MultiSearchSummaryDTO {
+object MultiSearchSummaryDTO extends SchemaImplicits {
   implicit val encoder: Encoder[MultiSearchSummaryDTO] = deriveEncoderWithTypename[MultiSearchSummaryDTO]
   implicit val decoder: Decoder[MultiSearchSummaryDTO] = deriveDecoder
+  implicit def schema: Schema[MultiSearchSummaryDTO] = {
+    import sttp.tapir.generic.auto.*
+    def multiSearchSummary: Schema[MultiSearchSummaryDTO] = Schema.derived[MultiSearchSummaryDTO]
+    withDiscriminator(multiSearchSummary)
+  }
 }

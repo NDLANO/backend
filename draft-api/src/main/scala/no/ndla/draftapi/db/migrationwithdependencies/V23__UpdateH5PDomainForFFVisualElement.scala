@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.draftapi.db.migrationwithdependencies
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
