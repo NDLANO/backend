@@ -18,10 +18,9 @@ class Memoize[R](f: () => R, maxAgeMs: Long) extends (() => R) {
   def apply(): R = {
     cache match {
       case Some(cachedValue) if !cachedValue.isExpired => cachedValue.value
-      case _ => {
+      case _ =>
         cache = Some(CacheValue(f(), System.currentTimeMillis()))
         cache.get.value
-      }
     }
   }
 }

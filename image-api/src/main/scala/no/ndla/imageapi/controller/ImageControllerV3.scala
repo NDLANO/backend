@@ -30,21 +30,13 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success, Try}
 
 trait ImageControllerV3 {
-  this: ImageRepository
-    with ImageSearchService
-    with ConverterService
-    with ReadService
-    with WriteService
-    with SearchConverterService
-    with Props
-    with ErrorHandling
-    with BaseImageController
-    with TapirController =>
+  this: ImageRepository & ImageSearchService & ConverterService & ReadService & WriteService & SearchConverterService &
+    Props & ErrorHandling & BaseImageController & TapirController =>
   val imageControllerV3: ImageControllerV3
 
   class ImageControllerV3 extends TapirController with BaseImageController {
-    import ErrorHelpers._
-    import props._
+    import ErrorHelpers.*
+    import props.*
 
     override val serviceName: String         = "images V3"
     override val prefix: EndpointInput[Unit] = "image-api" / "v3" / "images"
@@ -92,7 +84,7 @@ trait ImageControllerV3 {
           SearchSettings(
             query = Some(searchString.trim),
             minimumSize = minimumSize,
-            language = language,
+            language = Language.languageOrParam(language),
             fallback = fallback,
             license = license,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
@@ -108,7 +100,7 @@ trait ImageControllerV3 {
             query = None,
             minimumSize = minimumSize,
             license = license,
-            language = language,
+            language = Language.languageOrParam(language),
             fallback = fallback,
             sort = sort.getOrElse(Sort.ByTitleAsc),
             page = page,
@@ -121,7 +113,11 @@ trait ImageControllerV3 {
       }
       for {
         searchResult <- imageSearchService.matchingQueryV3(settings, user)
-        output       <- searchConverterService.asApiSearchResultV3(searchResult, language, user)
+        output <- searchConverterService.asApiSearchResultV3(
+          searchResult,
+          language,
+          user
+        )
         scrollHeader = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
       } yield (output, scrollHeader)
     }
@@ -163,7 +159,7 @@ trait ImageControllerV3 {
                 modelReleased,
                 userFilter
               ) =>
-            scrollSearchOr(scrollId, language, user) {
+            scrollSearchOr(scrollId, Language.languageOrParam(language), user) {
               val sort                = Sort.valueOf(sortStr)
               val shouldScroll        = scrollId.exists(InitialScrollContextKeywords.contains)
               val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
@@ -203,7 +199,7 @@ trait ImageControllerV3 {
             val language = searchParams.language.getOrElse(Language.AllLanguages)
             val fallback = searchParams.fallback.getOrElse(false)
 
-            scrollSearchOr(searchParams.scrollId, language, user) {
+            scrollSearchOr(searchParams.scrollId, Language.languageOrParam(language), user) {
               val minimumSize = searchParams.minimumSize
               val query       = searchParams.query
               val license = searchParams.license.orElse {
@@ -297,7 +293,7 @@ trait ImageControllerV3 {
       .serverLogicPure(user =>
         formData =>
           doWithStream(formData.file) { uploadedFile =>
-            writeService.storeNewImage(formData.metadata.body, uploadedFile, user).map { case storedImage =>
+            writeService.storeNewImage(formData.metadata.body, uploadedFile, user).map { storedImage =>
               converterService
                 .asApiImageMetaInformationV3(
                   storedImage,
@@ -375,7 +371,9 @@ trait ImageControllerV3 {
         }
         val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
-        readService.getAllTags(query, pageSize, pageNo, language, sort).handleErrorsOrOk
+        readService
+          .getAllTags(query, pageSize, pageNo, Language.languageOrParam(language), sort)
+          .handleErrorsOrOk
       }
 
     def copyImageMeta: ServerEndpoint[Any, Eff] = endpoint.post

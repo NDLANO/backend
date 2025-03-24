@@ -19,7 +19,7 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with ImageRepository with BaseIndexService with Props =>
+  this: Elastic4sClient & ImageRepository & BaseIndexService & Props =>
 
   trait IndexService[D, T <: AnyRef] extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow

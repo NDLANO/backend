@@ -18,10 +18,10 @@ import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
 trait ErrorHandling extends TapirErrorHandling {
-  this: Props with Clock with DataSource =>
+  this: Props & Clock & DataSource =>
 
-  import ErrorHelpers._
-  import ImageErrorHelpers._
+  import ErrorHelpers.*
+  import ImageErrorHelpers.*
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case v: ValidationException    => validationError(v)
     case a: AccessDeniedException  => forbiddenMsg(a.getMessage)

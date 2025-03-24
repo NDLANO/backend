@@ -30,12 +30,7 @@ import no.ndla.search.Elastic4sClient
 import scala.util.{Failure, Success, Try}
 
 trait ImageSearchService {
-  this: Elastic4sClient
-    with ImageIndexService
-    with SearchService
-    with SearchConverterService
-    with Props
-    with ErrorHandling =>
+  this: Elastic4sClient & ImageIndexService & SearchService & SearchConverterService & Props & ErrorHandling =>
   val imageSearchService: ImageSearchService
   class ImageSearchService extends StrictLogging with SearchService[(SearchableImage, MatchedLanguage)] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}

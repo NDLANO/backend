@@ -32,7 +32,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   val id    = 1L
   val idGif = 1L
 
-  def req: RequestT[Empty, Array[Byte], Any with Any] = basicRequest.response(asByteArrayAlways)
+  def req: RequestT[Empty, Array[Byte], Any & Any] = basicRequest.response(asByteArrayAlways)
 
   override def beforeEach(): Unit = {
     reset(clock)

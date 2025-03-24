@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain as common
 import no.ndla.imageapi.model.domain.Sort
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite

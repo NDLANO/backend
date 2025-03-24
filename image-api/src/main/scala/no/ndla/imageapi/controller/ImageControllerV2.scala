@@ -65,7 +65,7 @@ trait ImageControllerV2 {
     ): Try[(SearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          imageSearchService.scrollV2(scroll, language, user) match {
+          imageSearchService.scrollV2(scroll, Language.languageOrParam(language), user) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
@@ -94,7 +94,7 @@ trait ImageControllerV2 {
           SearchSettings(
             query = Some(searchString.trim),
             minimumSize = minimumSize,
-            language = language,
+            language = Language.languageOrParam(language),
             fallback = fallback,
             license = license,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
@@ -110,7 +110,7 @@ trait ImageControllerV2 {
             query = None,
             minimumSize = minimumSize,
             license = license,
-            language = language,
+            language = Language.languageOrParam(language),
             fallback = fallback,
             sort = sort.getOrElse(Sort.ByTitleAsc),
             page = page,
@@ -349,7 +349,9 @@ trait ImageControllerV2 {
         }
         val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
-        readService.getAllTags(query, pageSize, pageNo, language, sort).handleErrorsOrOk
+        readService
+          .getAllTags(query, pageSize, pageNo, Language.languageOrParam(language), sort)
+          .handleErrorsOrOk
       }
   }
 }

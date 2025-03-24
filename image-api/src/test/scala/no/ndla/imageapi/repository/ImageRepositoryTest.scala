@@ -16,7 +16,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import scalikejdbc.DB
 
 import scala.util.{Success, Try}
-import scalikejdbc._
+import scalikejdbc.*
 
 class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with UnitSuite with TestEnvironment {
   override val dataSource         = testDataSource.get
