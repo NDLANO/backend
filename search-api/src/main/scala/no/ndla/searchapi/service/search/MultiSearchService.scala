@@ -113,8 +113,7 @@ trait MultiSearchService {
       ).flatten
 
       val contentFilter = boolQuery().must(getSearchFilters(settings)).filter(indexFilterContent)
-      val ntf           = getNodeTypeFilter(settings.nodeTypeFilter)
-      val nodeFilter    = boolQuery().must(ntf).filter(indexFilterNode)
+      val nodeFilter    = boolQuery().must(getNodeSearchFilters(settings)).filter(indexFilterNode)
 
       val fullQuery = boolQuery()
         .should(boolQueries)
@@ -232,6 +231,16 @@ trait MultiSearchService {
             .some
         case _ => None
       }
+    }
+
+    private def getNodeSearchFilters(settings: SearchSettings): List[Query] = {
+      val nodeTypeFilter       = getNodeTypeFilter(settings.nodeTypeFilter)
+      val contextSubjectFilter = subjectFilter(settings.subjects, settings.filterInactive)
+
+      List(
+        nodeTypeFilter,
+        contextSubjectFilter
+      ).flatten
     }
 
     /** Returns a list of QueryDefinitions of different search filters depending on settings.
