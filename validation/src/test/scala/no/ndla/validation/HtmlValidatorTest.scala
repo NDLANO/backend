@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.validation
 
 import no.ndla.common.configuration.Constants.EmbedTagName

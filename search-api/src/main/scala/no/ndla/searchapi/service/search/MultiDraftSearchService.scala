@@ -235,7 +235,8 @@ trait MultiDraftSearchService {
 
       e4sClient.execute(searchWithScroll) match {
         case Success(response) =>
-          getHits(response.result, settings.language, settings.filterInactive).map(hits => {
+          // For draft search we don't want to filter contexts from the result
+          getHits(response.result, settings.language, false).map(hits => {
             SearchResult(
               totalCount = response.result.totalHits,
               page = Some(settings.page),

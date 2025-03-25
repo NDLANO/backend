@@ -121,7 +121,7 @@ trait PublishedConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.publishedConceptWithId(conceptId, language, fallback, user)
+          readService.publishedConceptWithId(conceptId, Language.languageOrParam(language), fallback, user)
         }
       }
 
@@ -169,7 +169,7 @@ trait PublishedConceptController {
             search(
               query,
               sort,
-              language,
+              Language.languageOrParam(language),
               page,
               pageSize,
               idList.values,
@@ -213,7 +213,7 @@ trait PublishedConceptController {
           search(
             query,
             sort,
-            language,
+            Language.languageOrParam(language),
             page,
             pageSize,
             idList.getOrElse(List.empty),
@@ -240,7 +240,7 @@ trait PublishedConceptController {
       )
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (language, fallback) =>
-        readService.allTagsFromConcepts(language, fallback).asRight
+        readService.allTagsFromConcepts(Language.languageOrParam(language), fallback).asRight
       }
   }
 }

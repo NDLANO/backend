@@ -10,27 +10,22 @@ package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.UrlPath
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV2DTO, ImageMetaInformationV3DTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterService, TagSearchService}
 import no.ndla.language.Language.findByLanguageOrBestEffort
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.common.errors.ValidationException
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: ConverterService
-    with ValidationService
-    with ImageRepository
-    with ImageIndexService
-    with ImageStorageService
-    with TagSearchService
-    with SearchConverterService =>
+  this: ConverterService & ValidationService & ImageRepository & ImageIndexService & ImageStorageService &
+    TagSearchService & SearchConverterService =>
   val readService: ReadService
 
   class ReadService extends StrictLogging {
@@ -86,7 +81,7 @@ trait ReadService {
 
     private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
       Try(pathParts(3).toLong) match {
-        case Failure(_) => Failure(new InvalidUrlException("Could not extract id from id url."))
+        case Failure(_) => Failure(InvalidUrlException("Could not extract id from id url."))
         case Success(id) =>
           imageRepository.withId(id) match {
             case Some(image) => Success(image)
@@ -99,7 +94,7 @@ trait ReadService {
     private def handleRawPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
       pathParts.lift(2) match {
         case Some(path) if path.nonEmpty => getImageMetaFromFilePath(path)
-        case _                           => Failure(new InvalidUrlException("Could not extract path from url."))
+        case _                           => Failure(InvalidUrlException("Could not extract path from url."))
       }
 
     def getImageFromFilePath(path: String): Try[ImageFileData] = {
@@ -139,7 +134,7 @@ trait ReadService {
 
       if (isIdUrl) handleIdPathParts(pathParts)
       else if (isRawControllerUrl) handleRawPathParts(pathParts)
-      else Failure(new InvalidUrlException("Could not extract id or path from url."))
+      else Failure(InvalidUrlException("Could not extract id or path from url."))
     }
 
     def getMetaImageDomainDump(pageNo: Int, pageSize: Int): ImageMetaDomainDumpDTO = {

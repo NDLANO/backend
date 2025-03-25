@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.*
 import sbt.Keys.*
 
@@ -10,8 +9,8 @@ object networklib extends Module {
     Seq(
       sttp,
       "org.scalatest"        %% "scalatest" % ScalaTestV % "test",
-      "redis.clients"         % "jedis"     % "5.1.5",
-      "com.github.jwt-scala" %% "jwt-circe" % "10.0.1"
+      "redis.clients"         % "jedis"     % "5.2.0",
+      "com.github.jwt-scala" %% "jwt-circe" % "10.0.4"
     ),
     mockito,
     vulnerabilityOverrides,
@@ -22,6 +21,4 @@ object networklib extends Module {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings
-
-  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
 }

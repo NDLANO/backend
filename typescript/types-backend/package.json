@@ -25,7 +25,8 @@
         "search-api"
     ],
     "devDependencies": {
+        "openapi-typescript": "^7.6.1",
         "typescript": "^5.3.3"
     },
-    "version": "1.0.33"
+    "version": "1.0.35"
 }

@@ -28,7 +28,7 @@ trait SeriesIndexService {
   val seriesIndexService: SeriesIndexService
 
   class SeriesIndexService extends StrictLogging with IndexService[Series, SearchableSeries] {
-    import props._
+    import props.*
     override val documentType: String         = SeriesSearchDocument
     override val searchIndex: String          = SeriesSearchIndex
     override val repository: SeriesRepository = seriesRepository

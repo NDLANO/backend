@@ -18,6 +18,7 @@ import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.Props
+import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -142,7 +143,7 @@ trait DraftConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.conceptWithId(conceptId, language, fallback, user)
+          readService.conceptWithId(conceptId, Language.languageOrParam(language), fallback, user)
         }
       }
 
@@ -195,7 +196,7 @@ trait DraftConceptController {
             search(
               query,
               sort,
-              language,
+              Language.languageOrParam(language),
               page,
               pageSize,
               idList.values,
@@ -225,7 +226,7 @@ trait DraftConceptController {
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (language, fallback) =>
-        readService.allTagsFromDraftConcepts(language, fallback).asRight
+        readService.allTagsFromDraftConcepts(Language.languageOrParam(language), fallback).asRight
       }
 
     def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
@@ -262,7 +263,7 @@ trait DraftConceptController {
           search(
             query,
             sort,
-            language,
+            Language.languageOrParam(language),
             page,
             pageSize,
             idList.getOrElse(List.empty),
@@ -291,7 +292,7 @@ trait DraftConceptController {
       .requirePermission(CONCEPT_API_WRITE)
       .serverLogicPure { user =>
         { case (conceptId, language) =>
-          writeService.deleteLanguage(conceptId, language, user)
+          writeService.deleteLanguage(conceptId, Language.languageOrParam(language), user)
         }
       }
 
@@ -336,7 +337,7 @@ trait DraftConceptController {
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (query, pageSize, pageNo, language) =>
         val q = query.getOrElse("")
-        readService.getAllTags(q, pageSize, pageNo, language).asRight
+        readService.getAllTags(q, pageSize, pageNo, Language.languageOrParam(language)).asRight
       }
 
     def postNewConcept: ServerEndpoint[Any, Eff] = endpoint.post

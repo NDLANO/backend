@@ -18,6 +18,7 @@ import sttp.tapir.Schema
 case class OptLanguageFields[T: Encoder: Decoder](
     internal: Map[String, Either[NotWantedKeyT, Option[T]]]
 ) {
+  type InternalMapType = Map[String, Either[NotWantedKeyT, Option[T]]]
 
   def get(language: String): Option[OptionalLanguageValue[T]] = {
     val res = internal.get(language)
@@ -59,18 +60,32 @@ case class OptLanguageFields[T: Encoder: Decoder](
   }
 
   def withUnwanted(language: String): OptLanguageFields[T] = {
-    val updated: Map[String, Either[NotWantedKeyT, Option[T]]] = internal.updated(language, Left(NotWantedKey))
+    val updated: InternalMapType = internal.updated(language, Left(NotWantedKey))
     OptLanguageFields(updated)
   }
 
   def withValue(value: T, language: String): OptLanguageFields[T] = {
-    val updated: Map[String, Either[NotWantedKeyT, Option[T]]] = internal.updated(language, Right(Some(value)))
+    val updated: InternalMapType = internal.updated(language, Right(Some(value)))
     OptLanguageFields(updated)
   }
 
   def dropLanguage(language: String): OptLanguageFields[T] = {
-    val newInternal = internal.removed(language)
+    val newInternal: InternalMapType = internal.removed(language)
     OptLanguageFields(newInternal)
+  }
+
+  private def comparableMap: Map[String, T] = internal.flatMap { case (language, value) =>
+    value match {
+      case Left(_)      => None
+      case Right(value) => value.map(language -> _)
+    }
+  }
+
+  override def equals(other: Any): Boolean = {
+    other match {
+      case otherLangFields: OptLanguageFields[?] => this.comparableMap == otherLangFields.comparableMap
+      case _                                     => false
+    }
   }
 }
 

@@ -8,9 +8,9 @@
 
 package no.ndla.common.model.domain.config
 
-import com.scalatsi.{TSNamedType, TSType}
-import com.scalatsi.TypescriptType.TSEnum
 import enumeratum.*
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class ConfigKey(override val entryName: String) extends EnumEntry
 
@@ -23,10 +23,5 @@ object ConfigKey extends Enum[ConfigKey] with CirceEnum[ConfigKey] {
   val all: Seq[String] = values.map(_.entryName)
 
   def valueOf(s: String): Option[ConfigKey] = ConfigKey.values.find(_.entryName == s)
-
-  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.entryName -> e.entryName)
-  implicit val enumTsType: TSNamedType[ConfigKey] = TSType.alias(
-    "ConfigKey",
-    TSEnum.string("ConfigKeyEnum", tsEnumValues*)
-  )
+  val schema: Schema[ConfigKey]             = schemaForEnumEntry[ConfigKey]
 }

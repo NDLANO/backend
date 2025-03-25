@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.myndlaapi
 
 import no.ndla.common.secrets.PropertyKeys

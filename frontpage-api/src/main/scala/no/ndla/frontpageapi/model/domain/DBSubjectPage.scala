@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.frontpageapi.model.domain
 
 import cats.implicits.catsSyntaxOptionId

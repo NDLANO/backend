@@ -12,7 +12,6 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.{DraftCopyrightDTO, UpdateOrDelete}
 import sttp.tapir.Schema.annotations.description
-import com.scalatsi.*
 
 @description("Information about the concept")
 case class UpdatedConceptDTO(
@@ -41,6 +40,4 @@ case class UpdatedConceptDTO(
 object UpdatedConceptDTO {
   implicit val encoder: Encoder[UpdatedConceptDTO] = UpdateOrDelete.filterMarkers(deriveEncoder)
   implicit val decoder: Decoder[UpdatedConceptDTO] = deriveDecoder
-
-  implicit val typescriptUpdatedConcept: TSType[UpdatedConceptDTO] = TSType.fromCaseClass[UpdatedConceptDTO]
 }

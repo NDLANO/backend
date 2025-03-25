@@ -1118,95 +1118,95 @@ object TestData {
     })
   }
 
+  val context_1: TaxonomyContext = TaxonomyContext(
+    publicId = "urn:subject:1",
+    rootId = "urn:subject:1",
+    root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
+    path = "/subject:1",
+    breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+    contextType = None,
+    relevanceId = core.id,
+    relevance = SearchableLanguageValues(Seq.empty),
+    resourceTypes = List.empty,
+    parentIds = List.empty,
+    isPrimary = true,
+    contextId = "asdf1234",
+    isVisible = true,
+    isActive = true,
+    url = "/f/matte/asdf1234"
+  )
   val subject_1: Node = Node(
-    "urn:subject:1",
+    context_1.publicId,
     "Matte",
     None,
-    Some("/subject:1"),
-    Some("/f/matte/asdf1234"),
+    Some(context_1.path),
+    Some(context_1.url),
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
-    List("asdf1234"),
-    List(
-      TaxonomyContext(
-        publicId = "urn:subject:1",
-        rootId = "urn:subject:1",
-        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
-        path = "/subject:1",
-        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-        contextType = None,
-        relevanceId = core.id,
-        relevance = SearchableLanguageValues(Seq.empty),
-        resourceTypes = List.empty,
-        parentIds = List.empty,
-        isPrimary = true,
-        contextId = "asdf1234",
-        isVisible = true,
-        isActive = true,
-        url = "/f/matte/asdf1234"
-      )
-    )
+    List(context_1.contextId),
+    Some(context_1),
+    List(context_1)
+  )
+  val context_2: TaxonomyContext = TaxonomyContext(
+    publicId = "urn:subject:2",
+    rootId = "urn:subject:2",
+    root = SearchableLanguageValues(Seq(LanguageValue("nb", "Historie"))),
+    path = "/subject:2",
+    breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+    contextType = None,
+    relevanceId = core.id,
+    relevance = SearchableLanguageValues(Seq.empty),
+    resourceTypes = List.empty,
+    parentIds = List.empty,
+    isPrimary = true,
+    contextId = "asdf1235",
+    isVisible = true,
+    isActive = true,
+    url = "/f/historie/asdf1235"
   )
   val subject_2: Node = Node(
-    "urn:subject:2",
+    context_2.publicId,
     "Historie",
     None,
-    Some("/subject:2"),
-    Some("/f/historie/asdf1235"),
+    Some(context_2.path),
+    Some(context_2.url),
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
-    List("asdf1235"),
-    List(
-      TaxonomyContext(
-        publicId = "urn:subject:2",
-        rootId = "urn:subject:2",
-        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Historie"))),
-        path = "/subject:2",
-        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-        contextType = None,
-        relevanceId = core.id,
-        relevance = SearchableLanguageValues(Seq.empty),
-        resourceTypes = List.empty,
-        parentIds = List.empty,
-        isPrimary = true,
-        contextId = "asdf1235",
-        isVisible = true,
-        isActive = true,
-        url = "/f/historie/asdf1235"
-      )
-    )
+    List(context_2.contextId),
+    Some(context_2),
+    List(context_2)
+  )
+  val context_3: TaxonomyContext = TaxonomyContext(
+    publicId = "urn:subject:3",
+    rootId = "urn:subject:3",
+    root = SearchableLanguageValues(Seq(LanguageValue("nb", "Religion"))),
+    path = "/subject:3",
+    breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+    contextType = None,
+    relevanceId = core.id,
+    relevance = SearchableLanguageValues(Seq.empty),
+    resourceTypes = List.empty,
+    parentIds = List.empty,
+    isPrimary = true,
+    contextId = "asdf1236",
+    isVisible = false,
+    isActive = true,
+    url = "/f/religion/asdf1236"
   )
   val subject_3: Node = Node(
-    "urn:subject:3",
+    context_3.publicId,
     "Religion",
     None,
-    Some("/subject:3"),
-    Some("/f/religion/asdf1236"),
+    Some(context_3.path),
+    Some(context_3.url),
     invisibleMetadata,
     List.empty,
     NodeType.SUBJECT,
-    List("asdf1236"),
-    List(
-      TaxonomyContext(
-        publicId = "urn:subject:3",
-        rootId = "urn:subject:3",
-        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Religion"))),
-        path = "/subject:3",
-        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-        contextType = None,
-        relevanceId = core.id,
-        relevance = SearchableLanguageValues(Seq.empty),
-        resourceTypes = List.empty,
-        parentIds = List.empty,
-        isPrimary = true,
-        contextId = "asdf1236",
-        isVisible = false,
-        isActive = true,
-        url = "/f/religion/asdf1236"
-      )
-    )
+    List(context_3.contextId),
+    Some(context_3),
+    List(context_3)
   )
   val topic_1: Node = Node(
     "urn:topic:1",
@@ -1218,6 +1218,7 @@ object TestData {
     List.empty,
     NodeType.TOPIC,
     List("asdf1237"),
+    None,
     List.empty
   )
   topic_1.contexts =
@@ -1232,6 +1233,7 @@ object TestData {
     List.empty,
     NodeType.TOPIC,
     List("asdf1238"),
+    None,
     List.empty
   )
   topic_2.contexts =
@@ -1246,6 +1248,7 @@ object TestData {
     List.empty,
     NodeType.TOPIC,
     List("asdf1239"),
+    None,
     List.empty
   )
   topic_3.contexts =
@@ -1260,6 +1263,7 @@ object TestData {
     List.empty,
     NodeType.TOPIC,
     List("asdf1240"),
+    None,
     List.empty
   )
   topic_4.contexts =
@@ -1274,6 +1278,7 @@ object TestData {
     List.empty,
     NodeType.TOPIC,
     List("asdf1241"),
+    None,
     List.empty
   )
   topic_5.contexts =
@@ -1288,6 +1293,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1242"),
+    None,
     List.empty
   )
   resource_1.contexts = generateContexts(
@@ -1333,6 +1339,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1243"),
+    None,
     List.empty
   )
   resource_2.contexts = generateContexts(
@@ -1356,6 +1363,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1244"),
+    None,
     List.empty
   )
   resource_3.contexts = generateContexts(
@@ -1379,6 +1387,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1245"),
+    None,
     List.empty
   )
   resource_4.contexts = generateContexts(
@@ -1402,6 +1411,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1246"),
+    None,
     List.empty
   )
   resource_5.contexts = generateContexts(
@@ -1436,6 +1446,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1247"),
+    None,
     List.empty
   )
   resource_6.contexts = generateContexts(
@@ -1459,6 +1470,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1248"),
+    None,
     List.empty
   )
   resource_7.contexts = generateContexts(
@@ -1482,6 +1494,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1249"),
+    None,
     List.empty
   )
   resource_8.contexts = generateContexts(
@@ -1505,6 +1518,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1250"),
+    None,
     List.empty
   )
   resource_9.contexts = generateContexts(
@@ -1528,6 +1542,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1251"),
+    None,
     List.empty
   )
   resource_10.contexts = generateContexts(
@@ -1551,6 +1566,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1252"),
+    None,
     List.empty
   )
   resource_11.contexts = generateContexts(
@@ -1574,6 +1590,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1253"),
+    None,
     List.empty
   )
   resource_12.contexts = generateContexts(
@@ -1597,6 +1614,7 @@ object TestData {
     List.empty,
     NodeType.RESOURCE,
     List("asdf1254", "asdf1255"), // asdf1255 is a deleted context
+    None,
     List.empty
   )
   resource_13.contexts = generateContexts(
@@ -1791,6 +1809,7 @@ object TestData {
       parentIds = List("urn:topic:1"),
       isPrimary = true,
       isActive = true,
+      isVisible = true,
       url = "/subject:3/topic:1/topic:151/resource:101",
       domainObject = TaxonomyContext(
         publicId = "urn:resource:101",

@@ -86,4 +86,28 @@ class LanguageFieldsTest extends UnitTestSuite {
     result.get("en") should be(Some(NotWanted()))
   }
 
+  test("That the OptLanguageFields type compares without unwanted fields") {
+    val a = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields).withUnwanted("en")
+    }
+
+    val b = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields)
+    }
+    (a == b) should be(true)
+
+    val c = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields).withValue("nynorsk", "nn")
+    }
+
+    val d = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields)
+    }
+    (c == d) should be(false)
+  }
+
 }

@@ -126,12 +126,17 @@ trait SearchConverterService {
       val title          = searchableNode.title.getLanguageOrDefault(language).getOrElse("")
       val url            = searchableNode.url.map(urlPath => s"${props.ndlaFrontendUrl}$urlPath")
 
+      val context  = searchableNode.context.map(c => searchableContextToApiContext(c, language))
+      val contexts = filterContexts(searchableNode.contexts, language, true)
+
       Success(
         NodeHitDTO(
           id = searchableNode.nodeId,
           title = title,
           url = url,
-          subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language))
+          subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language)),
+          context = context,
+          contexts = contexts
         )
       )
     }
@@ -221,6 +226,7 @@ trait SearchConverterService {
           parentIds = context.parentIds,
           isPrimary = context.isPrimary,
           isActive = context.isActive,
+          isVisible = context.isVisible,
           url = context.url
         )
       )
@@ -1089,7 +1095,7 @@ trait SearchConverterService {
       }
     }
 
-    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO =
+    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO = {
       common.model.api.search.MultiSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
@@ -1099,6 +1105,7 @@ trait SearchConverterService {
         searchResult.suggestions,
         searchResult.aggregations.map(toApiMultiTermsAggregation)
       )
+    }
 
     def toApiGroupMultiSearchResult(group: String, searchResult: domain.SearchResult): GroupSearchResultDTO =
       api.GroupSearchResultDTO(
@@ -1127,13 +1134,17 @@ trait SearchConverterService {
 
     def asSearchableNode(node: Node, frontpage: Option[SubjectPage]): Try[SearchableNode] = {
       asFrontPage(frontpage).map { frontpage =>
+        val context  = node.context.map(ctx => asSearchableTaxonomyContexts(List(ctx)).head)
+        val contexts = asSearchableTaxonomyContexts(node.contexts)
         SearchableNode(
           nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
           url = node.url,
           contentUri = node.contentUri,
           nodeType = node.nodeType,
-          subjectPage = frontpage
+          subjectPage = frontpage,
+          context = context.orElse(contexts.find(_.isPrimary)),
+          contexts = contexts
         )
       }
     }

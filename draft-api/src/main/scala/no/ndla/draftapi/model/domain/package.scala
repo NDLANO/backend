@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.draftapi.model
 
 import no.ndla.common.model.domain.draft.Draft

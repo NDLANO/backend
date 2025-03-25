@@ -8,6 +8,8 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.learningpath.LearningPathStatsDTO
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
@@ -87,5 +89,16 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     verify(searchIndexService).deleteIndexWithName(Some("index1"))
     verify(searchIndexService).deleteIndexWithName(Some("index2"))
     verify(searchIndexService).deleteIndexWithName(Some("index3"))
+  }
+
+  test("That GET /stats returns statistics for learning paths") {
+    val count = 42L
+    when(learningPathRepository.myNdlaOwnerLearningPathCount(any)).thenReturn(count)
+    val res = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/intern/stats")
+    )
+    res.code.code should be(200)
+    val convertedBody = CirceUtil.unsafeParseAs[LearningPathStatsDTO](res.body)
+    convertedBody should be(LearningPathStatsDTO(count))
   }
 }

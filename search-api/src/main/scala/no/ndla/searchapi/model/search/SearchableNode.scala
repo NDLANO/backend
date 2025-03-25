@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.searchapi.model.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -18,7 +19,9 @@ case class SearchableNode(
     contentUri: Option[String],
     url: Option[String],
     nodeType: NodeType,
-    subjectPage: Option[SearchableSubjectPage]
+    subjectPage: Option[SearchableSubjectPage],
+    context: Option[SearchableTaxonomyContext],
+    contexts: List[SearchableTaxonomyContext]
 )
 
 object SearchableNode {

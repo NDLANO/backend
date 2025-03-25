@@ -14,11 +14,13 @@ import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
-import no.ndla.common.model.domain.{ResourceType, myndla}
-import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.common.model.domain.TryMaybe.*
+import no.ndla.common.model.domain.{ResourceType, TryMaybe, myndla}
+import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
-import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, UserFolderDTO}
+import no.ndla.myndlaapi.integration.LearningPathApiClient
+import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, StatsDTO, UserFolderDTO, UserStatsDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
@@ -31,7 +33,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderReadService {
   this: FolderConverterService & FolderRepository & UserRepository & FeideApiClient & Clock & ConfigService &
-    UserService & DBUtility =>
+    UserService & DBUtility & LearningPathApiClient =>
 
   val folderReadService: FolderReadService
 
@@ -277,29 +279,50 @@ trait FolderReadService {
         )
       } yield folderConverterService.toApiUserData(user)
 
-    def getStats: Option[api.StatsDTO] = {
-      implicit val session: DBSession = folderRepository.getSession(true)
-      val groupedResources            = folderRepository.numberOfResourcesGrouped()
-      val favouritedResources         = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
-      val favourited                  = groupedResources.map(gr => gr._2 -> gr._1).toMap
+    private def getUserStats(session: DBSession): Try[Option[UserStatsDTO]] = {
       for {
-        numberOfUsers         <- userRepository.numberOfUsers()
-        numberOfFolders       <- folderRepository.numberOfFolders()
-        numberOfResources     <- folderRepository.numberOfResources()
-        numberOfTags          <- folderRepository.numberOfTags()
-        numberOfSubjects      <- userRepository.numberOfFavouritedSubjects()
-        numberOfSharedFolders <- folderRepository.numberOfSharedFolders()
-        stats = api.StatsDTO(
-          numberOfUsers,
-          numberOfFolders,
-          numberOfResources,
-          numberOfTags,
-          numberOfSubjects,
-          numberOfSharedFolders,
-          favouritedResources,
-          favourited
-        )
-      } yield stats
+        numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites(session).toTryMaybe
+        numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites(session).toTryMaybe
+        numberOfUsersInArena           <- userRepository.numberOfUsersInArena(session).toTryMaybe
+        usersGrouped                   <- userRepository.usersGrouped().toTrySome
+        numberOfEmployees = usersGrouped(UserRole.EMPLOYEE)
+        numberOfStudents  = usersGrouped(UserRole.STUDENT)
+        numberOfUsers     = numberOfStudents + numberOfEmployees
+      } yield UserStatsDTO(
+        numberOfUsers,
+        numberOfEmployees,
+        numberOfStudents,
+        numberOfUsersWithFavourites,
+        numberOfUsersWithoutFavourites,
+        numberOfUsersInArena
+      )
+    }.value
+
+    def getStats: TryMaybe[api.StatsDTO] = {
+      implicit val session: DBSession = folderRepository.getSession(true)
+      for {
+        groupedResources <- folderRepository.numberOfResourcesGrouped().toTrySome
+        favouritedResources = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
+        favourited          = groupedResources.map(gr => gr._2 -> gr._1).toMap
+        learningPathStats     <- learningPathApiClient.getStats.toTrySome
+        numberOfFolders       <- folderRepository.numberOfFolders().toTryMaybe
+        numberOfResources     <- folderRepository.numberOfResources().toTryMaybe
+        numberOfTags          <- folderRepository.numberOfTags().toTryMaybe
+        numberOfSubjects      <- userRepository.numberOfFavouritedSubjects().toTryMaybe
+        numberOfSharedFolders <- folderRepository.numberOfSharedFolders().toTryMaybe
+        userStats             <- getUserStats(session).toTryMaybe
+      } yield StatsDTO(
+        userStats.total,
+        numberOfFolders,
+        numberOfResources,
+        numberOfTags,
+        numberOfSubjects,
+        numberOfSharedFolders,
+        learningPathStats.numberOfMyNdlaLearningPaths,
+        favouritedResources,
+        favourited,
+        userStats
+      )
     }
 
     def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[ExportedUserDataDTO] = {

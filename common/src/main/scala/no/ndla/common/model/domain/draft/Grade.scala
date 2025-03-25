@@ -8,8 +8,6 @@
 
 package no.ndla.common.model.domain.draft
 
-import com.scalatsi.TypescriptType.{TSLiteralNumber, TSUnion}
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.values.{IntCirceEnum, IntEnum, IntEnumEntry}
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
@@ -26,9 +24,4 @@ object Grade extends IntEnum[Grade] with IntCirceEnum[Grade] {
   case object Three extends Grade(3)
   case object Four  extends Grade(4)
   case object Five  extends Grade(5)
-
-  implicit val enumTsType: TSNamedType[Grade] = TSType.alias[Grade](
-    "Grade",
-    TSUnion(values.map(e => TSLiteralNumber(e.value)))
-  )
 }

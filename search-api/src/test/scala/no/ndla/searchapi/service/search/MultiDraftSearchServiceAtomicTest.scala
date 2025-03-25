@@ -531,6 +531,23 @@ class MultiDraftSearchServiceAtomicTest
     val draft4 = TestData.draft1.copy(id = Some(4)) // T4
     val draft5 = TestData.draft1.copy(id = Some(5)) // R5 + R6
 
+    val context_1: TaxonomyContext = TaxonomyContext(
+      publicId = "urn:subject:1",
+      rootId = "urn:subject:1",
+      root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
+      path = "/subject:1",
+      breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+      contextType = None,
+      relevanceId = core.id,
+      relevance = SearchableLanguageValues(Seq.empty),
+      resourceTypes = List.empty,
+      parentIds = List.empty,
+      isPrimary = true,
+      contextId = "",
+      isVisible = true,
+      isActive = true,
+      url = "/f/matte/asdf1256"
+    )
     val subject_1 = Node(
       "urn:subject:1",
       "Matte",
@@ -541,25 +558,8 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.SUBJECT,
       List("asdf1256"),
-      List(
-        TaxonomyContext(
-          publicId = "urn:subject:1",
-          rootId = "urn:subject:1",
-          root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
-          path = "/subject:1",
-          breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-          contextType = None,
-          relevanceId = core.id,
-          relevance = SearchableLanguageValues(Seq.empty),
-          resourceTypes = List.empty,
-          parentIds = List.empty,
-          isPrimary = true,
-          contextId = "",
-          isVisible = true,
-          isActive = true,
-          url = "/f/matte/asdf1256"
-        )
-      )
+      Some(context_1),
+      List(context_1)
     )
     val topic_1 = Node(
       "urn:topic:1",
@@ -571,6 +571,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1257"),
+      None,
       List.empty
     )
     topic_1.contexts = generateContexts(
@@ -594,6 +595,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1258"),
+      None,
       List.empty
     )
     topic_2.contexts = generateContexts(
@@ -617,6 +619,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1259"),
+      None,
       List.empty
     )
     topic_3.contexts = generateContexts(
@@ -640,6 +643,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1260"),
+      None,
       List.empty
     )
     topic_4.contexts = generateContexts(
@@ -663,6 +667,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.RESOURCE,
       List("asdf1261"),
+      None,
       List.empty
     )
     resource_5.contexts = generateContexts(
@@ -697,6 +702,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.RESOURCE,
       List("asdf1262"),
+      None,
       List.empty
     )
     resource_6.contexts = generateContexts(

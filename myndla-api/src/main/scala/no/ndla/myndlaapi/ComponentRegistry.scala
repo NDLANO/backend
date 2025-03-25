@@ -21,7 +21,7 @@ import no.ndla.myndlaapi.controller.{
   UserController
 }
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
-import no.ndla.myndlaapi.integration.{SearchApiClient, TaxonomyApiClient}
+import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
@@ -63,6 +63,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with NodeBBClient
     with SearchApiClient
     with TaxonomyApiClient
+    with LearningPathApiClient
     with V16__MigrateResourcePaths
     with NdlaClient {
   override val props: MyNdlaApiProperties = properties
@@ -86,6 +87,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val nodebb: NodeBBClient                                 = new NodeBBClient
   lazy val searchApiClient: SearchApiClient                     = new SearchApiClient
   lazy val taxonomyApiClient: TaxonomyApiClient                 = new TaxonomyApiClient
+  lazy val learningPathApiClient: LearningPathApiClient         = new LearningPathApiClient
   lazy val ndlaClient: NdlaClient                               = new NdlaClient
   lazy val myndlaApiClient: MyNDLAApiClient                     = new MyNDLAApiClient
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
@@ -95,7 +97,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       healthController,
       folderController,

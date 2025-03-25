@@ -8,16 +8,16 @@
 
 package no.ndla.audioapi.service.search
 
-import cats.implicits._
+import cats.implicits.*
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.TitleDTO
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
-import no.ndla.audioapi.model.search._
+import no.ndla.audioapi.model.search.*
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.service.ConverterService
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain as common
 import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
@@ -181,7 +181,7 @@ trait SearchConverterService {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {

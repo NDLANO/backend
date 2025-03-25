@@ -5,12 +5,13 @@
  * See LICENSE
  *
  */
+
 package no.ndla.network.tapir
 
 import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, SchemaImplicits}
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
@@ -35,7 +36,7 @@ import scala.util.{Failure, Success}
 
 trait TapirController extends TapirErrorHandling {
   this: HasBaseProps & Clock & MyNDLAApiClient =>
-  trait TapirController extends StrictLogging {
+  trait TapirController extends StrictLogging with SchemaImplicits {
     type Eff[A] = Identity[A]
     val enableSwagger: Boolean = true
     val serviceName: String    = this.getClass.getSimpleName

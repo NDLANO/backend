@@ -124,9 +124,9 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("That DELETE /index removes all indexes") {
     when(imageIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index3"))
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index3"))
     val res = simpleHttpClient
       .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
     res.code.code should be(200)
@@ -139,12 +139,12 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
-    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
+    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil *)
       .when(imageIndexService)
       .findAllIndexes(props.SearchIndex)
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index3"))
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index3"))
     val res = simpleHttpClient
       .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
     res.code.code should equal(500)
@@ -156,11 +156,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless"
   ) {
     when(imageIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil *)
       .when(imageIndexService)
       .deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index3"))
+    doReturn(Success(""), Nil *).when(imageIndexService).deleteIndexWithName(Some("index3"))
     val res = simpleHttpClient
       .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
     res.code.code should equal(500)

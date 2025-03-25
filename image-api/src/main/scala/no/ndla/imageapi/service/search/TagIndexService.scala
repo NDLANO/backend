@@ -19,7 +19,7 @@ import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 
 trait TagIndexService {
-  this: SearchConverterService with IndexService with ImageRepository with Props =>
+  this: SearchConverterService & IndexService & ImageRepository & Props =>
   val tagIndexService: TagIndexService
 
   class TagIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableTag] {

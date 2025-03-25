@@ -351,6 +351,24 @@ trait FolderRepository {
         .getOrElse(0L)
     }
 
+    def numberOfUsersWithFavourites(implicit session: DBSession = AutoSession): Try[Option[Long]] = Try {
+      sql"""
+           select count(distinct feide_id) as count from ${Resource.table}
+         """
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
+    def numberOfUsersWithoutFavourites(implicit session: DBSession = AutoSession): Try[Option[Long]] = Try {
+      sql"""
+           select count(distinct u.feide_id) as count from ${DBMyNDLAUser.table} u
+           left join ${Resource.table} r on u.feide_id = r.feide_id
+           where r.feide_id is null
+         """
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
     def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${Folder.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
@@ -721,35 +739,36 @@ trait FolderRepository {
           Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
       }
 
-    def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${Resource.table}) as tag"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(*) from ${Resource.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfFolders()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(*) from ${Folder.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfSharedFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfSharedFolders()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(*) from ${Folder.table} where status = ${FolderStatus.SHARED.toString}"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfResourcesGrouped()(implicit session: DBSession = ReadOnlyAutoSession): List[(Long, String)] = {
+    def numberOfResourcesGrouped()(implicit session: DBSession = ReadOnlyAutoSession): Try[List[(Long, String)]] = Try {
       sql"select count(*) as antall, resource_type from ${Resource.table} group by resource_type"
         .map(rs => (rs.long("antall"), rs.string("resource_type")))
         .list()
     }
+
     def getAllFolderRows(implicit session: DBSession): List[FolderRow] = {
       sql"select * from ${Folder.table}"
         .map(rs => {

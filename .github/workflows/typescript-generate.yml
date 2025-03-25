@@ -29,7 +29,7 @@ jobs:
       - uses: sbt/setup-sbt@v1
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.12'
+          node-version: "20.13.1"
       - name: Login to ECR repo
         run: RES=$(aws sts assume-role --role-arn $CI_RELEASE_ROLE --role-session-name
           github-actions-ecr-login) AWS_ACCESS_KEY_ID=$(echo $RES | jq -r .Credentials.AccessKeyId)
@@ -40,11 +40,9 @@ jobs:
         run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME
           --password-stdin
       - name: Generate typescript types
-        run: sbt generateTypescript
+        run: sbt openapiTSGenerate
       - name: Verify typescript types
         run: cd typescript/types-backend && yarn install && yarn tsc
-      - name: Verify typescript constants
-        run: cd typescript/constants-backend && yarn install && yarn tsc
       - name: Commit typescript changes
         continue-on-error: true
         run: |

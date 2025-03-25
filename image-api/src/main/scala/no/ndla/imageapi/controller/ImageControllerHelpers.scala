@@ -9,7 +9,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.Props
-import sttp.tapir._
+import sttp.tapir.*
 
 trait ImageControllerHelpers {
   this: Props =>
