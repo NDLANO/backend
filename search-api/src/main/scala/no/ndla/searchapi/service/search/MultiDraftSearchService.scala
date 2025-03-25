@@ -159,7 +159,7 @@ trait MultiDraftSearchService {
 
         boolQuery().should(
           List(
-            langQueryFunc("title", 3),
+            langQueryFunc("title", 20),
             langQueryFunc("introduction", 2),
             langQueryFunc("metaDescription", 1),
             langQueryFunc("content", 1),

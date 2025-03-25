@@ -70,18 +70,21 @@ trait MultiSearchService {
         boolQuery().must(
           boolQuery().should(
             List(
-              langQueryFunc("title", 6),
-              langQueryFunc("introduction", 2),
-              langQueryFunc("metaDescription", 1),
-              langQueryFunc("content", 1),
-              langQueryFunc("tags", 1),
-              langQueryFunc("embedAttributes", 1),
-              simpleStringQuery(q.underlying).field("authors", 1),
-              simpleStringQuery(q.underlying).field("grepContexts.title", 1),
-              nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
-              termQuery("contextids", q.underlying),
-              idsQuery(q.underlying)
-            ) ++
+              buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20)
+            ).flatten ++
+              List(
+                langQueryFunc("title", 20),
+                langQueryFunc("introduction", 2),
+                langQueryFunc("metaDescription", 1),
+                langQueryFunc("content", 1),
+                langQueryFunc("tags", 1),
+                langQueryFunc("embedAttributes", 1),
+                simpleStringQuery(q.underlying).field("authors", 1),
+                simpleStringQuery(q.underlying).field("grepContexts.title", 1),
+                nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
+                termQuery("contextids", q.underlying),
+                idsQuery(q.underlying)
+              ) ++
               buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
               buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
           )
@@ -90,17 +93,26 @@ trait MultiSearchService {
 
       val nodeSearch = settings.query.map { q =>
         val langQueryFunc = (fieldName: String, boost: Double) =>
-          buildSimpleStringQueryForField(
-            q,
-            fieldName,
-            boost,
-            settings.language,
-            settings.fallback,
-            searchDecompounded = true
-          )
+          List(
+            buildSimpleStringQueryForField(
+              q,
+              fieldName,
+              boost,
+              settings.language,
+              settings.fallback,
+              searchDecompounded = true
+            ).some,
+            buildMatchQueryForField(
+              q,
+              fieldName,
+              settings.language,
+              settings.fallback,
+              boost
+            )
+          ).flatten
         boolQuery().must(
           boolQuery().should(
-            langQueryFunc("title", 18)
+            langQueryFunc("title", 100)
           )
         )
       }

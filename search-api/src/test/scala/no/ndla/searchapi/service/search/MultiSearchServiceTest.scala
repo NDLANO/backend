@@ -727,16 +727,16 @@ class MultiSearchServiceTest
         searchSettings.copy(query = Some(NonEmptyString.fromString("Helse søster").get), language = AllLanguages)
       )
 
-    search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(Seq(12))
+    search1.totalCount should be(1)
 
     val Success(search2) =
       multiSearchService.matchingQuery(
         searchSettings.copy(query = Some(NonEmptyString.fromString("Helse søster").get), language = "nb")
       )
 
-    search2.totalCount should be(1)
     search2.summaryResults.map(_.id) should be(Seq(12))
+    search2.totalCount should be(1)
   }
 
   test("That filterByNoResourceType works by filtering out every document that does not have resourceTypes") {
