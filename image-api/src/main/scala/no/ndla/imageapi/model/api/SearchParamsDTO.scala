@@ -10,8 +10,9 @@ package no.ndla.imageapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.model.domain.Sort
-import sttp.tapir.Schema.annotations.{description, deprecated}
+import sttp.tapir.Schema.annotations.{deprecated, description}
 
 @description("The search parameters")
 case class SearchParamsDTO(
@@ -20,7 +21,7 @@ case class SearchParamsDTO(
     @description("Return only images with provided license.")
     license: Option[String],
     @description("The ISO 639-1 language code describing language used in query-params")
-    language: Option[String],
+    language: Option[LanguageCode],
     @description("Fallback to existing language if language is specified.")
     fallback: Option[Boolean],
     @description("Return only images with full size larger than submitted value in bytes.")

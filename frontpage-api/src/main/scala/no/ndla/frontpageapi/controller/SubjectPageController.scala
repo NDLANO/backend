@@ -11,6 +11,7 @@ package no.ndla.frontpageapi.controller
 import io.circe.generic.auto.*
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.{ErrorHandling, NewSubjectPageDTO, UpdatedSubjectPageDTO}
@@ -31,43 +32,62 @@ trait SubjectPageController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
+    private val pageNo = query[Int]("page")
+      .description("The page number of the search hits to display.")
+      .default(1)
+      .validate(Validator.min(1))
+    private val pageSize = query[Int]("page-size")
+      .description("The number of search hits to display for each page.")
+      .default(props.DefaultPageSize)
+      .validate(Validator.min(0))
+    private val ids = listQuery[Long]("ids")
+      .description(
+        "Return only subject pages that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+      )
+    private val language = query[LanguageCode]("language")
+      .description("The ISO 639-1 language code describing language.")
+      .default(LanguageCode(props.DefaultLanguage))
+    private val fallback = query[Boolean]("fallback")
+      .description("Fallback to existing language if language is specified.")
+      .default(false)
+
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all subjectpages")
-      .in(query[Int]("page").default(1).validate(Validator.min(1)))
-      .in(query[Int]("page-size").default(props.DefaultPageSize).validate(Validator.min(0)))
-      .in(query[String]("language").default(props.DefaultLanguage))
-      .in(query[Boolean]("fallback").default(false))
+      .in(pageNo)
+      .in(pageSize)
+      .in(language)
+      .in(fallback)
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[List[SubjectPageDTO]])
       .serverLogicPure { case (page, pageSize, language, fallback) =>
-        readService.subjectPages(page, pageSize, language, fallback)
+        readService.subjectPages(page, pageSize, language.code, fallback)
       }
 
     def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get data to display on a subject page")
       .in(path[Long]("subjectpage-id").description("The subjectpage id"))
-      .in(query[String]("language").default(props.DefaultLanguage))
-      .in(query[Boolean]("fallback").default(false))
+      .in(language)
+      .in(fallback)
       .out(jsonBody[SubjectPageDTO])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (id, language, fallback) =>
-        readService.subjectPage(id, language, fallback)
+        readService.subjectPage(id, language.code, fallback)
       }
 
     def getSubjectPagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch subject pages that matches ids parameter")
       .in("ids")
-      .in(listQuery[Long]("ids"))
-      .in(query[String]("language").default(props.DefaultLanguage))
-      .in(query[Boolean]("fallback").default(false))
-      .in(query[Int]("page-size").default(props.DefaultPageSize))
-      .in(query[Int]("page").default(1))
+      .in(ids)
+      .in(language)
+      .in(fallback)
+      .in(pageSize)
+      .in(pageNo)
       .out(jsonBody[List[SubjectPageDTO]])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
         val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
         val parsedPage     = if (page < 1) 1 else page
-        readService.getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
+        readService.getSubjectPageByIds(ids.values, language.code, fallback, parsedPageSize, parsedPage)
 
       }
 
@@ -90,15 +110,15 @@ trait SubjectPageController {
       .summary("Update subject page")
       .in(jsonBody[UpdatedSubjectPageDTO])
       .in(path[Long]("subjectpage-id").description("The subjectpage id"))
-      .in(query[String]("language").default(props.DefaultLanguage))
-      .in(query[Boolean]("fallback").default(false))
+      .in(language)
+      .in(fallback)
       .out(jsonBody[SubjectPageDTO])
       .errorOut(errorOutputsFor(400, 404))
       .requirePermission(FRONTPAGE_API_WRITE)
       .serverLogicPure { _ =>
         { case (subjectPage, id, language, fallback) =>
           writeService
-            .updateSubjectPage(id, subjectPage, language, fallback)
+            .updateSubjectPage(id, subjectPage, language.code, fallback)
             .partialOverride { case ex: ValidationException =>
               ErrorHelpers.unprocessableEntity(ex.getMessage)
             }

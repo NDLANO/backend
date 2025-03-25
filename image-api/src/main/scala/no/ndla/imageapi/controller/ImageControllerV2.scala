@@ -10,6 +10,7 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
@@ -60,12 +61,12 @@ trait ImageControllerV2 {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    protected def scrollSearchOr(scrollId: Option[String], language: String, user: Option[TokenUser])(
+    protected def scrollSearchOr(scrollId: Option[String], language: LanguageCode, user: Option[TokenUser])(
         orFunction: => Try[(SearchResultDTO, DynamicHeaders)]
     ): Try[(SearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          imageSearchService.scrollV2(scroll, Language.languageOrParam(language), user) match {
+          imageSearchService.scrollV2(scroll, language.code, user) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
@@ -94,7 +95,7 @@ trait ImageControllerV2 {
           SearchSettings(
             query = Some(searchString.trim),
             minimumSize = minimumSize,
-            language = Language.languageOrParam(language),
+            language = language,
             fallback = fallback,
             license = license,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
@@ -110,7 +111,7 @@ trait ImageControllerV2 {
             query = None,
             minimumSize = minimumSize,
             license = license,
-            language = Language.languageOrParam(language),
+            language = language,
             fallback = fallback,
             sort = sort.getOrElse(Sort.ByTitleAsc),
             page = page,
@@ -172,7 +173,7 @@ trait ImageControllerV2 {
               search(
                 minimumSize,
                 query,
-                language,
+                language.code,
                 fallback,
                 license,
                 sort,
@@ -197,7 +198,7 @@ trait ImageControllerV2 {
       .out(EndpointOutput.derived[DynamicHeaders])
       .withOptionalUser
       .serverLogicPure(user => { searchParams =>
-        val language = searchParams.language.getOrElse(Language.AllLanguages)
+        val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
         val fallback = searchParams.fallback.getOrElse(false)
         scrollSearchOr(searchParams.scrollId, language, user) {
           val minimumSize = searchParams.minimumSize
@@ -214,7 +215,7 @@ trait ImageControllerV2 {
           search(
             minimumSize,
             query,
-            language,
+            language.code,
             fallback,
             license,
             sort,
@@ -350,7 +351,7 @@ trait ImageControllerV2 {
         val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
         readService
-          .getAllTags(query, pageSize, pageNo, Language.languageOrParam(language), sort)
+          .getAllTags(query, pageSize, pageNo, language.code, sort)
           .handleErrorsOrOk
       }
   }

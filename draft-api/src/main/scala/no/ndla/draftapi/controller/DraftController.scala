@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.common.model.api.LicenseDTO
+import no.ndla.common.model.api.{LanguageCode, LicenseDTO}
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.model.api.*
@@ -66,7 +66,7 @@ trait DraftController {
       .default(true)
     private val grepCodes = listQuery[String]("grep-codes")
       .description("A comma separated list of codes from GREP API the resources should be filtered by.")
-    private val articleSlug = path[String]("slug").description("Slug of the article that is to be fecthed.")
+    private val articleSlug = path[String]("slug").description("Slug of the article that is to be fetched.")
     private val pageNo = query[Int]("page")
       .description("The page number of the search hits to display.")
       .default(1)
@@ -80,10 +80,11 @@ trait DraftController {
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
-    private val language = query[String]("language")
+    private val language = query[LanguageCode]("language")
       .description("The ISO 639-1 language code describing language.")
-      .default(Language.AllLanguages)
-    private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
+      .default(LanguageCode(Language.AllLanguages))
+    private val pathLanguage =
+      path[LanguageCode]("language").description("The ISO 639-1 language code describing language.")
     private val license = query[Option[String]]("license").description("Return only results with provided license.")
     private val fallback = query[Boolean]("fallback")
       .description("Fallback to existing language if language is specified.")
@@ -134,12 +135,12 @@ trait DraftController {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr(scrollId: Option[String], language: String)(
+    private def scrollSearchOr(scrollId: Option[String], language: LanguageCode)(
         orFunction: => Try[(ArticleSearchResultDTO, DynamicHeaders)]
     ): Try[(ArticleSearchResultDTO, DynamicHeaders)] = {
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          articleSearchService.scroll(scroll, language) match {
+          articleSearchService.scroll(scroll, language.code) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
@@ -164,7 +165,7 @@ trait DraftController {
       .serverLogicPure { _ =>
         { case (maybeQuery, pageSize, pageNo, language) =>
           val query = maybeQuery.getOrElse("")
-          readService.getAllTags(query, pageSize, pageNo, Language.languageOrParam(language))
+          readService.getAllTags(query, pageSize, pageNo, language.code)
         }
       }
 
@@ -281,7 +282,7 @@ trait DraftController {
               search(
                 maybeQuery,
                 sort,
-                Language.languageOrParam(language),
+                language.code,
                 license,
                 pageNo,
                 pageSize,
@@ -305,7 +306,7 @@ trait DraftController {
       .in(jsonBody[ArticleSearchParamsDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => searchParams =>
-        val language = searchParams.language.getOrElse(Language.AllLanguages)
+        val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
         scrollSearchOr(searchParams.scrollId, language) {
           val query              = searchParams.query
           val sort               = searchParams.sort
@@ -321,7 +322,7 @@ trait DraftController {
           search(
             query,
             sort,
-            Language.languageOrParam(language),
+            language.code,
             license,
             page,
             pageSize,
@@ -345,7 +346,7 @@ trait DraftController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (articleId, language, fallback) =>
-          val article        = readService.withId(articleId, Language.languageOrParam(language), fallback)
+          val article        = readService.withId(articleId, language.code, fallback)
           val currentOption  = article.map(_.status.current).toOption
           val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
           val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus
@@ -372,7 +373,7 @@ trait DraftController {
           readService
             .getArticlesByIds(
               articleIds.values,
-              Language.languageOrParam(language),
+              language.code,
               fallback,
               page.toLong,
               pageSize.toLong
@@ -395,7 +396,7 @@ trait DraftController {
       .serverLogicPure { _ =>
         { case (articleId, language, fallback) =>
           readService
-            .getArticles(articleId, Language.languageOrParam(language), fallback)
+            .getArticles(articleId, language.code, fallback)
             .asRight
         }
       }
@@ -568,7 +569,7 @@ trait DraftController {
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
         { case (articleId, language) =>
-          writeService.deleteLanguage(articleId, language, user)
+          writeService.deleteLanguage(articleId, language.code, user)
         }
       }
 
@@ -600,7 +601,7 @@ trait DraftController {
       .serverLogicPure { user =>
         { case (articleId, language, fallback, copiedTitlePostfix) =>
           writeService
-            .copyArticleFromId(articleId, user, Language.languageOrParam(language), fallback, copiedTitlePostfix)
+            .copyArticleFromId(articleId, user, language.code, fallback, copiedTitlePostfix)
 
         }
       }
@@ -621,7 +622,7 @@ trait DraftController {
             .partialPublishAndConvertToApiArticle(
               articleId,
               articleFieldsToUpdate,
-              Language.languageOrParam(language),
+              language.code,
               fallback,
               user
             )
@@ -641,7 +642,7 @@ trait DraftController {
       .serverLogicPure { user =>
         { case (language, partialBulk) =>
           writeService
-            .partialPublishMultiple(Language.languageOrParam(language), partialBulk, user)
+            .partialPublishMultiple(language.code, partialBulk, user)
 
         }
       }
@@ -671,7 +672,7 @@ trait DraftController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (slug, language, fallback) =>
-          val article        = readService.getArticleBySlug(slug, Language.languageOrParam(language), fallback)
+          val article        = readService.getArticleBySlug(slug, language.code, fallback)
           val currentOption  = article.map(_.status.current).toOption
           val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
           val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus

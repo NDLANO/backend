@@ -22,6 +22,7 @@ import no.ndla.common.errors.FileTooBigException
 import no.ndla.language.Language
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.{NonEmptyString, TapirController}
@@ -51,9 +52,9 @@ trait AudioController {
       .description("Return only results with titles or tags matching the specified query.")
       .schema(NonEmptyString.schemaOpt)
     private val language =
-      query[Option[String]]("language")
+      query[Option[LanguageCode]]("language")
         .description("The ISO 639-1 language code describing language.")
-        .default(Some(Language.AllLanguages))
+        .default(Some(LanguageCode(Language.AllLanguages)))
     private val license = query[Option[String]]("license").description("Return only audio with provided license.")
     private val pageNo  = query[Option[Int]]("page").description("The page number of the search hits to display.")
     private val pageSize = query[Option[Int]]("page-size").description(
@@ -109,11 +110,12 @@ trait AudioController {
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure {
         case (query, language, license, sort, pageNo, pageSize, scrollId, audioType, seriesFilter, fallback) =>
-          scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
+          val lang = language.getOrElse(LanguageCode(Language.AllLanguages))
+          scrollSearchOr(scrollId, lang.code) {
             val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
             search(
               query.underlying,
-              language,
+              language.map(_.code),
               license,
               sort.flatMap(Sort.valueOf),
               pageSize,
@@ -134,11 +136,12 @@ trait AudioController {
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { searchParams =>
-        scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
+        val lang = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
+        scrollSearchOr(searchParams.scrollId, lang.code) {
           val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           search(
             searchParams.query,
-            searchParams.language,
+            searchParams.language.map(_.code),
             searchParams.license,
             searchParams.sort,
             searchParams.pageSize,
@@ -159,7 +162,7 @@ trait AudioController {
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[AudioMetaInformationDTO])
       .serverLogicPure { case (id, language) =>
-        readService.withId(id, language) match {
+        readService.withId(id, language.map(_.code)) match {
           case Some(audio) => audio.asRight
           case None        => notFoundWithMsg(s"Audio with id $id not found").asLeft
         }
@@ -177,7 +180,7 @@ trait AudioController {
         // NOTE: For some weird reason the generated openapi spec fails if this is a List[AudioMetaInformation]
         //       I assume it is because of the recursive nature of `AudioMetaInformation`.
         //       For Array[AudioMetaInformation] it works fine so lets just convert it here for now.
-        readService.getAudiosByIds(audioIds.values, language).map(_.toArray)
+        readService.getAudiosByIds(audioIds.values, language.map(_.code)).map(_.toArray)
       }
 
     def deleteAudio: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -268,9 +271,9 @@ trait AudioController {
           case x                        => x
         }
 
-        val language = lang.getOrElse(Language.AllLanguages)
+        val language = lang.getOrElse(LanguageCode(Language.AllLanguages))
 
-        readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language)
+        readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language.code)
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

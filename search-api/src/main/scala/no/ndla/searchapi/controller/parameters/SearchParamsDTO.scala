@@ -10,6 +10,7 @@ package no.ndla.searchapi.controller.parameters
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.search.{SearchTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
@@ -36,7 +37,7 @@ case class SearchParamsDTO(
     @description("Fallback to existing language if language is specified.")
     fallback: Option[Boolean],
     @description("The ISO 639-1 language code describing language.")
-    language: Option[String],
+    language: Option[LanguageCode],
     @description("Return only results with provided license.")
     license: Option[String],
     @description("The sorting used on results.")

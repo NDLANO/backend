@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, SearchTrait, SearchType}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.Availability
@@ -192,13 +193,13 @@ trait SearchController {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollWithOr[T <: SearchService](scrollId: Option[String], language: String, scroller: T)(
+    private def scrollWithOr[T <: SearchService](scrollId: Option[String], language: LanguageCode, scroller: T)(
         orFunction: => Try[(MultiSearchResultDTO, DynamicHeaders)]
     ): Try[(MultiSearchResultDTO, DynamicHeaders)] = {
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           for {
-            scrollResult <- scroller.scroll(scroll, language)
+            scrollResult <- scroller.scroll(scroll, language.code)
             body    = searchConverterService.toApiMultiSearchResult(scrollResult)
             headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
           } yield (body, headers)
@@ -274,7 +275,7 @@ trait SearchController {
         getAvailability(feideToken)
           .flatMap(availability => {
             val settings = asSettings(searchParams, availability)
-            scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiSearchService) {
+            scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiSearchService) {
               multiSearchService.matchingQuery(settings).map { searchResult =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
                 val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
@@ -381,7 +382,7 @@ trait SearchController {
             )
 
             val settings = asDraftSettings(searchParams)
-            scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiDraftSearchService) {
+            scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
               multiDraftSearchService.matchingQuery(settings).map { searchResult =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
                 val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
@@ -402,7 +403,7 @@ trait SearchController {
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => searchParams =>
         val settings = asDraftSettings(searchParams)
-        scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiDraftSearchService) {
+        scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
           multiDraftSearchService.matchingQuery(settings).map { searchResult =>
             val result  = searchConverterService.toApiMultiSearchResult(searchResult)
             val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
@@ -464,7 +465,7 @@ trait SearchController {
           SearchSettings(
             query = params.query,
             fallback = params.fallback.getOrElse(false),
-            language = params.language.getOrElse(AllLanguages),
+            language = params.language.getOrElse(LanguageCode(AllLanguages)).code,
             license = params.license,
             page = params.page.getOrElse(1),
             pageSize = params.pageSize.getOrElse(10),

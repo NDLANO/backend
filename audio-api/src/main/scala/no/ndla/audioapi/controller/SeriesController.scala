@@ -21,6 +21,7 @@ import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.common.implicits.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
@@ -40,7 +41,7 @@ trait SeriesController {
     private val queryString = query[Option[String]]("query")
       .description("Return only results with titles or tags matching the specified query.")
     private val language =
-      query[Option[String]]("language").description("The ISO 639-1 language code describing language.")
+      query[Option[LanguageCode]]("language").description("The ISO 639-1 language code describing language.")
     private val pageNo = query[Option[Int]]("page").description("The page number of the search hits to display.")
     private val pageSize = query[Option[Int]]("page-size").description(
       s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
@@ -79,9 +80,10 @@ trait SeriesController {
       .in(fallback)
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { case (query, language, sort, page, pageSize, scrollId, fallback) =>
-        scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
+        val lang = language.getOrElse(LanguageCode(Language.AllLanguages)).code
+        scrollSearchOr(scrollId, lang) {
           val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
-          search(query, language, Sort.valueOf(sort), pageSize, page, shouldScroll, fallback.getOrElse(false))
+          search(query, lang, Sort.valueOf(sort), pageSize, page, shouldScroll, fallback.getOrElse(false))
         }
       }
 
@@ -93,16 +95,16 @@ trait SeriesController {
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { searchParams =>
-        scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
+        val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
+        scrollSearchOr(searchParams.scrollId, language.code) {
           val query        = searchParams.query
-          val language     = searchParams.language
           val sort         = searchParams.sort
           val pageSize     = searchParams.pageSize
           val page         = searchParams.page
           val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           val fallback     = searchParams.fallback.getOrElse(false)
 
-          search(query, language, sort, pageSize, page, shouldScroll, fallback)
+          search(query, language.code, sort, pageSize, page, shouldScroll, fallback)
         }
       }
 
@@ -114,7 +116,7 @@ trait SeriesController {
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[SeriesDTO])
       .serverLogicPure { case (id, language) =>
-        readService.seriesWithId(id, language)
+        readService.seriesWithId(id, language.map(_.code))
       }
 
     def deleteSeries: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -184,7 +186,7 @@ trait SeriesController {
 
     private def search(
         query: Option[String],
-        language: Option[String],
+        language: String,
         sort: Option[Sort],
         pageSize: Option[Int],
         page: Option[Int],
@@ -195,7 +197,7 @@ trait SeriesController {
         case Some(q) =>
           SeriesSearchSettings(
             query = Some(q),
-            language = language,
+            language = Some(language),
             page = page,
             pageSize = pageSize,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
@@ -206,7 +208,7 @@ trait SeriesController {
         case None =>
           SeriesSearchSettings(
             query = None,
-            language = language,
+            language = Some(language),
             page = page,
             pageSize = pageSize,
             sort = sort.getOrElse(Sort.ByTitleAsc),

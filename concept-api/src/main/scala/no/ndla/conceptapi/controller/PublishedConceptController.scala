@@ -11,6 +11,7 @@ package no.ndla.conceptapi.controller
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.implicits.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.SearchSettings
@@ -47,12 +48,12 @@ trait PublishedConceptController {
       postSearchConcepts
     )
 
-    private def scrollSearchOr(scrollId: Option[String], language: String)(
+    private def scrollSearchOr(scrollId: Option[String], language: LanguageCode)(
         orFunction: => Try[(ConceptSearchResultDTO, DynamicHeaders)]
     ): Try[(ConceptSearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          publishedConceptSearchService.scroll(scroll, language) match {
+          publishedConceptSearchService.scroll(scroll, language.code) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
@@ -121,7 +122,7 @@ trait PublishedConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.publishedConceptWithId(conceptId, Language.languageOrParam(language), fallback, user)
+          readService.publishedConceptWithId(conceptId, language.code, fallback, user)
         }
       }
 
@@ -169,7 +170,7 @@ trait PublishedConceptController {
             search(
               query,
               sort,
-              Language.languageOrParam(language),
+              language.code,
               page,
               pageSize,
               idList.values,
@@ -194,10 +195,11 @@ trait PublishedConceptController {
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { searchParams =>
-        scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(DefaultLanguage)) {
+        val lang = searchParams.language.getOrElse(LanguageCode(DefaultLanguage))
+        scrollSearchOr(searchParams.scrollId, lang) {
           val query           = searchParams.query
           val sort            = searchParams.sort
-          val language        = searchParams.language.getOrElse(Language.AllLanguages)
+          val language        = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
           val pageSize        = searchParams.pageSize.getOrElse(DefaultPageSize)
           val page            = searchParams.page.getOrElse(1)
           val idList          = searchParams.ids
@@ -213,7 +215,7 @@ trait PublishedConceptController {
           search(
             query,
             sort,
-            Language.languageOrParam(language),
+            language.code,
             page,
             pageSize,
             idList.getOrElse(List.empty),
@@ -240,7 +242,7 @@ trait PublishedConceptController {
       )
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (language, fallback) =>
-        readService.allTagsFromConcepts(Language.languageOrParam(language), fallback).asRight
+        readService.allTagsFromConcepts(language.code, fallback).asRight
       }
   }
 }
