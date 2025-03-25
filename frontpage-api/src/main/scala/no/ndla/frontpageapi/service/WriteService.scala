@@ -114,18 +114,13 @@ trait WriteService {
     def deleteSubjectPageLanguage(id: Long, language: String): Try[SubjectPageDTO] = {
       subjectPageRepository.withId(id) match {
         case Success(Some(subjectPage)) =>
-          subjectPage.about.size match {
+          subjectPage.supportedLanguages.size match {
             case 1 => Failure(OperationNotAllowedException("Only one language left"))
             case _ =>
               val about           = subjectPage.about.filter(_.language != language)
               val metaDescription = subjectPage.metaDescription.filter(_.language != language)
               subjectPageRepository
-                .updateSubjectPage(
-                  subjectPage.copy(
-                    about = about,
-                    metaDescription = metaDescription
-                  )
-                )
+                .updateSubjectPage(subjectPage.copy(about = about, metaDescription = metaDescription))
                 .flatMap(ConverterService.toApiSubjectPage(_, Language.NoLanguage, fallback = true))
           }
         case Success(None) => Failure(SubjectPageNotFoundException(id))
@@ -136,18 +131,15 @@ trait WriteService {
     def deleteFilmFrontPageLanguage(language: String): Try[api.FilmFrontPageDTO] = {
       filmFrontPageRepository.get match {
         case Some(page) =>
-          page.about.size match {
+          page.supportedLanguages.size match {
             case 1 => Failure(OperationNotAllowedException("Only one language left"))
             case _ =>
+              val about = page.about.filter(_.language != language)
+              val movieThemes = page.movieThemes.map(movieTheme =>
+                movieTheme.copy(name = movieTheme.name.filter(_.language != language))
+              )
               filmFrontPageRepository
-                .update(
-                  page.copy(
-                    about = page.about.filter(_.language != language),
-                    movieThemes = page.movieThemes.map(movieTheme =>
-                      movieTheme.copy(name = movieTheme.name.filter(_.language != language))
-                    )
-                  )
-                )
+                .update(page.copy(about = about, movieThemes = movieThemes))
                 .map(ConverterService.toApiFilmFrontPage(_, None))
           }
         case None => Failure(NotFoundException("The film front page was not found"))
