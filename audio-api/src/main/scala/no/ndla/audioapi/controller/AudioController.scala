@@ -37,20 +37,13 @@ import java.io.File
 import scala.util.{Failure, Success, Try}
 
 trait AudioController {
-  this: AudioRepository
-    with ReadService
-    with WriteService
-    with AudioSearchService
-    with SearchConverterService
-    with ConverterService
-    with Props
-    with ErrorHandling
-    with TapirController =>
+  this: AudioRepository & ReadService & WriteService & AudioSearchService & SearchConverterService & ConverterService &
+    Props & ErrorHandling & TapirController =>
   val audioApiController: AudioController
 
-  class AudioController() extends TapirController {
-    import props._
-    val maxAudioFileSizeBytes                = props.MaxAudioFileSizeBytes
+  class AudioController extends TapirController {
+    import props.*
+    val maxAudioFileSizeBytes: Int           = props.MaxAudioFileSizeBytes
     override val serviceName: String         = "audio"
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName
 
@@ -58,7 +51,9 @@ trait AudioController {
       .description("Return only results with titles or tags matching the specified query.")
       .schema(NonEmptyString.schemaOpt)
     private val language =
-      query[Option[String]]("language").description("The ISO 639-1 language code describing language.")
+      query[Option[String]]("language")
+        .description("The ISO 639-1 language code describing language.")
+        .default(Some(Language.AllLanguages))
     private val license = query[Option[String]]("license").description("Return only audio with provided license.")
     private val pageNo  = query[Option[Int]]("page").description("The page number of the search hits to display.")
     private val pageSize = query[Option[Int]]("page-size").description(
@@ -95,7 +90,7 @@ trait AudioController {
     private val pathAudioId  = path[Long]("audio-id").description("Id of audio.")
     private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
 
-    import ErrorHelpers._
+    import ErrorHelpers.*
 
     def getSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find audio files")
@@ -341,7 +336,7 @@ trait AudioController {
         case Some(q) =>
           SearchSettings(
             query = Some(q),
-            language = language,
+            language = language.map(Language.languageOrParam),
             license = license,
             page = page,
             pageSize = pageSize,
@@ -355,7 +350,7 @@ trait AudioController {
         case None =>
           SearchSettings(
             query = None,
-            language = language,
+            language = language.map(Language.languageOrParam),
             license = license,
             page = page,
             pageSize = pageSize,

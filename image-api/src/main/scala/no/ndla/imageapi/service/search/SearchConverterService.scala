@@ -23,7 +23,7 @@ import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -177,7 +177,7 @@ trait SearchConverterService {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {

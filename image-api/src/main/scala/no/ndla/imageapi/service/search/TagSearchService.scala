@@ -24,13 +24,8 @@ import no.ndla.search.Elastic4sClient
 import scala.util.{Failure, Success, Try}
 
 trait TagSearchService {
-  this: Elastic4sClient
-    with SearchConverterService
-    with SearchService
-    with TagIndexService
-    with SearchConverterService
-    with Props
-    with ErrorHandling =>
+  this: Elastic4sClient & SearchConverterService & SearchService & TagIndexService & SearchConverterService & Props &
+    ErrorHandling =>
   val tagSearchService: TagSearchService
 
   class TagSearchService extends StrictLogging with SearchService[String] {

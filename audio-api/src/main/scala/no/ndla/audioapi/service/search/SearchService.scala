@@ -8,8 +8,8 @@
 
 package no.ndla.audioapi.service.search
 
-import cats.implicits._
-import com.sksamuel.elastic4s.ElasticDsl._
+import cats.implicits.*
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, SimpleStringQuery}
@@ -29,7 +29,7 @@ trait SearchService {
   this: Elastic4sClient & SearchConverterService & Props & SearchLanguage =>
 
   trait SearchService[T] extends StrictLogging {
-    import props._
+    import props.*
     val searchIndex: String
 
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =

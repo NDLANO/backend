@@ -85,7 +85,7 @@ object LanguageTag {
     } yield LanguageTag(iso639, None, Some(iso3166))
   }
 
-  private def withLanguage(language: String): Try[LanguageTag] = {
+  def withLanguage(language: String): Try[LanguageTag] = {
     Iso639.get(language).map(LanguageTag(_, None, None))
   }
 }

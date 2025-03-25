@@ -38,15 +38,8 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ConverterService
-    with ValidationService
-    with ImageRepository
-    with ImageIndexService
-    with ImageStorageService
-    with TagIndexService
-    with Clock
-    with Props
-    with Random =>
+  this: ConverterService & ValidationService & ImageRepository & ImageIndexService & ImageStorageService &
+    TagIndexService & Clock & Props & Random =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {
@@ -74,7 +67,7 @@ trait WriteService {
       }
     }
 
-    private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[_] = {
+    private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[?] = {
       val imageFileToDelete = images.find(_.language == language)
       imageFileToDelete match {
         case Some(fileToDelete) =>
@@ -234,7 +227,7 @@ trait WriteService {
       withoutMetas(lhs) != withoutMetas(rhs)
     }
 
-    def mergeDeletableLanguageFields[A <: LanguageField[_]](
+    def mergeDeletableLanguageFields[A <: LanguageField[?]](
         existing: Seq[A],
         updated: Deletable[A],
         language: String

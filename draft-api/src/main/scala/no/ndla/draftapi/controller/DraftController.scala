@@ -164,7 +164,7 @@ trait DraftController {
       .serverLogicPure { _ =>
         { case (maybeQuery, pageSize, pageNo, language) =>
           val query = maybeQuery.getOrElse("")
-          readService.getAllTags(query, pageSize, pageNo, language)
+          readService.getAllTags(query, pageSize, pageNo, Language.languageOrParam(language))
         }
       }
 
@@ -281,7 +281,7 @@ trait DraftController {
               search(
                 maybeQuery,
                 sort,
-                language,
+                Language.languageOrParam(language),
                 license,
                 pageNo,
                 pageSize,
@@ -321,7 +321,7 @@ trait DraftController {
           search(
             query,
             sort,
-            language,
+            Language.languageOrParam(language),
             license,
             page,
             pageSize,
@@ -345,7 +345,7 @@ trait DraftController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (articleId, language, fallback) =>
-          val article        = readService.withId(articleId, language, fallback)
+          val article        = readService.withId(articleId, Language.languageOrParam(language), fallback)
           val currentOption  = article.map(_.status.current).toOption
           val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
           val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus
@@ -372,7 +372,7 @@ trait DraftController {
           readService
             .getArticlesByIds(
               articleIds.values,
-              language,
+              Language.languageOrParam(language),
               fallback,
               page.toLong,
               pageSize.toLong
@@ -395,7 +395,7 @@ trait DraftController {
       .serverLogicPure { _ =>
         { case (articleId, language, fallback) =>
           readService
-            .getArticles(articleId, language, fallback)
+            .getArticles(articleId, Language.languageOrParam(language), fallback)
             .asRight
         }
       }
@@ -600,7 +600,7 @@ trait DraftController {
       .serverLogicPure { user =>
         { case (articleId, language, fallback, copiedTitlePostfix) =>
           writeService
-            .copyArticleFromId(articleId, user, language, fallback, copiedTitlePostfix)
+            .copyArticleFromId(articleId, user, Language.languageOrParam(language), fallback, copiedTitlePostfix)
 
         }
       }
@@ -621,7 +621,7 @@ trait DraftController {
             .partialPublishAndConvertToApiArticle(
               articleId,
               articleFieldsToUpdate,
-              language,
+              Language.languageOrParam(language),
               fallback,
               user
             )
@@ -641,7 +641,7 @@ trait DraftController {
       .serverLogicPure { user =>
         { case (language, partialBulk) =>
           writeService
-            .partialPublishMultiple(language, partialBulk, user)
+            .partialPublishMultiple(Language.languageOrParam(language), partialBulk, user)
 
         }
       }
@@ -671,7 +671,7 @@ trait DraftController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (slug, language, fallback) =>
-          val article        = readService.getArticleBySlug(slug, language, fallback)
+          val article        = readService.getArticleBySlug(slug, Language.languageOrParam(language), fallback)
           val currentOption  = article.map(_.status.current).toOption
           val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
           val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus
