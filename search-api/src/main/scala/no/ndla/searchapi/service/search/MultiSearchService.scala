@@ -100,7 +100,7 @@ trait MultiSearchService {
           )
         boolQuery().must(
           boolQuery().should(
-            langQueryFunc("title", 6)
+            langQueryFunc("title", 18)
           )
         )
       }
