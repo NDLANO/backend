@@ -8,7 +8,7 @@
 
 package no.ndla.common.model.api
 
-import io.circe.generic.semiauto.deriveEncoder
+import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, DecodingFailure, Encoder, HCursor}
 import no.ndla.language.Language
 import sttp.tapir.CodecFormat.TextPlain
@@ -19,7 +19,7 @@ class LanguageCode private (val code: String) {
 }
 
 object LanguageCode {
-  def apply(code: String): LanguageCode = new LanguageCode(code)
+  def apply(code: String): LanguageCode = parse(code)
 
   def parse(value: String): LanguageCode = {
     new LanguageCode(Language.languageOrParam(value))
