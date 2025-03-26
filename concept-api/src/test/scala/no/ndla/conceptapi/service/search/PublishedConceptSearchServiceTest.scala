@@ -20,19 +20,9 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import java.time.LocalDateTime
 import scala.util.Success
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.concept.{
-  Concept,
-  ConceptContent,
-  ConceptMetaImage,
-  ConceptType,
-  GlossData,
-  VisualElement,
-  WordClass
-}
-import no.ndla.conceptapi.integration.model.TaxonomyData
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, GlossData, VisualElement, WordClass}
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
-import org.mockito.Mockito.when
 
 class PublishedConceptSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -151,7 +141,6 @@ class PublishedConceptSearchServiceTest
     title = List(Title("baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     copyright = Some(byNcSa),
-    metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en")),
     tags = Seq(Tag(Seq("stor", "klovn"), "nb"))
   )
 
@@ -213,7 +202,6 @@ class PublishedConceptSearchServiceTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
       publishedConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
 
       publishedConceptIndexService.indexDocument(concept1)
@@ -570,22 +558,22 @@ class PublishedConceptSearchServiceTest
   test("that search on embedId matches meta image") {
     val Success(search) =
       publishedConceptSearchService.all(
-        searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.image"))
+        searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url"))
       )
 
     search.totalCount should be(1)
-    search.results.head.id should be(9)
+    search.results.head.id should be(10)
   }
 
   test("that search on query parameter as embedId matches meta image") {
     val Success(search) =
       publishedConceptSearchService.matchingQuery(
-        "test.image",
+        "test.url",
         searchSettings.copy()
       )
 
     search.totalCount should be(1)
-    search.results.head.id should be(9)
+    search.results.head.id should be(10)
   }
 
   test("that search on query parameter as embedResource matches visual element") {
@@ -625,11 +613,11 @@ class PublishedConceptSearchServiceTest
     val Success(search) =
       publishedConceptSearchService.all(
         searchSettings
-          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.url2"))
+          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.url"))
       )
 
     search.totalCount should be(1)
-    search.results.head.id should be(9)
+    search.results.head.id should be(10)
   }
 
   test("That search on embed id supports embed with multiple id attributes") {

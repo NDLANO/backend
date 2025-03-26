@@ -17,7 +17,6 @@ import no.ndla.conceptapi.controller.{
   InternController,
   PublishedConceptController
 }
-import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -44,7 +43,6 @@ trait TestEnvironment
     with DraftConceptIndexService
     with DraftConceptSearchService
     with IndexService
-    with TaxonomyApiClient
     with BaseIndexService
     with Elastic4sClient
     with SearchService
@@ -83,8 +81,6 @@ trait TestEnvironment
   val draftConceptSearchService: DraftConceptSearchService         = mock[DraftConceptSearchService]
   val publishedConceptIndexService: PublishedConceptIndexService   = mock[PublishedConceptIndexService]
   val publishedConceptSearchService: PublishedConceptSearchService = mock[PublishedConceptSearchService]
-
-  val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
 
   var e4sClient: NdlaE4sClient           = mock[NdlaE4sClient]
   val mockitoSugar: MockitoSugar         = mock[MockitoSugar]

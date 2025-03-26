@@ -11,7 +11,7 @@ package no.ndla.conceptapi.db.migrationwithdependencies
 import io.circe.syntax.EncoderOps
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Tag, Title}
-import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, VisualElement}
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, VisualElement}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 
 class V23__SubjectNameAsTagsTest extends UnitSuite with TestEnvironment {
@@ -44,19 +44,17 @@ class V23__SubjectNameAsTagsTest extends UnitSuite with TestEnvironment {
     val concept = TestData.domainConcept.copy(
       title = List(Title("Tittel", "nb")),
       content = List(ConceptContent("Innhold", "sma")),
-      metaImage = List(ConceptMetaImage("123", "zzz", "zh")),
       tags = List(Tag(List("tag1", "tag2", "tag3"), "nn")),
       visualElement = List(VisualElement("zzz", "en"))
     )
     val languages = migration.getLanguages(concept.asJson)
-    languages should be(List("nb", "sma", "nn", "en", "zh"))
+    languages should be(List("nb", "sma", "nn", "en"))
   }
 
   test("That adding tags works as expected") {
     val concept = TestData.domainConcept.copy(
       title = List(Title("Tittel", "nb")),
       content = List(ConceptContent("Innhold", "sma")),
-      metaImage = List(ConceptMetaImage("123", "zzz", "zh")),
       tags = List(Tag(List("nb"), "nb"), Tag(List("nn"), "nn"), Tag(List("en"), "en"), Tag(List("zh"), "zh")),
       visualElement = List(VisualElement("zzz", "en"))
     )

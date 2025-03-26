@@ -21,8 +21,6 @@ case class UpdatedConceptDTO(
     title: Option[String],
     @description("The content of the concept")
     content: Option[String],
-    @description("An image-api ID for the concept meta image")
-    metaImage: UpdateOrDelete[NewConceptMetaImageDTO],
     @description("Describes the copyright information for the concept")
     copyright: Option[DraftCopyrightDTO],
     @description("A list of searchable tags")

@@ -23,8 +23,6 @@ case class NewConceptDTO(
     content: Option[String],
     @description("Describes the copyright information for the concept")
     copyright: Option[DraftCopyrightDTO],
-    @description("An image-api ID for the concept meta image")
-    metaImage: Option[NewConceptMetaImageDTO],
     @description("A list of searchable tags")
     tags: Option[Seq[String]],
     @description("A visual element for the concept. May be anything from an image to a video or H5P")

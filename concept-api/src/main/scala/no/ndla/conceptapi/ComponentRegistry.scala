@@ -11,7 +11,6 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.*
-import no.ndla.conceptapi.integration.TaxonomyApiClient
 import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -60,7 +59,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with ErrorHandling
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
-    with TaxonomyApiClient
     with SwaggerDocControllerConfig
     with ConceptControllerHelpers {
   override val props: ConceptApiProperties = properties
@@ -80,8 +78,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val draftConceptIndexService      = new DraftConceptIndexService
   lazy val publishedConceptIndexService  = new PublishedConceptIndexService
   lazy val publishedConceptSearchService = new PublishedConceptSearchService
-
-  lazy val taxonomyApiClient: TaxonomyApiClient = new TaxonomyApiClient
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
