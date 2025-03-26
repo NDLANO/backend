@@ -17,8 +17,8 @@ env:
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
   # Env variables needed to be defined for servers to "start"
-  BRIGHTCOVE_ACCOUNT: ""
-  BRIGHTCOVE_PLAYER: ""
+  BRIGHTCOVE_ACCOUNT_ID: ""
+  BRIGHTCOVE_PLAYER_ID: ""
   META_USER_NAME: ""
   META_PASSWORD: ""
   META_RESOURCE: ""
