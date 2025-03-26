@@ -163,5 +163,5 @@ object TestData {
     None
   )
 
-  val apiFilmFrontPage: api.FilmFrontPageDTO = api.FilmFrontPageDTO("", Seq(), Seq(), Seq(), None)
+  val apiFilmFrontPage: api.FilmFrontPageDTO = api.FilmFrontPageDTO("", Seq(), Seq(), Seq(), None, Seq())
 }
