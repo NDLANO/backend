@@ -30,6 +30,8 @@ trait SubjectPageController {
   class SubjectPageController extends TapirController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
+    private val pathSubjectPageId            = path[Long]("subjectpage-id").description("The subjectpage id")
+    private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
 
     def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Fetch all subjectpages")
@@ -45,7 +47,7 @@ trait SubjectPageController {
 
     def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get data to display on a subject page")
-      .in(path[Long]("subjectpage-id").description("The subjectpage id"))
+      .in(pathSubjectPageId)
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
       .out(jsonBody[SubjectPageDTO])
@@ -89,7 +91,7 @@ trait SubjectPageController {
     def updateSubjectPage: ServerEndpoint[Any, Eff] = endpoint.patch
       .summary("Update subject page")
       .in(jsonBody[UpdatedSubjectPageDTO])
-      .in(path[Long]("subjectpage-id").description("The subjectpage id"))
+      .in(pathSubjectPageId)
       .in(query[String]("language").default(props.DefaultLanguage))
       .in(query[Boolean]("fallback").default(false))
       .out(jsonBody[SubjectPageDTO])
@@ -105,12 +107,26 @@ trait SubjectPageController {
         }
       }
 
+    def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in(pathSubjectPageId / "language" / pathLanguage)
+      .summary("Delete language from subject page")
+      .description("Delete language from subject page")
+      .out(jsonBody[SubjectPageDTO])
+      .errorOut(errorOutputsFor(400, 401, 403, 404))
+      .requirePermission(FRONTPAGE_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (articleId, language) =>
+          writeService.deleteSubjectPageLanguage(articleId, language)
+        }
+      }
+
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getAllSubjectPages,
       getSubjectPagesByIds,
       getSingleSubjectPage,
       createNewSubjectPage,
-      updateSubjectPage
+      updateSubjectPage,
+      deleteLanguage
     )
   }
 }

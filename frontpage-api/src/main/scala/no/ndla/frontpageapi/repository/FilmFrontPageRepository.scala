@@ -63,6 +63,16 @@ trait FilmFrontPageRepository {
 
     }
 
+    def update(page: FilmFrontPage)(implicit session: DBSession = AutoSession): Try[FilmFrontPage] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(page.asJson.noSpacesDropNull)
+
+      Try(
+        sql"update ${DBFilmFrontPageData.table} set document=$dataObject".update()
+      ).map(_ => page)
+    }
+
   }
 
 }
