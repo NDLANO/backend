@@ -16,10 +16,16 @@ env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
-  # Env variables needed to be defined
+  # Env variables needed to be defined for servers to "start"
   BRIGHTCOVE_ACCOUNT: ""
   BRIGHTCOVE_PLAYER: ""
   META_USER_NAME: ""
+  META_PASSWORD: ""
+  META_RESOURCE: ""
+  META_SERVER: ""
+  META_PORT: ""
+  META_SCHEMA: ""
+  META_MAX_CONNECTIONS: ""
 jobs:
   generate_typescript:
     name: Generate typescript types
