@@ -16,6 +16,9 @@ env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
+  # Env variables needed to be defined
+  BRIGHTCOVE_ACCOUNT: ""
+  META_USER_NAME: ""
 jobs:
   generate_typescript:
     name: Generate typescript types
