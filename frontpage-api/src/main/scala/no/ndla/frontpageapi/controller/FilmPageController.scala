@@ -28,6 +28,7 @@ trait FilmPageController {
   class FilmPageController extends TapirController {
     override val serviceName: String         = "filmfrontpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
+    private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       endpoint.get
         .summary("Get data to display on the film front page")
@@ -50,6 +51,16 @@ trait FilmPageController {
           writeService.updateFilmFrontPage(filmFrontPage).partialOverride { case ex: ValidationException =>
             ErrorHelpers.unprocessableEntity(ex.getMessage)
           }
+        },
+      endpoint.delete
+        .in("language" / pathLanguage)
+        .summary("Delete language from film front page")
+        .description("Delete language from film front page")
+        .out(jsonBody[FilmFrontPageDTO])
+        .errorOut(errorOutputsFor(400, 401, 403, 404))
+        .requirePermission(FRONTPAGE_API_WRITE)
+        .serverLogicPure { _ => language =>
+          writeService.deleteFilmFrontPageLanguage(language)
         }
     )
   }

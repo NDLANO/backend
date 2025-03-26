@@ -90,7 +90,8 @@ trait ConverterService {
         toApiAboutFilmSubject(page.about, language),
         toApiMovieThemes(page.movieThemes, language),
         page.slideShow,
-        page.article
+        page.article,
+        page.supportedLanguages
       )
     }
 

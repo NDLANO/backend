@@ -992,47 +992,31 @@ export interface operations {
     "getSearch-apiV1SearchGroup": {
         parameters: {
             query?: {
-                /** @description Return only results with content matching the specified query. */
-                query?: string;
-                /** @description A comma separated list of resource-types the learning resources should be grouped by. */
-                "resource-types"?: string[];
-                /** @description The page number of the search hits to display. */
                 page?: number;
-                /** @description The number of search hits to display for each page. Defaults to 10 and max is 10000. */
                 "page-size"?: number;
-                /** @description The ISO 639-1 language code describing language. */
-                language?: string;
-                /** @description Fallback to existing language if language is specified. */
-                fallback?: boolean;
-                /** @description A comma separated list of subjects the learning resources should be filtered by. */
-                subjects?: string[];
-                /** @description The sorting used on results.
-                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id, -duration, duration, revisionDate, -revisionDate, responsibleLastUpdated, -responsibleLastUpdated, status, -status, -prioritized, prioritized, -parentTopicName, parentTopicName, -primaryRoot, primaryRoot, -resourceType, resourceType, -published, published, -favorited, favorited. Default is by -relevance (desc). */
-                sort?: string;
-                /** @description Return only learning resources that have one of the provided ids. To provide multiple ids, separate by comma (,). */
-                ids?: number[];
-                /** @description A comma separated list of types the learning resources should be filtered by. Available values is standard, topic-article, frontpage-article, learningpath, concept, gloss */
+                "article-types"?: string[];
                 "context-types"?: string[];
-                /** @description A comma separated list of ISO 639-1 language codes that the learning resource can be available in. */
+                language?: string;
+                ids?: number[];
+                "resource-types"?: string[];
+                license?: string;
+                query?: string;
+                sort?: string;
+                fallback?: boolean;
+                subjects?: string[];
                 "language-filter"?: string[];
-                /** @description A comma separated list of relevances the learning resources should be filtered by.
-                 *     If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-                 *     If levels are specified the learning resource must have specified relevances in relation to a specified level. */
                 relevance?: string[];
+                "search-context"?: string;
+                "grep-codes"?: string[];
+                "aggregate-paths"?: string[];
+                "embed-resource"?: string[];
+                "embed-id"?: string;
+                "filter-inactive"?: boolean;
+                traits?: string[];
+                "result-types"?: string[];
+                "node-types"?: string[];
                 /** @description Whether to include group without resource-types for group-search. Defaults to false. */
                 "missing-group"?: boolean;
-                /** @description List of index-paths that should be term-aggregated and returned in result. */
-                "aggregate-paths"?: string[];
-                /** @description A comma separated list of codes from GREP API the resources should be filtered by. */
-                "grep-codes"?: string[];
-                /** @description A comma separated list of traits the resources should be filtered by. */
-                traits?: string[];
-                /** @description Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types. */
-                "embed-resource"?: string[];
-                /** @description Return only results with embed data-resource_id, data-videoid or data-url with the specified id. */
-                "embed-id"?: string;
-                /** @description Filter out inactive taxonomy contexts. */
-                "filter-inactive"?: boolean;
             };
             header?: {
                 /** @description Header containing FEIDE access token. */

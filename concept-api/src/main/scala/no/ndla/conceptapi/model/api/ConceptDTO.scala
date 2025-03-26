@@ -28,8 +28,6 @@ case class ConceptDTO(
     copyright: Option[DraftCopyrightDTO],
     @description("URL for the source of the concept")
     source: Option[String],
-    @description("A meta image for the concept")
-    metaImage: Option[ConceptMetaImageDTO],
     @description("Search tags the concept is tagged with")
     tags: Option[ConceptTagsDTO],
     @description("When the concept was created")

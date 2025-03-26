@@ -13,6 +13,6 @@ import no.ndla.scalatestsuite.UnitTestSuite
 trait UnitSuite extends UnitTestSuite {
   setPropEnv("NDLA_ENVIRONMENT", "local")
   setPropEnv("META_SCHEMA", "test")
-  setPropEnv("BRIGHTCOVE_ACCOUNT", "123")
-  setPropEnv("BRIGHTCOVE_PLAYER", "player")
+  setPropEnv("BRIGHTCOVE_ACCOUNT_ID", "123")
+  setPropEnv("BRIGHTCOVE_PLAYER_ID", "player")
 }

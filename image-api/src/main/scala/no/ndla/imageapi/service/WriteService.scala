@@ -145,9 +145,11 @@ trait WriteService {
       imageRepository.withId(imageId) match {
         case None => Failure(new ImageNotFoundException(s"Image with id $imageId was not found."))
         case Some(existing) =>
-          val now = clock.now()
+          val now       = clock.now()
+          val newTitles = existing.titles.map(t => t.copy(title = t.title + " (Kopi)"))
           val toInsert = existing.copy(
             id = None,
+            titles = newTitles,
             images = None,
             editorNotes = Seq(domain.EditorNote(now, user.id, s"Image created as a copy of image with id '$imageId'."))
           )

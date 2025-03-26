@@ -57,7 +57,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConceptDTO("nb", Some("heisann"), None, Missing, None, None, None, None, Missing, None, None)
+      UpdatedConceptDTO("nb", Some("heisann"), None, None, None, None, None, Missing, None, None)
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         title = Seq(
@@ -74,7 +74,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConceptDTO("nn", None, Some("Nytt innhald"), Missing, None, None, None, None, Missing, None, None)
+      UpdatedConceptDTO("nn", None, Some("Nytt innhald"), None, None, None, None, Missing, None, None)
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         content = Seq(
@@ -91,7 +91,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConceptDTO("en", Some("Title"), Some("My content"), Missing, None, None, None, None, Missing, None, None)
+      UpdatedConceptDTO("en", Some("Title"), Some("My content"), None, None, None, None, Missing, None, None)
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         title = Seq(
@@ -117,7 +117,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       "nn",
       None,
       Some("Nytt innhald"),
-      Missing,
       Option(
         commonApi.DraftCopyrightDTO(
           None,
@@ -233,107 +232,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy()
-
-    converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
-  }
-
-  test("toDomainConcept deletes metaImage when getting null as a parameter") {
-    val updated = NDLADate.now()
-    when(clock.now()).thenReturn(updated)
-
-    val beforeUpdate = TestData.domainConcept.copy(
-      updated = updated,
-      metaImage = Seq(ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn"))
-    )
-    val afterUpdate =
-      TestData.domainConcept.copy(updated = updated, metaImage = Seq(concept.ConceptMetaImage("2", "Hej", "nn")))
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
-
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
-  }
-
-  test("toDomainConcept updates metaImage when getting new metaImage as a parameter") {
-    val updated = NDLADate.now()
-    when(clock.now()).thenReturn(updated)
-
-    val beforeUpdate = TestData.domainConcept.copy(
-      updated = updated,
-      metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn"))
-    )
-    val afterUpdate = TestData.domainConcept.copy(
-      updated = updated,
-      metaImage = Seq(concept.ConceptMetaImage("2", "Hej", "nn"), concept.ConceptMetaImage("1", "Hola", "nb"))
-    )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(
-      language = "nb",
-      metaImage = UpdateWith(api.NewConceptMetaImageDTO("1", "Hola"))
-    )
-
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
-  }
-
-  test("toDomainConcept does nothing to metaImage when getting None as a parameter") {
-    val updated = NDLADate.now()
-    when(clock.now()).thenReturn(updated)
-
-    val beforeUpdate = TestData.domainConcept.copy(
-      updated = updated,
-      metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn"))
-    )
-    val afterUpdate = TestData.domainConcept.copy(
-      updated = updated,
-      metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn"))
-    )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Missing)
-
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
-  }
-
-  test("toDomainConcept update concept with ID updates metaImage when getting new metaImage as a parameter") {
-    val today = NDLADate.now()
-    when(clock.now()).thenReturn(today)
-
-    val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
-      id = Some(12),
-      created = today,
-      updated = today,
-      metaImage = Seq(concept.ConceptMetaImage("1", "Hola", "nb")),
-      editorNotes = Seq(
-        ConceptEditorNote(
-          "Created concept",
-          "",
-          concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
-          today
-        )
-      )
-    )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(
-      language = "nb",
-      metaImage = UpdateWith(api.NewConceptMetaImageDTO("1", "Hola"))
-    )
-
-    converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
-  }
-
-  test("toDomainConcept update concept with ID sets metaImage to Seq.empty when metaImage is not specified") {
-    val today = NDLADate.now()
-    when(clock.now()).thenReturn(today)
-
-    val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
-      id = Some(12),
-      created = today,
-      updated = today,
-      metaImage = Seq.empty,
-      editorNotes = Seq(
-        ConceptEditorNote(
-          "Created concept",
-          "",
-          concept.Status(concept.ConceptStatus.IN_PROGRESS, Set.empty),
-          today
-        )
-      )
-    )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
 
     converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
   }
@@ -668,7 +566,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = "tittel",
       content = Some("Nokko innhald"),
       copyright = None,
-      metaImage = None,
       tags = None,
       visualElement = Some(
         "<ndlaembed data-resource=\"audio\" data-resource_id=\"2755\" data-type=\"standard\" data-url=\"https://api.test.ndla.no/audio-api/v1/audio/2755\"></ndlaembed>"
@@ -695,7 +592,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       language = "nb",
       title = Some("tittel"),
       content = Some("Nokko innhald"),
-      metaImage = Missing,
       copyright = None,
       tags = None,
       status = None,
@@ -723,7 +619,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       language = "nb",
       title = Some("tittel"),
       content = Some("Nokko innhald"),
-      metaImage = Missing,
       copyright = None,
       tags = None,
       status = None,

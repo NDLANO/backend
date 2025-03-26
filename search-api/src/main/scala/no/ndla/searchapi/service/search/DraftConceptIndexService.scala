@@ -52,11 +52,6 @@ trait DraftConceptIndexService {
       val fields = List(
         longField("id"),
         keywordField("conceptType"),
-        nestedField("metaImage").fields(
-          keywordField("imageId"),
-          keywordField("altText"),
-          keywordField("language")
-        ),
         keywordField("defaultTitle"),
         dateField("lastUpdated"),
         keywordField("draftStatus.current"),

@@ -19,7 +19,6 @@ import no.ndla.common.model.domain.concept
 import no.ndla.common.model.domain.concept.{
   Concept,
   ConceptContent,
-  ConceptMetaImage,
   ConceptType,
   Status,
   VisualElement
@@ -60,7 +59,6 @@ object TestData {
     Some(api.ConceptContent("Innhold", "Innhold", "nb")),
     None,
     None,
-    Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     Some(api.ConceptTagsDTO(Seq("stor", "kaktus"), "nb")),
     yesterday,
     today,
@@ -86,7 +84,6 @@ object TestData {
     created = yesterday,
     updated = today,
     updatedBy = Seq.empty,
-    metaImage = Seq(ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
     status = Status.default,
     visualElement = Seq(VisualElement(visualElementString, "nb")),
@@ -116,7 +113,6 @@ object TestData {
     created = NDLADate.now().minusDays(4),
     updated = NDLADate.now().minusDays(2),
     updatedBy = Seq.empty,
-    metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(common.Tag(Seq("liten", "fisk"), "nb")),
     status = Status.default,
     visualElement = Seq(concept.VisualElement("VisualElement for begrep", "nb")),
@@ -135,7 +131,6 @@ object TestData {
     created = yesterday,
     updated = today,
     updatedBy = Seq(""),
-    metaImage = Seq(concept.ConceptMetaImage("1", "Hei", "nb"), concept.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb"), common.Tag(Seq("liten", "fisk"), "nn")),
     status = Status.default,
     visualElement = Seq(concept.VisualElement(visualElementString, "nb")),
@@ -154,7 +149,6 @@ object TestData {
     created = today,
     updated = today,
     updatedBy = Seq(""),
-    metaImage = Seq.empty,
     tags = Seq.empty,
     status = Status.default,
     visualElement = Seq.empty,
@@ -171,7 +165,6 @@ object TestData {
     Some(api.ConceptContent("Innhald", "Innhald", "nn")),
     None,
     None,
-    Some(api.ConceptMetaImageDTO("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
     Some(api.ConceptTagsDTO(Seq("liten", "fisk"), "nn")),
     yesterday,
     today,
@@ -192,7 +185,6 @@ object TestData {
     language = "",
     title = None,
     content = None,
-    metaImage = Missing,
     copyright = None,
     tags = None,
     status = None,
@@ -203,14 +195,13 @@ object TestData {
   )
 
   val sampleNewConcept: api.NewConceptDTO =
-    api.NewConceptDTO("nb", "Tittel", Some("Innhold"), None, None, None, None, None, "concept", None)
+    api.NewConceptDTO("nb", "Tittel", Some("Innhold"), None, None, None, None, "concept", None)
 
   val emptyApiNewConcept: api.NewConceptDTO = api.NewConceptDTO(
     language = "",
     title = "",
     content = None,
     copyright = None,
-    metaImage = None,
     tags = None,
     visualElement = None,
     responsibleId = None,
@@ -223,7 +214,6 @@ object TestData {
       "nb",
       None,
       Some("Innhold"),
-      Missing,
       None,
       None,
       None,

@@ -57,6 +57,26 @@ export type paths = {
         patch: operations["patchFrontpage-apiV1SubjectpageSubjectpage-id"];
         trace?: never;
     };
+    "/frontpage-api/v1/subjectpage/{subjectpage-id}/language/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete language from subject page
+         * @description Delete language from subject page
+         */
+        delete: operations["deleteFrontpage-apiV1SubjectpageSubjectpage-idLanguageLanguage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/frontpage-api/v1/frontpage": {
         parameters: {
             query?: never;
@@ -88,6 +108,26 @@ export type paths = {
         /** Update film front page */
         post: operations["postFrontpage-apiV1Filmfrontpage"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/frontpage-api/v1/filmfrontpage/language/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete language from film front page
+         * @description Delete language from film front page
+         */
+        delete: operations["deleteFrontpage-apiV1FilmfrontpageLanguageLanguage"];
         options?: never;
         head?: never;
         patch?: never;
@@ -145,6 +185,7 @@ export type components = {
             movieThemes: components["schemas"]["MovieThemeDTO"][];
             slideShow: string[];
             article?: string;
+            supportedLanguages: string[];
         };
         /**
          * FrontPageDTO
@@ -576,6 +617,70 @@ export interface operations {
             };
         };
     };
+    "deleteFrontpage-apiV1SubjectpageSubjectpage-idLanguageLanguage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The subjectpage id */
+                "subjectpage-id": number;
+                /** @description The ISO 639-1 language code describing language. */
+                language: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectPageDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     "getFrontpage-apiV1Frontpage": {
         parameters: {
             query?: never;
@@ -781,6 +886,68 @@ export interface operations {
                 };
             };
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "deleteFrontpage-apiV1FilmfrontpageLanguageLanguage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ISO 639-1 language code describing language. */
+                language: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FilmFrontPageDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -12,7 +12,6 @@ import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, StatusDTO}
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.domain.concept.ConceptMetaImage
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
@@ -48,7 +47,6 @@ class DraftConceptIndexServiceTest
       conceptType = "concept",
       title = languageValues,
       content = languageValues,
-      metaImage = Seq(ConceptMetaImage("1", "alt", "nb")),
       defaultTitle = Some("hei"),
       tags = languageList,
       lastUpdated = now,

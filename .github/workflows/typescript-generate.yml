@@ -2,6 +2,9 @@ name: 'Generate typescript types'
 on:
   workflow_dispatch:
     inputs: { }
+  push:
+    branches:
+      - master
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
   AWS_DEFAULT_REGION: eu-west-1
@@ -13,6 +16,16 @@ env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
+  # Env variables needed to be defined for servers to "start"
+  BRIGHTCOVE_ACCOUNT_ID: ""
+  BRIGHTCOVE_PLAYER_ID: ""
+  META_USER_NAME: ""
+  META_PASSWORD: ""
+  META_RESOURCE: ""
+  META_SERVER: ""
+  META_PORT: 5432
+  META_SCHEMA: ""
+  META_MAX_CONNECTIONS: 1
 jobs:
   generate_typescript:
     name: Generate typescript types

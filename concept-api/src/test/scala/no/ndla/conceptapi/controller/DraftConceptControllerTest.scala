@@ -9,10 +9,9 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
-import no.ndla.conceptapi.model.{api, search}
+import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
@@ -162,53 +161,18 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing         = """{"language":"nb"}"""
-    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Missing)
+    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb")
+    simpleHttpClient
+      .send(
+        quickRequest
+          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+          .body(missing)
+          .header("Authorization", TestData.authHeaderWithWriteRole)
+      )
+      .code
+      .code should be(200)
+    verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
 
-    val nullArtId    = """{"language":"nb","metaImage":null}"""
-    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
-
-    val existingArtId = """{"language":"nb","metaImage":{"id":"123","alt":"alt123"}}"""
-    val existingExpected = TestData.emptyApiUpdatedConcept
-      .copy(language = "nb", metaImage = UpdateWith(NewConceptMetaImageDTO(id = "123", alt = "alt123")))
-
-    {
-      simpleHttpClient
-        .send(
-          quickRequest
-            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-            .body(missing)
-            .header("Authorization", TestData.authHeaderWithWriteRole)
-        )
-        .code
-        .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
-    }
-
-    {
-      simpleHttpClient
-        .send(
-          quickRequest
-            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-            .body(nullArtId)
-            .header("Authorization", TestData.authHeaderWithWriteRole)
-        )
-        .code
-        .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(nullExpected), any[TokenUser])
-    }
-
-    {
-      simpleHttpClient
-        .send(
-          quickRequest
-            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-            .body(existingArtId)
-            .header("Authorization", TestData.authHeaderWithWriteRole)
-        )
-        .code
-        .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(existingExpected), any[TokenUser])
-    }
   }
 
   test("tags should return 200 OK if the result was not empty") {
@@ -232,54 +196,18 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing         = """{"language":"nb"}"""
-    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Missing)
+    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb")
 
-    val nullArtId    = """{"language":"nb","metaImage":null}"""
-    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Delete)
-
-    val existingArtId = """{"language":"nb","metaImage": {"id": "1",
-                          |		"alt": "alt-text"}}""".stripMargin
-    val existingExpected = TestData.emptyApiUpdatedConcept
-      .copy(language = "nb", metaImage = UpdateWith(api.NewConceptMetaImageDTO("1", "alt-text")))
-
-    {
-      simpleHttpClient
-        .send(
-          quickRequest
-            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-            .body(missing)
-            .header("Authorization", TestData.authHeaderWithWriteRole)
-        )
-        .code
-        .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
-    }
-
-    {
-      simpleHttpClient
-        .send(
-          quickRequest
-            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-            .body(nullArtId)
-            .header("Authorization", TestData.authHeaderWithWriteRole)
-        )
-        .code
-        .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(nullExpected), any[TokenUser])
-    }
-
-    {
-      simpleHttpClient
-        .send(
-          quickRequest
-            .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-            .body(existingArtId)
-            .header("Authorization", TestData.authHeaderWithWriteRole)
-        )
-        .code
-        .code should be(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(existingExpected), any[TokenUser])
-    }
+    simpleHttpClient
+      .send(
+        quickRequest
+          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+          .body(missing)
+          .header("Authorization", TestData.authHeaderWithWriteRole)
+      )
+      .code
+      .code should be(200)
+    verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
   }
 
   test("that scrolling doesn't happen on 'initial'") {

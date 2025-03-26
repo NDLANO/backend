@@ -282,8 +282,6 @@ export type components = {
             copyright?: components["schemas"]["DraftCopyrightDTO"];
             /** @description URL for the source of the concept */
             source?: string;
-            /** @description A meta image for the concept */
-            metaImage?: components["schemas"]["ConceptMetaImageDTO"];
             tags?: components["schemas"]["ConceptTagsDTO"];
             /** @description When the concept was created */
             created: string;
@@ -302,15 +300,6 @@ export type components = {
             glossData?: components["schemas"]["GlossDataDTO"];
             /** @description Describes the changes made to the concept, only visible to editors */
             editorNotes?: components["schemas"]["EditorNoteDTO"][];
-        };
-        /** ConceptMetaImageDTO */
-        ConceptMetaImageDTO: {
-            /** @description The meta image url */
-            url: string;
-            /** @description The alt text for the meta image */
-            alt: string;
-            /** @description The ISO 639-1 language code describing which concept translation this meta image belongs to */
-            language: string;
         };
         /**
          * ConceptResponsibleDTO
@@ -401,8 +390,6 @@ export type components = {
             title: components["schemas"]["ConceptTitleDTO"];
             /** @description The content of the concept in available languages */
             content: components["schemas"]["ConceptContent"];
-            /** @description The metaImage of the concept */
-            metaImage: components["schemas"]["ConceptMetaImageDTO"];
             tags?: components["schemas"]["ConceptTagsDTO"];
             /** @description All available languages of the current concept */
             supportedLanguages: string[];
@@ -627,8 +614,6 @@ export type components = {
             content?: string;
             /** @description Describes the copyright information for the concept */
             copyright?: components["schemas"]["DraftCopyrightDTO"];
-            /** @description An image-api ID for the concept meta image */
-            metaImage?: components["schemas"]["NewConceptMetaImageDTO"];
             /** @description A list of searchable tags */
             tags?: string[];
             /** @description A visual element for the concept. May be anything from an image to a video or H5P */
@@ -638,13 +623,6 @@ export type components = {
             /** @description Type of concept. 'concept', or 'gloss' */
             conceptType: string;
             glossData?: components["schemas"]["GlossDataDTO"];
-        };
-        /** NewConceptMetaImageDTO */
-        NewConceptMetaImageDTO: {
-            /** @description The image-api id of the meta image */
-            id: string;
-            /** @description The alt text of the meta image */
-            alt: string;
         };
         /**
          * NotFoundWithSupportedLanguages
@@ -727,7 +705,6 @@ export type components = {
             title?: string;
             /** @description The content of the concept */
             content?: string;
-            metaImage?: components["schemas"]["NewConceptMetaImageDTO"] | null;
             /** @description Describes the copyright information for the concept */
             copyright?: components["schemas"]["DraftCopyrightDTO"];
             /** @description A list of searchable tags */

@@ -15,6 +15,7 @@ import io.circe.parser.*
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.frontpage.{AboutSubject, MovieTheme}
 import no.ndla.frontpageapi.Props
+import no.ndla.language.Language.getSupportedLanguages
 import scalikejdbc.{WrappedResultSet, *}
 
 import scala.util.Try
@@ -25,7 +26,10 @@ case class FilmFrontPage(
     movieThemes: Seq[MovieTheme],
     slideShow: Seq[String],
     article: Option[String]
-)
+) {
+
+  def supportedLanguages: Seq[String] = getSupportedLanguages(about, movieThemes.flatMap(_.name))
+}
 
 object FilmFrontPage {
   implicit val decoder: Decoder[FilmFrontPage] = deriveDecoder
