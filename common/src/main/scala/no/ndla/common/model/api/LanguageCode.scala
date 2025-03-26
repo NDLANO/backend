@@ -53,5 +53,5 @@ object LanguageCode {
       }
     }
 
-  implicit val encoder: Encoder[LanguageCode] = deriveEncoder
+  implicit val encoder: Encoder[LanguageCode] = Encoder.instance { lc => lc.toString.asJson }
 }
