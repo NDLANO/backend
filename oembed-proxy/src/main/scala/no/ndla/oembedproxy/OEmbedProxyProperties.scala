@@ -33,16 +33,6 @@ class OEmbedProxyProperties extends BaseProps {
     "prod"  -> "https://ndla.no/oembed"
   ).getOrElse(Environment, s"https://$Environment.ndla.no/oembed")
 
-  val ListingFrontendOembedServiceUrl: String = Map(
-    "local" -> "http://listing-frontend.ndla-local/oembed",
-    "prod"  -> "https://liste.ndla.no/oembed"
-  ).getOrElse(Environment, s"https://liste.$Environment.ndla.no/oembed")
-
-  val ListingFrontendApprovedUrls: List[String] = Map(
-    "local" -> List("http://localhost:30020/*", "http://listing-frontend.ndla-local/*"),
-    "prod"  -> List("https?://liste.ndla.no/*")
-  ).getOrElse(Environment, List(s"https?://liste.$Environment.ndla.no/*"))
-
   val NdlaApiOembedProvider: String = Domain
 
   val NdlaApprovedUrl: List[String] = Map(
@@ -64,5 +54,5 @@ class OEmbedProxyProperties extends BaseProps {
   val ResourcesAppMountPoint          = "/oembed-proxy/api-docs"
   val HealthControllerMountPoint      = "/health"
 
-  lazy val Domain: String = Domains.get(Environment)
+  private lazy val Domain: String = Domains.get(Environment)
 }
