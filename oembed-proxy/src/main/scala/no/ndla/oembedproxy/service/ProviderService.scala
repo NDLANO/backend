@@ -22,10 +22,10 @@ import no.ndla.oembedproxy.service.OEmbedConverterService.{
 }
 
 import scala.util.{Failure, Success}
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 trait ProviderService {
-  this: NdlaClient with Props with MemoizeHelpers =>
+  this: NdlaClient & Props & MemoizeHelpers =>
   val providerService: ProviderService
 
   class ProviderService extends StrictLogging {
@@ -38,20 +38,11 @@ trait ProviderService {
         None
       )
 
-    val ListingFrontendEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(
-        Some(props.ListingFrontendApprovedUrls),
-        props.ListingFrontendOembedServiceUrl,
-        None,
-        None,
-        None
-      )
-
     val NdlaApiProvider: OEmbedProvider =
       OEmbedProvider(
         "NDLA Api",
         props.NdlaApiOembedProvider,
-        List(NdlaFrontendEndpoint, ListingFrontendEndpoint)
+        List(NdlaFrontendEndpoint)
       )
 
     val YoutubeEndpoint: OEmbedEndpoint = OEmbedEndpoint(
