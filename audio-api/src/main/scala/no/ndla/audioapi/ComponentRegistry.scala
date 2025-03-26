@@ -66,8 +66,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     new V5__AddAgreementToAudio,
     new V6__TranslateUntranslatedAuthors
   )
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   lazy val s3Client           = new NdlaS3Client(props.StorageName, props.StorageRegion)
   lazy val s3TranscribeClient = new NdlaS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)

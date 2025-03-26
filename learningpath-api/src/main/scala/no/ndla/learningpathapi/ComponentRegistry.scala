@@ -86,8 +86,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     new V31__ArenaDefaultEnabledOrgs,
     new V33__AiDefaultEnabledOrgs
   )
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   lazy val learningPathRepository = new LearningPathRepository
   lazy val readService            = new ReadService

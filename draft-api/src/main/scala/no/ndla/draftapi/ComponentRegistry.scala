@@ -98,9 +98,8 @@ class ComponentRegistry(properties: DraftApiProperties)
     new V57__MigrateSavedSearch,
     new V66__SetHideBylineForImagesNotCopyrighted
   )
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  override val DBUtil: DBUtility            = new DBUtility
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override val DBUtil: DBUtility                 = new DBUtility
 
   lazy val draftRepository    = new DraftRepository
   lazy val userDataRepository = new UserDataRepository

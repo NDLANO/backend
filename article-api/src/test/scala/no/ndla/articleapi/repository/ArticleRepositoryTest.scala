@@ -15,7 +15,7 @@ import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Article
 import no.ndla.scalatestsuite.IntegrationSuite
-import scalikejdbc.{AutoSession, ConnectionPool, DataSourceConnectionPool}
+import scalikejdbc.AutoSession
 
 import java.net.Socket
 import scala.util.{Success, Try}
@@ -41,7 +41,7 @@ class ArticleRepositoryTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    DataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

@@ -67,8 +67,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     new V25__SubjectNameAsTagsPublished(props)
   )
 
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   lazy val draftConceptRepository     = new DraftConceptRepository
   lazy val publishedConceptRepository = new PublishedConceptRepository

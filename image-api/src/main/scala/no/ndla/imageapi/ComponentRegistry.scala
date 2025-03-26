@@ -72,8 +72,7 @@ class ComponentRegistry(properties: ImageApiProperties)
     new V6__AddAgreementToImages,
     new V7__TranslateUntranslatedAuthors
   )
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
 
