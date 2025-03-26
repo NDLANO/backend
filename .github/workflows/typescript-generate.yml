@@ -23,9 +23,9 @@ env:
   META_PASSWORD: ""
   META_RESOURCE: ""
   META_SERVER: ""
-  META_PORT: ""
+  META_PORT: 5432
   META_SCHEMA: ""
-  META_MAX_CONNECTIONS: ""
+  META_MAX_CONNECTIONS: 1
 jobs:
   generate_typescript:
     name: Generate typescript types
