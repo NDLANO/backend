@@ -573,7 +573,7 @@ object TagValidator {
     if (!field.validation.required && value.isEmpty) {
       return None
     }
-    if (value.matches(domainRegex)) {
+    if (value.trim.matches(domainRegex)) {
       if (field.validation.allowedDomains.isEmpty) None
       else {
         val urlHost               = value.hostOption.map(_.toString).getOrElse("")
