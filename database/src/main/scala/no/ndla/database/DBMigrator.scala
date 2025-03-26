@@ -17,6 +17,8 @@ trait DBMigrator {
 
   case class DBMigrator(migrations: JavaMigration*) {
     def migrate(): Unit = {
+      DataSource.connectToDatabase()
+
       val config = Flyway
         .configure()
         .javaMigrations(migrations*)

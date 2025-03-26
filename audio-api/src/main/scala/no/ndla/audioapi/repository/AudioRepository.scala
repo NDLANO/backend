@@ -24,8 +24,6 @@ trait AudioRepository {
   val audioRepository: AudioRepository
 
   class AudioRepository extends StrictLogging with Repository[AudioMetaInformation] {
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-
     def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${AudioMetaInformation.table}"
         .map(rs => rs.long("count"))

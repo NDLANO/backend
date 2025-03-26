@@ -93,9 +93,8 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
   lazy val DBUtil                                               = new DBUtility
 
-  override val migrator: DBMigrator         = DBMigrator(v16__MigrateResourcePaths)
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override val migrator: DBMigrator              = DBMigrator(v16__MigrateResourcePaths)
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   val swagger = new SwaggerController(
     List(

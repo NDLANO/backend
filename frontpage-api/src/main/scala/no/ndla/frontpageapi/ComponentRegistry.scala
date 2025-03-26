@@ -39,10 +39,9 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with DBMigrator
     with ConverterService
     with SwaggerDocControllerConfig {
-  override val props: FrontpageApiProperties = properties
-  override val migrator: DBMigrator          = DBMigrator()
-  override val dataSource: HikariDataSource  = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override val props: FrontpageApiProperties     = properties
+  override val migrator: DBMigrator              = DBMigrator()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   override val clock = new SystemClock
 

@@ -16,13 +16,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.Missing
 import no.ndla.common.model.domain.concept
-import no.ndla.common.model.domain.concept.{
-  Concept,
-  ConceptContent,
-  ConceptType,
-  Status,
-  VisualElement
-}
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, Status, VisualElement}
 import no.ndla.mapping.License
 
 object TestData {

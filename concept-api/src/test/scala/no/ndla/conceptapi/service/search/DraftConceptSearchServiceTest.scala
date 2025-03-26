@@ -162,7 +162,12 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
     status = concept.Status(current = ConceptStatus.PUBLISHED, other = Set.empty),
     responsible = Some(Responsible("test1", today)),
-    visualElement = Seq(VisualElement(s"""<$EmbedTagName data-resource="image" data-resource_id="test.image" data-url="test.url" />""", "nb"))
+    visualElement = Seq(
+      VisualElement(
+        s"""<$EmbedTagName data-resource="image" data-resource_id="test.image" data-url="test.url" />""",
+        "nb"
+      )
+    )
   )
 
   val concept10: Concept = TestData.sampleConcept.copy(
@@ -656,7 +661,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       )
 
     search.totalCount should be(2)
-    search.results.map(_.id) should be(List(9,10))
+    search.results.map(_.id) should be(List(9, 10))
   }
 
   test("that search on embedResource matches visual element") {
@@ -709,7 +714,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       )
 
     search.totalCount should be(2)
-    search.results.map(_.id) should be(List(9,10))
+    search.results.map(_.id) should be(List(9, 10))
   }
 
   test("that search on query parameter matches on concept id") {
