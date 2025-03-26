@@ -8,7 +8,7 @@
 
 package no.ndla.validation
 
-import org.scalatest._
+import org.scalatest.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
