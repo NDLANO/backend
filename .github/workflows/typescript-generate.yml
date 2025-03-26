@@ -18,6 +18,7 @@ env:
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
   # Env variables needed to be defined
   BRIGHTCOVE_ACCOUNT: ""
+  BRIGHTCOVE_PLAYER: ""
   META_USER_NAME: ""
 jobs:
   generate_typescript:
