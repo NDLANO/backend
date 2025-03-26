@@ -297,7 +297,7 @@ trait SearchService {
           fieldSort(s"$withLanguage.$sortLanguage.raw")
             .sortOrder(order)
             .missing("_last")
-            .unmappedType("long")
+            .unmappedType("keyword")
       }
     }
 
