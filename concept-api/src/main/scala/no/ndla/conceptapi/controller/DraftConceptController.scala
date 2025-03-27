@@ -11,6 +11,7 @@ package no.ndla.conceptapi.controller
 import cats.implicits.*
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.concept.ConceptStatus
 import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
@@ -18,7 +19,6 @@ import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.Props
-import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -64,12 +64,12 @@ trait DraftConceptController {
       getAllConcepts
     )
 
-    private def scrollSearchOr(scrollId: Option[String], language: String)(
+    private def scrollSearchOr(scrollId: Option[String], language: LanguageCode)(
         orFunction: => Try[(ConceptSearchResultDTO, DynamicHeaders)]
     ): Try[(ConceptSearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          draftConceptSearchService.scroll(scroll, language) match {
+          draftConceptSearchService.scroll(scroll, language.code) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
@@ -143,7 +143,7 @@ trait DraftConceptController {
       .withOptionalUser
       .serverLogicPure { user =>
         { case (conceptId, language, fallback) =>
-          readService.conceptWithId(conceptId, Language.languageOrParam(language), fallback, user)
+          readService.conceptWithId(conceptId, language.code, fallback, user)
         }
       }
 
@@ -196,7 +196,7 @@ trait DraftConceptController {
             search(
               query,
               sort,
-              Language.languageOrParam(language),
+              language.code,
               page,
               pageSize,
               idList.values,
@@ -226,7 +226,7 @@ trait DraftConceptController {
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (language, fallback) =>
-        readService.allTagsFromDraftConcepts(Language.languageOrParam(language), fallback).asRight
+        readService.allTagsFromDraftConcepts(language.code, fallback).asRight
       }
 
     def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
@@ -240,12 +240,12 @@ trait DraftConceptController {
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { searchParams =>
         val scrollId = searchParams.scrollId
-        val lang     = searchParams.language
+        val lang     = searchParams.language.getOrElse(LanguageCode(DefaultLanguage))
 
-        scrollSearchOr(scrollId, lang.getOrElse(DefaultLanguage)) {
+        scrollSearchOr(scrollId, lang) {
           val query          = searchParams.query
           val sort           = searchParams.sort
-          val language       = searchParams.language.getOrElse(AllLanguages)
+          val language       = searchParams.language.getOrElse(LanguageCode(AllLanguages))
           val pageSize       = searchParams.pageSize.getOrElse(DefaultPageSize)
           val page           = searchParams.page.getOrElse(1)
           val idList         = searchParams.ids
@@ -263,7 +263,7 @@ trait DraftConceptController {
           search(
             query,
             sort,
-            Language.languageOrParam(language),
+            language.code,
             page,
             pageSize,
             idList.getOrElse(List.empty),
@@ -292,7 +292,7 @@ trait DraftConceptController {
       .requirePermission(CONCEPT_API_WRITE)
       .serverLogicPure { user =>
         { case (conceptId, language) =>
-          writeService.deleteLanguage(conceptId, Language.languageOrParam(language), user)
+          writeService.deleteLanguage(conceptId, language.code, user)
         }
       }
 
@@ -337,7 +337,7 @@ trait DraftConceptController {
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (query, pageSize, pageNo, language) =>
         val q = query.getOrElse("")
-        readService.getAllTags(q, pageSize, pageNo, Language.languageOrParam(language)).asRight
+        readService.getAllTags(q, pageSize, pageNo, language.code).asRight
       }
 
     def postNewConcept: ServerEndpoint[Any, Eff] = endpoint.post

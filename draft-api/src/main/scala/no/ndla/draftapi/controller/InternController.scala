@@ -39,17 +39,8 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 trait InternController {
-  this: ReadService
-    with WriteService
-    with ConverterService
-    with DraftRepository
-    with IndexService
-    with ArticleIndexService
-    with TagIndexService
-    with GrepCodesIndexService
-    with ArticleApiClient
-    with TapirController
-    with Props =>
+  this: ReadService & WriteService & ConverterService & DraftRepository & IndexService & ArticleIndexService &
+    TagIndexService & GrepCodesIndexService & ArticleApiClient & TapirController & Props =>
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
@@ -60,7 +51,7 @@ trait InternController {
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
     def createIndexFuture(
-        indexService: IndexService[_, _],
+        indexService: IndexService[?, ?],
         numShards: Option[Int]
     )(implicit ec: ExecutionContext): Future[Try[ReindexResult]] = {
 
@@ -113,14 +104,15 @@ trait InternController {
           case Success(results) =>
             val maxTime = results.map(rr => rr.millisUsed).max
             val result =
-              s"Completed all indexes in ${maxTime} ms."
+              s"Completed all indexes in $maxTime ms."
             logger.info(result)
             result.asRight
         }
       }
 
     def deleteIndexLogic(@unused x: Unit): Either[String, String] = {
-      implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+      implicit val ec: ExecutionContextExecutorService =
+        ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
       val indexes = for {
@@ -128,7 +120,7 @@ trait InternController {
         tagIndex     <- Future { tagIndexService.findAllIndexes(DraftTagSearchIndex) }
       } yield (articleIndex, tagIndex)
 
-      val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
+      val deleteResults: Seq[Try[?]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
         case (Failure(articleFail), _) => return articleFail.getMessage.asLeft
         case (_, Failure(tagFail))     => return tagFail.getMessage.asLeft
         case (Success(articleIndexes), Success(tagIndexes)) =>

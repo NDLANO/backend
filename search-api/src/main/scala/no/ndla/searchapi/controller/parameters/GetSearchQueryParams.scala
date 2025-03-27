@@ -9,6 +9,7 @@
 package no.ndla.searchapi.controller.parameters
 
 import no.ndla.common.model.api.CommaSeparatedList.CommaSeparatedList
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.Props
@@ -45,8 +46,8 @@ trait GetSearchQueryParams {
       contextTypes: CommaSeparatedList[String],
       @query("language")
       @description("The ISO 639-1 language code describing language.")
-      @default(Language.AllLanguages)
-      language: String,
+      @default(LanguageCode(Language.AllLanguages))
+      language: LanguageCode,
       @query("ids")
       @description(
         "Return only learning resources that have one of the provided ids. To provide multiple ids, separate by comma (,)."

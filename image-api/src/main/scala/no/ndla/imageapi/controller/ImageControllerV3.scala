@@ -10,6 +10,7 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.controller.multipart.{CopyMetaDataAndFileForm, MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
@@ -84,7 +85,7 @@ trait ImageControllerV3 {
           SearchSettings(
             query = Some(searchString.trim),
             minimumSize = minimumSize,
-            language = Language.languageOrParam(language),
+            language = language,
             fallback = fallback,
             license = license,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
@@ -100,7 +101,7 @@ trait ImageControllerV3 {
             query = None,
             minimumSize = minimumSize,
             license = license,
-            language = Language.languageOrParam(language),
+            language = language,
             fallback = fallback,
             sort = sort.getOrElse(Sort.ByTitleAsc),
             page = page,
@@ -159,7 +160,7 @@ trait ImageControllerV3 {
                 modelReleased,
                 userFilter
               ) =>
-            scrollSearchOr(scrollId, Language.languageOrParam(language), user) {
+            scrollSearchOr(scrollId, language.code, user) {
               val sort                = Sort.valueOf(sortStr)
               val shouldScroll        = scrollId.exists(InitialScrollContextKeywords.contains)
               val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
@@ -168,7 +169,7 @@ trait ImageControllerV3 {
               searchV3(
                 minimumSize,
                 query,
-                language,
+                language.code,
                 fallback,
                 licenseOpt,
                 sort,
@@ -196,10 +197,10 @@ trait ImageControllerV3 {
       .serverLogicPure {
         user =>
           { searchParams =>
-            val language = searchParams.language.getOrElse(Language.AllLanguages)
+            val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
             val fallback = searchParams.fallback.getOrElse(false)
 
-            scrollSearchOr(searchParams.scrollId, Language.languageOrParam(language), user) {
+            scrollSearchOr(searchParams.scrollId, language.code, user) {
               val minimumSize = searchParams.minimumSize
               val query       = searchParams.query
               val license = searchParams.license.orElse {
@@ -217,7 +218,7 @@ trait ImageControllerV3 {
               searchV3(
                 minimumSize,
                 query,
-                language,
+                language.code,
                 fallback,
                 license,
                 sort,
@@ -372,7 +373,7 @@ trait ImageControllerV3 {
         val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
         readService
-          .getAllTags(query, pageSize, pageNo, Language.languageOrParam(language), sort)
+          .getAllTags(query, pageSize, pageNo, language.code, sort)
           .handleErrorsOrOk
       }
 

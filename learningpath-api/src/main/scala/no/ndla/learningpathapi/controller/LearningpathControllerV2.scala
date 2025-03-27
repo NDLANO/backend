@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
+import no.ndla.common.model.api.{AuthorDTO, LanguageCode, LicenseDTO}
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{StepStatus, LearningPathStatus as _}
 import no.ndla.language.Language
@@ -58,9 +58,9 @@ trait LearningpathControllerV2 {
     private val queryParam =
       query[Option[String]]("query").description("Return only Learningpaths with content matching the specified query.")
     private val language =
-      query[String]("language")
+      query[LanguageCode]("language")
         .description("The ISO 639-1 language code describing language.")
-        .default(Language.AllLanguages)
+        .default(LanguageCode(Language.AllLanguages))
     private val sort = query[Option[String]]("sort").description(
       s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
@@ -114,12 +114,12 @@ trait LearningpathControllerV2 {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr(scrollId: Option[String], language: String)(
+    private def scrollSearchOr(scrollId: Option[String], language: LanguageCode)(
         orFunction: => Try[(SearchResultV2DTO, DynamicHeaders)]
     ): Try[(SearchResultV2DTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          searchService.scroll(scroll, language) match {
+          searchService.scroll(scroll, language.code) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
@@ -234,7 +234,7 @@ trait LearningpathControllerV2 {
             val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
             search(
               query,
-              language,
+              language.code,
               tag,
               idList.values,
               Sort.valueOf(sortStr),
@@ -256,11 +256,12 @@ trait LearningpathControllerV2 {
       .out(jsonBody[SearchResultV2DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .serverLogicPure { searchParams =>
-        scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(AllLanguages)) {
+        val language = searchParams.language.getOrElse(LanguageCode(AllLanguages))
+        scrollSearchOr(searchParams.scrollId, language) {
           val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           search(
             query = searchParams.query,
-            searchLanguage = searchParams.language.getOrElse(AllLanguages),
+            searchLanguage = language.code,
             tag = searchParams.tag,
             idList = searchParams.ids.getOrElse(List.empty),
             sort = searchParams.sort,
@@ -296,7 +297,7 @@ trait LearningpathControllerV2 {
             case x                        => x
           }
           readService
-            .withIdV2List(idList.values, language, fallback, page, pageSize, user)
+            .withIdV2List(idList.values, language.code, fallback, page, pageSize, user)
             .handleErrorsOrOk
         }
       }
@@ -312,7 +313,7 @@ trait LearningpathControllerV2 {
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { combinedUser =>
         { case (id, language, fallback) =>
-          readService.withIdV2(id, language, fallback, combinedUser).handleErrorsOrOk
+          readService.withIdV2(id, language.code, fallback, combinedUser).handleErrorsOrOk
         }
       }
 
@@ -340,7 +341,7 @@ trait LearningpathControllerV2 {
             .learningstepsForWithStatusV2(
               id,
               StepStatus.ACTIVE,
-              language,
+              language.code,
               fallback,
               maybeUser
             )
@@ -360,7 +361,7 @@ trait LearningpathControllerV2 {
       .serverLogicPure { maybeUser =>
         { case (pathId, stepId, language, fallback) =>
           readService
-            .learningstepV2For(pathId, stepId, language, fallback, maybeUser)
+            .learningstepV2For(pathId, stepId, language.code, fallback, maybeUser)
             .handleErrorsOrOk
         }
       }
@@ -376,7 +377,9 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (id, language, fallback) =>
-          readService.learningstepsForWithStatusV2(id, StepStatus.DELETED, language, fallback, user).handleErrorsOrOk
+          readService
+            .learningstepsForWithStatusV2(id, StepStatus.DELETED, language.code, fallback, user)
+            .handleErrorsOrOk
         }
       }
 
@@ -657,7 +660,7 @@ trait LearningpathControllerV2 {
       .errorOut(errorOutputsFor(500))
       .serverLogicPure { case (language, fallback) =>
         val allTags = readService.tags
-        converterService.asApiLearningPathTagsSummary(allTags, language, fallback) match {
+        converterService.asApiLearningPathTagsSummary(allTags, language.code, fallback) match {
           case Some(s) => s.asRight
           case None    => notFoundWithMsg(s"Tags with language '$language' not found").asLeft
         }
@@ -689,7 +692,7 @@ trait LearningpathControllerV2 {
             .updateTaxonomyForLearningPath(
               pathId,
               createResourceIfMissing,
-              language,
+              language.code,
               fallback,
               userInfo
             )
