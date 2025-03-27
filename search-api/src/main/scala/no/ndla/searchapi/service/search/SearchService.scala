@@ -83,6 +83,15 @@ trait SearchService {
         buildMatchQueryForField(query, field, language, fallback = true, boost)
       ).flatten
 
+    def buildBreadcrumbQuery(query: NonEmptyString, language: String, fallback: Boolean, boost: Double): List[Query] = {
+      val skipChars = List("+", "|", "-", "\"", "*", "(", ")", "~")
+      if (skipChars.exists(query.underlying.contains)) return List.empty
+
+      val subQueries = buildMatchQueryForField(query, "contexts.breadcrumbs", language, fallback, boost)
+      val sq         = boolQuery().should(subQueries)
+      List(nestedQuery("contexts", sq))
+    }
+
     def buildMatchQueryForField(
         query: NonEmptyString,
         field: String,
@@ -90,29 +99,37 @@ trait SearchService {
         fallback: Boolean,
         boost: Double
     ): List[Query] = {
-      val skipChars = List("+", "|", "-", "\"","*", "(", ")", "~")
-      if(skipChars.exists(query.underlying.contains)) return List.empty
+      val skipChars = List("+", "|", "-", "\"", "*", "(", ")", "~")
+      if (skipChars.exists(query.underlying.contains)) return List.empty
 
       val searchLanguage = language match {
         case lang if Iso639.get(lang).isSuccess => lang
         case _                                  => Language.AllLanguages
       }
       val matchQueries = if (searchLanguage == Language.AllLanguages || fallback) {
-        SearchLanguage.languageAnalyzers.map{cur =>
-          matchPhrasePrefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost)
-        }.toList
+        SearchLanguage.languageAnalyzers
+          .map { cur =>
+            List(
+              matchPhrasePrefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost),
+              matchPhraseQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost * 1.2)
+            )
+          }
+          .toList
+          .flatten
       } else {
-        List(matchPhrasePrefixQuery(s"$field.$language", query.underlying).boost(boost))
+        List(
+          matchPhrasePrefixQuery(s"$field.$language", query.underlying).boost(boost),
+          matchPhraseQuery(s"$field.$language", query.underlying).boost(boost * 1.2)
+        )
       }
 
       val termQueries = if (searchLanguage == Language.AllLanguages || fallback) {
-        SearchLanguage.languageAnalyzers.map{cur =>
-          prefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost)
+        SearchLanguage.languageAnalyzers.map { cur =>
+          prefixQuery(s"$field.${cur.languageTag.toString}.raw", query.underlying).boost(boost * 2)
         }.toList
       } else {
-        List(prefixQuery(s"$field.$language", query.underlying).boost(boost))
+        List(prefixQuery(s"$field.$language", query.underlying).boost(boost * 2))
       }
-
 
       List(
         matchQueries,

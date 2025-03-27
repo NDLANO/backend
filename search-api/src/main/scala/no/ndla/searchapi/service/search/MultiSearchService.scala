@@ -70,7 +70,8 @@ trait MultiSearchService {
         boolQuery().must(
           boolQuery().should(
             List(
-              buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20)
+              buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
+              buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
             ).flatten ++
               List(
                 langQueryFunc("title", 20),

@@ -377,10 +377,11 @@ class MultiSearchServiceTest
     searchEn.summaryResults.head.title.title should equal("Cats")
     searchEn.summaryResults.head.title.language should equal("en")
 
-    searchNb.totalCount should equal(1)
+    searchNb.totalCount should equal(7)
     searchNb.summaryResults.head.id should equal(11)
     searchNb.summaryResults.head.title.title should equal("Katter")
     searchNb.summaryResults.head.title.language should equal("nb")
+    // ... ignoring rest of the results since they only matched because they have this article id 11 in the context breadcrumb
   }
 
   test("Searching for unknown language should return nothing") {
