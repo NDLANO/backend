@@ -159,7 +159,7 @@ trait MultiDraftSearchService {
 
         boolQuery().should(
           List(
-            langQueryFunc("title", 3),
+            langQueryFunc("title", 20),
             langQueryFunc("introduction", 2),
             langQueryFunc("metaDescription", 1),
             langQueryFunc("content", 1),
@@ -217,6 +217,7 @@ trait MultiDraftSearchService {
       val pagination     = getStartAtAndNumResults(settings.page, settings.pageSize).?
       val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
       val index          = getSearchIndexes(settings).?
+      val sort           = getSortDefinition(settings.sort, searchLanguage)
       val searchToExecute = search(index)
         .query(filteredSearch)
         .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
@@ -225,7 +226,7 @@ trait MultiDraftSearchService {
         .size(pagination.pageSize)
         .highlighting(highlight("*"))
         .aggs(aggregations)
-        .sortBy(getSortDefinition(settings.sort, searchLanguage))
+        .sortBy(sort)
 
       // Only add scroll param if it is first page
       val searchWithScroll =

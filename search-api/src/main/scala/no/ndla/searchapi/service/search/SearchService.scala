@@ -48,6 +48,10 @@ trait SearchService {
     val searchIndex: List[String]
     val indexServices: List[BaseIndexService]
 
+    // NOTE: Since some operators restricts simple query string results, we need to check for them
+    //       and not use other query types if they are present to make them effective.
+    private val simpleStringQueryOperators = List("+", "|", "-", "\"", "*", "(", ")", "~")
+
     /** Returns hit as summary
       *
       * @param hit
@@ -77,8 +81,63 @@ trait SearchService {
       }
     }
 
-    def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): SimpleStringQuery =
-      buildSimpleStringQueryForField(query, field, boost, language, fallback = true, searchDecompounded = true)
+    def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): List[Query] =
+      List(
+        buildSimpleStringQueryForField(query, field, boost, language, fallback = true, searchDecompounded = true).some,
+        buildMatchQueryForField(query, field, language, fallback = true, boost)
+      ).flatten
+
+    def buildBreadcrumbQuery(query: NonEmptyString, language: String, fallback: Boolean, boost: Double): List[Query] = {
+      if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
+
+      val subQueries = buildMatchQueryForField(query, "contexts.breadcrumbs", language, fallback, boost)
+      val sq         = boolQuery().should(subQueries)
+      List(nestedQuery("contexts", sq))
+    }
+
+    def buildMatchQueryForField(
+        query: NonEmptyString,
+        field: String,
+        language: String,
+        fallback: Boolean,
+        boost: Double
+    ): List[Query] = {
+      if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
+
+      val searchLanguage = language match {
+        case lang if Iso639.get(lang).isSuccess => lang
+        case _                                  => Language.AllLanguages
+      }
+      val matchQueries = if (searchLanguage == Language.AllLanguages || fallback) {
+        SearchLanguage.languageAnalyzers
+          .map { cur =>
+            List(
+              matchPhrasePrefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost),
+              matchPhraseQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost * 1.2)
+            )
+          }
+          .toList
+          .flatten
+      } else {
+        List(
+          matchPhrasePrefixQuery(s"$field.$language", query.underlying).boost(boost),
+          matchPhraseQuery(s"$field.$language", query.underlying).boost(boost * 1.2)
+        )
+      }
+
+      val termQueries = if (searchLanguage == Language.AllLanguages || fallback) {
+        SearchLanguage.languageAnalyzers.map { cur =>
+          prefixQuery(s"$field.${cur.languageTag.toString}.raw", query.underlying).boost(boost * 2)
+        }.toList
+      } else {
+        List(prefixQuery(s"$field.$language", query.underlying).boost(boost * 2))
+      }
+
+      List(
+        matchQueries,
+        termQueries
+      ).flatten
+    }
 
     def buildSimpleStringQueryForField(
         query: NonEmptyString,
@@ -257,7 +316,7 @@ trait SearchService {
           fieldSort(s"$withLanguage.$sortLanguage.raw")
             .sortOrder(order)
             .missing("_last")
-            .unmappedType("long")
+            .unmappedType("keyword")
       }
     }
 

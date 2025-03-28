@@ -97,7 +97,8 @@ trait IndexService {
           booleanField("isVisible"),
           keywordField("url"),
           keywordField("resourceTypeIds")
-        )
+        ) ++
+          languageValuesMapping("breadcrumbs", keepRaw = true)
       )
     }
   }

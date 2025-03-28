@@ -1258,7 +1258,7 @@ object TestData {
     article11.title.head.title,
     Some(s"urn:article:${article11.id.get}"),
     Some("/subject:2/topic:4"),
-    Some("/e/katter/asdf1240"),
+    Some("/e/hamstere/asdf1240"),
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,

@@ -377,10 +377,11 @@ class MultiSearchServiceTest
     searchEn.summaryResults.head.title.title should equal("Cats")
     searchEn.summaryResults.head.title.language should equal("en")
 
-    searchNb.totalCount should equal(1)
+    searchNb.totalCount should equal(7)
     searchNb.summaryResults.head.id should equal(11)
     searchNb.summaryResults.head.title.title should equal("Katter")
     searchNb.summaryResults.head.title.language should equal("nb")
+    // ... ignoring rest of the results since they only matched because they have this article id 11 in the context breadcrumb
   }
 
   test("Searching for unknown language should return nothing") {
@@ -727,16 +728,16 @@ class MultiSearchServiceTest
         searchSettings.copy(query = Some(NonEmptyString.fromString("Helse søster").get), language = AllLanguages)
       )
 
-    search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(Seq(12))
+    search1.totalCount should be(1)
 
     val Success(search2) =
       multiSearchService.matchingQuery(
         searchSettings.copy(query = Some(NonEmptyString.fromString("Helse søster").get), language = "nb")
       )
 
-    search2.totalCount should be(1)
     search2.summaryResults.map(_.id) should be(Seq(12))
+    search2.totalCount should be(1)
   }
 
   test("That filterByNoResourceType works by filtering out every document that does not have resourceTypes") {
