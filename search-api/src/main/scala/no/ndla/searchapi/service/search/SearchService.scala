@@ -48,6 +48,10 @@ trait SearchService {
     val searchIndex: List[String]
     val indexServices: List[BaseIndexService]
 
+    // NOTE: Since some operators restricts simple query string results, we need to check for them
+    //       and not use other query types if they are present to make them effective.
+    private val simpleStringQueryOperators = List("+", "|", "-", "\"", "*", "(", ")", "~")
+
     /** Returns hit as summary
       *
       * @param hit
@@ -84,8 +88,7 @@ trait SearchService {
       ).flatten
 
     def buildBreadcrumbQuery(query: NonEmptyString, language: String, fallback: Boolean, boost: Double): List[Query] = {
-      val skipChars = List("+", "|", "-", "\"", "*", "(", ")", "~")
-      if (skipChars.exists(query.underlying.contains)) return List.empty
+      if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
 
       val subQueries = buildMatchQueryForField(query, "contexts.breadcrumbs", language, fallback, boost)
       val sq         = boolQuery().should(subQueries)
@@ -99,8 +102,7 @@ trait SearchService {
         fallback: Boolean,
         boost: Double
     ): List[Query] = {
-      val skipChars = List("+", "|", "-", "\"", "*", "(", ")", "~")
-      if (skipChars.exists(query.underlying.contains)) return List.empty
+      if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
 
       val searchLanguage = language match {
         case lang if Iso639.get(lang).isSuccess => lang
