@@ -2548,7 +2548,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                /** @description Slug of the article that is to be fecthed. */
+                /** @description Slug of the article that is to be fetched. */
                 slug: string;
             };
             cookie?: never;

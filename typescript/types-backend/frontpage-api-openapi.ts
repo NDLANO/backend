@@ -374,9 +374,13 @@ export interface operations {
     "getFrontpage-apiV1Subjectpage": {
         parameters: {
             query?: {
+                /** @description The page number of the search hits to display. */
                 page?: number;
+                /** @description The number of search hits to display for each page. */
                 "page-size"?: number;
+                /** @description The ISO 639-1 language code describing language. */
                 language?: string;
+                /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
             };
             header?: never;
@@ -469,10 +473,15 @@ export interface operations {
     "getFrontpage-apiV1SubjectpageIds": {
         parameters: {
             query?: {
+                /** @description Return only subject pages that have one of the provided ids. To provide multiple ids, separate by comma (,). */
                 ids?: number[];
+                /** @description The ISO 639-1 language code describing language. */
                 language?: string;
+                /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
+                /** @description The number of search hits to display for each page. */
                 "page-size"?: number;
+                /** @description The page number of the search hits to display. */
                 page?: number;
             };
             header?: never;
@@ -518,7 +527,9 @@ export interface operations {
     "getFrontpage-apiV1SubjectpageSubjectpage-id": {
         parameters: {
             query?: {
+                /** @description The ISO 639-1 language code describing language. */
                 language?: string;
+                /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
             };
             header?: never;
@@ -567,7 +578,9 @@ export interface operations {
     "patchFrontpage-apiV1SubjectpageSubjectpage-id": {
         parameters: {
             query?: {
+                /** @description The ISO 639-1 language code describing language. */
                 language?: string;
+                /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
             };
             header?: never;
