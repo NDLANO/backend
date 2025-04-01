@@ -249,10 +249,15 @@ trait MultiSearchService {
     private def getNodeSearchFilters(settings: SearchSettings): List[Query] = {
       val nodeTypeFilter       = getNodeTypeFilter(settings.nodeTypeFilter)
       val contextSubjectFilter = subjectFilter(settings.subjects, settings.filterInactive)
+      val grepCodesFilter =
+        if (settings.grepCodes.nonEmpty)
+          Some(termsQuery("grepContexts.code", settings.grepCodes))
+        else None
 
       List(
         nodeTypeFilter,
-        contextSubjectFilter
+        contextSubjectFilter,
+        grepCodesFilter
       ).flatten
     }
 

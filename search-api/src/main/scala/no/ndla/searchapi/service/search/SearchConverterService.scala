@@ -1082,14 +1082,32 @@ trait SearchConverterService {
         case Some(grepBundle) =>
           grepCodes
             .map(grepCode =>
-              SearchableGrepContext(
-                grepCode,
-                grepBundle.grepContextByCode
+              if (grepCode.startsWith("KV")) {
+                return grepBundle.grepKompetansemaalSettByCode
                   .get(grepCode)
-                  .flatMap(element =>
-                    element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
+                  .map(ge =>
+                    ge.kompetansemaal.map(ks =>
+                      SearchableGrepContext(
+                        ks.kode,
+                        grepBundle.grepContextByCode
+                          .get(ks.kode)
+                          .flatMap(element =>
+                            element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
+                          )
+                      )
+                    )
                   )
-              )
+                  .getOrElse(List.empty)
+              } else {
+                SearchableGrepContext(
+                  grepCode,
+                  grepBundle.grepContextByCode
+                    .get(grepCode)
+                    .flatMap(element =>
+                      element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
+                    )
+                )
+              }
             )
             .toList
       }
@@ -1132,10 +1150,17 @@ trait SearchConverterService {
       }
     }
 
-    def asSearchableNode(node: Node, frontpage: Option[SubjectPage]): Try[SearchableNode] = {
+    def asSearchableNode(
+        node: Node,
+        frontpage: Option[SubjectPage],
+        indexingBundle: IndexingBundle
+    ): Try[SearchableNode] = {
       asFrontPage(frontpage).map { frontpage =>
         val context  = node.context.map(ctx => asSearchableTaxonomyContexts(List(ctx)).head)
         val contexts = asSearchableTaxonomyContexts(node.contexts)
+        val grepContexts =
+          node.metadata.map(meta => getGrepContexts(meta.grepCodes, indexingBundle.grepBundle)).getOrElse(List.empty)
+
         SearchableNode(
           nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
@@ -1144,7 +1169,8 @@ trait SearchConverterService {
           nodeType = node.nodeType,
           subjectPage = frontpage,
           context = context.orElse(contexts.find(_.isPrimary)),
-          contexts = contexts
+          contexts = contexts,
+          grepContexts = grepContexts
         )
       }
     }

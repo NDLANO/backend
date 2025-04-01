@@ -11,7 +11,7 @@ package no.ndla.searchapi.model.grep
 case class GrepBundle(
     kjerneelementer: List[GrepKjerneelement],
     kompetansemaal: List[GrepKompetansemaal],
-    kompetansemaalsett: List[GrepElement],
+    kompetansemaalsett: List[GrepKompetansemaalSett],
     tverrfagligeTemaer: List[GrepElement],
     laereplaner: List[GrepLaererplan]
 ) {
@@ -26,4 +26,6 @@ case class GrepBundle(
   val grepContextByCode: Map[String, GrepElement] =
     Map.from(grepContext.map(elem => elem.kode -> elem))
 
+  val grepKompetansemaalSettByCode: Map[String, GrepKompetansemaalSett] =
+    Map.from(kompetansemaalsett.map(elem => elem.kode -> elem))
 }
