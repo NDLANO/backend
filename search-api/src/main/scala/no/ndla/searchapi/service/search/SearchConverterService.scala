@@ -1080,36 +1080,17 @@ trait SearchConverterService {
       bundle match {
         case None => List.empty
         case Some(grepBundle) =>
-          grepCodes
-            .map(grepCode =>
-              if (grepCode.startsWith("KV")) {
-                return grepBundle.grepKompetansemaalSettByCode
-                  .get(grepCode)
-                  .map(ge =>
-                    ge.kompetansemaal.map(ks =>
-                      SearchableGrepContext(
-                        ks.kode,
-                        grepBundle.grepContextByCode
-                          .get(ks.kode)
-                          .flatMap(element =>
-                            element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
-                          )
-                      )
-                    )
-                  )
-                  .getOrElse(List.empty)
-              } else {
-                SearchableGrepContext(
-                  grepCode,
-                  grepBundle.grepContextByCode
-                    .get(grepCode)
-                    .flatMap(element =>
-                      element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
-                    )
-                )
-              }
-            )
-            .toList
+          grepCodes.flatMap { grepCode =>
+            grepBundle.grepContextByCode
+              .get(grepCode) match {
+              case Some(element: GrepKompetansemaalSett) =>
+                val subContexts = getGrepContexts(element.kompetansemaal.map(_.kode), bundle)
+                subContexts :+ SearchableGrepContext(code = grepCode, title = element.getTitleValue("default"))
+              case Some(element) =>
+                List(SearchableGrepContext(code = grepCode, title = element.getTitleValue("default")))
+              case None => List(SearchableGrepContext(code = grepCode, title = None))
+            }
+          }.toList
       }
     }
 

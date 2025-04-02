@@ -698,7 +698,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val grepContexts = List(
       SearchableGrepContext("KM123", Some("tittel123")),
-      SearchableGrepContext("KM234", Some("tittel234"))
+      SearchableGrepContext("KM234", Some("tittel234")),
+      SearchableGrepContext("KV123", Some("tittel123"))
     )
     val Success(searchableNode) =
       searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))

@@ -26,6 +26,4 @@ case class GrepBundle(
   val grepContextByCode: Map[String, GrepElement] =
     Map.from(grepContext.map(elem => elem.kode -> elem))
 
-  val grepKompetansemaalSettByCode: Map[String, GrepKompetansemaalSett] =
-    Map.from(kompetansemaalsett.map(elem => elem.kode -> elem))
 }

@@ -16,6 +16,9 @@ import io.circe.syntax.EncoderOps
 sealed trait GrepElement {
   val kode: String
   def getTitle: Seq[GrepTitle]
+  def getTitleValue(language: String): Option[String] = {
+    getTitle.find(title => title.spraak == language).map(title => title.verdi)
+  }
 }
 object GrepElement {
   implicit val decoder: Decoder[GrepElement] =
