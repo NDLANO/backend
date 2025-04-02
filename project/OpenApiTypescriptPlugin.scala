@@ -65,9 +65,7 @@ object OpenApiTypescriptPlugin extends AutoPlugin {
 
   def generateOpenapiTypescriptFile(appName: String): Unit = {
     runCommand("yarn --cwd typescript/types-backend/ install")
-    runCommand(
-      s"yarn --cwd typescript/types-backend/ openapi-typescript openapi/$appName.json --export-type -o $appName-openapi.ts"
-    )
+    runCommand(s"yarn --cwd typescript/types-backend/ generate-typescript $appName")
   }
 
   override def trigger: PluginTrigger                    = AllRequirements
