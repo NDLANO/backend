@@ -23,6 +23,7 @@
     "image-api",
     "learningpath-api",
     "myndla-api",
+    "oembed-proxy",
     "search-api"
   ],
   "devDependencies": {

@@ -1,0 +1,5 @@
+{
+  "name": "@ndla/types-backend/oembed-proxy",
+  "private": true,
+  "types": "../build/oembed-proxy.d.ts"
+}
