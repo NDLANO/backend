@@ -32,7 +32,7 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
   test("That TextValidator allows links in html") {
     allowedHtmlValidator.validate(
       "path1",
-      """<p>This is plain text with a <a href="https://ndla.no">link</a></p>"""
+      """<p>This is plain text with a <a href="https://ndla.no" target="_blank" rel="noopener noreferrer">link</a></p>"""
     ) should equal(None)
   }
 

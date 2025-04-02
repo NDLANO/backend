@@ -38,7 +38,7 @@ trait TextValidator {
       if (text.isEmpty) {
         Some(ValidationMessage(fieldPath, FieldEmpty))
       } else {
-        if (Jsoup.isValid(text, Safelist.basic().addTags("section"))) {
+        if (Jsoup.isValid(text, Safelist.basic().addTags("section").addAttributes("a", "target", "rel"))) {
           None
         } else {
           Some(ValidationMessage(fieldPath, IllegalContentInBasicText))
