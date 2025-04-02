@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA backend
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 import fs from "node:fs";
 import openapiTS, { astToString, TransformObject } from "openapi-typescript";
 import ts, { TypeNode } from "typescript";
