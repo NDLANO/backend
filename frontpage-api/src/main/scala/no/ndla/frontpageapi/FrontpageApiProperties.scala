@@ -8,8 +8,7 @@
 
 package no.ndla.frontpageapi
 
-import no.ndla.common.Environment.prop
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 
@@ -29,8 +28,8 @@ class FrontpageApiProperties extends BaseProps with DatabaseProps {
   val Domain: String         = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val RawImageApiUrl: String = s"$Domain/image-api/raw"
 
-  def BrightcoveAccountId: String = prop("BRIGHTCOVE_ACCOUNT_ID")
-  def BrightcovePlayer: String    = prop("BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: Prop[String] = prop("BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayer: Prop[String]    = prop("BRIGHTCOVE_PLAYER_ID")
 
   override def MetaMigrationLocation: String = "no/ndla/frontpageapi/db/migration"
 }

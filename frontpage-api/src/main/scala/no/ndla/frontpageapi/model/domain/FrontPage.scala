@@ -39,7 +39,7 @@ trait DBFrontPage {
 
   object DBFrontPageData extends SQLSyntaxSupport[FrontPage] {
     override val tableName                  = "mainfrontpage"
-    override val schemaName: Option[String] = props.MetaSchema.some
+    override val schemaName: Option[String] = props.MetaSchema.toString.some
 
     def fromResultSet(lp: SyntaxProvider[FrontPage])(rs: WrappedResultSet): Try[FrontPage] =
       fromResultSet(lp.resultName)(rs)

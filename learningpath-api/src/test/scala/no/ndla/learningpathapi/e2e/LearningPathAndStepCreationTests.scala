@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.e2e
 
 import no.ndla.common.CirceUtil
+import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{EmbedType, LearningPath, StepType}
 import no.ndla.learningpathapi.model.api.{
@@ -43,15 +44,15 @@ class LearningPathAndStepCreationTests
   val learningpathApiPort: Int    = findFreePort
   val pgc: PostgreSQLContainer[_] = postgresContainer.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
-    override def ApplicationPort: Int   = learningpathApiPort
-    override def MetaServer: String     = pgc.getHost
-    override def MetaResource: String   = pgc.getDatabaseName
-    override def MetaUserName: String   = pgc.getUsername
-    override def MetaPassword: String   = pgc.getPassword
-    override def MetaPort: Int          = pgc.getMappedPort(5432)
-    override def MetaSchema: String     = "testschema"
-    override def disableWarmup: Boolean = true
-    override def SearchServer: String   = elasticSearchHost.get
+    override def ApplicationPort: Int       = learningpathApiPort
+    override val MetaServer: Prop[String]   = Prop.propFromTestValue(pgc.getHost)
+    override val MetaResource: Prop[String] = Prop.propFromTestValue(pgc.getDatabaseName)
+    override val MetaUserName: Prop[String] = Prop.propFromTestValue(pgc.getUsername)
+    override val MetaPassword: Prop[String] = Prop.propFromTestValue(pgc.getPassword)
+    override val MetaPort: Prop[Int]        = Prop.propFromTestValue(pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]   = Prop.propFromTestValue("testschema")
+    override def disableWarmup: Boolean     = true
+    override def SearchServer: String       = elasticSearchHost.get
   }
 
   val someDate: NDLADate = NDLADate.of(2017, 1, 1, 1, 59)

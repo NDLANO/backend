@@ -8,8 +8,7 @@
 
 package no.ndla.articleapi
 
-import no.ndla.common.Environment.prop
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
 import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -71,8 +70,8 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  private def BrightcoveAccountId: String = prop("BRIGHTCOVE_ACCOUNT_ID")
-  private def BrightcovePlayerId: String  = prop("BRIGHTCOVE_PLAYER_ID")
+  private val BrightcoveAccountId: Prop[String] = prop("BRIGHTCOVE_ACCOUNT_ID")
+  private val BrightcovePlayerId: Prop[String]  = prop("BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"

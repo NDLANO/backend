@@ -31,7 +31,7 @@ import scala.concurrent.duration.DurationInt
 trait V57__MigrateSavedSearch {
   this: TaxonomyApiClient with NdlaClient with Props =>
 
-  import props.{TaxonomyUrl, TaxonomyVersionHeader, Environment, auth0ManagmentClientId, auth0ManagmentClientSecret}
+  import props.{TaxonomyUrl, TaxonomyVersionHeader, Environment, auth0ManagementClientId, auth0ManagementClientSecret}
 
   class V57__MigrateSavedSearch extends BaseJavaMigration {
 
@@ -63,8 +63,8 @@ trait V57__MigrateSavedSearch {
 
     def getManagementToken(): Try[String] = {
       val inputBody = GetTokenBody(
-        client_id = auth0ManagmentClientId,
-        client_secret = auth0ManagmentClientSecret,
+        client_id = auth0ManagementClientId,
+        client_secret = auth0ManagementClientSecret,
         audience = auth0Audience,
         grant_type = "client_credentials"
       )

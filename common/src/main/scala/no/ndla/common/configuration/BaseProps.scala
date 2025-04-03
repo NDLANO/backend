@@ -8,23 +8,61 @@
 
 package no.ndla.common.configuration
 
+import com.typesafe.scalalogging.StrictLogging
 import sttp.client3.UriContext
 import sttp.model.Uri
 
+import scala.collection.mutable
 import scala.util.Properties.{propOrElse, propOrNone}
 
-trait BaseProps {
+trait BaseProps extends StrictLogging {
+
+  /** Mutable variable to store state of properties, enables loading properties and crashing _optionally_ at startup.
+    * Since applications can start with configurations that doesn't require all required properties (ex: generating
+    * openapi documentation)
+    */
+  private val loadedProps: mutable.ListBuffer[Prop[?]] = mutable.ListBuffer.empty
+
+  def throwIfFailedProps(): Unit = {
+    val failedProps = loadedProps.filterNot(_.successful)
+    if (failedProps.nonEmpty) {
+      val failedKeys = failedProps
+        .collect { case Prop(name, _, Some(ex), _) =>
+          logger.error(ex.getMessage, ex)
+          name
+        }
+        .mkString("[", ",", "]")
+
+      throw EnvironmentNotFoundException(s"Unable to load the following properties: $failedKeys")
+    }
+  }
+
   def intPropOrDefault(name: String, default: Int): Int = propOrNone(name).flatMap(_.toIntOption).getOrElse(default)
   def booleanPropOrNone(name: String): Option[Boolean]  = propOrNone(name).flatMap(_.toBooleanOption)
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
+  def prop(key: String): Prop[String] = {
+    propOrNone(key) match {
+      case Some(value) =>
+        val prop = Prop(key, Some(value), None, defaultValue = false)
+        loadedProps.append(prop)
+        prop
+      case None =>
+        logger.error(s"Expected property $key to be set, but it was not found.")
+        val prop = Prop.failed[String](key)
+        loadedProps.append(prop)
+        prop
+    }
+  }
+
+  def booleanPropOrFalse(key: String): Boolean = {
+    propOrNone(key).flatMap(_.toBooleanOption).getOrElse(false)
+  }
+
   def ApplicationPort: Int
   def ApplicationName: String
 
-  private def setLogProperties(): Unit = {
-    System.setProperty("APPLICATION_NAME", ApplicationName): Unit
-  }
-
+  private def setLogProperties(): Unit = System.setProperty("APPLICATION_NAME", ApplicationName): Unit
   setLogProperties()
 
   def Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")

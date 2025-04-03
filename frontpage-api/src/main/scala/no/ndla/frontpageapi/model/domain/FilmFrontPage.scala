@@ -45,7 +45,7 @@ trait DBFilmFrontPage {
 
   object DBFilmFrontPageData extends SQLSyntaxSupport[FilmFrontPage] {
     override val tableName                  = "filmfrontpage"
-    override val schemaName: Option[String] = props.MetaSchema.some
+    override val schemaName: Option[String] = props.MetaSchema.toString.some
 
     def fromDb(lp: SyntaxProvider[FilmFrontPage])(rs: WrappedResultSet): Try[FilmFrontPage] =
       fromDb(lp.resultName)(rs)

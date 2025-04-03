@@ -37,8 +37,8 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
   }
 
   def serverIsListening: Boolean = {
-    val server = props.MetaServer
-    val port   = props.MetaPort
+    val server = props.MetaServer.unsafeGet
+    val port   = props.MetaPort.unsafeGet
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()

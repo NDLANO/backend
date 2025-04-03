@@ -65,6 +65,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
     if (args.contains("--save-swagger")) {
       Try(componentRegistry.swagger.saveSwagger())
     } else {
+      props.throwIfFailedProps()
       runServer()
     }
   }

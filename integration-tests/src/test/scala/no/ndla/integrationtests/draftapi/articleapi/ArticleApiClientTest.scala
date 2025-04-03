@@ -9,6 +9,7 @@
 package no.ndla.integrationtests.draftapi.articleapi
 
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.common.configuration.Prop
 import no.ndla.common.model.domain.{ContributorType, Priority}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
@@ -44,14 +45,14 @@ class ArticleApiClientTest
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
-    override def ApplicationPort: Int = articleApiPort
-    override def MetaServer: String   = pgc.getHost
-    override def MetaResource: String = pgc.getDatabaseName
-    override def MetaUserName: String = pgc.getUsername
-    override def MetaPassword: String = pgc.getPassword
-    override def MetaPort: Int        = pgc.getMappedPort(5432)
-    override def MetaSchema: String   = "testschema"
-    override def SearchServer: String = esHost
+    override def ApplicationPort: Int       = articleApiPort
+    override val MetaServer: Prop[String]   = Prop.propFromTestValue(pgc.getHost)
+    override val MetaResource: Prop[String] = Prop.propFromTestValue(pgc.getDatabaseName)
+    override val MetaUserName: Prop[String] = Prop.propFromTestValue(pgc.getUsername)
+    override val MetaPassword: Prop[String] = Prop.propFromTestValue(pgc.getPassword)
+    override val MetaPort: Prop[Int]        = Prop.propFromTestValue(pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]   = Prop.propFromTestValue("testschema")
+    override def SearchServer: String       = esHost
   }
 
   var articleApi: articleapi.MainClass = null

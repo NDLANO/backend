@@ -9,7 +9,6 @@
 package no.ndla.draftapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
@@ -125,8 +124,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   )
 
   def multipartFileSizeThresholdBytes: Int = 1024 * 1024 * 30 // 30MB
-  def auth0ManagmentClientId: String       = prop("AUTH0_MANAGEMENT_CLIENT_ID")
-  def auth0ManagmentClientSecret: String   = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
+  val auth0ManagementClientId: String      = prop("AUTH0_MANAGEMENT_CLIENT_ID")
+  val auth0ManagementClientSecret: String  = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
 
   override def MetaMigrationLocation: String      = "no/ndla/draftapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

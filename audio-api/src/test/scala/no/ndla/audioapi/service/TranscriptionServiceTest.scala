@@ -10,6 +10,7 @@ package no.ndla.audioapi.service
 
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.common.aws.NdlaS3Object
+import no.ndla.common.configuration.Prop
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import software.amazon.awssdk.services.transcribe.model.{
@@ -18,15 +19,16 @@ import software.amazon.awssdk.services.transcribe.model.{
   TranscriptionJob,
   TranscriptionJobStatus
 }
+
 import scala.util.Success
 
 class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
   override val transcriptionService: TranscriptionService = new TranscriptionService
   override val brightcoveClient: NdlaBrightcoveClient     = new NdlaBrightcoveClient
   override val props: AudioApiProperties = new AudioApiProperties {
-    override val BrightcoveAccountId: String    = "123"
-    override val BrightcoveClientId: String     = "123"
-    override val BrightcoveClientSecret: String = "123"
+    override val BrightcoveAccountId: Prop[String]    = Prop.propFromTestValue("123")
+    override val BrightcoveClientId: Prop[String]     = Prop.propFromTestValue("123")
+    override val BrightcoveClientSecret: Prop[String] = Prop.propFromTestValue("123")
   }
 
   test("getAudioExtractionStatus returns Success when audio file exists") {
