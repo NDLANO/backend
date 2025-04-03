@@ -64,7 +64,7 @@ trait TestEnvironment
     with DraftSearchSettingsHelper
     with DBMigrator
     with InternController {
-  override val props: ConceptApiProperties = new ConceptApiProperties {
+  override lazy val props: ConceptApiProperties = new ConceptApiProperties {
     override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
   }
 

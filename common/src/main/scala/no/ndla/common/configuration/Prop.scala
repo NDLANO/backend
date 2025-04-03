@@ -10,13 +10,19 @@ package no.ndla.common.configuration
 
 case class Prop[T](
     name: String,
-    value: Option[T],
-    failure: Option[Throwable],
-    defaultValue: Boolean
+    var value: Option[T],
+    var failure: Option[Throwable],
+    var defaultValue: Boolean
 ) {
   def unsafeGet: T = value match {
     case Some(v) => v
     case None    => throw EnvironmentNotFoundException.singleKey(name)
+  }
+
+  def setValue(newValue: T): Unit = {
+    this.failure = None
+    this.defaultValue = false
+    this.value = Some(newValue)
   }
 
   def successful: Boolean = failure.isEmpty
@@ -36,7 +42,8 @@ case class Prop[T](
   override def toString: String = {
     value match {
       case Some(value) => value.toString
-      case None        => throw EnvironmentNotFoundException.singleKey(name)
+      case None =>
+        throw EnvironmentNotFoundException.singleKey(name)
     }
   }
 

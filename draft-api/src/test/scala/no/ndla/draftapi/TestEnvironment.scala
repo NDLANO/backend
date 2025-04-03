@@ -73,7 +73,7 @@ trait TestEnvironment
     with DBMigrator
     with Props
     with V57__MigrateSavedSearch {
-  val props: DraftApiProperties = new DraftApiProperties {
+  lazy val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }

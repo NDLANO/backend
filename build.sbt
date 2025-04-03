@@ -17,8 +17,9 @@ lazy val `search-api`        = Module.setup(project in file("./search-api/"),   
 lazy val `myndla-api`        = Module.setup(project in file("./myndla-api/"),       myndlaapi,       deps = Seq(network, mapping, language, common, database, testWith(scalatestsuite), testWith(tapirtesting)))
 
 // Libraries
-lazy val common              = Module.setup(project in file("./common/"),            commonlib,         deps = Seq(testWith(scalatestsuite), language))
-lazy val scalatestsuite      = Module.setup(project in file("./scalatestsuite/"),    scalatestsuitelib)
+lazy val testbase            = Module.setup(project in file("./testbase/"),          testbaselib)
+lazy val scalatestsuite      = Module.setup(project in file("./scalatestsuite/"),    scalatestsuitelib, deps = Seq(common, testbase))
+lazy val common              = Module.setup(project in file("./common/"),            commonlib,         deps = Seq(testWith(testbase), language))
 lazy val tapirtesting        = Module.setup(project in file("./tapirtesting/"),      tapirtestinglib,   deps = Seq(common, network, scalatestsuite))
 lazy val network             = Module.setup(project in file("./network/"),           networklib,        deps = Seq(common))
 lazy val language            = Module.setup(project in file("./language/"),          languagelib)

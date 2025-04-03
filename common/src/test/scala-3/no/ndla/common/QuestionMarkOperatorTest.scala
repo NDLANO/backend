@@ -8,11 +8,11 @@
 package no.ndla.common
 
 import no.ndla.common.implicits._
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
 import scala.util.{Failure, Success, Try}
 
-class QuestionMarkOperatorTest extends UnitTestSuite {
+class QuestionMarkOperatorTest extends UnitTestSuiteBase {
 
   val testException              = new RuntimeException("Bad method")
   def failingMethod: Try[Int]    = Failure(testException)

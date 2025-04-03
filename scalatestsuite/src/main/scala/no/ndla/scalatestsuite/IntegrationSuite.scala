@@ -9,6 +9,7 @@
 package no.ndla.scalatestsuite
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import no.ndla.common.configuration.HasBaseProps
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.testcontainers.containers.{GenericContainer, PostgreSQLContainer}
@@ -17,7 +18,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer
 import org.testcontainers.utility.DockerImageName
 
 import java.time.Duration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 import sys.env
 
@@ -29,6 +30,7 @@ abstract class IntegrationSuite(
     ElasticsearchImage: String = "6409dd6", // elasticsearch 8.11.4
     schemaName: String = "testschema"
 ) extends UnitTestSuite {
+  this: HasBaseProps =>
 
   val skipContainerSpawn: Boolean = env.getOrElse("NDLA_SKIP_CONTAINER_SPAWN", "false") == "true"
 

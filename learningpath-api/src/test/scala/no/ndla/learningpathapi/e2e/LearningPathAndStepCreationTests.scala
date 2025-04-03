@@ -19,7 +19,7 @@ import no.ndla.learningpathapi.model.api.{
   NewLearningPathV2DTO,
   NewLearningStepV2DTO
 }
-import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, UnitSuite}
+import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{spy, when, withSettings}
@@ -39,7 +39,8 @@ class LearningPathAndStepCreationTests
       EnablePostgresContainer = true,
       EnableRedisContainer = false
     )
-    with UnitSuite {
+    with UnitSuite
+    with TestEnvironment {
 
   val learningpathApiPort: Int    = findFreePort
   val pgc: PostgreSQLContainer[_] = postgresContainer.get

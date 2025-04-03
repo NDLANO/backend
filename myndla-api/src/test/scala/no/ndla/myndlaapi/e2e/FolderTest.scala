@@ -14,7 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, UnitSuite}
+import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -35,7 +35,8 @@ class FolderTest
       EnablePostgresContainer = true,
       EnableRedisContainer = true
     )
-    with UnitSuite {
+    with UnitSuite
+    with TestEnvironment {
 
   val myndlaApiPort: Int          = findFreePort
   val pgc: PostgreSQLContainer[?] = postgresContainer.get

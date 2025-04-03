@@ -25,7 +25,7 @@ import scala.util.Success
 class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
   override val transcriptionService: TranscriptionService = new TranscriptionService
   override val brightcoveClient: NdlaBrightcoveClient     = new NdlaBrightcoveClient
-  override val props: AudioApiProperties = new AudioApiProperties {
+  override lazy val props: AudioApiProperties = new AudioApiProperties {
     override val BrightcoveAccountId: Prop[String]    = Prop.propFromTestValue("123")
     override val BrightcoveClientId: Prop[String]     = Prop.propFromTestValue("123")
     override val BrightcoveClientSecret: Prop[String] = Prop.propFromTestValue("123")

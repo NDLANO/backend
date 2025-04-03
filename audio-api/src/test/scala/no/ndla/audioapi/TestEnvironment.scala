@@ -57,7 +57,7 @@ trait TestEnvironment
     with NdlaAWSTranscribeClient
     with NdlaBrightcoveClient
     with ErrorHandling {
-  override val props: AudioApiProperties = new AudioApiProperties
+  override lazy val props: AudioApiProperties = new AudioApiProperties
 
   val dataSource: HikariDataSource       = mock[HikariDataSource]
   val audioRepository: AudioRepository   = mock[AudioRepository]

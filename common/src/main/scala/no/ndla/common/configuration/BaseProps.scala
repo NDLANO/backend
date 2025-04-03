@@ -21,10 +21,10 @@ trait BaseProps extends StrictLogging {
     * Since applications can start with configurations that doesn't require all required properties (ex: generating
     * openapi documentation)
     */
-  private val loadedProps: mutable.ListBuffer[Prop[?]] = mutable.ListBuffer.empty
+  private val loadedProps: mutable.Map[String, Prop[?]] = mutable.Map.empty
 
   def throwIfFailedProps(): Unit = {
-    val failedProps = loadedProps.filterNot(_.successful)
+    val failedProps = loadedProps.values.filterNot(_.successful)
     if (failedProps.nonEmpty) {
       val failedKeys = failedProps
         .collect { case Prop(name, _, Some(ex), _) =>
@@ -41,18 +41,29 @@ trait BaseProps extends StrictLogging {
   def booleanPropOrNone(name: String): Option[Boolean]  = propOrNone(name).flatMap(_.toBooleanOption)
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
+  /** Test method to update props for tests */
+  def updateProp[T](key: String, value: T): Unit = {
+    val prop = Prop(key, Some(value), None, defaultValue = false)
+    loadedProps.get(key) match {
+      case Some(existing: Prop[T] @unchecked) => existing.setValue(value)
+      case None                               => loadedProps.put(key, prop): Unit
+      case Some(_) =>
+        throw new RuntimeException(
+          s"Got bad type when updating property: $key, you sent the wrong type to updateProp..."
+        )
+    }
+  }
+
   def prop(key: String): Prop[String] = {
-    propOrNone(key) match {
+    val propToAdd = propOrNone(key) match {
       case Some(value) =>
-        val prop = Prop(key, Some(value), None, defaultValue = false)
-        loadedProps.append(prop)
-        prop
+        Prop(key, Some(value), None, defaultValue = false)
       case None =>
         logger.error(s"Expected property $key to be set, but it was not found.")
-        val prop = Prop.failed[String](key)
-        loadedProps.append(prop)
-        prop
+        Prop.failed[String](key)
     }
+    loadedProps.put(key, propToAdd): Unit
+    propToAdd
   }
 
   def booleanPropOrFalse(key: String): Boolean = {

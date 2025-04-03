@@ -39,7 +39,7 @@ trait TestEnvironment
     with ErrorHandling
     with Clock
     with DBMigrator {
-  override val props = new FrontpageApiProperties
+  override lazy val props = new FrontpageApiProperties
 
   override val clock: SystemClock           = mock[SystemClock]
   override val migrator: DBMigrator         = mock[DBMigrator]

@@ -62,7 +62,7 @@ trait TestEnvironment
     with Clock
     with GrepApiClient
     with Props {
-  override val props = new SearchApiProperties
+  override lazy val props = new SearchApiProperties
 
   val searchController: SearchController = mock[SearchController]
   val internController: InternController = mock[InternController]

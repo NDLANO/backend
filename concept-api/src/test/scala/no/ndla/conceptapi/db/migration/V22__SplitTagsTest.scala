@@ -8,9 +8,9 @@
 
 package no.ndla.conceptapi.db.migration
 
-import no.ndla.conceptapi.UnitSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class V22__SplitTagsTest extends UnitSuite {
+class V22__SplitTagsTest extends UnitTestSuiteBase {
 
   val migration = new V22__SplitTags
 

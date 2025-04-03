@@ -10,4 +10,4 @@ package no.ndla.oembedproxy
 
 import no.ndla.scalatestsuite.UnitTestSuite
 
-abstract class UnitSuite extends UnitTestSuite {}
+trait UnitSuite extends UnitTestSuite {}

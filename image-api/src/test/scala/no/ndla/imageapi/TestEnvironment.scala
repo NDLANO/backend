@@ -72,8 +72,8 @@ trait TestEnvironment
     with DBMigrator
     with TestData
     with Random {
-  val props    = new ImageApiProperties
-  val TestData = new TestData
+  lazy val props = new ImageApiProperties
+  val TestData   = new TestData
 
   val migrator: DBMigrator   = mock[DBMigrator]
   val s3Client: NdlaS3Client = mock[NdlaS3Client]

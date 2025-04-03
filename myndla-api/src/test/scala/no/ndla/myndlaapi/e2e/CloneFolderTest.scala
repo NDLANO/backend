@@ -18,7 +18,7 @@ import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.domain
 import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
-import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, UnitSuite}
+import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.mockito.ArgumentMatchers.any
@@ -39,7 +39,8 @@ class CloneFolderTest
       EnablePostgresContainer = true,
       EnableRedisContainer = true
     )
-    with UnitSuite {
+    with UnitSuite
+    with TestEnvironment {
 
   val myndlaApiPort: Int          = findFreePort
   val pgc: PostgreSQLContainer[?] = postgresContainer.get

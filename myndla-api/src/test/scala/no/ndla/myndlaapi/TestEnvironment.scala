@@ -63,7 +63,7 @@ trait TestEnvironment
     with SearchApiClient
     with LearningPathApiClient
     with NdlaClient {
-  val props                                          = new MyNdlaApiProperties
+  lazy val props                                     = new MyNdlaApiProperties
   lazy val clock: SystemClock                        = mock[SystemClock]
   val dataSource: HikariDataSource                   = mock[HikariDataSource]
   val migrator: DBMigrator                           = mock[DBMigrator]

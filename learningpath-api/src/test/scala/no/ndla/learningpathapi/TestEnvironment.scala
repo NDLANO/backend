@@ -59,7 +59,7 @@ trait TestEnvironment
     with InternController
     with DBMigrator
     with RedisClient {
-  val props = new LearningpathApiProperties
+  lazy val props = new LearningpathApiProperties
 
   val migrator: DBMigrator         = mock[DBMigrator]
   val dataSource: HikariDataSource = mock[HikariDataSource]
