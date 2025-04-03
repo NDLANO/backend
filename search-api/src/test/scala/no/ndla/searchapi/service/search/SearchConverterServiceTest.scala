@@ -19,9 +19,11 @@ import no.ndla.searchapi.model.grep.{
   BelongsToObj,
   GrepKjerneelement,
   GrepKompetansemaal,
+  GrepKompetansemaalSett,
+  GrepTextObj,
   GrepTitle,
   GrepTverrfagligTema,
-  GrepTextObj
+  ReferenceObj
 }
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy.*
@@ -657,6 +659,51 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         )
       )
     )
+  }
+
+  test("That asSearchableNode converts grepContexts correctly based on grepBundle if node has KV grepCode") {
+    val node = TestData.subject_1.copy(metadata = Some(Metadata(Seq("KV123"), visible = true, Map.empty)))
+    val grepBundle = TestData.emptyGrepBundle.copy(
+      kompetansemaalsett = List(
+        GrepKompetansemaalSett(
+          "KV123",
+          GrepTextObj(List(GrepTitle("default", "tittel123"))),
+          BelongsToObj("LP123", "Dette er LP123"),
+          List(
+            ReferenceObj("KM123", "Tittel KM123"),
+            ReferenceObj("KM234", "Tittel KM234")
+          )
+        )
+      ),
+      kompetansemaal = List(
+        GrepKompetansemaal(
+          "KM123",
+          GrepTextObj(List(GrepTitle("default", "tittel123"))),
+          BelongsToObj("LP123", "Dette er LP123"),
+          BelongsToObj("KV123", "Dette er KV123"),
+          List(),
+          List(),
+          None
+        ),
+        GrepKompetansemaal(
+          "KM234",
+          GrepTextObj(List(GrepTitle("default", "tittel234"))),
+          BelongsToObj("LP123", "Dette er LP123"),
+          BelongsToObj("KV123", "Dette er KV123"),
+          List(),
+          List(),
+          None
+        )
+      )
+    )
+    val grepContexts = List(
+      SearchableGrepContext("KM123", Some("tittel123")),
+      SearchableGrepContext("KM234", Some("tittel234")),
+      SearchableGrepContext("KV123", Some("tittel123"))
+    )
+    val Success(searchableNode) =
+      searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
+    searchableNode.grepContexts should equal(grepContexts)
   }
 
   private def verifyTitles(searchableArticle: SearchableArticle): Unit = {

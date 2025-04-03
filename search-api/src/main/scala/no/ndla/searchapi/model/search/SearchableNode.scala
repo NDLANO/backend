@@ -21,7 +21,8 @@ case class SearchableNode(
     nodeType: NodeType,
     subjectPage: Option[SearchableSubjectPage],
     context: Option[SearchableTaxonomyContext],
-    contexts: List[SearchableTaxonomyContext]
+    contexts: List[SearchableTaxonomyContext],
+    grepContexts: List[SearchableGrepContext]
 )
 
 object SearchableNode {

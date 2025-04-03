@@ -44,6 +44,8 @@ trait NodeIndexService {
         keywordField("contentUri"),
         keywordField("nodeType"),
         keywordField("url"),
+        keywordField("grepContexts.code"),
+        textField("grepContexts.title"),
         getTaxonomyContextMapping("context"),
         getTaxonomyContextMapping("contexts"),
         nestedField("subjectPage").fields(
@@ -89,17 +91,21 @@ trait NodeIndexService {
       }
     }
 
-    def createIndexRequest(node: Node, indexName: String): Try[IndexRequest] = {
+    def createIndexRequest(indexingBundle: IndexingBundle, node: Node, indexName: String): Try[IndexRequest] = {
       for {
         frontpage  <- getFrontPage(node.contentUri)
-        searchable <- searchConverterService.asSearchableNode(node, frontpage)
+        searchable <- searchConverterService.asSearchableNode(node, frontpage, indexingBundle)
         source = CirceUtil.toJsonString(searchable)
       } yield indexInto(indexName).doc(source).id(node.id)
     }
 
-    def sendChunkToElastic(chunk: List[Node], indexName: String): Try[BulkIndexResult] = {
+    def sendChunkToElastic(
+        indexingBundle: IndexingBundle,
+        chunk: List[Node],
+        indexName: String
+    ): Try[BulkIndexResult] = {
       chunk
-        .traverse(node => createIndexRequest(node, indexName))
+        .traverse(node => createIndexRequest(indexingBundle, node, indexName))
         .map(executeRequests)
         .flatten
     }
@@ -113,7 +119,7 @@ trait NodeIndexService {
       taxBundle.nodes
         .grouped(props.IndexBulkSize)
         .toList
-        .traverse(group => sendChunkToElastic(group, indexName))
+        .traverse(group => sendChunkToElastic(indexingBundle, group, indexName))
         .map(countBulkIndexed)
     }
   }

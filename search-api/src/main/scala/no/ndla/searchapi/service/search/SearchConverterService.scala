@@ -1080,18 +1080,17 @@ trait SearchConverterService {
       bundle match {
         case None => List.empty
         case Some(grepBundle) =>
-          grepCodes
-            .map(grepCode =>
-              SearchableGrepContext(
-                grepCode,
-                grepBundle.grepContextByCode
-                  .get(grepCode)
-                  .flatMap(element =>
-                    element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
-                  )
-              )
-            )
-            .toList
+          grepCodes.flatMap { grepCode =>
+            grepBundle.grepContextByCode
+              .get(grepCode) match {
+              case Some(element: GrepKompetansemaalSett) =>
+                val subContexts = getGrepContexts(element.kompetansemaal.map(_.kode), bundle)
+                subContexts :+ SearchableGrepContext(code = grepCode, title = element.getTitleValue("default"))
+              case Some(element) =>
+                List(SearchableGrepContext(code = grepCode, title = element.getTitleValue("default")))
+              case None => List(SearchableGrepContext(code = grepCode, title = None))
+            }
+          }.toList
       }
     }
 
@@ -1132,10 +1131,17 @@ trait SearchConverterService {
       }
     }
 
-    def asSearchableNode(node: Node, frontpage: Option[SubjectPage]): Try[SearchableNode] = {
+    def asSearchableNode(
+        node: Node,
+        frontpage: Option[SubjectPage],
+        indexingBundle: IndexingBundle
+    ): Try[SearchableNode] = {
       asFrontPage(frontpage).map { frontpage =>
         val context  = node.context.map(ctx => asSearchableTaxonomyContexts(List(ctx)).head)
         val contexts = asSearchableTaxonomyContexts(node.contexts)
+        val grepContexts =
+          node.metadata.map(meta => getGrepContexts(meta.grepCodes, indexingBundle.grepBundle)).getOrElse(List.empty)
+
         SearchableNode(
           nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
@@ -1144,7 +1150,8 @@ trait SearchConverterService {
           nodeType = node.nodeType,
           subjectPage = frontpage,
           context = context.orElse(contexts.find(_.isPrimary)),
-          contexts = contexts
+          contexts = contexts,
+          grepContexts = grepContexts
         )
       }
     }
