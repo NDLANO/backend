@@ -245,6 +245,7 @@ trait ConverterService {
 
     def asDomainLearningStep(newLearningStep: NewLearningStepV2DTO, learningPath: LearningPath): Try[LearningStep] = {
       val introduction = newLearningStep.introduction
+        .filterNot(_.isEmpty)
         .map(Introduction(_, newLearningStep.language))
         .toSeq
 
