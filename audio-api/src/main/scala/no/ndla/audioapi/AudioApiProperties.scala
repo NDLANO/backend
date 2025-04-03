@@ -40,9 +40,9 @@ class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val TranscribeStorageName: String           = propOrElse("TRANSCRIBE_FILE_S3_BUCKET", s"$Environment.transcribe.ndla")
   val TranscribeStorageRegion: Option[String] = propOrNone("TRANSCRIBE_FILE_S3_BUCKET_REGION")
 
-  val BrightcoveClientId: String     = prop("BRIGHTCOVE_API_CLIENT_ID")
-  val BrightcoveClientSecret: String = prop("BRIGHTCOVE_API_CLIENT_SECRET")
-  val BrightcoveAccountId: String    = prop("BRIGHTCOVE_ACCOUNT_ID")
+  def BrightcoveClientId: String     = prop("BRIGHTCOVE_API_CLIENT_ID")
+  def BrightcoveClientSecret: String = prop("BRIGHTCOVE_API_CLIENT_SECRET")
+  def BrightcoveAccountId: String    = prop("BRIGHTCOVE_ACCOUNT_ID")
 
   val SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
