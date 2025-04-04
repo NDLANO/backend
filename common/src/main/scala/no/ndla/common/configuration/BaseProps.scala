@@ -27,9 +27,9 @@ trait BaseProps extends StrictLogging {
     val failedProps = loadedProps.values.filterNot(_.successful)
     if (failedProps.nonEmpty) {
       val failedKeys = failedProps
-        .collect { case Prop(name, _, Some(ex), _) =>
+        .collect { case Prop(FailedProp(key, ex)) =>
           logger.error(ex.getMessage, ex)
-          name
+          key
         }
         .mkString("[", ",", "]")
 
@@ -43,7 +43,7 @@ trait BaseProps extends StrictLogging {
 
   /** Test method to update props for tests */
   def propFromTestValue(key: String, value: String): Prop = {
-    val prop = Prop(key, Some(value), None, defaultValue = false)
+    val prop = Prop.successful(key, value)
     loadedProps.get(key) match {
       case Some(existing) => existing.setValue(value)
       case None           => loadedProps.put(key, prop): Unit
@@ -54,7 +54,7 @@ trait BaseProps extends StrictLogging {
   def prop(key: String): Prop = {
     val propToAdd = propOrNone(key) match {
       case Some(value) =>
-        Prop(key, Some(value), None, defaultValue = false)
+        Prop.successful(key, value)
       case None =>
         logger.error(s"Expected property $key to be set, but it was not found.")
         Prop.failed(key)

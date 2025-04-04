@@ -8,38 +8,52 @@
 
 package no.ndla.common.configuration
 
-case class Prop(
-    name: String,
-    var value: Option[String],
-    var failure: Option[Throwable],
-    var defaultValue: Boolean
-) {
-  def unsafeGet: String = value match {
-    case Some(v) => v
-    case None    => throw EnvironmentNotFoundException.singleKey(name)
+case class Prop(var reference: PropValue) {
+  def key: String = reference.key
+
+  def unsafeGet: String = reference match {
+    case LoadedProp(_, value)   => value
+    case FailedProp(_, failure) => throw failure
+  }
+
+  def successful: Boolean = reference match {
+    case _: LoadedProp => true
+    case _: FailedProp => false
   }
 
   def setValue(newValue: String): Unit = {
-    this.failure = None
-    this.defaultValue = false
-    this.value = Some(newValue)
+    reference = LoadedProp(key, newValue)
   }
-
-  def successful: Boolean = failure.isEmpty
 
   override def toString: String = {
-    value match {
-      case Some(value) => value
-      case None        => throw EnvironmentNotFoundException.singleKey(name)
+    reference match {
+      case x: LoadedProp => x.value
+      case _             => throw EnvironmentNotFoundException.singleKey(key)
     }
   }
-
 }
+
+sealed trait PropValue {
+  val key: String
+}
+
+case class LoadedProp(
+    key: String,
+    value: String
+) extends PropValue
+
+case class FailedProp(
+    key: String,
+    failure: Throwable
+) extends PropValue
 
 object Prop {
   implicit def propToString(prop: Prop): String = prop.toString
 
   def failed(key: String): Prop = {
-    Prop(key, None, Some(EnvironmentNotFoundException.singleKey(key)), defaultValue = false)
+    Prop(FailedProp(key, EnvironmentNotFoundException.singleKey(key)))
+  }
+  def successful(key: String, value: String): Prop = {
+    Prop(LoadedProp(key, value))
   }
 }
