@@ -28,8 +28,8 @@ class FrontpageApiProperties extends BaseProps with DatabaseProps {
   val Domain: String         = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val RawImageApiUrl: String = s"$Domain/image-api/raw"
 
-  val BrightcoveAccountId: Prop[String] = prop("BRIGHTCOVE_ACCOUNT_ID")
-  val BrightcovePlayer: Prop[String]    = prop("BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: Prop = prop("BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayer: Prop    = prop("BRIGHTCOVE_PLAYER_ID")
 
   override def MetaMigrationLocation: String = "no/ndla/frontpageapi/db/migration"
 }

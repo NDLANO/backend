@@ -8,6 +8,7 @@
 
 package no.ndla.database
 
+import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
@@ -18,7 +19,7 @@ trait DataSource {
 
   val dataSource: HikariDataSource
 
-  object DataSource {
+  object DataSource extends StrictLogging {
     def getHikariDataSource: HikariDataSource = {
       val dataSourceConfig = new HikariConfig()
       dataSourceConfig.setUsername(MetaUserName)
@@ -30,6 +31,9 @@ trait DataSource {
       new HikariDataSource(dataSourceConfig)
     }
 
-    def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    def connectToDatabase(): Unit = {
+      logger.info(s"Connecting to database: ${dataSource.getJdbcUrl}")
+      ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    }
   }
 }

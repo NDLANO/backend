@@ -38,14 +38,14 @@ class DraftApiClientTest
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
-    override def ApplicationPort: Int       = draftApiPort
-    override val MetaServer: Prop[String]   = Prop.propFromTestValue(pgc.getHost)
-    override val MetaResource: Prop[String] = Prop.propFromTestValue(pgc.getDatabaseName)
-    override val MetaUserName: Prop[String] = Prop.propFromTestValue(pgc.getUsername)
-    override val MetaPassword: Prop[String] = Prop.propFromTestValue(pgc.getPassword)
-    override val MetaPort: Prop[Int]        = Prop.propFromTestValue(pgc.getMappedPort(5432))
-    override val MetaSchema: Prop[String]   = Prop.propFromTestValue("testschema")
-    override def SearchServer: String       = esHost
+    override def ApplicationPort: Int = draftApiPort
+    override val MetaServer: Prop     = Prop.propFromTestValue(pgc.getHost)
+    override val MetaResource: Prop   = Prop.propFromTestValue(pgc.getDatabaseName)
+    override val MetaUserName: Prop   = Prop.propFromTestValue(pgc.getUsername)
+    override val MetaPassword: Prop   = Prop.propFromTestValue(pgc.getPassword)
+    override val MetaPort: Prop       = Prop.propFromTestValue(pgc.getMappedPort(5432).toString)
+    override val MetaSchema: Prop     = Prop.propFromTestValue("testschema")
+    override def SearchServer: String = esHost
   }
 
   var draftApi: draftapi.MainClass = null

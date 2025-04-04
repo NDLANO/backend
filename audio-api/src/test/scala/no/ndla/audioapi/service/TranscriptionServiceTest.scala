@@ -26,9 +26,9 @@ class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
   override val transcriptionService: TranscriptionService = new TranscriptionService
   override val brightcoveClient: NdlaBrightcoveClient     = new NdlaBrightcoveClient
   override lazy val props: AudioApiProperties = new AudioApiProperties {
-    override val BrightcoveAccountId: Prop[String]    = Prop.propFromTestValue("123")
-    override val BrightcoveClientId: Prop[String]     = Prop.propFromTestValue("123")
-    override val BrightcoveClientSecret: Prop[String] = Prop.propFromTestValue("123")
+    override val BrightcoveAccountId: Prop    = Prop.propFromTestValue("123")
+    override val BrightcoveClientId: Prop     = Prop.propFromTestValue("123")
+    override val BrightcoveClientSecret: Prop = Prop.propFromTestValue("123")
   }
 
   test("getAudioExtractionStatus returns Success when audio file exists") {

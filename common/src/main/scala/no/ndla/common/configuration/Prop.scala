@@ -8,18 +8,18 @@
 
 package no.ndla.common.configuration
 
-case class Prop[T](
+case class Prop(
     name: String,
-    var value: Option[T],
+    var value: Option[String],
     var failure: Option[Throwable],
     var defaultValue: Boolean
 ) {
-  def unsafeGet: T = value match {
+  def unsafeGet: String = value match {
     case Some(v) => v
     case None    => throw EnvironmentNotFoundException.singleKey(name)
   }
 
-  def setValue(newValue: T): Unit = {
+  def setValue(newValue: String): Unit = {
     this.failure = None
     this.defaultValue = false
     this.value = Some(newValue)
@@ -27,38 +27,25 @@ case class Prop[T](
 
   def successful: Boolean = failure.isEmpty
 
-  def flatMap[R](f: T => Option[R]): Prop[R] = {
-    val newValue = value.flatMap(f)
-
-    val newFailure = (failure, newValue) match {
-      case (Some(ex), _)   => Some(ex)
-      case (None, Some(_)) => None
-      case (None, None)    => Some(EnvironmentNotFoundException(s"No value found after flatMap: $name"))
-    }
-
-    Prop[R](name, newValue, newFailure, defaultValue)
-  }
-
   override def toString: String = {
     value match {
-      case Some(value) => value.toString
-      case None =>
-        throw EnvironmentNotFoundException.singleKey(name)
+      case Some(value) => value
+      case None        => throw EnvironmentNotFoundException.singleKey(name)
     }
   }
 
 }
 
 object Prop {
-  implicit def propToString(prop: Prop[?]): String = prop.toString
+  implicit def propToString(prop: Prop): String = prop.toString
 
-  def failed[T](key: String): Prop[T] = {
-    Prop[T](key, None, Some(EnvironmentNotFoundException.singleKey(key)), defaultValue = false)
+  def failed(key: String): Prop = {
+    Prop(key, None, Some(EnvironmentNotFoundException.singleKey(key)), defaultValue = false)
   }
 
   /** Do not call this from production code it is unsafe, only tests please */
-  def propFromTestValue[T](value: T): Prop[T] = {
-    Prop[T]("<UNKNOWN_KEY>", Some(value), None, defaultValue = false)
+  def propFromTestValue(value: String): Prop = {
+    Prop("<UNKNOWN_KEY>", Some(value), None, defaultValue = false)
   }
 
 }

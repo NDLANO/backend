@@ -48,7 +48,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   def serverIsListening: Boolean = {
-    Try(new Socket(props.MetaServer.unsafeGet, props.MetaPort.unsafeGet)) match {
+    Try(new Socket(props.MetaServer.unsafeGet, props.MetaPort.unsafeGet.toInt)) match {
       case Success(c) =>
         c.close()
         true

@@ -9,7 +9,7 @@
 package no.ndla.draftapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
 import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -49,8 +49,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
   def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p", "strong")
 
-  private def BrightcoveAccountId: String = prop("BRIGHTCOVE_ACCOUNT_ID")
-  private def BrightcovePlayerId: String  = prop("BRIGHTCOVE_PLAYER_ID")
+  private val BrightcoveAccountId: Prop = prop("BRIGHTCOVE_ACCOUNT_ID")
+  private val BrightcovePlayerId: Prop  = prop("BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
@@ -124,8 +124,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   )
 
   def multipartFileSizeThresholdBytes: Int = 1024 * 1024 * 30 // 30MB
-  val auth0ManagementClientId: String      = prop("AUTH0_MANAGEMENT_CLIENT_ID")
-  val auth0ManagementClientSecret: String  = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
+  val auth0ManagementClientId: Prop        = prop("AUTH0_MANAGEMENT_CLIENT_ID")
+  val auth0ManagementClientSecret: Prop    = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
 
   override def MetaMigrationLocation: String      = "no/ndla/draftapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

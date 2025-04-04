@@ -21,7 +21,7 @@ trait BaseProps extends StrictLogging {
     * Since applications can start with configurations that doesn't require all required properties (ex: generating
     * openapi documentation)
     */
-  private val loadedProps: mutable.Map[String, Prop[?]] = mutable.Map.empty
+  private val loadedProps: mutable.Map[String, Prop] = mutable.Map.empty
 
   def throwIfFailedProps(): Unit = {
     val failedProps = loadedProps.values.filterNot(_.successful)
@@ -42,25 +42,21 @@ trait BaseProps extends StrictLogging {
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
   /** Test method to update props for tests */
-  def updateProp[T](key: String, value: T): Unit = {
+  def updateProp[T](key: String, value: String): Unit = {
     val prop = Prop(key, Some(value), None, defaultValue = false)
     loadedProps.get(key) match {
-      case Some(existing: Prop[T] @unchecked) => existing.setValue(value)
-      case None                               => loadedProps.put(key, prop): Unit
-      case Some(_) =>
-        throw new RuntimeException(
-          s"Got bad type when updating property: $key, you sent the wrong type to updateProp..."
-        )
+      case Some(existing) => existing.setValue(value)
+      case None           => loadedProps.put(key, prop): Unit
     }
   }
 
-  def prop(key: String): Prop[String] = {
+  def prop(key: String): Prop = {
     val propToAdd = propOrNone(key) match {
       case Some(value) =>
         Prop(key, Some(value), None, defaultValue = false)
       case None =>
         logger.error(s"Expected property $key to be set, but it was not found.")
-        Prop.failed[String](key)
+        Prop.failed(key)
     }
     loadedProps.put(key, propToAdd): Unit
     propToAdd
