@@ -11,10 +11,11 @@ package no.ndla.integrationtests.searchapi.draftapi
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.database.HasDatabaseProps
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{draftapi, searchapi}
@@ -27,9 +28,11 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Success, Try}
 
 class DraftApiClientTest
-    extends IntegrationSuite(EnablePostgresContainer = true, EnableElasticsearchContainer = true)
+    extends DatabaseIntegrationSuite
+    with ElasticsearchIntegrationSuite
     with UnitSuite
-    with searchapi.TestEnvironment {
+    with searchapi.TestEnvironment
+    with HasDatabaseProps {
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
   override val DBUtil                 = new DBUtility

@@ -12,15 +12,9 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{EmbedType, LearningPath, StepType}
-import no.ndla.learningpathapi.model.api.{
-  EmbedUrlV2DTO,
-  LearningPathV2DTO,
-  LearningStepV2DTO,
-  NewLearningPathV2DTO,
-  NewLearningStepV2DTO
-}
-import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, TestEnvironment, UnitSuite}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.learningpathapi.model.api.*
+import no.ndla.learningpathapi.*
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{spy, when, withSettings}
 import org.mockito.invocation.InvocationOnMock
@@ -29,16 +23,13 @@ import org.testcontainers.containers.PostgreSQLContainer
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
 class LearningPathAndStepCreationTests
-    extends IntegrationSuite(
-      EnableElasticsearchContainer = true,
-      EnablePostgresContainer = true,
-      EnableRedisContainer = false
-    )
+    extends ElasticsearchIntegrationSuite
+    with DatabaseIntegrationSuite
     with UnitSuite
     with TestEnvironment {
 

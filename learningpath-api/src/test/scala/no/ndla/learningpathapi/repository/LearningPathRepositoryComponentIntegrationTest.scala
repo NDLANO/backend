@@ -28,16 +28,17 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
 
 import scala.util.Try
 
 class LearningPathRepositoryComponentIntegrationTest
-    extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "learningpathapi_test")
+    extends DatabaseIntegrationSuite
     with UnitSuite
     with TestEnvironment {
+  override val schemaName = "learningpathapi_test"
 
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = DBMigrator()

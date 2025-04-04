@@ -12,8 +12,9 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
+import no.ndla.database.HasDatabaseProps
 import no.ndla.network.AuthUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, UnitSuite}
@@ -25,9 +26,11 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    extends ElasticsearchIntegrationSuite
+    with DatabaseIntegrationSuite
     with UnitSuite
-    with searchapi.TestEnvironment {
+    with searchapi.TestEnvironment
+    with HasDatabaseProps {
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService

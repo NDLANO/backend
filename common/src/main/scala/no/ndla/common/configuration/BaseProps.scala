@@ -73,7 +73,6 @@ trait BaseProps extends StrictLogging {
     newProp
   }
 
-
   def booleanPropOrFalse(key: String): Boolean = {
     propOrNone(key).flatMap(_.toBooleanOption).getOrElse(false)
   }

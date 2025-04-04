@@ -11,10 +11,11 @@ package no.ndla.integrationtests.searchapi.learningpathapi
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningPath
+import no.ndla.database.HasDatabaseProps
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.network.AuthUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{learningpathapi, searchapi}
@@ -27,9 +28,11 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Success, Try}
 
 class LearningpathApiClientTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    extends ElasticsearchIntegrationSuite
+    with DatabaseIntegrationSuite
     with UnitSuite
-    with searchapi.TestEnvironment {
+    with searchapi.TestEnvironment
+    with HasDatabaseProps {
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService

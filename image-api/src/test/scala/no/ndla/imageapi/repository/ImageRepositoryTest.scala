@@ -9,16 +9,15 @@
 package no.ndla.imageapi.repository
 
 import java.net.Socket
-
 import no.ndla.imageapi.model.domain.ImageTitle
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.DB
 
 import scala.util.{Success, Try}
 import scalikejdbc.*
 
-class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with UnitSuite with TestEnvironment {
+class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override val dataSource         = testDataSource.get
   override val migrator           = new DBMigrator
   var repository: ImageRepository = _

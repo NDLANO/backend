@@ -18,7 +18,7 @@ import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -30,7 +30,8 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    extends ElasticsearchIntegrationSuite
+    with DatabaseIntegrationSuite
     with UnitSuite
     with draftapi.TestEnvironment {
   override val ndlaClient = new NdlaClient

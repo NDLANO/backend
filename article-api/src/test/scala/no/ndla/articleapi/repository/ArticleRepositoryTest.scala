@@ -14,16 +14,13 @@ import no.ndla.articleapi.*
 import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Article
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.AutoSession
 
 import java.net.Socket
 import scala.util.{Success, Try}
 
-class ArticleRepositoryTest
-    extends IntegrationSuite(EnablePostgresContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator                     = new DBMigrator
   var repository: ArticleRepository         = _

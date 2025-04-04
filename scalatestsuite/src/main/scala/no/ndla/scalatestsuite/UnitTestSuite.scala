@@ -21,12 +21,6 @@ trait UnitTestSuite extends UnitTestSuiteBase with HasBaseProps {
     setProp(key, value)
   }
 
-  def setPropEnv(map: Map[String, String]): Unit = {
-    map.foreach { case (key, value) => setPropEnv(key, value) }
-  }
-
-  def setPropEnv(keyValueTuples: (String, String)*): Unit = setPropEnv(keyValueTuples.toMap)
-
   def getPropEnv(key: String): Option[String] = {
     propOrNone(key)
   }

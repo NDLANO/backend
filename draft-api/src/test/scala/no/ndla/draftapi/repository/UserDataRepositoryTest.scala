@@ -13,13 +13,13 @@ import no.ndla.draftapi.model.api.SavedSearchDTO
 
 import java.net.Socket
 import no.ndla.draftapi.{TestData, TestEnvironment}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.postgresql.util.PSQLException
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
+class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
   var repository: UserDataRepository        = _

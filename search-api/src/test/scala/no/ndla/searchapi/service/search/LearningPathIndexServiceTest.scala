@@ -18,7 +18,7 @@ import no.ndla.common.model.domain.learningpath.{
   StepType,
   Description as LPDescription
 }
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -27,10 +27,7 @@ import org.mockito.Mockito.when
 
 import scala.util.Success
 
-class LearningPathIndexServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 

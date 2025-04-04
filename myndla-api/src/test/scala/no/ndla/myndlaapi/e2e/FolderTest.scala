@@ -12,11 +12,11 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.FolderStatus
-import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.model.api
+import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
@@ -29,14 +29,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Success
 
-class FolderTest
-    extends IntegrationSuite(
-      EnableElasticsearchContainer = false,
-      EnablePostgresContainer = true,
-      EnableRedisContainer = true
-    )
-    with UnitSuite
-    with TestEnvironment {
+class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with UnitSuite with TestEnvironment {
 
   val myndlaApiPort: Int          = findFreePort
   val pgc: PostgreSQLContainer[?] = postgresContainer.get

@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
 
@@ -23,7 +23,7 @@ import java.net.Socket
 import java.util.UUID
 import scala.util.{Success, Try}
 
-class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
+class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
   var repository: DraftRepository           = _

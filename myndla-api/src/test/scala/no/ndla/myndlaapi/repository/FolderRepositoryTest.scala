@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, NewFolderData, Resource, ResourceDocument}
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
 
@@ -24,10 +24,7 @@ import java.net.Socket
 import java.util.UUID
 import scala.util.{Success, Try}
 
-class FolderRepositoryTest
-    extends IntegrationSuite(EnablePostgresContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override val dataSource: HikariDataSource   = testDataSource.get
   override val migrator: DBMigrator           = new DBMigrator
   var repository: FolderRepository            = _
