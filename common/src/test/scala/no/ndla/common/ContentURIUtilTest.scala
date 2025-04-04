@@ -9,11 +9,11 @@
 package no.ndla.common
 
 import no.ndla.common.ContentURIUtil.NotUrnPatternException
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
 import scala.util.{Failure, Success}
 
-class ContentURIUtilTest extends UnitTestSuite {
+class ContentURIUtilTest extends UnitTestSuiteBase {
 
   test("That parsing articleId with and without revision works as expected") {
     ContentURIUtil.parseArticleIdAndRevision("urn:article:15") should be((Success(15), None))

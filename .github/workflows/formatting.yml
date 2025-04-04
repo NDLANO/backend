@@ -32,6 +32,6 @@ jobs:
         run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME
           --password-stdin
       - name: Check all formatting
-        run: sbt scalafmtCheck scalafmtSbtCheck
+        run: sbt scalafmtCheckAll scalafmtSbtCheck
       - name: Check copyrights
         run: sbt copyrightCheck

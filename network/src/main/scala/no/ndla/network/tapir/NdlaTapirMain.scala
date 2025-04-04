@@ -47,6 +47,8 @@ trait NdlaTapirMain[T <: TapirApplication] {
       val warmupTime = System.currentTimeMillis() - warmupStart
       logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
     }: Unit
+  } else {
+    componentRegistry.healthController.setWarmedUp()
   }
 
   def runServer(): Try[Unit] = {
@@ -65,6 +67,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
     if (args.contains("--save-swagger")) {
       Try(componentRegistry.swagger.saveSwagger())
     } else {
+      props.throwIfFailedProps()
       runServer()
     }
   }

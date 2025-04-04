@@ -19,7 +19,7 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.NdlaHttpRequest
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.PrivateMethodTester
@@ -27,7 +27,7 @@ import org.scalatest.PrivateMethodTester
 import scala.util.Success
 
 class ImageSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
+    extends ElasticsearchIntegrationSuite
     with UnitSuite
     with TestEnvironment
     with PrivateMethodTester {

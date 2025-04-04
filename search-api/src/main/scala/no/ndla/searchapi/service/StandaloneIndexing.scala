@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
-import no.ndla.common.Environment.{booleanPropOrFalse, prop}
+import no.ndla.common.Environment.{booleanPropOrFalse, unsafeProp}
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.Content
 import no.ndla.search.model.domain.ReindexResult
@@ -87,7 +87,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         .post(uri"$url")
         .body(body)
         .header("Content-Type", "application/json", replaceExisting = true)
-        .header("Authorization", s"Bearer ${prop(s"SLACK_TOKEN")}")
+        .header("Authorization", s"Bearer ${unsafeProp(s"SLACK_TOKEN")}")
     ): Unit
   }
 

@@ -1,12 +1,12 @@
 /*
- * Part of NDLA scalatestsuite
+ * Part of NDLA testbase
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.scalatestsuite
+package no.ndla.testbase
 
 object ColoredText {
   val RED    = "\u001b[31m"

@@ -27,16 +27,13 @@ import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doReturn
 
 import scala.util.Success
 
-class SearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import props.{DefaultPageSize, MaxPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
   override val searchConverterService: SearchConverterService = new SearchConverterService

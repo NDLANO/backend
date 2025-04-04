@@ -10,7 +10,8 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.database.DBUtility
+import no.ndla.common.configuration.BaseProps
+import no.ndla.database.{DBUtility, DatabaseProps, HasDatabaseProps}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
@@ -22,6 +23,10 @@ import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 import org.scalatestplus.mockito.MockitoSugar
+
+class TestProps extends SearchApiProperties with BaseProps with DatabaseProps {
+  override def MetaMigrationLocation: String = ???
+}
 
 trait TestEnvironment
     extends TapirApplication
@@ -52,6 +57,7 @@ trait TestEnvironment
     with MyNDLAApiClient
     with SearchService
     with SearchController
+    with HasDatabaseProps
     with GetSearchQueryParams
     with GrepSearchService
     with LearningPathIndexService
@@ -62,10 +68,11 @@ trait TestEnvironment
     with Clock
     with GrepApiClient
     with Props {
-  override val props = new SearchApiProperties
+  override lazy val props: TestProps = new TestProps
 
-  val searchController: SearchController = mock[SearchController]
-  val internController: InternController = mock[InternController]
+  val searchController: SearchController      = mock[SearchController]
+  val internController: InternController      = mock[InternController]
+  val healthController: TapirHealthController = mock[TapirHealthController]
 
   val ndlaClient: NdlaClient   = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]

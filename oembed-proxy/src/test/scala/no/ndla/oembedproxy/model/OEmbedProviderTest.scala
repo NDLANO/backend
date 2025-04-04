@@ -8,9 +8,9 @@
 
 package no.ndla.oembedproxy.model
 
-import no.ndla.oembedproxy.UnitSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class OEmbedProviderTest extends UnitSuite {
+class OEmbedProviderTest extends UnitTestSuiteBase {
 
   val youtubeProvider: OEmbedProvider =
     OEmbedProvider("youtube", "https://www.youtube.com", List())

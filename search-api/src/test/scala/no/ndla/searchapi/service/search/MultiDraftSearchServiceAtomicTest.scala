@@ -19,7 +19,7 @@ import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
@@ -30,9 +30,7 @@ import no.ndla.searchapi.SearchTestUtility.*
 import java.util.UUID
 import scala.util.{Success, Try}
 
-class MultiDraftSearchServiceAtomicTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with TestEnvironment {
+class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {

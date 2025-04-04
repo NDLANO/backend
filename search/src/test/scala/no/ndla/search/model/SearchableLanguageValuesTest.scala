@@ -10,9 +10,9 @@ package no.ndla.search.model
 
 import io.circe.Decoder
 import no.ndla.common.CirceUtil
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class SearchableLanguageValuesTest extends UnitTestSuite {
+class SearchableLanguageValuesTest extends UnitTestSuiteBase {
 
   test("That SearchableLanguageValues serialization and deserialization results in same object") {
     import io.circe.syntax.*

@@ -11,15 +11,12 @@ package no.ndla.imageapi.service.search
 import no.ndla.common.model.domain as common
 import no.ndla.imageapi.model.domain.Sort
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 
-class TagSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

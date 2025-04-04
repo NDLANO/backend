@@ -8,12 +8,14 @@
 
 package no.ndla.integrationtests.searchapi.learningpathapi
 
+import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.LearningPath
+import no.ndla.database.HasDatabaseProps
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.network.AuthUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{learningpathapi, searchapi}
@@ -26,9 +28,11 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Success, Try}
 
 class LearningpathApiClientTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    extends ElasticsearchIntegrationSuite
+    with DatabaseIntegrationSuite
     with UnitSuite
-    with searchapi.TestEnvironment {
+    with searchapi.TestEnvironment
+    with HasDatabaseProps {
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
@@ -37,14 +41,14 @@ class LearningpathApiClientTest
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
-    override def ApplicationPort: Int = learningpathApiPort
-    override def MetaServer: String   = pgc.getHost
-    override def MetaResource: String = pgc.getDatabaseName
-    override def MetaUserName: String = pgc.getUsername
-    override def MetaPassword: String = pgc.getPassword
-    override def MetaPort: Int        = pgc.getMappedPort(5432)
-    override def MetaSchema: String   = "testschema"
-    override def SearchServer: String = esHost
+    override def ApplicationPort: Int       = learningpathApiPort
+    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
+    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
+    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
+    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
+    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
+    override def SearchServer: String       = esHost
   }
 
   var learningpathApi: learningpathapi.MainClass = null
@@ -61,6 +65,7 @@ class LearningpathApiClientTest
       import sttp.client3.quick.*
       val req = quickRequest.get(uri"$learningpathApiBaseUrl/health/readiness")
       val res = Try(simpleHttpClient.send(req))
+      println(res)
       res.map(_.code.code) == Success(200)
     })
   }

@@ -8,14 +8,14 @@
 
 package no.ndla.audioapi.service.search
 
-import no.ndla.audioapi.{TestData, TestEnvironment}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
-import no.ndla.common.model.{domain => common}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.audioapi.{TestData, TestEnvironment}
+import no.ndla.common.model.domain as common
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 
-class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

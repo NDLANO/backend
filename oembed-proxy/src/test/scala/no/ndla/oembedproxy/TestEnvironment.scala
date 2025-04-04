@@ -29,7 +29,7 @@ trait TestEnvironment
     with MemoizeHelpers
     with ErrorHandling
     with Clock {
-  override val props = new OEmbedProxyProperties
+  override lazy val props = new OEmbedProxyProperties
 
   val oEmbedService: OEmbedService                 = mock[OEmbedService]
   val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]

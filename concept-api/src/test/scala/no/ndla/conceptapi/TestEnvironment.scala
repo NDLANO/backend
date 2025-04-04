@@ -64,7 +64,7 @@ trait TestEnvironment
     with DraftSearchSettingsHelper
     with DBMigrator
     with InternController {
-  override val props: ConceptApiProperties = new ConceptApiProperties {
+  override lazy val props: ConceptApiProperties = new ConceptApiProperties {
     override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
   }
 
@@ -75,6 +75,7 @@ trait TestEnvironment
   val draftConceptController: DraftConceptController         = mock[DraftConceptController]
   val publishedConceptController: PublishedConceptController = mock[PublishedConceptController]
   val internController: InternController                     = mock[InternController]
+  val healthController: TapirHealthController                = mock[TapirHealthController]
 
   val searchConverterService: SearchConverterService               = mock[SearchConverterService]
   val draftConceptIndexService: DraftConceptIndexService           = mock[DraftConceptIndexService]

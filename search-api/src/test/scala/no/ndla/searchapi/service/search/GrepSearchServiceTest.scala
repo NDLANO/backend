@@ -10,22 +10,13 @@ package no.ndla.searchapi.service.search
 
 import cats.implicits.catsSyntaxOptionId
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.searchapi.TestEnvironment
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.{ByCodeAsc, ByCodeDesc}
-import no.ndla.searchapi.model.grep.{
-  BelongsToObj,
-  GrepBundle,
-  GrepKjerneelement,
-  GrepKompetansemaal,
-  GrepLaererplan,
-  GrepTitle,
-  GrepTverrfagligTema,
-  GrepTextObj
-}
+import no.ndla.searchapi.model.grep.*
 
-class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
   override val grepIndexService: GrepIndexService = new GrepIndexService {

@@ -13,7 +13,7 @@ import no.ndla.common.model.api.search.{MultiSearchSummaryDTO, NodeHitDTO, Searc
 import no.ndla.common.model.domain.frontpage.{BannerImage, MetaDescription, SubjectPage}
 import no.ndla.common.model.domain.{ArticleContent, Title}
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
@@ -26,7 +26,7 @@ import org.mockito.ArgumentMatchers.eq as eqTo
 
 import scala.util.Success
 
-class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {

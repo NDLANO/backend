@@ -16,6 +16,7 @@ import sttp.tapir.*
 
 trait TapirHealthController {
   this: TapirController =>
+  val healthController: TapirHealthController
   class TapirHealthController extends Warmup with TapirController {
     override val enableSwagger: Boolean = false
     val prefix: EndpointInput[Unit]     = "health"

@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
@@ -24,7 +24,7 @@ import no.ndla.searchapi.SearchTestUtility.*
 
 import scala.util.Success
 
-class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   import props.DefaultPageSize
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))

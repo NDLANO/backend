@@ -11,9 +11,9 @@ package no.ndla.common.model.domain
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.language.*
 import no.ndla.language.model.BaseWithLanguageAndValue
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class LanguageFieldsTest extends UnitTestSuite {
+class LanguageFieldsTest extends UnitTestSuiteBase {
 
   test("That language fields serialize and deserialize as expected") {
     import io.circe.syntax.*

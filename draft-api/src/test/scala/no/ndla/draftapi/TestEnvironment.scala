@@ -73,7 +73,7 @@ trait TestEnvironment
     with DBMigrator
     with Props
     with V57__MigrateSavedSearch {
-  val props: DraftApiProperties = new DraftApiProperties {
+  lazy val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
@@ -87,10 +87,11 @@ trait TestEnvironment
   val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
   val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
 
-  val internController: InternController     = mock[InternController]
-  val draftController: DraftController       = mock[DraftController]
-  val fileController: FileController         = mock[FileController]
-  val userDataController: UserDataController = mock[UserDataController]
+  val internController: InternController      = mock[InternController]
+  val draftController: DraftController        = mock[DraftController]
+  val fileController: FileController          = mock[FileController]
+  val userDataController: UserDataController  = mock[UserDataController]
+  val healthController: TapirHealthController = mock[TapirHealthController]
 
   val dataSource: HikariDataSource           = mock[HikariDataSource]
   val draftRepository: DraftRepository       = mock[DraftRepository]

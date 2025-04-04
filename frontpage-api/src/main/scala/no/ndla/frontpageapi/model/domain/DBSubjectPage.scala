@@ -20,7 +20,7 @@ trait DBSubjectPage {
 
   object DBSubjectPage extends SQLSyntaxSupport[SubjectPage] {
     override val tableName                  = "subjectpage"
-    override val schemaName: Option[String] = props.MetaSchema.some
+    override val schemaName: Option[String] = props.MetaSchema.toString.some
 
     def fromDb(lp: SyntaxProvider[SubjectPage])(rs: WrappedResultSet): Try[SubjectPage] =
       fromDb(lp.resultName)(rs)

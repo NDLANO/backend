@@ -8,18 +8,18 @@
 
 package no.ndla.myndlaapi
 
+import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.scalatestsuite.UnitTestSuite
 
-import scala.util.Properties.setProp
-
 trait UnitSuite extends UnitTestSuite {
-  setProp("NDLA_ENVIRONMENT", "local")
+  this: HasBaseProps =>
+  setPropEnv("NDLA_ENVIRONMENT", "local")
 
-  setProp(PropertyKeys.MetaUserNameKey, "postgres")
-  setProp(PropertyKeys.MetaPasswordKey, "hemmelig")
-  setProp(PropertyKeys.MetaResourceKey, "postgres")
-  setProp(PropertyKeys.MetaServerKey, "127.0.0.1")
-  setProp(PropertyKeys.MetaPortKey, "5432")
-  setProp(PropertyKeys.MetaSchemaKey, "myndlaapi_test")
+  setPropEnv(PropertyKeys.MetaUserNameKey, "postgres")
+  setPropEnv(PropertyKeys.MetaPasswordKey, "hemmelig")
+  setPropEnv(PropertyKeys.MetaResourceKey, "postgres")
+  setPropEnv(PropertyKeys.MetaServerKey, "127.0.0.1")
+  setPropEnv(PropertyKeys.MetaPortKey, "5432")
+  setPropEnv(PropertyKeys.MetaSchemaKey, "myndlaapi_test")
 }

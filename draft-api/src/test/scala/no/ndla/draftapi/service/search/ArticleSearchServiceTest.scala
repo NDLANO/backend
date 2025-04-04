@@ -16,11 +16,11 @@ import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
 import no.ndla.language.Language
 import no.ndla.mapping.License
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 
-class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   import props.{DefaultLanguage, DefaultPageSize, MaxPageSize}
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))

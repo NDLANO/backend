@@ -12,18 +12,15 @@ import no.ndla.articleapi.*
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 
-class ArticleSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import TestData.testSettings
   import props.*
 

@@ -9,11 +9,11 @@
 package no.ndla.common.model.domain
 
 import no.ndla.common.model.domain.TryMaybe.*
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
 import scala.util.{Failure, Success, Try}
 
-class TryMaybeTest extends UnitTestSuite {
+class TryMaybeTest extends UnitTestSuiteBase {
   test("That flatMap works as expected") {
     val tryMaybe = TryMaybe(Success(Some(1)))
     val result   = tryMaybe.flatMap(v => TryMaybe(Success(Some(v + 1))))
