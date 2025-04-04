@@ -45,16 +45,16 @@ class ArticleApiClientTest
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
-    override def ApplicationPort: Int      = articleApiPort
-    override val MetaServer: Prop          = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop        = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop        = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop        = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop            = propFromTestValue("META_PORT", pgc.getMappedPort(5432).toString)
-    override val MetaSchema: Prop          = propFromTestValue("META_SCHEMA", "testschema")
-    override val BrightcoveAccountId: Prop = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "BRIGHTCOVE_ACCOUNT_ID")
-    override val BrightcovePlayerId: Prop  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "BRIGHTCOVE_PLAYER_ID")
-    override def SearchServer: String      = esHost
+    override def ApplicationPort: Int              = articleApiPort
+    override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.getHost)
+    override val MetaResource: Prop[String]        = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
+    override val MetaUserName: Prop[String]        = propFromTestValue("META_USER_NAME", pgc.getUsername)
+    override val MetaPassword: Prop[String]        = propFromTestValue("META_PASSWORD", pgc.getPassword)
+    override val MetaPort: Prop[Int]               = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]          = propFromTestValue("META_SCHEMA", "testschema")
+    override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "BRIGHTCOVE_ACCOUNT_ID")
+    override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "BRIGHTCOVE_PLAYER_ID")
+    override def SearchServer: String              = esHost
   }
 
   var articleApi: articleapi.MainClass = null

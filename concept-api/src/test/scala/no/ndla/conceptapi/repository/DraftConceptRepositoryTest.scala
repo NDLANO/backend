@@ -51,7 +51,7 @@ class DraftConceptRepositoryTest
   }
 
   def serverIsListening: Boolean = {
-    Try(new Socket(props.MetaServer.unsafeGet, props.MetaPort.unsafeGet.toInt)) match {
+    Try(new Socket(props.MetaServer.unsafeGet, props.MetaPort.unsafeGet)) match {
       case Success(c) =>
         c.close()
         true

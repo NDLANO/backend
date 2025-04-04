@@ -49,8 +49,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
   def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p", "strong")
 
-  val BrightcoveAccountId: Prop = prop("BRIGHTCOVE_ACCOUNT_ID")
-  val BrightcovePlayerId: Prop  = prop("BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: Prop[String]= prop("BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayerId: Prop[String] = prop("BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
@@ -124,8 +124,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   )
 
   def multipartFileSizeThresholdBytes: Int = 1024 * 1024 * 30 // 30MB
-  val auth0ManagementClientId: Prop        = prop("AUTH0_MANAGEMENT_CLIENT_ID")
-  val auth0ManagementClientSecret: Prop    = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
+  val auth0ManagementClientId: Prop[String]       = prop("AUTH0_MANAGEMENT_CLIENT_ID")
+  val auth0ManagementClientSecret: Prop[String]   = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
 
   override def MetaMigrationLocation: String      = "no/ndla/draftapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

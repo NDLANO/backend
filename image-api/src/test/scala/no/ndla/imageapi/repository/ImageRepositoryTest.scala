@@ -27,7 +27,7 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   def serverIsListening: Boolean = {
     val server = props.MetaServer.unsafeGet
-    val port   = props.MetaPort.unsafeGet.toInt
+    val port   = props.MetaPort.unsafeGet
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()

@@ -21,7 +21,7 @@ trait BaseProps extends StrictLogging {
     * Since applications can start with configurations that doesn't require all required properties (ex: generating
     * openapi documentation)
     */
-  private val loadedProps: mutable.Map[String, Prop] = mutable.Map.empty
+  private val loadedProps: mutable.Map[String, Prop[?]] = mutable.Map.empty
 
   def throwIfFailedProps(): Unit = {
     val failedProps = loadedProps.values.filterNot(_.successful)
@@ -42,26 +42,37 @@ trait BaseProps extends StrictLogging {
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
   /** Test method to update props for tests */
-  def propFromTestValue(key: String, value: String): Prop = {
-    val prop = Prop.successful(key, value)
+  def propFromTestValue[T](key: String, value: T): Prop[T] = {
+    val prop = Prop.successful[T](key, value)
     loadedProps.get(key) match {
-      case Some(existing) => existing.setValue(value)
-      case None           => loadedProps.put(key, prop): Unit
+      case Some(existing: Prop[T] @unchecked) => existing.setValue(value)
+      case Some(_)                            => throw new RuntimeException("BAD")
+      case None                               => loadedProps.put(key, prop): Unit
     }
     prop
   }
 
-  def prop(key: String): Prop = {
+  def prop(key: String): Prop[String] = {
     val propToAdd = propOrNone(key) match {
       case Some(value) =>
         Prop.successful(key, value)
       case None =>
         logger.error(s"Expected property $key to be set, but it was not found.")
-        Prop.failed(key)
+        Prop.failed[String](key)
     }
     loadedProps.put(key, propToAdd): Unit
     propToAdd
   }
+
+  def propMap[T, R](prop: Prop[T])(f: T => R): Prop[R] = {
+    val newProp = prop.reference match {
+      case LoadedProp(k, v) => Prop(LoadedProp[R](k, f(v)))
+      case FailedProp(k, e) => Prop(FailedProp[R](k, e))
+    }
+    loadedProps.put(prop.key, newProp): Unit
+    newProp
+  }
+
 
   def booleanPropOrFalse(key: String): Boolean = {
     propOrNone(key).flatMap(_.toBooleanOption).getOrElse(false)

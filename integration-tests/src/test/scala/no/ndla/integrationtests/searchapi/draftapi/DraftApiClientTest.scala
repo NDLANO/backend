@@ -38,20 +38,20 @@ class DraftApiClientTest
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
-    override def ApplicationPort: Int = draftApiPort
-    override val MetaServer: Prop     = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop   = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop   = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop   = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop       = propFromTestValue("META_PORT", pgc.getMappedPort(5432).toString)
-    override val MetaSchema: Prop     = propFromTestValue("META_SCHEMA", "testschema")
-    override val auth0ManagementClientId: Prop =
+    override def ApplicationPort: Int       = draftApiPort
+    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
+    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
+    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
+    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
+    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
+    override val auth0ManagementClientId: Prop[String] =
       propFromTestValue("AUTH0_MANAGEMENT_CLIENT_ID", "auth0_test_id")
-    override val auth0ManagementClientSecret: Prop =
+    override val auth0ManagementClientSecret: Prop[String] =
       propFromTestValue("AUTH0_MANAGEMENT_CLIENT_SECRET", "auth0_test_secret")
-    override val BrightcoveAccountId: Prop = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
-    override val BrightcovePlayerId: Prop  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")
-    override def SearchServer: String      = esHost
+    override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
+    override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")
+    override def SearchServer: String              = esHost
   }
 
   var draftApi: draftapi.MainClass = null

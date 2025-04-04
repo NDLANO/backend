@@ -12,10 +12,10 @@ import no.ndla.testbase.UnitTestSuiteBase
 
 class BasePropsTest extends UnitTestSuiteBase {
   class TestProps extends BaseProps {
-    override def ApplicationPort: Int    = 1234
-    override def ApplicationName: String = "testapp"
-    def requiredProp: Prop               = prop("NDLA_SOME_REQUIRED_TEST_PROP")
-    def someOtherRequiredProp: Prop      = prop("NDLA_SOME_OTHER_REQUIRED_TEST_PROP")
+    override def ApplicationPort: Int       = 1234
+    override def ApplicationName: String    = "testapp"
+    def requiredProp: Prop[String]          = prop("NDLA_SOME_REQUIRED_TEST_PROP")
+    def someOtherRequiredProp: Prop[String] = prop("NDLA_SOME_OTHER_REQUIRED_TEST_PROP")
   }
 
   test("That props works if system property is set") {
@@ -43,6 +43,17 @@ class BasePropsTest extends UnitTestSuiteBase {
     }
 
     System.clearProperty("NDLA_SOME_REQUIRED_TEST_PROP")
+  }
+
+  test("That mapping props to int works") {
+    val props = new TestProps
+    System.setProperty("NDLA_SOME_REQUIRED_TEST_PROP", "5555")
+    System.setProperty("NDLA_SOME_OTHER_REQUIRED_TEST_PROP", "some-other-test-result")
+    val result: Prop[Int] = props.propMap { props.requiredProp } { x => x.toInt + 1 }
+    val value             = result.unsafeGet
+    value should be(5556)
+    System.clearProperty("NDLA_SOME_REQUIRED_TEST_PROP")
+    System.clearProperty("NDLA_SOME_OTHER_REQUIRED_TEST_PROP")
   }
 
 }
