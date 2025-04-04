@@ -79,6 +79,7 @@ trait TestEnvironment
   val learningpathControllerV2: LearningpathControllerV2               = mock[LearningpathControllerV2]
   val statsController: StatsController                                 = mock[StatsController]
   val internController: InternController                               = mock[InternController]
+  val healthController: TapirHealthController                          = mock[TapirHealthController]
   val learningStepValidator: LearningStepValidator                     = mock[LearningStepValidator]
   val learningPathValidator: LearningPathValidator                     = mock[LearningPathValidator]
   val titleValidator: TitleValidator                                   = mock[TitleValidator]

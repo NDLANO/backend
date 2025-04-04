@@ -87,10 +87,11 @@ trait TestEnvironment
   val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
   val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
 
-  val internController: InternController     = mock[InternController]
-  val draftController: DraftController       = mock[DraftController]
-  val fileController: FileController         = mock[FileController]
-  val userDataController: UserDataController = mock[UserDataController]
+  val internController: InternController      = mock[InternController]
+  val draftController: DraftController        = mock[DraftController]
+  val fileController: FileController          = mock[FileController]
+  val userDataController: UserDataController  = mock[UserDataController]
+  val healthController: TapirHealthController = mock[TapirHealthController]
 
   val dataSource: HikariDataSource           = mock[HikariDataSource]
   val draftRepository: DraftRepository       = mock[DraftRepository]

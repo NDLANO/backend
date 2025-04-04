@@ -81,6 +81,7 @@ trait TestEnvironment
   val folderController: FolderController             = mock[FolderController]
   val userController: UserController                 = mock[UserController]
   val statsController: StatsController               = mock[StatsController]
+  val healthController: TapirHealthController        = mock[TapirHealthController]
   val nodebb: NodeBBClient                           = mock[NodeBBClient]
   val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   val learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]

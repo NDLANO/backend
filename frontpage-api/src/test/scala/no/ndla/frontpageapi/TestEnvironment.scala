@@ -51,6 +51,7 @@ trait TestEnvironment
   override val subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
   override val frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
   override val filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
+  override val healthController: TapirHealthController          = mock[TapirHealthController]
   override val readService: ReadService                         = mock[ReadService]
   override val writeService: WriteService                       = mock[WriteService]
 

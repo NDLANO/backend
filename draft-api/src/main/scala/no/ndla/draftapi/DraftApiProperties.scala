@@ -49,8 +49,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
   def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p", "strong")
 
-  private val BrightcoveAccountId: Prop = prop("BRIGHTCOVE_ACCOUNT_ID")
-  private val BrightcovePlayerId: Prop  = prop("BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: Prop = prop("BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayerId: Prop  = prop("BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"

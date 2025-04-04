@@ -17,7 +17,7 @@ trait UnitTestSuite extends UnitTestSuiteBase with HasBaseProps {
   setPropEnv("DISABLE_LICENSE", "true"): Unit
 
   def setPropEnv(key: String, value: String): String = {
-    props.updateProp(key, value)
+    props.propFromTestValue(key, value): Unit
     setProp(key, value)
   }
 

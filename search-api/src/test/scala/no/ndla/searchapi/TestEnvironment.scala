@@ -64,8 +64,9 @@ trait TestEnvironment
     with Props {
   override lazy val props = new SearchApiProperties
 
-  val searchController: SearchController = mock[SearchController]
-  val internController: InternController = mock[InternController]
+  val searchController: SearchController      = mock[SearchController]
+  val internController: InternController      = mock[InternController]
+  val healthController: TapirHealthController = mock[TapirHealthController]
 
   val ndlaClient: NdlaClient   = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]

@@ -75,6 +75,7 @@ trait TestEnvironment
   val draftConceptController: DraftConceptController         = mock[DraftConceptController]
   val publishedConceptController: PublishedConceptController = mock[PublishedConceptController]
   val internController: InternController                     = mock[InternController]
+  val healthController: TapirHealthController                = mock[TapirHealthController]
 
   val searchConverterService: SearchConverterService               = mock[SearchConverterService]
   val draftConceptIndexService: DraftConceptIndexService           = mock[DraftConceptIndexService]

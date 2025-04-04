@@ -42,12 +42,13 @@ trait BaseProps extends StrictLogging {
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
   /** Test method to update props for tests */
-  def updateProp[T](key: String, value: String): Unit = {
+  def propFromTestValue(key: String, value: String): Prop = {
     val prop = Prop(key, Some(value), None, defaultValue = false)
     loadedProps.get(key) match {
       case Some(existing) => existing.setValue(value)
       case None           => loadedProps.put(key, prop): Unit
     }
+    prop
   }
 
   def prop(key: String): Prop = {

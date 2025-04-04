@@ -70,8 +70,8 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  private val BrightcoveAccountId: Prop = prop("BRIGHTCOVE_ACCOUNT_ID")
-  private val BrightcovePlayerId: Prop  = prop("BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: Prop = prop("BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayerId: Prop  = prop("BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"

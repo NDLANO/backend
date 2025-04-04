@@ -46,12 +46,12 @@ class LearningPathAndStepCreationTests
   val pgc: PostgreSQLContainer[_] = postgresContainer.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int   = learningpathApiPort
-    override val MetaServer: Prop       = Prop.propFromTestValue(pgc.getHost)
-    override val MetaResource: Prop     = Prop.propFromTestValue(pgc.getDatabaseName)
-    override val MetaUserName: Prop     = Prop.propFromTestValue(pgc.getUsername)
-    override val MetaPassword: Prop     = Prop.propFromTestValue(pgc.getPassword)
-    override val MetaPort: Prop         = Prop.propFromTestValue(pgc.getMappedPort(5432).toString)
-    override val MetaSchema: Prop       = Prop.propFromTestValue("testschema")
+    override val MetaServer: Prop       = propFromTestValue("META_SERVER", pgc.getHost)
+    override val MetaResource: Prop     = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
+    override val MetaUserName: Prop     = propFromTestValue("META_USER_NAME", pgc.getUsername)
+    override val MetaPassword: Prop     = propFromTestValue("META_PASSWORD", pgc.getPassword)
+    override val MetaPort: Prop         = propFromTestValue("META_PORT", pgc.getMappedPort(5432).toString)
+    override val MetaSchema: Prop       = propFromTestValue("META_SCHEMA", "testschema")
     override def disableWarmup: Boolean = true
     override def SearchServer: String   = elasticSearchHost.get
   }

@@ -42,10 +42,4 @@ object Prop {
   def failed(key: String): Prop = {
     Prop(key, None, Some(EnvironmentNotFoundException.singleKey(key)), defaultValue = false)
   }
-
-  /** Do not call this from production code it is unsafe, only tests please */
-  def propFromTestValue(value: String): Prop = {
-    Prop("<UNKNOWN_KEY>", Some(value), None, defaultValue = false)
-  }
-
 }
