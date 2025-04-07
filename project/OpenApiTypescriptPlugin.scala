@@ -64,7 +64,9 @@ object OpenApiTypescriptPlugin extends AutoPlugin {
   }
 
   def generateOpenapiTypescriptFile(appName: String): Unit = {
-    runCommand("yarn --cwd typescript/types-backend/ install")
+    synchronized {
+      runCommand("yarn --cwd typescript/types-backend/ install")
+    }
     runCommand(s"yarn --cwd typescript/types-backend/ generate-typescript $appName")
   }
 
