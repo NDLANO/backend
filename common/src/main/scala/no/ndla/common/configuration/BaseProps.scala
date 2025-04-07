@@ -14,6 +14,7 @@ import sttp.model.Uri
 
 import scala.collection.mutable
 import scala.util.Properties.{propOrElse, propOrNone}
+import scala.util.{Failure, Success, Try}
 
 trait BaseProps extends StrictLogging {
 
@@ -24,16 +25,18 @@ trait BaseProps extends StrictLogging {
   private val loadedProps: mutable.Map[String, Prop[?]] = mutable.Map.empty
 
   def throwIfFailedProps(): Unit = {
-    val failedProps = loadedProps.values.filterNot(_.successful)
+    val failedProps: List[FailedProp[?]] = {
+      loadedProps.values.toList.collect { case Prop(FailedProp(key, ex)) => FailedProp(key, ex) }
+    }
+
     if (failedProps.nonEmpty) {
       val failedKeys = failedProps
-        .collect { case Prop(FailedProp(key, ex)) =>
-          logger.error(ex.getMessage, ex)
-          key
-        }
-        .mkString("[", ",", "]")
+        .map(failed => failed.key)
+        .mkString("[", ", ", "]")
 
-      throw EnvironmentNotFoundException(s"Unable to load the following properties: $failedKeys")
+      val mainException = EnvironmentNotFoundException(s"Unable to load the following properties: $failedKeys")
+      failedProps.map { case FailedProp(_, ex) => mainException.addSuppressed(ex) }: Unit
+      throw mainException
     }
   }
 
@@ -57,7 +60,6 @@ trait BaseProps extends StrictLogging {
       case Some(value) =>
         Prop.successful(key, value)
       case None =>
-        logger.error(s"Expected property $key to be set, but it was not found.")
         Prop.failed[String](key)
     }
     loadedProps.put(key, propToAdd): Unit
@@ -66,7 +68,14 @@ trait BaseProps extends StrictLogging {
 
   def propMap[T, R](prop: Prop[T])(f: T => R): Prop[R] = {
     val newProp = prop.reference match {
-      case LoadedProp(k, v) => Prop(LoadedProp[R](k, f(v)))
+      case LoadedProp(k, v) =>
+        Try(f(v)) match {
+          case Failure(exception) =>
+            val nfe = EnvironmentNotFoundException.singleKey(k)
+            nfe.initCause(exception)
+            Prop(FailedProp[R](k, nfe))
+          case Success(result) => Prop(LoadedProp[R](k, result))
+        }
       case FailedProp(k, e) => Prop(FailedProp[R](k, e))
     }
     loadedProps.put(prop.key, newProp): Unit

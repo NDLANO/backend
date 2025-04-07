@@ -56,4 +56,19 @@ class BasePropsTest extends UnitTestSuiteBase {
     System.clearProperty("NDLA_SOME_OTHER_REQUIRED_TEST_PROP")
   }
 
+  test("That failed mapping props to int fails on unsafeGet") {
+    val props = new TestProps
+    System.setProperty("NDLA_SOME_REQUIRED_TEST_PROP", "hei")
+    System.setProperty("NDLA_SOME_OTHER_REQUIRED_TEST_PROP", "some-other-test-result")
+    val result: Prop[Int] = props.propMap { props.requiredProp } { x => x.toInt + 1 }
+    val ex = intercept[EnvironmentNotFoundException] {
+      result.unsafeGet
+    }
+    ex.getMessage should be("Unable to load property NDLA_SOME_REQUIRED_TEST_PROP")
+    ex.getCause.getMessage should be("For input string: \"hei\"")
+    ex.getCause shouldBe a[NumberFormatException]
+    System.clearProperty("NDLA_SOME_REQUIRED_TEST_PROP")
+    System.clearProperty("NDLA_SOME_OTHER_REQUIRED_TEST_PROP")
+  }
+
 }
