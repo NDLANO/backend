@@ -8,19 +8,20 @@
 
 package no.ndla.database
 
-import no.ndla.common.Environment.prop
+import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.common.secrets.PropertyKeys
 
 import scala.util.Properties.propOrElse
 
 trait DatabaseProps {
-  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  this: BaseProps =>
+  val MetaUserName: Prop[String] = prop(PropertyKeys.MetaUserNameKey)
+  val MetaPassword: Prop[String] = prop(PropertyKeys.MetaPasswordKey)
+  val MetaResource: Prop[String] = prop(PropertyKeys.MetaResourceKey)
+  val MetaServer: Prop[String]   = prop(PropertyKeys.MetaServerKey)
+  val MetaPort: Prop[Int]        = propMap(prop(PropertyKeys.MetaPortKey))(_.toInt)
+  val MetaSchema: Prop[String]   = prop(PropertyKeys.MetaSchemaKey)
+  val MetaMaxConnections: Int    = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def MetaMigrationLocation: String
   def MetaMigrationTable: Option[String] = None

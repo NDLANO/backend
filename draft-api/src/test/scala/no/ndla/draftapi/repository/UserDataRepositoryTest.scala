@@ -13,13 +13,13 @@ import no.ndla.draftapi.model.api.SavedSearchDTO
 
 import java.net.Socket
 import no.ndla.draftapi.{TestData, TestEnvironment}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.postgresql.util.PSQLException
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
+class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = new DBMigrator
   var repository: UserDataRepository        = _
@@ -37,8 +37,8 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
   }
 
   def serverIsListening: Boolean = {
-    val server = props.MetaServer
-    val port   = props.MetaPort
+    val server = props.MetaServer.unsafeGet
+    val port   = props.MetaPort.unsafeGet
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()

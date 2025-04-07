@@ -8,9 +8,10 @@
 
 package no.ndla.oembedproxy.model
 
-import no.ndla.oembedproxy.UnitSuite
+import no.ndla.oembedproxy.TestEnvironment
+import no.ndla.scalatestsuite.UnitTestSuite
 
-class OEmbedEndpointTest extends UnitSuite {
+class OEmbedEndpointTest extends UnitTestSuite with TestEnvironment {
 
   val dummyEndpoint: OEmbedEndpoint = OEmbedEndpoint(None, "", None, None, None)
 

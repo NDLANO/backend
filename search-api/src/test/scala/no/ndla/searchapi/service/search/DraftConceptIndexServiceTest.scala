@@ -12,16 +12,13 @@ import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, StatusDTO}
 import no.ndla.common.model.domain.Responsible
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.search.SearchableConcept
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
-class DraftConceptIndexServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {

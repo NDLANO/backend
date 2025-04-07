@@ -12,15 +12,13 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
 
 import scala.util.Success
 
-class ConfigRepositoryTest
-    extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "myndlaapi_test")
-    with UnitSuite
-    with TestEnvironment {
+class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
+  override val schemaName: String           = "myndlaapi_test"
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator                     = new DBMigrator
 

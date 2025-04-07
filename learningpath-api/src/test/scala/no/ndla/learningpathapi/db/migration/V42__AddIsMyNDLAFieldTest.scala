@@ -8,9 +8,9 @@
 
 package no.ndla.learningpathapi.db.migration
 
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class V42__AddIsMyNDLAFieldTest extends UnitSuite {
+class V42__AddIsMyNDLAFieldTest extends UnitTestSuiteBase {
   val migration = new V42__AddIsMyNDLAField
 
   test("That ismyndlafield is generated to true if owner is myndla user") {

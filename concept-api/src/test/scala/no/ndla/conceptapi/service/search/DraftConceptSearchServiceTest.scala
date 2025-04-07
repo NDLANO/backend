@@ -15,7 +15,7 @@ import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 import no.ndla.common.model.NDLADate
@@ -33,7 +33,7 @@ import no.ndla.mapping.License
 
 import java.util.UUID
 
-class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

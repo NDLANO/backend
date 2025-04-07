@@ -8,9 +8,9 @@
 
 package no.ndla.learningpathapi.validation
 
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class StatusValidatorTest extends UnitSuite {
+class StatusValidatorTest extends UnitTestSuiteBase {
 
   var validator: StatusValidator = _
   override def beforeEach(): Unit = {

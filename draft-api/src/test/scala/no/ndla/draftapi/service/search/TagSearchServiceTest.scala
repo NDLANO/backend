@@ -8,14 +8,14 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.common.model.domain._
-import no.ndla.draftapi._
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.draft.Draft
+import no.ndla.draftapi.*
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
-import no.ndla.common.model.domain.draft.Draft
 
-class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

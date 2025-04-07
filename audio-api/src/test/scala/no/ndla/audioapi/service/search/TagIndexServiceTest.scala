@@ -9,9 +9,9 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.{TestData, TestEnvironment}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
-class TagIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class TagIndexServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

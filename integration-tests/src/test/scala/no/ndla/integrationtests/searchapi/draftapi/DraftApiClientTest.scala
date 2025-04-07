@@ -8,12 +8,14 @@
 
 package no.ndla.integrationtests.searchapi.draftapi
 
+import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.database.HasDatabaseProps
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.{draftapi, searchapi}
@@ -26,9 +28,11 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Success, Try}
 
 class DraftApiClientTest
-    extends IntegrationSuite(EnablePostgresContainer = true, EnableElasticsearchContainer = true)
+    extends DatabaseIntegrationSuite
+    with ElasticsearchIntegrationSuite
     with UnitSuite
-    with searchapi.TestEnvironment {
+    with searchapi.TestEnvironment
+    with HasDatabaseProps {
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
   override val DBUtil                 = new DBUtility
@@ -37,14 +41,20 @@ class DraftApiClientTest
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
-    override def ApplicationPort: Int = draftApiPort
-    override def MetaServer: String   = pgc.getHost
-    override def MetaResource: String = pgc.getDatabaseName
-    override def MetaUserName: String = pgc.getUsername
-    override def MetaPassword: String = pgc.getPassword
-    override def MetaPort: Int        = pgc.getMappedPort(5432)
-    override def MetaSchema: String   = "testschema"
-    override def SearchServer: String = esHost
+    override def ApplicationPort: Int       = draftApiPort
+    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
+    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
+    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
+    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
+    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
+    override val auth0ManagementClientId: Prop[String] =
+      propFromTestValue("AUTH0_MANAGEMENT_CLIENT_ID", "auth0_test_id")
+    override val auth0ManagementClientSecret: Prop[String] =
+      propFromTestValue("AUTH0_MANAGEMENT_CLIENT_SECRET", "auth0_test_secret")
+    override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
+    override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")
+    override def SearchServer: String              = esHost
   }
 
   var draftApi: draftapi.MainClass = null
@@ -61,6 +71,7 @@ class DraftApiClientTest
       import sttp.client3.quick.*
       val req = quickRequest.get(uri"$draftApiBaseUrl/health/readiness")
       val res = Try(simpleHttpClient.send(req))
+      println(res)
       res.map(_.code.code) == Success(200)
     })
   }

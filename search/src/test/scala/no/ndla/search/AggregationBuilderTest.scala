@@ -12,9 +12,9 @@ import com.sksamuel.elastic4s.ElasticApi.{nestedAggregation, termsAgg}
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class AggregationBuilderTest extends UnitTestSuite {
+class AggregationBuilderTest extends UnitTestSuiteBase {
 
   val testMapping: MappingDefinition = {
     val fields = List(
