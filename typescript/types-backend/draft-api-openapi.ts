@@ -1076,6 +1076,7 @@ export type components = {
             introduction?: string;
             /** @description A meta description */
             metaDescription?: string;
+            /** @description An image-api ID for the article meta image */
             metaImage?: components["schemas"]["NewArticleMetaImageDTO"] | null;
             /** @description A visual element for the article. May be anything from an image to a video or H5P */
             visualElement?: string;
