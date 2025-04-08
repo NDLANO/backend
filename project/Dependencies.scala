@@ -20,7 +20,7 @@ object Dependencies {
     val FlywayV               = "11.4.0"
     val PostgresV             = "42.7.5"
     val Http4sV               = "0.23.30"
-    val TapirV                = "1.11.19"
+    val TapirV                = "1.11.23"
     val ApiSpecV              = "0.11.7"
     val SttpV                 = "3.9.7"
     val CirceV                = "0.14.12"
