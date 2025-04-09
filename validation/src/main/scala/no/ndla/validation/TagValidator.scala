@@ -274,14 +274,22 @@ object TagValidator {
           s"$EmbedTagName with `data-resource=$resourceType` requires at least one child."
         ).some
       }
-      val childrenTagNames  = embed.children().asScala.toList.map(_.tagName())
-      val onlyValidChildren = childrenTagNames.forall(tag => childrenRule.allowedChildren.contains(tag))
-      Option.when(!onlyValidChildren) {
+      val childrenTagNames = embed.children().asScala.toList.map(_.tagName())
+      if (childrenRule.allowedChildren.get.isEmpty && childrenTagNames.nonEmpty) {
         ValidationMessage(
           fieldName,
-          s"$EmbedTagName tag with `data-resource=$resourceType` can only have the following children tags: [${childrenRule.allowedChildren
-              .mkString(", ")}]"
-        )
+          s"$EmbedTagName tag with `data-resource=$resourceType` can only have plaintext children"
+        ).some
+      } else {
+        val onlyValidChildren = childrenTagNames.forall(tag => childrenRule.allowedChildren.get.contains(tag))
+        Option.when(!onlyValidChildren) {
+          ValidationMessage(
+            fieldName,
+            s"$EmbedTagName tag with `data-resource=$resourceType` can only have the following children tags: [${childrenRule.allowedChildren
+                .getOrElse(List.empty)
+                .mkString(", ")}]"
+          )
+        }
       }
     }
   }

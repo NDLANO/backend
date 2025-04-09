@@ -88,9 +88,9 @@ object TagRules {
     implicit val encoder: Encoder[ParentTag] = deriveEncoder
     implicit val decoder: Decoder[ParentTag] = deriveDecoder
   }
-  case class ChildrenRule(required: Boolean, allowedChildren: List[String])
+  case class ChildrenRule(required: Boolean, allowedChildren: Option[List[String]])
   object ChildrenRule {
-    def default: ChildrenRule = ChildrenRule(required = false, allowedChildren = List.empty)
+    def default: ChildrenRule = ChildrenRule(required = false, allowedChildren = None)
 
     implicit val encoder: Encoder[ChildrenRule] = deriveEncoder
     implicit val decoder: Decoder[ChildrenRule] = deriveDecoder

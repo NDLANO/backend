@@ -1,5 +1,19 @@
 {
   "attributes": {
+    "symbol": {
+      "fields": [
+        {
+          "name": "data-resource",
+          "validation": {
+            "required": true
+          }
+        }
+      ],
+      "children": {
+        "required": false,
+        "allowedChildren": []
+      }
+    },
     "copyright": {
       "fields": [
         {
