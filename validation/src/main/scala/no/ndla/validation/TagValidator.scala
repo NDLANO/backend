@@ -8,13 +8,12 @@
 
 package no.ndla.validation
 
-import cats.implicits.*
 import io.circe.parser
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.validation.AttributeType.*
-import no.ndla.validation.TagRules.{ChildrenRule, TagAttributeRules}
+import no.ndla.validation.TagRules.TagAttributeRules
 import org.jsoup.nodes.{Element, Node}
 
 import scala.jdk.CollectionConverters.*
@@ -106,7 +105,7 @@ object TagValidator {
       return Left(
         ValidationMessage(
           fieldName,
-          s"$EmbedTagName tags must contain a ${TagAttribute.DataResource} attribute"
+          s"Tag '$EmbedTagName' must contain a ${TagAttribute.DataResource} attribute"
         )
       )
     }
@@ -152,7 +151,7 @@ object TagValidator {
             .map { case (key, value) => s"""$key="$value"""" }
             .mkString(", ")
           val messageString =
-            s"Embed tag with '${resourceType.toString}' requires a parent '${parentRule.name}', with attributes: '$requiredAttributes'"
+            s"Tag '$EmbedTagName' with '${resourceType.toString}' requires a parent '${parentRule.name}', with attributes: '$requiredAttributes'"
 
           Seq(ValidationMessage(fieldName, messageString)) ++ parentEither.left.getOrElse(Seq.empty)
         } else { Seq.empty }
@@ -245,7 +244,7 @@ object TagValidator {
       List(
         ValidationMessage(
           fieldName,
-          s"An Embed tag with data-resource '$resourceType' must contain at least one optional attribute"
+          s"Tag '$EmbedTagName' with data-resource '$resourceType' must contain at least one optional attribute"
         )
       )
     } else {
@@ -259,39 +258,34 @@ object TagValidator {
       tagRules: TagAttributeRules,
       embed: Element
   ): Option[ValidationMessage] = {
-    val childrenRule = tagRules.children.getOrElse(ChildrenRule.default)
-    if (childrenRule.allowedChildren.isEmpty) {
-      Option.when(embed.childNodeSize() != 0) {
-        ValidationMessage(
-          fieldName,
-          s"$EmbedTagName tag with `data-resource=${resourceType.toString}` are not allowed to have children."
-        )
-      }
-    } else {
+    tagRules.children.map(childrenRule => {
       if (childrenRule.required && embed.childNodeSize() == 0) {
-        return ValidationMessage(
-          fieldName,
-          s"$EmbedTagName with `data-resource=$resourceType` requires at least one child."
-        ).some
-      }
-      val childrenTagNames = embed.children().asScala.toList.map(_.tagName())
-      if (childrenRule.allowedChildren.get.isEmpty && childrenTagNames.nonEmpty) {
         ValidationMessage(
           fieldName,
-          s"$EmbedTagName tag with `data-resource=$resourceType` can only have plaintext children"
-        ).some
+          s"Tag '$EmbedTagName' with `data-resource=$resourceType` requires at least one child."
+        )
       } else {
-        val onlyValidChildren = childrenTagNames.forall(tag => childrenRule.allowedChildren.get.contains(tag))
-        Option.when(!onlyValidChildren) {
+        val childrenTagNames = embed.children().asScala.toList.map(_.tagName())
+        if (childrenRule.allowedChildren.isEmpty && childrenTagNames.nonEmpty) {
           ValidationMessage(
             fieldName,
-            s"$EmbedTagName tag with `data-resource=$resourceType` can only have the following children tags: [${childrenRule.allowedChildren
-                .getOrElse(List.empty)
-                .mkString(", ")}]"
+            s"Tag '$EmbedTagName' with `data-resource=$resourceType` can only have plaintext children."
           )
+        } else {
+          val onlyValidChildren = childrenTagNames.forall(tag => childrenRule.allowedChildren.get.contains(tag))
+          if (!onlyValidChildren) {
+            ValidationMessage(
+              fieldName,
+              s"Tag '$EmbedTagName' with `data-resource=$resourceType` can only have the following children tags: [${childrenRule.allowedChildren
+                  .getOrElse(List.empty)
+                  .mkString(", ")}]."
+            )
+          } else {
+            return None
+          }
         }
       }
-    }
+    })
   }
 
   private def attributesAreLegal(
@@ -310,7 +304,7 @@ object TagValidator {
       List(
         ValidationMessage(
           fieldName,
-          s"An HTML tag '$tagName' contains an illegal attribute(s) '${illegalAttributesUsed
+          s"Tag '$tagName' contains an illegal attribute(s) '${illegalAttributesUsed
               .mkString(", ")}'. Allowed attributes are ${legalAttributeKeys.mkString(", ")}"
         )
       )
@@ -320,7 +314,7 @@ object TagValidator {
 
     val mustContainAttributesError =
       if (HtmlTagRules.tagMustContainAtLeastOneOptionalAttribute(tagName) && legalOptionalAttributesUsed.isEmpty) {
-        List(ValidationMessage(fieldName, s"An HTML tag '$tagName' must contain at least one attribute"))
+        List(ValidationMessage(fieldName, s"Tag '$tagName' must contain at least one attribute"))
       } else {
         List.empty
       }
@@ -346,7 +340,7 @@ object TagValidator {
       Some(
         ValidationMessage(
           fieldName,
-          s"HTML tag '$EmbedTagName' contains attributes with HTML: ${attributesWithIllegalHtml.mkString(", ")}"
+          s"Tag '$EmbedTagName' contains attributes with HTML: ${attributesWithIllegalHtml.mkString(", ")}"
         )
       )
     } else {
@@ -360,7 +354,7 @@ object TagValidator {
       resourceType: ResourceType,
       attributes: Map[TagAttribute, String]
   ): Seq[ValidationMessage] = {
-    val partialErrorMessage = s"An $EmbedTagName HTML tag with ${TagAttribute.DataResource}=$resourceType"
+    val partialErrorMessage = s"Tag '$EmbedTagName' with ${TagAttribute.DataResource}=$resourceType"
 
     verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributes, resourceType) ++
       verifyOptionals(fieldName, attributeRulesForTag, attributes.keySet, partialErrorMessage) ++
@@ -377,7 +371,7 @@ object TagValidator {
     val missingAttributes = getMissingAttributes(requiredAttrs, actualAttributes.keySet)
     val illegalAttributes = getIllegalAttributes(actualAttributes.keySet, attrRules.fields)
 
-    val partialErrorMessage = s"An $EmbedTagName HTML tag with ${TagAttribute.DataResource}=$resourceType"
+    val partialErrorMessage = s"Tag '$EmbedTagName' with ${TagAttribute.DataResource}=$resourceType"
 
     val missingErrors = missingAttributes
       .map(missingAttributes =>

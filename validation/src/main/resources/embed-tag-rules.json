@@ -10,8 +10,7 @@
         }
       ],
       "children": {
-        "required": false,
-        "allowedChildren": []
+        "required": true
       }
     },
     "copyright": {

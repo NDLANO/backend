@@ -50,7 +50,7 @@ object TagRules {
       mustCoexistWith: List[TagAttribute] = List.empty
   )
 
-  object Validation {
+  private object Validation {
     implicit val encoder: Encoder[Validation] = deriveEncoder
     implicit val decoder: Decoder[Validation] = Decoder.instance { cur =>
       for {
