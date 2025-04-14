@@ -28,6 +28,8 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
+  def LearningpathControllerPath = "/learningpath-api/v2/learningpaths/"
+
   def SearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "learningpaths")
   def SearchDocument      = "learningpath"
   def DefaultPageSize     = 10

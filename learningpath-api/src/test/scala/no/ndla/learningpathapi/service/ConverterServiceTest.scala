@@ -22,13 +22,10 @@ import no.ndla.learningpathapi.model.api.{
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
-import no.ndla.network.ApplicationUrl
-import no.ndla.network.model.NdlaHttpRequest
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{when, withSettings}
-import org.mockito.quality.Strictness
+import org.mockito.ArgumentMatchers.eq as eqTo
+import org.mockito.Mockito.when
 
 import scala.util.{Failure, Success}
 
@@ -120,9 +117,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         api.TitleDTO("tittel", DefaultLanguage),
         api.DescriptionDTO("deskripsjon", DefaultLanguage),
-        "null1",
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1",
         List.empty,
-        "null1/learningsteps",
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps",
         None,
         Some(60),
         LearningPathStatus.PRIVATE.toString,
@@ -173,9 +170,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         api.TitleDTO("tittel", DefaultLanguage),
         api.DescriptionDTO("deskripsjon", DefaultLanguage),
-        "null1",
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1",
         List.empty,
-        "null1/learningsteps",
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps",
         None,
         Some(60),
         LearningPathStatus.PRIVATE.toString,
@@ -215,7 +212,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.TitleDTO("tittel", DefaultLanguage),
         api.DescriptionDTO("deskripsjon", DefaultLanguage),
         api.IntroductionDTO("", DefaultLanguage),
-        "null1",
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1",
         None,
         Some(60),
         LearningPathStatus.PRIVATE.toString,
@@ -254,7 +251,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         showTitle = false,
         "INTRODUCTION",
         None,
-        "null1/learningsteps/1",
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
         canEdit = true,
         "ACTIVE",
         Seq(DefaultLanguage)
@@ -300,7 +297,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         showTitle = false,
         "INTRODUCTION",
         None,
-        "null1/learningsteps/1",
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
         canEdit = true,
         "ACTIVE",
         Seq(DefaultLanguage)
@@ -322,7 +319,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         1,
         api.TitleDTO("tittel", DefaultLanguage),
         "INTRODUCTION",
-        "null1/learningsteps/1"
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1"
       )
     )
 
@@ -336,7 +333,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         1,
         api.TitleDTO("tittel", DefaultLanguage),
         "INTRODUCTION",
-        "null1/learningsteps/1"
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1"
       )
     )
 
@@ -364,16 +361,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That createUrlToLearningPath does not include private in path for private learningpath") {
-    val httpServletRequest = mock[NdlaHttpRequest](withSettings.strictness(Strictness.LENIENT))
-    when(httpServletRequest.serverPort).thenReturn(80)
-    when(httpServletRequest.getScheme).thenReturn("http")
-    when(httpServletRequest.serverName).thenReturn("api-gateway.ndla-local")
-    when(httpServletRequest.servletPath).thenReturn("/servlet")
-    when(httpServletRequest.getHeader(any)).thenReturn(null)
-
-    ApplicationUrl.set(httpServletRequest)
     service.createUrlToLearningPath(apiLearningPath.copy(status = "PRIVATE")) should equal(
-      s"${props.Domain}/servlet/1"
+      s"${props.Domain}${props.LearningpathControllerPath}1"
     )
   }
 
