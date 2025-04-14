@@ -10,7 +10,6 @@ package no.ndla.conceptapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.common.implicits.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
@@ -28,6 +27,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.network.tapir.NonEmptyString
 
 trait PublishedConceptController {
   this: WriteService & ReadService & PublishedConceptSearchService & SearchConverterService & Props &
@@ -64,7 +64,7 @@ trait PublishedConceptController {
       }
 
     private def search(
-        query: Option[String],
+        query: Option[NonEmptyString],
         sort: Option[Sort],
         language: String,
         page: Int,
@@ -95,9 +95,10 @@ trait PublishedConceptController {
         aggregatePaths = aggregatePaths
       )
 
-      val result = query.emptySomeToNone match {
+      val result = query match {
         case Some(q) =>
-          publishedConceptSearchService.matchingQuery(q, settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc)))
+          val settingsWithSort = settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc))
+          publishedConceptSearchService.matchingQuery(q.underlying, settingsWithSort)
         case None => publishedConceptSearchService.all(settings.copy(sort = sort.getOrElse(Sort.ByTitleDesc)))
       }
 

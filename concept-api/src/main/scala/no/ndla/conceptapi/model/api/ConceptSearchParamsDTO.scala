@@ -13,11 +13,12 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.conceptapi.model.domain.Sort
 import sttp.tapir.Schema.annotations.description
+import no.ndla.network.tapir.NonEmptyString
 
 @description("The search parameters")
 case class ConceptSearchParamsDTO(
     @description("The search query.")
-    query: Option[String],
+    query: Option[NonEmptyString],
     @description("The ISO 639-1 language code describing language used in query-params.")
     language: Option[LanguageCode],
     @description("The page number of the search hits to display.")

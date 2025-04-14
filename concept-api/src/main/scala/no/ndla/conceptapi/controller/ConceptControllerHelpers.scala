@@ -16,6 +16,7 @@ import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.language.Language
 import sttp.tapir.*
 import sttp.tapir.model.Delimited
+import no.ndla.network.tapir.NonEmptyString
 
 trait ConceptControllerHelpers {
   this: Props =>
@@ -27,8 +28,9 @@ trait ConceptControllerHelpers {
       path[Long]("concept_id")
         .description("Id of the concept that is to be returned")
 
-    val queryParam: EndpointInput.Query[Option[String]] =
-      query[Option[String]]("query").description("Return only concepts with content matching the specified query.")
+    val queryParam = query[Option[NonEmptyString]]("query")
+      .description("Return only results with titles or tags matching the specified query.")
+      .schema(NonEmptyString.schemaOpt)
 
     val conceptIds: EndpointInput.Query[Option[Delimited[",", Long]]] = listQuery[Long]("ids")
       .description(

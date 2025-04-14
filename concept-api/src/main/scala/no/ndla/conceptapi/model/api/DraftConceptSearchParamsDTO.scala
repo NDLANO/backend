@@ -8,6 +8,7 @@
 
 package no.ndla.conceptapi.model.api
 
+import no.ndla.network.tapir.NonEmptyString
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
@@ -17,7 +18,7 @@ import sttp.tapir.Schema.annotations.description
 @description("The search parameters")
 case class DraftConceptSearchParamsDTO(
     @description("The search query.")
-    query: Option[String],
+    query: Option[NonEmptyString],
     @description("The ISO 639-1 language code describing language used in query-params.")
     language: Option[LanguageCode],
     @description("The page number of the search hits to display.")

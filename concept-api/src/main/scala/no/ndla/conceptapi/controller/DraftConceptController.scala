@@ -9,7 +9,6 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.*
-import no.ndla.common.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.concept.ConceptStatus
@@ -31,6 +30,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.network.tapir.NonEmptyString
 
 trait DraftConceptController {
   this: WriteService & ReadService & DraftConceptSearchService & SearchConverterService & ConverterService & Props &
@@ -80,7 +80,7 @@ trait DraftConceptController {
       }
 
     private def search(
-        query: Option[String],
+        query: Option[NonEmptyString],
         sort: Option[Sort],
         language: String,
         page: Int,
@@ -115,9 +115,10 @@ trait DraftConceptController {
         aggregatePaths = aggregatePaths
       )
 
-      val result = query.emptySomeToNone match {
+      val result = query match {
         case Some(q) =>
-          draftConceptSearchService.matchingQuery(q, settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc)))
+          val sortSettings = settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc))
+          draftConceptSearchService.matchingQuery(q.underlying, sortSettings)
         case None => draftConceptSearchService.all(settings.copy(sort = sort.getOrElse(Sort.ByTitleDesc)))
       }
 
@@ -336,7 +337,7 @@ trait DraftConceptController {
       .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { case (query, pageSize, pageNo, language) =>
-        val q = query.getOrElse("")
+        val q = query.map(_.underlying).getOrElse("")
         readService.getAllTags(q, pageSize, pageNo, language.code).asRight
       }
 
