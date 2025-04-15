@@ -258,6 +258,14 @@ object TagValidator {
       tagRules: TagAttributeRules,
       embed: Element
   ): Option[ValidationMessage] = {
+    if (embed.childNodeSize() > 0 && tagRules.children.isEmpty) {
+      return Some(
+        ValidationMessage(
+          fieldName,
+          s"Tag '$EmbedTagName' with `data-resource=$resourceType` cannot have children."
+        )
+      )
+    }
     tagRules.children.map(childrenRule => {
       if (childrenRule.required && embed.childNodeSize() == 0) {
         ValidationMessage(

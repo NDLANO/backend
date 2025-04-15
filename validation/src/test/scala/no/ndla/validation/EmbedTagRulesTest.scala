@@ -454,6 +454,24 @@ class EmbedTagRulesTest extends UnitSuite {
     )
   }
 
+  test("Children is not ok for embed without children rule") {
+    val embedString =
+      s"""<$EmbedTagName
+         | data-resource="pitch"
+         | data-image-id="1"
+         | data-title="Hva skjer hos <span lang='en'>NDLA</span>"
+         | data-url="https://ndla.no">
+         | Some child
+         | </$EmbedTagName>""".stripMargin
+
+    val result = TagValidator.validate("test", embedString)
+    result should be(
+      Seq {
+        ValidationMessage("test", s"Tag '$EmbedTagName' with `data-resource=pitch` cannot have children.")
+      }
+    )
+  }
+
   test("Symbol embed with plain text children and no attributes is ok") {
     val embedString = s"""<$EmbedTagName data-resource="symbol">Symbol</$EmbedTagName>""".stripMargin
 
