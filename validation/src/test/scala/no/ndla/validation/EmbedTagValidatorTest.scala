@@ -49,7 +49,7 @@ class EmbedTagValidatorTest extends UnitSuite {
 
   test("validate should return a validation error if input is a html tag with that should not have attributes") {
     val res = TagValidator.validate("content", "<h1 test='test'>hello</h1>")
-    findErrorByMessage(res, "An HTML tag 'h1' contains an illegal attribute(s) 'test'.").size should be(1)
+    findErrorByMessage(res, "Tag 'h1' contains an illegal attribute(s) 'test'.").size should be(1)
   }
 
   test("validate should return validation error if embed tag uses illegal attributes") {
@@ -604,7 +604,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     res.size should equal(2)
     findErrorByMessage(
       res,
-      "An HTML tag 'span' contains an illegal attribute(s) 'test'. Allowed attributes are lang"
+      "Tag 'span' contains an illegal attribute(s) 'test'. Allowed attributes are lang"
     ).size should be(1)
   }
 
@@ -648,18 +648,18 @@ class EmbedTagValidatorTest extends UnitSuite {
     val res = TagValidator.validate("content", s"""<div>$validRelatedExternalEmbed</div>""")
     res.size should be(1)
     res.head.message should be(
-      """Embed tag with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
+      """Tag 'ndlaembed' with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
     )
     val res2 = TagValidator.validate("content", s"""$validRelatedExternalEmbed""")
     res2.size should be(1)
     res2.head.message should be(
-      """Embed tag with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
+      """Tag 'ndlaembed' with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
     )
     val res3 =
       TagValidator.validate("content", s"""<p data-type='related-content'>$validRelatedExternalEmbed</p>""")
     res3.size should be(2)
     res3.last.message should be(
-      """Embed tag with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
+      """Tag 'ndlaembed' with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'"""
     )
   }
 
@@ -717,7 +717,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Seq(
         ValidationMessage(
           "content",
-          "Embed tag with 'file' requires a parent 'div', with attributes: 'data-type=\"file\"'"
+          "Tag 'ndlaembed' with 'file' requires a parent 'div', with attributes: 'data-type=\"file\"'"
         )
       )
     )
