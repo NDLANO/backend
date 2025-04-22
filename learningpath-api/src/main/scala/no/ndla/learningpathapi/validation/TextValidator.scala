@@ -41,7 +41,11 @@ trait TextValidator {
         if (
           Jsoup.isValid(
             text,
-            Safelist.basic().addTags("section").addAttributes("a", "target", "rel").addAttributes("span", "lang", "dir")
+            Safelist
+              .basic()
+              .addTags("section", "h2", "h3")
+              .addAttributes("a", "target", "rel")
+              .addAttributes("span", "lang", "dir")
           )
         ) {
           None
