@@ -38,7 +38,6 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicense
-import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired, HttpRequestException}
 
 import scala.util.{Failure, Success, Try}
@@ -692,11 +691,11 @@ trait ConverterService {
     }
 
     def createUrlToLearningPath(lp: LearningPath): String = {
-      s"${ApplicationUrl.get}${lp.id.get}"
+      s"$Domain$LearningpathControllerPath${lp.id.get}"
     }
 
     def createUrlToLearningPath(lp: api.LearningPathV2DTO): String = {
-      s"${ApplicationUrl.get}${lp.id}"
+      s"$Domain$LearningpathControllerPath${lp.id}"
     }
 
     private def createUrlToImageApi(imageId: String): String = {
