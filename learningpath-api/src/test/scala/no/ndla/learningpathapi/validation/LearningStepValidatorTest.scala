@@ -106,8 +106,9 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
       ValidLearningStep.copy(
         description = List(
           Description("<strong>Gyldig</strong>", "nb"),
+          Description("<h2>Også gyldig</h2>", "nb"),
           Description("<h1>Ugyldig</h1>", "nb"),
-          Description("<h2>Også ugyldig</h2>", "nb")
+          Description("<h4>Også ugyldig</h4>", "nb")
         )
       ),
       false
