@@ -678,7 +678,10 @@ trait SearchConverterService {
         language: String,
         filterInactive: Boolean
     ): List[ApiTaxonomyContextDTO] = {
-      val filtered = if (filterInactive) contexts.filter(c => c.isActive) else contexts
+      val filtered = contexts.filter { c =>
+        // Filter inactive if required, and also don't show programme contexts
+        (!filterInactive || c.isActive) && !c.rootId.startsWith("urn:programme:")
+      }
       filtered.sortBy(!_.isPrimary).map(c => searchableContextToApiContext(c, language))
     }
 

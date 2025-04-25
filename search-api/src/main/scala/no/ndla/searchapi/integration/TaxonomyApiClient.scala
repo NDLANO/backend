@@ -53,11 +53,10 @@ trait TaxonomyApiClient {
         s"$TaxonomyApiEndpoint/nodes/search",
         headers = getVersionHashHeader(shouldUsePublishedTax),
         Seq(
-          "pageSize"         -> "500",
-          "nodeType"         -> NodeType.RESOURCE.toString,
-          "includeContexts"  -> "true",
-          "filterProgrammes" -> "true",
-          "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax)
+          "pageSize"        -> "500",
+          "nodeType"        -> NodeType.RESOURCE.toString,
+          "includeContexts" -> "true",
+          "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax)
         )
       )
 
@@ -133,7 +132,7 @@ trait TaxonomyApiClient {
       def fetchPage(p: Seq[(String, String)]): Try[PaginationPage[T]] =
         get[PaginationPage[T]](url, headers, p)
 
-      val pageSize   = params.toMap.get("pageSize").get.toInt
+      val pageSize   = params.toMap.getOrElse("pageSize", "100").toInt
       val pageParams = params :+ ("page" -> "1")
       fetchPage(pageParams).flatMap(firstPage => {
         val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
