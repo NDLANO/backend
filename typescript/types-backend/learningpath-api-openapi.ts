@@ -802,7 +802,7 @@ export type components = {
              * @description Determines if the title of the step should be displayed in viewmode.
              * @default false
              */
-            showTitle: boolean;
+            showTitle?: boolean;
             /** @description The type of the step */
             type: string;
             /** @description Describes the copyright information for the learningstep */

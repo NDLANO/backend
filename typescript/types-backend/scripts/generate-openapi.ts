@@ -26,6 +26,8 @@ async function generate_types(appName: string) {
 
   const ast = await openapiTS(JSON.parse(schema), {
     exportType: true,
+    // https://openapi-ts.dev/migration-guide#defaultnonnullable-true-by-default
+    defaultNonNullable: false,
     transform(schemaObject, _options): TypeNode | undefined {
       if (schemaObject.format === "binary") {
         if (schemaObject.nullable) {
