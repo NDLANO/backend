@@ -40,6 +40,7 @@ case class SearchableArticle(
     embedResourcesAndIds: List[EmbedValues],
     availability: String,
     learningResourceType: LearningResourceType,
+    typeName: List[String],
     domainObject: Article
 )
 

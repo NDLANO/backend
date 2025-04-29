@@ -234,6 +234,21 @@ trait SearchConverterService {
 
     private def toPlaintext(text: String): String = Jsoup.parseBodyFragment(text).text()
 
+    def getTypeNames(learningResourceType: LearningResourceType): List[String] = {
+      learningResourceType match {
+        case LearningResourceType.Article =>
+          List("article", "artikkel")
+        case LearningResourceType.TopicArticle =>
+          List("topic", "topic article", "emne", "emneartikkel")
+        case LearningResourceType.FrontpageArticle =>
+          List("frontpage", "frontpage article", "forside", "forsideartikkel")
+        case LearningResourceType.LearningPath =>
+          List("learningpath", "læringssti")
+        case LearningResourceType.Concept | LearningResourceType.Gloss =>
+          List("concept", "forklaring", "konsept")
+      }
+    }
+
     def asSearchableArticle(
         ai: Article,
         indexingBundle: IndexingBundle
@@ -304,7 +319,8 @@ trait SearchConverterService {
           embedResourcesAndIds = embedResourcesAndIds,
           availability = ai.availability.toString,
           learningResourceType = LearningResourceType.fromArticleType(ai.articleType),
-          domainObject = ai
+          domainObject = ai,
+          typeName = List("article")
         )
       )
 
