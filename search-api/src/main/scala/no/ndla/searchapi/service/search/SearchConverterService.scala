@@ -241,12 +241,12 @@ trait SearchConverterService {
       val articleId = ai.id.get
       val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
-          Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = true))
+          Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = false))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:article:$articleId",
             filterVisibles = true,
-            filterContexts = true,
+            filterContexts = false,
             shouldUsePublishedTax = true
           )
       }
@@ -345,12 +345,12 @@ trait SearchConverterService {
     def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] = {
       val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
-          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = true))
+          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = false))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:learningpath:${lp.id.get}",
             filterVisibles = true,
-            filterContexts = true,
+            filterContexts = false,
             shouldUsePublishedTax = true
           )
       }
@@ -457,12 +457,12 @@ trait SearchConverterService {
         val draftId = draft.id.get
         indexingBundle.taxonomyBundle match {
           case Some(bundle) =>
-            Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = true))
+            Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = false))
           case None =>
             taxonomyApiClient.getTaxonomyContext(
               s"urn:article:$draftId",
               filterVisibles = false,
-              filterContexts = true,
+              filterContexts = false,
               shouldUsePublishedTax = false
             )
         }
