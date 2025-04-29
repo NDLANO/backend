@@ -19,7 +19,6 @@ object GithubWorkflowPlugin extends AutoPlugin {
       taskKey[Unit]("Generate workflow yay")
 
   }
-  val workflowJavaVersion = "20"
 
   def getSafeName(name: String): String = name.replaceAll("-", "")
 
@@ -124,7 +123,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
        |      - uses: actions/setup-java@v3
        |        with:
        |          distribution: temurin
-       |          java-version: '$workflowJavaVersion'
+       |          java-version: $${{ vars.JAVA_VERSION }}
        |      - uses: hashicorp/setup-terraform@v3
        |        with:
        |          terraform_version: $${{ vars.TERRAFORM_VERSION }}
@@ -228,7 +227,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
       |      - uses: actions/setup-java@v3
       |        with:
       |          distribution: temurin
-      |          java-version: '$workflowJavaVersion'
+      |          java-version: $${{ vars.JAVA_VERSION }}
       |      - uses: sbt/setup-sbt@v1
       |      - name: Login to ECR repo
       |        run: RES=$$(aws sts assume-role --role-arn $$CI_RELEASE_ROLE --role-session-name

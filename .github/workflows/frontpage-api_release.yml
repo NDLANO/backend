@@ -63,7 +63,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: '20'
+          java-version: ${{ vars.JAVA_VERSION }}
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ vars.TERRAFORM_VERSION }}
