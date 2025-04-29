@@ -53,6 +53,7 @@ trait ArticleIndexService {
         ObjectField("domainObject", enabled = Some(false)),
         longField("id"),
         keywordField("defaultTitle"),
+        textField("typeName"),
         dateField("lastUpdated"),
         keywordField("license"),
         textField("authors"),

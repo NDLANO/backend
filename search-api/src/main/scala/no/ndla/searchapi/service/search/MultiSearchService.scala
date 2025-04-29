@@ -23,6 +23,7 @@ import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License
+import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
@@ -55,6 +56,10 @@ trait MultiSearchService {
       termsQuery("_index", indexNames)
     }
 
+    private def typeNameQuery(q: NonEmptyString): Query = {
+      constantScoreQuery(simpleStringQuery(q.underlying).field("typeName")).boost(400)
+    }
+
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
 
       val contentSearch = settings.query.map(q => {
@@ -67,29 +72,31 @@ trait MultiSearchService {
             settings.fallback,
             searchDecompounded = true
           )
-        boolQuery().must(
-          boolQuery().should(
-            List(
-              buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
-              buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
-            ).flatten ++
+        boolQuery()
+          .must(
+            boolQuery().should(
               List(
-                langQueryFunc("title", 20),
-                langQueryFunc("introduction", 2),
-                langQueryFunc("metaDescription", 1),
-                langQueryFunc("content", 1),
-                langQueryFunc("tags", 1),
-                langQueryFunc("embedAttributes", 1),
-                simpleStringQuery(q.underlying).field("authors", 1),
-                simpleStringQuery(q.underlying).field("grepContexts.title", 1),
-                nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
-                termQuery("contextids", q.underlying),
-                idsQuery(q.underlying)
-              ) ++
-              buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
-              buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
+                buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
+                buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
+              ).flatten ++
+                List(
+                  langQueryFunc("title", 20),
+                  langQueryFunc("introduction", 2),
+                  langQueryFunc("metaDescription", 1),
+                  langQueryFunc("content", 1),
+                  langQueryFunc("tags", 1),
+                  langQueryFunc("embedAttributes", 1),
+                  simpleStringQuery(q.underlying).field("authors", 1),
+                  simpleStringQuery(q.underlying).field("grepContexts.title", 1),
+                  nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
+                  termQuery("contextids", q.underlying),
+                  idsQuery(q.underlying)
+                ) ++
+                buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
+                buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
+            )
           )
-        )
+          .should(typeNameQuery(q))
       })
 
       val nodeSearch = settings.query.map { q =>
@@ -111,11 +118,9 @@ trait MultiSearchService {
               boost
             )
           ).flatten
-        boolQuery().must(
-          boolQuery().should(
-            langQueryFunc("title", 100)
-          )
-        )
+        boolQuery()
+          .must(boolQuery().should(langQueryFunc("title", 100)))
+          .should(typeNameQuery(q))
       }
       val indexFilterNode    = getIndexFilter(List(SearchType.Nodes))
       val indexFilterContent = getIndexFilter(List(SearchType.Articles, SearchType.LearningPaths))
@@ -128,12 +133,10 @@ trait MultiSearchService {
       val contentFilter = boolQuery().must(getSearchFilters(settings)).filter(indexFilterContent)
       val nodeFilter    = boolQuery().must(getNodeSearchFilters(settings)).filter(indexFilterNode)
 
-      val fullQuery = boolQuery()
+      val filteredSearch = boolQuery()
         .should(boolQueries)
         .minimumShouldMatch(Math.min(boolQueries.size, 1))
         .filter(boolQuery().should(contentFilter, nodeFilter).minimumShouldMatch(1))
-
-      val filteredSearch = fullQuery
 
       executeSearch(settings, filteredSearch)
     }
@@ -196,6 +199,7 @@ trait MultiSearchService {
         val index        = getSearchIndexes(settings).?
         val searchToExecute = search(index)
           .query(filteredSearch)
+          .explain(enableExplanations)
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .from(pagination.startAt)
           .trackTotalHits(true)
@@ -213,6 +217,7 @@ trait MultiSearchService {
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             logShardErrors(response)
+            printExplanations(response)
             getHits(response.result, settings.language, settings.filterInactive).map(hits => {
               SearchResult(
                 totalCount = response.result.totalHits,

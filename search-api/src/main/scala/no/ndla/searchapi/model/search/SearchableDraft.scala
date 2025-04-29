@@ -54,7 +54,8 @@ case class SearchableDraft(
     defaultResourceTypeName: Option[String],
     published: NDLADate,
     favorited: Long,
-    learningResourceType: LearningResourceType
+    learningResourceType: LearningResourceType,
+    typeName: List[String]
 )
 
 object SearchableDraft {

@@ -44,6 +44,7 @@ trait NodeIndexService {
         keywordField("contentUri"),
         keywordField("nodeType"),
         keywordField("url"),
+        textField("typeName"),
         keywordField("grepContexts.code"),
         textField("grepContexts.title"),
         getTaxonomyContextMapping("context"),

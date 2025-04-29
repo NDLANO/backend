@@ -17,6 +17,8 @@ import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import SortOrder.{Asc, Desc}
+import com.sksamuel.elastic4s.RequestSuccess
+import com.sksamuel.elastic4s.requests.explain.Explanation
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.api.search.{
   MultiSearchSuggestionDTO,
@@ -361,6 +363,28 @@ trait SearchService {
         logger.info(s"Max supported results are $maxResultWindow, user requested $resultWindow")
         Failure(ResultWindowTooLargeException())
       } else Success(SearchPagination(safePage, safePageSize, startAt))
+    }
+
+    /** Flag to enable printing of explanations, used for debugging query scoring */
+    val enableExplanations = false
+
+    /** Helper function to print explanation of scoring for search queries */
+    def printExplanations(value: RequestSuccess[SearchResponse]): Unit = {
+      def _printExpl(hitId: String, ex: Explanation, indent: Int = 0): Unit = {
+        logger.info(s"${"  " * indent}${ex.value}: ${ex.description}")
+        ex.details.foreach { d => _printExpl(hitId, d, indent + 1) }
+      }
+
+      if (enableExplanations) {
+        value.result.hits.hits.foreach { hit =>
+          val hitId = s"${hit.index}:${hit.id}"
+          logger.info(s"EXPLAIN START $hitId:")
+          hit.explanation match {
+            case Some(ex) => _printExpl(hitId, ex)
+            case None     => println("No explanation found...")
+          }
+        }
+      }
     }
   }
 }

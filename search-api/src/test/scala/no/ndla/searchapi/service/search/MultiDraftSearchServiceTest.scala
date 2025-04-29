@@ -40,9 +40,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
-  override val multiDraftSearchService = new MultiDraftSearchService
-  override val converterService        = new ConverterService
-  override val searchConverterService  = new SearchConverterService
+  override val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
+    override val enableExplanations = true
+  }
+  override val converterService       = new ConverterService
+  override val searchConverterService = new SearchConverterService
 
   val indexingBundle: IndexingBundle =
     IndexingBundle(Some(emptyGrepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle))

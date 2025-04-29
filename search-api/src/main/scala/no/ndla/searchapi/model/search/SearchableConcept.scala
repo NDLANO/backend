@@ -35,7 +35,8 @@ case class SearchableConcept(
     gloss: Option[String],
     domainObject: Concept,
     favorited: Long,
-    learningResourceType: LearningResourceType
+    learningResourceType: LearningResourceType,
+    typeName: List[String]
 )
 
 object SearchableConcept {
