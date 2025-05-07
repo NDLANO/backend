@@ -344,9 +344,7 @@ trait DraftRepository {
         .list()
     }
 
-    private def articleWhere(
-        whereClause: SQLSyntax
-    )(implicit session: DBSession): Option[Draft] = {
+    private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession): Option[Draft] = {
       val ar = DBArticle.syntax("ar")
       sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
         .map(DBArticle.fromResultSet(ar))

@@ -15,7 +15,7 @@ import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
@@ -27,7 +27,7 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
+import no.ndla.draftapi.model.api.{AddNotesDTO, PartialArticleFieldsDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexService, TagIndexService}
@@ -461,6 +461,19 @@ trait WriteService {
       val comparableExisting = withComparableValues(existingArticle)
       val shouldUpdateStatus = comparableNew != comparableExisting
       shouldUpdateStatus
+    }
+
+    def addNotesToDraft(id: Long, input: AddNotesDTO, user: TokenUser): Try[api.ArticleDTO] = DBUtil.rollbackOnFailure {
+      session =>
+        for {
+          maybeDraft <- Try(draftRepository.withId(id)(session))
+          draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
+          now       = clock.now()
+          newNotes  = input.notes.map(note => common.EditorNote(note, user.id, draft.status, now))
+          converted = draft.copy(notes = draft.notes ++ newNotes)
+          updated <- draftRepository.updateArticle(converted)(session)
+          output  <- converterService.toApiArticle(updated, Language.AllLanguages)
+        } yield output
     }
 
     /** Compares articles to check whether earliest not-revised revision date has changed since that is the only one
