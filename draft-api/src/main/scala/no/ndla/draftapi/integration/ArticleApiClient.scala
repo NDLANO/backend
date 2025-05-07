@@ -61,13 +61,12 @@ trait ArticleApiClient {
         id: Long,
         draft: Draft,
         externalIds: List[String],
-        useImportValidation: Boolean,
         useSoftValidation: Boolean,
         user: TokenUser
     ): Try[Draft] = {
       val extParam = Option.when(externalIds.nonEmpty)("external-id" -> externalIds.mkString(","))
       val params = List(
-        "use-import-validation" -> useImportValidation.toString,
+        "use-import-validation" -> false.toString,
         "use-soft-validation"   -> useSoftValidation.toString
       ) ++ extParam.toSeq
       for {

@@ -174,7 +174,6 @@ class ArticleApiClientTest
       1,
       testArticle,
       List("1234"),
-      useImportValidation = false,
       useSoftValidation = false,
       authUser
     )
@@ -222,7 +221,6 @@ class ArticleApiClientTest
       id = 10,
       draft = invalidArticle,
       externalIds = List.empty,
-      useImportValidation = false,
       useSoftValidation = false,
       user = authUser
     )
