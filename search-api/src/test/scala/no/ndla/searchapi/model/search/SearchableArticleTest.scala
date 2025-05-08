@@ -78,8 +78,10 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       context = searchableTaxonomyContexts.headOption,
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
-      grepContexts =
-        List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
+      grepContexts = List(
+        SearchableGrepContext("K123", Some("some title"), "status_publisert"),
+        SearchableGrepContext("K456", Some("some title 2"), "status_publisert")
+      ),
       traits = List.empty,
       embedAttributes = embedAttrs,
       embedResourcesAndIds = embedResourcesAndIds,
@@ -154,8 +156,10 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       context = Some(singleSearchableTaxonomyContext),
       contexts = List(singleSearchableTaxonomyContext),
       contextids = List(singleSearchableTaxonomyContext.contextId),
-      grepContexts =
-        List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
+      grepContexts = List(
+        SearchableGrepContext("K123", Some("some title"), "status_publisert"),
+        SearchableGrepContext("K456", Some("some title 2"), "status_publisert")
+      ),
       traits = List.empty,
       embedAttributes = embedAttrs,
       embedResourcesAndIds = embedResourcesAndIds,

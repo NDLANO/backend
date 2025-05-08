@@ -42,32 +42,40 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     kjerneelementer = List(
       GrepKjerneelement(
         "KE12",
+        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
         GrepTextObj(
           List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP1", "Dette er LP1")
+        BelongsToObj("LP1", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP1")
       ),
       GrepKjerneelement(
         "KE34",
+        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
         GrepTextObj(
           List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP2", "Dette er LP2")
+        BelongsToObj("LP2", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP2")
       )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         kode = "KM123",
+        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
         tittel = GrepTextObj(
           List(
             GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
             GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
           )
         ),
-        `tilhoerer-laereplan` = BelongsToObj("LP2", "Dette er LP2"),
-        `tilhoerer-kompetansemaalsett` = BelongsToObj("KE200", "Kompetansemaalsett"),
+        `tilhoerer-laereplan` =
+          BelongsToObj("LP2", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP2"),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj(
+          "KE200",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          "Kompetansemaalsett"
+        ),
         `tilknyttede-tverrfaglige-temaer` = List(),
         `tilknyttede-kjerneelementer` = List(),
         `gjenbruk-av` = None
@@ -77,17 +85,20 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     tverrfagligeTemaer = List(
       GrepTverrfagligTema(
         "TT2",
+        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
         Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap"))
       )
     ),
     laereplaner = List(
       GrepLaererplan(
         "LP1",
+        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
         GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
         List.empty
       ),
       GrepLaererplan(
         "LP2",
+        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
         GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
         List.empty
       )

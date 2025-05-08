@@ -1088,10 +1088,20 @@ trait SearchConverterService {
               .get(grepCode) match {
               case Some(element: GrepKompetansemaalSett) =>
                 val subContexts = getGrepContexts(element.kompetansemaal.map(_.kode), bundle)
-                subContexts :+ SearchableGrepContext(code = grepCode, title = element.getTitleValue("default"))
+                subContexts :+ SearchableGrepContext(
+                  code = grepCode,
+                  title = element.getTitleValue("default"),
+                  status = element.status.status
+                )
               case Some(element) =>
-                List(SearchableGrepContext(code = grepCode, title = element.getTitleValue("default")))
-              case None => List(SearchableGrepContext(code = grepCode, title = None))
+                List(
+                  SearchableGrepContext(
+                    code = grepCode,
+                    title = element.getTitleValue("default"),
+                    status = element.status.status
+                  )
+                )
+              case None => List(SearchableGrepContext(code = grepCode, title = None, status = ""))
             }
           }.toList
       }
