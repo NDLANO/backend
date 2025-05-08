@@ -9,11 +9,11 @@
 package no.ndla.searchapi.model.grep
 
 import cats.implicits.*
-import io.circe.{Decoder, DecodingFailure, Encoder, HCursor}
+import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
-import sttp.tapir.CodecFormat.TextPlain
-import sttp.tapir.{Codec, CodecFormat, DecodeResult, Schema}
+import no.ndla.common.model.api.StringBasedValue
+import sttp.tapir.{Codec, CodecFormat, Schema}
 
 sealed trait GrepElement {
   val kode: String
@@ -150,7 +150,7 @@ object GrepTverrfagligTema {
   implicit val encoder: Encoder[GrepTverrfagligTema] = deriveEncoder
   implicit val decoder: Decoder[GrepTverrfagligTema] = deriveDecoder
 }
-class GrepStatus(val value: String) {
+class GrepStatus(value: String) extends StringBasedValue(value) {
   def status: String = value.split("/").lastOption.getOrElse("")
   override def toString: String = status
 }
@@ -159,32 +159,9 @@ object GrepStatus {
   def parse(value: String): GrepStatus = {
     new GrepStatus(value)
   }
-  implicit val schema: Schema[GrepStatus]            = Schema.string
-  implicit val schemaOpt: Schema[Option[GrepStatus]] = Schema.string.asOption
 
-  def fromString(s: String): Option[GrepStatus]            = Option(GrepStatus(s))
-  def fromOptString(s: Option[String]): Option[GrepStatus] = s.map(f => new GrepStatus(f))
-
-  implicit val codec: Codec[String, GrepStatus, CodecFormat.TextPlain] = Codec.string.mapDecode { value =>
-    DecodeResult.Value(parse(value))
-  }(_.status)
-
-  implicit val optCodec: Codec[Option[String], Option[GrepStatus], CodecFormat.TextPlain] = {
-    Codec
-      .id[Option[String], TextPlain](TextPlain(), Schema.string)
-      .mapDecode(x =>
-        DecodeResult.Value(
-          fromOptString(x)
-        )
-      )(x => x.map(_.status))
-  }
-
-  implicit val encoder: Encoder[GrepStatus] = Encoder.instance { gs => gs.toString.asJson }
-  implicit val decoder: Decoder[GrepStatus] = (c: HCursor) =>
-    c.as[String].flatMap { str =>
-      fromString(str) match {
-        case Some(value) => Right(value)
-        case None        => Left(DecodingFailure(DecodingFailure.Reason.CustomReason("Not a string"), c))
-      }
-    }
+  implicit val schema: Schema[GrepStatus] = StringBasedValue.schema[GrepStatus]
+  implicit val codec: Codec[String, GrepStatus, CodecFormat.TextPlain] = StringBasedValue.codec(GrepStatus.apply)
+  implicit val encoder: Encoder[GrepStatus] = StringBasedValue.encoder[GrepStatus]
+  implicit val decoder: Decoder[GrepStatus] = StringBasedValue.decoder(GrepStatus.apply)
 }
