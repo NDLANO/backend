@@ -151,17 +151,17 @@ object GrepTverrfagligTema {
   implicit val decoder: Decoder[GrepTverrfagligTema] = deriveDecoder
 }
 class GrepStatus(value: String) extends StringBasedValue(value) {
-  def status: String = value.split("/").lastOption.getOrElse("")
+  def status: String            = value.split("/").lastOption.getOrElse("")
   override def toString: String = status
 }
 object GrepStatus {
-  def apply(value: String): GrepStatus      = new GrepStatus(value)
+  def apply(value: String): GrepStatus = new GrepStatus(value)
   def parse(value: String): GrepStatus = {
     new GrepStatus(value)
   }
 
-  implicit val schema: Schema[GrepStatus] = StringBasedValue.schema[GrepStatus]
+  implicit val schema: Schema[GrepStatus]                              = StringBasedValue.schema[GrepStatus]
   implicit val codec: Codec[String, GrepStatus, CodecFormat.TextPlain] = StringBasedValue.codec(GrepStatus.apply)
-  implicit val encoder: Encoder[GrepStatus] = StringBasedValue.encoder[GrepStatus]
-  implicit val decoder: Decoder[GrepStatus] = StringBasedValue.decoder(GrepStatus.apply)
+  implicit val encoder: Encoder[GrepStatus]                            = StringBasedValue.encoder[GrepStatus]
+  implicit val decoder: Decoder[GrepStatus]                            = StringBasedValue.decoder(GrepStatus.apply)
 }

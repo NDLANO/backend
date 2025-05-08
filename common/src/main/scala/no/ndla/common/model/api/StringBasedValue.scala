@@ -14,14 +14,14 @@ import io.circe.syntax.*
 
 abstract class StringBasedValue(val value: String) extends Comparable[StringBasedValue] {
   override def equals(obj: Any): Boolean = {
-      obj match {
+    obj match {
       case that: StringBasedValue => this.value == that.value
       case _                      => false
-      }
+    }
   }
-  override def hashCode(): Int = value.hashCode()
+  override def hashCode(): Int                         = value.hashCode()
   override def compareTo(other: StringBasedValue): Int = this.value.compareTo(other.value)
-  override def toString: String = value
+  override def toString: String                        = value
 }
 
 object StringBasedValue {

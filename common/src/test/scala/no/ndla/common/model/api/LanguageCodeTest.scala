@@ -49,7 +49,7 @@ class LanguageCodeTest extends UnitTestSuiteBase {
       implicit val decoder: Decoder[ApiObject] = deriveDecoder
     }
 
-    val json = """{"normalField":"hei","languageField":"nb"}"""
+    val json   = """{"normalField":"hei","languageField":"nb"}"""
     val result = parse(json).flatMap(_.as[ApiObject])
 
     result should be(Right(ApiObject("hei", LanguageCode("nb"))))
