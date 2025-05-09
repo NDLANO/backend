@@ -27,7 +27,7 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.{AddMultipleNotesDTO, PartialArticleFieldsDTO}
+import no.ndla.draftapi.model.api.{AddMultipleNotesDTO, AddNoteDTO, PartialArticleFieldsDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexService, TagIndexService}
@@ -463,8 +463,14 @@ trait WriteService {
       shouldUpdateStatus
     }
 
+    private def flattenNotes(notes: AddMultipleNotesDTO): List[AddNoteDTO] =
+      notes.data
+        .groupBy(_.draftId)
+        .map { case (draftId, notes) => AddNoteDTO(draftId, notes.flatMap(_.notes)) }
+        .toList
+
     def addNotesToDrafts(input: AddMultipleNotesDTO, user: TokenUser): Try[Unit] = DBUtil.rollbackOnFailure { session =>
-      input.notnotes
+      flattenNotes(input)
         .traverse(info => addNotesToDraft(info.draftId, info.notes, user)(session))
         .unit
     }
