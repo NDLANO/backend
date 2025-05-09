@@ -15,24 +15,24 @@ import scala.util.Try
 
 case class SideEffect(
     name: String,
-    function: (Draft, Boolean, TokenUser) => Try[Draft]
+    function: (Draft, TokenUser) => Try[Draft]
 ) {
-  def run(article: Draft, isImported: Boolean, user: TokenUser): Try[Draft] =
-    function(article, isImported, user)
+  def run(article: Draft, user: TokenUser): Try[Draft] =
+    function(article, user)
 }
 
 object SideEffect {
   def withDraft(name: String)(func: Draft => Try[Draft]): SideEffect = {
     SideEffect(
       name = name,
-      function = (article: Draft, _: Boolean, _: TokenUser) => { func(article) }
+      function = (article: Draft, _: TokenUser) => { func(article) }
     )
   }
 
   def withDraftAndUser(name: String)(func: (Draft, TokenUser) => Try[Draft]): SideEffect = {
     SideEffect(
       name = name,
-      function = (article: Draft, _: Boolean, tokenUser: TokenUser) => { func(article, tokenUser) }
+      function = (article: Draft, tokenUser: TokenUser) => { func(article, tokenUser) }
     )
   }
 }
