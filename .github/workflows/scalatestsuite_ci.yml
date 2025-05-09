@@ -8,12 +8,24 @@ on:
     paths:
       - scalatestsuite/**
       - project/scalatestsuite*.scala
+      - common/**
+      - project/common*.scala
+      - testbase/**
+      - project/testbase*.scala
+      - database/**
+      - project/database*.scala
       - project/Dependencies.scala
       - project/Module.scala
   pull_request:
     paths:
       - scalatestsuite/**
       - project/scalatestsuite*.scala
+      - common/**
+      - project/common*.scala
+      - testbase/**
+      - project/testbase*.scala
+      - database/**
+      - project/database*.scala
       - project/Dependencies.scala
       - project/Module.scala
 env:
