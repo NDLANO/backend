@@ -38,6 +38,7 @@ trait GrepIndexService {
       val fields = List(
         keywordField("defaultTitle"),
         keywordField("code").normalizer("lower"),
+        keywordField("status").normalizer("lower"),
         keywordField("laereplanCode").normalizer("lower"),
         keywordField("gjenbrukAv").normalizer("lower"),
         keywordField("erstattesAv").normalizer("lower"),

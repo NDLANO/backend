@@ -53,6 +53,8 @@ trait GrepSearchService {
       case Some(ByTitleDesc)            => defaultSort("defaultTitle", "title", Desc, language)
       case Some(ByCodeAsc)              => sortField("code", Asc, missingLast = false)
       case Some(ByCodeDesc)             => sortField("code", Desc, missingLast = false)
+      case Some(ByStatusAsc)            => sortField("status", Asc, missingLast = false)
+      case Some(ByStatusDesc)           => sortField("status", Desc, missingLast = false)
     }
 
     protected def buildCodeQueries(codePrefixes: Set[String], codes: Set[String]): Option[Query] = {

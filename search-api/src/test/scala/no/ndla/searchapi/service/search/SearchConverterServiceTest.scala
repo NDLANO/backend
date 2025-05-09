@@ -20,6 +20,7 @@ import no.ndla.searchapi.model.grep.{
   GrepKjerneelement,
   GrepKompetansemaal,
   GrepKompetansemaalSett,
+  GrepStatus,
   GrepTextObj,
   GrepTitle,
   GrepTverrfagligTema,
@@ -452,9 +453,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableArticle converts grepContexts correctly based on article grepCodes if grepBundle is empty") {
     val article = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
-      SearchableGrepContext("KE12", None),
-      SearchableGrepContext("KM123", None),
-      SearchableGrepContext("TT2", None)
+      SearchableGrepContext("KE12", None, ""),
+      SearchableGrepContext("KM123", None, ""),
+      SearchableGrepContext("TT2", None, "")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
@@ -471,9 +472,13 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableArticle converts grepContexts correctly based on grepBundle if article has grepCodes") {
     val article = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
-      SearchableGrepContext("KE12", Some("Utforsking og problemløysing")),
-      SearchableGrepContext("KM123", Some("bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")),
-      SearchableGrepContext("TT2", Some("Demokrati og medborgerskap"))
+      SearchableGrepContext("KE12", Some("Utforsking og problemløysing"), "status_publisert"),
+      SearchableGrepContext(
+        "KM123",
+        Some("bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
+        "status_publisert"
+      ),
+      SearchableGrepContext("TT2", Some("Demokrati og medborgerskap"), "status_publisert")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
@@ -498,9 +503,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableDraft converts grepContexts correctly based on draft grepCodes if grepBundle is empty") {
     val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
-      SearchableGrepContext("KE12", None),
-      SearchableGrepContext("KM123", None),
-      SearchableGrepContext("TT2", None)
+      SearchableGrepContext("KE12", None, ""),
+      SearchableGrepContext("KM123", None, ""),
+      SearchableGrepContext("TT2", None, "")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableDraft(
@@ -516,34 +521,59 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kjerneelementer = List(
         GrepKjerneelement(
           "KE12",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel12"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          )
         ),
         GrepKjerneelement(
           "KE34",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel34"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          )
         )
       ),
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj("LP123", "Dette er LP123"),
-          BelongsToObj("KMS123", "Dette er KMS123"),
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          ),
+          BelongsToObj(
+            "KMS123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er KMS123"
+          ),
           List(),
           List(),
           None
         )
       ),
-      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
+      tverrfagligeTemaer = List(
+        GrepTverrfagligTema(
+          "TT2",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          Seq(GrepTitle("default", "tittel2"))
+        )
+      )
     )
     val grepContexts = List(
-      SearchableGrepContext("KE12", Some("tittel12")),
-      SearchableGrepContext("KM123", Some("tittel123")),
-      SearchableGrepContext("TT2", Some("tittel2"))
+      SearchableGrepContext("KE12", Some("tittel12"), "status_publisert"),
+      SearchableGrepContext("KM123", Some("tittel123"), "status_publisert"),
+      SearchableGrepContext("TT2", Some("tittel2"), "status_publisert")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
@@ -556,29 +586,54 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kjerneelementer = List(
         GrepKjerneelement(
           "KE12",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel12"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          )
         ),
         GrepKjerneelement(
           "KE34",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel34"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          )
         )
       ),
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj("LP123", "Dette er LP123"),
-          BelongsToObj("KMS123", "Dette er KMS123"),
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          ),
+          BelongsToObj(
+            "KMS123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er KMS123"
+          ),
           List(),
           List(),
           None
         )
       ),
-      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
+      tverrfagligeTemaer = List(
+        GrepTverrfagligTema(
+          "TT2",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          Seq(GrepTitle("default", "tittel2"))
+        )
+      )
     )
     val grepContexts = List.empty
 
@@ -667,29 +722,60 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kompetansemaalsett = List(
         GrepKompetansemaalSett(
           "KV123",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj("LP123", "Dette er LP123"),
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          ),
           List(
-            ReferenceObj("KM123", "Tittel KM123"),
-            ReferenceObj("KM234", "Tittel KM234")
+            ReferenceObj(
+              "KM123",
+              GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+              "Tittel KM123"
+            ),
+            ReferenceObj(
+              "KM234",
+              GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+              "Tittel KM234"
+            )
           )
         )
       ),
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj("LP123", "Dette er LP123"),
-          BelongsToObj("KV123", "Dette er KV123"),
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          ),
+          BelongsToObj(
+            "KV123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er KV123"
+          ),
           List(),
           List(),
           None
         ),
         GrepKompetansemaal(
           "KM234",
+          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
           GrepTextObj(List(GrepTitle("default", "tittel234"))),
-          BelongsToObj("LP123", "Dette er LP123"),
-          BelongsToObj("KV123", "Dette er KV123"),
+          BelongsToObj(
+            "LP123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er LP123"
+          ),
+          BelongsToObj(
+            "KV123",
+            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            "Dette er KV123"
+          ),
           List(),
           List(),
           None
@@ -697,9 +783,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     )
     val grepContexts = List(
-      SearchableGrepContext("KM123", Some("tittel123")),
-      SearchableGrepContext("KM234", Some("tittel234")),
-      SearchableGrepContext("KV123", Some("tittel123"))
+      SearchableGrepContext("KM123", Some("tittel123"), "status_publisert"),
+      SearchableGrepContext("KM234", Some("tittel234"), "status_publisert"),
+      SearchableGrepContext("KV123", Some("tittel123"), "status_publisert")
     )
     val Success(searchableNode) =
       searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
