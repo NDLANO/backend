@@ -27,7 +27,7 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.{AddNotesDTO, PartialArticleFieldsDTO}
+import no.ndla.draftapi.model.api.{AddMultipleNotesDTO, PartialArticleFieldsDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexService, TagIndexService}
@@ -463,17 +463,24 @@ trait WriteService {
       shouldUpdateStatus
     }
 
-    def addNotesToDraft(id: Long, input: AddNotesDTO, user: TokenUser): Try[api.ArticleDTO] = DBUtil.rollbackOnFailure {
-      session =>
-        for {
-          maybeDraft <- Try(draftRepository.withId(id)(session))
-          draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
-          now       = clock.now()
-          newNotes  = input.notes.map(note => common.EditorNote(note, user.id, draft.status, now))
-          converted = draft.copy(notes = draft.notes ++ newNotes)
-          updated <- draftRepository.updateArticle(converted)(session)
-          output  <- converterService.toApiArticle(updated, Language.AllLanguages)
-        } yield output
+    def addNotesToDrafts(input: AddMultipleNotesDTO, user: TokenUser): Try[Unit] = DBUtil.rollbackOnFailure { session =>
+      input.notnotes
+        .traverse(info => addNotesToDraft(info.draftId, info.notes, user)(session))
+        .unit
+    }
+
+    private def addNotesToDraft(id: Long, notes: List[String], user: TokenUser)(
+        session: DBSession
+    ): Try[api.ArticleDTO] = {
+      for {
+        maybeDraft <- Try(draftRepository.withId(id)(session))
+        draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
+        now       = clock.now()
+        newNotes  = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
+        converted = draft.copy(notes = draft.notes ++ newNotes)
+        updated <- draftRepository.updateArticle(converted)(session)
+        output  <- converterService.toApiArticle(updated, Language.AllLanguages)
+      } yield output
     }
 
     /** Compares articles to check whether earliest not-revised revision date has changed since that is the only one

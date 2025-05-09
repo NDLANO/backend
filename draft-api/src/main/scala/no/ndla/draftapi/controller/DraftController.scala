@@ -477,14 +477,14 @@ trait DraftController {
       }
 
     def addNotes: ServerEndpoint[Any, Eff] = endpoint.post
-      .in(pathArticleId / "notes")
+      .in("notes")
       .summary("Add notes to a draft")
       .description("Add notes to a draft")
-      .in(jsonBody[AddNotesDTO])
+      .in(jsonBody[AddMultipleNotesDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .out(jsonBody[ArticleDTO])
+      .out(emptyOutput)
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { user => { case (id, input) => writeService.addNotesToDraft(id, input, user) } }
+      .serverLogicPure { user => { input => writeService.addNotesToDrafts(input, user) } }
 
     def validateArticle: ServerEndpoint[Any, Eff] = endpoint.put
       .in(pathArticleId / "validate")

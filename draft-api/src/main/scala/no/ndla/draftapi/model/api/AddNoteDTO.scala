@@ -10,8 +10,10 @@ package no.ndla.draftapi.model.api
 
 import sttp.tapir.Schema.annotations.description
 
-@description("Data to add notes to a draft")
-case class AddNotesDTO(
+@description("Information containing new notes and which draft to add them to")
+case class AddNoteDTO(
+    @description("Id of the draft to add notes to")
+    draftId: Long,
     @description("Notes to add to the draft")
     notes: List[String]
 )
