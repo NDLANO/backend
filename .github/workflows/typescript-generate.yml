@@ -32,7 +32,7 @@ jobs:
       - uses: sbt/setup-sbt@v1
       - uses: actions/setup-node@v3
         with:
-          node-version: "20.19.1"
+          node-version: "22.15.0"
       - name: Login to ECR repo
         run:
           RES=$(aws sts assume-role --role-arn $CI_RELEASE_ROLE --role-session-name
