@@ -65,23 +65,6 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     }
   }
 
-  test("Fetching external ids works as expected") {
-    val externalIds        = List("1", "2", "3")
-    val idWithExternals    = 1L
-    val idWithoutExternals = 2L
-    repository.insertWithExternalIds(sampleArticle.copy(id = Some(idWithExternals)), externalIds, List.empty, None)(
-      AutoSession
-    )
-    repository.insertWithExternalIds(sampleArticle.copy(id = Some(idWithoutExternals)), List.empty, List.empty, None)(
-      AutoSession
-    )
-
-    val result1 = repository.getExternalIdsFromId(idWithExternals)(AutoSession)
-    result1 should be(externalIds)
-    val result2 = repository.getExternalIdsFromId(idWithoutExternals)(AutoSession)
-    result2 should be(List.empty)
-  }
-
   test("withId also returns archieved articles") {
     repository.insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(AutoSession)
     repository.insert(
@@ -90,35 +73,6 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
 
     repository.withId(1)(ReadOnlyAutoSession).isDefined should be(true)
     repository.withId(2)(ReadOnlyAutoSession).isDefined should be(true)
-  }
-
-  test("that importIdOfArticle works correctly") {
-    val externalIds = List("1", "2", "3")
-    val uuid        = "d4e84cd3-ab94-46d5-9839-47ec682d27c2"
-    val id1         = 1L
-    val id2         = 2L
-    repository.insertWithExternalIds(sampleArticle.copy(id = Some(id1)), externalIds, List.empty, Some(uuid))(
-      AutoSession
-    )
-    repository.insertWithExternalIds(sampleArticle.copy(id = Some(id2)), List.empty, List.empty, Some(uuid))(
-      AutoSession
-    )
-
-    val result1 = repository.importIdOfArticle("1")
-    result1.get should be(ImportId(Some(uuid)))
-    val result2 = repository.importIdOfArticle("2")
-    result2.get should be(ImportId(Some(uuid)))
-
-    repository.deleteArticle(id1)(AutoSession)
-    repository.deleteArticle(id2)(AutoSession)
-  }
-
-  test("ExternalIds should not contains NULLs") {
-    val art1 = sampleArticle.copy(id = Some(10L))
-    repository.insertWithExternalIds(art1, null, List.empty, None)(AutoSession)
-    val result1 = repository.getExternalIdsFromId(10)(AutoSession)
-
-    result1 should be(List.empty)
   }
 
   test("Updating an article should work as expected") {
@@ -152,7 +106,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val art4 = sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty))
 
     repository.insert(art1)(AutoSession)
-    repository.insertWithExternalIds(art2, List("1234", "5678"), List.empty, None)(AutoSession)
+    repository.insert(art2)(AutoSession)
     repository.insert(art3)(AutoSession)
     repository.insert(art4)(AutoSession)
 
@@ -162,16 +116,6 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.withId(art4.id.get)(ReadOnlyAutoSession).get should be(art4)
   }
 
-  test("That updateWithExternalIds updates article correctly") {
-    val art1 = sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty))
-    repository.insertWithExternalIds(art1, List("1234", "5678"), List.empty, None)(AutoSession)
-
-    val updatedContent = Seq(ArticleContent("This is updated with external ids yo", "en"))
-    val updatedArt     = art1.copy(content = updatedContent)
-    repository.updateWithExternalIds(updatedArt, List("1234", "5678"), List.empty, None)(AutoSession)
-    repository.withId(art1.id.get)(ReadOnlyAutoSession).get should be(updatedArt)
-  }
-
   test("That getAllIds returns all articles") {
     val art1 = sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty))
     val art2 = sampleArticle.copy(id = Some(2), status = Status(DraftStatus.PUBLISHED, Set.empty))
@@ -179,27 +123,18 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val art4 = sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty))
 
     repository.insert(art1)(AutoSession)
-    repository.insertWithExternalIds(art2, List("1234", "5678"), List.empty, None)(AutoSession)
+    repository.insert(art2)(AutoSession)
     repository.insert(art3)(AutoSession)
     repository.insert(art4)(AutoSession)
 
     repository.getAllIds(AutoSession) should be(
       Seq(
         ArticleIds(art1.id.get, List.empty),
-        ArticleIds(art2.id.get, List("1234", "5678")),
+        ArticleIds(art2.id.get, List.empty),
         ArticleIds(art3.id.get, List.empty),
         ArticleIds(art4.id.get, List.empty)
       )
     )
-  }
-
-  test("that getIdFromExternalId returns id of article correctly") {
-    val art1 = sampleArticle.copy(id = Some(14), status = Status(DraftStatus.PLANNED, Set.empty))
-    repository.insert(art1)(AutoSession)
-    repository.insertWithExternalIds(art1.copy(revision = Some(3)), List("5678"), List.empty, None)(AutoSession)
-
-    repository.getIdFromExternalId("5678")(AutoSession) should be(art1.id)
-    repository.getIdFromExternalId("9999")(AutoSession) should be(None)
   }
 
   test("That newEmptyArticle creates the latest available article_id") {
@@ -220,11 +155,8 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
       sampleArticle.copy(id = Some(3), status = Status(DraftStatus.IN_PROGRESS, Set.empty))
     )(AutoSession)
     repository.insert(sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty)))(AutoSession)
-    repository.insertWithExternalIds(
-      sampleArticle.copy(id = Some(5), status = Status(DraftStatus.IN_PROGRESS, Set.empty)),
-      List("1234"),
-      List.empty,
-      None
+    repository.insert(
+      sampleArticle.copy(id = Some(5), status = Status(DraftStatus.IN_PROGRESS, Set.empty))
     )(AutoSession)
     repository.insert(
       sampleArticle.copy(id = Some(6), status = Status(DraftStatus.PUBLISHED, Set.empty))
@@ -232,11 +164,8 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.insert(
       sampleArticle.copy(id = Some(7), status = Status(DraftStatus.END_CONTROL, Set.empty))
     )(AutoSession)
-    repository.insertWithExternalIds(
-      sampleArticle.copy(id = Some(8), status = Status(DraftStatus.IN_PROGRESS, Set.empty)),
-      List("5678", "1111"),
-      List.empty,
-      None
+    repository.insert(
+      sampleArticle.copy(id = Some(8), status = Status(DraftStatus.IN_PROGRESS, Set.empty))
     )(AutoSession)
 
     repository.idsWithStatus(DraftStatus.PLANNED)(AutoSession) should be(
@@ -244,7 +173,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     )
 
     repository.idsWithStatus(DraftStatus.IN_PROGRESS)(AutoSession) should be(
-      Success(List(ArticleIds(3, List.empty), ArticleIds(5, List("1234")), ArticleIds(8, List("5678", "1111"))))
+      Success(List(ArticleIds(3, List.empty), ArticleIds(5, List.empty), ArticleIds(8, List.empty)))
     )
 
     repository.idsWithStatus(DraftStatus.PUBLISHED)(AutoSession) should be(Success(List(ArticleIds(6, List.empty))))
@@ -304,22 +233,6 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
 
     val count = repository.articlesWithId(article.id.get).size
     count should be(oldCount + 1)
-
-  }
-
-  test("published article keeps revison on import") {
-    val article = TestData.sampleDomainArticle.copy(revision = Some(1))
-    repository.insert(article)(AutoSession)
-    val oldCount         = repository.articlesWithId(article.id.get).size
-    val publishedArticle = article.copy(status = Status(DraftStatus.PUBLISHED, Set.empty))
-    val updatedArticle   = repository.updateArticle(publishedArticle, isImported = true)(AutoSession).get
-    updatedArticle.revision should be(Some(1))
-
-    updatedArticle.notes.length should be(0)
-    updatedArticle should equal(publishedArticle.copy(notes = Seq(), revision = Some(1)))
-
-    val count = repository.articlesWithId(article.id.get).size
-    count should be(oldCount)
 
   }
 

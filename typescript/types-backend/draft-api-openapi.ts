@@ -1525,13 +1525,7 @@ export interface operations {
     };
     "postDraft-apiV1Drafts": {
         parameters: {
-            query?: {
-                externalId?: string[];
-                oldNdlaCreatedDate?: string;
-                oldNdlaUpdatedDate?: string;
-                externalSubjectIds?: string[];
-                importId?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1856,13 +1850,7 @@ export interface operations {
     };
     "patchDraft-apiV1DraftsArticle_id": {
         parameters: {
-            query?: {
-                externalId?: string[];
-                oldNdlaCreatedDate?: string;
-                oldNdlaUpdatedDate?: string;
-                externalSubjectIds?: string[];
-                importId?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description Id of the article that is to be fetched */
@@ -2072,9 +2060,7 @@ export interface operations {
     };
     "putDraft-apiV1DraftsArticle_idStatusStatus": {
         parameters: {
-            query?: {
-                import_publish?: boolean;
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description Id of the article that is to be fetched */

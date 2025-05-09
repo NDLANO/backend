@@ -157,15 +157,7 @@ trait WriteService {
       fileStorage.copyResource(withoutPrefix, newFileName).map(f => s"/files/$f")
     }
 
-    def newArticle(
-        newArticle: api.NewArticleDTO,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        user: TokenUser,
-        oldNdlaCreatedDate: Option[NDLADate],
-        oldNdlaUpdatedDate: Option[NDLADate],
-        importId: Option[String]
-    ): Try[api.ArticleDTO] = {
+    def newArticle(newArticle: api.NewArticleDTO, user: TokenUser): Try[api.ArticleDTO] = {
       val newNotes      = Some("Opprettet artikkel" +: newArticle.notes.getOrElse(Seq.empty))
       val visualElement = newArticle.visualElement.filter(_.nonEmpty)
       val withNotes = newArticle.copy(
@@ -173,78 +165,34 @@ trait WriteService {
         visualElement = visualElement
       )
       DBUtil.rollbackOnFailure { implicit session =>
-        val insertFunction = externalIds match {
-          case Nil =>
-            (a: Draft) => draftRepository.insert(a)
-          case nids =>
-            (a: Draft) => draftRepository.insertWithExternalIds(a, nids, externalSubjectIds, importId)
-        }
-
         for {
-          newId <- draftRepository.newEmptyArticleId()
-          domainArticle <- converterService.toDomainArticle(
-            newId,
-            withNotes,
-            externalIds,
-            user,
-            oldNdlaCreatedDate,
-            oldNdlaUpdatedDate
-          )
+          newId           <- draftRepository.newEmptyArticleId()
+          domainArticle   <- converterService.toDomainArticle(newId, withNotes, user)
           _               <- contentValidator.validateArticle(None, domainArticle)
-          insertedArticle <- Try(insertFunction(domainArticle))
+          insertedArticle <- Try(draftRepository.insert(domainArticle))
           _ = indexArticle(insertedArticle, user)
           apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
         } yield apiArticle
       }
     }
 
-    def updateArticleStatus(
-        status: DraftStatus,
-        id: Long,
-        user: TokenUser,
-        isImported: Boolean
-    ): Try[api.ArticleDTO] = {
+    def updateArticleStatus(status: DraftStatus, id: Long, user: TokenUser): Try[api.ArticleDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(api.NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
-            convertedArticle <- converterService.updateStatus(status, draft, user, isImported)
-            updatedArticle <- updateArticleAndStoreAsNewIfPublished(
-              convertedArticle,
-              isImported,
-              statusWasUpdated = true
-            )
+            convertedArticle <- converterService.updateStatus(status, draft, user)
+            updatedArticle   <- updateArticleAndStoreAsNewIfPublished(convertedArticle, statusWasUpdated = true)
             _ = indexArticle(updatedArticle, user)
             apiArticle <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
           } yield apiArticle
       }
     }
 
-    private def updateArticleAndStoreAsNewIfPublished(
-        article: Draft,
-        isImported: Boolean,
-        statusWasUpdated: Boolean
-    ): Try[Draft] = {
-      val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED && !isImported
-      DBUtil.rollbackOnFailure { implicit session =>
-        draftRepository.updateArticle(article, isImported) match {
-          case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
-          case Success(updated)                      => Success(updated)
-          case Failure(ex)                           => Failure(ex)
-        }
-      }
-    }
-
-    private def updateArticleWithExternalAndStoreAsNewIfPublished(
-        article: Draft,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        importId: Option[String],
-        statusWasUpdated: Boolean
-    ): Try[Draft] = {
+    def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean): Try[Draft] = {
       val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
       DBUtil.rollbackOnFailure { implicit session =>
-        draftRepository.updateWithExternalIds(article, externalIds, externalSubjectIds, importId) match {
+        draftRepository.updateArticle(article) match {
           case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
           case Success(updated)                      => Success(updated)
           case Failure(ex)                           => Failure(ex)
@@ -325,29 +273,13 @@ trait WriteService {
     /** Determines which repository function(s) should be called and calls them */
     private def performArticleUpdate(
         article: Draft,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        isImported: Boolean,
-        importId: Option[String],
         createNewVersion: Boolean,
         user: TokenUser,
         statusWasUpdated: Boolean
     ): Try[Draft] =
-      if (createNewVersion) {
+      if (createNewVersion)
         draftRepository.storeArticleAsNewVersion(article, Some(user), keepDraftData = true)(AutoSession)
-      } else {
-        externalIds match {
-          case Nil => updateArticleAndStoreAsNewIfPublished(article, isImported, statusWasUpdated)
-          case nids =>
-            updateArticleWithExternalAndStoreAsNewIfPublished(
-              article,
-              nids,
-              externalSubjectIds,
-              importId,
-              statusWasUpdated
-            )
-        }
-      }
+      else updateArticleAndStoreAsNewIfPublished(article, statusWasUpdated)
 
     private def addRevisionDateNotes(
         user: TokenUser,
@@ -457,11 +389,7 @@ trait WriteService {
 
     private def updateArticle(
         toUpdate: Draft,
-        importId: Option[String],
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
         language: Option[String],
-        isImported: Boolean,
         createNewVersion: Boolean,
         oldArticle: Option[Draft],
         user: TokenUser,
@@ -479,27 +407,13 @@ trait WriteService {
         updatedApiArticle,
         shouldNotAutoUpdateStatus
       )
-      val withPriority =
-        updatePriorityField(withStarted, oldArticle, statusWasUpdated)
+      val withPriority  = updatePriorityField(withStarted, oldArticle, statusWasUpdated)
+      val languageOrAll = language.getOrElse(Language.AllLanguages)
 
       for {
-        _ <- contentValidator.validateArticleOnLanguage(oldArticle, toUpdate, language)
-        domainArticle <- performArticleUpdate(
-          withPriority,
-          externalIds,
-          externalSubjectIds,
-          isImported,
-          importId,
-          createNewVersion,
-          user,
-          statusWasUpdated
-        )
-        _ = partialPublishIfNeeded(
-          domainArticle,
-          fieldsToPartialPublish.toSeq,
-          language.getOrElse(Language.AllLanguages),
-          user
-        )
+        _             <- contentValidator.validateArticleOnLanguage(oldArticle, toUpdate, language)
+        domainArticle <- performArticleUpdate(withPriority, createNewVersion, user, statusWasUpdated)
+        _ = partialPublishIfNeeded(domainArticle, fieldsToPartialPublish.toSeq, languageOrAll, user)
         _ = indexArticle(domainArticle, user)
         _ <- updateTaxonomyForArticle(domainArticle, user)
       } yield domainArticle
@@ -507,7 +421,8 @@ trait WriteService {
 
     private def updateTaxonomyForArticle(article: Draft, user: TokenUser) = {
       article.id match {
-        case Some(id) => taxonomyApiClient.updateTaxonomyIfExists(id, article, user).map(_ => article)
+        case Some(id) =>
+          taxonomyApiClient.updateTaxonomyIfExists(id, article, user).map(_ => article)
         case None =>
           Failure(
             api.ArticleVersioningException("Article supplied to taxonomy update did not have an id. This is a bug.")
@@ -580,9 +495,7 @@ trait WriteService {
         existingArticle: Option[Draft],
         changedArticle: Draft
     ): Set[api.PartialArticleFieldsDTO] = {
-      val isPublished =
-        changedArticle.status.current == PUBLISHED ||
-          changedArticle.status.other.contains(PUBLISHED)
+      val isPublished = changedArticle.status.current == PUBLISHED || changedArticle.status.other.contains(PUBLISHED)
 
       if (isPublished) {
         val changedFields = existingArticle
@@ -610,89 +523,54 @@ trait WriteService {
       val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
       val newStatus            = newManualStatus.getOrElse(newStatusIfUndefined)
 
-      converterService.updateStatus(newStatus, convertedArticle, user, isImported = false)
+      converterService.updateStatus(newStatus, convertedArticle, user)
     }
 
-    def updateArticle(
-        articleId: Long,
-        updatedApiArticle: api.UpdatedArticleDTO,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        user: TokenUser,
-        oldNdlaCreatedDate: Option[NDLADate],
-        oldNdlaUpdatedDate: Option[NDLADate],
-        importId: Option[String]
-    ): Try[api.ArticleDTO] = {
+    def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticleDTO, user: TokenUser): Try[api.ArticleDTO] =
       draftRepository.withId(articleId)(ReadOnlyAutoSession) match {
         case Some(existing) =>
-          updateExistingArticle(
-            existing,
-            updatedApiArticle,
-            externalIds,
-            externalSubjectIds,
-            user,
-            oldNdlaCreatedDate,
-            oldNdlaUpdatedDate,
-            importId
-          )
+          updateExistingArticle(existing, updatedApiArticle, user)
         case None =>
           Failure(api.NotFoundException(s"Article with id $articleId does not exist"))
       }
-    }
 
     private def updateExistingArticle(
         existing: Draft,
         updatedApiArticle: api.UpdatedArticleDTO,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        user: TokenUser,
-        oldNdlaCreatedDate: Option[NDLADate],
-        oldNdlaUpdatedDate: Option[NDLADate],
-        importId: Option[String]
-    ): Try[api.ArticleDTO] = for {
-      convertedArticle <- converterService.toDomainArticle(
-        existing,
-        updatedApiArticle,
-        externalIds.nonEmpty,
-        user,
-        oldNdlaCreatedDate,
-        oldNdlaUpdatedDate
-      )
+        user: TokenUser
+    ): Try[api.ArticleDTO] =
+      for {
+        convertedArticle <- converterService.toDomainArticle(existing, updatedApiArticle, user)
+        shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existing)
 
-      shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existing)
+        articleWithStatus <- updateStatusIfNeeded(
+          convertedArticle,
+          existing,
+          updatedApiArticle,
+          user,
+          shouldNotAutoUpdateStatus
+        )
 
-      articleWithStatus <- updateStatusIfNeeded(
-        convertedArticle,
-        existing,
-        updatedApiArticle,
-        user,
-        shouldNotAutoUpdateStatus
-      )
+        didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
 
-      didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
+        updatedArticle <- updateArticle(
+          articleWithStatus,
+          language = updatedApiArticle.language,
+          createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
+          oldArticle = Some(existing),
+          user = user,
+          statusWasUpdated = didUpdateStatus,
+          updatedApiArticle = updatedApiArticle,
+          shouldNotAutoUpdateStatus = shouldNotAutoUpdateStatus
+        )
+        withEmbedUrls = readService.addUrlsOnEmbedResources(updatedArticle)
 
-      updatedArticle <- updateArticle(
-        articleWithStatus,
-        importId,
-        externalIds,
-        externalSubjectIds,
-        language = updatedApiArticle.language,
-        isImported = externalIds.nonEmpty,
-        createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
-        oldArticle = Some(existing),
-        user = user,
-        statusWasUpdated = didUpdateStatus,
-        updatedApiArticle = updatedApiArticle,
-        shouldNotAutoUpdateStatus = shouldNotAutoUpdateStatus
-      )
-      withEmbedUrls = readService.addUrlsOnEmbedResources(updatedArticle)
-
-      apiArticle <- converterService.toApiArticle(
-        article = withEmbedUrls,
-        language = updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
-        fallback = updatedApiArticle.language.isEmpty
-      )
-    } yield apiArticle
+        apiArticle <- converterService.toApiArticle(
+          article = withEmbedUrls,
+          language = updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
+          fallback = updatedApiArticle.language.isEmpty
+        )
+      } yield apiArticle
 
     def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.ArticleDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
@@ -700,18 +578,14 @@ trait WriteService {
           article.title.size match {
             case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
             case _ =>
-              converterService
-                .deleteLanguage(article, language, userInfo)
-                .flatMap(newArticle =>
-                  updateArticleAndStoreAsNewIfPublished(newArticle, isImported = false, statusWasUpdated = true)
-                    .flatMap(
-                      converterService.toApiArticle(_, Language.AllLanguages)
-                    )
-                )
+              for {
+                newArticle <- converterService.deleteLanguage(article, language, userInfo)
+                stored     <- updateArticleAndStoreAsNewIfPublished(newArticle, statusWasUpdated = true)
+                converted  <- converterService.toApiArticle(stored, Language.AllLanguages)
+              } yield converted
           }
         case None => Failure(api.NotFoundException("Article does not exist"))
       }
-
     }
 
     def deleteArticle(id: Long): Try[api.ContentIdDTO] = {

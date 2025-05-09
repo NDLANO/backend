@@ -43,36 +43,6 @@ trait DraftRepository {
       article.copy(revision = Some(startRevision), slug = slug)
     }
 
-    def insertWithExternalIds(
-        article: Draft,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        importId: Option[String]
-    )(implicit session: DBSession): Draft = {
-      val startRevision = 1
-      val dataObject    = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(CirceUtil.toJsonString(article))
-
-      val uuid = Try(importId.map(UUID.fromString)).toOption.flatten
-      val slug = article.slug.map(_.toLowerCase)
-
-      val dbId: Long =
-        sql"""
-             insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
-             values (ARRAY[${externalIds}]::text[],
-                     ARRAY[${externalSubjectIds}]::text[],
-                     ${dataObject},
-                     $startRevision,
-                     $uuid,
-                     ${article.id},
-                     $slug)
-          """.updateAndReturnGeneratedKey()
-
-      logger.info(s"Inserted new article: ${article.id} (with db id $dbId)")
-      article.copy(revision = Some(startRevision))
-    }
-
     def storeArticleAsNewVersion(article: Draft, user: Option[TokenUser], keepDraftData: Boolean = false)(implicit
         session: DBSession
     ): Try[Draft] = {
@@ -153,16 +123,13 @@ trait DraftRepository {
         Success(updatedArticle)
       }
 
-    def updateArticle(
-        article: Draft,
-        isImported: Boolean = false
-    )(implicit session: DBSession): Try[Draft] = {
+    def updateArticle(article: Draft)(implicit session: DBSession): Try[Draft] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(CirceUtil.toJsonString(article))
 
-      val newRevision = if (isImported) 1 else article.revision.getOrElse(0) + 1
-      val oldRevision = if (isImported) 1 else article.revision.getOrElse(0)
+      val newRevision = article.revision.getOrElse(0) + 1
+      val oldRevision = article.revision.getOrElse(0)
       val slug        = article.slug.map(_.toLowerCase)
       val count =
         sql"""
@@ -172,66 +139,6 @@ trait DraftRepository {
               and revision=$oldRevision
               and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
            """.update()
-
-      failIfRevisionMismatch(count, article, newRevision)
-    }
-
-    private def deletePreviousRevisions(article: Draft)(implicit session: DBSession): Int = {
-      val a = DBArticle.syntax("ar")
-      withSQL {
-        delete
-          .from(DBArticle as a)
-          .where
-          .eq(a.c("article_id"), article.id)
-          .and
-          .notIn(
-            a.id,
-            select(a.id)
-              .from(DBArticle as a)
-              .where
-              .eq(a.c("article_id"), article.id)
-              .orderBy(a.revision)
-              .desc
-              .limit(1)
-          )
-      }.update()
-    }
-
-    def updateWithExternalIds(
-        article: Draft,
-        externalIds: List[String],
-        externalSubjectIds: Seq[String],
-        importId: Option[String]
-    )(implicit session: DBSession): Try[Draft] = {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(CirceUtil.toJsonString(article))
-
-      val uuid        = Try(importId.map(UUID.fromString)).toOption.flatten
-      val newRevision = article.revision.getOrElse(0) + 1
-      val slug        = article.slug.map(_.toLowerCase)
-
-      val deleteCount = deletePreviousRevisions(article)
-      logger.info(
-        s"Deleted $deleteCount revisions of article with id '${article.id.getOrElse(-1)}' before import update."
-      )
-
-      val a = DBArticle.syntax("ar")
-      val count = withSQL {
-        update(DBArticle as a)
-          .set(
-            sqls"""
-                 document=$dataObject,
-                 revision=1,
-                 external_id=ARRAY[$externalIds]::text[],
-                 external_subject_id=ARRAY[$externalSubjectIds]::text[],
-                 import_id=$uuid,
-                 slug=$slug
-              """
-          )
-          .where
-          .eq(a.c("article_id"), article.id)
-      }.update()
 
       failIfRevisionMismatch(count, article, newRevision)
     }
